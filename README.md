@@ -1,22 +1,20 @@
-# ThingPedia API
+# ThingTalk
 
 ## Help the World Connect the Dots
 
-ThingPedia is the distributed open source platform for IoT rules.
+ThingTalk is the declarative (rule-based) distributed programming
+language for IoT.
 
-Anyone can contribute the interface code to access any device or
-web service to ThingPedia.
+It is the language component of the Open Thing Platform, an IoT
+platform that also includes ThingPedia and ThingEngine.
 
-This package contains the public API and set of JS interfaces
-that any package published in ThingPedia should adhere too.
+This package contains the grammar and the compiler of the language.
 
-ThingPedia is a research project led by prof. Monica Lam, from Stanford University.
-You can find more information at http://www.thingpedia.org
+Open Thing Platform is a research project led by prof. Monica Lam,
+from Stanford University.  You can find more information at
+http://www.thingpedia.org
 
 ## License
 
-This package, as well as ThingEngine, is covered by the GNU
-General Public License, version 2 or any later version.
-This means, among other things, that any project or package
-wishing to use this API, or to be published in ThingPedia, must
-use a GPL-compatible license.
+This package is covered by the GNU General Public License, version 2
+or any later version.
