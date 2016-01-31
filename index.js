@@ -12,10 +12,12 @@ const Ast = require('./lib/ast');
 const Compiler = require('./lib/compiler');
 const Grammar = require('./lib/grammar');
 const ExecEnvironment = require('./lib/exec_environment');
+const Type = require('./lib/type');
 
 module.exports = {
     Ast: Ast,
     Compiler: Compiler,
     Grammar: Grammar,
-    ExecEnvironment: ExecEnvironment
+    ExecEnvironment: ExecEnvironment,
+    Type: Type
 };
