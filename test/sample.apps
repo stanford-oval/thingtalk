@@ -29,6 +29,7 @@ HashTagToUser($insert(dict, tag, $append(users, from)));
 ====
 
 LinkedInApp-F () {
+var Company-F : (String, String);
 extern Colleagues : Array((String, String));
 var NewColleague : (String, String);
 @linkedin.profile (name, co) =>Company-F[self](name, co);
@@ -53,6 +54,9 @@ SabrinaTestCapturingGroup() {
 ====
 
 LinkedInApp-F() {
+    var Company-F : (String, String);
+    var NewColleague : (String, String);
+
     @linkedin.profile(name, _, ind) => Company-F[self](name, ind);
     Company-F[self](_, ind), Company-F[m](name, ind), m in F =>
         NewColleague(name, ind);
@@ -63,6 +67,9 @@ LinkedInApp-F() {
 
 WeightCompetition-F(stopTime: String) {
     var InitialWeight-F : (Measure(kg));
+    var Weight : (Measure(kg));
+    var Loss-F : (Number);
+    var Winner : (User);
 
     @(type="scale").source(_, w)
         => Weight(w);
@@ -74,13 +81,13 @@ WeightCompetition-F(stopTime: String) {
         => Loss-F[self]((w1 - w2)/w2);
 
     Loss-F[m](l), m in F
-        => Winners($argMax(Loss-F));
+        => Winner($argMax(Loss-F));
 
-    Winners(w)
+    Winner(w)
         => @$notify(w);
 
     @$at(stopTime)
-        => @$return(Winners);
+        => @$return(Winner);
 }
 
 ====
