@@ -1,5 +1,14 @@
 // -* mode: js -*-
 
+KeywordTest() {
+var Key1 : String;
+var Key2 : String;
+
+@$timer(30s), (Key1) = "foo" => Key1(Key2);
+}
+
+====
+
 TwitterTrendingHashtag(NumberOfUsers : Number) {
 var HashTagToUser : Map(String, Array(String));
 
