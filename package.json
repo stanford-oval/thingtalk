@@ -12,7 +12,8 @@
   "main": "index.js",
   "dependencies": {
     "immutable": "~3.7.6",
-    "adt": "~0.7.2"
+    "adt": "~0.7.2",
+    "q": "~1.4.1"
   },
   "devDependencies": {
     "pegjs": "~0.9.0"

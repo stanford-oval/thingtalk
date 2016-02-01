@@ -31,8 +31,8 @@ HashTagToUser($insert(dict, tag, $append(users, from)));
 LinkedInApp-F () {
 extern Colleagues : Array((String, String));
 var NewColleague : (String, String);
-//@linkedin.profile (name, co) =>Company-F[self](name, co);
-//Company-F[self](_,co), Company-F[m](name, co), m in F, m != self =>NewColleague(name, co);
+@linkedin.profile (name, co) =>Company-F[self](name, co);
+Company-F[self](_,co), Company-F[m](name, co), m in F, m != self =>NewColleague(name, co);
 NewColleague(name, co) => Colleagues($append(Colleagues, (name, co)));
 NewColleague(name, co) => @$notify(name);
 }
@@ -64,7 +64,7 @@ LinkedInApp-F() {
 WeightCompetition-F(stopTime: String) {
     var InitialWeight-F : (Measure(kg));
 
-    @(type="scale").measure(w)
+    @(type="scale").source(_, w)
         => Weight(w);
 
     Weight(w), !InitialWeight-F[self](_)
