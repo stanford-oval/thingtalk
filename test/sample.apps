@@ -1,5 +1,11 @@
 // -* mode: js -*-
 
+TrueTest() {
+true => @$logger("something");
+}
+
+====
+
 KeywordTest() {
 var Key1 : String;
 var Key2 : String;
