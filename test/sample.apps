@@ -6,6 +6,18 @@ true => @$logger("something");
 
 ====
 
+RandomTest() {
+true => @$logger($toString($random()));
+}
+
+====
+
+RandomTest2() {
+true => @$logger($toString($choice([1,2,3])));
+}
+
+====
+
 KeywordTest() {
 var Key1 : String;
 var Key2 : String;
