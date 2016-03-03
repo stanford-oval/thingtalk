@@ -1,11 +1,23 @@
 // -* mode: js -*-
 
+RandomTest2() {
+true => @$logger($toString($choice([1,2,3])));
+}
+
+====
+
+TestOpOrder() {
+true => @sabrina.say($toString(5-2+1));
+}
+
+====
+
 TestNumber() {
 var Num : Number;
 var Mes : Measure(m);
 !Num(_) => Num(-1.2e7);
 !Num(_) => Num(1.2);
-!Mes(_) => Mes(1.5m);
+!Mes(_) => Mes(1.5kg);
 }
 
 ====
@@ -44,12 +56,6 @@ true => @$logger("something");
 
 RandomTest() {
 true => @$logger($toString($random()));
-}
-
-====
-
-RandomTest2() {
-true => @$logger($toString($choice([1,2,3])));
 }
 
 ====

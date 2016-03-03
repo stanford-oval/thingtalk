@@ -58,6 +58,7 @@ function parserTest() {
     Q.all(code.map(function(code) {
         try {
             var ast = AppGrammar.parse(code);
+	    console.log(String(ast.statements));
         } catch(e) {
             console.log('Parsing failed');
             console.log(code);
@@ -67,7 +68,7 @@ function parserTest() {
 
         return Q.try(function() {
             var compiler = new AppCompiler();
-            //compiler.setSchemaRetriever(_mockSchemaRetriever);
+            compiler.setSchemaRetriever(_mockSchemaRetriever);
 
             return compiler.compileProgram(ast).then(function() {
                 /*compiler.rules.forEach(function(r, i) {
