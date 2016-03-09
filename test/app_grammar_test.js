@@ -28,6 +28,15 @@ var _mockSchemaRetriever = {
                 "say": ["String"]
             },
         },
+        "omlet": {
+            "triggers": {
+                "newmessage": ["Feed", "String", "String"],
+                "incomingmessage": ["Feed", "String", "String"]
+            },
+            "actions": {
+                "send": ["Feed", "String", "String"]
+            }
+        },
         "test": {
             "triggers": {
                 "source": ["Number"],

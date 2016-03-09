@@ -1,5 +1,143 @@
 // -* mode: js -*-
 
+TM-F () {
+// Look on my works, ye Mighty, and despair!
+// Runs a distributed Turing Machine interpreter, using round-robin to run it on
+// each of the users within a feed's ThingEngines. Mostly for fun, but
+// demonstrates that ThingTalk is a Turing-complete language.
+// I would have written a shorter program but I did not have time. Also, the
+// language is sorely lacking in support for nested conditions, if-else type
+// actions and multiple actions, which makes conciseness somewhat difficult.
+// This better count as distributed social computation.
+
+// Note: depending on how the data is propagated, there will be consistency
+// issues. Also, due to the way ThingTalk execution works, if a variable is
+// assigned a value but that is the same as its old value, any corresponding
+// actions are _not_ rerun. This means that if you ask to run the same machine
+// multiple times, it may not actually get executed. This is not a bug in this
+// code. Of course, there are ways to get around it with some contortions but
+// the code is convoluted enough as it is.
+
+// -----------------------------------------------------------------------------
+// The particular machine model we use here is a variant of a register machine.
+// The allowed instructions are: i#r (i followed by a number, which we will
+// denote r), d#r, t#q.
+//   i#r: increment register r by 1, proceed to next instruction
+//   d#r: if register r's value is 0, just proceed to the next instruction,
+//        otherwise decrement r by 1 and jump one instruction
+//   t#q: jump q instructions. q may be negative. If there is no such
+//        instruction, halt.
+
+// To actually run the Turing machine, in a feed say "run" followed by a space
+// and the sequence of instructions, terminated by a colon and then a number
+// representing the value of the first register (register 0). All other
+// registers start with the value 0.
+// So e.g. "run d0t3i1t-3:5" transfers the value of 5 from register 0 to 1.
+
+// Step 0: leader election, to ensure only a single user within the feed parses
+// any new commands.
+out Leader-F : Boolean;
+!Leader-F[self](_) => Leader-F[self](true);
+Leader-F[self](true), Leader-F[m](_), m in F, m.name < self.name => Leader-F[self](false);
+
+@omlet.newmessage(feed, _, "Reset"), feed = F => Node($emptyMap()), Run(false), Done(true);
+
+// Step 1: parse commands. Ideally this should be done by the person that sent
+// the message, but the Omlet interface doesn't seem to allow us to figure that
+// out so for now it is done by the leader.
+out Reset : (String, Number);  // Unparsed command, start value
+out Command : String;
+// Instruction index, single character instruction, number in instruction, rest of command
+out NewCommand : (Number, String, Number, String);
+
+out Run : Boolean;
+// Array indexing isn't supported, so we use maps instead.
+// Map instruction index to single character instruction
+out InstructionChars : Map(Number, String);
+// Map instruction index to number in instruction
+out InstructionNums : Map(Number, Number);
+// Register number to value
+out Registers : Map(Number, Number);
+
+!InstructionNums(_) => InstructionNums($emptyMap());
+!InstructionChars(_) => InstructionChars($emptyMap());
+
+@omlet.newmessage(F, _, msg), Leader-F[self](true), $regex(msg, "^run (.*)\\:(\\d+)$", "i", cmd, startval) => Reset(cmd, $valueOf(startval));
+
+Leader-F[self](true), Reset(cmd, startval) => Node($insert($emptyMap(), self, 0)),
+                                              Run(false),
+                                              InstructionChars($emptyMap()),
+                                              InstructionNums($emptyMap()),
+                                              Registers($insert($emptyMap(), 0, startval));
+
+// Ensure all other reset actions have completed before starting this.
+Leader-F[self](true), Reset(cmd, startval), Node(_), $contains(Node, self), Run(false), InstructionChars(_), $count(InstructionChars) = 0, InstructionNums(_), $count(InstructionNums) = 0, Registers(_), $lookup(Registers, 0) = startval => Command(cmd);
+
+Leader-F[self](true), Command(cmd), $regex(cmd, "^([id])(\\d+)(\\D.*)$", "i", instr, regnum, rest) => NewCommand($count(InstructionChars), instr, $valueOf(regnum), rest);
+Leader-F[self](true), Command(cmd), $regex(cmd, "^([id])(\\d+)$", "i", instr, regnum) => NewCommand($count(InstructionChars), instr, $valueOf(regnum), "");
+Leader-F[self](true), Command(cmd), $regex(cmd, "^t(-?\\d+)(\\D.*)$", "i", inum, rest) => NewCommand($count(InstructionChars), "t", $valueOf(inum), rest);
+Leader-F[self](true), Command(cmd), $regex(cmd, "^t(-?\\d+)$", "i", inum) => NewCommand($count(InstructionChars), "t", $valueOf(inum), "");
+
+Leader-F[self](true), NewCommand(instr_i, instr, inum, rest) => InstructionChars($insert(InstructionChars, instr_i, instr)),
+                                                                InstructionNums($insert(InstructionNums, instr_i, inum));
+Leader-F[self](true), NewCommand(instr_i, instr, inum, rest), InstructionChars(_), $contains(InstructionChars, instr_i), InstructionNums(_), $contains(InstructionNums, instr_i) => Command(rest);
+Leader-F[self](true), Command("") => State(0, 0), Done(false), RunInstr-F[self](-1, "_", -1), DecIntermediate-F[self](-1, false, 0, 0), IncIntermediate-F[self](-1, 0, 0);
+Leader-F[self](true), Command(""), State(0, 0), Done(false), RunInstr-F[self](instr_r, _, _), instr_r = -1, DecIntermediate-F[self](instr_j, _, _, _), instr_j = -1, IncIntermediate-F[self](instr_j2, _, _), instr_j2 = -1 => Run(true);
+Leader-F[self](true), Run(true) => @omlet.send(F, "text", "Parsing complete! Now running.");
+
+// Step 3: run!
+// We use round-robin scheduling among users. Of course, this is horrifically
+// inefficient but that's besides the point. One could imagine batching multiple
+// instructions to run on each node, but for simplicity we don't do that.
+// Map user to their index
+out Node : Map(User, Number);
+// Current user index, instruction index
+out State : (Number, Number);
+// Instruction index, single character instruction, number in instruction
+out RunInstr-F : (Number, String, Number);
+out Done : Boolean;
+// Instruction index, register number, new register value
+out IncIntermediate-F : (Number, Number, Number);
+// Instruction index, whether register's value was 0, register number, new register value
+out DecIntermediate-F : (Number, Boolean, Number, Number);
+
+!Node(_) => Node($emptyMap());
+Node(_), !$contains(Node, self) => Node($insert(Node, self, $count(Node)));
+
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i => RunInstr-F[self](instr_i, $lookup(InstructionChars, instr_i), $lookup(InstructionNums, instr_i));
+// i
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, RunInstr-F[self](instr_j, "i", inum), instr_j = instr_i, $contains(Registers, inum) => IncIntermediate-F[self](instr_i, inum, $lookup(Registers, inum) + 1);
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, RunInstr-F[self](instr_j, "i", inum), instr_j = instr_i, !$contains(Registers, inum) => IncIntermediate-F[self](instr_i, inum, 1);
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, IncIntermediate-F[self](instr_j, regnum, newval), instr_j = instr_i => Registers($insert(Registers, regnum, newval));
+// Check for halt
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, IncIntermediate-F[self](instr_j, regnum, newval), instr_j = instr_i, Registers(_), $lookup(Registers, regnum) = newval, !$contains(InstructionChars, instr_i + 1) => Done(true);
+// Check for user wraparound
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, IncIntermediate-F[self](instr_j, regnum, newval), instr_j = instr_i, Registers(_), $lookup(Registers, regnum) = newval, $contains(InstructionChars, instr_i + 1), user_i + 1 = $count(Node) => State(0, instr_i + 1);
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, IncIntermediate-F[self](instr_j, regnum, newval), instr_j = instr_i, Registers(_), $lookup(Registers, regnum) = newval, $contains(InstructionChars, instr_i + 1), user_i + 1 != $count(Node) => State(user_i + 1, instr_i + 1);
+// d
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, RunInstr-F[self](instr_j, "d", inum), instr_j = instr_i, $contains(Registers, inum) && $lookup(Registers, inum) > 0 => DecIntermediate-F[self](instr_i, false, inum, $lookup(Registers, inum) - 1);
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, RunInstr-F[self](instr_j, "d", inum), instr_j = instr_i, !($contains(Registers, inum) && $lookup(Registers, inum) > 0) => DecIntermediate-F[self](instr_i, true, inum, 0);
+// d, register was not 0
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, DecIntermediate-F[self](instr_j, false, regnum, newval), instr_j = instr_i => Registers($insert(Registers, regnum, newval));
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, DecIntermediate-F[self](instr_j, false, regnum, newval), instr_j = instr_i, Registers(_), $lookup(Registers, regnum) = newval, !$contains(InstructionChars, instr_i + 2) => Done(true);
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, DecIntermediate-F[self](instr_j, false, regnum, newval), instr_j = instr_i, Registers(_), $lookup(Registers, regnum) = newval, $contains(InstructionChars, instr_i + 2), user_i + 1 = $count(Node) => State(0, instr_i + 2);
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, DecIntermediate-F[self](instr_j, false, regnum, newval), instr_j = instr_i, Registers(_), $lookup(Registers, regnum) = newval, $contains(InstructionChars, instr_i + 2), user_i + 1 != $count(Node) => State(user_i + 1, instr_i + 2);
+// d, register was 0
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, DecIntermediate-F[self](instr_j, true, _, _), instr_j = instr_i, !$contains(InstructionChars, instr_i + 1) => Done(true);
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, DecIntermediate-F[self](instr_j, true, _, _), instr_j = instr_i, $contains(InstructionChars, instr_i + 1), user_i + 1 = $count(Node) => State(0, instr_i + 1);
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, DecIntermediate-F[self](instr_j, true, _, _), instr_j = instr_i, $contains(InstructionChars, instr_i + 1), user_i + 1 != $count(Node) => State(user_i + 1, instr_i + 1);
+// t
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, RunInstr-F[self](instr_j, "t", inum), instr_j = instr_i, !$contains(InstructionChars, instr_i + inum) => Done(true);
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, RunInstr-F[self](instr_j, "t", inum), instr_j = instr_i, $contains(InstructionChars, instr_i + inum), user_i + 1 = $count(Node) => State(0, instr_i + inum);
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, RunInstr-F[self](instr_j, "t", inum), instr_j = instr_i, $contains(InstructionChars, instr_i + inum), user_i + 1 != $count(Node) => State(user_i + 1, instr_i + inum);
+// Done!
+Run(true), Done(true), State(user_i, instr_i), $lookup(Node, self) = user_i => @omlet.send(F, "text", "Result is: " + $toString(Registers));
+Run(true), Done(true), State(user_i, instr_i), $lookup(Node, self) = user_i => Run(false);
+
+}
+
+====
+
 MultiAction() {
 var V1 : String;
 var V2 : Number;
