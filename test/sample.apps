@@ -1,5 +1,13 @@
 // -* mode: js -*-
 
+MultiAction() {
+var V1 : String;
+var V2 : Number;
+true => V1("foo"), V2(7), @$logger("bla");
+}
+
+====
+
 RandomTest2() {
 true => @$logger($toString($choice([1,2,3])));
 }
