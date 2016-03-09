@@ -1,5 +1,14 @@
 // -* mode: js -*-
 
+TestTupleUnpack() {
+    var V : Array((String, String));
+    var V2 : (String, String);
+
+    V(a), $contains(a, v) => V2(v);
+}
+
+====
+
 TM-F () {
 // Look on my works, ye Mighty, and despair!
 // Runs a distributed Turing Machine interpreter, using round-robin to run it on
