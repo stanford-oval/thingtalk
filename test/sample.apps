@@ -9,7 +9,7 @@ TestTupleUnpack() {
 
 ====
 
-TM-F () {
+TM[F] () {
 // Look on my works, ye Mighty, and despair!
 // Runs a distributed Turing Machine interpreter, using round-robin to run it on
 // each of the users within a feed's ThingEngines. Mostly for fun, but
@@ -45,9 +45,9 @@ TM-F () {
 
 // Step 0: leader election, to ensure only a single user within the feed parses
 // any new commands.
-out Leader-F : Boolean;
-!Leader-F[self](_) => Leader-F[self](true);
-Leader-F[self](true), Leader-F[m](_), m in F, m.name < self.name => Leader-F[self](false);
+out Leader[F] : Boolean;
+!Leader[self](_) => Leader[self](true);
+Leader[self](true), Leader[m](_), m in F, m.name < self.name => Leader[self](false);
 
 @omlet.newmessage(feed, _, "Reset"), feed = F => Node($emptyMap()), Run(false), Done(true);
 
@@ -71,28 +71,28 @@ out Registers : Map(Number, Number);
 !InstructionNums(_) => InstructionNums($emptyMap());
 !InstructionChars(_) => InstructionChars($emptyMap());
 
-@omlet.newmessage(F, _, msg), Leader-F[self](true), $regex(msg, "^run (.*)\\:(\\d+)$", "i", cmd, startval) => Reset(cmd, $valueOf(startval));
+@omlet.newmessage(F, _, msg), Leader[self](true), $regex(msg, "^run (.*)\\:(\\d+)$", "i", cmd, startval) => Reset(cmd, $valueOf(startval));
 
-Leader-F[self](true), Reset(cmd, startval) => Node($insert($emptyMap(), self, 0)),
+Leader[self](true), Reset(cmd, startval) => Node($insert($emptyMap(), self, 0)),
                                               Run(false),
                                               InstructionChars($emptyMap()),
                                               InstructionNums($emptyMap()),
                                               Registers($insert($emptyMap(), 0, startval));
 
 // Ensure all other reset actions have completed before starting this.
-Leader-F[self](true), Reset(cmd, startval), Node(_), $contains(Node, self), Run(false), InstructionChars(_), $count(InstructionChars) = 0, InstructionNums(_), $count(InstructionNums) = 0, Registers(_), $lookup(Registers, 0) = startval => Command(cmd);
+Leader[self](true), Reset(cmd, startval), Node(_), $contains(Node, self), Run(false), InstructionChars(_), $count(InstructionChars) = 0, InstructionNums(_), $count(InstructionNums) = 0, Registers(_), $lookup(Registers, 0) = startval => Command(cmd);
 
-Leader-F[self](true), Command(cmd), $regex(cmd, "^([id])(\\d+)(\\D.*)$", "i", instr, regnum, rest) => NewCommand($count(InstructionChars), instr, $valueOf(regnum), rest);
-Leader-F[self](true), Command(cmd), $regex(cmd, "^([id])(\\d+)$", "i", instr, regnum) => NewCommand($count(InstructionChars), instr, $valueOf(regnum), "");
-Leader-F[self](true), Command(cmd), $regex(cmd, "^t(-?\\d+)(\\D.*)$", "i", inum, rest) => NewCommand($count(InstructionChars), "t", $valueOf(inum), rest);
-Leader-F[self](true), Command(cmd), $regex(cmd, "^t(-?\\d+)$", "i", inum) => NewCommand($count(InstructionChars), "t", $valueOf(inum), "");
+Leader[self](true), Command(cmd), $regex(cmd, "^([id])(\\d+)(\\D.*)$", "i", instr, regnum, rest) => NewCommand($count(InstructionChars), instr, $valueOf(regnum), rest);
+Leader[self](true), Command(cmd), $regex(cmd, "^([id])(\\d+)$", "i", instr, regnum) => NewCommand($count(InstructionChars), instr, $valueOf(regnum), "");
+Leader[self](true), Command(cmd), $regex(cmd, "^t(-?\\d+)(\\D.*)$", "i", inum, rest) => NewCommand($count(InstructionChars), "t", $valueOf(inum), rest);
+Leader[self](true), Command(cmd), $regex(cmd, "^t(-?\\d+)$", "i", inum) => NewCommand($count(InstructionChars), "t", $valueOf(inum), "");
 
-Leader-F[self](true), NewCommand(instr_i, instr, inum, rest) => InstructionChars($insert(InstructionChars, instr_i, instr)),
+Leader[self](true), NewCommand(instr_i, instr, inum, rest) => InstructionChars($insert(InstructionChars, instr_i, instr)),
                                                                 InstructionNums($insert(InstructionNums, instr_i, inum));
-Leader-F[self](true), NewCommand(instr_i, instr, inum, rest), InstructionChars(_), $contains(InstructionChars, instr_i), InstructionNums(_), $contains(InstructionNums, instr_i) => Command(rest);
-Leader-F[self](true), Command("") => State(0, 0), Done(false), RunInstr-F[self](-1, "_", -1), DecIntermediate-F[self](-1, false, 0, 0), IncIntermediate-F[self](-1, 0, 0);
-Leader-F[self](true), Command(""), State(0, 0), Done(false), RunInstr-F[self](instr_r, _, _), instr_r = -1, DecIntermediate-F[self](instr_j, _, _, _), instr_j = -1, IncIntermediate-F[self](instr_j2, _, _), instr_j2 = -1 => Run(true);
-Leader-F[self](true), Run(true) => @omlet.send(F, "text", "Parsing complete! Now running.");
+Leader[self](true), NewCommand(instr_i, instr, inum, rest), InstructionChars(_), $contains(InstructionChars, instr_i), InstructionNums(_), $contains(InstructionNums, instr_i) => Command(rest);
+Leader[self](true), Command("") => State(0, 0), Done(false), RunInstr[self](-1, "_", -1), DecIntermediate[self](-1, false, 0, 0), IncIntermediate[self](-1, 0, 0);
+Leader[self](true), Command(""), State(0, 0), Done(false), RunInstr[self](instr_r, _, _), instr_r = -1, DecIntermediate[self](instr_j, _, _, _), instr_j = -1, IncIntermediate[self](instr_j2, _, _), instr_j2 = -1 => Run(true);
+Leader[self](true), Run(true) => @omlet.send(F, "text", "Parsing complete! Now running.");
 
 // Step 3: run!
 // We use round-robin scheduling among users. Of course, this is horrifically
@@ -103,42 +103,42 @@ out Node : Map(User, Number);
 // Current user index, instruction index
 out State : (Number, Number);
 // Instruction index, single character instruction, number in instruction
-out RunInstr-F : (Number, String, Number);
+out RunInstr[F] : (Number, String, Number);
 out Done : Boolean;
 // Instruction index, register number, new register value
-out IncIntermediate-F : (Number, Number, Number);
+out IncIntermediate[F] : (Number, Number, Number);
 // Instruction index, whether register's value was 0, register number, new register value
-out DecIntermediate-F : (Number, Boolean, Number, Number);
+out DecIntermediate[F] : (Number, Boolean, Number, Number);
 
 !Node(_) => Node($emptyMap());
 Node(_), !$contains(Node, self) => Node($insert(Node, self, $count(Node)));
 
-Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i => RunInstr-F[self](instr_i, $lookup(InstructionChars, instr_i), $lookup(InstructionNums, instr_i));
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i => RunInstr[self](instr_i, $lookup(InstructionChars, instr_i), $lookup(InstructionNums, instr_i));
 // i
-Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, RunInstr-F[self](instr_j, "i", inum), instr_j = instr_i, $contains(Registers, inum) => IncIntermediate-F[self](instr_i, inum, $lookup(Registers, inum) + 1);
-Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, RunInstr-F[self](instr_j, "i", inum), instr_j = instr_i, !$contains(Registers, inum) => IncIntermediate-F[self](instr_i, inum, 1);
-Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, IncIntermediate-F[self](instr_j, regnum, newval), instr_j = instr_i => Registers($insert(Registers, regnum, newval));
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, RunInstr[self](instr_j, "i", inum), instr_j = instr_i, $contains(Registers, inum) => IncIntermediate[self](instr_i, inum, $lookup(Registers, inum) + 1);
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, RunInstr[self](instr_j, "i", inum), instr_j = instr_i, !$contains(Registers, inum) => IncIntermediate[self](instr_i, inum, 1);
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, IncIntermediate[self](instr_j, regnum, newval), instr_j = instr_i => Registers($insert(Registers, regnum, newval));
 // Check for halt
-Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, IncIntermediate-F[self](instr_j, regnum, newval), instr_j = instr_i, Registers(_), $lookup(Registers, regnum) = newval, !$contains(InstructionChars, instr_i + 1) => Done(true);
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, IncIntermediate[self](instr_j, regnum, newval), instr_j = instr_i, Registers(_), $lookup(Registers, regnum) = newval, !$contains(InstructionChars, instr_i + 1) => Done(true);
 // Check for user wraparound
-Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, IncIntermediate-F[self](instr_j, regnum, newval), instr_j = instr_i, Registers(_), $lookup(Registers, regnum) = newval, $contains(InstructionChars, instr_i + 1), user_i + 1 = $count(Node) => State(0, instr_i + 1);
-Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, IncIntermediate-F[self](instr_j, regnum, newval), instr_j = instr_i, Registers(_), $lookup(Registers, regnum) = newval, $contains(InstructionChars, instr_i + 1), user_i + 1 != $count(Node) => State(user_i + 1, instr_i + 1);
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, IncIntermediate[self](instr_j, regnum, newval), instr_j = instr_i, Registers(_), $lookup(Registers, regnum) = newval, $contains(InstructionChars, instr_i + 1), user_i + 1 = $count(Node) => State(0, instr_i + 1);
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, IncIntermediate[self](instr_j, regnum, newval), instr_j = instr_i, Registers(_), $lookup(Registers, regnum) = newval, $contains(InstructionChars, instr_i + 1), user_i + 1 != $count(Node) => State(user_i + 1, instr_i + 1);
 // d
-Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, RunInstr-F[self](instr_j, "d", inum), instr_j = instr_i, $contains(Registers, inum) && $lookup(Registers, inum) > 0 => DecIntermediate-F[self](instr_i, false, inum, $lookup(Registers, inum) - 1);
-Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, RunInstr-F[self](instr_j, "d", inum), instr_j = instr_i, !($contains(Registers, inum) && $lookup(Registers, inum) > 0) => DecIntermediate-F[self](instr_i, true, inum, 0);
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, RunInstr[self](instr_j, "d", inum), instr_j = instr_i, $contains(Registers, inum) && $lookup(Registers, inum) > 0 => DecIntermediate[self](instr_i, false, inum, $lookup(Registers, inum) - 1);
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, RunInstr[self](instr_j, "d", inum), instr_j = instr_i, !($contains(Registers, inum) && $lookup(Registers, inum) > 0) => DecIntermediate[self](instr_i, true, inum, 0);
 // d, register was not 0
-Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, DecIntermediate-F[self](instr_j, false, regnum, newval), instr_j = instr_i => Registers($insert(Registers, regnum, newval));
-Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, DecIntermediate-F[self](instr_j, false, regnum, newval), instr_j = instr_i, Registers(_), $lookup(Registers, regnum) = newval, !$contains(InstructionChars, instr_i + 2) => Done(true);
-Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, DecIntermediate-F[self](instr_j, false, regnum, newval), instr_j = instr_i, Registers(_), $lookup(Registers, regnum) = newval, $contains(InstructionChars, instr_i + 2), user_i + 1 = $count(Node) => State(0, instr_i + 2);
-Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, DecIntermediate-F[self](instr_j, false, regnum, newval), instr_j = instr_i, Registers(_), $lookup(Registers, regnum) = newval, $contains(InstructionChars, instr_i + 2), user_i + 1 != $count(Node) => State(user_i + 1, instr_i + 2);
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, DecIntermediate[self](instr_j, false, regnum, newval), instr_j = instr_i => Registers($insert(Registers, regnum, newval));
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, DecIntermediate[self](instr_j, false, regnum, newval), instr_j = instr_i, Registers(_), $lookup(Registers, regnum) = newval, !$contains(InstructionChars, instr_i + 2) => Done(true);
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, DecIntermediate[self](instr_j, false, regnum, newval), instr_j = instr_i, Registers(_), $lookup(Registers, regnum) = newval, $contains(InstructionChars, instr_i + 2), user_i + 1 = $count(Node) => State(0, instr_i + 2);
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, DecIntermediate[self](instr_j, false, regnum, newval), instr_j = instr_i, Registers(_), $lookup(Registers, regnum) = newval, $contains(InstructionChars, instr_i + 2), user_i + 1 != $count(Node) => State(user_i + 1, instr_i + 2);
 // d, register was 0
-Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, DecIntermediate-F[self](instr_j, true, _, _), instr_j = instr_i, !$contains(InstructionChars, instr_i + 1) => Done(true);
-Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, DecIntermediate-F[self](instr_j, true, _, _), instr_j = instr_i, $contains(InstructionChars, instr_i + 1), user_i + 1 = $count(Node) => State(0, instr_i + 1);
-Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, DecIntermediate-F[self](instr_j, true, _, _), instr_j = instr_i, $contains(InstructionChars, instr_i + 1), user_i + 1 != $count(Node) => State(user_i + 1, instr_i + 1);
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, DecIntermediate[self](instr_j, true, _, _), instr_j = instr_i, !$contains(InstructionChars, instr_i + 1) => Done(true);
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, DecIntermediate[self](instr_j, true, _, _), instr_j = instr_i, $contains(InstructionChars, instr_i + 1), user_i + 1 = $count(Node) => State(0, instr_i + 1);
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, DecIntermediate[self](instr_j, true, _, _), instr_j = instr_i, $contains(InstructionChars, instr_i + 1), user_i + 1 != $count(Node) => State(user_i + 1, instr_i + 1);
 // t
-Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, RunInstr-F[self](instr_j, "t", inum), instr_j = instr_i, !$contains(InstructionChars, instr_i + inum) => Done(true);
-Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, RunInstr-F[self](instr_j, "t", inum), instr_j = instr_i, $contains(InstructionChars, instr_i + inum), user_i + 1 = $count(Node) => State(0, instr_i + inum);
-Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, RunInstr-F[self](instr_j, "t", inum), instr_j = instr_i, $contains(InstructionChars, instr_i + inum), user_i + 1 != $count(Node) => State(user_i + 1, instr_i + inum);
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, RunInstr[self](instr_j, "t", inum), instr_j = instr_i, !$contains(InstructionChars, instr_i + inum) => Done(true);
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, RunInstr[self](instr_j, "t", inum), instr_j = instr_i, $contains(InstructionChars, instr_i + inum), user_i + 1 = $count(Node) => State(0, instr_i + inum);
+Run(true), Done(false), State(user_i, instr_i), $lookup(Node, self) = user_i, RunInstr[self](instr_j, "t", inum), instr_j = instr_i, $contains(InstructionChars, instr_i + inum), user_i + 1 != $count(Node) => State(user_i + 1, instr_i + inum);
 // Done!
 Run(true), Done(true), State(user_i, instr_i), $lookup(Node, self) = user_i => @omlet.send(F, "text", "Result is: " + $toString(Registers));
 Run(true), Done(true), State(user_i, instr_i), $lookup(Node, self) = user_i => Run(false);
@@ -243,12 +243,12 @@ HashTagToUser($insert(dict, tag, $append(users, from)));
 
 ====
 
-LinkedInApp-F () {
-var Company-F : (String, String);
+LinkedInApp[F] () {
+var Company[F] : (String, String);
 out Colleagues : Array((String, String));
 var NewColleague : (String, String);
-@linkedin.profile (name, co) =>Company-F[self](name, co);
-Company-F[self](_,co), Company-F[m](name, co), m in F, m != self =>NewColleague(name, co);
+@linkedin.profile (name, co) =>Company[self](name, co);
+Company[self](_,co), Company[m](name, co), m in F, m != self =>NewColleague(name, co);
 NewColleague(name, co) => Colleagues($append(Colleagues, (name, co)));
 NewColleague(name, co) => @$notify(name);
 }
@@ -268,35 +268,35 @@ SabrinaTestCapturingGroup() {
 
 ====
 
-LinkedInApp-F() {
-    var Company-F : (String, String);
+LinkedInApp[F]() {
+    var Company[F] : (String, String);
     var NewColleague : (String, String);
 
-    @linkedin.profile(name, _, ind) => Company-F[self](name, ind);
-    Company-F[self](_, ind), Company-F[m](name, ind), m in F =>
+    @linkedin.profile(name, _, ind) => Company[self](name, ind);
+    Company[self](_, ind), Company[m](name, ind), m in F =>
         NewColleague(name, ind);
     NewColleague(name, co) => @$notify(name, co);
 }
 
 ====
 
-WeightCompetition-F(stopTime: String) {
-    var InitialWeight-F : (Measure(kg));
+WeightCompetition[F](stopTime: String) {
+    var InitialWeight[F] : (Measure(kg));
     var Weight : (Measure(kg));
-    var Loss-F : (Number);
+    var Loss[F] : (Number);
     var Winner : (User);
 
     @(type="scale").source(_, w)
         => Weight(w);
 
-    Weight(w), !InitialWeight-F[self](_)
-        => InitialWeight-F[self](w);
+    Weight(w), !InitialWeight[self](_)
+        => InitialWeight[self](w);
 
-    InitialWeight-F[self](w1), Weight(w2)
-        => Loss-F[self]((w1 - w2)/w2);
+    InitialWeight[self](w1), Weight(w2)
+        => Loss[self]((w1 - w2)/w2);
 
-    Loss-F[m](l), m in F
-        => Winner($argMax(Loss-F));
+    Loss[m](l), m in F
+        => Winner($argMax(Loss));
 
     Winner(w)
         => @$notify(w);
