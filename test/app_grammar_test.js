@@ -28,6 +28,12 @@ var _mockSchemaRetriever = {
                 "say": ["String"]
             },
         },
+        "weatherapi": {
+            "triggers": {
+                "sunrise": ["Number", "Number", "Date", "Date"]
+            },
+            "actions": {}
+        },
         "omlet": {
             "triggers": {
                 "newmessage": ["Feed", "String", "String"],
@@ -67,7 +73,7 @@ function parserTest() {
     Q.all(code.map(function(code) {
         try {
             var ast = AppGrammar.parse(code);
-	    console.log(String(ast.statements));
+	        //console.log(String(ast.statements));
         } catch(e) {
             console.log('Parsing failed');
             console.log(code);
