@@ -12,6 +12,9 @@ var _mockSchemaRetriever = {
             },
             "actions": {
                 "sink": ["String"]
+            },
+            "queries": {
+                "retweets_of_me": ["String","Array(String)","Array(String)","String"]
             }
         },
         "linkedin": {
@@ -19,6 +22,7 @@ var _mockSchemaRetriever = {
                 "profile": ["String","String","String","String","Any","String"],
             },
             "actions": {},
+            "queries": {}
         },
         "sabrina": {
             "triggers": {
@@ -27,12 +31,14 @@ var _mockSchemaRetriever = {
             "actions": {
                 "say": ["String"]
             },
+            "queries": {}
         },
         "weatherapi": {
             "triggers": {
                 "sunrise": ["Number", "Number", "Date", "Date"]
             },
-            "actions": {}
+            "actions": {},
+            "queries": {}
         },
         "omlet": {
             "triggers": {
@@ -41,19 +47,22 @@ var _mockSchemaRetriever = {
             },
             "actions": {
                 "send": ["Feed", "String", "String"]
-            }
+            },
+            "queries": {}
         },
         "test": {
             "triggers": {
                 "source": ["Number"],
             },
-            "actions": {}
+            "actions": {},
+            "queries": {}
         },
         "scale": {
             "triggers": {
                 "source": ["Date","Measure(kg)"],
             },
-            "actions": {}
+            "actions": {},
+            "queries": {}
         }
     },
 

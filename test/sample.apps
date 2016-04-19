@@ -1,5 +1,12 @@
 // -* mode: js -*-
 
+GetRetweets() {
+    @sabrina.listen(what), $regex(what, "get retweets from ([a-z0-9]+)", "i", who) =>
+    @twitter.retweets_of_me(text, hashtags, urls, who) => @sabrina.say("Retweet from " + who + ": " + text);
+}
+
+====
+
 IndianAstrology() {
    var sunDuration: Measure(ms);
    var setToday: String;
@@ -9,7 +16,7 @@ IndianAstrology() {
    var min: String;
    var sec: String;
    @weatherapi.sunrise(37, 122, rise, set) => setToday($toString(set)), riseToday($toString(rise)), sunDuration(set - rise);
-  setToday(x), $regex(setToday, "^(Mon|Tue|Wed|Thu|Fri|Sat|Sun).*([0-9][0-9]):([0-9][0-9]):([0-9][0-9])", "i", day, hour, min, sec) => @$notify("Sunset today which is a " + day + " is at " + hour + " hr " + min + " m " + sec + " s");
+   setToday(x), $regex(setToday, "^(Mon|Tue|Wed|Thu|Fri|Sat|Sun).*([0-9][0-9]):([0-9][0-9]):([0-9][0-9])", "i", day, hour, min, sec) => @$notify("Sunset today which is a " + day + " is at " + hour + " hr " + min + " m " + sec + " s");
    //sunDuration(_) => @$notify("Unit of sun today is: " + $toString($valueOf($toString(sunDuration))/8) + " ms");
 }
 
