@@ -6,8 +6,6 @@
 //
 // See COPYING for details
 
-const lang = require('lang');
-
 const Ast = require('./lib/ast');
 const Compiler = require('./lib/compiler');
 const Grammar = require('./lib/grammar');
