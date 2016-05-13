@@ -4,6 +4,13 @@ SabrinaChangeNestTemperature(Thermostat : String) {
 @sabrina.listen(text), $regex(text, "set\\s+nest\\s+temp(?:erature)?\\s+(?:to\\s+)?([0-9\\.]+)\\s*C?", "i", temp) =>
 @(type="thermostat", name=Thermostat).set_target_temperature($valueOf(temp)*1C);
 }
+====
+
+SabrinaLikesItHot(Thermostat : String, Threshold : Measure(C)) {
+@(type="thermostat", name=Thermostat).temperature(_, t), t > Threshold => @$notify("bla");
+@(type="thermostat", name=Thermostat).temperature(_, t), t > Threshold => @$notify("bla " + $toString(t));
+@(type="thermostat", name=Thermostat).temperature(_, t), t > Threshold => @$notify("bla " + $toString($rand()));
+}
 
 ====
 
