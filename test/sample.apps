@@ -1,5 +1,12 @@
 // -* mode: js -*-
 
+SabrinaChangeNestTemperature(Thermostat : String) {
+@sabrina.listen(text), $regex(text, "set\\s+nest\\s+temp(?:erature)?\\s+(?:to\\s+)?([0-9\\.]+)\\s*C?", "i", temp) =>
+@(type="thermostat", name=Thermostat).set_target_temperature($valueOf(temp)*1C);
+}
+
+====
+
 GetRetweets() {
     @sabrina.listen(what), $regex(what, "get retweets from ([a-z0-9]+)", "i", who) =>
     @twitter.retweets_of_me(text, hashtags, urls, who) => @sabrina.say("Retweet from " + who + ": " + text);
