@@ -65,7 +65,9 @@ var _mockSchemaRetriever = {
             "queries": {}
         },
         "thermostat": {
-            "triggers": {},
+            "triggers": {
+                "temperature": ["Date", "Measure(C)"]
+            },
             "actions": {
                 "set_target_temperature": ["Measure(C)"],
             },

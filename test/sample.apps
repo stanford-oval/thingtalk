@@ -9,7 +9,7 @@ SabrinaChangeNestTemperature(Thermostat : String) {
 SabrinaLikesItHot(Thermostat : String, Threshold : Measure(C)) {
 @(type="thermostat", name=Thermostat).temperature(_, t), t > Threshold => @$notify("bla");
 @(type="thermostat", name=Thermostat).temperature(_, t), t > Threshold => @$notify("bla " + $toString(t));
-@(type="thermostat", name=Thermostat).temperature(_, t), t > Threshold => @$notify("bla " + $toString($rand()));
+@(type="thermostat", name=Thermostat).temperature(_, t), t > Threshold => @$notify("bla " + $toString($random()));
 }
 
 ====
