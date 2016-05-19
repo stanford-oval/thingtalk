@@ -3,6 +3,7 @@ const fs = require('fs');
 
 const AppCompiler = require('../lib/compiler');
 const AppGrammar = require('../lib/grammar');
+const codegen = require('../lib/codegen');
 
 var _mockSchemaRetriever = {
     _schema: {
@@ -89,14 +90,28 @@ function parserTest() {
     var code = fs.readFileSync('./test/sample.apps').toString('utf8').split('====');
 
     Q.all(code.map(function(code) {
+        code = code.trim();
         try {
             var ast = AppGrammar.parse(code);
 	        //console.log(String(ast.statements));
         } catch(e) {
-            console.log('Parsing failed');
-            console.log(code);
-            console.log(e);
+            console.error('Parsing failed');
+            console.error(code);
+            console.error(e);
             return;
+        }
+
+        try {
+	        var codegenned = codegen(ast);
+	        var astgenned = AppGrammar.parse(codegenned);
+        } catch(e) {
+            console.error('Codegen failed');
+            console.error('Codegenned:');
+	        console.error(codegenned);
+	        console.error('====\nCode:');
+	        console.error(code);
+	        console.error('====');
+            console.error(e.stack);
         }
 
         return Q.try(function() {

@@ -12,6 +12,8 @@ const Grammar = require('./lib/grammar');
 const ExecEnvironment = require('./lib/exec_environment');
 const Type = require('./lib/type');
 
+const codegen = require('./lib/codegen');
+
 module.exports = {
     Ast: Ast,
     Compiler: Compiler,
