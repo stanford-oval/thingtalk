@@ -19,5 +19,6 @@ module.exports = {
     Compiler: Compiler,
     Grammar: Grammar,
     ExecEnvironment: ExecEnvironment,
-    Type: Type
+    Type: Type,
+    codegen: codegen
 };
