@@ -11,6 +11,7 @@ const Compiler = require('./lib/compiler');
 const Grammar = require('./lib/grammar');
 const ExecEnvironment = require('./lib/exec_environment');
 const Type = require('./lib/type');
+const SchemaRetriever = require('./lib/schema');
 
 const codegen = require('./lib/codegen');
 
@@ -20,5 +21,6 @@ module.exports = {
     Grammar: Grammar,
     ExecEnvironment: ExecEnvironment,
     Type: Type,
+    SchemaRetriever: SchemaRetriever,
     codegen: codegen
 };

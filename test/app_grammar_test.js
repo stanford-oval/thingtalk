@@ -3,9 +3,10 @@ const fs = require('fs');
 
 const AppCompiler = require('../lib/compiler');
 const AppGrammar = require('../lib/grammar');
+const SchemaRetriever = require('../lib/schema');
 const codegen = require('../lib/codegen');
 
-var _mockSchemaRetriever = {
+var _mockSchemaDelegate = {
     _schema: {
         "twitter": {
             "triggers": {
@@ -76,13 +77,12 @@ var _mockSchemaRetriever = {
         }
     },
 
-    getSchema: function(kind) {
-        if (kind in this._schema)
-            return Q.delay(1).then(function() {
-                return this._schema[kind];
-            }.bind(this));
-        else
-            return Q.reject(new Error("No such schema " + kind));
+    getSchemas: function() {
+        return this._schema;
+    },
+
+    getMetas: function() {
+        return this._meta;
     }
 };
 
@@ -116,7 +116,7 @@ function parserTest() {
 
         return Q.try(function() {
             var compiler = new AppCompiler();
-            compiler.setSchemaRetriever(_mockSchemaRetriever);
+            compiler.setSchemaRetriever(new SchemaRetriever(_mockSchemaDelegate));
 
             return compiler.compileProgram(ast).then(function() {
                 /*compiler.rules.forEach(function(r, i) {
