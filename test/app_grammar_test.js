@@ -8,6 +8,13 @@ const codegen = require('../lib/codegen');
 
 var _mockSchemaDelegate = {
     _schema: {
+        "ninegag": {
+            "triggers": {},
+            "actions": {},
+            "queries": {
+                "get_latest": ["String", "String", "Picture"]
+            }
+        },
         "twitter": {
             "triggers": {
                 "source": ["String","Array(String)","Array(String)","String","String","Boolean"],
@@ -31,7 +38,8 @@ var _mockSchemaDelegate = {
                 "listen": ["String"],
             },
             "actions": {
-                "say": ["String"]
+                "say": ["String"],
+                "picture": ["Picture"]
             },
             "queries": {}
         },

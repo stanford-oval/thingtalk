@@ -1,5 +1,13 @@
 // -* mode: js -*-
 
+CommandTest() {
+  @sabrina.say("test");
+  $now => @sabrina.say("test");
+  $now => @ninegag.get_latest(title, link, pic) => @sabrina.picture(pic);
+}
+
+====
+
 SabrinaChangeNestTemperature(Thermostat : String) {
 @sabrina.listen(text), $regex(text, "set\\s+nest\\s+temp(?:erature)?\\s+(?:to\\s+)?([0-9\\.]+)\\s*C?", "i", temp) =>
 @(type="thermostat", name=Thermostat).set_target_temperature($valueOf(temp)*1C);
