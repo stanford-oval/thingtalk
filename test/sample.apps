@@ -1,5 +1,11 @@
 // -* mode: js -*-
 
+SabrinaGeneratedMonitorTwitter() {
+    @(type="twitter", id="twitter-foo").source(text, hashtags, urls, "HillaryClinton", inreplyto, __reserved) => @$notify();
+}
+
+====
+
 CommandTest() {
   @sabrina.say("test");
   $now => @sabrina.say("test");
