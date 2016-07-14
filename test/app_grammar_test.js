@@ -45,6 +45,7 @@ var _mockSchemaDelegate = {
         },
         "weatherapi": {
             "triggers": {
+                "weather": ["Location", "Measure(C)"],
                 "sunrise": ["Number", "Number", "Date", "Date"]
             },
             "actions": {},

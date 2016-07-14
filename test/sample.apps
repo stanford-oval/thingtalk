@@ -1,5 +1,17 @@
 // -* mode: js -*-
 
+InvalidTriggerParam() {
+  @sabrina.listen($choice(["bla", "blo"])) => @$notify();
+}
+
+====
+
+LocationAsTriggerParam() {
+  @weatherapi.weather($makeLocation(1, 3), temperature) => @$notify();
+}
+
+====
+
 SabrinaGeneratedMonitorTwitter() {
     @(type="twitter", id="twitter-foo").source(text, hashtags, urls, "HillaryClinton", inreplyto, __reserved) => @$notify();
 }
