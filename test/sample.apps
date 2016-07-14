@@ -222,7 +222,8 @@ var Num : Number;
 var Mes : Measure(m);
 !Num(_) => Num(-1.2e7);
 !Num(_) => Num(1.2);
-!Mes(_) => Mes(1.5kg);
+//!Mes(_) => Mes(1.5kg);
+!Mes(_) => Mes(1.5km);
 }
 
 ====
@@ -236,9 +237,9 @@ MultiparamRegex() {
 
 TwitterHourlyCount() {
 var TweetCount : Number;
-TweetCount = null => TweetCount(0);
+!TweetCount(_) => TweetCount(0);
 @$timer(1h) => TweetCount(0);
-@twitter.source(_, _, _, _, _, yours), yours =false =>TweetCount( TweetCount + 1);
+@twitter.source(_, _, _, _, _, yours), yours = false =>TweetCount( TweetCount + 1);
 @$timer(1h) =>@$notify("Your Twitter feed has " + $toString(TweetCount) + " new tweets in the past hour");
 }
 
@@ -282,7 +283,7 @@ var HashTagToUser : Map(String, Array(String));
 @$timer(1day) => HashTagToUser($emptyMap());
 
 @twitter.source(_, hashtags, _, from, _, false),
-HashTagToUser(dict), $contains(hashtags, tag), users = $lookup(dict, tag),
+HashTagToUser(dict), $contains(hashtags, tag), users := $lookup(dict, tag),
 !$contains(users, from) =>
 HashTagToUser($insert(dict, tag, $append(users, from)));
 
@@ -306,7 +307,8 @@ NewColleague(name, co) => @$notify(name);
 ====
 
 ParserTest() {
-@sabrina.listen(text), $regex("^on\\s+hashtag\\s+([a-z0-9]+)", 42 = !!false && 7) => Val(42);
+var Val : Number;
+@sabrina.listen(text), $regex("^on\\s+hashtag\\s+([a-z0-9]+)", 42 = !!false) => Val(42);
 }
 
 ====
