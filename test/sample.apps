@@ -1,5 +1,11 @@
 // -* mode: js -*-
 
+EnumTest() {
+  @omlet.incomingmessage(_, "new", text) => @$notify();
+}
+
+====
+
 InvalidTriggerParam() {
   @sabrina.listen($choice(["bla", "blo"])) => @$notify();
 }

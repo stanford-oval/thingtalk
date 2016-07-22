@@ -53,8 +53,8 @@ var _mockSchemaDelegate = {
         },
         "omlet": {
             "triggers": {
-                "newmessage": ["Feed", "String", "String"],
-                "incomingmessage": ["Feed", "String", "String"]
+                "newmessage": ["Feed", "Enum(text,picture)", "String"],
+                "incomingmessage": ["Feed", "Enum(text,picture)", "String"]
             },
             "actions": {
                 "send": ["Feed", "String", "String"]
