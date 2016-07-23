@@ -8,6 +8,16 @@ const codegen = require('../lib/codegen');
 
 var _mockSchemaDelegate = {
     _schema: {
+        "builtin": {
+            "triggers": {
+                "timer": ["Measure(ms)"],
+                "at": ["String"]
+            },
+            "queries": {
+                "get_time": ["Date"]
+            },
+            "actions": {}
+        },
         "ninegag": {
             "triggers": {},
             "actions": {},
