@@ -16,7 +16,9 @@ var _mockSchemaDelegate = {
             "queries": {
                 "get_time": ["Date"]
             },
-            "actions": {}
+            "actions": {
+                "debug_log": ["String"]
+            }
         },
         "ninegag": {
             "triggers": {},
