@@ -20,6 +20,15 @@ var _mockSchemaDelegate = {
                 "debug_log": ["String"]
             }
         },
+        "phone": {
+            "triggers": {
+                "receive_sms": ["PhoneNumber", "String"]
+            },
+            "actions": {
+                "send_sms": ["PhoneNumber", "String"]
+            },
+            "queries": {}
+        },
         "ninegag": {
             "triggers": {},
             "actions": {},

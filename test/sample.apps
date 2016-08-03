@@ -1,5 +1,19 @@
 // -* mode: js -*-
 
+PhoneNumberTest() {
+  $now => @phone.send_sms("+15555555555", "");
+  $now => @phone.send_sms($makePhoneNumber("+15555555555"), "");
+  @phone.receive_sms($makePhoneNumber("+15555555555"), _) => @$notify();
+}
+
+====
+
+InvalidPhoneNumberTest() {
+  $now => @phone.send_sms($makeEmailAddress("+15555555555"), "");
+}
+
+====
+
 EnumTest() {
   @omlet.incomingmessage(_, "new", text) => @$notify();
 }
