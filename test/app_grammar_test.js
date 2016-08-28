@@ -119,6 +119,14 @@ var _mockSchemaDelegate = {
                 "post_picture": ["Picture"]
             },
             "queries": {}
+        },
+	"ytranslate": {
+            "triggers": {},
+            "actions": {},
+            "queries": {
+                "translate": ["String","String","String","String"],
+                "detect_language": ["String","String"]
+            }
         }
     },
 

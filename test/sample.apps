@@ -1,5 +1,33 @@
 // -* mode: js -*-
 
+// Runs in a shared chat room. Anything that is sent to the chat that doesn't
+// end with two spaces or doesn't start with 'detect' or 'translate' is
+// translated. The 'detect' command can also be used to detect text language.
+Translate[F]() {
+	out TargetLang : String;
+	!TargetLang(_) => TargetLang("ru");
+
+  var Leader[F] : Boolean;
+!Leader[self](_) => Leader[self](true);
+	Leader[self](true), Leader[m](_), m in F, m.name < self.name => Leader[self](false);
+
+	@omlet.newmessage(F,type,t), $regex(t, "^translate help$", "i", tgt) => @omlet.send(F, "text", "usage: translate set-target code\nusage: translate get-target\nusage: detect ...\nusage: [text to translate]  ");
+
+	// set the target language
+	@omlet.newmessage(F,type,t), $regex(t, "^translate set-target (.+)$", "i", tgt) => TargetLang(tgt);
+
+	// what is the target language?
+	@omlet.newmessage(F,type,t), $regex(t, "^translate get-target$", "i"), TargetLang(tgt) => @omlet.send(F, "text", tgt + "  ");
+
+	// translate message
+	@omlet.newmessage(F,type,t), !$regex(t, "^translate", "i"), !$regex(t, "^detect", "i"), !$regex(t, "  $", ""), $regex(t, "^(.+)$", "i", text), Leader[self](true), TargetLang(tgt) => @ytranslate.translate("", tgt, text, result) => @omlet.send(F, "text", "@" + tgt + ": " + result + "  ");
+
+	// get source language
+	@omlet.newmessage(F,type,t), $regex(t, "^detect\\:? (.+)$", "i", text), Leader[self](true) => @ytranslate.detect_language(text, language), Leader[self](true) => @omlet.send(F, "text", "detected: " + language + "  ");
+}
+
+====
+
 RandomMeme() {
 @$timer(24h), meme := $choice([["the most interesting man in the world", "I don't always make memes", "but when I do it's on Sabrina"], ["futurama fry", "Not sure if automated", "Or just dumber than usual"],["ancient aliens", "", "Research"], ["brace yourselves", "Brace yourselves", "Automated memes are coming"]]) => @imgflip.generate($at(meme, 0), $at(meme, 1), $at(meme, 2), _, url) => @facebook.post_picture(url);
 }
