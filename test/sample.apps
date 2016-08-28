@@ -1,5 +1,10 @@
 // -* mode: js -*-
 
+RandomMeme() {
+@$timer(24h), meme := $choice([["the most interesting man in the world", "I don't always make memes", "but when I do it's on Sabrina"], ["futurama fry", "Not sure if automated", "Or just dumber than usual"],["ancient aliens", "", "Research"], ["brace yourselves", "Brace yourselves", "Automated memes are coming"]]) => @imgflip.generate($at(meme, 0), $at(meme, 1), $at(meme, 2), _, url) => @facebook.post_picture(url);
+}
+====
+
 PhoneNumberTest() {
   $now => @phone.send_sms("+15555555555", "");
   $now => @phone.send_sms($makePhoneNumber("+15555555555"), "");

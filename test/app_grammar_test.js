@@ -104,6 +104,21 @@ var _mockSchemaDelegate = {
                 "set_target_temperature": ["Measure(C)"],
             },
             "queries": {}
+        },
+        "imgflip": {
+            "triggers": {},
+            "actions": {},
+            "queries": {
+                "list": ["String", "String"],
+                "generate": ["String", "String", "String", "String", "Picture"]
+            }
+        },
+        "facebook": {
+            "triggers": {},
+            "actions": {
+                "post_picture": ["Picture"]
+            },
+            "queries": {}
         }
     },
 
