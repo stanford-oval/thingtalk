@@ -11,7 +11,7 @@ var _mockSchemaDelegate = {
         "builtin": {
             "triggers": {
                 "timer": ["Measure(ms)"],
-                "at": ["String"]
+                "at": ["Time"]
             },
             "queries": {
                 "get_time": ["Date"]
