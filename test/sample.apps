@@ -1,5 +1,11 @@
 // -* mode: js -*-
 
+SearchYoutube() {
+        $now => @youtube.search_videos(foo, link), link = $makeURL("http://www.youtube.com") =>  @$notify();
+}
+
+====
+
 // Runs in a shared chat room. Anything that is sent to the chat that doesn't
 // end with two spaces or doesn't start with 'detect' or 'translate' is
 // translated. The 'detect' command can also be used to detect text language.

@@ -20,6 +20,13 @@ var _mockSchemaDelegate = {
                 "debug_log": ["String"]
             }
         },
+        "youtube": {
+            "triggers": {},
+            "queries": {
+                "search_videos": ["String", "URL"]
+            },
+            "actions": {}
+        },
         "phone": {
             "triggers": {
                 "receive_sms": ["PhoneNumber", "String"]
