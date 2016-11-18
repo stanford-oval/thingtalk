@@ -24,16 +24,16 @@ var _mockSchemaDelegate = {
         "youtube": {
             "triggers": {},
             "queries": {
-                "search_videos": ["String", "URL"]
+                "search_videos": ["String", "Entity(tt:url)"]
             },
             "actions": {}
         },
         "phone": {
             "triggers": {
-                "receive_sms": ["PhoneNumber", "String"]
+                "receive_sms": ["Entity(tt:phone_number)", "String"]
             },
             "actions": {
-                "send_sms": ["PhoneNumber", "String"]
+                "send_sms": ["Entity(tt:phone_number)", "String"]
             },
             "queries": {}
         },
@@ -41,7 +41,7 @@ var _mockSchemaDelegate = {
             "triggers": {},
             "actions": {},
             "queries": {
-                "get_latest": ["String", "String", "Picture"]
+                "get_latest": ["String", "String", "Entity(tt:picture)"]
             }
         },
         "twitter": {
@@ -68,7 +68,7 @@ var _mockSchemaDelegate = {
             },
             "actions": {
                 "say": ["String"],
-                "picture": ["Picture"]
+                "picture": ["Entity(tt:picture)"]
             },
             "queries": {}
         },
@@ -118,13 +118,13 @@ var _mockSchemaDelegate = {
             "actions": {},
             "queries": {
                 "list": ["String", "String"],
-                "generate": ["String", "String", "String", "String", "Picture"]
+                "generate": ["String", "String", "String", "String", "Entity(tt:picture)"]
             }
         },
         "facebook": {
             "triggers": {},
             "actions": {
-                "post_picture": ["Picture"]
+                "post_picture": ["Entity(tt:picture)"]
             },
             "queries": {}
         },

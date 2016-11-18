@@ -1,7 +1,7 @@
 // -* mode: js -*-
 
 SearchYoutube() {
-        now => @youtube.search_videos(foo, link), link = $makeURL("http://www.youtube.com") =>  notify;
+        now => @youtube.search_videos(foo, link), link = "http://www.youtube.com"^^tt:url =>  notify;
 }
 
 ====
@@ -23,14 +23,14 @@ RandomMeme() {
 
 PhoneNumberTest() {
   now => @phone.send_sms("+15555555555", "");
-  now => @phone.send_sms($makePhoneNumber("+15555555555"), "");
-  @phone.receive_sms($makePhoneNumber("+15555555555"), _) => notify;
+  now => @phone.send_sms("+15555555555"^^tt:phone_number, "");
+  @phone.receive_sms("+15555555555"^^phone_number, _) => notify;
 }
 
 ====
 
 InvalidPhoneNumberTest() {
-  now => @phone.send_sms($makeEmailAddress("+15555555555"), "");
+  now => @phone.send_sms("+15555555555"^^tt:email_address, "");
 }
 
 ====
