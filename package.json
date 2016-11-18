@@ -18,6 +18,6 @@
     "pegjs": "~0.9.0"
   },
   "scripts": {
-    "regen-grammar": "pegjs --allowed-start-rules program,command_program,type_ref ./lib/grammar.pegjs"
+    "regen-grammar": "pegjs --allowed-start-rules program,type_ref ./lib/grammar.pegjs"
   }
 }

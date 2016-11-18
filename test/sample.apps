@@ -56,7 +56,6 @@ SabrinaGeneratedMonitorTwitter() {
 ====
 
 CommandTest() {
-  @sabrina.say("test");
   $now => @sabrina.say("test");
   $now => @ninegag.get_latest(title, link, pic) => @sabrina.picture(pic);
 }
