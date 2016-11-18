@@ -1,63 +1,67 @@
 // -* mode: js -*-
 
 SearchYoutube() {
-        $now => @youtube.search_videos(foo, link), link = $makeURL("http://www.youtube.com") =>  @$notify();
+        now => @youtube.search_videos(foo, link), link = $makeURL("http://www.youtube.com") =>  notify;
 }
 
 ====
 
 TimeTest() {
-        @$at($makeTime(12, 30)) => @$notify();
+        @$at($makeTime(12, 30)) => notify;
 }
 
 ====
 
 RandomMeme() {
-@$timer(24h), meme := $choice([["the most interesting man in the world", "I don't always make memes", "but when I do it's on Sabrina"], ["futurama fry", "Not sure if automated", "Or just dumber than usual"],["ancient aliens", "", "Research"], ["brace yourselves", "Brace yourselves", "Automated memes are coming"]]) => @imgflip.generate($at(meme, 0), $at(meme, 1), $at(meme, 2), _, url) => @facebook.post_picture(url);
+@$timer(24h), meme := $choice([["the most interesting man in the world", "I don't always make memes", "but when I do it's on Sabrina"],
+                              ["futurama fry", "Not sure if automated", "Or just dumber than usual"],["ancient aliens", "", "Research"],
+                              ["brace yourselves", "Brace yourselves", "Automated memes are coming"]])
+=> @imgflip.generate($at(meme, 0), $at(meme, 1), $at(meme, 2), _, url) => @facebook.post_picture(url);
 }
+
 ====
 
 PhoneNumberTest() {
-  $now => @phone.send_sms("+15555555555", "");
-  $now => @phone.send_sms($makePhoneNumber("+15555555555"), "");
-  @phone.receive_sms($makePhoneNumber("+15555555555"), _) => @$notify();
+  now => @phone.send_sms("+15555555555", "");
+  now => @phone.send_sms($makePhoneNumber("+15555555555"), "");
+  @phone.receive_sms($makePhoneNumber("+15555555555"), _) => notify;
 }
 
 ====
 
 InvalidPhoneNumberTest() {
-  $now => @phone.send_sms($makeEmailAddress("+15555555555"), "");
+  now => @phone.send_sms($makeEmailAddress("+15555555555"), "");
 }
 
 ====
 
 EnumTest() {
-  @omlet.incomingmessage(_, "new", text) => @$notify();
+  @omlet.incomingmessage(_, "new", text) => notify;
 }
 
 ====
 
 InvalidTriggerParam() {
-  @sabrina.listen($choice(["bla", "blo"])) => @$notify();
+  @sabrina.listen($choice(["bla", "blo"])) => notify;
 }
 
 ====
 
 LocationAsTriggerParam() {
-  @weatherapi.weather($makeLocation(1, 3), temperature) => @$notify();
+  @weatherapi.weather($makeLocation(1, 3), temperature) => notify;
 }
 
 ====
 
 SabrinaGeneratedMonitorTwitter() {
-    @(type="twitter", id="twitter-foo").source(text, hashtags, urls, "HillaryClinton", inreplyto, __reserved) => @$notify();
+    @(type="twitter", id="twitter-foo").source(text, hashtags, urls, "HillaryClinton", inreplyto, __reserved) => notify;
 }
 
 ====
 
 CommandTest() {
-  $now => @sabrina.say("test");
-  $now => @ninegag.get_latest(title, link, pic) => @sabrina.picture(pic);
+  now => @sabrina.say("test");
+  now => @ninegag.get_latest(title, link, pic) => @sabrina.picture(pic);
 }
 
 ====
@@ -66,6 +70,7 @@ SabrinaChangeNestTemperature(Thermostat : String) {
 @sabrina.listen(text), $regex(text, "set\\s+nest\\s+temp(?:erature)?\\s+(?:to\\s+)?([0-9\\.]+)\\s*C?", "i", temp) =>
 @(type="thermostat", name=Thermostat).set_target_temperature($valueOf(temp)*1C);
 }
+
 ====
 
 SabrinaLikesItHot(Thermostat : String, Threshold : Measure(C)) {
@@ -84,13 +89,13 @@ GetRetweets() {
 ====
 
 RandomTest2() {
-$now => @$logger($toString($choice([1,2,3])));
+now => @$logger($toString($choice([1,2,3])));
 }
 
 ====
 
 TestOpOrder() {
-$now => @sabrina.say($toString(5-2+1));
+now => @sabrina.say($toString(5-2+1));
 }
 
 ====
