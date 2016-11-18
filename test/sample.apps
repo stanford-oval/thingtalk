@@ -83,57 +83,14 @@ GetRetweets() {
 
 ====
 
-IndianAstrology() {
-   var sunDuration: Measure(ms);
-   var setToday: String;
-   var riseToday: String;
-   var day: String;
-   var hour: String;
-   var min: String;
-   var sec: String;
-   @weatherapi.sunrise(37, 122, rise, set) => setToday($toString(set)), riseToday($toString(rise)), sunDuration(set - rise);
-   setToday(x), $regex(setToday, "^(Mon|Tue|Wed|Thu|Fri|Sat|Sun).*([0-9][0-9]):([0-9][0-9]):([0-9][0-9])", "i", day, hour, min, sec) => @$notify("Sunset today which is a " + day + " is at " + hour + " hr " + min + " m " + sec + " s");
-   //sunDuration(_) => @$notify("Unit of sun today is: " + $toString($valueOf($toString(sunDuration))/8) + " ms");
-}
-
-====
-
-TestTupleUnpack() {
-    var V : Array((String, String));
-    var V2 : (String, String);
-
-    V(a), $contains(a, v) => V2(v);
-}
-
-====
-
-MultiAction() {
-var V1 : String;
-var V2 : Number;
-true => V1("foo"), V2(7), @$logger("bla");
-}
-
-====
-
 RandomTest2() {
-true => @$logger($toString($choice([1,2,3])));
+$now => @$logger($toString($choice([1,2,3])));
 }
 
 ====
 
 TestOpOrder() {
-true => @sabrina.say($toString(5-2+1));
-}
-
-====
-
-TestNumber() {
-var Num : Number;
-var Mes : Measure(m);
-!Num(_) => Num(-1.2e7);
-!Num(_) => Num(1.2);
-//!Mes(_) => Mes(1.5kg);
-!Mes(_) => Mes(1.5km);
+$now => @sabrina.say($toString(5-2+1));
 }
 
 ====
@@ -145,68 +102,11 @@ MultiparamRegex() {
 
 ====
 
-TwitterHourlyCount() {
-var TweetCount : Number;
-!TweetCount(_) => TweetCount(0);
-@$timer(1h) => TweetCount(0);
-@twitter.source(_, _, _, _, _, yours), yours = false =>TweetCount( TweetCount + 1);
-@$timer(1h) =>@$notify("Your Twitter feed has " + $toString(TweetCount) + " new tweets in the past hour");
-}
-
-====
-
 CompareTest() {
 var V1 : Number;
 var V2 : Number;
 
 @$timer(10s), (V1 - V2 < 3) => @$notify("foo");
-}
-
-====
-
-TrueTest() {
-true => @$logger("something");
-}
-
-====
-
-RandomTest() {
-true => @$logger($toString($random()));
-}
-
-====
-
-KeywordTest() {
-var Key1 : String;
-var Key2 : String;
-
-@$timer(30s), (Key1) = "foo" => Key1(Key2);
-}
-
-====
-
-TwitterTrendingHashtag(NumberOfUsers : Number) {
-var HashTagToUser : Map(String, Array(String));
-
-!HashTagToUser(_) => HashTagToUser($emptyMap());
-
-@$timer(1day) => HashTagToUser($emptyMap());
-
-@twitter.source(_, hashtags, _, from, _, false),
-HashTagToUser(dict), $contains(hashtags, tag), users := $lookup(dict, tag),
-!$contains(users, from) =>
-HashTagToUser($insert(dict, tag, $append(users, from)));
-
-@$timer(1h), HashTagToUser(dict), $contains(dict, tag), $count($lookup(dict, tag)) >= NumberOfUsers =>
-@$notify(tag + " is a trending hashtag today");
-
-}
-
-====
-
-ParserTest() {
-var Val : Number;
-@sabrina.listen(text), $regex("^on\\s+hashtag\\s+([a-z0-9]+)", 42 = !!false) => Val(42);
 }
 
 ====
