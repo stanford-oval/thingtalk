@@ -17,6 +17,7 @@ var _mockSchemaDelegate = {
                 "get_time": ["Date"]
             },
             "actions": {
+                "notify" : ["String"],
                 "debug_log": ["String"]
             }
         },
@@ -127,7 +128,7 @@ var _mockSchemaDelegate = {
             },
             "queries": {}
         },
-	"ytranslate": {
+        "ytranslate": {
             "triggers": {},
             "actions": {},
             "queries": {

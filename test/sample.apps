@@ -7,13 +7,13 @@ SearchYoutube() {
 ====
 
 TimeTest() {
-        @$at($makeTime(12, 30)) => notify;
+        @builtin.at($makeTime(12, 30)) => notify;
 }
 
 ====
 
 RandomMeme() {
-@$timer(24h), meme := $choice([["the most interesting man in the world", "I don't always make memes", "but when I do it's on Sabrina"],
+@builtin.timer(24h), meme := $choice([["the most interesting man in the world", "I don't always make memes", "but when I do it's on Sabrina"],
                               ["futurama fry", "Not sure if automated", "Or just dumber than usual"],["ancient aliens", "", "Research"],
                               ["brace yourselves", "Brace yourselves", "Automated memes are coming"]])
 => @imgflip.generate($at(meme, 0), $at(meme, 1), $at(meme, 2), _, url) => @facebook.post_picture(url);
@@ -74,9 +74,9 @@ SabrinaChangeNestTemperature(Thermostat : String) {
 ====
 
 SabrinaLikesItHot(Thermostat : String, Threshold : Measure(C)) {
-@(type="thermostat", name=Thermostat).temperature(_, t), t > Threshold => @$notify("bla");
-@(type="thermostat", name=Thermostat).temperature(_, t), t > Threshold => @$notify("bla " + $toString(t));
-@(type="thermostat", name=Thermostat).temperature(_, t), t > Threshold => @$notify("bla " + $toString($random()));
+@(type="thermostat", name=Thermostat).temperature(_, t), t > Threshold => @builtin.notify("bla");
+@(type="thermostat", name=Thermostat).temperature(_, t), t > Threshold => @builtin.notify("bla " + $toString(t));
+@(type="thermostat", name=Thermostat).temperature(_, t), t > Threshold => @builtin.notify("bla " + $toString($random()));
 }
 
 ====
@@ -89,7 +89,7 @@ GetRetweets() {
 ====
 
 RandomTest2() {
-now => @$logger($toString($choice([1,2,3])));
+now => @builtin.debug_log($toString($choice([1,2,3])));
 }
 
 ====
@@ -102,7 +102,7 @@ now => @sabrina.say($toString(5-2+1));
 
 MultiparamRegex() {
 @sabrina.listen(foo), $regex(foo, "([0-9]+) ([0-9]+)", "", v1, v2) =>
-@$logger($toString(v1) + " " + $toString(v2));
+@builtin.debug_log($toString(v1) + " " + $toString(v2));
 }
 
 ====
@@ -111,7 +111,7 @@ CompareTest() {
 var V1 : Number;
 var V2 : Number;
 
-@$timer(10s), (V1 - V2 < 3) => @$notify("foo");
+@builtin.timer(10s), (V1 - V2 < 3) => @builtin.notify("foo");
 }
 
 ====
@@ -131,8 +131,8 @@ TestComputeApp() {
         }
     }
 
-    @$timer(30s) => @random.ask();
-    @random.out(x) => @$logger('number: ' + $toString(x));
+    @builtin.timer(30s) => @random.ask();
+    @random.out(x) => @builtin.debug_log('number: ' + $toString(x));
 }
 
 ====
@@ -141,5 +141,5 @@ TestComputeApp() {
 /* They should all at least parse successfully. */
 
 Test() {
-    @test.source() => @$logger("Test App received an event on Test Channel");
+    @test.source() => @builtin.debug_log("Test App received an event on Test Channel");
 }
