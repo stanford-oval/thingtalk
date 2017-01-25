@@ -53,6 +53,12 @@ LocationAsTriggerParam() {
 
 ====
 
+LocationWithDisplayAsTriggerParam() {
+  @weatherapi.weather($makeLocation(1, 3, "Somewhere"), temperature) => notify;
+}
+
+====
+
 SabrinaGeneratedMonitorTwitter() {
     @(type="twitter", id="twitter-foo").source(text, hashtags, urls, "HillaryClinton", inreplyto, __reserved) => notify;
 }
