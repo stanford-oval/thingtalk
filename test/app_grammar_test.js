@@ -21,6 +21,11 @@ var _mockSchemaDelegate = {
                 "debug_log": ["String"]
             }
         },
+        "security-camera": {
+            "triggers": {},
+            "queries": { "get_snapshot": ["Picture"] },
+            "actions": {}
+        },
         "youtube": {
             "triggers": {},
             "queries": {

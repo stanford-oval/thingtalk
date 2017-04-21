@@ -1,5 +1,11 @@
 // -* mode: js -*-
 
+SecurityCamera() {
+	now => @security-camera.get_snapshot(pic) => notify;
+}
+
+====
+
 SearchYoutube() {
         now => @youtube.search_videos(foo, link), link = "http://www.youtube.com"^^tt:url =>  notify;
 }
