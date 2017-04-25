@@ -10,35 +10,64 @@ var _mockSchemaDelegate = {
     _schema: {
         "builtin": {
             "triggers": {
-                "timer": ["Measure(ms)"],
-                "at": ["Time"]
+                "timer": {
+                    args: ["interval"],
+                    types: ["Measure(ms)"]
+                },
+                "at": {
+                    args: ["time"],
+                    types: ["Time"]
+                }
             },
             "queries": {
-                "get_time": ["Date"]
+                "get_time": {
+                    args: ["time"],
+                    types: ["Date"]
+                }
             },
             "actions": {
-                "notify" : ["String"],
-                "debug_log": ["String"]
+                "notify" : {
+                    args: ["message"],
+                    types: ["String"]
+                },
+                "debug_log": {
+                    args: ["message"],
+                    types: ["String"]
+                }
             }
         },
         "security-camera": {
             "triggers": {},
-            "queries": { "get_snapshot": ["Picture"] },
+            "queries": {
+                "get_snapshot": {
+                    args: ["snapshot"],
+                    types: ["Picture"]
+                }
+            },
             "actions": {}
         },
         "youtube": {
             "triggers": {},
             "queries": {
-                "search_videos": ["String", "Entity(tt:url)"]
+                "search_videos": {
+                    args: ["query", "video_url"],
+                    types: ["String", "Entity(tt:url)"]
+                }
             },
             "actions": {}
         },
         "phone": {
             "triggers": {
-                "receive_sms": ["Entity(tt:phone_number)", "String"]
+                "receive_sms": {
+                    args: ["from", "body"],
+                    types: ["Entity(tt:phone_number)", "String"]
+                }
             },
             "actions": {
-                "send_sms": ["Entity(tt:phone_number)", "String"]
+                "send_sms": {
+                    args: ["to", "body"],
+                    types: ["Entity(tt:phone_number)", "String"]
+                }
             },
             "queries": {}
         },
@@ -46,100 +75,90 @@ var _mockSchemaDelegate = {
             "triggers": {},
             "actions": {},
             "queries": {
-                "get_latest": ["String", "String", "Entity(tt:picture)"]
+                "get_latest": {
+                    args: ["arg1", "arg2", "picture_url"],
+                    types: ["String", "String", "Entity(tt:picture)"]
+                }
             }
         },
         "twitter": {
             "triggers": {
-                "source": ["String","Array(String)","Array(String)","String","String","Boolean"],
+                "source": {
+                    args: ["text", "hashtags", "urls", "from", "inReplyTo", "__reserved"],
+                    types: ["String","Array(String)","Array(String)","String","String","Boolean"],
+                }
             },
             "actions": {
-                "sink": ["String"]
+                "sink": {
+                    args: ["status"],
+                    types: ["String"]
+                }
             },
-            "queries": {
-                "retweets_of_me": ["String","Array(String)","Array(String)","String"]
-            }
-        },
-        "linkedin": {
-            "triggers": {
-                "profile": ["String","String","String","String","Any","String"],
-            },
-            "actions": {},
             "queries": {}
         },
         "sabrina": {
             "triggers": {
-                "listen": ["String"],
+                "listen": {
+                    args: ["message"],
+                    types: ["String"]
+                }
             },
             "actions": {
-                "say": ["String"],
-                "picture": ["Entity(tt:picture)"]
+                "say": {
+                    args: ["message"],
+                    types: ["String"]
+                },
+                "picture": {
+                    args: ["picture_url"],
+                    types: ["Entity(tt:picture)"]
+                }
             },
             "queries": {}
         },
         "weatherapi": {
             "triggers": {
-                "weather": ["Location", "Measure(C)"],
-                "sunrise": ["Number", "Number", "Date", "Date"]
+                "weather": {
+                    args: ["location", "temperature"],
+                    types: ["Location", "Measure(C)"]
+                }
             },
             "actions": {},
             "queries": {}
         },
         "omlet": {
             "triggers": {
-                "newmessage": ["Enum(text,picture)", "String"],
-                "incomingmessage": ["Enum(text,picture)", "String"]
-            },
-            "actions": {
-                "send": ["String", "String"]
-            },
-            "queries": {}
-        },
-        "test": {
-            "triggers": {
-                "source": ["Number"],
+                "incomingmessage": {
+                    args: ["type", "message"],
+                    types: ["Enum(text,picture)", "String"]
+                }
             },
             "actions": {},
             "queries": {}
         },
-        "scale": {
+        "test": {
             "triggers": {
-                "source": ["Date","Measure(kg)"],
+                "source": {
+                    args: ["value"],
+                    types: ["Number"]
+                }
             },
             "actions": {},
             "queries": {}
         },
         "thermostat": {
             "triggers": {
-                "temperature": ["Date", "Measure(C)"]
+                "temperature": {
+                    args: ["time", "temperature"],
+                    types: ["Date", "Measure(C)"]
+                }
             },
             "actions": {
-                "set_target_temperature": ["Measure(C)"],
+                "set_target_temperature": {
+                    args: ["value"],
+                    types: ["Measure(C)"]
+                }
             },
             "queries": {}
-        },
-        "imgflip": {
-            "triggers": {},
-            "actions": {},
-            "queries": {
-                "list": ["String", "String"],
-                "generate": ["String", "String", "String", "String", "Entity(tt:picture)"]
-            }
-        },
-        "facebook": {
-            "triggers": {},
-            "actions": {
-                "post_picture": ["Entity(tt:picture)"]
-            },
-            "queries": {}
-        },
-        "ytranslate": {
-            "triggers": {},
-            "actions": {},
-            "queries": {
-                "translate": ["String","String","String","String"],
-                "detect_language": ["String","String"]
-            }
         }
     },
 
