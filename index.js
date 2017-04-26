@@ -13,8 +13,7 @@ const ExecEnvironment = require('./lib/exec_environment');
 const Type = require('./lib/type');
 const SchemaRetriever = require('./lib/schema');
 const Utils = require('./lib/utils');
-
-const codegen = require('./lib/codegen');
+const Generate = require('./lib/generate');
 
 module.exports = {
     Ast: Ast,
@@ -24,5 +23,5 @@ module.exports = {
     Type: Type,
     SchemaRetriever: SchemaRetriever,
     Utils: Utils,
-    codegen: codegen
+    Generate: Generate
 };

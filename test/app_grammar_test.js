@@ -4,7 +4,7 @@ const fs = require('fs');
 const AppCompiler = require('../lib/compiler');
 const AppGrammar = require('../lib/grammar');
 const SchemaRetriever = require('../lib/schema');
-const codegen = require('../lib/codegen');
+const codegen = require('../lib/prettyprint');
 
 var _mockSchemaDelegate = {
     _schema: {
