@@ -1,5 +1,11 @@
 // -* mode: js -*-
 
+DoOnlyOnce() {
+    once @builtin.at($makeTime(12, 30)) => notify;
+}
+
+====
+
 SecurityCamera() {
 	now => @security-camera.get_snapshot(pic) => notify;
 }
