@@ -1,140 +1,76 @@
 // -* mode: js -*-
 
+ParameterPassing() {
+    @(type="xkcd",id="com.xkcd-6").new_comic(), v_title := title, v_picture_url := picture_url
+    => @(type="twitter",id="twitter-foo").post_picture(caption=v_title, picture_url=v_picture_url);
+}
+
+====
+
 DoOnlyOnce() {
-    once @builtin.at($makeTime(12, 30)) => notify;
+    once @builtin.at(time=$makeTime(12, 30)) => notify;
 }
 
 ====
 
 SecurityCamera() {
-	now => @security-camera.get_snapshot(pic) => notify;
+    now => @security-camera.get_snapshot(), pic := picture_url => notify;
 }
 
 ====
 
 SearchYoutube() {
-        now => @youtube.search_videos(foo, link), link = "http://www.youtube.com"^^tt:url =>  notify;
+        now => @youtube.search_videos(), video_url = "http://www.youtube.com"^^tt:url =>  notify;
 }
 
 ====
 
 TimeTest() {
-        @builtin.at($makeTime(12, 30)) => notify;
+        @builtin.at(time=$makeTime(12, 30)) => notify;
 }
 
 ====
 
 PhoneNumberTest() {
-  now => @phone.send_sms("+15555555555", "");
-  now => @phone.send_sms("+15555555555"^^tt:phone_number, "");
-  @phone.receive_sms("+15555555555"^^phone_number, _) => notify;
+  now => @phone.send_sms(to="+15555555555", body="");
+  now => @phone.send_sms(to="+15555555555"^^tt:phone_number, body="");
+  @phone.receive_sms(), from="+15555555555"^^phone_number => notify;
 }
 
 ====
 
 InvalidPhoneNumberTest() {
-  now => @phone.send_sms("+15555555555"^^tt:email_address, "");
-}
-
-====
-
-EnumTest() {
-  @omlet.incomingmessage(_, text) => notify;
-}
-
-====
-
-InvalidTriggerParam() {
-  @sabrina.listen($choice(["bla", "blo"])) => notify;
+  now => @phone.send_sms(to="+15555555555"^^tt:email_address, body="");
 }
 
 ====
 
 LocationAsTriggerParam() {
-  @weatherapi.weather($makeLocation(1, 3), temperature) => notify;
+  @weatherapi.weather(location=$makeLocation(1, 3)) => notify;
 }
 
 ====
 
 LocationWithDisplayAsTriggerParam() {
-  @weatherapi.weather($makeLocation(1, 3, "Somewhere"), temperature) => notify;
+  @weatherapi.weather(location=$makeLocation(1, 3, "Somewhere")) => notify;
 }
 
 ====
 
 SabrinaGeneratedMonitorTwitter() {
-    @(type="twitter", id="twitter-foo").source(text, hashtags, urls, "HillaryClinton", inreplyto, __reserved) => notify;
+    @(type="twitter", id="twitter-foo").source(), from="HillaryClinton"^^tt:username => notify;
 }
 
 ====
 
 CommandTest() {
-  now => @sabrina.say("test");
-  now => @ninegag.get_latest(title, link, pic) => @sabrina.picture(pic);
-}
-
-====
-
-SabrinaChangeNestTemperature() {
-@sabrina.listen(text), $regex(text, "set\\s+nest\\s+temp(?:erature)?\\s+(?:to\\s+)?([0-9\\.]+)\\s*C?", "i", temp) =>
-@(type="thermostat").set_target_temperature($valueOf(temp)*1C);
+  now => @builtin.notify(message="test");
 }
 
 ====
 
 SabrinaLikesItHot(Threshold : Measure(C)) {
-@(type="thermostat").temperature(_, t), t > Threshold => @builtin.notify("bla");
-@(type="thermostat").temperature(_, t), t > Threshold => @builtin.notify("bla " + $toString(t));
-@(type="thermostat").temperature(_, t), t > Threshold => @builtin.notify("bla " + $toString($random()));
-}
-
-====
-
-RandomTest2() {
-now => @builtin.debug_log($toString($choice([1,2,3])));
-}
-
-====
-
-TestOpOrder() {
-now => @sabrina.say($toString(5-2+1));
-}
-
-====
-
-MultiparamRegex() {
-@sabrina.listen(foo), $regex(foo, "([0-9]+) ([0-9]+)", "", v1, v2) =>
-@builtin.debug_log($toString(v1) + " " + $toString(v2));
-}
-
-====
-
-CompareTest() {
-var V1 : Number;
-var V2 : Number;
-
-@builtin.timer(10s), (V1 - V2 < 3) => @builtin.notify("foo");
-}
-
-====
-
-SabrinaTestCapturingGroup() {
-@sabrina.listen(text), $regex(text, "^on\\s+hashtag\\s+([a-z0-9]+)", "i", hashtag)
-    => @sabrina.say("hashtag " + hashtag);
-}
-
-====
-
-TestComputeApp() {
-    module random {
-        event out(x : Number);
-        function ask() {
-            out(Math.floor(42 + Math.random() * 42));
-        }
-    }
-
-    @builtin.timer(30s) => @random.ask();
-    @random.out(x) => @builtin.debug_log('number: ' + $toString(x));
+@(type="thermostat").temperature(), temperature > Threshold => @builtin.notify(message="bla");
 }
 
 ====
@@ -143,5 +79,5 @@ TestComputeApp() {
 /* They should all at least parse successfully. */
 
 Test() {
-    @test.source() => @builtin.debug_log("Test App received an event on Test Channel");
+    @test.source() => @builtin.debug_log(message="Test App received an event on Test Channel");
 }

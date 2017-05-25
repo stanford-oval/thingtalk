@@ -40,7 +40,7 @@ var _mockSchemaDelegate = {
             "triggers": {},
             "queries": {
                 "get_snapshot": {
-                    args: ["snapshot"],
+                    args: ["picture_url"],
                     types: ["Picture"]
                 }
             },
@@ -92,25 +92,10 @@ var _mockSchemaDelegate = {
                 "sink": {
                     args: ["status"],
                     types: ["String"]
-                }
-            },
-            "queries": {}
-        },
-        "sabrina": {
-            "triggers": {
-                "listen": {
-                    args: ["message"],
-                    types: ["String"]
-                }
-            },
-            "actions": {
-                "say": {
-                    args: ["message"],
-                    types: ["String"]
                 },
-                "picture": {
-                    args: ["picture_url"],
-                    types: ["Entity(tt:picture)"]
+                "post_picture": {
+                    args: ["caption", "picture_url"],
+                    types: ["String", "Entity(tt:picture)"]
                 }
             },
             "queries": {}
@@ -158,6 +143,16 @@ var _mockSchemaDelegate = {
                     types: ["Measure(C)"]
                 }
             },
+            "queries": {}
+        },
+        "xkcd": {
+            "triggers": {
+                "new_comic": {
+                    args: ["title", "link", "picture_url"],
+                    types: ["String", "Entity(tt:url)", "Entity(tt:picture)"],
+                }
+            },
+            "actions": {},
             "queries": {}
         }
     },

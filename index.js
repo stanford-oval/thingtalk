@@ -22,6 +22,5 @@ module.exports = {
     ExecEnvironment: ExecEnvironment,
     Type: Type,
     SchemaRetriever: SchemaRetriever,
-    Utils: Utils,
     Generate: Generate
 };
