@@ -7,6 +7,7 @@
 // See COPYING for details
 
 const Ast = require('./lib/ast');
+const Ir = require('./lib/ir');
 const Compiler = require('./lib/compiler');
 const Grammar = require('./lib/grammar');
 const ExecEnvironment = require('./lib/exec_environment');
@@ -17,6 +18,7 @@ const Generate = require('./lib/generate');
 
 module.exports = {
     Ast: Ast,
+    Ir: Ir,
     Compiler: Compiler,
     Grammar: Grammar,
     ExecEnvironment: ExecEnvironment,
