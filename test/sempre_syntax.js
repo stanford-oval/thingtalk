@@ -10,8 +10,9 @@ const SEMPRESyntax = require('../lib/sempre_syntax');
 
 const _mockSchemaDelegate = require('./mock_schema_delegate');
 const ThingpediaClientHttp = require('./http_client');
+const db = require('./db');
 
-const TEST_CASES = [
+var TEST_CASES = [
     // manually written test cases
     [{ action: { name: { id: 'tt:twitter.sink' }, args: [] } }, 'now => @twitter.sink(status=$undefined) ;'],
     [{ rule: {
@@ -77,7 +78,7 @@ function test(i) {
     }).then((ast) => {
         console.log('Test Case #' + (i+1) + ': compiled successfully from AST');
         var tt = prettyprint(ast, true).trim();
-        if (tt !== expectedTT) {
+        if (tt !== expectedTT && expectedTT !== null) {
             console.error('Test Case #' + (i+1) + ': code does not match what expected');
             console.error('Expected: ' + expectedTT);
             console.error('Generated: ' + tt);
@@ -96,6 +97,9 @@ function test(i) {
             console.error('Expected: ' + JSON.stringify(json));
             console.error('Generated: ' + JSON.stringify(sempreSyntax));
         }
+    }).catch((e) => {
+        console.error('Test Case #' + (i+1) + ': failed with exception');
+        console.error('Error: ' + e.message);
     });
 }
 
@@ -107,6 +111,15 @@ function loop(i) {
 }
 
 function main() {
-    loop(0).done();
+    if (process.argv[2] === '--full-db') {
+        db.withClient((dbClient) => {
+            return db.selectAll(dbClient, "select target_json from example_utterances where type = 'generated-highvariance' and language = 'en' limit 1000", []);
+        }).then((rows) => {
+            TEST_CASES = rows.map((r) => [JSON.parse(r.target_json), null]);
+            return loop(0);
+        }).then(() => process.exit()).done();
+    } else {
+        loop(0).done();
+    }
 }
 main();
