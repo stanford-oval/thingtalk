@@ -1,5 +1,11 @@
 // -* mode: js -*-
 
+Contains() {
+    @twitter.source(), contains(hashtags, "lol") => notify;
+}
+
+====
+
 ParameterPassing() {
     @(type="xkcd",id="com.xkcd-6").new_comic(), v_title := title, v_picture_url := picture_url
     => @(type="twitter",id="twitter-foo").post_picture(caption=v_title, picture_url=v_picture_url);
@@ -8,7 +14,7 @@ ParameterPassing() {
 ====
 
 DoOnlyOnce() {
-    once @builtin.at(time=$makeTime(12, 30)) => notify;
+    once @builtin.at(time=makeTime(12, 30)) => notify;
 }
 
 ====
@@ -26,7 +32,7 @@ SearchYoutube() {
 ====
 
 TimeTest() {
-        @builtin.at(time=$makeTime(12, 30)) => notify;
+        @builtin.at(time=makeTime(12, 30)) => notify;
 }
 
 ====
@@ -40,19 +46,19 @@ PhoneNumberTest() {
 ====
 
 InvalidPhoneNumberTest() {
-  now => @phone.send_sms(to="+15555555555"^^tt:email_address, body="");
+    now => @phone.send_sms(to="+15555555555"^^tt:email_address, body="");
 }
 
 ====
 
 LocationAsTriggerParam() {
-  @weatherapi.weather(location=$makeLocation(1, 3)) => notify;
+    @weatherapi.weather(location=makeLocation(1, 3)) => notify;
 }
 
 ====
 
 LocationWithDisplayAsTriggerParam() {
-  @weatherapi.weather(location=$makeLocation(1, 3, "Somewhere")) => notify;
+    @weatherapi.weather(location=makeLocation(1, 3, "Somewhere")) => notify;
 }
 
 ====
@@ -70,7 +76,7 @@ CommandTest() {
 ====
 
 SabrinaLikesItHot(Threshold : Measure(C)) {
-@(type="thermostat").temperature(), temperature > Threshold => @builtin.notify(message="bla");
+    @(type="thermostat").temperature(), temperature > Threshold => @builtin.notify(message="bla");
 }
 
 ====
