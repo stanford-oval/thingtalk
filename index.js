@@ -13,8 +13,8 @@ const Grammar = require('./lib/grammar');
 const ExecEnvironment = require('./lib/exec_environment');
 const Type = require('./lib/type');
 const SchemaRetriever = require('./lib/schema');
-const Utils = require('./lib/utils');
 const Generate = require('./lib/generate');
+const SEMPRESyntax = require('./lib/sempre_syntax');
 
 module.exports = {
     Ast: Ast,
@@ -24,5 +24,6 @@ module.exports = {
     ExecEnvironment: ExecEnvironment,
     Type: Type,
     SchemaRetriever: SchemaRetriever,
-    Generate: Generate
+    Generate: Generate,
+    SEMPRESyntax: SEMPRESyntax
 };

@@ -1,5 +1,31 @@
 // -* mode: js -*-
 
+// without wrapping it should still work
+
+@twitter.source() => notify;
+
+====
+
+// same for immediates
+now => @security-camera.get_snapshot() => notify;
+
+====
+
+// same for multiple rules
+@twitter.source() => notify;
+@builtin.at() => notify;
+
+====
+
+Principals() {
+    @(type="twitter",principal="omlet-account:foo"^^tt:contact).source() => notify;
+    @(type="twitter",principal="giovanni"^^tt:contact_name).source() => notify;
+    // the following is identical to the previous one
+    @(type="twitter",principal="giovanni").source() => notify;
+}
+
+====
+
 Contains() {
     @twitter.source(), contains(hashtags, "lol") => notify;
 }
@@ -53,6 +79,12 @@ InvalidPhoneNumberTest() {
 
 LocationAsTriggerParam() {
     @weatherapi.weather(location=makeLocation(1, 3)) => notify;
+}
+
+====
+
+RelativeLocation() {
+    @weatherapi.weather(location=$context.location.current_location) => notify;
 }
 
 ====
