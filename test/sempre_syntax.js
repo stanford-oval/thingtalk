@@ -46,11 +46,14 @@ var TEST_CASES = [
     [{"rule":{"query":{"name":{"id":"tt:imgflip.generate"},"args":[{"type":"String","operator":"is","value":{"value":"work"},"name":{"id":"tt:param.template"}},{"type":"String","operator":"is","value":{"value":"love you"},"name":{"id":"tt:param.text_top"}}]},"action":{"name":{"id":"tt:gmail.send_picture"},"args":[{"type":"EmailAddress","operator":"is","value":{"value":"bob@stanford.edu"},"name":{"id":"tt:param.to"}},{"type":"String","operator":"is","value":{"value":"work"},"name":{"id":"tt:param.message"}},{"type":"VarRef","operator":"is","value":{"id":"tt:param.$event"},"name":{"id":"tt:param.subject"}},{"type":"VarRef","operator":"is","value":{"id":"tt:param.picture_url"},"name":{"id":"tt:param.picture_url"}}]}}},
     'now => @imgflip.generate(template="work", text_top="love you", text_bottom=$undefined) , v_name := name, v_picture_url := picture_url => @gmail.send_picture(to="bob@stanford.edu"^^tt:email_address, message="work", subject=$event, picture_url=v_picture_url) ;'],
     [{"trigger":{"name":{"id":"tt:sleep-tracker.getsleep"},"args":[{"type":"Location","operator":"is","value":{"relativeTag":"rel_work","latitude":-1,"longitude":-1},"name":{"id":"tt:param.place"}},{"type":"Measure","operator":"<","value":{"value":1,"unit":"h"},"name":{"id":"tt:param.rem"}},{"type":"Measure","operator":"<","value":{"value":1,"unit":"h"},"name":{"id":"tt:param.deep"}}]}},
-    '@sleep-tracker.getsleep(place=$context.location.work), rem < 1h, deep < 1h , v_time := time, v_place := place, v_awakeTime := awakeTime, v_asleepTime := asleepTime, v_duration := duration, v_rem := rem, v_light := light, v_deep := deep => notify;']
+    '@sleep-tracker.getsleep(place=$context.location.work), rem < 1h, deep < 1h , v_time := time, v_place := place, v_awakeTime := awakeTime, v_asleepTime := asleepTime, v_duration := duration, v_rem := rem, v_light := light, v_deep := deep => notify;'],
+
+    [{"rule":{"trigger":{"name":{"id":"tt:twitter.source"},"args":[{"type":"String","operator":"has","value":{"value":"funny"},"name":{"id":"tt:param.hashtags"}}]},"action":{"name":{"id":"tt:twitter.sink"},"args":[{"type":"String","operator":"is","value":{"value":"lol"},"name":{"id":"tt:param.status"}}]}}},
+    '@twitter.source(), contains(hashtags, "funny") , v_text := text, v_hashtags := hashtags, v_urls := urls, v_from := from, v_in_reply_to := in_reply_to => @twitter.sink(status="lol") ;']
 ];
 
 //var schemaRetriever = new SchemaRetriever(_mockSchemaDelegate);
-var schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp());
+var schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(), true);
 
 function normalizePrimitive(json) {
     json.args.sort((a, b) => {
