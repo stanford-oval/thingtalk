@@ -17,11 +17,17 @@ now => @security-camera.get_snapshot() => notify;
 
 ====
 
+PrimaryKind() {
+    @org.twitter.source() => notify;
+}
+
+====
+
 Principals() {
-    @(type="twitter",principal="omlet-account:foo"^^tt:contact).source() => notify;
-    @(type="twitter",principal="giovanni"^^tt:contact_name).source() => notify;
+    @twitter(principal="omlet-account:foo"^^tt:contact).source() => notify;
+    @twitter(principal="giovanni"^^tt:contact_name).source() => notify;
     // the following is identical to the previous one
-    @(type="twitter",principal="giovanni").source() => notify;
+    @twitter(principal="giovanni").source() => notify;
 }
 
 ====
@@ -33,8 +39,8 @@ Contains() {
 ====
 
 ParameterPassing() {
-    @(type="xkcd",id="com.xkcd-6").new_comic(), v_title := title, v_picture_url := picture_url
-    => @(type="twitter",id="twitter-foo").post_picture(caption=v_title, picture_url=v_picture_url);
+    @xkcd(id="com.xkcd-6").new_comic(), v_title := title, v_picture_url := picture_url
+    => @twitter(id="twitter-foo").post_picture(caption=v_title, picture_url=v_picture_url);
 }
 
 ====
@@ -96,7 +102,7 @@ LocationWithDisplayAsTriggerParam() {
 ====
 
 SabrinaGeneratedMonitorTwitter() {
-    @(type="twitter", id="twitter-foo").source(), from="HillaryClinton"^^tt:username => notify;
+    @twitter(id="twitter-foo").source(), from="HillaryClinton"^^tt:username => notify;
 }
 
 ====
@@ -108,7 +114,7 @@ CommandTest() {
 ====
 
 SabrinaLikesItHot(Threshold : Measure(C)) {
-    @(type="thermostat").temperature(), temperature > Threshold => @builtin.notify(message="bla");
+    @thermostat.temperature(), temperature > Threshold => @builtin.notify(message="bla");
 }
 
 ====
