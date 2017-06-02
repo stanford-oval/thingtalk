@@ -13,7 +13,7 @@ now => @security-camera.get_snapshot() => notify;
 
 // same for multiple rules
 @twitter.source() => notify;
-@builtin.at() => notify;
+@builtin.at(time=makeTime(20,30)) => notify;
 
 ====
 
@@ -58,7 +58,7 @@ SecurityCamera() {
 ====
 
 SearchYoutube() {
-        now => @youtube.search_videos(), video_url = "http://www.youtube.com"^^tt:url =>  notify;
+        now => @youtube.search_videos(query="lol"), video_url = "http://www.youtube.com"^^tt:url =>  notify;
 }
 
 ====
