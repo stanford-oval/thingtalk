@@ -1,5 +1,23 @@
 // -* mode: js -*-
 
+WithClassDef() {
+    class @dyn_0 extends @remote {
+        action send(in req foo : String);
+    }
+    now => @dyn_0.send(foo="foo");
+}
+
+====
+
+WrongClassDef() {
+    class @dyn_0 extends @remote {
+        action send(in req foo : Number);
+    }
+    now => @dyn_0.send(foo="foo");
+}
+
+====
+
 // without wrapping it should still work
 
 @twitter.source() => notify;

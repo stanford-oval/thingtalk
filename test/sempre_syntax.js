@@ -24,6 +24,27 @@ var TEST_CASES = [
     } },
     '@twitter.source() , v_text := text, v_hashtags := hashtags, v_urls := urls, v_from := from, v_in_reply_to := in_reply_to => @twitter.sink(status=v_text) ;'],
 
+    [{
+        rule: {
+            trigger: { name: { id: 'tt:twitter.source' }, args: [] },
+            action: {
+                name: { id: 'tt:remote.send' },
+                dynamic_type: {
+                    args: ['__principal', '__token', 'text', 'hashtags', 'urls', 'from', 'in_reply_to'],
+                    types: ['Entity(tt:contact)', 'Entity(tt:flow_token)', 'String', 'Array(Hashtag)', 'Array(URL)', 'Username', 'Username'],
+                    required: [true, true, true, true, true, true, true],
+                    is_input: [true, true, true, true, true, true, true]
+                },
+                args: []
+            }
+        },
+    }, `AlmondGenerated() {
+    class @__dyn_0 extends @remote {
+        action send (in req __principal : Entity(tt:contact), in req __token : Entity(tt:flow_token), in req text : String, in req hashtags : Array(Entity(tt:hashtag)), in req urls : Array(Entity(tt:url)), in req from : Entity(tt:username), in req in_reply_to : Entity(tt:username));
+    }
+    @twitter.source() , v_text := text, v_hashtags := hashtags, v_urls := urls, v_from := from, v_in_reply_to := in_reply_to => @__dyn_0.send(__principal=$undefined, __token=$undefined, text=$undefined, hashtags=$undefined, urls=$undefined, from=$undefined, in_reply_to=$undefined) ;
+}`],
+
     // sampled from dataset
     [{"rule":{"trigger":{"name":{"id":"tt:sportradar.soccer_us_tourney"},"args":[{"type":"String","operator":"is","value":{"value":"i'm happy"},"name":{"id":"tt:param.tournament_search_term"}},{"type":"String","operator":"contains","value":{"value":"i'm happy"},"name":{"id":"tt:param.tournament_full_name"}},{"type":"String","operator":"contains","value":{"value":"i'm happy"},"name":{"id":"tt:param.away_alias"}},{"type":"String","operator":"contains","value":{"value":"merry christmas"},"name":{"id":"tt:param.home_name"}},{"type":"Enum","operator":"is","value":{"value":"scheduled"},"name":{"id":"tt:param.game_status"}},{"type":"Number","operator":"is","value":{"value":14},"name":{"id":"tt:param.home_points"}}]},"action":{"name":{"id":"tt:almond_dates.post"},"args":[{"type":"String","operator":"is","value":{"value":"love you"},"name":{"id":"tt:param.interest"}},{"type":"String","operator":"is","value":{"value":"merry christmas"},"name":{"id":"tt:param.message"}},{"type":"String","operator":"is","value":{"value":"you would never believe what happened"},"name":{"id":"tt:param.poster"}},{"type":"PhoneNumber","operator":"is","value":{"value":"+16501234567"},"name":{"id":"tt:param.phone"}}]}}},
     '@sportradar.soccer_us_tourney(tournament_search_term="i\'m happy", game_status=enum(scheduled), home_points=14), tournament_full_name =~ "i\'m happy", away_alias =~ "i\'m happy", home_name =~ "merry christmas" , v_tournament_full_name := tournament_full_name, v_tournament_league_name := tournament_league_name, v_away_alias := away_alias, v_home_alias := home_alias, v_away_name := away_name, v_home_name := home_name, v_game_status := game_status, v_scheduled_time := scheduled_time, v_away_points := away_points, v_home_points := home_points => @almond_dates.post(interest="love you", message="merry christmas", poster="you would never believe what happened", phone="+16501234567"^^tt:phone_number) ;'],
@@ -111,6 +132,7 @@ function test(i) {
     }).catch((e) => {
         console.error('Test Case #' + (i+1) + ': failed with exception');
         console.error('Error: ' + e.message);
+        console.error(e.stack);
     });
 }
 
