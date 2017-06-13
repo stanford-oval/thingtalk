@@ -16,11 +16,13 @@
   },
   "devDependencies": {
     "deep-equal": "^1.0.1",
+    "eslint": "^4.0.0",
     "mysql": "^2.13.0",
     "nyc": "^10.3.2",
     "pegjs": "~0.9.0"
   },
   "scripts": {
-    "regen-grammar": "pegjs --allowed-start-rules program,type_ref ./lib/grammar.pegjs"
+    "regen-grammar": "pegjs --allowed-start-rules program,type_ref ./lib/grammar.pegjs",
+    "lint": "eslint ./lib"
   }
 }
