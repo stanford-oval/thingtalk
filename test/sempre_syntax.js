@@ -24,6 +24,14 @@ var TEST_CASES = [
     } },
     '@twitter.source() , v_text := text, v_hashtags := hashtags, v_urls := urls, v_from := from, v_in_reply_to := in_reply_to => @twitter.sink(status=v_text) ;'],
 
+    [{ query: { name: { id: 'tt:instagram.get_pictures' }, args: [] } },
+    'now => @instagram.get_pictures(count=null) , v_media_id := media_id, v_picture_url := picture_url, v_caption := caption, v_link := link, v_filter := filter, v_hashtags := hashtags, v_location := location => notify;'],
+
+    [{ query: { name: { id: 'tt:instagram.get_pictures' },
+                args: [{ name: { id: 'tt:param.count'}, operator: 'is',
+                    type: 'Number', value: { value: 3 } }] } },
+    'now => @instagram.get_pictures(count=3) , v_media_id := media_id, v_picture_url := picture_url, v_caption := caption, v_link := link, v_filter := filter, v_hashtags := hashtags, v_location := location => notify;'],
+
     [{
         rule: {
             trigger: { name: { id: 'tt:twitter.source' }, args: [] },
