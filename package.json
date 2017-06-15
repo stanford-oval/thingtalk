@@ -12,6 +12,7 @@
   "main": "index.js",
   "dependencies": {
     "adt": "~0.7.2",
+    "byline": "^5.0.0",
     "q": "~1.4.1"
   },
   "devDependencies": {

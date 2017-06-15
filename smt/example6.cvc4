@@ -1,0 +1,73 @@
+(set-option :produce-assignments true)
+(set-option :produce-models true)
+(set-logic ALL_SUPPORTED)
+
+; declare types
+(declare-sort Principal 0)
+(declare-sort Location 0)
+(declare-sort Entity_picture 0)
+(declare-fun home () Location)
+(declare-fun self () Principal)
+
+; declare all thingpedia functions that will be used, as Query_bla and Allowed_bla
+(declare-fun Query_phone_get_gps (Location) Bool)
+(declare-fun Allowed_phone_get_gps (Principal) Bool)
+(declare-fun Allowed_facebook_post (Principal String) Bool)
+(declare-fun Query_security_camera_get_snapshot (Entity_picture) Bool)
+(declare-fun Allowed_security_camera_get_snapshot (Principal) Bool)
+(declare-fun Allowed_remote_send (Principal Principal) Bool)
+(declare-fun Allowed_remote_receive (Principal Principal) Bool)
+
+; declare all the variables that will be needed
+(declare-fun pi () Principal)
+(declare-fun v0 () String)
+(declare-fun v1 () Location)
+
+; declare rules for certain special thingpedia functions
+(assert (Allowed_remote_send pi pi))
+(assert (Allowed_remote_receive pi pi))
+
+; declare the user defined constraints
+(assert
+    (=> (! true :named constr_0)
+        (! (Allowed_phone_get_gps pi) :named allowed_0 )))
+
+(define-fun c0 () Bool (! (str.contains v0 "https://www.wsj.com") :named tmp_c0))
+(define-fun c1 () Bool (! (str.contains v0 "https://www.washingtonpost.com") :named tmp_c1))
+(define-fun c2 () Bool (! (str.contains v0 "not me") :named tmp_c2))
+(define-fun c3 () Bool (! (str.contains v0 "funny") :named tmp_c3))
+(declare-fun x0 () Bool)
+(declare-fun x1 () Bool)
+;(define-fun x0 () Bool (! (or c1 c2) :named tmp_x0))
+;(define-fun x1 () Bool (! (or c1 c3) :named tmp_x1))
+(assert (= x0 (or c1 c2)))
+(assert (= x1 (or c1 c3)))
+(assert
+    (=> (and
+           (! (or c0 x0) :named constr_1_0)
+           (! (or c0 x1) :named constr_1_1)
+        )
+        (! (Allowed_facebook_post pi v0) :named allowed_1 )))
+(assert
+    (=> (! (and (Query_phone_get_gps v1)
+                (not (= v1 home))) :named constr_3)
+        (! (Allowed_security_camera_get_snapshot pi) :named allowed_3 )))
+
+; program:
+; @remote.receive(__principal=pi), status =~ "funny", v0 = status => @facebook.post(status=v0)
+
+; state that the program is not run by self
+(assert (not (= pi self)))
+
+; state what the program itself guarantees
+(assert (str.contains v0 "funny"))
+
+; state that the program is not allowed
+(assert (not (and
+    (! (Allowed_facebook_post pi v0) :named check_0)
+    )))
+
+; run!
+(check-sat)
+;(get-assignment)
+;(get-value (home self pi v0 v1))

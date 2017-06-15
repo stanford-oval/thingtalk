@@ -1,0 +1,68 @@
+(set-option :produce-assignments true)
+(set-option :produce-models true)
+(set-logic ALL_SUPPORTED)
+
+; declare types
+(declare-sort Principal 0)
+(declare-sort Location 0)
+(declare-sort Entity_picture 0)
+(declare-fun home () Location)
+(declare-fun self () Principal)
+
+; declare all thingpedia functions that will be used, as Query_bla and Allowed_bla
+(declare-fun Query_phone_get_gps (Location) Bool)
+(declare-fun Allowed_phone_get_gps (Principal) Bool)
+(declare-fun Allowed_facebook_post (Principal String) Bool)
+(declare-fun Query_security_camera_get_snapshot (Entity_picture) Bool)
+(declare-fun Allowed_security_camera_get_snapshot (Principal) Bool)
+(declare-fun Allowed_remote_send (Principal Principal) Bool)
+(declare-fun Allowed_remote_receive (Principal Principal) Bool)
+
+; declare all the variables that will be needed
+(declare-fun pi () Principal)
+(declare-fun v0 () String)
+(declare-fun v1 () Location)
+
+; declare rules for certain special thingpedia functions
+(assert (Allowed_remote_send pi pi))
+(assert (Allowed_remote_receive pi pi))
+
+; declare the user defined constraints
+(assert
+    (=> (! true :named constr_0)
+        (! (Allowed_phone_get_gps pi) :named allowed_0 )))
+(assert
+    (=> (and
+           (or (! (str.contains v0 "https://www.wsj.com") :named constr_1_0)
+               (! (str.contains v0 "https://www.washingtonpost.com") :named constr_1_1)
+               (! (str.contains v0 "not me") :named constr_1_2)
+           )
+           (or (! (str.contains v0 "https://www.wsj.com") :named constr_1_3)
+               (! (str.contains v0 "https://www.washingtonpost.com") :named constr_1_4)
+               (! (str.contains v0 "funny") :named constr_1_5)
+           )
+        )
+        (! (Allowed_facebook_post pi v0) :named allowed_1 )))
+(assert
+    (=> (! (and (Query_phone_get_gps v1)
+                (not (= v1 home))) :named constr_3)
+        (! (Allowed_security_camera_get_snapshot pi) :named allowed_3 )))
+
+; program:
+; @remote.receive(__principal=pi), status =~ "funny", v0 = status => @facebook.post(status=v0)
+
+; state that the program is not run by self
+(assert (not (= pi self)))
+
+; state what the program itself guarantees
+(assert (str.contains v0 "funny"))
+
+; state that the program is not allowed
+(assert (not (and
+    (! (Allowed_facebook_post pi v0) :named check_0)
+    )))
+
+; run!
+(check-sat)
+;(get-assignment)
+;(get-value (home self pi v0 v1))

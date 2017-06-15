@@ -1,0 +1,60 @@
+(set-option :produce-assignments true)
+(set-option :produce-models true)
+(set-logic ALL_SUPPORTED)
+
+; declare types
+(declare-sort Principal 0)
+(declare-sort Location 0)
+(declare-sort Entity_picture 0)
+(declare-fun home () Location)
+(declare-fun self () Principal)
+
+; declare all thingpedia functions that will be used, as Query_bla and Allowed_bla
+(declare-fun Query_phone_get_gps (Location) Bool)
+(declare-fun Allowed_phone_get_gps (Principal) Bool)
+(declare-fun Allowed_facebook_post (Principal String) Bool)
+(declare-fun Query_security_camera_get_snapshot (Entity_picture) Bool)
+(declare-fun Allowed_security_camera_get_snapshot (Principal) Bool)
+(declare-fun Allowed_remote_send (Principal Principal) Bool)
+(declare-fun Allowed_remote_receive (Principal Principal) Bool)
+
+; declare all the variables that will be needed
+(declare-fun pi () Principal)
+(declare-fun v0 () String)
+(declare-fun v1 () Location)
+
+; declare rules for certain special thingpedia functions
+(assert (Allowed_remote_send pi pi))
+(assert (Allowed_remote_receive pi pi))
+
+; declare the user defined constraints
+(assert
+    (=> true
+        (Allowed_phone_get_gps pi)))
+(assert
+    (=> (or
+            (! (str.contains v0 "https://www.wsj.com") :named contains_wsj)
+            (! (str.contains v0 "https://www.washingtonpost.com") :named contains_wapo))
+        (Allowed_facebook_post pi v0)))
+(assert
+    (=> (and (! (Query_phone_get_gps v1) :named query_get_gps)
+             (! (not (= v1 home)) :named not_home))
+        (Allowed_security_camera_get_snapshot pi)))
+
+; program:
+; now => @facebook.post(status="https://www.washingtonpost.com/wp/blogs/the-fix/...")
+
+; state that the program is not run by self
+(assert (not (= pi self)))
+
+; state what the program itself guarantees
+(assert (= v0 "https://www.washingtonpost.com/wp/blogs/the-fix/..."))
+
+; state that the program is not allowed
+(assert (not (and
+    (Allowed_facebook_post pi v0))))
+
+; run!
+(check-sat)
+;(get-assignment)
+;(get-value (home self pi v0 v1))
