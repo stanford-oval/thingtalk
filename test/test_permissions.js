@@ -4,6 +4,7 @@ const Ast = require('../lib/ast');
 const Grammar = require('../lib/grammar');
 const SchemaRetriever = require('../lib/schema');
 const PermissionChecker = require('../lib/permission_checker');
+const optimizeProgram = require('../lib/optimize');
 
 const _mockSchemaDelegate = require('./mock_schema_delegate');
 const ThingpediaClientHttp = require('./http_client');
@@ -114,6 +115,13 @@ function main() {
     }).then((prog) => {
         console.log('Rewritten program');
         console.log(Ast.prettyprint(prog));
+        let newprog = optimizeProgram(prog);
+        if (newprog) {
+            console.log('After optimization');
+            console.log(Ast.prettyprint(newprog));
+        } else {
+            console.log('Program destroyed after optimization');
+        }
     }).done();
 }
 main();
