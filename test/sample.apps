@@ -1,5 +1,11 @@
 // -* mode: js -*-
 
+ComplexFilter() {
+    @twitter.source(), text =~ "foo" || (text =~"bar" && !(text =~ "lol")) => notify;
+}
+
+====
+
 WithClassDef() {
     class @dyn_0 extends @remote {
         action send(in req foo : String);

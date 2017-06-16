@@ -70,7 +70,7 @@ function main() {
     @__dyn_0.receive(__principal="omlet-messaging:testtesttest"^^tt:contact,
         __token="123456789"^^tt:flow_token,
         __kindChannel=""^^tt:function),
-        text =~ "lol",
+        (text =~ "lol" || text =~ "funny"),
         v_txt := text
     =>
     @facebook.post(status=v_txt);
