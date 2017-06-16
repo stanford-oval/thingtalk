@@ -14,6 +14,8 @@ function main() {
     var checker = new PermissionChecker(schemaRetriever);
 
     var allowed = [
+        Ast.Allowed('gmail', 'receive_email', 'triggers',
+            Ast.BooleanExpression.Atom(Ast.Filter('from_address', '=', Ast.Value.Entity('bob@stanford.edu', 'tt:email_address', null)))),
         Ast.Allowed('builtin', 'notify', 'actions', Ast.BooleanExpression.True),
         Ast.Allowed('facebook', 'post', 'actions',
             Ast.BooleanExpression.And(
@@ -76,9 +78,42 @@ function main() {
     @facebook.post(status=v_txt);
 }`
 
+/*`AlmondGenerated() {
+    class @__dyn_0 extends @remote {
+        action send(in req __principal : Entity(tt:contact),
+                    in req __token : Entity(tt:flow_token),
+                    in req from_name : String,
+                    in req from_address : Entity(tt:email_address),
+                    in req subject : String,
+                    in req date : Date,
+                    in req labels : Array(String),
+                    in req snippet : String);
+    }
+    @gmail.receive_email(),
+        subject =~ "lol",
+        v_from_name := from_name,
+        v_from_address := from_address,
+        v_subject := subject,
+        v_date := date,
+        v_labels := labels,
+        v_snippet := snippet
+    =>
+    @__dyn_0.send(__principal="omlet-messaging:testtesttest"^^tt:contact,
+        __token="123456789"^^tt:flow_token,
+        from_name = v_from_name,
+        from_address = v_from_address,
+        subject = v_subject,
+        date = v_date,
+        labels = v_labels,
+        snippet = v_snippet);
+}`*/
+
 ));
     }).then(() => {
         return checker.check();
+    }).then((prog) => {
+        console.log('Rewritten program');
+        console.log(Ast.prettyprint(prog));
     }).done();
 }
 main();
