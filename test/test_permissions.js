@@ -144,7 +144,7 @@ function main() {
     => notify;
 }`*/
 
-/*`AlmondGenerated() {
+`AlmondGenerated() {
     class @__dyn_0 extends @remote {
         trigger receive(in req __principal : Entity(tt:contact),
                         in req __token : Entity(tt:flow_token),
@@ -158,12 +158,12 @@ function main() {
         v_q1 := q1,
         v_q2 := q2
     =>
-    @twitter.search(query="cats"), true, v_txt := text
+    @twitter.search(query="cats"), true, text =~ "funny lol", v_txt := text
     =>
     @facebook.post(status=v_txt);
-}`*/
+}`
 
-`AlmondGenerated() {
+/*`AlmondGenerated() {
     class @__dyn_0 extends @remote {
         trigger receive(in req __principal : Entity(tt:contact),
                         in req __token : Entity(tt:flow_token),
@@ -182,7 +182,7 @@ function main() {
     @twitter.search(query=v_q1), true, v_txt := text
     =>
     @facebook.post(status=v_txt);
-}`
+}`*/
 
 ));
     }).then(() => {
