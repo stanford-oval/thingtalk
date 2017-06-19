@@ -1,7 +1,9 @@
 (set-logic ALL_SUPPORTED)
 (declare-fun s () String)
 ;(assert (not (str.contains s "abc")))
-(assert (str.in.re s (re.++ (re.* re.allchar) (str.to.re "ab") (re.* re.allchar))))
-(assert (not
-    (str.in.re s (re.++ (re.* re.allchar) (str.to.re "a") (re.* re.allchar)))))
+;(assert (str.in.re s (re.++ (re.* re.allchar) (str.to.re "ab") (re.* re.allchar))))
+;(assert (not
+;    (str.in.re s (re.++ (re.* re.allchar) (str.to.re "a") (re.* re.allchar)))))
+(assert (str.contains s "ab"))
+(assert (not (str.contains s "a")))
 (check-sat)

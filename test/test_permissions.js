@@ -37,14 +37,12 @@ function main() {
             Ast.BooleanExpression.Atom(Ast.Filter('status', '=~', Ast.Value.String('funny'))),
             Ast.BooleanExpression.True),
         Ast.Allowed('twitter', 'search', 'queries',
-            Ast.BooleanExpression.Atom(Ast.Filter('query', '=', Ast.Value.String('cats'))),
+            Ast.BooleanExpression.Atom(Ast.Filter('query', '=~', Ast.Value.String('cats'))),
             Ast.BooleanExpression.And([
-                Ast.BooleanExpression.Atom(Ast.Filter('hashtags', 'contains', Ast.Value.Entity('cat', 'tt:hashtag', null))),
-                Ast.BooleanExpression.Atom(Ast.Filter('text', '=~', Ast.Value.String('funny'))),
-                Ast.BooleanExpression.Atom(Ast.Filter('text', '=~', Ast.Value.String('lol')))
+                Ast.BooleanExpression.Atom(Ast.Filter('hashtags', 'contains', Ast.Value.Entity('cat', 'tt:hashtag', null)))
                 ])),
         Ast.Allowed('twitter', 'search', 'queries',
-            Ast.BooleanExpression.Atom(Ast.Filter('query', '=', Ast.Value.String('dogs'))),
+            Ast.BooleanExpression.Atom(Ast.Filter('query', '=~', Ast.Value.String('dogs'))),
             Ast.BooleanExpression.Atom(Ast.Filter('hashtags', 'contains', Ast.Value.Entity('dog', 'tt:hashtag', null)))),
         Ast.Allowed('thermostat', 'set_target_temperature', 'actions',
             Ast.BooleanExpression.And([
@@ -155,10 +153,12 @@ function main() {
     @__dyn_0.receive(__principal="omlet-messaging:testtesttest"^^tt:contact,
         __token="123456789"^^tt:flow_token,
         __kindChannel=""^^tt:function),
+        q1 =~ "cats",
         v_q1 := q1,
         v_q2 := q2
     =>
-    @twitter.search(query="cats"), true, text =~ "funny lol", v_txt := text
+    @twitter.search(query=v_q1),
+        text =~ "funy lol", v_txt := text
     =>
     @facebook.post(status=v_txt);
 }`
