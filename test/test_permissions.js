@@ -16,33 +16,47 @@ function main() {
 
     var allowed = [
         Ast.Allowed('gmail', 'receive_email', 'triggers',
+            Ast.BooleanExpression.True,
             Ast.BooleanExpression.Atom(Ast.Filter('from_address', '=', Ast.Value.Entity('bob@stanford.edu', 'tt:email_address', null)))),
-        Ast.Allowed('builtin', 'notify', 'actions', Ast.BooleanExpression.True),
+        Ast.Allowed('builtin', 'notify', 'actions',
+            Ast.BooleanExpression.True,
+            Ast.BooleanExpression.True),
         Ast.Allowed('facebook', 'post', 'actions',
             Ast.BooleanExpression.And([
                 Ast.BooleanExpression.Atom(Ast.Filter('status', '=~', Ast.Value.String('funny'))),
                 Ast.BooleanExpression.Atom(Ast.Filter('status', '=~', Ast.Value.String('lol')))
-            ])),
+            ]),
+            Ast.BooleanExpression.True),
         Ast.Allowed('facebook', 'post', 'actions',
             Ast.BooleanExpression.Or([
                 Ast.BooleanExpression.Atom(Ast.Filter('status', '=~', Ast.Value.String('https://www.wsj.com'))),
                 Ast.BooleanExpression.Atom(Ast.Filter('status', '=~', Ast.Value.String('https://www.washingtonpost.com')))
-            ])),
+            ]),
+            Ast.BooleanExpression.True),
         Ast.Allowed('twitter', 'sink', 'actions',
-            Ast.BooleanExpression.Atom(Ast.Filter('status', '=~', Ast.Value.String('funny')))),
+            Ast.BooleanExpression.Atom(Ast.Filter('status', '=~', Ast.Value.String('funny'))),
+            Ast.BooleanExpression.True),
         Ast.Allowed('twitter', 'search', 'queries',
-            Ast.BooleanExpression.Atom(Ast.Filter('query', '=', Ast.Value.String('cats')))),
+            Ast.BooleanExpression.Atom(Ast.Filter('query', '=', Ast.Value.String('cats'))),
+            Ast.BooleanExpression.And([
+                Ast.BooleanExpression.Atom(Ast.Filter('hashtags', 'contains', Ast.Value.Entity('cat', 'tt:hashtag', null))),
+                Ast.BooleanExpression.Atom(Ast.Filter('text', '=~', Ast.Value.String('funny'))),
+                Ast.BooleanExpression.Atom(Ast.Filter('text', '=~', Ast.Value.String('lol')))
+                ])),
         Ast.Allowed('twitter', 'search', 'queries',
-            Ast.BooleanExpression.Atom(Ast.Filter('hashtags', 'contains', Ast.Value.Entity('cat', 'tt:hashtag', null)))),
+            Ast.BooleanExpression.Atom(Ast.Filter('query', '=', Ast.Value.String('dogs'))),
+            Ast.BooleanExpression.Atom(Ast.Filter('hashtags', 'contains', Ast.Value.Entity('dog', 'tt:hashtag', null)))),
         Ast.Allowed('thermostat', 'set_target_temperature', 'actions',
             Ast.BooleanExpression.And([
                 Ast.BooleanExpression.Atom(
                     Ast.Filter('value', '>', Ast.Value.Measure(70, 'F'))),
                 Ast.BooleanExpression.Atom(
                     Ast.Filter('value', '<=', Ast.Value.Measure(75, 'F')))
-            ])),
+            ]),
+            Ast.BooleanExpression.True),
         Ast.Allowed('lg_webos_tv', 'set_power', 'actions',
-            Ast.BooleanExpression.Atom(Ast.Filter('power', '=', Ast.Value.Enum('off'))))
+            Ast.BooleanExpression.Atom(Ast.Filter('power', '=', Ast.Value.Enum('off'))),
+            Ast.BooleanExpression.True)
     ];
 
     Q.all(allowed.map((a) => checker.allowed(a))).then(() => {
