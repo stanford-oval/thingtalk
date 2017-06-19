@@ -144,6 +144,25 @@ function main() {
     => notify;
 }`*/
 
+/*`AlmondGenerated() {
+    class @__dyn_0 extends @remote {
+        trigger receive(in req __principal : Entity(tt:contact),
+                        in req __token : Entity(tt:flow_token),
+                        in req __kindChannel : Entity(tt:function),
+                        out q1 : String,
+                        out q2 : String);
+    }
+    @__dyn_0.receive(__principal="omlet-messaging:testtesttest"^^tt:contact,
+        __token="123456789"^^tt:flow_token,
+        __kindChannel=""^^tt:function),
+        v_q1 := q1,
+        v_q2 := q2
+    =>
+    @twitter.search(query="cats"), true, v_txt := text
+    =>
+    @facebook.post(status=v_txt);
+}`*/
+
 `AlmondGenerated() {
     class @__dyn_0 extends @remote {
         trigger receive(in req __principal : Entity(tt:contact),
@@ -159,6 +178,8 @@ function main() {
         v_q2 := q2
     =>
     @twitter.search(query="cats"), true, v_txt := text
+    =>
+    @twitter.search(query=v_q1), true, v_txt := text
     =>
     @facebook.post(status=v_txt);
 }`
