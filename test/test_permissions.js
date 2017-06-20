@@ -107,7 +107,12 @@ const TEST_CASES = [
     =>
     @twitter.search(query=v_q2)
     => notify;
-    }`,``],
+    }`,`AlmondGenerated() {
+    class @__dyn_0 extends @remote {
+        trigger receive (in req __principal : Entity(tt:contact), in req __token : Entity(tt:flow_token), in req __kindChannel : Entity(tt:function), out q1 : String, out q2 : String);
+    }
+    @__dyn_0.receive(__principal="omlet-messaging:testtesttest"^^tt:contact, __token="123456789"^^tt:flow_token, __kindChannel=""^^tt:function) , v_q1 := q1, v_q2 := q2 => @twitter.search(query="cats"), (contains(hashtags, "cat"^^tt:hashtag) && (v_q2 =~ "cats" || v_q2 =~ "dogs"))  => @twitter.search(query=v_q2), ((!(query =~ "cats") || contains(hashtags, "cat"^^tt:hashtag)) && (!(query =~ "dogs") || contains(hashtags, "dog"^^tt:hashtag)))  => notify;
+}`],
 
     [`AlmondGenerated() {
     class @__dyn_0 extends @remote {
@@ -128,7 +133,32 @@ const TEST_CASES = [
         text =~ "funny lol", v_txt := text
     =>
     @facebook.post(status=v_txt);
-    }`,``],
+    }`,`AlmondGenerated() {
+    class @__dyn_0 extends @remote {
+        trigger receive (in req __principal : Entity(tt:contact), in req __token : Entity(tt:flow_token), in req __kindChannel : Entity(tt:function), out q1 : String, out q2 : String);
+    }
+    @__dyn_0.receive(__principal="omlet-messaging:testtesttest"^^tt:contact, __token="123456789"^^tt:flow_token, __kindChannel=""^^tt:function), q1 =~ "cats" , v_q1 := q1, v_q2 := q2 => @twitter.search(query=v_q1), (text =~ "funny lol" && contains(hashtags, "cat"^^tt:hashtag) && (!(query =~ "dogs") || contains(hashtags, "dog"^^tt:hashtag))) , v_txt := text => @facebook.post(status=v_txt) ;
+}`],
+
+    [`AlmondGenerated() {
+    now =>
+    @twitter.search(query="cats"),
+        text =~ "funny lol", v_txt := text
+    =>
+    @facebook.post(status=v_txt);
+    }`, `AlmondGenerated() {
+    now => @twitter.search(query="cats"), (text =~ "funny lol" && contains(hashtags, "cat"^^tt:hashtag)) , v_txt := text => @facebook.post(status=v_txt) ;
+}`],
+
+    [`AlmondGenerated() {
+    now =>
+    @twitter.search(query="cats"),
+        v_txt := text
+    =>
+    @facebook.post(status=v_txt);
+    }`, `AlmondGenerated() {
+    now => @twitter.search(query="cats"), (contains(hashtags, "cat"^^tt:hashtag) && ((text =~ "funny" && text =~ "lol") || text =~ "https://www.wsj.com" || text =~ "https://www.washingtonpost.com")) , v_txt := text => @facebook.post(status=v_txt) ;
+}`],
 
     [`AlmondGenerated() {
     class @__dyn_0 extends @remote {
@@ -149,7 +179,12 @@ const TEST_CASES = [
     @twitter.search(query=v_q1), true, v_txt := text
     =>
     @facebook.post(status=v_txt);
-    }`,``]
+    }`,`AlmondGenerated() {
+    class @__dyn_0 extends @remote {
+        trigger receive (in req __principal : Entity(tt:contact), in req __token : Entity(tt:flow_token), in req __kindChannel : Entity(tt:function), out q1 : String, out q2 : String);
+    }
+    @__dyn_0.receive(__principal="omlet-messaging:testtesttest"^^tt:contact, __token="123456789"^^tt:flow_token, __kindChannel=""^^tt:function) , v_q1 := q1, v_q2 := q2 => @twitter.search(query="cats"), (contains(hashtags, "cat"^^tt:hashtag) && (v_q1 =~ "cats" || v_q1 =~ "dogs")) , v_txt := text => @twitter.search(query=v_q1), ((!(query =~ "cats") || contains(hashtags, "cat"^^tt:hashtag)) && (!(query =~ "dogs") || contains(hashtags, "dog"^^tt:hashtag)) && ((text =~ "funny" && text =~ "lol") || text =~ "https://www.wsj.com" || text =~ "https://www.washingtonpost.com")) , v_txt := text => @facebook.post(status=v_txt) ;
+}`]
 ];
 
 function promiseLoop(array, fn) {
@@ -194,7 +229,7 @@ function main() {
     Q.all(PERMISSION_DATABASE.map((a) => checker.allowed(Grammar.parsePermissionRule(a)))).then(() => {
         const principal = Ast.Value.Entity('omlet-messaging:testtesttest', 'tt:contact', null);
 
-        return promiseLoop(TEST_CASES.slice(0, 1), ([input, expected], i) => {
+        return promiseLoop(TEST_CASES, ([input, expected], i) => {
             console.error('Test case #' + (i+1));
             console.log('Checking program');
             console.log(input);
