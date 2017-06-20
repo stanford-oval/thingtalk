@@ -1,7 +1,8 @@
 const Q = require('q');
 
 const Ast = require('../lib/ast');
-const Grammar = require('../lib/grammar');
+const Grammar = require('../lib/grammar_api');
+const Compiler = require('../lib/compiler');
 const SchemaRetriever = require('../lib/schema');
 const PermissionChecker = require('../lib/permission_checker');
 const { optimizeProgram } = require('../lib/optimize');
@@ -9,59 +10,10 @@ const { optimizeProgram } = require('../lib/optimize');
 const _mockSchemaDelegate = require('./mock_schema_delegate');
 const ThingpediaClientHttp = require('./http_client');
 
-var schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(), true);
+var schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(), false);
 
-function main() {
-    var checker = new PermissionChecker(schemaRetriever);
-
-    var allowed = [
-        Ast.Allowed('gmail', 'receive_email', 'triggers',
-            Ast.BooleanExpression.True,
-            Ast.BooleanExpression.Atom(Ast.Filter('from_address', '=', Ast.Value.Entity('bob@stanford.edu', 'tt:email_address', null)))),
-        Ast.Allowed('builtin', 'notify', 'actions',
-            Ast.BooleanExpression.True,
-            Ast.BooleanExpression.True),
-        Ast.Allowed('facebook', 'post', 'actions',
-            Ast.BooleanExpression.And([
-                Ast.BooleanExpression.Atom(Ast.Filter('status', '=~', Ast.Value.String('funny'))),
-                Ast.BooleanExpression.Atom(Ast.Filter('status', '=~', Ast.Value.String('lol')))
-            ]),
-            Ast.BooleanExpression.True),
-        Ast.Allowed('facebook', 'post', 'actions',
-            Ast.BooleanExpression.Or([
-                Ast.BooleanExpression.Atom(Ast.Filter('status', '=~', Ast.Value.String('https://www.wsj.com'))),
-                Ast.BooleanExpression.Atom(Ast.Filter('status', '=~', Ast.Value.String('https://www.washingtonpost.com')))
-            ]),
-            Ast.BooleanExpression.True),
-        Ast.Allowed('twitter', 'sink', 'actions',
-            Ast.BooleanExpression.Atom(Ast.Filter('status', '=~', Ast.Value.String('funny'))),
-            Ast.BooleanExpression.True),
-        Ast.Allowed('twitter', 'search', 'queries',
-            Ast.BooleanExpression.Atom(Ast.Filter('query', '=~', Ast.Value.String('cats'))),
-            Ast.BooleanExpression.And([
-                Ast.BooleanExpression.Atom(Ast.Filter('hashtags', 'contains', Ast.Value.Entity('cat', 'tt:hashtag', null)))
-                ])),
-        Ast.Allowed('twitter', 'search', 'queries',
-            Ast.BooleanExpression.Atom(Ast.Filter('query', '=~', Ast.Value.String('dogs'))),
-            Ast.BooleanExpression.Atom(Ast.Filter('hashtags', 'contains', Ast.Value.Entity('dog', 'tt:hashtag', null)))),
-        Ast.Allowed('thermostat', 'set_target_temperature', 'actions',
-            Ast.BooleanExpression.And([
-                Ast.BooleanExpression.Atom(
-                    Ast.Filter('value', '>', Ast.Value.Measure(70, 'F'))),
-                Ast.BooleanExpression.Atom(
-                    Ast.Filter('value', '<=', Ast.Value.Measure(75, 'F')))
-            ]),
-            Ast.BooleanExpression.True),
-        Ast.Allowed('lg_webos_tv', 'set_power', 'actions',
-            Ast.BooleanExpression.Atom(Ast.Filter('power', '=', Ast.Value.Enum('off'))),
-            Ast.BooleanExpression.True)
-    ];
-
-    Q.all(allowed.map((a) => checker.allowed(a))).then(() => {
-        return checker.addProgram(
-        Ast.Value.Entity('omlet-messaging:testtesttest', 'tt:contact', null),
-        Grammar.parse(
-/*`AlmondGenerated() {
+const TEST_CASES = [
+    [`AlmondGenerated() {
     class @__dyn_0 extends @remote {
         trigger receive(in req __principal : Entity(tt:contact),
                         in req __token : Entity(tt:flow_token),
@@ -74,9 +26,14 @@ function main() {
         v_v := v
     =>
     @lg_webos_tv.set_power(power=v_v);
-}`*/
+    }`, `AlmondGenerated() {
+    class @__dyn_0 extends @remote {
+        trigger receive (in req __principal : Entity(tt:contact), in req __token : Entity(tt:flow_token), in req __kindChannel : Entity(tt:function), out v : Enum(on,off));
+    }
+    @__dyn_0.receive(__principal="omlet-messaging:testtesttest"^^tt:contact, __token="123456789"^^tt:flow_token, __kindChannel=""^^tt:function), v = enum(off) , v_v := v => @lg_webos_tv.set_power(power=v_v) ;
+}`],
 
-/*`AlmondGenerated() {
+    [`AlmondGenerated() {
     class @__dyn_0 extends @remote {
         trigger receive(in req __principal : Entity(tt:contact),
                         in req __token : Entity(tt:flow_token),
@@ -90,9 +47,14 @@ function main() {
         v_txt := text
     =>
     @facebook.post(status=v_txt);
-}`*/
+    }`, `AlmondGenerated() {
+    class @__dyn_0 extends @remote {
+        trigger receive (in req __principal : Entity(tt:contact), in req __token : Entity(tt:flow_token), in req __kindChannel : Entity(tt:function), out text : String);
+    }
+    @__dyn_0.receive(__principal="omlet-messaging:testtesttest"^^tt:contact, __token="123456789"^^tt:flow_token, __kindChannel=""^^tt:function), ((text =~ "lol" || text =~ "funny") && ((text =~ "funny" && text =~ "lol") || text =~ "https://www.wsj.com" || text =~ "https://www.washingtonpost.com")) , v_txt := text => @facebook.post(status=v_txt) ;
+}`],
 
-/*`AlmondGenerated() {
+    [`AlmondGenerated() {
     class @__dyn_0 extends @remote {
         action send(in req __principal : Entity(tt:contact),
                     in req __token : Entity(tt:flow_token),
@@ -120,9 +82,14 @@ function main() {
         date = v_date,
         labels = v_labels,
         snippet = v_snippet);
-}`*/
+    }`, `AlmondGenerated() {
+    class @__dyn_0 extends @remote {
+        action send (in req __principal : Entity(tt:contact), in req __token : Entity(tt:flow_token), in req from_name : String, in req from_address : Entity(tt:email_address), in req subject : String, in req date : Date, in req labels : Array(String), in req snippet : String);
+    }
+    @gmail.receive_email(), (subject =~ "lol" && from_address = "bob@stanford.edu"^^tt:email_address) , v_from_name := from_name, v_from_address := from_address, v_subject := subject, v_date := date, v_labels := labels, v_snippet := snippet => @__dyn_0.send(__principal="omlet-messaging:testtesttest"^^tt:contact, __token="123456789"^^tt:flow_token, from_name=v_from_name, from_address=v_from_address, subject=v_subject, date=v_date, labels=v_labels, snippet=v_snippet) ;
+}`],
 
-/*`AlmondGenerated() {
+    [`AlmondGenerated() {
     class @__dyn_0 extends @remote {
         trigger receive(in req __principal : Entity(tt:contact),
                         in req __token : Entity(tt:flow_token),
@@ -140,9 +107,9 @@ function main() {
     =>
     @twitter.search(query=v_q2)
     => notify;
-}`*/
+    }`,``],
 
-`AlmondGenerated() {
+    [`AlmondGenerated() {
     class @__dyn_0 extends @remote {
         trigger receive(in req __principal : Entity(tt:contact),
                         in req __token : Entity(tt:flow_token),
@@ -158,12 +125,12 @@ function main() {
         v_q2 := q2
     =>
     @twitter.search(query=v_q1),
-        text =~ "funy lol", v_txt := text
+        text =~ "funny lol", v_txt := text
     =>
     @facebook.post(status=v_txt);
-}`
+    }`,``],
 
-/*`AlmondGenerated() {
+    [`AlmondGenerated() {
     class @__dyn_0 extends @remote {
         trigger receive(in req __principal : Entity(tt:contact),
                         in req __token : Entity(tt:flow_token),
@@ -182,21 +149,68 @@ function main() {
     @twitter.search(query=v_q1), true, v_txt := text
     =>
     @facebook.post(status=v_txt);
-}`*/
+    }`,``]
+];
 
-));
-    }).then(() => {
-        return checker.check();
-    }).then((prog) => {
-        console.log('Rewritten program');
-        console.log(Ast.prettyprint(prog));
-        let newprog = optimizeProgram(prog);
-        if (newprog) {
-            console.log('After optimization');
-            console.log(Ast.prettyprint(newprog));
-        } else {
-            console.log('Program destroyed after optimization');
-        }
+function promiseLoop(array, fn) {
+    return (function loop(i) {
+        if (i === array.length)
+            return Q();
+        return Q(fn(array[i], i)).then(() => loop(i+1));
+    })(0);
+}
+
+const PERMISSION_DATABASE = [
+    `AllowedTrigger(_, @gmail.receive_email, true, from_address = "bob@stanford.edu"^^tt:email_address)`,
+    `AllowedAction(_, @builtin.notify)`,
+    `AllowedAction(_, @facebook.post, status =~ "funny" && status =~ "lol")`,
+    `AllowedAction(_, @facebook.post, status =~ "https://www.wsj.com" || status =~ "https://www.washingtonpost.com")`,
+    `AllowedAction(_, @twitter.sink, status =~ "funny")`,
+    `AllowedQuery(_, @twitter.search, query =~ "cats", contains(hashtags, "cat"^^tt:hashtag))`,
+    `AllowedQuery(_, @twitter.search, query =~ "dogs", contains(hashtags, "dog"^^tt:hashtag))`,
+    `AllowedAction(_, @thermostat.set_target_temperature, value > 70F && value <= 75F)`,
+    `AllowedAction(_, @lg_webos_tv.set_power, power = enum(off))`,
+    `AllowedAction("omlet-messaging:testtesttest"^^tt:contact, @lg_webos_tv.set_power)`
+];
+
+function main() {
+    var checker = new PermissionChecker(schemaRetriever);
+
+    Q.all(PERMISSION_DATABASE.map((a) => checker.allowed(Grammar.parsePermissionRule(a)))).then(() => {
+        const principal = Ast.Value.Entity('omlet-messaging:testtesttest', 'tt:contact', null);
+
+        return promiseLoop(TEST_CASES, ([input, expected], i) => {
+            console.error('Test case #' + (i+1));
+            console.log('Checking program');
+            console.log(input);
+            return checker.check(principal, Grammar.parse(input)).then((prog) => {
+                if (prog) {
+                    console.log('Program accepted');
+                    let code = Ast.prettyprint(prog);
+                    if (code !== expected) {
+                        console.error('Test case #' + (i+1) + ' FAIL');
+                        console.error('Program does not match what expected');
+                        console.error('Expected:');
+                        console.error(expected);
+                        console.error('Generated:');
+                        console.error(code);
+                    } else {
+                        console.error('Test case #' + (i+1) + ' PASS');
+                        console.error('Program matches what expected');
+                    }
+
+                    let compiler = new Compiler();
+                    compiler.setSchemaRetriever(schemaRetriever);
+                    return compiler.compileProgram(prog);
+                } else if (expected !== null) {
+                    console.error('Test case #' + (i+1) + ' FAIL');
+                    console.error('Program rejected unexpectedly');
+                } else {
+                    console.error('Test case #' + (i+1) + ' PASS');
+                    console.error('Program rejected as expected');
+                }
+            });
+        });
     }).done();
 }
 main();

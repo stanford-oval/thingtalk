@@ -3,7 +3,7 @@ const fs = require('fs');
 const deq = require('deep-equal');
 
 const AppCompiler = require('../lib/compiler');
-const AppGrammar = require('../lib/grammar');
+const AppGrammar = require('../lib/grammar_api');
 const SchemaRetriever = require('../lib/schema');
 const prettyprint = require('../lib/prettyprint');
 const SEMPRESyntax = require('../lib/sempre_syntax');

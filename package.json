@@ -23,7 +23,7 @@
     "pegjs": "~0.9.0"
   },
   "scripts": {
-    "regen-grammar": "pegjs --allowed-start-rules program,type_ref ./lib/grammar.pegjs",
+    "regen-grammar": "pegjs --allowed-start-rules program,type_ref,permission_rule ./lib/grammar.pegjs",
     "lint": "eslint ./lib"
   }
 }
