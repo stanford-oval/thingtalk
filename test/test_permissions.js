@@ -30,7 +30,7 @@ const TEST_CASES = [
     class @__dyn_0 extends @remote {
         trigger receive (in req __principal : Entity(tt:contact), in req __token : Entity(tt:flow_token), in req __kindChannel : Entity(tt:function), out v : Enum(on,off));
     }
-    @__dyn_0.receive(__principal="omlet-messaging:testtesttest"^^tt:contact, __token="123456789"^^tt:flow_token, __kindChannel=""^^tt:function), v = enum(off) , v_v := v => @lg_webos_tv.set_power(power=v_v) ;
+    @__dyn_0.receive(__principal="omlet-messaging:testtesttest"^^tt:contact, __token="123456789"^^tt:flow_token, __kindChannel=""^^tt:function) , v_v := v => @lg_webos_tv.set_power(power=v_v) ;
 }`],
 
     [`AlmondGenerated() {
@@ -170,16 +170,31 @@ const PERMISSION_DATABASE = [
     `AllowedQuery(_, @twitter.search, query =~ "dogs", contains(hashtags, "dog"^^tt:hashtag))`,
     `AllowedAction(_, @thermostat.set_target_temperature, value > 70F && value <= 75F)`,
     `AllowedAction(_, @lg_webos_tv.set_power, power = enum(off))`,
-    `AllowedAction("omlet-messaging:testtesttest"^^tt:contact, @lg_webos_tv.set_power)`
+    `AllowedAction("role:mom"^^tt:contact_group, @lg_webos_tv.set_power, power = enum(on))`
 ];
 
+class MockGroupDelegate {
+    getGroups(principal) {
+        switch (principal) {
+        case 'omlet-messaging:testtesttest':
+            return Q(['omlet-feed:family', 'role:mom']);
+        case 'omlet-messaging:sistertest':
+            return Q(['omlet-feed:family', 'role:sister']);
+        case 'omlet-messaging:strangertext':
+            return Q([]);
+        default:
+            return Q([]);
+        }
+    }
+}
+
 function main() {
-    var checker = new PermissionChecker(schemaRetriever);
+    var checker = new PermissionChecker(schemaRetriever, new MockGroupDelegate());
 
     Q.all(PERMISSION_DATABASE.map((a) => checker.allowed(Grammar.parsePermissionRule(a)))).then(() => {
         const principal = Ast.Value.Entity('omlet-messaging:testtesttest', 'tt:contact', null);
 
-        return promiseLoop(TEST_CASES, ([input, expected], i) => {
+        return promiseLoop(TEST_CASES.slice(0, 1), ([input, expected], i) => {
             console.error('Test case #' + (i+1));
             console.log('Checking program');
             console.log(input);
