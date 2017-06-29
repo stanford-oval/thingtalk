@@ -25,7 +25,9 @@ function main() {
             language: 'en',
             actionArgConstantProbability: 0.6,
             argConstantProbability: 0.4,
-            requiredArgConstantProbability: 0.9
+            requiredArgConstantProbability: 0.9,
+            applyFiltersToInputs: true,
+            filterClauseProbability: 0.4
         });
 
         stream.on('data', (prog) => console.log(Ast.prettyprint(prog, true).trim()));
