@@ -205,7 +205,11 @@ const PERMISSION_DATABASE = [
     `AllowedQuery(_, @twitter.search, query =~ "dogs", contains(hashtags, "dog"^^tt:hashtag))`,
     `AllowedAction(_, @thermostat.set_target_temperature, value > 70F && value <= 75F)`,
     `AllowedAction(_, @lg_webos_tv.set_power, power = enum(off))`,
-    `AllowedAction("role:mom"^^tt:contact_group, @lg_webos_tv.set_power, power = enum(on))`
+    `AllowedAction("role:mom"^^tt:contact_group, @lg_webos_tv.set_power, power = enum(on))`,
+
+    `AllowedAction(_, @lg_webos_tv.set_power, group_member(__pi, "role:mom"^^tt:contact_group) && power = enum(on))`,
+
+    `AllowedAction(_, @lg_webos_tv.set_power, __pi = "mom@stanford.edu"^^tt:email_address && power = enum(on))`
 ];
 
 class MockGroupDelegate {

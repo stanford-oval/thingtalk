@@ -14,6 +14,8 @@ const ExecEnvironment = require('./lib/exec_environment');
 const Type = require('./lib/type');
 const SchemaRetriever = require('./lib/schema');
 const Generate = require('./lib/generate');
+Generate.genRandomRules = require('./lib/gen_random_rule');
+Generate.genRandomValue = require('./lib/gen_random_value');
 const SEMPRESyntax = require('./lib/sempre_syntax');
 
 module.exports = {
