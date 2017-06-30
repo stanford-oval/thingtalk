@@ -30,7 +30,7 @@ const TEST_CASES = [
     class @__dyn_0 extends @remote {
         trigger receive (in req __principal : Entity(tt:contact), in req __token : Entity(tt:flow_token), in req __kindChannel : Entity(tt:function), out v : Enum(on,off));
     }
-    @__dyn_0.receive(__principal="omlet-messaging:testtesttest"^^tt:contact, __token="123456789"^^tt:flow_token, __kindChannel=""^^tt:function) , v_v := v => @lg_webos_tv.set_power(power=v_v) ;
+    @__dyn_0.receive(__principal="omlet-messaging:testtesttest"^^tt:contact, __token="123456789"^^tt:flow_token, __kindChannel=""^^tt:function), true , v_v := v => @lg_webos_tv.set_power(power=v_v) ;
 }`],
 
     [`AlmondGenerated() {
@@ -111,7 +111,7 @@ const TEST_CASES = [
     class @__dyn_0 extends @remote {
         trigger receive (in req __principal : Entity(tt:contact), in req __token : Entity(tt:flow_token), in req __kindChannel : Entity(tt:function), out q1 : String, out q2 : String);
     }
-    @__dyn_0.receive(__principal="omlet-messaging:testtesttest"^^tt:contact, __token="123456789"^^tt:flow_token, __kindChannel=""^^tt:function) , v_q1 := q1, v_q2 := q2 => @twitter.search(query="cats"), (contains(hashtags, "cat"^^tt:hashtag) && (v_q2 =~ "cats" || v_q2 =~ "dogs"))  => @twitter.search(query=v_q2), ((!(query =~ "cats") || contains(hashtags, "cat"^^tt:hashtag)) && (!(query =~ "dogs") || contains(hashtags, "dog"^^tt:hashtag)))  => notify;
+    @__dyn_0.receive(__principal="omlet-messaging:testtesttest"^^tt:contact, __token="123456789"^^tt:flow_token, __kindChannel=""^^tt:function) , v_q1 := q1, v_q2 := q2 => @twitter.search(query="cats"), (contains(hashtags, "cat"^^tt:hashtag) && (v_q2 =~ "cats" || v_q2 =~ "dogs"))  => @twitter.search(query=v_q2), (contains(hashtags, "cat"^^tt:hashtag) || contains(hashtags, "dog"^^tt:hashtag))  => notify;
 }`],
 
     [`AlmondGenerated() {
@@ -137,7 +137,7 @@ const TEST_CASES = [
     class @__dyn_0 extends @remote {
         trigger receive (in req __principal : Entity(tt:contact), in req __token : Entity(tt:flow_token), in req __kindChannel : Entity(tt:function), out q1 : String, out q2 : String);
     }
-    @__dyn_0.receive(__principal="omlet-messaging:testtesttest"^^tt:contact, __token="123456789"^^tt:flow_token, __kindChannel=""^^tt:function), q1 =~ "cats" , v_q1 := q1, v_q2 := q2 => @twitter.search(query=v_q1), (text =~ "funny lol" && contains(hashtags, "cat"^^tt:hashtag) && (!(query =~ "dogs") || contains(hashtags, "dog"^^tt:hashtag))) , v_txt := text => @facebook.post(status=v_txt) ;
+    @__dyn_0.receive(__principal="omlet-messaging:testtesttest"^^tt:contact, __token="123456789"^^tt:flow_token, __kindChannel=""^^tt:function), q1 =~ "cats" , v_q1 := q1, v_q2 := q2 => @twitter.search(query=v_q1), (text =~ "funny lol" && (contains(hashtags, "cat"^^tt:hashtag) || contains(hashtags, "dog"^^tt:hashtag))) , v_txt := text => @facebook.post(status=v_txt) ;
 }`],
 
     [`AlmondGenerated() {
@@ -183,7 +183,7 @@ const TEST_CASES = [
     class @__dyn_0 extends @remote {
         trigger receive (in req __principal : Entity(tt:contact), in req __token : Entity(tt:flow_token), in req __kindChannel : Entity(tt:function), out q1 : String, out q2 : String);
     }
-    @__dyn_0.receive(__principal="omlet-messaging:testtesttest"^^tt:contact, __token="123456789"^^tt:flow_token, __kindChannel=""^^tt:function) , v_q1 := q1, v_q2 := q2 => @twitter.search(query="cats"), (contains(hashtags, "cat"^^tt:hashtag) && (v_q1 =~ "cats" || v_q1 =~ "dogs")) , v_txt := text => @twitter.search(query=v_q1), ((!(query =~ "cats") || contains(hashtags, "cat"^^tt:hashtag)) && (!(query =~ "dogs") || contains(hashtags, "dog"^^tt:hashtag)) && ((text =~ "funny" && text =~ "lol") || text =~ "https://www.wsj.com" || text =~ "https://www.washingtonpost.com")) , v_txt := text => @facebook.post(status=v_txt) ;
+    @__dyn_0.receive(__principal="omlet-messaging:testtesttest"^^tt:contact, __token="123456789"^^tt:flow_token, __kindChannel=""^^tt:function) , v_q1 := q1, v_q2 := q2 => @twitter.search(query="cats"), (contains(hashtags, "cat"^^tt:hashtag) && (v_q1 =~ "cats" || v_q1 =~ "dogs")) , v_txt := text => @twitter.search(query=v_q1), ((contains(hashtags, "cat"^^tt:hashtag) || contains(hashtags, "dog"^^tt:hashtag)) && ((text =~ "funny" && text =~ "lol") || text =~ "https://www.wsj.com" || text =~ "https://www.washingtonpost.com")) , v_txt := text => @facebook.post(status=v_txt) ;
 }`]
 ];
 

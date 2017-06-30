@@ -16,6 +16,7 @@
     "q": "~1.4.1"
   },
   "devDependencies": {
+    "csv": "^1.1.1",
     "deep-equal": "^1.0.1",
     "eslint": "^4.0.0",
     "mysql": "^2.13.0",
