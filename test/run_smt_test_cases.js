@@ -61,6 +61,7 @@ function main() {
                 let time = end - begin;
                 if (prog) {
                     let newCode = Ast.prettyprint(prog, false).trim();
+                    console.error(newCode);
                     console.error('ALLOWED,' + i + ',' + time + ',' + programCode.length + ',' + newCode.length);
                 } else {
                     console.error('REJECTED,' + i + ',' + time + ',' + programCode.length + ',0');
