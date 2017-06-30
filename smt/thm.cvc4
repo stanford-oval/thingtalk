@@ -1,0 +1,10 @@
+(set-option :strings-exp true)
+(set-option :produce-assignments true)
+(set-option :produce-models true)
+(set-logic QF_ALL_SUPPORTED)
+
+(declare-fun x () String)
+
+(assert (not (=> (str.contains x "ab")
+             (and (str.contains x "a") (str.contains x "b")))))
+(check-sat)
