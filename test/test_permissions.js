@@ -13,6 +13,8 @@ const ThingpediaClientHttp = require('./http_client');
 var schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(), false);
 
 const TEST_CASES = [
+    [`@activity-tracker.getmove(), ((day =~ "love you" && distance > 1000m && steps < 42 && activeTime >= 2h && inactiveTime < 2h && calories >= 500kcal)) , v_updateTime := updateTime, v_day := day, v_distance := distance, v_steps := steps, v_activeTime := activeTime, v_inactiveTime := inactiveTime, v_calories := calories => @slack.updateChannelTopic(channel=v_day, topic=v_day) ;`, null],
+
     [`AlmondGenerated() {
     class @__dyn_0 extends @remote {
         trigger receive(in req __principal : Entity(tt:contact),
