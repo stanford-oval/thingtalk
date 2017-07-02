@@ -36,6 +36,26 @@ class MockGroupDelegate {
     }
 }
 
+function countFilterClauses(filter) {
+    if (filter.isTrue || filter.isFalse)
+        return 0;
+    if (filter.isAnd || filter.isOr)
+        return filter.operands.reduce((x, y) => x + countFilterClauses(y), 0);
+    if (filter.isNot)
+        return countFilterClauses(filter.expr);
+    return 1;
+}
+function countClauses(prog) {
+    let count = 0;
+    for (let rule of prog.rules) {
+        if (rule.trigger)
+            count += countFilterClauses(rule.trigger.filter);
+        for (let query of rule.queries)
+            count += countFilterClauses(query.filter);
+    }
+    return count;
+}
+
 function main() {
     let input = fs.readFileSync(process.argv[2]).toString('utf8').split('====');
     // remove the last test case (which is empty)
@@ -55,16 +75,18 @@ function main() {
         })).then(() => {
             return Grammar.parseAndTypecheck(programCode, schemaRetriever);
         }).then((program) => {
+            let clausesBefore = countClauses(program);
             let begin = (new Date).getTime();
             return checker.check(principal, program).then((prog) => {
                 let end = (new Date).getTime();
                 let time = end - begin;
                 if (prog) {
+                    let clausesAfter = countClauses(prog);
                     let newCode = Ast.prettyprint(prog, false).trim();
                     //console.error(newCode);
-                    console.error('ALLOWED,' + i + ',' + time + ',' + programCode.length + ',' + newCode.length);
+                    console.error('ALLOWED,' + i + ',' + time + ',' + programCode.length + ',' + newCode.length +',' + clausesBefore + ',' + clausesAfter);
                 } else {
-                    console.error('REJECTED,' + i + ',' + time + ',' + programCode.length + ',0');
+                    console.error('REJECTED,' + i + ',' + time + ',' + programCode.length + ',0,' + clausesBefore + ',0');
                 }
             });
         }).catch((e) => {

@@ -7,7 +7,8 @@ function main() {
     const num_allowed = process.argv[2];
     let output = csv.stringify({
         columns: ['id', 'num_allowed', 'result', 'total_time', 'old_code_length', 'new_code_length',
-        'num_smt_calls', 'num_smt_timeouts', 'total_smt_time', 'max_smt_time', 'min_smt_time'],
+        'num_smt_calls', 'num_smt_timeouts', 'total_smt_time', 'max_smt_time', 'min_smt_time',
+        'old_code_clauses', 'new_code_clauses'],
         header: (num_allowed === '0')
     });
     output.pipe(process.stdout);
@@ -26,17 +27,20 @@ function main() {
         }
         if (/^SMT TIMED OUT$/.test(line)) {
             smtTimeouts++;
+            return;
         }
 
         if (/^(ALLOWED|REJECTED)/.test(line)) {
-            let [result, id, total_time, old_code_length, new_code_length] = line.split(',');
+            let [result, id, total_time, old_code_length, new_code_length, old_code_clauses, new_code_clauses] = line.split(',');
             old_code_length = parseInt(old_code_length);
             new_code_length = parseInt(new_code_length);
+            old_code_clauses = parseInt(old_code_clauses);
+            new_code_clauses = parseInt(new_code_clauses);
             total_time = parseInt(total_time);
             id = parseInt(id);
             output.write({
                 id: num_allowed + '_' + id,
-                num_allowed, result, old_code_length, new_code_length, total_time,
+                num_allowed, result, old_code_length, new_code_length, old_code_clauses, new_code_clauses, total_time,
                 num_smt_calls: smtResults.length,
                 num_smt_timeouts: smtTimeouts,
                 total_smt_time: smtResults.reduce((a, b) => a+b, 0),
