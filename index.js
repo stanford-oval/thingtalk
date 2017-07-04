@@ -15,9 +15,9 @@ const Type = require('./lib/type');
 const SchemaRetriever = require('./lib/schema');
 const Generate = require('./lib/generate');
 
-let { genRandomRules, genRandomAllowed } = require('./lib/gen_random_rule');
+let { genRandomRules, genRandomPermissionRule } = require('./lib/gen_random_rule');
 Generate.genRandomRules = genRandomRules;
-Generate.genRandomAllowed = genRandomAllowed;
+Generate.genRandomPermissionRule = genRandomPermissionRule;
 Generate.genRandomValue = require('./lib/gen_random_value');
 const SEMPRESyntax = require('./lib/sempre_syntax');
 

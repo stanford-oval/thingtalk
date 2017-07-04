@@ -1,3 +1,5 @@
+"use strict";
+
 const Q = require('q');
 const fs = require('fs');
 
@@ -23,12 +25,14 @@ function uniformSubset(n, subsetOf) {
 
     let taken = [];
     function next() {
-        let idx = Math.floor(Math.random()*n);
+        let idx = Math.floor(Math.random()*(subsetOf.length - taken.length));
         for (let i = 0; i < subsetOf.length; i++) {
             if (taken[i])
                 continue;
-            if (idx === 0)
+            if (idx === 0) {
+                taken[i] = true;
                 return subsetOf[i];
+            }
             idx--;
         }
     }
@@ -43,7 +47,7 @@ function uniformSubset(n, subsetOf) {
 
 function writeTestCase(file, prog, allowedset) {
     for (let allowed of allowedset)
-        file.write(Ast.prettyprintAllowed(allowed) + '\n');
+        file.write(Ast.prettyprintPermissionRule(allowed) + '\n');
     file.write(';;\n');
     file.write(Ast.prettyprint(prog, false) + '\n');
     file.write('====\n');
@@ -54,53 +58,105 @@ function main() {
     let allowedmap = new MultiMap;
 
     alloweds.forEach((allowed) => {
-        allowedmap.put(allowed.kind + ':' + allowed.channel, allowed);
+        let key = '';
+        if (allowed.trigger.isStar)
+            key = 'star';
+        else if (allowed.trigger.isBuiltin)
+            key = 'null';
+        else
+            key = allowed.trigger.kind + ':' + allowed.trigger.channel;
+        key += '+';
+        if (allowed.query.isStar)
+            key += 'star';
+        else if (allowed.query.isBuiltin)
+            key += 'null';
+        else
+            key += allowed.query.kind + ':' + allowed.query.channel;
+        key += '+';
+        if (allowed.action.isStar)
+            key += 'star';
+        else if (allowed.action.isBuiltin)
+            key += 'null';
+        else
+            key += allowed.action.kind + ':' + allowed.action.channel;
+        allowedmap.put(key, allowed);
     });
 
     let programs = fs.readFileSync('./smt/programs.test').toString('utf8').trim().split('\n').map(Grammar.parse);
+    console.log('LOADED');
 
     let files = {};
-    for (let n of [0, 1, 5, 10])
+    for (let n of [1, 5, 10, 50])
         files[n] = fs.createWriteStream('./smt/test.' + n);
 
     for (let prog of programs) {
-        let functions = [];
-        for (let rule of prog.rules) {
-            if (rule.trigger)
-                functions.push(rule.trigger);
-            for (let query of rule.queries)
-                functions.push(query);
-            for (let action of rule.actions) {
-                if (action.selector.isBuiltin)
-                    continue;
-                functions.push(action);
+        if (prog.rules.length !== 1)
+            throw new Error('NOT IMPLEMENTED: cannot support more than one rule');
+        let rule = prog.rules[0];
+        let trigger, query, action;
+        if (rule.trigger)
+            trigger = rule.trigger;
+        else
+            trigger = null;
+        if (rule.queries.length > 1)
+            throw new Error('NOT IMPLEMENTED: cannot support more than one query');
+        if (rule.queries.length === 1)
+            query = rule.queries[0];
+        else
+            query = null;
+        if (rule.actions.length > 1)
+            throw new Error('NOT IMPLEMENTED: cannot support more than one action');
+        if (rule.actions[0].selector.isBuiltin)
+            action = null;
+        else
+            action = rule.actions[0];
+
+        let keys = [];
+        for (let t of [0, 1]) {
+            let tkey;
+            if (t === 0)
+                tkey = 'star';
+            else if (trigger === null)
+                tkey = 'null';
+            else
+                tkey = trigger.selector.kind + ':' + trigger.channel;
+            for (let q of [0, 1]) {
+                let qkey;
+                if (q === 0)
+                    qkey = 'star';
+                else if (query === null)
+                    qkey = 'null';
+                else
+                    qkey = query.selector.kind + ':' + query.channel;
+                for (let a of [0, 1]) {
+                    let akey;
+                    if (a === 0)
+                        akey = 'star';
+                    else if (action === null)
+                        akey = 'null';
+                    else
+                        akey = action.selector.kind + ':' + action.channel;
+                    keys.push(tkey + '+' + qkey + '+' + akey);
+                }
             }
         }
-        let allowedsets = functions.map((f) => allowedmap.get(f.selector.kind + ':' + f.channel));
+        const relevantrules = [];
+        for (let key of keys) {
+            for (let value of allowedmap.get(key))
+                relevantrules.push(value);
+        }
+        console.log(relevantrules.length);
 
         function tryMany(file, n) {
-            // always allow "notify;"
-            let testCase = [
-                new Ast.Allowed('builtin', 'notify', 'action',
-                    Ast.BooleanExpression.True, Ast.BooleanExpression.True, null)
-            ]
-            let canDo = allowedsets.every((s) => s.length >= n);
+            let canDo = relevantrules.length >= n;
             if (!canDo)
                 return;
 
-            for (let i = 0; i < functions.length; i++) {
-                let allowedset = allowedsets[i];
-                for (let allowed of uniformSubset(n, allowedset))
-                    testCase.push(allowed);
-            }
-            writeTestCase(file, prog, testCase);
+            writeTestCase(file, prog, uniformSubset(n, relevantrules));
         }
 
         for (let n in files)
             tryMany(files[n], n);
     }
-
-    for (let n in files)
-        tryMany(files[n]);
 }
 main();

@@ -4,7 +4,7 @@ const Ast = require('../lib/ast');
 const Grammar = require('../lib/grammar_api');
 const Compiler = require('../lib/compiler');
 const SchemaRetriever = require('../lib/schema');
-const { genRandomRules, genRandomAllowed } = require('../lib/gen_random_rule');
+const { genRandomRules, genRandomPermissionRule } = require('../lib/gen_random_rule');
 
 const _mockSchemaDelegate = require('./mock_schema_delegate');
 const ThingpediaClientHttp = require('./http_client');
@@ -12,7 +12,7 @@ const db = require('./db');
 
 var schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(), true);
 
-const GEN_RULES = true;
+const GEN_RULES = false;
 
 function main() {
     db.withClient((dbClient) => {
@@ -37,14 +37,14 @@ function main() {
 
             stream.on('data', (prog) => console.log(Ast.prettyprint(prog, true).trim()));
         } else {
-            stream = genRandomAllowed(kinds, schemaRetriever, N, {
+            stream = genRandomPermissionRule(kinds, schemaRetriever, N, {
                 applyHeuristics: false,
                 allowUnsynthesizable: true,
                 samplingPolicy: 'uniform',
                 filterClauseProbability: 0.5
             });
 
-            stream.on('data', (allowed) => console.log(Ast.prettyprintAllowed(allowed).trim()));
+            stream.on('data', (allowed) => console.log(Ast.prettyprintPermissionRule(allowed).trim()));
         }
 
         stream.on('end', () => process.exit());

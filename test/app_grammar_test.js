@@ -4,7 +4,7 @@ const fs = require('fs');
 const AppCompiler = require('../lib/compiler');
 const AppGrammar = require('../lib/grammar_api');
 const SchemaRetriever = require('../lib/schema');
-const codegen = require('../lib/prettyprint');
+const { prettyprint } = require('../lib/prettyprint');
 
 const _mockSchemaDelegate = require('./mock_schema_delegate');
 
@@ -24,7 +24,7 @@ function parserTest() {
         }
 
         try {
-	        var codegenned = codegen(ast);
+	        var codegenned = prettyprint(ast);
 	        var astgenned = AppGrammar.parse(codegenned);
         } catch(e) {
             console.error('Codegen failed');
