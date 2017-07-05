@@ -55,6 +55,16 @@ function countClauses(prog) {
     }
     return count;
 }
+function countMaxClauses(permissionDB) {
+    let count = 0;
+    for (let permission of permissionDB) {
+        let triggerclauses = permission.trigger.isSpecified ? countFilterClauses(permission.trigger.filter) : 0;
+        let queryclauses = permission.query.isSpecified ? countFilterClauses(permission.query.filter) : 0;
+        let actionclauses = permission.action.isSpecified ? countFilterClauses(permission.action.filter) : 0;
+        count += 2 * triggerclauses + queryclauses + actionclauses;
+    }
+    return count;
+}
 
 function main() {
     let input = fs.readFileSync(process.argv[2]).toString('utf8').split('====');
@@ -69,13 +79,15 @@ function main() {
         let checker = new PermissionChecker(schemaRetriever, new MockGroupDelegate());
 
         let [permissionDB, programCode] = testCase.split(';;');
+        permissionDB = permissionDB.trim().split('\n').map(Grammar.parsePermissionRule);
         programCode = programCode.trim();
-        return Promise.all(permissionDB.trim().split('\n').map((line) => {
-            return checker.allowed(Grammar.parsePermissionRule(line));
+        return Promise.all(permissionDB.map((permission) => {
+            return checker.allowed(permission);
         })).then(() => {
             return Grammar.parseAndTypecheck(programCode, schemaRetriever);
         }).then((program) => {
             let clausesBefore = countClauses(program);
+            let maxClauses = clausesBefore + countMaxClauses(permissionDB);
             let begin = (new Date).getTime();
             return checker.check(principal, program).then((prog) => {
                 let end = (new Date).getTime();
@@ -84,9 +96,9 @@ function main() {
                     let clausesAfter = countClauses(prog);
                     let newCode = Ast.prettyprint(prog, false).trim();
                     //console.error(newCode);
-                    console.error('ALLOWED,' + i + ',' + time + ',' + programCode.length + ',' + newCode.length +',' + clausesBefore + ',' + clausesAfter);
+                    console.error('ALLOWED,' + i + ',' + time + ',' + programCode.length + ',' + newCode.length +',' + clausesBefore + ',' + clausesAfter + ',' + maxClauses);
                 } else {
-                    console.error('REJECTED,' + i + ',' + time + ',' + programCode.length + ',0,' + clausesBefore + ',0');
+                    console.error('REJECTED,' + i + ',' + time + ',' + programCode.length + ',0,' + clausesBefore + ',0,' + maxClauses);
                 }
             });
         }).catch((e) => {

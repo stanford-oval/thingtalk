@@ -20,7 +20,7 @@ const TEST_CASES = [
 
     [`@google_drive.new_drive_file(), v_foo := file_name => @dropbox.list_folder(folder_name=v_foo) => notify ;`,
     `Main() {
-    @google_drive.new_drive_file() , v_foo := file_name => @dropbox.list_folder(folder_name=v_foo), ((file_name =~ "you would never believe what happened" || file_name = "merry christmas" || file_name = "love you") && ((is_folder = true && file_size <= 20MB) || (v_foo = "merry christmas" && file_name =~ "merry christmas") || (file_name = "you would never believe what happened" && full_path = "i'm happy") || (last_modified = makeDate(1462320000000) && full_path =~ "love you") || (v_foo =~ "merry christmas" && file_size = 5KB && full_path =~ "merry christmas")))  => notify;
+    @google_drive.new_drive_file(), (file_name =~ "you would never believe what happened" || file_name = "merry christmas" || file_name = "love you") , v_foo := file_name => @dropbox.list_folder(folder_name=v_foo), ((file_name =~ "you would never believe what happened" || file_name = "merry christmas" || file_name = "love you") && ((is_folder = true && file_size <= 20MB) || (v_foo = "merry christmas" && file_name =~ "merry christmas") || (file_name = "you would never believe what happened" && full_path = "i'm happy") || (last_modified = makeDate(1462320000000) && full_path =~ "love you") || (v_foo =~ "merry christmas" && file_size = 5KB && full_path =~ "merry christmas")))  => notify;
 }`],
 
     [`AlmondGenerated() {
@@ -191,7 +191,7 @@ function main() {
     Q.all(PERMISSION_DATABASE.map((a) => checker.allowed(Grammar.parsePermissionRule(a)))).then(() => {
         const principal = Ast.Value.Entity('omlet-messaging:testtesttest', 'tt:contact', null);
 
-        return promiseLoop(TEST_CASES.slice(0, 1), ([input, expected], i) => {
+        return promiseLoop(TEST_CASES, ([input, expected], i) => {
             console.error('Test case #' + (i+1));
             //console.log('Checking program');
             //console.log(input);
