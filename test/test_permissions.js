@@ -15,6 +15,10 @@ var schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(), false);
 
 const TEST_CASES = [
     [`Main() {
+    now => @holidays.next_us_holiday_event(), (((date = makeDate(1462320000000) && summary =~ "merry christmas" && description = "i'm happy") || description = "you would never believe what happened")) , v_date := date, v_summary := summary, v_description := description => @github.comment_issue(repo_name=v_summary, body=v_summary, issue_number=7) ;
+}`, null],
+
+    [`Main() {
     @activity-tracker.getmove(), (calories <= 500kcal) , v_updateTime := updateTime, v_day := day, v_distance := distance, v_steps := steps, v_activeTime := activeTime, v_inactiveTime := inactiveTime, v_calories := calories => @builtin.get_random_between(low=v_steps, high=v_steps), (((low < 14 && high >= 11 && random <= 7) || (low = 7 && high > 42 && random < 42) || (low <= 7 && high > 42 && random >= 42) || (low <= 42 && high <= 7))) , v_random := random => @light-bulb.alert_long() ;
 }`, null],
 
@@ -155,6 +159,7 @@ function promiseLoop(array, fn) {
 }
 
 const PERMISSION_DATABASE = [
+    `now => @holidays.next_us_holiday_event, (summary =~ "you would never believe what happened" || (date = makeDate(1487030400000) && summary = "you would never believe what happened" && description =~ "you would never believe what happened") || summary = "i'm happy" || date = makeDate(1462320000000) || date = makeDate(1462320000000) || description =~ "you would never believe what happened") , v_date := date, v_summary := summary, v_description := description => @github.comment_issue, ((repo_name = v_summary && issue_number <= 7 && body =~ v_summary) || body =~ v_summary || (repo_name =~ "i'm happy" && body =~ "i'm happy") || repo_name =~ "merry christmas") `,
     `@activity-tracker.getmove, (day = "merry christmas" && distance < 42cm && steps > 14 && activeTime <= 2h && inactiveTime < 2h && calories >= 500kcal) , v_updateTime := updateTime, v_day := day, v_distance := distance, v_steps := steps, v_activeTime := activeTime, v_inactiveTime := inactiveTime, v_calories := calories => * => *`,
     `@google_drive.new_drive_file, ((file_name =~ "you would never believe what happened") || (file_name = "merry christmas") || (file_name = "love you")), v_file_name := file_name => @dropbox.list_folder, ((folder_name = v_file_name && is_folder = true && file_size <= 20MB) || (folder_name = "merry christmas" && file_name =~ "merry christmas") || (file_name = "you would never believe what happened" && full_path = "i'm happy") || (last_modified = makeDate(1462320000000) && full_path =~ "love you") || (folder_name =~ "merry christmas" && file_size = 5KB && full_path =~ "merry christmas")) => *`,
     `@gmail.receive_email, from_address = "bob@stanford.edu"^^tt:email_address => * => *`,
