@@ -12,7 +12,7 @@ const db = require('./db');
 
 var schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(), true);
 
-const GEN_RULES = false;
+const GEN_RULES = true;
 
 function main() {
     db.withClient((dbClient) => {

@@ -145,7 +145,7 @@ function main() {
             for (let value of allowedmap.get(key))
                 relevantrules.push(value);
         }
-        console.log(relevantrules.length);
+        //console.log(relevantrules.length);
 
         function tryMany(file, n) {
             let canDo = relevantrules.length >= n;

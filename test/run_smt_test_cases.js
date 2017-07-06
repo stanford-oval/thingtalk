@@ -36,31 +36,31 @@ class MockGroupDelegate {
     }
 }
 
-function countFilterClauses(filter) {
+function countFilterClauses(filter, fn) {
     if (filter.isTrue || filter.isFalse)
         return 0;
     if (filter.isAnd || filter.isOr)
-        return filter.operands.reduce((x, y) => x + countFilterClauses(y), 0);
+        return filter.operands.reduce((x, y) => x + countFilterClauses(y, fn), 0);
     if (filter.isNot)
-        return countFilterClauses(filter.expr);
-    return 1;
+        return countFilterClauses(filter.expr, fn);
+    return fn(filter.filter);
 }
-function countClauses(prog) {
+function countClauses(prog, fn) {
     let count = 0;
     for (let rule of prog.rules) {
         if (rule.trigger)
-            count += countFilterClauses(rule.trigger.filter);
+            count += countFilterClauses(rule.trigger.filter, fn);
         for (let query of rule.queries)
-            count += countFilterClauses(query.filter);
+            count += countFilterClauses(query.filter, fn);
     }
     return count;
 }
-function countMaxClauses(permissionDB) {
+function countMaxClauses(permissionDB, fn) {
     let count = 0;
     for (let permission of permissionDB) {
-        let triggerclauses = permission.trigger.isSpecified ? countFilterClauses(permission.trigger.filter) : 0;
-        let queryclauses = permission.query.isSpecified ? countFilterClauses(permission.query.filter) : 0;
-        let actionclauses = permission.action.isSpecified ? countFilterClauses(permission.action.filter) : 0;
+        let triggerclauses = permission.trigger.isSpecified ? countFilterClauses(permission.trigger.filter, fn) : 0;
+        let queryclauses = permission.query.isSpecified ? countFilterClauses(permission.query.filter, fn) : 0;
+        let actionclauses = permission.action.isSpecified ? countFilterClauses(permission.action.filter, fn) : 0;
         count += 2 * triggerclauses + queryclauses + actionclauses;
     }
     return count;
@@ -86,19 +86,22 @@ function main() {
         })).then(() => {
             return Grammar.parseAndTypecheck(programCode, schemaRetriever);
         }).then((program) => {
-            let clausesBefore = countClauses(program);
-            let maxClauses = clausesBefore + countMaxClauses(permissionDB);
+            let clausesBefore = countClauses(program, () => 1);
+            let containsClauses = countClauses(program, (filter) => (filter.operator === '=~' ? 1 : 0));
+            let maxClauses = clausesBefore + countMaxClauses(permissionDB, () => 1);
+            let maxContainsClauses = containsClauses + countMaxClauses(permissionDB, (filter) => (filter.operator === '=~' ? 1 : 0));
             let begin = (new Date).getTime();
             return checker.check(principal, program).then((prog) => {
                 let end = (new Date).getTime();
                 let time = end - begin;
                 if (prog) {
-                    let clausesAfter = countClauses(prog);
+                    let clausesAfter = countClauses(prog, () => 1);
+                    let containsClausesAfter = countClauses(prog, (filter) => (filter.operator === '=~' ? 1 : 0));
                     let newCode = Ast.prettyprint(prog, false).trim();
                     //console.error(newCode);
-                    console.error('ALLOWED,' + i + ',' + time + ',' + programCode.length + ',' + newCode.length +',' + clausesBefore + ',' + clausesAfter + ',' + maxClauses);
+                    console.error('ALLOWED,' + i + ',' + time + ',' + programCode.length + ',' + newCode.length +',' + clausesBefore + ',' + clausesAfter + ',' + maxClauses + ',' + containsClauses + ',' + containsClausesAfter + ',' + maxContainsClauses);
                 } else {
-                    console.error('REJECTED,' + i + ',' + time + ',' + programCode.length + ',0,' + clausesBefore + ',0,' + maxClauses);
+                    console.error('REJECTED,' + i + ',' + time + ',' + programCode.length + ',0,' + clausesBefore + ',0,' + maxClauses + ',' + containsClauses + ',0,' + maxContainsClauses);
                 }
             });
         }).catch((e) => {

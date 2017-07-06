@@ -8,7 +8,7 @@ function main() {
     let output = csv.stringify({
         columns: ['id', 'num_allowed', 'result', 'total_time', 'old_code_length', 'new_code_length',
         'num_smt_calls', 'num_smt_timeouts', 'total_smt_time', 'max_smt_time', 'min_smt_time',
-        'old_code_clauses', 'new_code_clauses', 'max_code_clauses'],
+        'old_code_clauses', 'new_code_clauses', 'max_code_clauses', 'old_contains_clauses', 'new_contains_clauses', 'max_contains_clauses'],
         header: (num_allowed === '1')
     });
     output.pipe(process.stdout);
@@ -31,7 +31,7 @@ function main() {
         }
 
         if (/^(ALLOWED|REJECTED)/.test(line)) {
-            let [result, id, total_time, old_code_length, new_code_length, old_code_clauses, new_code_clauses, max_code_clauses] = line.split(',');
+            let [result, id, total_time, old_code_length, new_code_length, old_code_clauses, new_code_clauses, max_code_clauses, old_contains_clauses, new_contains_clauses, max_contains_clauses] = line.split(',');
             old_code_length = parseInt(old_code_length);
             new_code_length = parseInt(new_code_length);
             old_code_clauses = parseInt(old_code_clauses);
@@ -42,6 +42,7 @@ function main() {
             output.write({
                 id: num_allowed + '_' + id,
                 num_allowed, result, old_code_length, new_code_length, old_code_clauses, new_code_clauses, max_code_clauses, total_time,
+                old_contains_clauses, new_contains_clauses, max_contains_clauses,
                 num_smt_calls: smtResults.length,
                 num_smt_timeouts: smtTimeouts,
                 total_smt_time: smtResults.reduce((a, b) => a+b, 0),
