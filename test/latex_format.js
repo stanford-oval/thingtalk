@@ -17,7 +17,7 @@ function latexprintLocation(l) {
     if (l.isAbsolute)
         return `\\text{makeLocation}(${l.lat}, ${l.lon})`;
     else
-        return `\\texttt{location.${l.relativeTag}}`;
+        return `\\texttt{location.${cleanIdent(l.relativeTag)}}`;
 }
 
 function cleanIdent(v) {
@@ -27,6 +27,10 @@ function cleanIdent(v) {
 function latexprintValue(v, renames) {
     if (v.isVarRef && v.name in renames)
         return 'v_' + renames[v.name];
+    if (v.isVarRef && v.name === '__time')
+        return '\\tau';
+    if (v.isVarRef && v.name === '__pi')
+        return '\\sigma';
     if (v.isVarRef)
         return `\\textit{${cleanIdent(v.name)}}`;
     if (v.isUndefined)
@@ -51,6 +55,8 @@ function latexprintValue(v, renames) {
         return `\\texttt{"${v.value}"\\^{}\\^{}${v.type}}`;
     if (v.isEvent)
         return '\\texttt{event}';
+    if (v.isEnum)
+        return `\\texttt{${v.value}}`;
     return String(v);
 }
 
@@ -98,13 +104,13 @@ function latexprintFilter(expr, renames) {
         if (expr.isOr)
             return expr.operands.map(recursiveHelper).join(`\\texttt{ || }`);
         if (expr.isNot)
-            return `\\texttt{!(}` + recursiveHelper(expr.expr) + `\\texttt{)}`;
+            return `\\texttt{!}(` + recursiveHelper(expr.expr) + `)`;
 
         let filter = expr.filter;
         if (isFilterInfix(filter.operator)) {
             return `\\textit{${cleanIdent(filter.name)}} ${opToLatex(filter.operator)} ${latexprintValue(filter.value, renames)}`;
         } else {
-            return `\\textit{${cleanIdent(filter.name)}} ${opToLatex(filter.operator)} ${latexprintValue(filter.value, renames)}`;
+            return `${opToLatex(filter.operator)}(\\textit{${cleanIdent(filter.name)}}, ${latexprintValue(filter.value, renames)})`;
         }
     })(expr);
 }
@@ -143,6 +149,24 @@ function latexprintProgram(prog) {
     return `\\begin{align}\n` + prog.rules.map(latexprintRule).join('\n') + `\n\\end{align}`;
 }
 
+function latexprintPermissionFunction(what, fn, state) {
+    if (fn.isStar) return '\\_';
+    if (fn.isBuiltin) return (what === 'a' ? '\\texttt{notify}' : (what === 'q' ? '\\texttt{noop}' : '\\texttt{now}'));
+
+    for (let out_params of fn.out_params)
+        state.renames[out_params.name] = state.idx++;
+    return ('@\\text{' + cleanIdent(fn.kind) + '.' + cleanIdent(fn.channel) + '}, ' + latexprintFilter(fn.filter, state.renames)
+        + fn.out_params.map((op) => `, v_${state.renames[op.name]} := \\textit{${cleanIdent(op.value)}}`).join(''));
+}
+
+function latexprintPermission(permission) {
+    let state = { renames: {}, idx: 0 };
+    return `\\begin{tabbing}
+123\\=1234567\\=1\\=456890123456789012345\\=1234\\=\\kill
+\\>$\\sigma = \\_$\\>:\\>$ ${latexprintPermissionFunction('t', permission.trigger, state)} \\Rightarrow ${latexprintPermissionFunction('q', permission.query, state)} \\Rightarrow ${latexprintPermissionFunction('a', permission.action, state)}$\\\\
+\\end{tabbing}`;
+}
+
 function main() {
     var input = '';
     process.stdin.setEncoding('utf8');
@@ -153,4 +177,5 @@ function main() {
         console.log(latexprintProgram(AppGrammar.parse(input)));
     });
 }
-main();
+//main();
+module.exports = { latexprintProgram, latexprintPermission };

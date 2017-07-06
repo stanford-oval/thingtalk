@@ -8,6 +8,7 @@ const SchemaRetriever = require('../lib/schema');
 const PermissionChecker = require('../lib/permission_checker');
 const { optimizeProgram } = require('../lib/optimize');
 
+const { latexprintProgram, latexprintPermission } = require('./latex_format');
 const _mockSchemaDelegate = require('./mock_schema_delegate');
 const ThingpediaClientHttp = require('./http_client');
 
@@ -86,6 +87,9 @@ function main() {
         })).then(() => {
             return Grammar.parseAndTypecheck(programCode, schemaRetriever);
         }).then((program) => {
+            for (let permission of permissionDB)
+                console.log(latexprintPermission(permission));
+            console.log(latexprintProgram(program));
             let clausesBefore = countClauses(program, () => 1);
             let containsClauses = countClauses(program, (filter) => (filter.operator === '=~' ? 1 : 0));
             let maxClauses = clausesBefore + countMaxClauses(permissionDB, () => 1);
@@ -99,6 +103,7 @@ function main() {
                     let containsClausesAfter = countClauses(prog, (filter) => (filter.operator === '=~' ? 1 : 0));
                     let newCode = Ast.prettyprint(prog, false).trim();
                     //console.error(newCode);
+                    console.error(latexprintProgram(prog));
                     console.error('ALLOWED,' + i + ',' + time + ',' + programCode.length + ',' + newCode.length +',' + clausesBefore + ',' + clausesAfter + ',' + maxClauses + ',' + containsClauses + ',' + containsClausesAfter + ',' + maxContainsClauses);
                 } else {
                     console.error('REJECTED,' + i + ',' + time + ',' + programCode.length + ',0,' + clausesBefore + ',0,' + maxClauses + ',' + containsClauses + ',0,' + maxContainsClauses);
