@@ -1,0 +1,194 @@
+# Italian translations for thingtalk package
+# Traduzioni italiane per il pacchetto thingtalk..
+# Copyright (C) 2017 THE thingtalk'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the thingtalk package.
+# Giovanni Campagna <gcampagn@cs.stanford.edu>, 2017.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: thingtalk 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-07-10 15:00-0700\n"
+"PO-Revision-Date: 2017-07-10 14:05-0700\n"
+"Last-Translator: Giovanni Campagna <gcampagn@cs.stanford.edu>\n"
+"Language-Team: Italian\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: lib/describe.js:23
+msgid "here"
+msgstr "qui"
+
+#: lib/describe.js:25
+msgid "at home"
+msgstr "a casa"
+
+#: lib/describe.js:27
+msgid "at work"
+msgstr "al lavoro"
+
+#: lib/describe.js:44
+msgid "the event"
+msgstr "l'evento"
+
+#: lib/describe.js:46
+msgid "the event's title"
+msgstr "il titolo dell'evento"
+
+#: lib/describe.js:48
+msgid "the event's long description"
+msgstr "la descrizione lunga dell'evento"
+
+#: lib/describe.js:71
+msgid "yes"
+msgstr "sì"
+
+#: lib/describe.js:71
+msgid "no"
+msgstr "no"
+
+#: lib/describe.js:90
+msgid "send it to $__principal"
+msgstr "invialo a $__principal"
+
+#: lib/describe.js:92
+msgid "you receive something from $__principal"
+msgstr "ricevi qualcosa da $__principal"
+
+#: lib/describe.js:127
+#, javascript-format
+msgid " with %s equal to %s"
+msgstr " con %s uguale a %s"
+
+#: lib/describe.js:130
+#, javascript-format
+msgid " and %s equal to %s"
+msgstr " e %s uguale a %s"
+
+#: lib/describe.js:137
+msgid "true"
+msgstr "vero"
+
+#: lib/describe.js:139
+msgid "false"
+msgstr "falso"
+
+#: lib/describe.js:143 lib/describe.js:145 lib/describe.js:179
+#, javascript-format
+msgid "%s and %s"
+msgstr "%s e %s"
+
+#: lib/describe.js:147
+#, javascript-format
+msgid "not %s"
+msgstr "non %s"
+
+#: lib/describe.js:157 lib/describe.js:160
+#, javascript-format
+msgid "%s contains %s"
+msgstr "%s contiene %s"
+
+#: lib/describe.js:162
+#, javascript-format
+msgid "%s is equal to %s"
+msgstr "%s è uguale a %s"
+
+#: lib/describe.js:164
+#, javascript-format
+msgid "%s is not equal to %s"
+msgstr "%s non è uguale a %s"
+
+#: lib/describe.js:166
+#, javascript-format
+msgid "%s is less than %s"
+msgstr "%s è minore di %s"
+
+#: lib/describe.js:168
+#, javascript-format
+msgid "%s is greater than %s"
+msgstr "%s è maggiore di %s"
+
+#: lib/describe.js:170
+#, javascript-format
+msgid "%s is less than or equal to %s"
+msgstr "%s è minore uguale a %s"
+
+#: lib/describe.js:172
+#, javascript-format
+msgid "%s is greater than or equal to %s"
+msgstr "%s è maggiore di %s"
+
+#: lib/describe.js:181
+#, javascript-format
+msgid "%s if %s"
+msgstr "%s se %s"
+
+#: lib/describe.js:188
+msgid " and then "
+msgstr " e poi "
+
+#: lib/describe.js:190
+msgid " and "
+msgstr " e "
+
+#: lib/describe.js:194
+#, javascript-format
+msgid "%s then %s when %s"
+msgstr "%s poi %s quando %s"
+
+#: lib/describe.js:196 lib/describe.js:198
+#, javascript-format
+msgid "%s when %s"
+msgstr "%s quando %s"
+
+#: lib/describe.js:200
+#, javascript-format
+msgid "%s then %s"
+msgstr "%s poi %s"
+
+#: lib/describe.js:202
+#, javascript-format
+msgid "notify when %s"
+msgstr "notificami quando %s"
+
+#: lib/describe.js:208
+msgid " (only once)"
+msgstr " (solo una volta)"
+
+#: lib/describe.js:232 lib/describe.js:234
+msgid " to "
+msgstr " a "
+
+#: lib/describe.js:236
+#, javascript-format
+msgid "%s to %s to %s"
+msgstr "%s a %s a %s"
+
+#: lib/describe.js:238 lib/describe.js:240 lib/describe.js:242
+#, javascript-format
+msgid "%s to %s"
+msgstr "%s a %s"
+
+#: lib/describe.js:244
+#, javascript-format
+msgid "Monitor %s"
+msgstr "Osserva %s"
+
+#: lib/describe.js:246
+#, javascript-format
+msgid "Execute %s"
+msgstr "Esegui %s"
+
+#: lib/describe.js:248
+#, javascript-format
+msgid "Query %s"
+msgstr "Interroga %s"
+
+#~ msgid "%s is not %s"
+#~ msgstr "%s non è %s"
+
+#~ msgid "me"
+#~ msgstr "me"

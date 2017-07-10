@@ -14,6 +14,7 @@ const ExecEnvironment = require('./lib/exec_environment');
 const Type = require('./lib/type');
 const SchemaRetriever = require('./lib/schema');
 const Generate = require('./lib/generate');
+const Describe = require('./lib/describe');
 
 let { genRandomRules, genRandomPermissionRule } = require('./lib/gen_random_rule');
 Generate.genRandomRules = genRandomRules;
@@ -30,5 +31,6 @@ module.exports = {
     Type: Type,
     SchemaRetriever: SchemaRetriever,
     Generate: Generate,
+    Describe: Describe,
     SEMPRESyntax: SEMPRESyntax
 };
