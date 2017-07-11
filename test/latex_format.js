@@ -35,8 +35,6 @@ function latexprintValue(v, renames) {
         return `\\textit{${cleanIdent(v.name)}}`;
     if (v.isUndefined)
         return '\\texttt{undefined}';
-    if (v.isNull)
-        return '\\texttt{null}';
     if (v.isLocation)
         return latexprintLocation(v.value);
     if (v.isString)
