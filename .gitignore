@@ -1,3 +1,5 @@
 *~
 node_modules/
 po/thingtalk.pot
+po/*.mo
+po/*.json
