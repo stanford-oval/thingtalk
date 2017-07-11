@@ -16,7 +16,9 @@ var schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(), false);
 const TEST_CASES = [
     [`Main() {
     now => @holidays.next_us_holiday_event(), (((date = makeDate(1462320000000) && summary =~ "merry christmas" && description = "i'm happy") || description = "you would never believe what happened")) , v_date := date, v_summary := summary, v_description := description => @github.comment_issue(repo_name=v_summary, body=v_summary, issue_number=7) ;
-}`, null],
+}`, `Main() {
+    now => @holidays.next_us_holiday_event(), ((date = makeDate(1462320000000) && summary =~ "merry christmas" && description = "i'm happy") || description = "you would never believe what happened") , v_date := date, v_summary := summary, v_description := description => @github.comment_issue(repo_name=v_summary, body=v_summary, issue_number=7) ;
+}`],
 
     [`Main() {
     @activity-tracker.getmove(), (calories <= 500kcal) , v_updateTime := updateTime, v_day := day, v_distance := distance, v_steps := steps, v_activeTime := activeTime, v_inactiveTime := inactiveTime, v_calories := calories => @builtin.get_random_between(low=v_steps, high=v_steps), (((low < 14 && high >= 11 && random <= 7) || (low = 7 && high > 42 && random < 42) || (low <= 7 && high > 42 && random >= 42) || (low <= 42 && high <= 7))) , v_random := random => @light-bulb.alert_long() ;
