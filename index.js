@@ -20,6 +20,9 @@ let { genRandomRules, genRandomPermissionRule } = require('./lib/gen_random_rule
 Generate.genRandomRules = genRandomRules;
 Generate.genRandomPermissionRule = genRandomPermissionRule;
 Generate.genRandomValue = require('./lib/gen_random_value');
+let { optimizeFilter, optimizeProgram } = require('./lib/optimize');
+Generate.optimizeFilter = optimizeFilter;
+Generate.optimizeProgram = optimizeProgram;
 const SEMPRESyntax = require('./lib/sempre_syntax');
 
 module.exports = {
