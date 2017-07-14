@@ -15,6 +15,7 @@ const Type = require('./lib/type');
 const SchemaRetriever = require('./lib/schema');
 const Generate = require('./lib/generate');
 const Describe = require('./lib/describe');
+const Formatter = require('./lib/formatter');
 
 let { genRandomRules, genRandomPermissionRule } = require('./lib/gen_random_rule');
 Generate.genRandomRules = genRandomRules;
@@ -37,5 +38,6 @@ module.exports = {
     SchemaRetriever: SchemaRetriever,
     Generate: Generate,
     Describe: Describe,
-    SEMPRESyntax: SEMPRESyntax
+    SEMPRESyntax: SEMPRESyntax,
+    Formatter: Formatter
 };
