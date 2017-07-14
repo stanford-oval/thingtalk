@@ -1,5 +1,17 @@
 // -* mode: js -*-
 
+EventType() {
+    @twitter.source() => @builtin.say(message=$event.type);
+}
+
+====
+
+FormatEvent() {
+    @twitter.source() => @builtin.say(message=$event.title);
+}
+
+====
+
 ComplexFilter() {
     @twitter.source(), text =~ "foo" || (text =~"bar" && !(text =~ "lol")) => notify;
 }
@@ -132,13 +144,13 @@ SabrinaGeneratedMonitorTwitter() {
 ====
 
 CommandTest() {
-  now => @builtin.notify(message="test");
+  now => @builtin.say(message="test");
 }
 
 ====
 
 SabrinaLikesItHot(Threshold : Measure(C)) {
-    @thermostat.temperature(), temperature > Threshold => @builtin.notify(message="bla");
+    @thermostat.temperature(), temperature > Threshold => @builtin.say(message="bla");
 }
 
 ====

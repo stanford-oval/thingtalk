@@ -24,7 +24,7 @@ module.exports = {
                 }
             },
             "actions": {
-                "notify" : {
+                "say" : {
                     args: ["message"],
                     types: ["String"],
                     required: [true],
