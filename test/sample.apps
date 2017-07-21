@@ -1,5 +1,18 @@
 // -* mode: js -*-
 
+EntityNames() {
+    now => @twitter.post_picture(caption="lol", picture_url="http://foo.com/bar.jpg"^^tt:picture("A funny picture"));
+}
+
+====
+
+DownCast() {
+    @xkcd(id="com.xkcd-6").new_comic(), v_title := title, v_picture_url := picture_url
+    => @twitter.sink(status=v_picture_url);
+}
+
+====
+
 EventType() {
     @twitter.source() => @builtin.say(message=$event.type);
 }
