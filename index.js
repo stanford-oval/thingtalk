@@ -28,6 +28,8 @@ let { typeCheckProgram } = require('./lib/typecheck');
 Generate.typeCheckProgram = typeCheckProgram;
 const SEMPRESyntax = require('./lib/sempre_syntax');
 
+const builtin_values = require('./lib/builtin_values');
+
 module.exports = {
     Ast: Ast,
     Ir: Ir,
@@ -39,5 +41,8 @@ module.exports = {
     Generate: Generate,
     Describe: Describe,
     SEMPRESyntax: SEMPRESyntax,
-    Formatter: Formatter
+    Formatter: Formatter,
+
+    Location: builtin_values.Location,
+    Entity: builtin_values.Entity,
 };
