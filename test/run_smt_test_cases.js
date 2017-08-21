@@ -1,5 +1,6 @@
 const Q = require('q');
 const fs = require('fs');
+const CVC4Solver = require('cvc4');
 
 const Ast = require('../lib/ast');
 const Grammar = require('../lib/grammar_api');
@@ -77,7 +78,7 @@ function main() {
     console.error('Found ' + input.length + ' test cases');
 
     promiseLoop(input, (testCase, i) => {
-        let checker = new PermissionChecker(schemaRetriever, new MockGroupDelegate());
+        let checker = new PermissionChecker(CVC4Solver, schemaRetriever, new MockGroupDelegate());
 
         let [permissionDB, programCode] = testCase.split(';;');
         permissionDB = permissionDB.trim().split('\n').map(Grammar.parsePermissionRule);
