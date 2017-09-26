@@ -30,7 +30,7 @@ var TEST_CASES = [
     [`@thermostat(principal="foo"^^tt:contact_name).temperature(), value > 70F
      => notify;`,
     'notify when  the temperature on @foo\'s thermostat changes and value is greater than 70 F'],
-    ['@builtin.at(time=makeTime(8,30)) => @builtin.notify(message=$undefined);',
+    ['@builtin.at(time=makeTime(8,30)) => @builtin.say(message=$undefined);',
     'send me a message ____ every day at 08:30'],
 
     // sampled from dataset
