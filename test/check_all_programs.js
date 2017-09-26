@@ -28,7 +28,7 @@ function fillSlots(prog) {
                 if (type.isString)
                     inParam.value = Ast.Value.String("bla bla bla");
                 else if (type.isMeasure)
-                    inParam.value = Ast.Value.Measure(25, type.unit);
+                    inParam.value = new Ast.Value.Measure(25, type.unit);
                 else if (type.isNumber)
                     inParam.value = Ast.Value.Number(42);
                 else if (type.isBoolean)
@@ -36,9 +36,9 @@ function fillSlots(prog) {
                 else if (type.isDate)
                     inParam.value = Ast.Value.Date(new Date(2016, 5, 6, 12, 29, 0));
                 else if (type.isTime)
-                    inParam.value = Ast.Value.Time(8, 30);
+                    inParam.value = new Ast.Value.Time(8, 30, 0);
                 else if (type.isEntity)
-                    inParam.value = Ast.Value.Entity('bogus', type.type, null);
+                    inParam.value = new Ast.Value.Entity('bogus', type.type, null);
                 else if (type.isEnum)
                     inParam.value = Ast.Value.Enum(type.entries[0]);
                 else if (type.isLocation)

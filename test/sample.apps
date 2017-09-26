@@ -1,5 +1,10 @@
 // -* mode: js -*-
 
+CompareDate() {
+    now => @builtin.get_time(), time > makeTime(10,0) => notify;
+}
+====
+
 StartsWith() {
     @twitter.source(), starts_with(text, "foo") => notify;
 }
