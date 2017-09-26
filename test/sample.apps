@@ -1,5 +1,11 @@
 // -* mode: js -*-
 
+StartsWith() {
+    @twitter.source(), starts_with(text, "foo") => notify;
+}
+
+====
+
 EntityNames() {
     now => @twitter.post_picture(caption="lol", picture_url="http://foo.com/bar.jpg"^^tt:picture("A funny picture"));
 }
