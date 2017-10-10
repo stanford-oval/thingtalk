@@ -13,25 +13,31 @@ const ThingpediaClientHttp = require('./http_client');
 const db = require('./db');
 
 var TEST_CASES = [
+    [{"trigger":{"name":{"id":"tt:org.thingpedia.builtin.thingengine.builtin.timer"},"args":[{"name":{"id":"tt:param.interval"},"operator":"is","type":"Measure","value":{"value":1,"unit":"h"}}],"predicate":[]},"action":{"name":{"id":"tt:com.twitter.sink"},"args":[{"name":{"id":"tt:param.status"},"operator":"is","type":"String","value":{"value":"lol"}}],"predicate":[]}},
+    '@org.thingpedia.builtin.thingengine.builtin.timer(interval=1h)  => @com.twitter.sink(status="lol") ;'],
+
     // manually written test cases
     [{"query":{
-     "name":{"id":"com.twitter.search"},
+      "name":{"id":"tt:com.twitter.search"},
+      "args":[
+        {"name":{"id":"tt:param.query"},"operator":"is","type":"String","value":{"value":"lol"}}
+      ],
+      "predicate":[[
+        {"name":{"id":"tt:param.hashtags"},"operator":"has","type":"Hashtag","value":{"value":"cat"}}
+      ]]
+    }},
+    `now => @com.twitter.search(query="lol"), contains(hashtags, "cat"^^tt:hashtag) , v_text := text, v_hashtags := hashtags, v_urls := urls, v_from := from, v_in_reply_to := in_reply_to => notify;`],
+
+    [{"query":{
+     "name":{"id":"tt:com.twitter.search"},
      "args":[
        {"name":{"id":"tt:param.query"},"type":"String","operator":"is","value":{"value":"lol"}}
      ],
-     "predicate":[[{"name":{"id":"tt:param.hashtags"},"type":"Hashtag","operator":"has","value":{"value":"cat"}}]]
+     "predicate":[[
+        {"name":{"id":"tt:param.hashtags"},"type":"Hashtag","operator":"has","value":{"value":"cat"}},
+        {"name":{"id":"tt:param.text"},"type":"String","operator":"contains","value":{"value":"foo"}}]]
     }},
-    `now => @com.twitter.search(query="lol"), contains(hashtags, "cat"^^tt:hashtag) , v_text := text, v_hashtags := hashtags, v_urls := urls => notify;`],
-
-    [{"query":{
-     "name":{"id":"com.twitter.search"},
-     "args":[
-       {"name":{"id":"tt:param.query"},"type":"String","operator":"is","value":{"value":"lol"}},
-       {"name":{"id":"tt:param.text"},"type":"String","operator":"contains","value":{"value":"foo"}}
-     ],
-     "predicate":[[{"name":{"id":"tt:param.hashtags"},"type":"Hashtag","operator":"has","value":{"value":"cat"}}]]
-    }},
-    `now => @com.twitter.search(query="lol"), (text =~ "foo" && contains(hashtags, "cat"^^tt:hashtag)) , v_text := text, v_hashtags := hashtags, v_urls := urls => notify;`],
+    `now => @com.twitter.search(query="lol"), (contains(hashtags, "cat"^^tt:hashtag) || text =~ "foo") , v_text := text, v_hashtags := hashtags, v_urls := urls, v_from := from, v_in_reply_to := in_reply_to => notify;`],
 
     [{ action: { name: { id: 'tt:twitter.sink' }, args: [] } }, 'now => @twitter.sink(status=$undefined) ;'],
     [{ rule: {
@@ -58,7 +64,7 @@ var TEST_CASES = [
                 name: { id: 'tt:remote.send' },
                 dynamic_type: {
                     args: ['__principal', '__token', 'text', 'hashtags', 'urls', 'from', 'in_reply_to'],
-                    types: ['Entity(tt:contact)', 'Entity(tt:flow_token)', 'String', 'Array(Hashtag)', 'Array(URL)', 'Username', 'Username'],
+                    types: ['Entity(tt:contact)', 'Entity(tt:flow_token)', 'String', 'Array(Entity(tt:hashtag))', 'Array(Entity(tt:url))', 'Entity(tt:username)', 'Entity(tt:username)'],
                     required: [true, true, true, true, true, true, true],
                     is_input: [true, true, true, true, true, true, true]
                 },
@@ -73,30 +79,30 @@ var TEST_CASES = [
 }`],
 
     // sampled from dataset
-    [{"rule":{"trigger":{"name":{"id":"tt:sportradar.soccer_us_tourney"},"args":[{"type":"String","operator":"is","value":{"value":"i'm happy"},"name":{"id":"tt:param.tournament_search_term"}},{"type":"String","operator":"contains","value":{"value":"i'm happy"},"name":{"id":"tt:param.tournament_full_name"}},{"type":"String","operator":"contains","value":{"value":"i'm happy"},"name":{"id":"tt:param.away_alias"}},{"type":"String","operator":"contains","value":{"value":"merry christmas"},"name":{"id":"tt:param.home_name"}},{"type":"Enum","operator":"is","value":{"value":"scheduled"},"name":{"id":"tt:param.game_status"}},{"type":"Number","operator":"is","value":{"value":14},"name":{"id":"tt:param.home_points"}}]},"action":{"name":{"id":"tt:almond_dates.post"},"args":[{"type":"String","operator":"is","value":{"value":"love you"},"name":{"id":"tt:param.interest"}},{"type":"String","operator":"is","value":{"value":"merry christmas"},"name":{"id":"tt:param.message"}},{"type":"String","operator":"is","value":{"value":"you would never believe what happened"},"name":{"id":"tt:param.poster"}},{"type":"PhoneNumber","operator":"is","value":{"value":"+16501234567"},"name":{"id":"tt:param.phone"}}]}}},
-    `@sportradar.soccer_us_tourney(tournament_search_term="i'm happy"), (tournament_full_name =~ "i'm happy" && away_alias =~ "i'm happy" && home_name =~ "merry christmas" && game_status = enum(scheduled) && home_points = 14) , v_tournament_full_name := tournament_full_name, v_tournament_league_name := tournament_league_name, v_away_alias := away_alias, v_home_alias := home_alias, v_away_name := away_name, v_home_name := home_name, v_game_status := game_status, v_scheduled_time := scheduled_time, v_away_points := away_points, v_home_points := home_points => @almond_dates.post(interest="love you", message="merry christmas", poster="you would never believe what happened", phone="+16501234567"^^tt:phone_number) ;`],
+    [{"rule":{"trigger":{"name":{"id":"tt:sportradar.soccer_us_tourney"},"args":[{"name":{"id":"tt:param.tournament_search_term"},"operator":"is","type":"String","value":{"value":"i'm happy"}}],"predicate":[[{"name":{"id":"tt:param.tournament_full_name"},"operator":"contains","type":"String","value":{"value":"i'm happy"}}],[{"name":{"id":"tt:param.away_alias"},"operator":"contains","type":"String","value":{"value":"i'm happy"}}],[{"name":{"id":"tt:param.home_name"},"operator":"contains","type":"String","value":{"value":"merry christmas"}}],[{"name":{"id":"tt:param.game_status"},"operator":"=","type":"Enum","value":{"value":"scheduled"}}],[{"name":{"id":"tt:param.home_points"},"operator":"=","type":"Number","value":{"value":14}}]]},"action":{"name":{"id":"tt:almond_dates.post"},"args":[{"name":{"id":"tt:param.interest"},"operator":"is","type":"String","value":{"value":"love you"}},{"name":{"id":"tt:param.message"},"operator":"is","type":"String","value":{"value":"merry christmas"}},{"name":{"id":"tt:param.phone"},"operator":"is","type":"PhoneNumber","value":{"value":"+16501234567"}},{"name":{"id":"tt:param.poster"},"operator":"is","type":"String","value":{"value":"you would never believe what happened"}}],"predicate":[]}}},
+    `@sportradar.soccer_us_tourney(tournament_search_term="i'm happy"), (tournament_full_name =~ "i'm happy" && away_alias =~ "i'm happy" && home_name =~ "merry christmas" && game_status = enum(scheduled) && home_points = 14) , v_tournament_full_name := tournament_full_name, v_tournament_league_name := tournament_league_name, v_away_alias := away_alias, v_home_alias := home_alias, v_away_name := away_name, v_home_name := home_name, v_game_status := game_status, v_scheduled_time := scheduled_time, v_away_points := away_points, v_home_points := home_points => @almond_dates.post(interest="love you", message="merry christmas", phone="+16501234567"^^tt:phone_number, poster="you would never believe what happened") ;`],
 
-    [{"rule":{"trigger":{"name":{"id":"tt:sportradar.soccer_us_team"},"args":[{"type":"Entity(sportradar:us_soccer_team)","operator":"is","value":{"value":"tor"},"name":{"id":"tt:param.watched_team_alias"}},{"type":"Bool","operator":"is","value":{"value":false},"name":{"id":"tt:param.watched_is_home"}},{"type":"String","operator":"is","value":{"value":"love you"},"name":{"id":"tt:param.away_name"}},{"type":"String","operator":"contains","value":{"value":"i'm happy"},"name":{"id":"tt:param.home_name"}},{"type":"Enum","operator":"is","value":{"value":"closed"},"name":{"id":"tt:param.game_status"}},{"type":"Date","operator":"is","value":{"year":2016,"month":5,"day":4,"hour":0,"minute":0,"second":0},"name":{"id":"tt:param.scheduled_time"}},{"type":"Number","operator":">","value":{"value":11},"name":{"id":"tt:param.home_points"}},{"type":"Enum","operator":"is","value":{"value":"unclosed"},"name":{"id":"tt:param.result"}}]},"action":{"name":{"id":"tt:slack.updateChannelPurpose"},"args":[{"type":"Hashtag","operator":"is","value":{"value":"funny"},"name":{"id":"tt:param.channel"}},{"type":"String","operator":"is","value":{"value":"research project"},"name":{"id":"tt:param.purpose"}}]}}},
+    [{"rule":{"trigger":{"name":{"id":"tt:sportradar.soccer_us_team"},"args":[{"name":{"id":"tt:param.watched_team_alias"},"operator":"is","type":"Entity(sportradar:us_soccer_team)","value":{"value":"tor"}}],"predicate":[[{"name":{"id":"tt:param.watched_is_home"},"operator":"=","type":"Bool","value":{"value":false}}],[{"name":{"id":"tt:param.away_name"},"operator":"=","type":"String","value":{"value":"love you"}}],[{"name":{"id":"tt:param.home_name"},"operator":"contains","type":"String","value":{"value":"i'm happy"}}],[{"name":{"id":"tt:param.game_status"},"operator":"=","type":"Enum","value":{"value":"closed"}}],[{"name":{"id":"tt:param.scheduled_time"},"operator":"=","type":"Date","value":{"year":2016,"month":5,"day":4,"hour":0,"minute":0,"second":0}}],[{"name":{"id":"tt:param.home_points"},"operator":">","type":"Number","value":{"value":11}}],[{"name":{"id":"tt:param.result"},"operator":"=","type":"Enum","value":{"value":"unclosed"}}]]},"action":{"name":{"id":"tt:slack.updateChannelPurpose"},"args":[{"name":{"id":"tt:param.channel"},"operator":"is","type":"Hashtag","value":{"value":"funny"}},{"name":{"id":"tt:param.purpose"},"operator":"is","type":"String","value":{"value":"research project"}}],"predicate":[]}}},
     `@sportradar.soccer_us_team(watched_team_alias="tor"^^sportradar:us_soccer_team), (watched_is_home = false && away_name = "love you" && home_name =~ "i'm happy" && game_status = enum(closed) && scheduled_time = makeDate(1462345200000) && home_points > 11 && result = enum(unclosed)) , v_other_team_alias := other_team_alias, v_watched_is_home := watched_is_home, v_away_name := away_name, v_home_name := home_name, v_game_status := game_status, v_scheduled_time := scheduled_time, v_away_points := away_points, v_home_points := home_points, v_result := result => @slack.updateChannelPurpose(channel="funny"^^tt:hashtag, purpose="research project") ;`],
 
-    [{"rule":{"query":{"name":{"id":"tt:uber.price_estimate"},"args":[{"type":"Location","operator":"is","value":{"relativeTag":"rel_home","latitude":-1,"longitude":-1},"name":{"id":"tt:param.start"}},{"type":"Location","operator":"is","value":{"relativeTag":"rel_work","latitude":-1,"longitude":-1},"name":{"id":"tt:param.end"}},{"type":"String","operator":"is","value":{"value":"love you"},"name":{"id":"tt:param.uber_type"}},{"type":"Number","operator":">","value":{"value":20},"name":{"id":"tt:param.high_estimate"}},{"type":"String","operator":"is","value":{"value":"love you"},"name":{"id":"tt:param.currency_code"}},{"type":"Measure","operator":">","value":{"value":1000,"unit":"m"},"name":{"id":"tt:param.distance"}}]},"action":{"name":{"id":"tt:almond_dates.post"},"args":[{"type":"String","operator":"is","value":{"value":"love you"},"name":{"id":"tt:param.interest"}},{"type":"String","operator":"is","value":{"value":"merry christmas"},"name":{"id":"tt:param.message"}},{"type":"String","operator":"is","value":{"value":"merry christmas"},"name":{"id":"tt:param.poster"}},{"type":"PhoneNumber","operator":"is","value":{"value":"+16501234567"},"name":{"id":"tt:param.phone"}}]}}},
-    `now => @uber.price_estimate(start=$context.location.home, end=$context.location.work), (uber_type = "love you" && high_estimate > 20 && currency_code = "love you" && distance > 1000m) , v_uber_type := uber_type, v_low_estimate := low_estimate, v_high_estimate := high_estimate, v_currency_code := currency_code, v_surge := surge, v_duration := duration, v_distance := distance => @almond_dates.post(interest="love you", message="merry christmas", poster="merry christmas", phone="+16501234567"^^tt:phone_number) ;`],
+    [{"rule":{"query":{"name":{"id":"tt:uber.price_estimate"},"args":[{"name":{"id":"tt:param.end"},"operator":"is","type":"Location","value":{"relativeTag":"rel_work","latitude":-1,"longitude":-1}},{"name":{"id":"tt:param.start"},"operator":"is","type":"Location","value":{"relativeTag":"rel_home","latitude":-1,"longitude":-1}}],"predicate":[[{"name":{"id":"tt:param.uber_type"},"operator":"=","type":"String","value":{"value":"love you"}}],[{"name":{"id":"tt:param.high_estimate"},"operator":">","type":"Number","value":{"value":20}}],[{"name":{"id":"tt:param.currency_code"},"operator":"=","type":"String","value":{"value":"love you"}}],[{"name":{"id":"tt:param.distance"},"operator":">","type":"Measure","value":{"value":1000,"unit":"m"}}]]},"action":{"name":{"id":"tt:almond_dates.post"},"args":[{"name":{"id":"tt:param.interest"},"operator":"is","type":"String","value":{"value":"love you"}},{"name":{"id":"tt:param.message"},"operator":"is","type":"String","value":{"value":"merry christmas"}},{"name":{"id":"tt:param.phone"},"operator":"is","type":"PhoneNumber","value":{"value":"+16501234567"}},{"name":{"id":"tt:param.poster"},"operator":"is","type":"String","value":{"value":"merry christmas"}}],"predicate":[]}}},
+    `now => @uber.price_estimate(end=$context.location.work, start=$context.location.home), (uber_type = "love you" && high_estimate > 20 && currency_code = "love you" && distance > 1000m) , v_uber_type := uber_type, v_low_estimate := low_estimate, v_high_estimate := high_estimate, v_currency_code := currency_code, v_surge := surge, v_duration := duration, v_distance := distance => @almond_dates.post(interest="love you", message="merry christmas", phone="+16501234567"^^tt:phone_number, poster="merry christmas") ;`],
     [{"rule":{"trigger":{"name":{"id":"tt:sportradar.soccer_eu_tourney"},"args":[]},"action":{"name":{"id":"tt:thermostat.set_target_temperature"},"args":[]}}},
     '@sportradar.soccer_eu_tourney(tournament_search_term=$undefined) , v_tournament_full_name := tournament_full_name, v_tournament_league_name := tournament_league_name, v_away_alias := away_alias, v_home_alias := home_alias, v_away_name := away_name, v_home_name := home_name, v_game_status := game_status, v_scheduled_time := scheduled_time, v_away_points := away_points, v_home_points := home_points => @thermostat.set_target_temperature(value=$undefined) ;'],
-    [{"rule":{"trigger":{"name":{"id":"tt:instagram.new_picture"},"args":[{"type":"Location","operator":"is","value":{"relativeTag":"rel_work","latitude":-1,"longitude":-1},"name":{"id":"tt:param.location"}}]},"action":{"name":{"id":"tt:lg_webos_tv.play_url"},"args":[]}}},
+    [{"rule":{"trigger":{"name":{"id":"tt:instagram.new_picture"},"args":[],"predicate":[[{"name":{"id":"tt:param.location"},"operator":"=","type":"Location","value":{"relativeTag":"rel_work","latitude":-1,"longitude":-1}}]]},"action":{"name":{"id":"tt:lg_webos_tv.play_url"},"args":[],"predicate":[]}}},
     '@instagram.new_picture(), location = $context.location.work , v_media_id := media_id, v_picture_url := picture_url, v_caption := caption, v_link := link, v_filter := filter, v_hashtags := hashtags, v_location := location => @lg_webos_tv.play_url(url=$undefined) ;'],
     [{"rule":{"trigger":{"name":{"id":"tt:washington_post.new_article"},"args":[{"type":"Enum","operator":"is","value":{"value":"national"},"name":{"id":"tt:param.section"}}]},"action":{"name":{"id":"tt:slack.updateChannelTopic"},"args":[{"type":"String","operator":"is","value":{"value":"you would never believe what happened"},"name":{"id":"tt:param.topic"}}]}}},
     '@washington_post.new_article(section=enum(national)) , v_title := title, v_link := link, v_description := description => @slack.updateChannelTopic(topic="you would never believe what happened", channel=$undefined) ;'],
     [{"rule":{"query":{"args":[],"name":{"id":"tt:nasa.apod"}},"action":{"args":[{"name":{"id":"tt:param.picture_url"},"type":"VarRef","value":{"id":"tt:param.picture_url"},"operator":"is"}],"name":{"id":"tt:tumblr-blog.post_picture"}},"trigger":{"args":[{"name":{"id":"tt:param.time"},"type":"Time","value":{"month":-1,"hour":1,"year":-1,"day":-1,"minute":0,"second":0},"operator":"is"}],"name":{"id":"tt:builtin.at"}}}},
     '@builtin.at(time=makeTime(1,0))  => @nasa.apod() , v_title := title, v_description := description, v_picture_url := picture_url => @tumblr-blog.post_picture(picture_url=v_picture_url, caption=$undefined) ;'],
-    [{"rule":{"trigger":{"name":{"id":"tt:weatherapi.monitor"},"args":[{"type":"Location","operator":"is","value":{"relativeTag":"absolute","latitude":34.054935,"longitude":-118.2444759},"name":{"id":"tt:param.location"}},{"type":"Enum","operator":"is","value":{"value":"raining"},"name":{"id":"tt:param.status"}}]},"query":{"name":{"id":"tt:weatherapi.current"},"args":[{"type":"Location","operator":"is","value":{"relativeTag":"absolute","latitude":33.8246269,"longitude":-116.5403029},"name":{"id":"tt:param.location"}}]}}},
+    [{"rule":{"trigger":{"name":{"id":"tt:weatherapi.monitor"},"args":[{"name":{"id":"tt:param.location"},"operator":"is","type":"Location","value":{"relativeTag":"absolute","latitude":34.054935,"longitude":-118.2444759}}],"predicate":[[{"name":{"id":"tt:param.status"},"operator":"=","type":"Enum","value":{"value":"raining"}}]]},"query":{"name":{"id":"tt:weatherapi.current"},"args":[{"name":{"id":"tt:param.location"},"operator":"is","type":"Location","value":{"relativeTag":"absolute","latitude":33.8246269,"longitude":-116.5403029}}],"predicate":[]}}},
     `@weatherapi.monitor(location=makeLocation(34.054935, -118.2444759)), status = enum(raining) , v_temperature := temperature, v_wind_speed := wind_speed, v_humidity := humidity, v_cloudiness := cloudiness, v_fog := fog, v_weather := weather, v_status := status, v_icon := icon => @weatherapi.current(location=makeLocation(33.8246269, -116.5403029)) , v_temperature := temperature, v_wind_speed := wind_speed, v_humidity := humidity, v_cloudiness := cloudiness, v_fog := fog, v_weather := weather, v_status := status, v_icon := icon => notify;`],
     [{"rule":{"query":{"name":{"id":"tt:imgflip.generate"},"args":[{"type":"String","operator":"is","value":{"value":"work"},"name":{"id":"tt:param.template"}},{"type":"String","operator":"is","value":{"value":"love you"},"name":{"id":"tt:param.text_top"}}]},"action":{"name":{"id":"tt:gmail.send_picture"},"args":[{"type":"EmailAddress","operator":"is","value":{"value":"bob@stanford.edu"},"name":{"id":"tt:param.to"}},{"type":"String","operator":"is","value":{"value":"work"},"name":{"id":"tt:param.message"}},{"type":"VarRef","operator":"is","value":{"id":"tt:param.$event"},"name":{"id":"tt:param.subject"}},{"type":"VarRef","operator":"is","value":{"id":"tt:param.picture_url"},"name":{"id":"tt:param.picture_url"}}]}}},
     'now => @imgflip.generate(template="work", text_top="love you", text_bottom=$undefined) , v_name := name, v_picture_url := picture_url => @gmail.send_picture(to="bob@stanford.edu"^^tt:email_address, message="work", subject=$event, picture_url=v_picture_url) ;'],
-    [{"trigger":{"name":{"id":"tt:sleep-tracker.getsleep"},"args":[{"type":"Location","operator":"is","value":{"relativeTag":"rel_work","latitude":-1,"longitude":-1},"name":{"id":"tt:param.place"}},{"type":"Measure","operator":"<","value":{"value":1,"unit":"h"},"name":{"id":"tt:param.rem"}},{"type":"Measure","operator":"<","value":{"value":1,"unit":"h"},"name":{"id":"tt:param.deep"}}]}},
+    [{"trigger":{"name":{"id":"tt:sleep-tracker.getsleep"},"args":[],"predicate":[[{"name":{"id":"tt:param.place"},"operator":"=","type":"Location","value":{"relativeTag":"rel_work","latitude":-1,"longitude":-1}}],[{"name":{"id":"tt:param.rem"},"operator":"<","type":"Measure","value":{"value":1,"unit":"h"}}],[{"name":{"id":"tt:param.deep"},"operator":"<","type":"Measure","value":{"value":1,"unit":"h"}}]]}},
     '@sleep-tracker.getsleep(), (place = $context.location.work && rem < 1h && deep < 1h) , v_time := time, v_place := place, v_awakeTime := awakeTime, v_asleepTime := asleepTime, v_duration := duration, v_rem := rem, v_light := light, v_deep := deep => notify;'],
 
-    [{"rule":{"trigger":{"name":{"id":"tt:twitter.source"},"args":[{"type":"String","operator":"has","value":{"value":"funny"},"name":{"id":"tt:param.hashtags"}}]},"action":{"name":{"id":"tt:twitter.sink"},"args":[{"type":"String","operator":"is","value":{"value":"lol"},"name":{"id":"tt:param.status"}}]}}},
+    [{"rule":{"trigger":{"name":{"id":"tt:twitter.source"},"args":[],"predicate":[[{"name":{"id":"tt:param.hashtags"},"operator":"has","type":"String","value":{"value":"funny"}}]]},"action":{"name":{"id":"tt:twitter.sink"},"args":[{"name":{"id":"tt:param.status"},"operator":"is","type":"String","value":{"value":"lol"}}],"predicate":[]}}},
     '@twitter.source(), contains(hashtags, "funny") , v_text := text, v_hashtags := hashtags, v_urls := urls, v_from := from, v_in_reply_to := in_reply_to => @twitter.sink(status="lol") ;']
 ];
 
@@ -113,22 +119,53 @@ function normalizePrimitive(json) {
             return 1;
         return 0;
     });
+    json.args.forEach((a) => {
+        delete a.value.display;
+    });
+    if (!json.predicate)
+        json.predicate = [];
+    json.predicate.forEach((orExpr) => {
+        orExpr.sort((a, b) => {
+            let aname = a.name.id;
+            let bname = b.name.id;
+            if (aname  < bname)
+                return -1;
+            if (aname > bname)
+                return 1;
+            return 0;
+        });
+        orExpr.forEach((o) => {
+            delete o.value.display;
+        });
+    });
 }
 
 function normalize(json) {
     if (json.rule)
         return normalize(json.rule);
-    if (json.trigger)
-        normalize(json.trigger);
-    if (json.query)
-        normalize(json.query);
-    if (json.action)
-        normalize(json.action);
+
+    let fncount = 0;
+    if (json.trigger) {
+        normalizePrimitive(json.trigger);
+        fncount ++;
+    }
+    if (json.query) {
+        normalizePrimitive(json.query);
+        fncount ++;
+    }
+    if (json.action) {
+        normalizePrimitive(json.action);
+        fncount ++;
+    }
+    if (fncount > 1)
+        return {rule:json};
+    else
+        return json;
 }
 
 function test(i) {
     console.log('Test Case #' + (i+1));
-    var [json, expectedTT] = TEST_CASES[i];
+    const [json, expectedTT] = TEST_CASES[i];
 
     return SEMPRESyntax.parseToplevel(schemaRetriever, json, true).then((ast) => {
         var compiler = new AppCompiler();
@@ -151,10 +188,12 @@ function test(i) {
         // do one round of stringify/parse to weed out undefined's
         sempreSyntax = JSON.parse(JSON.stringify(sempreSyntax));
 
-        if (!deq(normalize(sempreSyntax), normalize(json))) {
+        if (!deq(normalize(sempreSyntax), normalize(json), { strict: true })) {
             console.error('Test Case #' + (i+1) + ': json does not match what expected');
             console.error('Expected: ' + JSON.stringify(json));
             console.error('Generated: ' + JSON.stringify(sempreSyntax));
+        } else {
+            console.log('Test Case #' + (i+1) + ': JSON matches what expected');
         }
     }).catch((e) => {
         console.error('Test Case #' + (i+1) + ': failed with exception');
