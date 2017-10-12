@@ -47,4 +47,5 @@ module.exports = {
 
     Location: builtin_values.Location,
     Entity: builtin_values.Entity,
+    Time: builtin_values.Time,
 };
