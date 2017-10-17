@@ -24,7 +24,7 @@ function parserTest() {
         }
 
         try {
-	        var codegenned = prettyprint(ast);
+	        var codegenned = prettyprint(ast, true);
 	        var astgenned = AppGrammar.parse(codegenned);
         } catch(e) {
             console.error('Codegen failed');
