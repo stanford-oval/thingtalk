@@ -13,6 +13,9 @@ const ThingpediaClientHttp = require('./http_client');
 const db = require('./db');
 
 var TEST_CASES = [
+    [{"setup":{"person":"bob", "action":{"name":{"id":"tt:com.twitter.sink"}, "args":[{"name":{"id":"tt:param.status"},"operator":"is","value":{"value":"lol"},"type":"String"}],"predicate":[]}}},
+    `"bob"^^tt:contact_name :     now => @com.twitter.sink(status="lol") ;`],
+
     [{"trigger":{"name":{"id":"tt:org.thingpedia.builtin.thingengine.builtin.timer"},"args":[{"name":{"id":"tt:param.interval"},"operator":"is","type":"Measure","value":{"value":1,"unit":"h"}}],"predicate":[]},"action":{"name":{"id":"tt:com.twitter.sink"},"args":[{"name":{"id":"tt:param.status"},"operator":"is","type":"String","value":{"value":"lol"}}],"predicate":[]}},
     '@org.thingpedia.builtin.thingengine.builtin.timer(interval=1h)  => @com.twitter.sink(status="lol") ;'],
 
