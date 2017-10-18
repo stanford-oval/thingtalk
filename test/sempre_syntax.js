@@ -13,6 +13,10 @@ const ThingpediaClientHttp = require('./http_client');
 const db = require('./db');
 
 var TEST_CASES = [
+    [{"setup":{"person":"bob", "rule": {"query":{"name":{"id":"tt:com.twitter.search"}, "args":[{"name":{"id":"tt:param.query"},"operator":"is","value":{"value":"lol"},"type":"String"}],"predicate":[]}, "action": {"name":{"id":"tt:$builtin.return"}, "args":[],"predicate":[]}}}},
+    `"bob"^^tt:contact_name :     now => @com.twitter.search(query="lol") , v_text := text, v_hashtags := hashtags, v_urls := urls, v_from := from, v_in_reply_to := in_reply_to => return;`],
+
+
     [{"setup":{"person":"bob", "action":{"name":{"id":"tt:com.twitter.sink"}, "args":[{"name":{"id":"tt:param.status"},"operator":"is","value":{"value":"lol"},"type":"String"}],"predicate":[]}}},
     `"bob"^^tt:contact_name :     now => @com.twitter.sink(status="lol") ;`],
 

@@ -1,5 +1,11 @@
 // -* mode: js -*-
 
+"bob"^^tt:contact_name : TestReturn() {
+    @org.twitter.source() => return;
+}
+
+====
+
 self : ExplicitSelf() {
     now => @builtin.say(message="lol");
 }
