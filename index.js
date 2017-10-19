@@ -18,10 +18,9 @@ const Describe = require('./lib/describe');
 const Formatter = require('./lib/formatter');
 const PermissionChecker = require('./lib/permission_checker');
 
-let { genRandomRules, genRandomPermissionRule, genRandomRemoteRules } = require('./lib/gen_random_rule');
+let { genRandomRules, genRandomPermissionRule } = require('./lib/gen_random_rule');
 Generate.genRandomRules = genRandomRules;
 Generate.genRandomRemoteRules = genRandomRemoteRules;
-Generate.genRandomPermissionRule = genRandomPermissionRule;
 Generate.genRandomValue = require('./lib/gen_random_value');
 let { optimizeFilter, optimizeProgram } = require('./lib/optimize');
 Generate.optimizeFilter = optimizeFilter;
