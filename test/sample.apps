@@ -1,5 +1,23 @@
 // -* mode: js -*-
 
+"bob"^^tt:contact_name : TestReturn() {
+    @org.twitter.source() => return;
+}
+
+====
+
+self : ExplicitSelf() {
+    now => @builtin.say(message="lol");
+}
+
+====
+
+"matrix-account:@gcampax:matrix.org"^^tt:contact : WithPrincipal() {
+    now => @builtin.say(message="lol");
+}
+
+====
+
 CompareDate() {
     now => @builtin.get_time(), time > makeTime(10,0) => notify;
 }

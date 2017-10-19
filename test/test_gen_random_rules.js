@@ -12,8 +12,7 @@ const db = require('./db');
 
 var schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(), true);
 
-const GEN_RULES = false;
-const GEN_REMOTE_RULES = true;
+const GEN_RULES = true;
 
 function main() {
     db.withClient((dbClient) => {
@@ -33,12 +32,9 @@ function main() {
                 argConstantProbability: 0.4,
                 requiredArgConstantProbability: 1,
                 applyFiltersToInputs: true,
-                filterClauseProbability: 0.4
+                filterClauseProbability: 0.4,
+                generateSetup: true
             });
-
-            stream.on('data', (prog) => console.log(Ast.prettyprint(prog, true).trim()));
-        } else if(GEN_REMOTE_RULES) {
-            stream = genRandomRemoteRules(kinds, schemaRetriever, N, {});
 
             stream.on('data', (prog) => console.log(Ast.prettyprint(prog, true).trim()));
 	} else {

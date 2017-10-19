@@ -26,8 +26,9 @@ Generate.genRandomValue = require('./lib/gen_random_value');
 let { optimizeFilter, optimizeProgram } = require('./lib/optimize');
 Generate.optimizeFilter = optimizeFilter;
 Generate.optimizeProgram = optimizeProgram;
-let { typeCheckProgram } = require('./lib/typecheck');
+let { typeCheckProgram, typeCheckPermissionRule } = require('./lib/typecheck');
 Generate.typeCheckProgram = typeCheckProgram;
+Generate.typeCheckPermissionRule = typeCheckPermissionRule;
 const SEMPRESyntax = require('./lib/sempre_syntax');
 
 const builtin_values = require('./lib/builtin_values');
