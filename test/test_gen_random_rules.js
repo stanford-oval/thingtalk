@@ -4,7 +4,7 @@ const Ast = require('../lib/ast');
 const Grammar = require('../lib/grammar_api');
 const Compiler = require('../lib/compiler');
 const SchemaRetriever = require('../lib/schema');
-const { genRandomRules, genRandomPermissionRule } = require('../lib/gen_random_rule');
+const { genRandomRules, genRandomPermissionRule, genRandomRemoteRules } = require('../lib/gen_random_rule');
 
 const _mockSchemaDelegate = require('./mock_schema_delegate');
 const ThingpediaClientHttp = require('./http_client');
@@ -12,7 +12,8 @@ const db = require('./db');
 
 var schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(), true);
 
-const GEN_RULES = true;
+const GEN_RULES = false;
+const GEN_REMOTE_RULES = true;
 
 function main() {
     db.withClient((dbClient) => {
@@ -36,7 +37,11 @@ function main() {
             });
 
             stream.on('data', (prog) => console.log(Ast.prettyprint(prog, true).trim()));
-        } else {
+        } else if(GEN_REMOTE_RULES) {
+            stream = genRandomRemoteRules(kinds, schemaRetriever, N, {});
+
+            stream.on('data', (prog) => console.log(Ast.prettyprint(prog, true).trim()));
+	} else {
             stream = genRandomPermissionRule(kinds, schemaRetriever, N, {
                 applyHeuristics: false,
                 allowUnsynthesizable: true,
