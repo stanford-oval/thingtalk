@@ -152,8 +152,10 @@ const TEST_CASES = [
     now => @twitter.search(query="cats"), (text =~ "https://www.wsj.com" || text =~ "https://www.washingtonpost.com" || contains(hashtags, "cat"^^tt:hashtag)) , v_txt := text => @facebook.post(status=v_txt) ;
 }`],
 
-    [`AlmondGenerated() { @security-camera.new_event(), has_person = true => return; }`,
-    ``]
+    [`AlmondGenerated() { @security-camera.new_event(), has_person = true => notify; }`,
+    `AlmondGenerated() {
+    @security-camera.new_event(), (has_person = true && @phone.get_gps() { location = makeLocation(1, 2) })  => notify;
+}`]
 ];
 
 function promiseLoop(array, fn) {
