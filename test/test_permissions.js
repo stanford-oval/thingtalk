@@ -31,7 +31,7 @@ const TEST_CASES = [
 }`],
 
     [`AlmondGenerated() {
-    class @__dyn_0 extends @remote {
+    class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
         trigger receive(in req __principal : Entity(tt:contact),
                         in req __token : Entity(tt:flow_token),
                         in req __kindChannel : Entity(tt:function),
@@ -44,14 +44,14 @@ const TEST_CASES = [
     =>
     @lg_webos_tv.set_power(power=v_v);
     }`, `AlmondGenerated() {
-    class @__dyn_0 extends @remote {
+    class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
         trigger receive (in req __principal : Entity(tt:contact), in req __token : Entity(tt:flow_token), in req __kindChannel : Entity(tt:function), out v : Enum(on,off));
     }
     @__dyn_0.receive(__principal="omlet-messaging:testtesttest"^^tt:contact, __token="123456789"^^tt:flow_token, __kindChannel=""^^tt:function) , v_v := v => @lg_webos_tv.set_power(power=v_v) ;
 }`],
 
     [`AlmondGenerated() {
-    class @__dyn_0 extends @remote {
+    class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
         trigger receive(in req __principal : Entity(tt:contact),
                         in req __token : Entity(tt:flow_token),
                         in req __kindChannel : Entity(tt:function),
@@ -65,14 +65,14 @@ const TEST_CASES = [
     =>
     @facebook.post(status=v_txt);
     }`, `AlmondGenerated() {
-    class @__dyn_0 extends @remote {
+    class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
         trigger receive (in req __principal : Entity(tt:contact), in req __token : Entity(tt:flow_token), in req __kindChannel : Entity(tt:function), out text : String);
     }
     @__dyn_0.receive(__principal="omlet-messaging:testtesttest"^^tt:contact, __token="123456789"^^tt:flow_token, __kindChannel=""^^tt:function), ((text =~ "lol" || text =~ "funny") && ((text =~ "funny" && text =~ "lol") || text =~ "https://www.wsj.com" || text =~ "https://www.washingtonpost.com")) , v_txt := text => @facebook.post(status=v_txt) ;
 }`],
 
     [`AlmondGenerated() {
-    class @__dyn_0 extends @remote {
+    class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
         action send(in req __principal : Entity(tt:contact),
                     in req __token : Entity(tt:flow_token),
                     in req from_name : String,
@@ -100,14 +100,14 @@ const TEST_CASES = [
         labels = v_labels,
         snippet = v_snippet);
     }`, `AlmondGenerated() {
-    class @__dyn_0 extends @remote {
+    class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
         action send (in req __principal : Entity(tt:contact), in req __token : Entity(tt:flow_token), in req from_name : String, in req from_address : Entity(tt:email_address), in req subject : String, in req date : Date, in req labels : Array(String), in req snippet : String);
     }
     @gmail.receive_email(), (subject =~ "lol" && from_address = "bob@stanford.edu"^^tt:email_address) , v_from_name := from_name, v_from_address := from_address, v_subject := subject, v_date := date, v_labels := labels, v_snippet := snippet => @__dyn_0.send(__principal="omlet-messaging:testtesttest"^^tt:contact, __token="123456789"^^tt:flow_token, from_name=v_from_name, from_address=v_from_address, subject=v_subject, date=v_date, labels=v_labels, snippet=v_snippet) ;
 }`],
 
     [`AlmondGenerated() {
-    class @__dyn_0 extends @remote {
+    class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
         trigger receive(in req __principal : Entity(tt:contact),
                         in req __token : Entity(tt:flow_token),
                         in req __kindChannel : Entity(tt:function),
@@ -126,7 +126,7 @@ const TEST_CASES = [
     =>
     @facebook.post(status=v_txt);
     }`,`AlmondGenerated() {
-    class @__dyn_0 extends @remote {
+    class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
         trigger receive (in req __principal : Entity(tt:contact), in req __token : Entity(tt:flow_token), in req __kindChannel : Entity(tt:function), out q1 : String, out q2 : String);
     }
     @__dyn_0.receive(__principal="omlet-messaging:testtesttest"^^tt:contact, __token="123456789"^^tt:flow_token, __kindChannel=""^^tt:function), q1 =~ "cats" , v_q1 := q1, v_q2 := q2 => @twitter.search(query=v_q1), (text =~ "funny lol" && (text =~ "https://www.wsj.com" || text =~ "https://www.washingtonpost.com" || (v_q1 =~ "cats" && contains(hashtags, "cat"^^tt:hashtag)) || (v_q1 =~ "dogs" && contains(hashtags, "dog"^^tt:hashtag)))) , v_txt := text => @facebook.post(status=v_txt) ;
@@ -150,7 +150,10 @@ const TEST_CASES = [
     @facebook.post(status=v_txt);
     }`, `AlmondGenerated() {
     now => @twitter.search(query="cats"), (text =~ "https://www.wsj.com" || text =~ "https://www.washingtonpost.com" || contains(hashtags, "cat"^^tt:hashtag)) , v_txt := text => @facebook.post(status=v_txt) ;
-}`]
+}`],
+
+    [`AlmondGenerated() { @security-camera.new_event(), has_person = true => return; }`,
+    ``]
 ];
 
 function promiseLoop(array, fn) {
@@ -175,7 +178,9 @@ const PERMISSION_DATABASE = [
     `* => * => @thermostat.set_target_temperature, value > 70F && value <= 75F`,
     `* => * => @lg_webos_tv.set_power, power = enum(off)`,
     `* => * => @lg_webos_tv.set_power, group_member(__pi, "role:mom"^^tt:contact_group) && power = enum(on)`,
-    `* => * => @lg_webos_tv.set_power, __pi = "mom@stanford.edu"^^tt:contact && power = enum(on)`
+    `* => * => @lg_webos_tv.set_power, __pi = "mom@stanford.edu"^^tt:contact && power = enum(on)`,
+
+    `@security-camera.new_event, @phone.get_gps() { location = makeLocation(1,2) } => notify`,
 ];
 
 class MockGroupDelegate {

@@ -45,6 +45,8 @@ function countFilterClauses(filter, fn) {
         return filter.operands.reduce((x, y) => x + countFilterClauses(y, fn), 0);
     if (filter.isNot)
         return countFilterClauses(filter.expr, fn);
+    if (filter.isExternal)
+        return countFilterClauses(filter.filter, fn);
     return fn(filter.filter);
 }
 function countClauses(prog, fn) {

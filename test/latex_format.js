@@ -103,6 +103,11 @@ function latexprintFilter(expr, renames) {
             return expr.operands.map(recursiveHelper).join(`\\texttt{ || }`);
         if (expr.isNot)
             return `\\texttt{!}(` + recursiveHelper(expr.expr) + `)`;
+        if (expr.isExternal) {
+            `@\\text{${cleanIdent(expr.selector.kind)}.${cleanIdent(expr.channel)}}(`
+            + invocation.in_params.map((ip) => `\\textit{${cleanIdent(ip.name)}} = ${latexprintValue(ip.value, renames)}`).join(', ')
+            + `) \\{ ${latexprintFilter(expr.filter, renames)} \\}`;
+        }
 
         let filter = expr.filter;
         if (isFilterInfix(filter.operator)) {

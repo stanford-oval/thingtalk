@@ -1,5 +1,31 @@
 // -* mode: js -*-
 
+TestExternalPredicate() {
+    @twitter.source(), @builtin.get_time() { time >= makeTime(9,0) && time <= makeTime(10, 0) } => notify;
+    @twitter.source(), text =~ "lol" && @builtin.get_time() { time >= makeTime(9,0) && time <= makeTime(10, 0) } => notify;
+}
+
+====
+
+// these should not typecheck
+TestInvalidExternalPredicate1() {
+    @twitter.source(), @builtin.get_time() { time =~ "lol" } => notify;
+}
+
+====
+
+TestInvalidExternalPredicate2() {
+    @twitter.source(), @builtin.get_time() { text =~ "lol" } => notify;
+}
+
+====
+
+TestInvalidExternalPredicate3() {
+    @twitter.source(), @twitter.source() { text =~ "lol" } => notify;
+}
+
+====
+
 "bob"^^tt:contact_name : TestReturn() {
     @org.twitter.source() => return;
 }
@@ -21,6 +47,7 @@ self : ExplicitSelf() {
 CompareDate() {
     now => @builtin.get_time(), time > makeTime(10,0) => notify;
 }
+
 ====
 
 StartsWith() {
