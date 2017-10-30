@@ -155,6 +155,46 @@ const TEST_CASES = [
     [`AlmondGenerated() { @security-camera.new_event(), has_person = true => notify; }`,
     `AlmondGenerated() {
     @security-camera.new_event(), (has_person = true && @phone.get_gps() { location = makeLocation(1, 2) })  => notify;
+}`],
+
+    [`AlmondGenerated() {
+    @security-camera.new_event(), (has_person = true && @phone.get_gps() { location = makeLocation(1, 2) })  => notify;
+}`, `AlmondGenerated() {
+    @security-camera.new_event(), (has_person = true && @phone.get_gps() { location = makeLocation(1, 2) })  => notify;
+}`],
+
+    [`AlmondGenerated() {
+    @security-camera.new_event(), (has_person = true && @phone.get_gps() { location = makeLocation(1, 2) && location = makeLocation(2, 3) })  => notify;
+}`, null],
+
+    [`AlmondGenerated() {
+    @thermostat.temperature() => notify;
+}`, `AlmondGenerated() {
+    @thermostat.temperature(), @xkcd.get_comic(number=10) { title =~ "lol" }  => notify;
+}`],
+
+    [`AlmondGenerated() {
+    @thermostat.temperature(), @xkcd.get_comic(number=10) { title =~ "lol" }  => notify;
+}`,`AlmondGenerated() {
+    @thermostat.temperature(), @xkcd.get_comic(number=10) { title =~ "lol" }  => notify;
+}`],
+
+    [`AlmondGenerated() {
+    @thermostat.temperature(), @xkcd.get_comic(number=11) { title =~ "lol" }  => notify;
+}`, `AlmondGenerated() {
+    @thermostat.temperature(), (@xkcd.get_comic(number=11) { title =~ "lol" } && @xkcd.get_comic(number=10) { title =~ "lol" })  => notify;
+}`],
+
+    [`AlmondGenerated() {
+    @thermostat.temperature(), @xkcd.get_comic() { title =~ "lol" }  => notify;
+}`, `AlmondGenerated() {
+    @thermostat.temperature(), (@xkcd.get_comic() { title =~ "lol" } && @xkcd.get_comic(number=10) { title =~ "lol" })  => notify;
+}`],
+
+    [`AlmondGenerated() {
+    @thermostat.humidity(), @xkcd.get_comic() { title =~ "lol" }  => notify;
+}`, `AlmondGenerated() {
+    @thermostat.humidity(), @xkcd.get_comic() { title =~ "lol" }  => notify;
 }`]
 ];
 
@@ -183,6 +223,8 @@ const PERMISSION_DATABASE = [
     `* => * => @lg_webos_tv.set_power, __pi = "mom@stanford.edu"^^tt:contact && power = enum(on)`,
 
     `@security-camera.new_event, @phone.get_gps() { location = makeLocation(1,2) } => notify`,
+    `@thermostat.temperature, @xkcd.get_comic(number=10) { title =~ "lol" } => notify`,
+    `@thermostat.humidity, @xkcd.get_comic() { title =~ "lol" } => notify`
 ];
 
 class MockGroupDelegate {
