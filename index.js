@@ -7,7 +7,6 @@
 // See COPYING for details
 
 const Ast = require('./lib/ast');
-const Ir = require('./lib/ir');
 const Compiler = require('./lib/compiler');
 const Grammar = require('./lib/grammar_api');
 const ExecEnvironment = require('./lib/exec_environment');
@@ -33,7 +32,6 @@ const builtin_values = require('./lib/builtin_values');
 
 module.exports = {
     Ast: Ast,
-    Ir: Ir,
     Compiler: Compiler,
     Grammar: Grammar,
     ExecEnvironment: ExecEnvironment,

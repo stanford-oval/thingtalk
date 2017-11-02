@@ -35,24 +35,6 @@ function parserTest() {
 	        console.error('====');
             console.error(e.stack);
         }
-
-        return Q.try(function() {
-            var compiler = new AppCompiler();
-            compiler.setSchemaRetriever(new SchemaRetriever(_mockSchemaDelegate));
-
-            return compiler.compileProgram(ast).then(function() {
-                /*compiler.rules.forEach(function(r, i) {
-                    console.log('Rule ' + (i+1));
-                    console.log('Inputs', r.inputs);
-                    console.log('Output', r.output);
-                });*/
-            });
-        }).catch(function(e) {
-            console.log('Compilation failed');
-            console.log(code);
-            console.log(e.stack);
-            return;
-        });
     }));
 }
 
