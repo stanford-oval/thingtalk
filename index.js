@@ -28,7 +28,7 @@ Generate.typeCheckProgram = typeCheckProgram;
 Generate.typeCheckPermissionRule = typeCheckPermissionRule;
 const SEMPRESyntax = require('./lib/sempre_syntax');
 
-const builtin_values = require('./lib/builtin_values');
+const builtin = require('./lib/builtin');
 
 module.exports = {
     Ast: Ast,
@@ -43,7 +43,8 @@ module.exports = {
     Formatter: Formatter,
     PermissionChecker: PermissionChecker,
 
-    Location: builtin_values.Location,
-    Entity: builtin_values.Entity,
-    Time: builtin_values.Time,
+    Location: builtin.Location,
+    Entity: builtin.Entity,
+    Time: builtin.Time,
+    Builtin: builtin,
 };
