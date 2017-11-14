@@ -230,3 +230,33 @@ SabrinaLikesItHot(Threshold : Measure(C)) {
 Test() {
     @test.source() => @builtin.debug_log(message="Test App received an event on Test Channel");
 }
+
+====
+
+LogQueryTest() {
+   now => query() => notify;
+}
+
+====
+
+LogQueryTest2() {
+   now => query(), v_field := field => notify;
+}
+
+====
+
+LogQueryAggregationTest() {
+    now => query(), v_field := max(field) => notify;
+}
+
+====
+
+LogQueryArgmTest() {
+    now => query(), [v_field] := argmax(another_field, [field]) => notify;
+}
+
+====
+
+LogQueryArgmTest2() {
+    now => query(), [*] := argmax(field, [*]) => notify;
+}
