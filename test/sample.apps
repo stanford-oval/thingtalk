@@ -267,6 +267,12 @@ LogQueryAggregationTest() {
 
 ====
 
+LogQueryAggregationSugarTest() {
+    now => log.max(device="foo", channel="bar", tag="Q1", field="foo"), v_max := max => notify;
+}
+
+====
+
 LogQueryArgmTest() {
     now => log.get(tag="Q1"), [v_field1, v_field2] := argmax(another_field, [field1, field2]) => notify;
 }
@@ -274,8 +280,8 @@ LogQueryArgmTest() {
 ====
 
 WithSave() {
-    now => @fitbit.get_steps() => save;
-    now => log.get(tag="Q0"), max_steps := max(steps) => save;
+    now => @fitbit.get_steps() => notify;
+    now => log.get(tag="Q0"), max_steps := max(steps) => notify;
     now => log.get(tag="Q1"), v_steps = max_steps => notify;
 }
 
