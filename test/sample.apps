@@ -268,7 +268,7 @@ LogQueryAggregationTest() {
 ====
 
 LogQueryAggregationSugarTest() {
-    now => log.max(device="foo", channel="bar", tag="Q1", field="foo"), v_max := max => notify;
+    now => log.max(device="foo", channel="bar", tag="Q1", field="foo"), v_res := res => notify;
 }
 
 ====
