@@ -39,7 +39,14 @@ module.exports = {
             }
         },
         "security-camera": {
-            "triggers": {},
+            "triggers": {
+                "new_event": {
+                    args: ["start_time", "has_sound", "has_motion", "has_person", "picture_url"],
+                    types: ["Date", "Boolean", "Boolean", "Boolean", "Picture"],
+                    required: [false,false,false,false,false],
+                    is_input: [false,false,false,false,false]
+                }
+            },
             "queries": {
                 "get_snapshot": {
                     args: ["picture_url"],

@@ -1,5 +1,17 @@
 // -* mode: js -*-
 
+ArrayPrincipals() {
+    now => @org.thingpedia.builtin.test(principal=["matrix-account:@testuser2:camembert.stanford.edu"^^tt:contact, "matrix-account:@testuser3:camembert.stanford.edu"^^tt:contact]).eat_data(data='AAAAAA');
+}
+
+====
+
+Array() {
+    @twitter.source(), in_array(from, ["alice"^^tt:hashtag, "bob"^^tt:hashtag]) => notify;
+}
+
+====
+
 TestExternalPredicate() {
     @twitter.source(), @builtin.get_time() { time >= makeTime(9,0) && time <= makeTime(10, 0) } => notify;
     @twitter.source(), text =~ "lol" && @builtin.get_time() { time >= makeTime(9,0) && time <= makeTime(10, 0) } => notify;
