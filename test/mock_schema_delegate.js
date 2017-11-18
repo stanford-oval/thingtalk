@@ -48,7 +48,14 @@ module.exports = {
                     is_input: [false],
                 }
             },
-            "actions": {}
+            "actions": {
+                "set_power": {
+                    args: ["power"],
+                    types: ["Enum(on,off)"],
+                    required: [true],
+                    is_input: [true]
+                }
+            }
         },
         "youtube": {
             "triggers": {},

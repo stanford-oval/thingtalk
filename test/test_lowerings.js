@@ -75,7 +75,24 @@ const TEST_CASES = [
         trigger receive (in req __principal : Entity(tt:contact), in req __token : Entity(tt:flow_token), out __kindChannel : Entity(tt:function), out picture_url : Entity(tt:picture));
     }
     @__dyn_0.receive(__principal="1234"^^tt:contact, __token="XXXXXXXX"^^tt:flow_token)  => notify;
-}`]]
+}`]],
+
+    ['factor', 'now => @security-camera(principal="1234"^^tt:contact_group).set_power(power=enum(on));',
+     'null', ['"1234"^^tt:contact_group :     now => @security-camera.set_power(power=enum(on)) ;']],
+
+    ['factor', '@builtin.timer(interval=10s) => @security-camera(principal="1234"^^tt:contact_group).set_power(power=enum(on));',
+`Main() {
+    class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
+        action send (in req __principal : Entity(tt:contact), in req __token : Entity(tt:flow_token), in req __kindChannel : Entity(tt:function), in opt interval : Measure(ms));
+    }
+    @builtin.timer(interval=10s)  => @__dyn_0.send(__principal="1234"^^tt:contact_group, __token="XXXXXXXX"^^tt:flow_token, __kindChannel=$event.type, interval=10s) ;
+}`,
+[`"1234"^^tt:contact_group : AlmondGenerated() {
+    class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
+        trigger receive (in req __principal : Entity(tt:contact), in req __token : Entity(tt:flow_token), out __kindChannel : Entity(tt:function), out interval : Measure(ms));
+    }
+    @__dyn_0.receive(__principal="mock-account:12345678"^^tt:contact("me"), __token="XXXXXXXX"^^tt:flow_token)  => @security-camera.set_power(power=enum(on)) ;
+}`]],
 ];
 
 //var schemaRetriever = new SchemaRetriever(_mockSchemaDelegate);
