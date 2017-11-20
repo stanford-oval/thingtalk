@@ -175,21 +175,21 @@ SecurityCamera() {
 ====
 
 SearchYoutube() {
-        now => @youtube.search_videos(query="lol"), video_url = "http://www.youtube.com"^^tt:url =>  notify;
+    now => @youtube.search_videos(query="lol"), video_url = "http://www.youtube.com"^^tt:url =>  notify;
 }
 
 ====
 
 TimeTest() {
-        @builtin.at(time=makeTime(12, 30)) => notify;
+    @builtin.at(time=makeTime(12, 30)) => notify;
 }
 
 ====
 
 PhoneNumberTest() {
-  now => @phone.send_sms(to="+15555555555", body="");
-  now => @phone.send_sms(to="+15555555555"^^tt:phone_number, body="");
-  @phone.receive_sms(), from="+15555555555"^^phone_number => notify;
+    now => @phone.send_sms(to="+15555555555", body="");
+    now => @phone.send_sms(to="+15555555555"^^tt:phone_number, body="");
+    @phone.receive_sms(), from="+15555555555"^^phone_number => notify;
 }
 
 ====
@@ -246,19 +246,19 @@ Test() {
 ====
 
 LogQueryTest() {
-   now => log.get(device="foo", channel="bar", tag="t") => notify;
+    now => log.get(device="foo", channel="bar", tag="t") => notify;
 }
 
 ====
 
 LogQueryTestProjection() {
-   now => log.get(tag="Q1"), v_1 := col1 => notify;
+    now => log.get(tag="Q1"), v_1 := col1 => notify;
 }
 
 ====
 
 LogQueryTestSelection() {
-   now => log.get(tag="Q1"), col2 >= 42, v_1 := col1 => notify;
+    now => log.get(tag="Q1"), col2 >= 42, v_1 := col1 => notify;
 }
 
 /* select col1 as v_1 from Q1 where col2 >= 42 */
@@ -280,7 +280,7 @@ LogQueryAggregationTest() {
 ====
 
 LogQueryAggregationSugarTest() {
-    now => log.max(device="foo", channel="bar", tag="Q1", field="foo"), v_res := res => notify;
+    now => log.getmax(device="foo", channel="bar", tag="Q1", field="foo"), v_res := res => notify;
 }
 
 ====
@@ -301,3 +301,33 @@ WithSave() {
 /* "Q0": now => @fitbit.get_steps() => save; */
 /* "Q1": now => log.get(tag="Q0"), max_steps := max(steps) => save; */
 /* "Q2": now => log.get(tag="Q1"), v_steps = max_steps => notify; */
+
+====
+
+LogTriggerTest() {
+    log.new(tag="Q1") => log.get(tag="Q2") => notify;
+}
+
+====
+
+LogTriggerAggregationTest() {
+    log.new(tag="Q1"), v_field := max(field) => notify;
+}
+
+====
+
+LogTriggerAggregationSugarTest() {
+    log.newmax(device="foo", channel="bar", tag="Q1", field="foo"), v_res := res => notify;
+}
+
+====
+
+LogTriggerArgmTest() {
+    log.new(tag="Q0"), [v_field1, v_field2] := argmax(another_field, [field1, field2]) => notify;
+}
+
+====
+
+LogTestAll() {
+    log.new(tag="Q0") => log.get(tag="Q1"), v_foo := foo => log.save(tag="Q2", bar=v_foo);
+}
