@@ -17,30 +17,30 @@ const TEST_CASES = [
     ['factor', '@security-camera(principal="1234"^^tt:contact).new_event() => notify;',
 `Main() {
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-        trigger receive (in req __principal : Entity(tt:contact_group), in req __token : Entity(tt:flow_token), out __kindChannel : Entity(tt:function), out start_time : Date, out has_sound : Boolean, out has_motion : Boolean, out has_person : Boolean, out picture_url : Entity(tt:picture));
+        trigger receive (in req __principal : Entity(tt:contact_group), in req __program_id : Entity(tt:program_id), in req __flow : Number, out __kindChannel : Entity(tt:function), out start_time : Date, out has_sound : Boolean, out has_motion : Boolean, out has_person : Boolean, out picture_url : Entity(tt:picture));
     }
-    @__dyn_0.receive(__principal=["1234"^^tt:contact], __token="XXXXXXXX"^^tt:flow_token)  => notify;
+    @__dyn_0.receive(__principal=["1234"^^tt:contact], __program_id=$event.program_id, __flow=0)  => notify;
 }`,
 [`"1234"^^tt:contact : AlmondGenerated() {
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-        action send (in req __principal : Entity(tt:contact_group), in req __token : Entity(tt:flow_token), in req __kindChannel : Entity(tt:function), in opt start_time : Date, in opt has_sound : Boolean, in opt has_motion : Boolean, in opt has_person : Boolean, in opt picture_url : Entity(tt:picture));
+        action send (in req __principal : Entity(tt:contact_group), in req __program_id : Entity(tt:program_id), in req __flow : Number, in req __kindChannel : Entity(tt:function), in opt start_time : Date, in opt has_sound : Boolean, in opt has_motion : Boolean, in opt has_person : Boolean, in opt picture_url : Entity(tt:picture));
     }
-    @security-camera.new_event()  => @__dyn_0.send(__principal=["mock-account:12345678"^^tt:contact("me")], __token="XXXXXXXX"^^tt:flow_token, __kindChannel=$event.type) ;
+    @security-camera.new_event()  => @__dyn_0.send(__principal=["mock-account:12345678"^^tt:contact("me")], __program_id=$event.program_id, __flow=0, __kindChannel=$event.type) ;
 }`]
 ],
 
     ['factor', 'now => @security-camera(principal="1234"^^tt:contact).get_snapshot() => notify;',
 `Main() {
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-        trigger receive (in req __principal : Entity(tt:contact_group), in req __token : Entity(tt:flow_token), out __kindChannel : Entity(tt:function), out picture_url : Entity(tt:picture));
+        trigger receive (in req __principal : Entity(tt:contact_group), in req __program_id : Entity(tt:program_id), in req __flow : Number, out __kindChannel : Entity(tt:function), out picture_url : Entity(tt:picture));
     }
-    @__dyn_0.receive(__principal=["1234"^^tt:contact], __token="XXXXXXXX"^^tt:flow_token)  => notify;
+    @__dyn_0.receive(__principal=["1234"^^tt:contact], __program_id=$event.program_id, __flow=1)  => notify;
 }`,
 [`"1234"^^tt:contact : AlmondGenerated() {
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-        action send (in req __principal : Entity(tt:contact_group), in req __token : Entity(tt:flow_token), in req __kindChannel : Entity(tt:function), in opt picture_url : Entity(tt:picture));
+        action send (in req __principal : Entity(tt:contact_group), in req __program_id : Entity(tt:program_id), in req __flow : Number, in req __kindChannel : Entity(tt:function), in opt picture_url : Entity(tt:picture));
     }
-    now => @security-camera.get_snapshot()  => @__dyn_0.send(__principal=["mock-account:12345678"^^tt:contact("me")], __token="XXXXXXXX"^^tt:flow_token, __kindChannel=$event.type) ;
+    now => @security-camera.get_snapshot()  => @__dyn_0.send(__principal=["mock-account:12345678"^^tt:contact("me")], __program_id=$event.program_id, __flow=1, __kindChannel=$event.type) ;
 }`]],
 
     ['factor', 'now => @security-camera(principal="1234"^^tt:contact).set_power(power=enum(on));',
@@ -49,15 +49,15 @@ const TEST_CASES = [
     ['factor', '@builtin.timer(interval=10s) => @security-camera(principal="1234"^^tt:contact).set_power(power=enum(on));',
 `Main() {
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-        action send (in req __principal : Entity(tt:contact_group), in req __token : Entity(tt:flow_token), in req __kindChannel : Entity(tt:function), in opt interval : Measure(ms));
+        action send (in req __principal : Entity(tt:contact_group), in req __program_id : Entity(tt:program_id), in req __flow : Number, in req __kindChannel : Entity(tt:function), in opt interval : Measure(ms));
     }
-    @builtin.timer(interval=10s)  => @__dyn_0.send(__principal=["1234"^^tt:contact], __token="XXXXXXXX"^^tt:flow_token, __kindChannel=$event.type, interval=10s) ;
+    @builtin.timer(interval=10s)  => @__dyn_0.send(__principal=["1234"^^tt:contact], __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, interval=10s) ;
 }`,
 [`"1234"^^tt:contact : AlmondGenerated() {
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-        trigger receive (in req __principal : Entity(tt:contact_group), in req __token : Entity(tt:flow_token), out __kindChannel : Entity(tt:function), out interval : Measure(ms));
+        trigger receive (in req __principal : Entity(tt:contact_group), in req __program_id : Entity(tt:program_id), in req __flow : Number, out __kindChannel : Entity(tt:function), out interval : Measure(ms));
     }
-    @__dyn_0.receive(__principal=["mock-account:12345678"^^tt:contact("me")], __token="XXXXXXXX"^^tt:flow_token)  => @security-camera.set_power(power=enum(on)) ;
+    @__dyn_0.receive(__principal=["mock-account:12345678"^^tt:contact("me")], __program_id=$event.program_id, __flow=0)  => @security-camera.set_power(power=enum(on)) ;
 }`]],
 
     ['lower', 'now => @security-camera.get_snapshot() => return;',
@@ -66,15 +66,15 @@ const TEST_CASES = [
     ['lower', `"1234"^^tt:contact : now => @security-camera.get_snapshot() => return;`,
 `"1234"^^tt:contact : Main() {
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-        action send (in req __principal : Entity(tt:contact_group), in req __token : Entity(tt:flow_token), in req __kindChannel : Entity(tt:function), in opt picture_url : Entity(tt:picture));
+        action send (in req __principal : Entity(tt:contact_group), in req __program_id : Entity(tt:program_id), in req __flow : Number, in req __kindChannel : Entity(tt:function), in opt picture_url : Entity(tt:picture));
     }
-    now => @security-camera.get_snapshot()  => @__dyn_0.send(__principal=["mock-account:12345678"^^tt:contact("me")], __token="XXXXXXXX"^^tt:flow_token, __kindChannel=$event.type) ;
+    now => @security-camera.get_snapshot()  => @__dyn_0.send(__principal=["mock-account:12345678"^^tt:contact("me")], __program_id=$event.program_id, __flow=0, __kindChannel=$event.type) ;
 }`,
 [`AlmondGenerated() {
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-        trigger receive (in req __principal : Entity(tt:contact_group), in req __token : Entity(tt:flow_token), out __kindChannel : Entity(tt:function), out picture_url : Entity(tt:picture));
+        trigger receive (in req __principal : Entity(tt:contact_group), in req __program_id : Entity(tt:program_id), in req __flow : Number, out __kindChannel : Entity(tt:function), out picture_url : Entity(tt:picture));
     }
-    @__dyn_0.receive(__principal=["1234"^^tt:contact], __token="XXXXXXXX"^^tt:flow_token)  => notify;
+    @__dyn_0.receive(__principal=["1234"^^tt:contact], __program_id=$event.program_id, __flow=0)  => notify;
 }`]],
 
     ['factor', 'now => @security-camera(principal="1234"^^tt:contact_group).set_power(power=enum(on));',
@@ -83,15 +83,15 @@ const TEST_CASES = [
     ['factor', '@builtin.timer(interval=10s) => @security-camera(principal="1234"^^tt:contact_group).set_power(power=enum(on));',
 `Main() {
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-        action send (in req __principal : Entity(tt:contact_group), in req __token : Entity(tt:flow_token), in req __kindChannel : Entity(tt:function), in opt interval : Measure(ms));
+        action send (in req __principal : Entity(tt:contact_group), in req __program_id : Entity(tt:program_id), in req __flow : Number, in req __kindChannel : Entity(tt:function), in opt interval : Measure(ms));
     }
-    @builtin.timer(interval=10s)  => @__dyn_0.send(__principal="1234"^^tt:contact_group, __token="XXXXXXXX"^^tt:flow_token, __kindChannel=$event.type, interval=10s) ;
+    @builtin.timer(interval=10s)  => @__dyn_0.send(__principal="1234"^^tt:contact_group, __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, interval=10s) ;
 }`,
 [`"1234"^^tt:contact_group : AlmondGenerated() {
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-        trigger receive (in req __principal : Entity(tt:contact_group), in req __token : Entity(tt:flow_token), out __kindChannel : Entity(tt:function), out interval : Measure(ms));
+        trigger receive (in req __principal : Entity(tt:contact_group), in req __program_id : Entity(tt:program_id), in req __flow : Number, out __kindChannel : Entity(tt:function), out interval : Measure(ms));
     }
-    @__dyn_0.receive(__principal=["mock-account:12345678"^^tt:contact("me")], __token="XXXXXXXX"^^tt:flow_token)  => @security-camera.set_power(power=enum(on)) ;
+    @__dyn_0.receive(__principal=["mock-account:12345678"^^tt:contact("me")], __program_id=$event.program_id, __flow=0)  => @security-camera.set_power(power=enum(on)) ;
 }`]],
 ];
 
