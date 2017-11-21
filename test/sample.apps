@@ -1,5 +1,6 @@
 // -* mode: js -*-
 
+// ** typecheck: expect Error **
 ArrayPrincipals() {
     now => @org.thingpedia.builtin.test(principal=["matrix-account:@testuser2:camembert.stanford.edu"^^tt:contact, "matrix-account:@testuser3:camembert.stanford.edu"^^tt:contact]).eat_data(data='AAAAAA');
 }
@@ -19,6 +20,7 @@ TestExternalPredicate() {
 
 ====
 
+// ** typecheck: expect TypeError **
 // these should not typecheck
 TestInvalidExternalPredicate1() {
     @twitter.source(), @builtin.get_time() { time =~ "lol" } => notify;
@@ -26,12 +28,14 @@ TestInvalidExternalPredicate1() {
 
 ====
 
+// ** typecheck: expect TypeError **
 TestInvalidExternalPredicate2() {
     @twitter.source(), @builtin.get_time() { text =~ "lol" } => notify;
 }
 
 ====
 
+// ** typecheck: expect Error **
 TestInvalidExternalPredicate3() {
     @twitter.source(), @twitter.source() { text =~ "lol" } => notify;
 }
@@ -108,6 +112,7 @@ WithClassDef() {
 
 ====
 
+// ** typecheck: expect TypeError **
 WrongClassDef() {
     class @dyn_0 extends @remote {
         action send(in req foo : Number);
@@ -194,6 +199,7 @@ PhoneNumberTest() {
 
 ====
 
+// ** typecheck: expect TypeError **
 InvalidPhoneNumberTest() {
     now => @phone.send_sms(to="+15555555555"^^tt:email_address, body="");
 }
@@ -278,15 +284,15 @@ LogQueryAggregationTest() {
 ====
 
 LogQueryArgmTest() {
-    now => get_record(table="Q1"), [v_field1, v_field2] := argmax(another_field, [field1, field2]) => notify;
+    now => get_record(table="Q0"), [v_field1, v_field2] := argmax(another_field, [field1, field2]) => notify;
 }
 
 ====
 
 WithSave() {
     now => @fitbit.get_steps() => notify;
-    now => get_record(table="Q0"), max_steps := max(steps) => notify;
-    now => get_record(table="Q1"), v_steps = max_steps => notify;
+    table = "my_table" : now => get_record(table="Q1"), max_steps := max(steps) => notify;
+    now => get_record(table="my_table"), v_steps := max_steps => notify;
 }
 
 /* need save */

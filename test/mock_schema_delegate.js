@@ -223,6 +223,18 @@ module.exports = {
             },
             "actions": {},
             "queries": {}
+        },
+        "fitbit": {
+            "triggers": {},
+            "actions": {},
+            "queries": {
+                "get_steps": {
+                    args: ["date", "steps"],
+                    types: ["Date", "Number"],
+                    required: [false,false],
+                    is_input: [false,false],
+                }
+            }
         }
     },
 
