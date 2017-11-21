@@ -21,7 +21,7 @@ const TEST_CASES = [
     }
     @__dyn_0.receive(__principal=["1234"^^tt:contact], __program_id=$event.program_id, __flow=0)  => notify;
 }`,
-[`"1234"^^tt:contact : AlmondGenerated() {
+[`executor = "1234"^^tt:contact : AlmondGenerated() {
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
         action send (in req __principal : Entity(tt:contact_group), in req __program_id : Entity(tt:program_id), in req __flow : Number, in req __kindChannel : Entity(tt:function), in opt start_time : Date, in opt has_sound : Boolean, in opt has_motion : Boolean, in opt has_person : Boolean, in opt picture_url : Entity(tt:picture));
     }
@@ -36,7 +36,7 @@ const TEST_CASES = [
     }
     @__dyn_0.receive(__principal=["1234"^^tt:contact], __program_id=$event.program_id, __flow=1)  => notify;
 }`,
-[`"1234"^^tt:contact : AlmondGenerated() {
+[`executor = "1234"^^tt:contact : AlmondGenerated() {
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
         action send (in req __principal : Entity(tt:contact_group), in req __program_id : Entity(tt:program_id), in req __flow : Number, in req __kindChannel : Entity(tt:function), in opt picture_url : Entity(tt:picture));
     }
@@ -44,7 +44,7 @@ const TEST_CASES = [
 }`]],
 
     ['factor', 'now => @security-camera(principal="1234"^^tt:contact).set_power(power=enum(on));',
-     'null', ['"1234"^^tt:contact :     now => @security-camera.set_power(power=enum(on)) ;']],
+     'null', ['executor = "1234"^^tt:contact :     now => @security-camera.set_power(power=enum(on)) ;']],
 
     ['factor', '@builtin.timer(interval=10s) => @security-camera(principal="1234"^^tt:contact).set_power(power=enum(on));',
 `Main() {
@@ -53,7 +53,7 @@ const TEST_CASES = [
     }
     @builtin.timer(interval=10s)  => @__dyn_0.send(__principal=["1234"^^tt:contact], __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, interval=10s) ;
 }`,
-[`"1234"^^tt:contact : AlmondGenerated() {
+[`executor = "1234"^^tt:contact : AlmondGenerated() {
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
         trigger receive (in req __principal : Entity(tt:contact_group), in req __program_id : Entity(tt:program_id), in req __flow : Number, out __kindChannel : Entity(tt:function), out interval : Measure(ms));
     }
@@ -64,7 +64,7 @@ const TEST_CASES = [
     'now => @security-camera.get_snapshot()  => notify;', []],
 
     ['lower', `"1234"^^tt:contact : now => @security-camera.get_snapshot() => return;`,
-`"1234"^^tt:contact : Main() {
+`executor = "1234"^^tt:contact : Main() {
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
         action send (in req __principal : Entity(tt:contact_group), in req __program_id : Entity(tt:program_id), in req __flow : Number, in req __kindChannel : Entity(tt:function), in opt picture_url : Entity(tt:picture));
     }
@@ -78,7 +78,7 @@ const TEST_CASES = [
 }`]],
 
     ['factor', 'now => @security-camera(principal="1234"^^tt:contact_group).set_power(power=enum(on));',
-     'null', ['"1234"^^tt:contact_group :     now => @security-camera.set_power(power=enum(on)) ;']],
+     'null', ['executor = "1234"^^tt:contact_group :     now => @security-camera.set_power(power=enum(on)) ;']],
 
     ['factor', '@builtin.timer(interval=10s) => @security-camera(principal="1234"^^tt:contact_group).set_power(power=enum(on));',
 `Main() {
@@ -87,7 +87,7 @@ const TEST_CASES = [
     }
     @builtin.timer(interval=10s)  => @__dyn_0.send(__principal="1234"^^tt:contact_group, __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, interval=10s) ;
 }`,
-[`"1234"^^tt:contact_group : AlmondGenerated() {
+[`executor = "1234"^^tt:contact_group : AlmondGenerated() {
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
         trigger receive (in req __principal : Entity(tt:contact_group), in req __program_id : Entity(tt:program_id), in req __flow : Number, out __kindChannel : Entity(tt:function), out interval : Measure(ms));
     }
