@@ -949,7 +949,6 @@ const TEST_CASES = [
   let _t_8;
   let _t_9;
   let _t_10;
-  let _t_11;
   try {
     _t_0 = new Array(5);
     _t_1 = [new __builtin.Entity("mock-account:12345678", "me")];
@@ -967,13 +966,11 @@ const TEST_CASES = [
         _t_6 = _t_5[0];
         _t_7 = _t_5[1];
         _t_8 = _t_5[2];
-        _t_9 = new Array(0);
-        yield env.save("auto+__dyn_0:receive:", {}, _t_9);
         try {
-          _t_10 = new Array(1);
-          _t_11 = "on";
-          _t_10[0] = _t_11;
-          yield env.invokeAction(1, _t_10);
+          _t_9 = new Array(1);
+          _t_10 = "on";
+          _t_9[0] = _t_10;
+          yield env.invokeAction(1, _t_9);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
@@ -986,7 +983,111 @@ const TEST_CASES = [
 
   [`LogQueryTestSelection() {
     now => get_record(table="Q1"), col2 >= 42, v_1 := col1 => notify;
-}`, ['']],
+}`, [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  _t_0 = yield env.getTableVersion("Q1");
+  try {
+    _t_1 = new Array(7);
+    _t_2 = "Q1";
+    _t_1[0] = _t_2;
+    _t_3 = yield env.invokeMemoryQuery("Q1", _t_0, null);
+    for (_t_4 of _t_3) {
+      _t_5 = _t_4[0];
+      _t_6 = _t_4[1];
+      _t_7 = _t_4[2];
+      _t_9 = _t_7[4];
+      _t_10 = 42;
+      _t_8 = _t_9 >= _t_10;
+      if (_t_8) {
+        _t_11 = _t_7[3];
+        try {
+          yield env.output(String(_t_5), _t_7, _t_6);
+        } catch(_exc_) {
+          env.reportError("Failed to invoke action", _exc_);
+        }
+      } else {
+
+      }
+    }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke query", _exc_);
+  }`]],
+
+  [`LogQueryTestJoin() {
+    now => get_record(table="Q1"), v_1 := col1 => get_record(table="Q2"), col2 >= v_1, v_2 := col2 => notify;
+}`, [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  _t_0 = yield env.getTableVersion("Q1");
+  _t_1 = yield env.getTableVersion("Q2");
+  try {
+    _t_2 = new Array(7);
+    _t_3 = "Q1";
+    _t_2[0] = _t_3;
+    _t_4 = yield env.invokeMemoryQuery("Q1", _t_0, null);
+    for (_t_5 of _t_4) {
+      _t_6 = _t_5[0];
+      _t_7 = _t_5[1];
+      _t_8 = _t_5[2];
+      _t_9 = _t_8[3];
+      try {
+        _t_10 = new Array(3);
+        _t_11 = "Q2";
+        _t_10[0] = _t_11;
+        _t_12 = yield env.invokeMemoryQuery("Q2", _t_1, null);
+        for (_t_13 of _t_12) {
+          _t_14 = _t_13[0];
+          _t_15 = _t_13[1];
+          _t_16 = _t_13[2];
+          _t_18 = _t_16[2];
+          _t_17 = _t_18 >= _t_9;
+          if (_t_17) {
+            _t_19 = _t_16[2];
+            try {
+              yield env.output(String(_t_14), _t_16, _t_15);
+            } catch(_exc_) {
+              env.reportError("Failed to invoke action", _exc_);
+            }
+          } else {
+
+          }
+        }
+      } catch(_exc_) {
+        env.reportError("Failed to invoke query", _exc_);
+      }
+    }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke query", _exc_);
+  }`]],
 ];
 
 const GeneratorFunction = Object.getPrototypeOf(function*(){}).constructor;
