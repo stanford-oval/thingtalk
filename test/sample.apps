@@ -246,19 +246,19 @@ Test() {
 ====
 
 LogQueryTest() {
-    now => log.get(device="foo", channel="bar", tag="t") => notify;
+    now => log.get(table="t") => notify;
 }
 
 ====
 
 LogQueryTestProjection() {
-    now => log.get(tag="Q1"), v_1 := col1 => notify;
+    now => log.get(table="Q1"), v_1 := col1 => notify;
 }
 
 ====
 
 LogQueryTestSelection() {
-    now => log.get(tag="Q1"), col2 >= 42, v_1 := col1 => notify;
+    now => log.get(table="Q1"), col2 >= 42, v_1 := col1 => notify;
 }
 
 /* select col1 as v_1 from Q1 where col2 >= 42 */
@@ -266,68 +266,68 @@ LogQueryTestSelection() {
 ====
 
 LogQueryTestJoin() {
-    now => log.get(tag="Q1"), v_1 := col1 => log.get(tag="Q2"), col2 >= v_1, v_2 := col2 => notify;
+    now => log.get(table="Q1"), v_1 := col1 => log.get(table="Q2"), col2 >= v_1, v_2 := col2 => notify;
 }
 
-/* now => log.get(tag="Q1") join query(tag="Q2") => notify; */
+/* now => log.get(table="Q1") join query(table="Q2") => notify; */
 
 ====
 
 LogQueryAggregationTest() {
-    now => log.get(tag="Q1"), v_field := max(field) => notify;
+    now => log.get(table="Q1"), v_field := max(field) => notify;
 }
 
 ====
 
 LogQueryAggregationSugarTest() {
-    now => log.getmax(device="foo", channel="bar", tag="Q1", field="foo"), v_res := res => notify;
+    now => log.getmax(table="Q1", field="foo"), v_res := res => notify;
 }
 
 ====
 
 LogQueryArgmTest() {
-    now => log.get(tag="Q1"), [v_field1, v_field2] := argmax(another_field, [field1, field2]) => notify;
+    now => log.get(table="Q1"), [v_field1, v_field2] := argmax(another_field, [field1, field2]) => notify;
 }
 
 ====
 
 WithSave() {
     now => @fitbit.get_steps() => notify;
-    now => log.get(tag="Q0"), max_steps := max(steps) => notify;
-    now => log.get(tag="Q1"), v_steps = max_steps => notify;
+    now => log.get(table="Q0"), max_steps := max(steps) => notify;
+    now => log.get(table="Q1"), v_steps = max_steps => notify;
 }
 
 /* need save */
 /* "Q0": now => @fitbit.get_steps() => save; */
-/* "Q1": now => log.get(tag="Q0"), max_steps := max(steps) => save; */
-/* "Q2": now => log.get(tag="Q1"), v_steps = max_steps => notify; */
+/* "Q1": now => log.get(table="Q0"), max_steps := max(steps) => save; */
+/* "Q2": now => log.get(table="Q1"), v_steps = max_steps => notify; */
 
 ====
 
 LogTriggerTest() {
-    log.new(tag="Q1") => log.get(tag="Q2") => notify;
+    log.new(table="Q1") => log.get(table="Q2") => notify;
 }
 
 ====
 
 LogTriggerAggregationTest() {
-    log.new(tag="Q1"), v_field := max(field) => notify;
+    log.new(table="Q1"), v_field := max(field) => notify;
 }
 
 ====
 
 LogTriggerAggregationSugarTest() {
-    log.newmax(device="foo", channel="bar", tag="Q1", field="foo"), v_res := res => notify;
+    log.newmax(table="Q1", field="foo"), v_res := res => notify;
 }
 
 ====
 
 LogTriggerArgmTest() {
-    log.new(tag="Q0"), [v_field1, v_field2] := argmax(another_field, [field1, field2]) => notify;
+    log.new(table="Q0"), [v_field1, v_field2] := argmax(another_field, [field1, field2]) => notify;
 }
 
 ====
 
 LogTestAll() {
-    log.new(tag="Q0") => log.get(tag="Q1"), v_foo := foo => log.save(tag="Q2", bar=v_foo);
+    log.new(table="Q0") => log.get(table="Q1"), v_foo := foo => log.save(table="Q2", bar=v_foo);
 }
