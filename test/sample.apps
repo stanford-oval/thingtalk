@@ -277,12 +277,6 @@ LogQueryAggregationTest() {
 
 ====
 
-LogQueryAggregationSugarTest() {
-    now => get_recordmax(table="Q1", field="foo"), v_res := res => notify;
-}
-
-====
-
 LogQueryArgmTest() {
     now => get_record(table="Q1"), [v_field1, v_field2] := argmax(another_field, [field1, field2]) => notify;
 }
@@ -310,12 +304,6 @@ LogTriggerTest() {
 
 LogTriggerAggregationTest() {
     new_record(table="Q1"), v_field := max(field) => notify;
-}
-
-====
-
-LogTriggerAggregationSugarTest() {
-    new_recordmax(table="Q1", field="foo"), v_res := res => notify;
 }
 
 ====
