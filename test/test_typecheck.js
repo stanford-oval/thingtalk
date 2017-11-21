@@ -18,17 +18,17 @@ class DummyMemoryClient {
         return Q(this._tables.get(table) || null);
     }
 
-    createSchema(table, args, types) {
+    createTable(table, args, types) {
         console.log('CreateSchema for ' + table + ' ', args);
         this._tables.set(table, { args: args, types: types });
         return Q();
     }
 }
 const _mockMemoryClient = new DummyMemoryClient();
-_mockMemoryClient.createSchema('Q1', ['steps', 'col1', 'col2', 'field', 'foo'], [Type.Number, Type.Number, Type.Number, Type.Number, Type.String]);
-_mockMemoryClient.createSchema('Q0', ['field1', 'field2'], [Type.Number, Type.Number]);
-_mockMemoryClient.createSchema('Q2', ['col2'], [Type.Number]);
-_mockMemoryClient.createSchema('t', [], []);
+_mockMemoryClient.createTable('Q1', ['steps', 'col1', 'col2', 'field', 'foo'], [Type.Number, Type.Number, Type.Number, Type.Number, Type.String]);
+_mockMemoryClient.createTable('Q0', ['field1', 'field2'], [Type.Number, Type.Number]);
+_mockMemoryClient.createTable('Q2', ['col2'], [Type.Number]);
+_mockMemoryClient.createTable('t', [], []);
 
 const _schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, _mockMemoryClient);
 
