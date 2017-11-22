@@ -34,6 +34,7 @@ _mockMemoryClient.createTable('Q1', ['steps', 'col1', 'col2', 'field', 'foo'], [
 _mockMemoryClient.createTable('Q0', ['field1', 'field2'], [Type.Number, Type.Number]);
 _mockMemoryClient.createTable('Q2', ['col2'], [Type.Number]);
 _mockMemoryClient.createTable('t', [], []);
+_mockMemoryClient.createTable('auto+com.xkcd:get_comic:v_title:title,v_picture_url:picture_url', ['v_title', 'v_picture_url'], [Type.String, Type.Entity('tt:picture')]);
 var schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, _mockMemoryClient, false);
 
 const TEST_CASES = [
@@ -1088,6 +1089,41 @@ const TEST_CASES = [
   } catch(_exc_) {
     env.reportError("Failed to invoke query", _exc_);
   }`]],
+
+  [`TestCount() {
+    now => get_record(table="auto+com.xkcd:get_comic:v_title:title,v_picture_url:picture_url"), v_count := count(v_title) => notify;
+}`, [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  _t_0 = yield env.getTableVersion("auto+com.xkcd:get_comic:v_title:title,v_picture_url:picture_url");
+  try {
+    _t_1 = new __builtin.Aggregation("count", "v_title", null);
+    _t_2 = new Array(4);
+    _t_3 = "auto+com.xkcd:get_comic:v_title:title,v_picture_url:picture_url";
+    _t_2[0] = _t_3;
+    _t_4 = yield env.invokeMemoryQuery("auto+com.xkcd:get_comic:v_title:title,v_picture_url:picture_url", _t_0, _t_1);
+    for (_t_5 of _t_4) {
+      _t_6 = _t_5[0];
+      _t_7 = _t_5[1];
+      _t_8 = _t_5[2];
+      _t_9 = _t_8[2];
+      try {
+        yield env.output(String(_t_6), _t_8, _t_7);
+      } catch(_exc_) {
+        env.reportError("Failed to invoke action", _exc_);
+      }
+    }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke query", _exc_);
+  }`]]
 ];
 
 const GeneratorFunction = Object.getPrototypeOf(function*(){}).constructor;
@@ -1105,12 +1141,12 @@ function test(i) {
             for (let j = 0; j < Math.max(expected.length, rules.length); j++) {
                 let [_, code] = rules[j] || [];
 
-                new GeneratorFunction('__builtin', 'env', code);
-
                 if (code === undefined || code.trim() !== expected[j].trim()) {
                     console.error('Test Case #' + (i+1) + ': compiled code does not match what expected');
                     //console.error('Expected: ' + expected[j]);
                     console.error('Compiled: ' + code);
+                } else {
+                    new GeneratorFunction('__builtin', 'env', code);
                 }
             }
         });
