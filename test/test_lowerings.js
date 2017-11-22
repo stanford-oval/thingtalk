@@ -94,6 +94,20 @@ const TEST_CASES = [
     }
     @__dyn_0.receive(__principal=["mock-account:12345678"^^tt:contact("me")], __program_id=$event.program_id, __flow=0)  => @security-camera.set_power(power=enum(on)) ;
 }`]],
+
+    ['factor', `LogQueryTestSelection() {
+    now => get_record(table="Q4", principal="1234"^^tt:contact), col2 >= 42, v_1 := col1 => notify;
+}`, `LogQueryTestSelection() {
+    class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
+        trigger receive (in req __principal : Entity(tt:contact_group), in req __program_id : Entity(tt:program_id), in req __flow : Number, out __kindChannel : Entity(tt:function), out table : Entity(tt:table), out principal : Entity(tt:contact), out col1 : String, out col2 : Number);
+    }
+    @__dyn_0.receive(__principal=["1234"^^tt:contact], __program_id=$event.program_id, __flow=1) , v_1 := col1 => notify;
+}`, [`executor = "1234"^^tt:contact : AlmondGenerated() {
+    class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
+        action send (in req __principal : Entity(tt:contact_group), in req __program_id : Entity(tt:program_id), in req __flow : Number, in req __kindChannel : Entity(tt:function), in opt table : Entity(tt:table), in opt principal : Entity(tt:contact), in opt col1 : String, in opt col2 : Number);
+    }
+    now => get_record(table="Q4"^^tt:table), col2 >= 42, v_1 := col1 => @__dyn_0.send(__principal=["mock-account:12345678"^^tt:contact("me")], __program_id=$event.program_id, __flow=1, __kindChannel=$event.type, table="Q4", principal="1234"^^tt:contact, col1=v_1) ;
+}`]]
 ];
 
 //var schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, _mockMemoryClient, true);

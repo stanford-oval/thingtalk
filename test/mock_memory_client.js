@@ -9,6 +9,7 @@ class MockMemoryClient {
     }
 
     getSchema(table, principal) {
+        //console.log('GetSchema for ' + table + ' owned by ' + principal);
         return Q(this._tables.get(principal + ':' + table) || null);
     }
 
@@ -31,5 +32,7 @@ _mockMemoryClient.createTable('Q2', ['col2'], [Type.Number]);
 _mockMemoryClient.createTable('Q3', ['col1'], [Type.Measure('C')]);
 _mockMemoryClient.createTable('t', [], []);
 _mockMemoryClient.createTable('auto+com.xkcd:get_comic:v_title:title,v_picture_url:picture_url', ['v_title', 'v_picture_url'], [Type.String, Type.Entity('tt:picture')]);
+
+_mockMemoryClient._createRemoteTable('Q4', '1234', ['col1', 'col2'], [Type.String, Type.Number]);
 
 module.exports = _mockMemoryClient;

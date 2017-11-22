@@ -271,6 +271,36 @@ LogQueryTestSelection() {
 
 ====
 
+LogQueryTestRemote() {
+    now => get_record(table="Q4", principal="1234"^^tt:contact), col2 >= 42, v_1 := col1 => notify;
+}
+
+====
+
+// ** typecheck: expect TypeError **
+LogQueryTestRemoteInvalid1() {
+    // there is no such table Q0
+    now => get_record(table="Q0", principal="1234"^^tt:contact), col2 >= 42, v_1 := col1 => notify;
+}
+
+====
+
+// ** typecheck: expect TypeError **
+LogQueryTestRemoteInvalid2() {
+    // principal must be contact not group
+    now => get_record(table="Q4", principal="1234"^^tt:contact_group), col2 >= 42, v_1 := col1 => notify;
+}
+
+====
+
+// ** typecheck: expect TypeError **
+LogQueryTestRemoteInvalid2() {
+    // col1 is a string in Q4
+    now => get_record(table="Q4", principal="1234"^^tt:contact), col1 >= 42, v_1 := col1 => notify;
+}
+
+====
+
 LogQueryTestJoin() {
     now => get_record(table="Q1"), v_1 := col1 => get_record(table="Q2"), col2 >= v_1, v_2 := col2 => notify;
 }
