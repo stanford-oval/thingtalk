@@ -25,9 +25,10 @@ class DummyMemoryClient {
     }
 }
 const _mockMemoryClient = new DummyMemoryClient();
-_mockMemoryClient.createTable('Q1', ['steps', 'col1', 'col2', 'field', 'foo'], [Type.Number, Type.Number, Type.Number, Type.Number, Type.String]);
-_mockMemoryClient.createTable('Q0', ['field1', 'field2'], [Type.Number, Type.Number]);
+_mockMemoryClient.createTable('Q1', ['steps', 'col1', 'col2', 'field', 'foo', 'str1', 'str2'], [Type.Number, Type.Number, Type.Number, Type.Number, Type.String, Type.String, Type.String]);
+_mockMemoryClient.createTable('Q0', ['another_field', 'field1', 'field2'], [Type.Number, Type.Number, Type.Number]);
 _mockMemoryClient.createTable('Q2', ['col2'], [Type.Number]);
+_mockMemoryClient.createTable('Q3', ['col1'], [Type.Measure('C')]);
 _mockMemoryClient.createTable('t', [], []);
 
 const _schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, _mockMemoryClient);
@@ -37,7 +38,12 @@ function typecheckTest() {
 
     Q.all(code.map(function(code) {
         code = code.trim();
-        Q(AppGrammar.parseAndTypecheck(code, _schemaRetriever)).catch((e) => {
+        return Q(AppGrammar.parseAndTypecheck(code, _schemaRetriever)).then(() => {
+            if (code.indexOf(`** typecheck: expect `) >= 0) {
+                console.error('Failed (expected error)');
+                console.error(code);
+            }
+        }, (e) => {
             if (code.indexOf(`** typecheck: expect ${e.name} **`) >= 0)
                 return;
             console.error('Failed');

@@ -222,7 +222,14 @@ module.exports = {
                 }
             },
             "actions": {},
-            "queries": {}
+            "queries": {
+                "get_comic": {
+                    args: ["number", "title", "link", "picture_url"],
+                    types: ["Number", "String", "Entity(tt:url)", "Entity(tt:picture)"],
+                    required: [false,false,false,false],
+                    is_input: [true,false,false,false],
+                }
+            }
         },
         "fitbit": {
             "triggers": {},

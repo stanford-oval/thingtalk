@@ -283,8 +283,63 @@ LogQueryAggregationTest() {
 
 ====
 
+LogQueryAggregationMeasureTest() {
+    // col1 has type Measure(C)
+    now => get_record(table="Q3"), v_field := max(col1) => @thermostat.set_target_temperature(value=v_field);
+}
+
+
+====
+
+// ** typecheck: expect TypeError **
+LogQueryInvalidAggregationTest() {
+    now => get_record(table="Q1"), v_field := max(nonexisting_field) => notify;
+}
+
+====
+
+// ** typecheck: expect TypeError **
+LogQueryInvalidAggregation2Test() {
+    now => get_record(table="Q1"), v_field := max(str1) => notify;
+}
+
+====
+
+LogQueryCountTest() {
+    now => get_record(table="Q1"), v_count := count(*) => notify;
+}
+
+====
+
+LogQueryCountParamPassingTest() {
+    now => get_record(table="Q1"), v_count := count(str1) => @xkcd.get_comic(number=v_count) => notify;
+}
+
+====
+
+// ** typecheck: expect TypeError **
+LogQueryCountInvalidParamPassingTest() {
+    now => get_record(table="Q1"), v_count := count(str1) => @twitter.sink(status=v_count);
+}
+
+====
+
+// ** typecheck: expect TypeError **
+LogQueryInvalidTest() {
+    now => get_record(table="Q1"), v_max := max(*) => notify;
+}
+
+====
+
 LogQueryArgmTest() {
     now => get_record(table="Q0"), [v_field1, v_field2] := argmax(another_field, 3, [field1, field2]) => notify;
+}
+
+====
+
+// ** typecheck: expect TypeError **
+LogQueryInvalidArgmTest() {
+    now => get_record(table="Q0"), [v_field1, v_field2] := argmax(nonexisting_field, [field1, field2]) => notify;
 }
 
 ====
