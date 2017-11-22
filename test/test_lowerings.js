@@ -11,6 +11,7 @@ const Generate = require('../lib/generate');
 
 const _mockSchemaDelegate = require('./mock_schema_delegate');
 const ThingpediaClientHttp = require('./http_client');
+const _mockMemoryClient = require('./mock_memory_client');
 const db = require('./db');
 
 const TEST_CASES = [
@@ -19,7 +20,7 @@ const TEST_CASES = [
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
         trigger receive (in req __principal : Entity(tt:contact_group), in req __program_id : Entity(tt:program_id), in req __flow : Number, out __kindChannel : Entity(tt:function), out start_time : Date, out has_sound : Boolean, out has_motion : Boolean, out has_person : Boolean, out picture_url : Entity(tt:picture));
     }
-    @__dyn_0.receive(__principal=["1234"^^tt:contact], __program_id=$event.program_id, __flow=0)  => notify;
+    table = "auto+security-camera:new_event:": @__dyn_0.receive(__principal=["1234"^^tt:contact], __program_id=$event.program_id, __flow=0)  => notify;
 }`,
 [`executor = "1234"^^tt:contact : AlmondGenerated() {
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
@@ -34,7 +35,7 @@ const TEST_CASES = [
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
         trigger receive (in req __principal : Entity(tt:contact_group), in req __program_id : Entity(tt:program_id), in req __flow : Number, out __kindChannel : Entity(tt:function), out picture_url : Entity(tt:picture));
     }
-    @__dyn_0.receive(__principal=["1234"^^tt:contact], __program_id=$event.program_id, __flow=1)  => notify;
+    table = "auto+security-camera:get_snapshot:": @__dyn_0.receive(__principal=["1234"^^tt:contact], __program_id=$event.program_id, __flow=1)  => notify;
 }`,
 [`executor = "1234"^^tt:contact : AlmondGenerated() {
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
@@ -46,12 +47,12 @@ const TEST_CASES = [
     ['factor', 'now => @security-camera(principal="1234"^^tt:contact).set_power(power=enum(on));',
      'null', ['executor = "1234"^^tt:contact :     now => @security-camera.set_power(power=enum(on)) ;']],
 
-    ['factor', '@builtin.timer(interval=10s) => @security-camera(principal="1234"^^tt:contact).set_power(power=enum(on));',
+    ['factor', '@org.thingpedia.builtin.thingengine.builtin.timer(interval=10s) => @security-camera(principal="1234"^^tt:contact).set_power(power=enum(on));',
 `Main() {
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
         action send (in req __principal : Entity(tt:contact_group), in req __program_id : Entity(tt:program_id), in req __flow : Number, in req __kindChannel : Entity(tt:function), in opt interval : Measure(ms));
     }
-    @builtin.timer(interval=10s)  => @__dyn_0.send(__principal=["1234"^^tt:contact], __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, interval=10s) ;
+    @org.thingpedia.builtin.thingengine.builtin.timer(interval=10s)  => @__dyn_0.send(__principal=["1234"^^tt:contact], __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, interval=10s) ;
 }`,
 [`executor = "1234"^^tt:contact : AlmondGenerated() {
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
@@ -61,14 +62,14 @@ const TEST_CASES = [
 }`]],
 
     ['lower', 'now => @security-camera.get_snapshot() => return;',
-    'now => @security-camera.get_snapshot()  => notify;', []],
+    'table = "auto+security-camera:get_snapshot:": now => @security-camera.get_snapshot()  => notify;', []],
 
     ['lower', `"1234"^^tt:contact : now => @security-camera.get_snapshot() => return;`,
 `executor = "1234"^^tt:contact : Main() {
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
         action send (in req __principal : Entity(tt:contact_group), in req __program_id : Entity(tt:program_id), in req __flow : Number, in req __kindChannel : Entity(tt:function), in opt picture_url : Entity(tt:picture));
     }
-    now => @security-camera.get_snapshot()  => @__dyn_0.send(__principal=["mock-account:12345678"^^tt:contact("me")], __program_id=$event.program_id, __flow=0, __kindChannel=$event.type) ;
+    table = "auto+security-camera:get_snapshot:": now => @security-camera.get_snapshot()  => @__dyn_0.send(__principal=["mock-account:12345678"^^tt:contact("me")], __program_id=$event.program_id, __flow=0, __kindChannel=$event.type) ;
 }`,
 [`AlmondGenerated() {
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
@@ -80,12 +81,12 @@ const TEST_CASES = [
     ['factor', 'now => @security-camera(principal="1234"^^tt:contact_group).set_power(power=enum(on));',
      'null', ['executor = "1234"^^tt:contact_group :     now => @security-camera.set_power(power=enum(on)) ;']],
 
-    ['factor', '@builtin.timer(interval=10s) => @security-camera(principal="1234"^^tt:contact_group).set_power(power=enum(on));',
+    ['factor', '@org.thingpedia.builtin.thingengine.builtin.timer(interval=10s) => @security-camera(principal="1234"^^tt:contact_group).set_power(power=enum(on));',
 `Main() {
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
         action send (in req __principal : Entity(tt:contact_group), in req __program_id : Entity(tt:program_id), in req __flow : Number, in req __kindChannel : Entity(tt:function), in opt interval : Measure(ms));
     }
-    @builtin.timer(interval=10s)  => @__dyn_0.send(__principal="1234"^^tt:contact_group, __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, interval=10s) ;
+    @org.thingpedia.builtin.thingengine.builtin.timer(interval=10s)  => @__dyn_0.send(__principal="1234"^^tt:contact_group, __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, interval=10s) ;
 }`,
 [`executor = "1234"^^tt:contact_group : AlmondGenerated() {
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
@@ -95,8 +96,8 @@ const TEST_CASES = [
 }`]],
 ];
 
-//var schemaRetriever = new SchemaRetriever(_mockSchemaDelegate);
-var schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(), true);
+//var schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, _mockMemoryClient, true);
+var schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(), _mockMemoryClient, true);
 var _mockMessaging = {
     type: 'mock',
     account: '12345678'

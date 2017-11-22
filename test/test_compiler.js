@@ -1,3 +1,4 @@
+"use strict";
 
 const Q = require('q');
 Q.longStackSupport = true;
@@ -8,34 +9,12 @@ const Grammar = require('../lib/grammar_api');
 const Compiler = require('../lib/compiler');
 const SchemaRetriever = require('../lib/schema');
 const PermissionChecker = require('../lib/permission_checker');
-const Type = require('../lib/type');
 const { optimizeProgram } = require('../lib/optimize');
 
 const _mockSchemaDelegate = require('./mock_schema_delegate');
 const ThingpediaClientHttp = require('./http_client');
-
-class DummyMemoryClient {
-    constructor() {
-        this._tables = new Map;
-    }
-
-    getSchema(table) {
-        return Q(this._tables.get(table) || null);
-    }
-
-    createTable(table, args, types) {
-        console.log('CreateSchema for ' + table + ' ', args);
-        this._tables.set(table, { args: args, types: types });
-        return Q();
-    }
-}
-const _mockMemoryClient = new DummyMemoryClient();
-_mockMemoryClient.createTable('Q1', ['steps', 'col1', 'col2', 'field', 'foo'], [Type.Number, Type.Number, Type.Number, Type.Number, Type.String]);
-_mockMemoryClient.createTable('Q0', ['field1', 'field2'], [Type.Number, Type.Number]);
-_mockMemoryClient.createTable('Q2', ['col2'], [Type.Number]);
-_mockMemoryClient.createTable('t', [], []);
-_mockMemoryClient.createTable('auto+com.xkcd:get_comic:v_title:title,v_picture_url:picture_url', ['v_title', 'v_picture_url'], [Type.String, Type.Entity('tt:picture')]);
-var schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, _mockMemoryClient, false);
+const _mockMemoryClient = require('./mock_memory_client');
+var schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, _mockMemoryClient, true);
 
 const TEST_CASES = [
     [`Test() {
@@ -999,7 +978,7 @@ const TEST_CASES = [
   let _t_11;
   _t_0 = yield env.getTableVersion("Q1");
   try {
-    _t_1 = new Array(7);
+    _t_1 = new Array(9);
     _t_2 = "Q1";
     _t_1[0] = _t_2;
     _t_3 = yield env.invokeMemoryQuery("Q1", _t_0, null);
@@ -1051,7 +1030,7 @@ const TEST_CASES = [
   _t_0 = yield env.getTableVersion("Q1");
   _t_1 = yield env.getTableVersion("Q2");
   try {
-    _t_2 = new Array(7);
+    _t_2 = new Array(9);
     _t_3 = "Q1";
     _t_2[0] = _t_3;
     _t_4 = yield env.invokeMemoryQuery("Q1", _t_0, null);
@@ -1105,7 +1084,7 @@ const TEST_CASES = [
   let _t_9;
   _t_0 = yield env.getTableVersion("auto+com.xkcd:get_comic:v_title:title,v_picture_url:picture_url");
   try {
-    _t_1 = new __builtin.Aggregation("count", "v_title", null);
+    _t_1 = new __builtin.Aggregation("count", "v_title", null, null);
     _t_2 = new Array(4);
     _t_3 = "auto+com.xkcd:get_comic:v_title:title,v_picture_url:picture_url";
     _t_2[0] = _t_3;

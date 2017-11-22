@@ -31,7 +31,7 @@ _mockMemoryClient.createTable('Q2', ['col2'], [Type.Number]);
 _mockMemoryClient.createTable('Q3', ['col1'], [Type.Measure('C')]);
 _mockMemoryClient.createTable('t', [], []);
 
-const _schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, _mockMemoryClient);
+const _schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, _mockMemoryClient, true);
 
 function typecheckTest() {
     var code = fs.readFileSync('./test/sample.apps').toString('utf8').split('====');
