@@ -295,28 +295,35 @@ const TEST_CASES = [
   let _t_8;
   let _t_9;
   let _t_10;
+  let _t_11;
   try {
     _t_0 = new Array(2);
     _t_1 = "lol";
     _t_0[0] = _t_1;
     _t_2 = yield env.invokeQuery(0, _t_0);
-    for (_t_3 of _t_2) {
-      _t_4 = _t_3[0];
-      _t_5 = _t_3[1];
-      _t_6 = _t_3[2];
-      _t_8 = _t_6[1];
-      _t_9 = new __builtin.Entity("http://www.youtube.com", null);
-      _t_7 = __builtin.equality(_t_8, _t_9);
-      if (_t_7) {
-        _t_10 = new Array(0);
-        yield env.save("auto+youtube:search_videos:", {}, _t_10);
-        try {
-          yield env.output(String(_t_4), _t_6, _t_5);
-        } catch(_exc_) {
-          env.reportError("Failed to invoke action", _exc_);
-        }
-      } else {
+    _t_3 = _t_2[Symbol.iterator]();
+    {
+      let _iter_tmp = yield _t_3.next();
+      while (!_iter_tmp.done) {
+        _t_4 = _iter_tmp.value;
+        _t_5 = _t_4[0];
+        _t_6 = _t_4[1];
+        _t_7 = _t_4[2];
+        _t_9 = _t_7[1];
+        _t_10 = new __builtin.Entity("http://www.youtube.com", null);
+        _t_8 = __builtin.equality(_t_9, _t_10);
+        if (_t_8) {
+          _t_11 = new Array(0);
+          yield env.save("auto+youtube:search_videos:", {}, _t_11);
+          try {
+            yield env.output(String(_t_5), _t_7, _t_6);
+          } catch(_exc_) {
+            env.reportError("Failed to invoke action", _exc_);
+          }
+        } else {
 
+        }
+        _iter_tmp = yield _t_3.next();
       }
     }
   } catch(_exc_) {
@@ -594,27 +601,34 @@ const TEST_CASES = [
   let _t_8;
   let _t_9;
   let _t_10;
+  let _t_11;
   try {
     _t_0 = new Array(1);
     _t_1 = yield env.invokeQuery(0, _t_0);
-    for (_t_2 of _t_1) {
-      _t_3 = _t_2[0];
-      _t_4 = _t_2[1];
-      _t_5 = _t_2[2];
-      _t_7 = _t_5[0];
-      _t_8 = __builtin.getTime (_t_7);
-      _t_9 = new __builtin.Time(10, 0, 0);
-      _t_6 = _t_8 > _t_9;
-      if (_t_6) {
-        _t_10 = new Array(0);
-        yield env.save("auto+builtin:get_time:", {}, _t_10);
-        try {
-          yield env.output(String(_t_3), _t_5, _t_4);
-        } catch(_exc_) {
-          env.reportError("Failed to invoke action", _exc_);
-        }
-      } else {
+    _t_2 = _t_1[Symbol.iterator]();
+    {
+      let _iter_tmp = yield _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_3[2];
+        _t_8 = _t_6[0];
+        _t_9 = __builtin.getTime (_t_8);
+        _t_10 = new __builtin.Time(10, 0, 0);
+        _t_7 = _t_9 > _t_10;
+        if (_t_7) {
+          _t_11 = new Array(0);
+          yield env.save("auto+builtin:get_time:", {}, _t_11);
+          try {
+            yield env.output(String(_t_4), _t_6, _t_5);
+          } catch(_exc_) {
+            env.reportError("Failed to invoke action", _exc_);
+          }
+        } else {
 
+        }
+        _iter_tmp = yield _t_2.next();
       }
     }
   } catch(_exc_) {
@@ -705,6 +719,7 @@ const TEST_CASES = [
   let _t_18;
   let _t_19;
   let _t_20;
+  let _t_21;
   try {
     _t_0 = new Array(6);
     _t_1 = yield env.invokeTrigger(0, _t_0, false);
@@ -720,32 +735,38 @@ const TEST_CASES = [
         try {
           _t_8 = new Array(6);
           _t_7 = yield env.invokeQuery(1, _t_8);
-          for (_t_9 of _t_7) {
-            _t_10 = _t_9[2];
-            _t_11 = true;
-            _t_13 = _t_10[0];
-            _t_14 = __builtin.getTime (_t_13);
-            _t_15 = new __builtin.Time(9, 0, 0);
-            _t_12 = _t_14 >= _t_15;
-            _t_11 = _t_11 && _t_12;
-            _t_17 = _t_10[0];
-            _t_18 = __builtin.getTime (_t_17);
-            _t_19 = new __builtin.Time(10, 0, 0);
-            _t_16 = _t_18 <= _t_19;
-            _t_11 = _t_11 && _t_16;
-            if (_t_11) {
-              _t_6 = true;
-              break;
-            } else {
+          _t_9 = _t_7[Symbol.iterator]();
+          {
+            let _iter_tmp = yield _t_9.next();
+            while (!_iter_tmp.done) {
+              _t_10 = _iter_tmp.value;
+              _t_11 = _t_10[2];
+              _t_12 = true;
+              _t_14 = _t_11[0];
+              _t_15 = __builtin.getTime (_t_14);
+              _t_16 = new __builtin.Time(9, 0, 0);
+              _t_13 = _t_15 >= _t_16;
+              _t_12 = _t_12 && _t_13;
+              _t_18 = _t_11[0];
+              _t_19 = __builtin.getTime (_t_18);
+              _t_20 = new __builtin.Time(10, 0, 0);
+              _t_17 = _t_19 <= _t_20;
+              _t_12 = _t_12 && _t_17;
+              if (_t_12) {
+                _t_6 = true;
+                break;
+              } else {
 
+              }
+              _iter_tmp = yield _t_9.next();
             }
           }
         } catch(_exc_) {
           env.reportError("Failed to invoke get-predicate query", _exc_);
         }
         if (_t_6) {
-          _t_20 = new Array(0);
-          yield env.save("auto+twitter:source:", {}, _t_20);
+          _t_21 = new Array(0);
+          yield env.save("auto+twitter:source:", {}, _t_21);
           try {
             yield env.output(String(_t_3), _t_5, _t_4);
           } catch(_exc_) {
@@ -785,6 +806,7 @@ const TEST_CASES = [
   let _t_22;
   let _t_23;
   let _t_24;
+  let _t_25;
   try {
     _t_0 = new Array(6);
     _t_1 = yield env.invokeTrigger(0, _t_0, false);
@@ -805,24 +827,30 @@ const TEST_CASES = [
         try {
           _t_12 = new Array(6);
           _t_11 = yield env.invokeQuery(1, _t_12);
-          for (_t_13 of _t_11) {
-            _t_14 = _t_13[2];
-            _t_15 = true;
-            _t_17 = _t_14[0];
-            _t_18 = __builtin.getTime (_t_17);
-            _t_19 = new __builtin.Time(9, 0, 0);
-            _t_16 = _t_18 >= _t_19;
-            _t_15 = _t_15 && _t_16;
-            _t_21 = _t_14[0];
-            _t_22 = __builtin.getTime (_t_21);
-            _t_23 = new __builtin.Time(10, 0, 0);
-            _t_20 = _t_22 <= _t_23;
-            _t_15 = _t_15 && _t_20;
-            if (_t_15) {
-              _t_10 = true;
-              break;
-            } else {
+          _t_13 = _t_11[Symbol.iterator]();
+          {
+            let _iter_tmp = yield _t_13.next();
+            while (!_iter_tmp.done) {
+              _t_14 = _iter_tmp.value;
+              _t_15 = _t_14[2];
+              _t_16 = true;
+              _t_18 = _t_15[0];
+              _t_19 = __builtin.getTime (_t_18);
+              _t_20 = new __builtin.Time(9, 0, 0);
+              _t_17 = _t_19 >= _t_20;
+              _t_16 = _t_16 && _t_17;
+              _t_22 = _t_15[0];
+              _t_23 = __builtin.getTime (_t_22);
+              _t_24 = new __builtin.Time(10, 0, 0);
+              _t_21 = _t_23 <= _t_24;
+              _t_16 = _t_16 && _t_21;
+              if (_t_16) {
+                _t_10 = true;
+                break;
+              } else {
 
+              }
+              _iter_tmp = yield _t_13.next();
             }
           }
         } catch(_exc_) {
@@ -830,8 +858,8 @@ const TEST_CASES = [
         }
         _t_6 = _t_6 && _t_10;
         if (_t_6) {
-          _t_24 = new Array(0);
-          yield env.save("auto+twitter:source:", {}, _t_24);
+          _t_25 = new Array(0);
+          yield env.save("auto+twitter:source:", {}, _t_25);
           try {
             yield env.output(String(_t_3), _t_5, _t_4);
           } catch(_exc_) {
@@ -976,28 +1004,35 @@ const TEST_CASES = [
   let _t_9;
   let _t_10;
   let _t_11;
+  let _t_12;
   _t_0 = yield env.getTableVersion("Q1");
   try {
     _t_1 = new Array(9);
     _t_2 = "Q1";
     _t_1[0] = _t_2;
     _t_3 = yield env.invokeMemoryQuery("Q1", _t_0, null);
-    for (_t_4 of _t_3) {
-      _t_5 = _t_4[0];
-      _t_6 = _t_4[1];
-      _t_7 = _t_4[2];
-      _t_9 = _t_7[4];
-      _t_10 = 42;
-      _t_8 = _t_9 >= _t_10;
-      if (_t_8) {
-        _t_11 = _t_7[3];
-        try {
-          yield env.output(String(_t_5), _t_7, _t_6);
-        } catch(_exc_) {
-          env.reportError("Failed to invoke action", _exc_);
-        }
-      } else {
+    _t_4 = _t_3[Symbol.iterator]();
+    {
+      let _iter_tmp = yield _t_4.next();
+      while (!_iter_tmp.done) {
+        _t_5 = _iter_tmp.value;
+        _t_6 = _t_5[0];
+        _t_7 = _t_5[1];
+        _t_8 = _t_5[2];
+        _t_10 = _t_8[4];
+        _t_11 = 42;
+        _t_9 = _t_10 >= _t_11;
+        if (_t_9) {
+          _t_12 = _t_8[3];
+          try {
+            yield env.output(String(_t_6), _t_8, _t_7);
+          } catch(_exc_) {
+            env.reportError("Failed to invoke action", _exc_);
+          }
+        } else {
 
+        }
+        _iter_tmp = yield _t_4.next();
       }
     }
   } catch(_exc_) {
@@ -1027,6 +1062,8 @@ const TEST_CASES = [
   let _t_17;
   let _t_18;
   let _t_19;
+  let _t_20;
+  let _t_21;
   _t_0 = yield env.getTableVersion("Q1");
   _t_1 = yield env.getTableVersion("Q2");
   try {
@@ -1034,35 +1071,47 @@ const TEST_CASES = [
     _t_3 = "Q1";
     _t_2[0] = _t_3;
     _t_4 = yield env.invokeMemoryQuery("Q1", _t_0, null);
-    for (_t_5 of _t_4) {
-      _t_6 = _t_5[0];
-      _t_7 = _t_5[1];
-      _t_8 = _t_5[2];
-      _t_9 = _t_8[3];
-      try {
-        _t_10 = new Array(3);
-        _t_11 = "Q2";
-        _t_10[0] = _t_11;
-        _t_12 = yield env.invokeMemoryQuery("Q2", _t_1, null);
-        for (_t_13 of _t_12) {
-          _t_14 = _t_13[0];
-          _t_15 = _t_13[1];
-          _t_16 = _t_13[2];
-          _t_18 = _t_16[2];
-          _t_17 = _t_18 >= _t_9;
-          if (_t_17) {
-            _t_19 = _t_16[2];
-            try {
-              yield env.output(String(_t_14), _t_16, _t_15);
-            } catch(_exc_) {
-              env.reportError("Failed to invoke action", _exc_);
-            }
-          } else {
+    _t_5 = _t_4[Symbol.iterator]();
+    {
+      let _iter_tmp = yield _t_5.next();
+      while (!_iter_tmp.done) {
+        _t_6 = _iter_tmp.value;
+        _t_7 = _t_6[0];
+        _t_8 = _t_6[1];
+        _t_9 = _t_6[2];
+        _t_10 = _t_9[3];
+        try {
+          _t_11 = new Array(3);
+          _t_12 = "Q2";
+          _t_11[0] = _t_12;
+          _t_13 = yield env.invokeMemoryQuery("Q2", _t_1, null);
+          _t_14 = _t_13[Symbol.iterator]();
+          {
+            let _iter_tmp = yield _t_14.next();
+            while (!_iter_tmp.done) {
+              _t_15 = _iter_tmp.value;
+              _t_16 = _t_15[0];
+              _t_17 = _t_15[1];
+              _t_18 = _t_15[2];
+              _t_20 = _t_18[2];
+              _t_19 = _t_20 >= _t_10;
+              if (_t_19) {
+                _t_21 = _t_18[2];
+                try {
+                  yield env.output(String(_t_16), _t_18, _t_17);
+                } catch(_exc_) {
+                  env.reportError("Failed to invoke action", _exc_);
+                }
+              } else {
 
+              }
+              _iter_tmp = yield _t_14.next();
+            }
           }
+        } catch(_exc_) {
+          env.reportError("Failed to invoke query", _exc_);
         }
-      } catch(_exc_) {
-        env.reportError("Failed to invoke query", _exc_);
+        _iter_tmp = yield _t_5.next();
       }
     }
   } catch(_exc_) {
@@ -1082,22 +1131,29 @@ const TEST_CASES = [
   let _t_7;
   let _t_8;
   let _t_9;
+  let _t_10;
   _t_0 = yield env.getTableVersion("auto+com.xkcd:get_comic:v_title:title,v_picture_url:picture_url");
   try {
-    _t_1 = new __builtin.Aggregation("count", "v_title", null, null);
-    _t_2 = new Array(4);
-    _t_3 = "auto+com.xkcd:get_comic:v_title:title,v_picture_url:picture_url";
-    _t_2[0] = _t_3;
-    _t_4 = yield env.invokeMemoryQuery("auto+com.xkcd:get_comic:v_title:title,v_picture_url:picture_url", _t_0, _t_1);
-    for (_t_5 of _t_4) {
-      _t_6 = _t_5[0];
-      _t_7 = _t_5[1];
-      _t_8 = _t_5[2];
-      _t_9 = _t_8[2];
-      try {
-        yield env.output(String(_t_6), _t_8, _t_7);
-      } catch(_exc_) {
-        env.reportError("Failed to invoke action", _exc_);
+    _t_1 = new Array(4);
+    _t_2 = "auto+com.xkcd:get_comic:v_title:title,v_picture_url:picture_url";
+    _t_1[0] = _t_2;
+    _t_4 = new __builtin.Aggregation("count", "v_title", null, null);
+    _t_3 = yield env.invokeMemoryQuery("auto+com.xkcd:get_comic:v_title:title,v_picture_url:picture_url", _t_0, _t_4);
+    _t_5 = _t_3[Symbol.iterator]();
+    {
+      let _iter_tmp = yield _t_5.next();
+      while (!_iter_tmp.done) {
+        _t_6 = _iter_tmp.value;
+        _t_7 = _t_6[0];
+        _t_8 = _t_6[1];
+        _t_9 = _t_6[2];
+        _t_10 = _t_9[2];
+        try {
+          yield env.output(String(_t_7), _t_9, _t_8);
+        } catch(_exc_) {
+          env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = yield _t_5.next();
       }
     }
   } catch(_exc_) {
@@ -1128,45 +1184,52 @@ const TEST_CASES = [
   let _t_15;
   let _t_16;
   let _t_17;
+  let _t_18;
   _t_0 = yield env.getTableVersion("auto+com.xkcd:get_comic:v_title:title,v_picture_url:picture_url");
   try {
     _t_1 = new Array(4);
     _t_2 = new __builtin.Entity("auto+com.xkcd:get_comic:v_title:title,v_picture_url:picture_url", null);
     _t_1[0] = _t_2;
     _t_3 = yield env.invokeMemoryQuery("auto+com.xkcd:get_comic:v_title:title,v_picture_url:picture_url", _t_0, null);
-    for (_t_4 of _t_3) {
-      _t_5 = _t_4[0];
-      _t_6 = _t_4[1];
-      _t_7 = _t_4[2];
-      _t_8 = _t_7[2];
-      _t_9 = _t_7[3];
-      try {
-        _t_10 = new Array(8);
-        _t_11 = [new __builtin.Entity("matrix-account:@testuser2:camembert.stanford.edu", "me")];
-        _t_10[0] = _t_11;
-        _t_12 = env.program_id;
-        _t_10[1] = _t_12;
-        _t_13 = 1;
-        _t_10[2] = _t_13;
-        _t_10[3] = _t_5;
-        _t_14 = "auto+com.xkcd:get_comic:v_title:title,v_picture_url:picture_url";
-        _t_10[4] = _t_14;
-        _t_15 = "matrix-account:@testuser1:camembert.stanford.edu";
-        _t_10[5] = _t_15;
-        _t_10[6] = _t_8;
-        _t_10[7] = _t_9;
-        yield env.invokeAction(0, _t_10);
-      } catch(_exc_) {
-        env.reportError("Failed to invoke action", _exc_);
+    _t_4 = _t_3[Symbol.iterator]();
+    {
+      let _iter_tmp = yield _t_4.next();
+      while (!_iter_tmp.done) {
+        _t_5 = _iter_tmp.value;
+        _t_6 = _t_5[0];
+        _t_7 = _t_5[1];
+        _t_8 = _t_5[2];
+        _t_9 = _t_8[2];
+        _t_10 = _t_8[3];
+        try {
+          _t_11 = new Array(8);
+          _t_12 = [new __builtin.Entity("matrix-account:@testuser2:camembert.stanford.edu", "me")];
+          _t_11[0] = _t_12;
+          _t_13 = env.program_id;
+          _t_11[1] = _t_13;
+          _t_14 = 1;
+          _t_11[2] = _t_14;
+          _t_11[3] = _t_6;
+          _t_15 = "auto+com.xkcd:get_comic:v_title:title,v_picture_url:picture_url";
+          _t_11[4] = _t_15;
+          _t_16 = "matrix-account:@testuser1:camembert.stanford.edu";
+          _t_11[5] = _t_16;
+          _t_11[6] = _t_9;
+          _t_11[7] = _t_10;
+          yield env.invokeAction(0, _t_11);
+        } catch(_exc_) {
+          env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = yield _t_4.next();
       }
     }
   } catch(_exc_) {
     env.reportError("Failed to invoke query", _exc_);
   }
   try {
-    _t_16 = [new __builtin.Entity("matrix-account:@testuser2:camembert.stanford.edu", "me")];
-    _t_17 = 1;
-    yield env.sendEndOfFlow(_t_16, _t_17);
+    _t_17 = [new __builtin.Entity("matrix-account:@testuser2:camembert.stanford.edu", "me")];
+    _t_18 = 1;
+    yield env.sendEndOfFlow(_t_17, _t_18);
   } catch(_exc_) {
     env.reportError("Failed to signal end-of-flow", _exc_);
   }`]]
