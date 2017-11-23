@@ -414,3 +414,9 @@ LogTestAll() {
 LogTestTableName() {
     table = "lol" : new_record(table="Q0") => get_record(table="Q1"), v_foo := foo => save;
 }
+
+====
+
+LogSubQuery() {
+    now => get_record(table="Q1"), col1 > 42 && (get_record(table="Q2") { col2 > 0 }), v_col1 := col1 => notify;
+}
