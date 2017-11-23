@@ -420,3 +420,11 @@ LogTestTableName() {
 LogSubQuery() {
     now => get_record(table="Q1"), col1 > 42 && (get_record(table="Q2") { col2 > 0 }), v_col1 := col1 => notify;
 }
+
+====
+
+StarProjection() {
+    now => @xkcd.get_comic(), * => notify;
+    now => @xkcd.get_comic(), * => @twitter.sink(status=title);
+    now => get_record(table="Q1"), * => notify;
+}

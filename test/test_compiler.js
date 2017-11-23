@@ -268,7 +268,7 @@ const TEST_CASES = [
         _t_5 = _t_3[1];
         _t_6 = _t_3[2];
         _t_7 = new Array(0);
-        yield env.save("auto+builtin:at:", {}, _t_7);
+        yield env.save("auto+builtin:at:*", {}, _t_7);
         try {
           yield env.output(String(_t_4), _t_6, _t_5);
         } catch(_exc_) {
@@ -588,7 +588,7 @@ const TEST_CASES = [
   }`]],
 
     [`CompareDate() {
-    now => @builtin.get_time(), time > makeTime(10,0) => notify;
+    now => @builtin.get_time(), time > makeTime(10,0), time := time => notify;
 }`, [`"use strict";
   let _t_0;
   let _t_1;
@@ -602,6 +602,7 @@ const TEST_CASES = [
   let _t_9;
   let _t_10;
   let _t_11;
+  let _t_12;
   try {
     _t_0 = new Array(1);
     _t_1 = yield env.invokeQuery(0, _t_0);
@@ -618,8 +619,10 @@ const TEST_CASES = [
         _t_10 = new __builtin.Time(10, 0, 0);
         _t_7 = _t_9 > _t_10;
         if (_t_7) {
-          _t_11 = new Array(0);
-          yield env.save("auto+builtin:get_time:", {}, _t_11);
+          _t_11 = _t_6[0];
+          _t_12 = new Array(1);
+          _t_12[0] = _t_11;
+          yield env.save("auto+builtin:get_time:*", {}, _t_12);
           try {
             yield env.output(String(_t_4), _t_6, _t_5);
           } catch(_exc_) {
@@ -910,7 +913,7 @@ const TEST_CASES = [
         _t_5 = _t_3[1];
         _t_6 = _t_3[2];
         _t_7 = new Array(0);
-        yield env.save("auto+builtin:timer:", {}, _t_7);
+        yield env.save("auto+builtin:timer:*", {}, _t_7);
         try {
           _t_8 = new Array(5);
           _t_9 = new __builtin.Entity("1234", null);
