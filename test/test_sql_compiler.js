@@ -43,7 +43,7 @@ const TEST_CASES = [
     // subquery
     [`now => get_record(table="Q1"), col1 > 42 && (get_record(table="Q2") { col2 > 0 }), v_col1 := col1 => notify;`,
       {"Q1": 1, "Q2": 2}, {} /* scope */,
-    `select col1 from "memory_Q1" where (col1 > 42 and exists (select * from "memory_Q2" where col2 > 0 and _id <= ?2)) and _id <= ?1`,
+    `select col1 from "memory_Q1" where (col1 > 42 and exists (select 1 from "memory_Q2" where col2 > 0 and _id <= ?2)) and _id <= ?1`,
      { '1': 1, '2': 2 } /* binders */,
      { 'v_col1': 'col1' } /* outputs */],
 
@@ -53,6 +53,27 @@ const TEST_CASES = [
     `select col1 from "memory_Q1" where str1 = ?2 and _id <= ?1`,
      { '1': 1, '2': 2 } /* binders */,
      { 'v_col1': 'col1' } /* outputs */],
+
+    // simple join
+    [`now => get_record(table="Q1"), col1 > 42, v_col1 := col1 => get_record(table="Q2"), col2 > 0, v_col2 := col2 => notify;`,
+     {"Q1": 1, "Q2": 2}, {} /* scope */,
+    `select col2 from (select col1 from "memory_Q1" where col1 > 42 and _id <= ?1) as __q0 join "memory_Q2" where col2 > 0 and _id <= ?2`,
+    { '1': 1, '2': 2  } /* binders */,
+    { 'v_col2': 'col2' } /* outputs */],
+
+    // param passing join
+    [`now => get_record(table="Q1"), col1 > 42, v_col1 := col1 => get_record(table="Q2"), col2 > v_col1, v_col2 := col2 => notify;`,
+     {"Q1": 1, "Q2": 2}, {} /* scope */,
+    `select col2 from (select col1 from "memory_Q1" where col1 > 42 and _id <= ?1) as __q0 join "memory_Q2" where col2 > __q0.col1 and _id <= ?2`,
+    { '1': 1, '2': 2  } /* binders */,
+    { 'v_col2': 'col2' } /* outputs */],
+
+    // aggregate join
+    [`now => get_record(table="Q1"), col1 > 42, v_col1 := min(col1) => get_record(table="Q2"), col2 > v_col1, v_col2 := col2 => notify;`,
+     {"Q1": 1, "Q2": 2}, {} /* scope */,
+    `select col2 from (select min(col1) as __min_col1 from "memory_Q1" where col1 > 42 and _id <= ?1) as __q0 join "memory_Q2" where col2 > __q0.__min_col1 and _id <= ?2`,
+    { '1': 1, '2': 2  } /* binders */,
+    { 'v_col2': 'col2' } /* outputs */],
 ];
 
 function test(i) {
