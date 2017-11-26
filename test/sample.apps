@@ -441,4 +441,8 @@ RelativeTime() {
     now => get_record(table="Q1"), _timestamp > makeDate() - delta(years=1, months=12) => notify;
 }
 
+====
 
+RelativeTime() {
+    now => get_record(table="Q1"), _timestamp > start_of(month), _timestamp < end_of(day) => notify;
+}
