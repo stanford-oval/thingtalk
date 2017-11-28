@@ -429,28 +429,28 @@ StarProjection() {
     now => get_record(table="Q1"), * => notify;
 }
 
-=======
+====
 
 RelativeTime() {
-    now => get_record(table="Q1"), _timestamp > makeDate() - delta(years=2) => notify;
+    now => get_record(table="Q1"), _timestamp > makeDate() + delta(-2year) => notify;
 }
 
 
 ====
 
 RelativeTime() {
-    now => get_record(table="Q1"), _timestamp > makeDate() - delta(months=24) => notify;
+    now => get_record(table="Q1"), _timestamp > makeDate() + delta(-24mon) => notify;
 }
 
 
 ====
 
 RelativeTime() {
-    now => get_record(table="Q1"), _timestamp > makeDate() - delta(years=1, months=12) => notify;
+    now => get_record(table="Q1"), _timestamp > makeDate() + delta(-1year + -12mon) => notify;
 }
 
 ====
 
 RelativeTime() {
-    now => get_record(table="Q1"), _timestamp > start_of(month), _timestamp < end_of(day) => notify;
+    now => get_record(table="Q1"), _timestamp > start_of(mon) && _timestamp < end_of(day) => notify;
 }
