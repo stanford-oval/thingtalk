@@ -7,14 +7,14 @@ now => @org.thingpedia.builtin.test(principal=["matrix-account:@testuser2:camemb
 ====
 
 // Array
-edge @twitter.source() on new, in_array(from, ["alice"^^tt:hashtag, "bob"^^tt:hashtag])  => notify;
+monitor @twitter.source(), in_array(from, ["alice"^^tt:hashtag, "bob"^^tt:hashtag])  => notify;
 
 ====
 
 // TestExternalPredicate
 {
-edge @twitter.source() on new, @builtin.get_time() { time >= makeTime(9,0) && time <= makeTime(10, 0) } => notify;
-edge @twitter.source() on new, text =~ "lol" && @builtin.get_time() { time >= makeTime(9,0) && time <= makeTime(10, 0) } => notify;
+monitor @twitter.source(), @builtin.get_time() { time >= makeTime(9,0) && time <= makeTime(10, 0) } => notify;
+monitor @twitter.source(), text =~ "lol" && @builtin.get_time() { time >= makeTime(9,0) && time <= makeTime(10, 0) } => notify;
 }
 
 ====
@@ -22,24 +22,24 @@ edge @twitter.source() on new, text =~ "lol" && @builtin.get_time() { time >= ma
 // ** typecheck: expect TypeError **
 // these should not typecheck
 // TestInvalidExternalPredicate1
-edge @twitter.source() on new, @builtin.get_time() { time =~ "lol" } => notify;
+monitor @twitter.source(), @builtin.get_time() { time =~ "lol" } => notify;
 
 ====
 
 // ** typecheck: expect TypeError **
 // TestInvalidExternalPredicate2
-edge @twitter.source() on new, @builtin.get_time() { text =~ "lol" } => notify;
+monitor @twitter.source(), @builtin.get_time() { text =~ "lol" } => notify;
 
 ====
 
 // ** typecheck: expect Error **
 // TestInvalidExternalPredicate3
-edge @twitter.source() on new, @twitter.source() { text =~ "lol" } => notify;
+monitor @twitter.source(), @twitter.source() { text =~ "lol" } => notify;
 
 ====
 
 executor = "bob"^^tt:contact_name : { // TestReturn
-    edge @org.twitter.source() on new => return;
+    monitor @org.twitter.source() => return;
 }
 
 ====
@@ -65,7 +65,7 @@ executor = "matrix-account:@gcampax:matrix.org"^^tt:contact : { // WithPrincipal
 
 // StartsWith
 {
-    edge @twitter.source() on new, starts_with(text, "foo") => notify;
+    monitor @twitter.source(), starts_with(text, "foo") => notify;
 }
 
 ====
@@ -79,7 +79,7 @@ executor = "matrix-account:@gcampax:matrix.org"^^tt:contact : { // WithPrincipal
 
 // DownCast
 {
-    edge @xkcd(id="com.xkcd-6").get_comic() on new
+    monitor @xkcd(id="com.xkcd-6").get_comic()
     => @twitter.sink(status=picture_url);
 }
 
@@ -87,21 +87,21 @@ executor = "matrix-account:@gcampax:matrix.org"^^tt:contact : { // WithPrincipal
 
 // EventType
 {
-    edge @twitter.source() on new => @builtin.say(message=$event.type);
+    monitor @twitter.source() => @builtin.say(message=$event.type);
 }
 
 ====
 
 // FormatEvent
 {
-    edge @twitter.source() on new => @builtin.say(message=$event.title);
+    monitor @twitter.source() => @builtin.say(message=$event.title);
 }
 
 ====
 
 // ComplexFilter
 {
-    edge @twitter.source() on new, text =~ "foo" || (text =~"bar" && !(text =~ "lol")) => notify;
+    monitor @twitter.source(), text =~ "foo" || (text =~"bar" && !(text =~ "lol")) => notify;
 }
 
 ====
@@ -129,7 +129,7 @@ executor = "matrix-account:@gcampax:matrix.org"^^tt:contact : { // WithPrincipal
 
 // without wrapping it should still work
 
-edge @twitter.source() on new => notify;
+monitor @twitter.source() => notify;
 
 ====
 
@@ -139,30 +139,30 @@ now => @security-camera.get_snapshot() => notify;
 ====
 
 // PrimaryKind
-edge @org.twitter.source() on new => notify;
+monitor @org.twitter.source() => notify;
 
 ====
 
 // Principals
 {
-    edge @twitter(principal="omlet-account:foo"^^tt:contact).source() on new => notify;
-    edge @twitter(principal="giovanni"^^tt:contact_name).source() on new => notify;
+    monitor @twitter(principal="omlet-account:foo"^^tt:contact).source() => notify;
+    monitor @twitter(principal="giovanni"^^tt:contact_name).source() => notify;
     // the following is identical to the previous one
-    edge @twitter(principal="giovanni").source() on new => notify;
+    monitor @twitter(principal="giovanni").source() => notify;
 }
 
 ====
 
 // Contains
 {
-    edge @twitter.source() on new, contains(hashtags, "lol") => notify;
+    monitor @twitter.source(), contains(hashtags, "lol") => notify;
 }
 
 ====
 
 // ParameterPassing
 {
-    edge @xkcd(id="com.xkcd-6").new_comic() on new
+    monitor @xkcd(id="com.xkcd-6").new_comic()
     => @twitter(id="twitter-foo").post_picture(caption=title, picture_url=picture_url);
 }
 
@@ -189,7 +189,7 @@ edge @org.twitter.source() on new => notify;
 {
     now => @phone.send_sms(to="+15555555555", body="");
     now => @phone.send_sms(to="+15555555555"^^tt:phone_number, body="");
-    edge @phone.receive_sms() on new, from=="+15555555555"^^phone_number => notify;
+    monitor @phone.receive_sms(), from=="+15555555555"^^phone_number => notify;
 }
 
 ====
@@ -201,23 +201,23 @@ edge @org.twitter.source() on new => notify;
 ====
 
 // LocationAsTriggerParam
-    edge @weatherapi.weather(location=makeLocation(1, 3)) on new => notify;
+    monitor @weatherapi.weather(location=makeLocation(1, 3)) => notify;
 
 ====
 
 // RelativeLocation
-    edge @weatherapi.weather(location=$context.location.current_location) on new => notify;
+    monitor @weatherapi.weather(location=$context.location.current_location) => notify;
 
 ====
 
 // LocationWithDisplayAsTriggerParam
-    edge @weatherapi.weather(location=makeLocation(1, 3, "Somewhere")) on new  => notify;
+    monitor @weatherapi.weather(location=makeLocation(1, 3, "Somewhere"))  => notify;
 
 ====
 
 // SabrinaGeneratedMonitorTwitter
 {
-    edge @twitter(id="twitter-foo").source() on new, from == "HillaryClinton"^^tt:username => notify;
+    monitor @twitter(id="twitter-foo").source(), from == "HillaryClinton"^^tt:username => notify;
 }
 
 ====
@@ -322,15 +322,15 @@ now => aggregate count str1 of Q1 => @twitter.sink(status=count);
 
 // LogQueryArgmTest
 {
-now => [field1, field2] of aggregate argmax col1 of Q0 => notify;
-now => [field1, field2] of aggregate argmax 3 col1 of Q0 => notify;
+now => [field1, field2] of aggregate argmax 1,1 col1 of Q0 => notify;
+now => [field1, field2] of aggregate argmax 1,3 col1 of Q0 => notify;
 }
 
 ====
 
 // ** typecheck: expect TypeError **
 // LogQueryInvalidArgmTest
-now => [field1, field2] of aggregate argmax nonexisting_field of Q0 => notify;
+now => [field1, field2] of aggregate argmax 1,1 nonexisting_field of Q0 => notify;
 
 ====
 
@@ -344,35 +344,35 @@ now => my_table => notify;
 ====
 
 // LogTriggerTest
-edge Q1 on new join Q2 => notify;
+monitor Q1 join Q2 => notify;
 
 ====
 
 // LogTriggerAggregationTest
-edge (aggregate max field of Q1) on new => notify;
+monitor (aggregate max field of Q1) => notify;
 
 ====
 
 // LogTriggerArgmTest
-edge ([field1, field2] of aggregate argmax another_field of Q0) on new => notify;
+monitor ([field1, field2] of aggregate argmax 1,1 another_field of Q0) => notify;
 
 ====
 
 // LogTestAll
-let stream saved := [foo] of (edge Q0 on new join Q1);
+let stream saved := [foo] of (monitor Q0 join Q1);
 
 ====
 
 // LogTestTableName
-let stream lol := [foo] of (edge Q0 on new join Q1);
+let stream lol := [foo] of (monitor Q0 join Q1);
 
 ====
 
 // RelativeTime
 {
-now => Q1, _timestamp > makeDate() + delta(-2year) => notify;
-now => Q1, _timestamp > makeDate() + delta(-24mon) => notify;
-now => Q1, _timestamp > makeDate() + delta(-1year + -12mon) => notify;
+now => Q1, _timestamp > makeDate() + -2year => notify;
+now => Q1, _timestamp > makeDate() + -24mon => notify;
+now => Q1, _timestamp > makeDate() + (-1year + -12mon) => notify;
 now => Q1, _timestamp > start_of(mon) && _timestamp < end_of(day) => notify;
 }
 
@@ -386,7 +386,39 @@ now => macro(number=1234) => notify;
 
 ====
 
-// Edge Filter
+// EdgeFilter
 {
-edge @thermostat.get_temperature() on value > 70F => notify;
+let stream once := \(x : Any) -> edge x on (true) ;
+
+edge (monitor @thermostat.get_temperature()) on value > 70F => notify;
+}
+
+====
+
+// Window
+{
+let table A := window 1, 3 of timer(base=makeDate(), interval=10min);
+let table B := timeseries makeDate(), -1week of timer(base=makeDate(), interval=10min);
+let table C := sequence 1, 3 of Q1;
+let table D := history start_of(week), -1week of Q1;
+
+let table this_week := \(x : Any) -> history end_of(week), -1week of x;
+let table last_week := \(x : Any) -> history start_of(week), -1week of x;
+let table current := \(x : Any) -> sequence 1,1 of x;
+let table previous := \(x : Any) -> sequence 2,1 of x;
+let table latest_K := \(x : Any, k : Number) -> sequence 1, k of x;
+}
+
+====
+
+// Argmaxes
+{
+let table gold_medal := \(x : Any) -> aggregate argmax 1, 1 score of x ;
+let table silver_medal := \(x : Any) -> aggregate argmax 2,1 score of x ;
+
+let table top_K := \(x : Any, k : Number) -> aggregate argmax 1,k score of x ;
+
+let table bottom_K := \(x : Any, k : Number) -> aggregate argmin 1,k score of x ;
+
+let table n_th_batch := \(x : Any, n : Number, batch_size : Number) -> aggregate argmin ((n-1)*batch_size+1), batch_size score of x ;
 }
