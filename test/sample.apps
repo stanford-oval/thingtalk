@@ -1,109 +1,113 @@
 // -* mode: js -*-
 
 // ** typecheck: expect Error **
-ArrayPrincipals() {
-    now => @org.thingpedia.builtin.test(principal=["matrix-account:@testuser2:camembert.stanford.edu"^^tt:contact, "matrix-account:@testuser3:camembert.stanford.edu"^^tt:contact]).eat_data(data='AAAAAA');
-}
+// ArrayPrincipals
+now => @org.thingpedia.builtin.test(principal=["matrix-account:@testuser2:camembert.stanford.edu"^^tt:contact, "matrix-account:@testuser3:camembert.stanford.edu"^^tt:contact]).eat_data(data='AAAAAA');
 
 ====
 
-Array() {
-    @twitter.source(), in_array(from, ["alice"^^tt:hashtag, "bob"^^tt:hashtag]) => notify;
-}
+// Array
+edge @twitter.source() on new, in_array(from, ["alice"^^tt:hashtag, "bob"^^tt:hashtag])  => notify;
 
 ====
 
-TestExternalPredicate() {
-    @twitter.source(), @builtin.get_time() { time >= makeTime(9,0) && time <= makeTime(10, 0) } => notify;
-    @twitter.source(), text =~ "lol" && @builtin.get_time() { time >= makeTime(9,0) && time <= makeTime(10, 0) } => notify;
+// TestExternalPredicate
+{
+edge @twitter.source() on new, @builtin.get_time() { time >= makeTime(9,0) && time <= makeTime(10, 0) } => notify;
+edge @twitter.source() on new, text =~ "lol" && @builtin.get_time() { time >= makeTime(9,0) && time <= makeTime(10, 0) } => notify;
 }
 
 ====
 
 // ** typecheck: expect TypeError **
 // these should not typecheck
-TestInvalidExternalPredicate1() {
-    @twitter.source(), @builtin.get_time() { time =~ "lol" } => notify;
-}
+// TestInvalidExternalPredicate1
+edge @twitter.source() on new, @builtin.get_time() { time =~ "lol" } => notify;
 
 ====
 
 // ** typecheck: expect TypeError **
-TestInvalidExternalPredicate2() {
-    @twitter.source(), @builtin.get_time() { text =~ "lol" } => notify;
-}
+// TestInvalidExternalPredicate2
+edge @twitter.source() on new, @builtin.get_time() { text =~ "lol" } => notify;
 
 ====
 
 // ** typecheck: expect Error **
-TestInvalidExternalPredicate3() {
-    @twitter.source(), @twitter.source() { text =~ "lol" } => notify;
+// TestInvalidExternalPredicate3
+edge @twitter.source() on new, @twitter.source() { text =~ "lol" } => notify;
+
+====
+
+executor = "bob"^^tt:contact_name : { // TestReturn
+    edge @org.twitter.source() on new => return;
 }
 
 ====
 
-"bob"^^tt:contact_name : TestReturn() {
-    @org.twitter.source() => return;
-}
-
-====
-
-self : ExplicitSelf() {
+executor = self : { // ExplicitSelf
     now => @builtin.say(message="lol");
 }
 
 ====
 
-"matrix-account:@gcampax:matrix.org"^^tt:contact : WithPrincipal() {
+executor = "matrix-account:@gcampax:matrix.org"^^tt:contact : { // WithPrincipals
     now => @builtin.say(message="lol");
 }
 
 ====
 
-CompareDate() {
+// CompareDate
+{
     now => @builtin.get_time(), time > makeTime(10,0) => notify;
 }
 
 ====
 
-StartsWith() {
-    @twitter.source(), starts_with(text, "foo") => notify;
+// StartsWith
+{
+    edge @twitter.source() on new, starts_with(text, "foo") => notify;
 }
 
 ====
 
-EntityNames() {
+// EntityNames
+{
     now => @twitter.post_picture(caption="lol", picture_url="http://foo.com/bar.jpg"^^tt:picture("A funny picture"));
 }
 
 ====
 
-DownCast() {
-    @xkcd(id="com.xkcd-6").new_comic(), v_title := title, v_picture_url := picture_url
-    => @twitter.sink(status=v_picture_url);
+// DownCast
+{
+    edge @xkcd(id="com.xkcd-6").get_comic() on new
+    => @twitter.sink(status=picture_url);
 }
 
 ====
 
-EventType() {
-    @twitter.source() => @builtin.say(message=$event.type);
+// EventType
+{
+    edge @twitter.source() on new => @builtin.say(message=$event.type);
 }
 
 ====
 
-FormatEvent() {
-    @twitter.source() => @builtin.say(message=$event.title);
+// FormatEvent
+{
+    edge @twitter.source() on new => @builtin.say(message=$event.title);
 }
 
 ====
 
-ComplexFilter() {
-    @twitter.source(), text =~ "foo" || (text =~"bar" && !(text =~ "lol")) => notify;
+// ComplexFilter
+{
+    edge @twitter.source() on new, text =~ "foo" || (text =~"bar" && !(text =~ "lol")) => notify;
 }
 
 ====
 
-WithClassDef() {
+// WithClassDef
+{
     class @dyn_0 extends @remote {
         action send(in req foo : String);
     }
@@ -113,7 +117,8 @@ WithClassDef() {
 ====
 
 // ** typecheck: expect TypeError **
-WrongClassDef() {
+// WrongClassDef
+{
     class @dyn_0 extends @remote {
         action send(in req foo : Number);
     }
@@ -124,7 +129,7 @@ WrongClassDef() {
 
 // without wrapping it should still work
 
-@twitter.source() => notify;
+edge @twitter.source() on new => notify;
 
 ====
 
@@ -133,324 +138,255 @@ now => @security-camera.get_snapshot() => notify;
 
 ====
 
-// same for multiple rules
-@twitter.source() => notify;
-@builtin.at(time=makeTime(20,30)) => notify;
+// PrimaryKind
+edge @org.twitter.source() on new => notify;
 
 ====
 
-PrimaryKind() {
-    @org.twitter.source() => notify;
-}
-
-====
-
-Principals() {
-    @twitter(principal="omlet-account:foo"^^tt:contact).source() => notify;
-    @twitter(principal="giovanni"^^tt:contact_name).source() => notify;
+// Principals
+{
+    edge @twitter(principal="omlet-account:foo"^^tt:contact).source() on new => notify;
+    edge @twitter(principal="giovanni"^^tt:contact_name).source() on new => notify;
     // the following is identical to the previous one
-    @twitter(principal="giovanni").source() => notify;
+    edge @twitter(principal="giovanni").source() on new => notify;
 }
 
 ====
 
-Contains() {
-    @twitter.source(), contains(hashtags, "lol") => notify;
+// Contains
+{
+    edge @twitter.source() on new, contains(hashtags, "lol") => notify;
 }
 
 ====
 
-ParameterPassing() {
-    @xkcd(id="com.xkcd-6").new_comic(), v_title := title, v_picture_url := picture_url
-    => @twitter(id="twitter-foo").post_picture(caption=v_title, picture_url=v_picture_url);
+// ParameterPassing
+{
+    edge @xkcd(id="com.xkcd-6").new_comic() on new
+    => @twitter(id="twitter-foo").post_picture(caption=title, picture_url=picture_url);
 }
 
 ====
 
-DoOnlyOnce() {
-    once @builtin.at(time=makeTime(12, 30)) => notify;
+// SecurityCamera
+    now => @security-camera.get_snapshot() => notify;
+
+====
+
+// SearchYoutube
+    now => @youtube.search_videos(query="lol"), video_url == "http://www.youtube.com"^^tt:url =>  notify;
+
+====
+
+// TimeTest
+{
+    attimer(time=makeTime(12, 30)) => notify;
 }
 
 ====
 
-SecurityCamera() {
-    now => @security-camera.get_snapshot(), pic := picture_url => notify;
-}
-
-====
-
-SearchYoutube() {
-    now => @youtube.search_videos(query="lol"), video_url = "http://www.youtube.com"^^tt:url =>  notify;
-}
-
-====
-
-TimeTest() {
-    @builtin.at(time=makeTime(12, 30)) => notify;
-}
-
-====
-
-PhoneNumberTest() {
+// PhoneNumberTest
+{
     now => @phone.send_sms(to="+15555555555", body="");
     now => @phone.send_sms(to="+15555555555"^^tt:phone_number, body="");
-    @phone.receive_sms(), from="+15555555555"^^phone_number => notify;
+    edge @phone.receive_sms() on new, from=="+15555555555"^^phone_number => notify;
 }
 
 ====
 
 // ** typecheck: expect TypeError **
-InvalidPhoneNumberTest() {
+// InvalidPhoneNumberTest
     now => @phone.send_sms(to="+15555555555"^^tt:email_address, body="");
+
+====
+
+// LocationAsTriggerParam
+    edge @weatherapi.weather(location=makeLocation(1, 3)) on new => notify;
+
+====
+
+// RelativeLocation
+    edge @weatherapi.weather(location=$context.location.current_location) on new => notify;
+
+====
+
+// LocationWithDisplayAsTriggerParam
+    edge @weatherapi.weather(location=makeLocation(1, 3, "Somewhere")) on new  => notify;
+
+====
+
+// SabrinaGeneratedMonitorTwitter
+{
+    edge @twitter(id="twitter-foo").source() on new, from == "HillaryClinton"^^tt:username => notify;
 }
 
 ====
 
-LocationAsTriggerParam() {
-    @weatherapi.weather(location=makeLocation(1, 3)) => notify;
-}
-
-====
-
-RelativeLocation() {
-    @weatherapi.weather(location=$context.location.current_location) => notify;
-}
-
-====
-
-LocationWithDisplayAsTriggerParam() {
-    @weatherapi.weather(location=makeLocation(1, 3, "Somewhere")) => notify;
-}
-
-====
-
-SabrinaGeneratedMonitorTwitter() {
-    @twitter(id="twitter-foo").source(), from="HillaryClinton"^^tt:username => notify;
-}
-
-====
-
-CommandTest() {
+// CommandTest
   now => @builtin.say(message="test");
-}
 
 ====
 
-SabrinaLikesItHot(Threshold : Measure(C)) {
-    @thermostat.temperature(), temperature > Threshold => @builtin.say(message="bla");
-}
+// LogQueryTest
+    now => T => notify;
 
 ====
 
-/* This should not run directly, but it gives an idea of the syntax */
-/* They should all at least parse successfully. */
-
-Test() {
-    @test.source() => @builtin.debug_log(message="Test App received an event on Test Channel");
-}
+// LogQueryTestProjection
+    now => [col1] of Q1 => notify;
 
 ====
 
-LogQueryTest() {
-    now => get_record(table="t") => notify;
-}
-
-====
-
-LogQueryTestProjection() {
-    now => get_record(table="Q1"), v_1 := col1 => notify;
-}
-
-====
-
-LogQueryTestSelection() {
-    now => get_record(table="Q1"), col2 >= 42, v_1 := col1 => notify;
-}
+// LogQueryTestSelection
+    now => [col1] of (Q1, col2 >= 42) => notify;
 
 /* select col1 as v_1 from Q1 where col2 >= 42 */
 
 ====
 
-LogQueryTestRemote() {
-    now => get_record(table="Q4", principal="1234"^^tt:contact), col2 >= 42, v_1 := col1 => notify;
+// LogQueryTestRemote
+    now => [col1] of ("1234"^^tt:contact :: Q4, col2 >= 42) => notify;
+
+====
+
+// ** typecheck: expect TypeError **
+// LogQueryTestRemoteInvalid1
+// there is no such table Q0
+now => [col1] of ("1234"^^tt:contact :: Q0, col2 >= 42) => notify;
+
+====
+
+// ** typecheck: expect TypeError **
+// LogQueryTestRemoteInvalid2
+// principal must be contact not group
+now => [col1] of ("1234"^^tt:contact_group :: Q4, col2 >= 42) => notify;
+
+====
+
+// ** typecheck: expect TypeError **
+// LogQueryTestRemoteInvalid2
+// col1 is a string in Q4
+now => [col1] of ("1234"^^tt:contact_group :: Q4, col1 >= 42) => notify;
+
+====
+
+// LogQueryTestJoin
+{
+  now => ([col1] of Q1 join Q2), col2 >= col1 => notify;
+  now => [col2] of (([col1] of Q1 join Q2), col2 >= col1) => notify;
+}
+
+====
+
+// LogQueryAggregationTest
+now => aggregate max field of Q1 => notify;
+
+====
+
+// LogQueryAggregationMeasureTest
+// col1 has type Measure(C)
+{
+now => aggregate max col1 of Q3 => @thermostat.set_target_temperature(value=max);
+now => (aggregate max col1 of Q3) as tmp => @thermostat.set_target_temperature(value=tmp.max);
 }
 
 ====
 
 // ** typecheck: expect TypeError **
-LogQueryTestRemoteInvalid1() {
-    // there is no such table Q0
-    now => get_record(table="Q0", principal="1234"^^tt:contact), col2 >= 42, v_1 := col1 => notify;
+// LogQueryInvalidAggregationTest
+now => aggregate max nonexisting_field of Q1 => notify;
+
+====
+
+// ** typecheck: expect TypeError **
+// LogQueryInvalidAggregation2Test
+now => aggregate max str1 of Q1 => notify;
+
+====
+
+// LogQueryCountTest
+now => aggregate count of Q1 => notify;
+
+====
+
+// LogQueryCountParamPassingTest
+now => aggregate count str1 of Q1 join @xkcd.get_comic(number=count) => notify;
+
+====
+
+// ** typecheck: expect TypeError **
+// LogQueryCountInvalidParamPassingTest
+now => aggregate count str1 of Q1 => @twitter.sink(status=count);
+
+====
+
+// LogQueryArgmTest
+{
+now => [field1, field2] of aggregate argmax col1 of Q0 => notify;
+now => [field1, field2] of aggregate argmax 3 col1 of Q0 => notify;
 }
 
 ====
 
 // ** typecheck: expect TypeError **
-LogQueryTestRemoteInvalid2() {
-    // principal must be contact not group
-    now => get_record(table="Q4", principal="1234"^^tt:contact_group), col2 >= 42, v_1 := col1 => notify;
+// LogQueryInvalidArgmTest
+now => [field1, field2] of aggregate argmax nonexisting_field of Q0 => notify;
+
+====
+
+// WithSave
+{
+let table steps    := @fitbit.get_steps();
+let table my_table := aggregate max steps of Q1;
+now => my_table => notify;
 }
 
 ====
 
-// ** typecheck: expect TypeError **
-LogQueryTestRemoteInvalid2() {
-    // col1 is a string in Q4
-    now => get_record(table="Q4", principal="1234"^^tt:contact), col1 >= 42, v_1 := col1 => notify;
+// LogTriggerTest
+edge Q1 on new join Q2 => notify;
+
+====
+
+// LogTriggerAggregationTest
+edge (aggregate max field of Q1) on new => notify;
+
+====
+
+// LogTriggerArgmTest
+edge ([field1, field2] of aggregate argmax another_field of Q0) on new => notify;
+
+====
+
+// LogTestAll
+let stream saved := [foo] of (edge Q0 on new join Q1);
+
+====
+
+// LogTestTableName
+let stream lol := [foo] of (edge Q0 on new join Q1);
+
+====
+
+// RelativeTime
+{
+now => Q1, _timestamp > makeDate() + delta(-2year) => notify;
+now => Q1, _timestamp > makeDate() + delta(-24mon) => notify;
+now => Q1, _timestamp > makeDate() + delta(-1year + -12mon) => notify;
+now => Q1, _timestamp > start_of(mon) && _timestamp < end_of(day) => notify;
 }
 
 ====
 
-LogQueryTestJoin() {
-    now => get_record(table="Q1"), v_1 := col1 => get_record(table="Q2"), col2 >= v_1, v_2 := col2 => notify;
+// Lambdas
+{
+let table macro := \(number : Number) -> @xkcd.get_comic(number=number) ;
+now => macro(number=1234) => notify;
 }
 
 ====
 
-LogQueryAggregationTest() {
-    now => get_record(table="Q1"), v_field := max(field) => notify;
-}
-
-====
-
-LogQueryAggregationMeasureTest() {
-    // col1 has type Measure(C)
-    now => get_record(table="Q3"), v_field := max(col1) => @thermostat.set_target_temperature(value=v_field);
-}
-
-
-====
-
-// ** typecheck: expect TypeError **
-LogQueryInvalidAggregationTest() {
-    now => get_record(table="Q1"), v_field := max(nonexisting_field) => notify;
-}
-
-====
-
-// ** typecheck: expect TypeError **
-LogQueryInvalidAggregation2Test() {
-    now => get_record(table="Q1"), v_field := max(str1) => notify;
-}
-
-====
-
-LogQueryCountTest() {
-    now => get_record(table="Q1"), v_count := count(*) => notify;
-}
-
-====
-
-LogQueryCountParamPassingTest() {
-    now => get_record(table="Q1"), v_count := count(str1) => @xkcd.get_comic(number=v_count) => notify;
-}
-
-====
-
-// ** typecheck: expect TypeError **
-LogQueryCountInvalidParamPassingTest() {
-    now => get_record(table="Q1"), v_count := count(str1) => @twitter.sink(status=v_count);
-}
-
-====
-
-// ** typecheck: expect TypeError **
-LogQueryInvalidTest() {
-    now => get_record(table="Q1"), v_max := max(*) => notify;
-}
-
-====
-
-LogQueryArgmTest() {
-    now => get_record(table="Q0"), [v_field1, v_field2] := argmax(another_field, 3, [field1, field2]) => notify;
-}
-
-====
-
-// ** typecheck: expect TypeError **
-LogQueryInvalidArgmTest() {
-    now => get_record(table="Q0"), [v_field1, v_field2] := argmax(nonexisting_field, [field1, field2]) => notify;
-}
-
-====
-
-WithSave() {
-    now => @fitbit.get_steps() => notify;
-    table = "my_table" : now => get_record(table="Q1"), max_steps := max(steps) => notify;
-    now => get_record(table="my_table"), v_steps := max_steps => notify;
-}
-
-/* need save */
-/* "Q0": now => @fitbit.get_steps() => save; */
-/* "Q1": now => log.get(table="Q0"), max_steps := max(steps) => save; */
-/* "Q2": now => log.get(table="Q1"), v_steps = max_steps => notify; */
-
-====
-
-LogTriggerTest() {
-    new_record(table="Q1") => get_record(table="Q2") => notify;
-}
-
-====
-
-LogTriggerAggregationTest() {
-    new_record(table="Q1"), v_field := max(field) => notify;
-}
-
-====
-
-LogTriggerArgmTest() {
-    new_record(table="Q0"), [v_field1, v_field2] := argmax(another_field, [field1, field2]) => notify;
-}
-
-====
-
-LogTestAll() {
-    new_record(table="Q0") => get_record(table="Q1"), v_foo := foo => save;
-}
-
-====
-
-LogTestTableName() {
-    table = "lol" : new_record(table="Q0") => get_record(table="Q1"), v_foo := foo => save;
-}
-
-====
-
-LogSubQuery() {
-    now => get_record(table="Q1"), col1 > 42 && (get_record(table="Q2") { col2 > 0 }), v_col1 := col1 => notify;
-}
-
-====
-
-StarProjection() {
-    now => @xkcd.get_comic(), * => notify;
-    now => @xkcd.get_comic(), * => @twitter.sink(status=title);
-    now => get_record(table="Q1"), * => notify;
-}
-
-====
-
-RelativeTime() {
-    now => get_record(table="Q1"), _timestamp > makeDate() + delta(-2year) => notify;
-}
-
-
-====
-
-RelativeTime() {
-    now => get_record(table="Q1"), _timestamp > makeDate() + delta(-24mon) => notify;
-}
-
-
-====
-
-RelativeTime() {
-    now => get_record(table="Q1"), _timestamp > makeDate() + delta(-1year + -12mon) => notify;
-}
-
-====
-
-RelativeTime() {
-    now => get_record(table="Q1"), _timestamp > start_of(mon) && _timestamp < end_of(day) => notify;
+// Edge Filter
+{
+edge @thermostat.get_temperature() on value > 70F => notify;
 }
