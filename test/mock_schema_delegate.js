@@ -132,7 +132,14 @@ module.exports = {
                     is_input: [true,true],
                 }
             },
-            "queries": {}
+            "queries": {
+                "source": {
+                    args: ["text", "hashtags", "urls", "from", "inReplyTo", "__reserved"],
+                    types: ["String","Array(String)","Array(String)","String","String","Boolean"],
+                    required: [false,false,false,false,false,false],
+                    is_input: [false,false,false,false,false,false],
+                }
+            }
         },
         "org.twitter": {
             "triggers": {
@@ -157,7 +164,14 @@ module.exports = {
                     is_input: [true,true],
                 }
             },
-            "queries": {}
+            "queries": {
+                "source": {
+                    args: ["text", "hashtags", "urls", "from", "inReplyTo", "__reserved"],
+                    types: ["String","Array(String)","Array(String)","String","String","Boolean"],
+                    required: [false,false,false,false,false,false],
+                    is_input: [false,false,false,false,false,false],
+                }
+            },
         },
         "weatherapi": {
             "triggers": {
