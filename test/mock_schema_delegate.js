@@ -239,6 +239,12 @@ module.exports = {
             },
             "actions": {},
             "queries": {
+                "new_comic": {
+                    args: ["title", "link", "picture_url"],
+                    types: ["String", "Entity(tt:url)", "Entity(tt:picture)"],
+                    required: [false,false,false],
+                    is_input: [false,false,false],
+                },
                 "get_comic": {
                     args: ["number", "title", "link", "picture_url"],
                     types: ["Number", "String", "Entity(tt:url)", "Entity(tt:picture)"],
