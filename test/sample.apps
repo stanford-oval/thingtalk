@@ -28,6 +28,11 @@ monitor @twitter.source(), @builtin.get_time() { time =~ "lol" } => notify;
 
 // ** typecheck: expect TypeError **
 // TestInvalidExternalPredicate2
+monitor @twitter.source(), @builtin.get_time() { lol =~ "lol" } => notify;
+
+====
+
+// TestInvalidExternalPredicate2
 monitor @twitter.source(), @builtin.get_time() { text =~ "lol" } => notify;
 
 ====
