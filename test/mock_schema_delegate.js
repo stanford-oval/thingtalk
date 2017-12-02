@@ -95,7 +95,13 @@ module.exports = {
                     is_input: [true,true],
                 }
             },
-            "queries": {}
+            "queries": {
+                "receive_sms": {
+                args: ["from", "body"],
+                types: ["Entity(tt:phone_number)", "String"],
+                required: [false,false],
+                is_input: [false,false],
+            }}
         },
         "ninegag": {
             "triggers": {},
@@ -183,7 +189,14 @@ module.exports = {
                 }
             },
             "actions": {},
-            "queries": {}
+            "queries": {
+                "weather": {
+                    args: ["location", "temperature"],
+                    types: ["Location", "Measure(C)"],
+                    required: [true,false],
+                    is_input: [true,false],
+                }
+            }
         },
         "omlet": {
             "triggers": {
