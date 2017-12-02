@@ -424,6 +424,16 @@ let table silver_medal := \(x : Any) -> aggregate argmax 2,1 score of x ;
 let table top_K := \(x : Any, k : Number) -> aggregate argmax 1,k score of x ;
 
 let table bottom_K := \(x : Any, k : Number) -> aggregate argmin 1,k score of x ;
+}
 
-let table n_th_batch := \(x : Any, n : Number, batch_size : Number) -> aggregate argmin ((n-1)*batch_size+1), batch_size score of x ;
+====
+
+// Computation
+{
+let table x := compute distance(location, makeLocation(1,2)) of @phone.get_gps();
+let table y := compute distance(location, $context.location.home) of @phone.get_gps();
+let table z := compute (col1 + col2) of Q1;
+let table xx := compute (1 + sum) of aggregate sum col1 of Q1;
+let table xy := compute (1 + colsum) of aggregate sum col1 as colsum of Q1;
+let table xxy := compute (1 + colsum) as colwhatever of aggregate sum col1 as colsum of Q1;
 }
