@@ -233,7 +233,7 @@ monitor @org.twitter.source() => notify;
 ====
 
 // LogQueryTest
-    now => T => notify;
+    now => t => notify;
 
 ====
 
@@ -271,7 +271,7 @@ now => [col1] of ("1234"^^tt:contact_group :: Q4, col2 >= 42) => notify;
 // ** typecheck: expect TypeError **
 // LogQueryTestRemoteInvalid2
 // col1 is a string in Q4
-now => [col1] of ("1234"^^tt:contact_group :: Q4, col1 >= 42) => notify;
+now => [col1] of ("1234"^^tt:contact :: Q4, col1 >= 42) => notify;
 
 ====
 
