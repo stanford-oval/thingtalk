@@ -402,19 +402,19 @@ let table B := timeseries makeDate(), -1week of timer(base=makeDate(), interval=
 let table C := sequence 1, 3 of Q1;
 let table D := history start_of(week), -1week of Q1;
 
-let table this_week := \(x : Any) -> history end_of(week), -1week of x;
-let table last_week := \(x : Any) -> history start_of(week), -1week of x;
-let table current := \(x : Any) -> sequence 1,1 of x;
-let table previous := \(x : Any) -> sequence 2,1 of x;
-let table latest_K := \(x : Any, k : Number) -> sequence 1, k of x;
+let table this_week := \(x : Table) -> history end_of(week), -1week of x;
+let table last_week := \(x : Table) -> history start_of(week), -1week of x;
+let table current := \(x : Table) -> sequence 1,1 of x;
+let table previous := \(x : Table) -> sequence 2,1 of x;
+let table latest_K := \(x : Table, k : Number) -> sequence 1, k of x;
 }
 
 ====
 
 // Argmaxes
 {
-let table gold_medal := \(x : Any) -> aggregate argmax 1, 1 score of x ;
-let table silver_medal := \(x : Any) -> aggregate argmax 2,1 score of x ;
+let table gold_medal := \(x : Table) -> aggregate argmax 1, 1 score of x ;
+let table silver_medal := \(x : Table) -> aggregate argmax 2,1 score of x ;
 
 let table top_K := \(x : Any, k : Number) -> aggregate argmax 1,k score of x ;
 
