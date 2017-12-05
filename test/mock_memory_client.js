@@ -26,7 +26,7 @@ class MockMemoryClient {
 }
 
 const _mockMemoryClient = new MockMemoryClient();
-_mockMemoryClient.createTable('Q1', ['steps', 'col1', 'col2', 'field', 'foo', 'str1', 'str2'], [Type.Number, Type.Number, Type.Number, Type.Number, Type.String, Type.String, Type.String]);
+_mockMemoryClient.createTable('Q1', ['_timestamp', 'steps', 'col1', 'col2', 'field', 'foo', 'str1', 'str2'], [Type.Date, Type.Number, Type.Number, Type.Number, Type.Number, Type.String, Type.String, Type.String]);
 _mockMemoryClient.createTable('Q0', ['another_field', 'field1', 'field2'], [Type.Number, Type.Number, Type.Number]);
 _mockMemoryClient.createTable('Q2', ['col2'], [Type.Number]);
 _mockMemoryClient.createTable('Q3', ['col1'], [Type.Measure('C')]);
