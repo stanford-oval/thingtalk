@@ -239,7 +239,14 @@ module.exports = {
                     is_input: [true],
                 }
             },
-            "queries": {}
+            "queries": {
+                "get_temperature": {
+                    args: ["time", "temperature"],
+                    types: ["Date", "Measure(C)"],
+                    required: [false,false],
+                    is_input: [false,false],
+                }
+            }
         },
         "xkcd": {
             "triggers": {

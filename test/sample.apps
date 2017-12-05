@@ -388,9 +388,9 @@ now => macro(number=1234) => notify;
 
 // EdgeFilter
 {
-let stream once := \(x : Any) -> edge x on (true) ;
+let stream once := \(x : Stream) -> edge x on (true) ;
 
-edge (monitor @thermostat.get_temperature()) on value > 70F => notify;
+edge (monitor @thermostat.get_temperature()) on temperature > 70F => notify;
 }
 
 ====
