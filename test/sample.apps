@@ -32,11 +32,6 @@ monitor @twitter.source(), @builtin.get_time() { lol =~ "lol" } => notify;
 
 ====
 
-// TestInvalidExternalPredicate2
-monitor @twitter.source(), @builtin.get_time() { text =~ "lol" } => notify;
-
-====
-
 // ** typecheck: expect Error **
 // TestInvalidExternalPredicate3
 monitor @twitter.source(), @twitter.sink() { text =~ "lol" } => notify;
