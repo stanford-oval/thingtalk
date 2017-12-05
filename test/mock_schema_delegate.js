@@ -97,11 +97,18 @@ module.exports = {
             },
             "queries": {
                 "receive_sms": {
-                args: ["from", "body"],
-                types: ["Entity(tt:phone_number)", "String"],
-                required: [false,false],
-                is_input: [false,false],
-            }}
+                    args: ["from", "body"],
+                    types: ["Entity(tt:phone_number)", "String"],
+                    required: [false,false],
+                    is_input: [false,false],
+                },
+                "get_gps": {
+                    args: ["location"],
+                    types: ["Location"],
+                    required: [false],
+                    is_input: [false],
+                }
+            }
         },
         "ninegag": {
             "triggers": {},
