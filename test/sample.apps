@@ -327,8 +327,8 @@ now => aggregate count str1 of Q1 => @twitter.sink(status=count);
 
 // LogQueryArgmTest
 {
-now => [field1, field2] of aggregate argmax 1,1 col1 of Q0 => notify;
-now => [field1, field2] of aggregate argmax 1,3 col1 of Q0 => notify;
+now => [field1, field2] of aggregate argmax 1,1 another_field of Q0 => notify;
+now => [field1, field2] of aggregate argmax 1,3 another_field of Q0 => notify;
 }
 
 ====
