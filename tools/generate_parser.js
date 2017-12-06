@@ -193,7 +193,7 @@ class SLRParserGenerator {
     constructor(grammar, startSymbol) {
         // optimizations first
         this._startSymbol = startSymbol;
-        grammar['$ROOT'] = [[[startSymbol, EOF_TOKEN], (x) => x]];
+        grammar['$ROOT'] = [[[startSymbol, EOF_TOKEN], (x, _) => x]];
         this._numberRules(grammar);
         this._extractTerminalsNonTerminals();
         this._buildFirstSets();
@@ -267,6 +267,8 @@ class SLRParserGenerator {
                     if (!(rhs in grammar) && rhs[0] === '$')
                         throw new TypeError('Missing non-terminal ' + rhs);
                 }
+                if (action.length !== 0 && action.length !== rule.length)
+                    console.error(`WARNING: action rule ${lhs} -> ${rule.join(' ')} seems to have the wrong number of parameters`);
 
                 this.rules.push([lhs, rule, action]);
                 this.grammar.get(lhs).push(ruleId);
@@ -537,13 +539,13 @@ class SLRParserGenerator {
                 for (let term of this.terminals) {
                     if (this._followSets.get(lhs).has(term)) {
                         if (term in this.actionTable[itemSet.info.id] && !arrayEquals(this.actionTable[itemSet.info.id][term], ['reduce', ruleId])) {
-                            console.log("Item Set", itemSet.info.id, itemSet.info.intransitions);
+                            console.error("Item Set", itemSet.info.id, itemSet.info.intransitions);
                             for (let rule of itemSet.rules) {
                                 let [ruleId, rhs] = rule.stuff;
                                 let [lhs,,] = this.rules[ruleId];
-                                console.log(ruleId, lhs, '->', rhs);
+                                console.error(ruleId, lhs, '->', rhs);
                             }
-                            console.log();
+                            console.error();
                             throw new Error("Conflict for state " + itemSet.info.id + " terminal " + term + " want " + ["reduce", ruleId] + " have " + this.actionTable[itemSet.info.id][term]);
                         }
                         this.actionTable[itemSet.info.id][term] = ['reduce', ruleId];
