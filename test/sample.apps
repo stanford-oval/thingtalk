@@ -419,6 +419,8 @@ let table silver_medal := \(x : Table) -> aggregate argmax 2,1 score of x ;
 let table top_K := \(x : Any, k : Number) -> aggregate argmax 1,k score of x ;
 
 let table bottom_K := \(x : Any, k : Number) -> aggregate argmin 1,k score of x ;
+now => gold_medal(x=Q4) => notify;
+
 }
 
 ====
@@ -444,4 +446,12 @@ let action x := \(x : String) -> @twitter.sink(status=x);
 {
 let table x := @twitter.search();
 now => x(query="foo") => notify;
+}
+
+=======
+
+// Lambdas Join
+{
+let table macro := \(number : Number) -> @xkcd.get_comic(number=number) ;
+now => Q1 join macro() on (number=steps) => notify;
 }
