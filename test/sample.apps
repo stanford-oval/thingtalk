@@ -436,4 +436,12 @@ let table xxy := compute (1 + colsum) as colwhatever of aggregate sum col1 as co
 ====
 
 // Action Lambdas
-let action x := \(x : String) -> @com.twitter.post(status=x);
+let action x := \(x : String) -> @twitter.sink(status=x);
+
+====
+
+// Partial Application
+{
+let table x := @twitter.search();
+now => x(query="foo") => notify;
+}

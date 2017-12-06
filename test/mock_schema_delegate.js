@@ -151,6 +151,12 @@ module.exports = {
                     types: ["String","Array(String)","Array(String)","String","String","Boolean"],
                     required: [false,false,false,false,false,false],
                     is_input: [false,false,false,false,false,false],
+                },
+                "search": {
+                    args: ["query", "text", "hashtags", "urls", "from", "inReplyTo"],
+                    types: ["String", "String","Array(String)","Array(String)","String","String"],
+                    required: [true, false,false,false,false,false],
+                    is_input: [true, false,false,false,false,false],
                 }
             }
         },
