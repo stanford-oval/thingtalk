@@ -448,7 +448,7 @@ let table x := @twitter.search();
 now => x(query="foo") => notify;
 }
 
-=======
+====
 
 // Lambdas Join
 {
