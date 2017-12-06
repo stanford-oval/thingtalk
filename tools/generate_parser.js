@@ -11,6 +11,7 @@
 // This is JavaScript version of almond-nnparser/grammar/slr.py
 
 const path = require('path');
+const fs = require('fs');
 
 const EOF_TOKEN = '<<EOF>>';
 const DEBUG = false;
@@ -254,9 +255,19 @@ class SLRParserGenerator {
         this.grammar = new Map;
         for (let lhs in grammar) {
             let rules = grammar[lhs];
+            if (!Array.isArray(rules))
+                throw new TypeError('Invalid definition for non-terminal ' + lhs);
+            if (rules.some((x) => !Array.isArray(x) || x.length !== 2))
+                throw new TypeError('Invalid definition for non-terminal ' + lhs);
+
             this.grammar.set(lhs, []);
             for (let [rule, action] of rules) {
                 let ruleId = this.rules.length;
+                for (let rhs of rule) {
+                    if (!(rhs in grammar) && rhs[0] === '$')
+                        throw new TypeError('Missing non-terminal ' + rhs);
+                }
+
                 this.rules.push([lhs, rule, action]);
                 this.grammar.get(lhs).push(ruleId);
                 if (DEBUG)
@@ -586,7 +597,7 @@ function main() {
         }
     }
 
-    console.log(`"use strict";`);
+    console.log(fs.readFileSync(path.resolve(process.argv[2])).toString());
     console.log(`const TERMINAL_IDS = ${JSON.stringify(TERMINAL_IDS)};`);
     console.log(`const RULE_NON_TERMINALS = ${JSON.stringify(RULE_NON_TERMINALS)};`);
     console.log(`const ARITY = ${JSON.stringify(generator.rules.map(([,rhs,]) => rhs.length))};`);
