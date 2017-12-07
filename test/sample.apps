@@ -380,8 +380,8 @@ now => Q1, _timestamp > start_of(mon) && _timestamp < end_of(day) => notify;
 
 // Lambdas
 {
-let table macro := \(number : Number) -> @xkcd.get_comic(number=number) ;
-now => macro(number=1234) => notify;
+let table macro := \(p_number : Number) -> @xkcd.get_comic(number=p_number) ;
+now => macro(p_number=1234) => notify;
 }
 
 ====
