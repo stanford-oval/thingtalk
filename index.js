@@ -5,6 +5,7 @@
 // Copyright 2016 Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
 const Ast = require('./lib/ast');
 const Compiler = require('./lib/compiler');
@@ -16,6 +17,7 @@ const Generate = require('./lib/generate');
 const Describe = require('./lib/describe');
 const Formatter = require('./lib/formatter');
 const PermissionChecker = require('./lib/permission_checker');
+const NNSyntax = require('./lib/nnsyntax');
 
 let { genRandomRules, genRandomPermissionRule } = require('./lib/gen_random_rule');
 Generate.genRandomRules = genRandomRules;
@@ -40,6 +42,7 @@ module.exports = {
     Generate: Generate,
     Describe: Describe,
     SEMPRESyntax: SEMPRESyntax,
+    NNSyntax: NNSyntax,
     Formatter: Formatter,
     PermissionChecker: PermissionChecker,
 
