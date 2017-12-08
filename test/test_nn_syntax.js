@@ -55,7 +55,7 @@ const TEST_CASES = [
 
     [`now => ( @builtin.get_random_between param:low = NUMBER_0 param:high = NUMBER_1 ) join ( @com.xkcd.get_comic ) on param:number = param:number => notify`,
     {'NUMBER_0': 55, 'NUMBER_1': 1024},
-    `now => (@builtin.get_random_between(low=55, high=1024) join @com.xkcd.get_comic()) on (number=number) => notify;`],
+    `now => (@builtin.get_random_between(low=55, high=1024) join @com.xkcd.get_comic() on (number=number)) => notify;`],
 
     [`now => @builtin.get_random_between param:low = NUMBER_0 param:high = NUMBER_1 => notify`,
     {'NUMBER_0': 55, 'NUMBER_1': 1024},
@@ -69,7 +69,7 @@ const TEST_CASES = [
     {},
     `monitor (@thermostat.temperature()) => notify;`],
 
-    [`( monitor ( @thermostat.temperature ) ) , param:temperature > NUMBER_0 unit:F => notify`,
+    [`( monitor ( @thermostat.temperature ) ) filter param:temperature > NUMBER_0 unit:F => notify`,
     {'NUMBER_0': 70},
     `monitor (@thermostat.temperature()), temperature > 70F => notify;`],
 
@@ -79,7 +79,15 @@ const TEST_CASES = [
 
     [`now => timeseries now , NUMBER_0 unit:week of ( monitor ( @thermostat.temperature ) ) => notify`,
     {NUMBER_0: 2},
-    `now => timeseries makeDate(), 2week of monitor (@thermostat.temperature()) => notify;`]
+    `now => timeseries makeDate(), 2week of monitor (@thermostat.temperature()) => notify;`],
+
+    [`now => param:value of ( @thermostat.temperature ) => notify`,
+    {},
+    `now => [value] of (@thermostat.temperature()) => notify;`],
+
+    [`param:value of ( monitor ( @thermostat.temperature ) ) => notify`,
+    {},
+    `[value] of (monitor (@thermostat.temperature())) => notify;`]
 ];
 
 function testCase(test, i) {
@@ -92,9 +100,16 @@ function testCase(test, i) {
         let generated = Ast.prettyprint(program, true).trim();
 
         if (generated !== expected) {
-            console.error('Test Case #' + (i+1) + ' failed');
+            console.error('Test Case #' + (i+1) + ' failed (wrong program)');
             console.error('Expected:', expected);
             console.error('Generated:', generated);
+        }
+
+        let reconstructed = NNSyntax.toNN(program, entities).join(' ');
+        if (reconstructed !== test[0]) {
+            console.error('Test Case #' + (i+1) + ' failed (wrong NN syntax)');
+            console.error('Expected:', test[0]);
+            console.error('Generated:', reconstructed);
         }
 
         let parser = new NNOutputParser();
