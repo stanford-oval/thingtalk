@@ -411,6 +411,8 @@ let table latest_K := \(x : Table, k : Number) -> sequence 1, k of x;
 
 ====
 
+// ** typecheck: expect TypeError **
+// Table x doesn't have field score. Maybe fix this later.
 // Argmaxes
 {
 let table gold_medal := \(x : Table) -> aggregate argmax 1, 1 score of x ;
