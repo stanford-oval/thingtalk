@@ -457,3 +457,18 @@ now => x(query="foo") => notify;
 let table macro := \(number : Number) -> @xkcd.get_comic(number=number) ;
 now => Q1 join macro() on (number=steps) => notify;
 }
+
+====
+
+// Entities
+{
+  // allow spaces in entity types
+  let table x1 := \(y : Entity(tt : hashtag)) -> @com.twitter.source(), contains(hashtags, y);
+
+  // allow dots in entity types
+  let table x2 := \(y : Entity(com.google.drive : file_id)) -> @com.google.drive.list_drive_files(), file_id == y;
+  let table x3 := \(y : Entity(com.google . drive : file_id)) -> @com.google.drive.list_drive_files(), file_id == y;
+
+  now => x1(y="foo"^^ tt : hashtag) => notify;
+  now => x2(y="xxx"^^ com . google . drive : file_id ( "Some file" ) ) => notify;
+}

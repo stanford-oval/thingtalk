@@ -297,6 +297,18 @@ module.exports = {
                     is_input: [false,false],
                 }
             }
+        },
+        "com.google.drive": {
+            "triggers": {},
+            "actions": {},
+            "queries": {
+                "list_drive_files": {
+                    args: ["file_id", "file_name"],
+                    types: ["Entity(com.google.drive:file_id)", "String"],
+                    required: [false, false],
+                    is_input: [false, false]
+                }
+            }
         }
     },
 
