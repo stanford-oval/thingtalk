@@ -10,6 +10,7 @@
 const SchemaRetriever = require('../lib/schema');
 const SEMPRESyntax = require('../lib/sempre_syntax');
 const NNSyntax = require('../lib/nn_syntax');
+const Ast = require('../lib/ast');
 
 const ThingpediaClientHttp = require('../test/http_client');
 const db = require('../test/db');
@@ -28,6 +29,16 @@ function addProjection(fields) {
         inv.projection = fields;
     };
 }
+function addParameter(inv, pname, value) {
+    let [sempreType, sempreValue] = SEMPRESyntax.valueToSEMPRE(value);
+
+    inv.args.push({
+        name: { id: 'tt:param.' + pname },
+        operator: 'is',
+        type: sempreType,
+        value: sempreValue
+    });
+}
 
 function all(...transformations) {
     return function(inv) {
@@ -40,7 +51,11 @@ function all(...transformations) {
 const TRANSFORMATIONS = {
     // new_drive_file -> monitor [file_name] of @list_drive_files()
     // this is kind of gross tbh...
-    'com.google.drive.new_drive_file': all(rename('com.google.drive.list_drive_files'), addProjection(['file_id', 'file_name', 'created_time'])),
+    'com.google.drive.new_drive_file': all(
+        rename('com.google.drive.list_drive_files'),
+        addProjection(['file_id', 'file_name', 'created_time']),
+        addParameter('order_by', Ast.Value.Enum('created_time_decreasing'))
+    ),
 
     'com.xkcd.new_what_if': rename('com.xkcd.what_if'),
     'com.xkcd.new_comic': rename('com.xkcd.get_comic'),
