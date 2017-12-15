@@ -70,7 +70,9 @@ const TRANSFORMATIONS = {
     'com.twitter.sink': rename('com.twitter.post'),
     'com.twitter.source': rename('com.twitter.home_timeline'),
     'com.twitter.my_tweet': rename('com.twitter.my_tweets'),
-    'com.twitter.direct_message': rename('com.twitter.direct_messages')
+    'com.twitter.direct_message': rename('com.twitter.direct_messages'),
+
+    'com.instagram.new_picture': rename('com.instagram.get_pictures')
 };
 
 // what has been ported
@@ -80,6 +82,7 @@ const AVAILABLE = new Set(['com.bing',
 'com.google',
 'com.google.drive',
 'com.lg.tv.webos2',
+'com.instagram',
 'com.linkedin',
 'com.nest',
 'com.nytimes',
