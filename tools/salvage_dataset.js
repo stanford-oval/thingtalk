@@ -18,14 +18,53 @@ const db = require('../test/db');
 // to new ThingTalk
 
 // the new names of triggers
-const RENAMES = {
-    'com.google.drive.new_drive_file': 'com.google.drive.list_drive_files',
-    'com.xkcd.new_what_if': 'com.xkcd.what_if',
-    'com.xkcd.new_comic': 'com.xkcd.get_comic',
+function rename(newName) {
+    return function(inv) {
+        inv.name.id = 'tt:' + newName;
+    };
+}
+function addProjection(fields) {
+    return function(inv) {
+        inv.projection = fields;
+    };
+}
+
+function all(...transformations) {
+    return function(inv) {
+        for (let t of transformations)
+            t(inv);
+    };
+}
+
+// What to apply, and where
+const TRANSFORMATIONS = {
+    // new_drive_file -> monitor [file_name] of @list_drive_files()
+    // this is kind of gross tbh...
+    'com.google.drive.new_drive_file': all(rename('com.google.drive.list_drive_files'), addProjection(['file_id', 'file_name', 'created_time'])),
+
+    'com.xkcd.new_what_if': rename('com.xkcd.what_if'),
+    'com.xkcd.new_comic': rename('com.xkcd.get_comic'),
+
+    'com.giphy.get_tag': rename('com.giphy.get'),
+
+    'com.phdcomics.new_post': rename('com.phdcomics.get_post')
 };
 
 // what has been ported
-const AVAILABLE = new Set(['com.bing', 'com.linkedin', 'com.google.drive']);
+const AVAILABLE = new Set(['com.bing',
+'com.facebook',
+'com.google',
+'com.google.drive',
+'com.linkedin',
+'com.nest',
+'com.nytimes',
+'com.tesla',
+'com.xkcd',
+'org.thingpedia.builtin.bluetooth.generic',
+'org.thingpedia.builtin.matrix',
+'org.thingpedia.builtin.thingengine',
+'org.thingpedia.builtin.thingengine.remote',
+'org.thingpedia.demo.coffee']);
 
 const _schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp());
 
@@ -79,9 +118,9 @@ function processOneRow(ex) {
             let [kind, channel] = handleSelector(inv.name);
             if (!AVAILABLE.has(kind))
                 throw new Error(kind + ' has not been ported');
-            let rename = RENAMES[kind + '.' + channel];
-            if (rename)
-                inv.name = { id: 'tt:' + rename };
+            let transform = TRANSFORMATIONS[kind + '.' + channel];
+            if (transform)
+                transform(inv);
         }
 
         return SEMPRESyntax.parseToplevel(_schemaRetriever, json);
