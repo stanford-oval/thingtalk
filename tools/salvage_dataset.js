@@ -62,18 +62,28 @@ const TRANSFORMATIONS = {
 
     'com.giphy.get_tag': rename('com.giphy.get'),
 
-    'com.phdcomics.new_post': rename('com.phdcomics.get_post')
+    'com.phdcomics.new_post': rename('com.phdcomics.get_post'),
+
+    'com.twitter.sink': rename('com.twitter.post'),
+    'com.twitter.source': rename('com.twitter.home_timeline'),
+    'com.twitter.my_tweet': rename('com.twitter.my_tweets'),
+    'com.twitter.direct_message': rename('com.twitter.direct_messages')
 };
 
 // what has been ported
 const AVAILABLE = new Set(['com.bing',
 'com.facebook',
+'com.giphy',
 'com.google',
 'com.google.drive',
+'com.lg.tv.webos2',
 'com.linkedin',
 'com.nest',
 'com.nytimes',
+'com.phdcomics',
 'com.tesla',
+'com.thecatapi',
+'com.twitter',
 'com.xkcd',
 'org.thingpedia.builtin.bluetooth.generic',
 'org.thingpedia.builtin.matrix',
