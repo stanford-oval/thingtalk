@@ -370,8 +370,10 @@ let stream lol := [foo] of (monitor Q0 join Q1);
 
 // RelativeTime
 {
+now => Q1, _timestamp > makeDate() + 2year => notify;
 now => Q1, _timestamp > makeDate() + -2year => notify;
-now => Q1, _timestamp > makeDate() + -24mon => notify;
+now => Q1, _timestamp > makeDate() - 2year => notify;
+now => Q1, _timestamp > makeDate() + 24mon => notify;
 now => Q1, _timestamp > makeDate() + (-1year + -12mon) => notify;
 now => Q1, _timestamp > start_of(mon) && _timestamp < end_of(day) => notify;
 }
