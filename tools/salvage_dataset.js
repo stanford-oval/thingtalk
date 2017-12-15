@@ -29,15 +29,17 @@ function addProjection(fields) {
         inv.projection = fields;
     };
 }
-function addParameter(inv, pname, value) {
-    let [sempreType, sempreValue] = SEMPRESyntax.valueToSEMPRE(value);
+function addParameter(pname, value) {
+    return function(inv) {
+        let [sempreType, sempreValue] = SEMPRESyntax.valueToSEMPRE(value);
 
-    inv.args.push({
-        name: { id: 'tt:param.' + pname },
-        operator: 'is',
-        type: sempreType,
-        value: sempreValue
-    });
+        inv.args.push({
+            name: { id: 'tt:param.' + pname },
+            operator: 'is',
+            type: sempreType,
+            value: sempreValue
+        });
+    };
 }
 
 function all(...transformations) {
@@ -91,7 +93,7 @@ const AVAILABLE = new Set(['com.bing',
 'org.thingpedia.builtin.thingengine.remote',
 'org.thingpedia.demo.coffee']);
 
-const _schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp());
+const _schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(), undefined, true);
 
 function *forEachInvocation(json) {
     if (json.setup) {
@@ -140,6 +142,8 @@ function processOneRow(ex) {
     return Promise.resolve().then(() => {
         let json = JSON.parse(ex.target_json);
         for (let inv of forEachInvocation(json)) {
+            if (inv.person)
+                throw new Error('Principals are not implemented');
             let [kind, channel] = handleSelector(inv.name);
             if (!AVAILABLE.has(kind))
                 throw new Error(kind + ' has not been ported');
@@ -170,12 +174,11 @@ function batchLoop(array, batchSize, f) {
 }
 
 function main() {
-    const what = process.argv[2];
-    const language = process.argv[3] || 'en';
+    const language = process.argv[2] || 'en';
+    const types = process.argv[3].split(',');
 
     db.withClient((dbClient) =>
-        db.selectAll(dbClient, `select * from example_utterances where (type = 'online' or type like 'turking%' or type like 'test%')
-and language = ? and target_json like ? and target_code = ''`, [language, '%' + what + '%'])
+        db.selectAll(dbClient, `select * from example_utterances where type in (?) and language = ?`, [types, language])
     ).then((rows) => batchLoop(rows, 100, processOneRow))
     .then(() => process.exit()).done();
 }
