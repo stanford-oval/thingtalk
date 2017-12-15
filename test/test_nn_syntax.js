@@ -100,6 +100,14 @@ const TEST_CASES = [
     [`now => ( @com.bing.image_search ) filter param:width > NUMBER_0 or param:height > NUMBER_1 and param:width < NUMBER_2 => notify`,
     {NUMBER_0: 100, NUMBER_1:200, NUMBER_2: 500},
     `now => (@com.bing.image_search()), ((width > 100 || height > 200) && width < 500) => notify;`],
+
+    [`now => ( @com.bing.image_search ) filter param:width > NUMBER_0 or param:height > NUMBER_0 => notify`,
+    {NUMBER_0: 100},
+    `now => (@com.bing.image_search()), (width > 100 || height > 100) => notify;`],
+
+    [`now => ( @com.bing.image_search ) filter param:width > NUMBER_0 => notify`,
+    {NUMBER_0: 100 },
+    `now => (@com.bing.image_search()), width > 100 => notify;`],
 ];
 
 function testCase(test, i) {

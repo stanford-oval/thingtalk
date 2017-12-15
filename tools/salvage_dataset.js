@@ -12,6 +12,7 @@ const SEMPRESyntax = require('../lib/sempre_syntax');
 const NNSyntax = require('../lib/nn_syntax');
 const Ast = require('../lib/ast');
 
+const TokenizerService = require('../test/tokenizer_service');
 const ThingpediaClientHttp = require('../test/http_client');
 const db = require('../test/db');
 
@@ -93,7 +94,9 @@ const AVAILABLE = new Set(['com.bing',
 'org.thingpedia.builtin.thingengine.remote',
 'org.thingpedia.demo.coffee']);
 
-const _schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(), undefined, true);
+const language = process.argv[2] || 'en';
+const _schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(undefined, language), undefined, true);
+const _tokenizerService = new TokenizerService(language);
 
 function *forEachInvocation(json) {
     if (json.setup) {
@@ -152,11 +155,24 @@ function processOneRow(ex) {
                 transform(inv);
         }
 
-        return SEMPRESyntax.parseToplevel(_schemaRetriever, json);
-    }).then((program) => {
-        // TODO: tokenize the sentence here
-        console.log(ex.id + '\t' + ex.utterance + '\t' + NNSyntax.toNN(program, {}).join(' '));
+        return Promise.all([
+            SEMPRESyntax.parseToplevel(_schemaRetriever, json),
+            _tokenizerService.tokenize(ex.utterance)
+        ]);
+    }).then(([program, { tokens, entities }]) => {
+        // toNN messes with the entities object as it assigns them in the program
+        let entitiesClone = {};
+        Object.assign(entitiesClone, entities);
+        let nnprogram = NNSyntax.toNN(program, entitiesClone);
+        // try to convert this back into the program, for shits and giggles
+        NNSyntax.fromNN(nnprogram, entities);
+
+        console.log(ex.id + '\t' + tokens.join(' ') + '\t' + nnprogram.join(' '));
     }).catch((e) => {
+        if (e.message === 'Not a ThingTalk program' || e.message === 'Principals are not implemented')
+            return;
+        if (e.message.endsWith(' has not been ported'))
+            return;
         console.error('Failed to handle example ' + ex.id + ': ' + e.message);
         if (e instanceof TypeError)
             console.error(e.stack);
@@ -174,7 +190,6 @@ function batchLoop(array, batchSize, f) {
 }
 
 function main() {
-    const language = process.argv[2] || 'en';
     const types = process.argv[3].split(',');
 
     db.withClient((dbClient) =>
