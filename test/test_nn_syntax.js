@@ -89,6 +89,10 @@ const TEST_CASES = [
     {},
     `[value] of (monitor (@thermostat.temperature())) => notify;`],
 
+    [`[ param:value , param:time ] of ( monitor ( @thermostat.temperature ) ) => notify`,
+    {},
+    `[value, time] of (monitor (@thermostat.temperature())) => notify;`],
+
     [`now => ( @com.bing.image_search ) filter param:width > NUMBER_0 or param:height > NUMBER_1 => notify`,
     {NUMBER_0: 100, NUMBER_1:200},
     `now => (@com.bing.image_search()), (width > 100 || height > 200) => notify;`],
