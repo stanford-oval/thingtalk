@@ -189,7 +189,7 @@ monitor @org.twitter.source() => notify;
 {
     now => @phone.send_sms(to="+15555555555", body="");
     now => @phone.send_sms(to="+15555555555"^^tt:phone_number, body="");
-    monitor @phone.receive_sms(), from=="+15555555555"^^phone_number => notify;
+    monitor @phone.receive_sms(), from=="+15555555555"^^tt:phone_number => notify;
 }
 
 ====
