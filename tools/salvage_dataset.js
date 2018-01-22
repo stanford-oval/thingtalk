@@ -60,7 +60,7 @@ const TRANSFORMATIONS = {
         addParameter('order_by', Ast.Value.Enum('created_time_decreasing'))
     ),
 
-    'com.xkcd.new_what_if': rename('com.xkcd.what_if'),
+    'com.xkcd.new_whatif': rename('com.xkcd.what_if'),
     'com.xkcd.new_comic': rename('com.xkcd.get_comic'),
 
     'com.giphy.get_tag': rename('com.giphy.get'),
