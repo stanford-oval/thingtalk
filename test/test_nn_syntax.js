@@ -69,9 +69,9 @@ const TEST_CASES = [
     {},
     `monitor (@thermostat.temperature()) => notify;`],
 
-    [`( monitor ( @thermostat.temperature ) ) filter param:temperature > NUMBER_0 unit:F => notify`,
+    [`monitor ( ( @thermostat.temperature ) filter param:temperature > NUMBER_0 unit:F ) => notify`,
     {'NUMBER_0': 70},
-    `monitor (@thermostat.temperature()), temperature > 70F => notify;`],
+    `monitor ((@thermostat.temperature()), temperature > 70F) => notify;`],
 
     [`now => timeseries now , 1 unit:week of ( monitor ( @thermostat.temperature ) ) => notify`,
     {},
@@ -80,18 +80,6 @@ const TEST_CASES = [
     [`now => timeseries now , NUMBER_0 unit:week of ( monitor ( @thermostat.temperature ) ) => notify`,
     {NUMBER_0: 2},
     `now => timeseries makeDate(), 2week of monitor (@thermostat.temperature()) => notify;`],
-
-    [`now => param:value of ( @thermostat.temperature ) => notify`,
-    {},
-    `now => [value] of (@thermostat.temperature()) => notify;`],
-
-    [`param:value of ( monitor ( @thermostat.temperature ) ) => notify`,
-    {},
-    `[value] of (monitor (@thermostat.temperature())) => notify;`],
-
-    [`[ param:value , param:time ] of ( monitor ( @thermostat.temperature ) ) => notify`,
-    {},
-    `[value, time] of (monitor (@thermostat.temperature())) => notify;`],
 
     [`now => ( @com.bing.image_search ) filter param:width > NUMBER_0 or param:height > NUMBER_1 => notify`,
     {NUMBER_0: 100, NUMBER_1:200},
