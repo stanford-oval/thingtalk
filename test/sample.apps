@@ -472,3 +472,13 @@ now => Q1 join macro() on (number=steps) => notify;
   now => x1(y="foo"^^ tt : hashtag) => notify;
   now => x2(y="xxx"^^ com . google . drive : file_id ( "Some file" ) ) => notify;
 }
+
+====
+
+// Monitor on param
+
+{
+monitor @xkcd.get_comic() => notify;
+monitor @xkcd.get_comic() on new [title] => notify;
+monitor @xkcd.get_comic() on new [title, number] => notify;
+}

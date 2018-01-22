@@ -108,6 +108,14 @@ const TEST_CASES = [
     [`now => ( @com.bing.image_search ) filter param:width > NUMBER_0 => notify`,
     {NUMBER_0: 100 },
     `now => (@com.bing.image_search()), width > 100 => notify;`],
+
+    ['monitor ( @xkcd.get_comic ) on new param:title => notify',
+    {},
+    `monitor (@xkcd.get_comic()) on new [title] => notify;`],
+
+    ['monitor ( @xkcd.get_comic ) on new [ param:title , param:number ] => notify',
+    {},
+    `monitor (@xkcd.get_comic()) on new [title, number] => notify;`]
 ];
 
 function testCase(test, i) {
