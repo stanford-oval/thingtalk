@@ -126,7 +126,7 @@ module.exports = {
             "triggers": {
                 "source": {
                     args: ["text", "hashtags", "urls", "from", "inReplyTo", "__reserved"],
-                    types: ["String","Array(String)","Array(String)","String","String","Boolean"],
+                    types: ["String","Array(Entity(tt:hashtag))","Array(String)","String","String","Boolean"],
                     required: [false,false,false,false,false,false],
                     is_input: [false,false,false,false,false,false],
                 }
@@ -148,7 +148,7 @@ module.exports = {
             "queries": {
                 "source": {
                     args: ["text", "hashtags", "urls", "from", "inReplyTo", "__reserved"],
-                    types: ["String","Array(String)","Array(String)","String","String","Boolean"],
+                    types: ["String","Array(Entity(tt:hashtag))","Array(String)","String","String","Boolean"],
                     required: [false,false,false,false,false,false],
                     is_input: [false,false,false,false,false,false],
                 },
@@ -159,38 +159,6 @@ module.exports = {
                     is_input: [true, false,false,false,false,false],
                 }
             }
-        },
-        "org.twitter": {
-            "triggers": {
-                "source": {
-                    args: ["text", "hashtags", "urls", "from", "inReplyTo", "__reserved"],
-                    types: ["String","Array(String)","Array(String)","String","String","Boolean"],
-                    required: [false,false,false,false,false,false],
-                    is_input: [false,false,false,false,false,false],
-                }
-            },
-            "actions": {
-                "sink": {
-                    args: ["status"],
-                    types: ["String"],
-                    required: [true],
-                    is_input: [true],
-                },
-                "post_picture": {
-                    args: ["caption", "picture_url"],
-                    types: ["String", "Entity(tt:picture)"],
-                    required: [true,true],
-                    is_input: [true,true],
-                }
-            },
-            "queries": {
-                "source": {
-                    args: ["text", "hashtags", "urls", "from", "inReplyTo", "__reserved"],
-                    types: ["String","Array(String)","Array(String)","String","String","Boolean"],
-                    required: [false,false,false,false,false,false],
-                    is_input: [false,false,false,false,false,false],
-                }
-            },
         },
         "weatherapi": {
             "triggers": {
