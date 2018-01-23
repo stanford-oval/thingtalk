@@ -476,11 +476,12 @@ now => Q1 join macro() on (number=steps) => notify;
 }
 
 ====
-
+// ** typecheck: expect TypeError **
+// number is not a valid field in @xkcd.get_comic()
 // Monitor on param
 
 {
 monitor @xkcd.get_comic() => notify;
 monitor @xkcd.get_comic() on new [title] => notify;
-//monitor @xkcd.get_comic() on new [title, number] => notify;
+monitor @xkcd.get_comic() on new [title, number] => notify;
 }
