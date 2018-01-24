@@ -56,7 +56,7 @@ const TRANSFORMATIONS = {
     // this is kind of gross tbh...
     'com.google.drive.new_drive_file': all(
         rename('com.google.drive.list_drive_files'),
-        addProjection(['file_id', 'file_name', 'created_time']),
+        addProjection(['file_id']),
         addParameter('order_by', Ast.Value.Enum('created_time_decreasing'))
     ),
 
