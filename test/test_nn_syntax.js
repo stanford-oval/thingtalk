@@ -53,17 +53,17 @@ const TEST_CASES = [
      {'NUMBER_0': 1234},
      `now => @com.xkcd.get_comic(number=1234) => notify;`],
 
-    [`now => ( @builtin.get_random_between param:low = NUMBER_0 param:high = NUMBER_1 ) join ( @com.xkcd.get_comic ) on param:number = param:number => notify`,
+    [`now => ( @builtin.get_random_between param:high = NUMBER_1 param:low = NUMBER_0 ) join ( @com.xkcd.get_comic ) on param:number = param:number => notify`,
     {'NUMBER_0': 55, 'NUMBER_1': 1024},
-    `now => (@builtin.get_random_between(low=55, high=1024) join @com.xkcd.get_comic() on (number=number)) => notify;`],
+    `now => (@builtin.get_random_between(high=1024, low=55) join @com.xkcd.get_comic() on (number=number)) => notify;`],
 
-    [`now => @builtin.get_random_between param:low = NUMBER_0 param:high = NUMBER_1 => notify`,
+    [`now => @builtin.get_random_between param:high = NUMBER_1 param:low = NUMBER_0 => notify`,
     {'NUMBER_0': 55, 'NUMBER_1': 1024},
-    `now => @builtin.get_random_between(low=55, high=1024) => notify;`],
+    `now => @builtin.get_random_between(high=1024, low=55) => notify;`],
 
-    [`now => @builtin.get_random_between param:low = NUMBER_1 param:high = NUMBER_0 => notify`,
+    [`now => @builtin.get_random_between param:high = NUMBER_0 param:low = NUMBER_1 => notify`,
     {'NUMBER_0': 1024, 'NUMBER_1': 55},
-    `now => @builtin.get_random_between(low=55, high=1024) => notify;`],
+    `now => @builtin.get_random_between(high=1024, low=55) => notify;`],
 
     [`monitor ( @thermostat.temperature ) => notify`,
     {},
