@@ -103,7 +103,11 @@ const TEST_CASES = [
 
     ['monitor ( @xkcd.get_comic ) on new [ param:title , param:number ] => notify',
     {},
-    `monitor (@xkcd.get_comic()) on new [title, number] => notify;`]
+    `monitor (@xkcd.get_comic()) on new [title, number] => notify;`],
+
+    ['monitor ( ( @com.instagram.get_pictures param:count = NUMBER_0 ) filter param:caption in_array [ QUOTED_STRING_0 , QUOTED_STRING_1 ] ) => notify',
+    {NUMBER_0: 100, QUOTED_STRING_0: 'abc', QUOTED_STRING_1: 'def'},
+    `monitor ((@com.instagram.get_pictures(count=100)), in_array(caption, ["abc", "def"])) => notify;`]
 ];
 
 function testCase(test, i) {
