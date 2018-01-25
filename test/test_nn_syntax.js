@@ -107,7 +107,15 @@ const TEST_CASES = [
 
     ['monitor ( ( @com.instagram.get_pictures param:count = NUMBER_0 ) filter param:caption in_array [ QUOTED_STRING_0 , QUOTED_STRING_1 ] ) => notify',
     {NUMBER_0: 100, QUOTED_STRING_0: 'abc', QUOTED_STRING_1: 'def'},
-    `monitor ((@com.instagram.get_pictures(count=100)), in_array(caption, ["abc", "def"])) => notify;`]
+    `monitor ((@com.instagram.get_pictures(count=100)), in_array(caption, ["abc", "def"])) => notify;`],
+
+    ['now => ( @com.bing.search_images ) filter param:height > NUMBER_1 and param:width > NUMBER_0 => notify',
+    {NUMBER_0: 50, NUMBER_1: 100},
+    `now => (@com.bing.search_images()), (height > 100 && width > 50) => notify;`],
+
+    ['now => ( @com.bing.search_images ) filter param:width > NUMBER_1 or param:height > NUMBER_0 => notify',
+    {NUMBER_0: 50, NUMBER_1: 100},
+    `now => (@com.bing.search_images()), (width > 100 || height > 50) => notify;`],
 ];
 
 function testCase(test, i) {
