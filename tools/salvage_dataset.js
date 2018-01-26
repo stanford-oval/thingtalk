@@ -85,6 +85,11 @@ const TRANSFORMATIONS = {
         renameParameter('total', 'total_space')
     ),
 
+    'com.github.new_issue': rename('com.github.get_issue'),
+    'com.github.new_commit': rename('com.github.get_commit'),
+    'com.github.new_milestone': rename('com.github.get_milestone'),
+    'com.github.new_issue_comment': rename('com.github.get_issue_comment'),
+
     'com.xkcd.new_whatif': rename('com.xkcd.what_if'),
     'com.xkcd.new_comic': rename('com.xkcd.get_comic'),
 
@@ -106,6 +111,7 @@ const AVAILABLE = new Set(['com.bing',
 'com.dropbox',
 'com.facebook',
 'com.giphy',
+'com.github',
 'com.google',
 'com.google.drive',
 'com.lg.tv.webos2',
