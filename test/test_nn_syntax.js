@@ -49,6 +49,11 @@ const TEST_CASES = [
      `now => @com.twitter.post(status="hello");`
     ],
 
+    [`now => @com.twitter.post param:status = ""`,
+     {},
+     `now => @com.twitter.post(status="");`
+    ],
+
     [`now => @com.xkcd.get_comic param:number = NUMBER_0 => notify`,
      {'NUMBER_0': 1234},
      `now => @com.xkcd.get_comic(number=1234) => notify;`],

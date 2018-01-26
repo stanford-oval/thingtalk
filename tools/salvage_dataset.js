@@ -43,24 +43,34 @@ function addParameter(pname, value) {
     };
 }
 function renameParameter(oldName, newName) {
-    return function(inv) {
+    return function(inv, json) {
         inv.args.forEach((arg) => {
             if (arg.name.id === 'tt:param.' + oldName)
                 arg.name.id = 'tt:param.' + newName;
         });
-        for (let andclause of inv.predicate) {
-            for (let orclause of andclause) {
-                if (orclause.name.id === 'tt:param.' + oldName)
-                    orclause.name.id = 'tt:param.' + newName;
+        if (inv.predicate) {
+            for (let andclause of inv.predicate) {
+                for (let orclause of andclause) {
+                    if (orclause.name.id === 'tt:param.' + oldName)
+                        orclause.name.id = 'tt:param.' + newName;
+                }
             }
+        }
+
+        for (let inv2 of forEachInvocation(json)) {
+            inv2.args.forEach((arg) => {
+                if (arg.type === 'VarRef' &&
+                    arg.value.id === 'tt:param.' + oldName)
+                    arg.value.id = 'tt:param.' + newName;
+            });
         }
     };
 }
 
 function all(...transformations) {
-    return function(inv) {
+    return function(inv, json) {
         for (let t of transformations)
-            t(inv);
+            t(inv, json);
     };
 }
 
@@ -102,7 +112,50 @@ const TRANSFORMATIONS = {
     'com.twitter.my_tweet': rename('com.twitter.my_tweets'),
     'com.twitter.direct_message': rename('com.twitter.direct_messages'),
 
-    'com.instagram.new_picture': rename('com.instagram.get_pictures')
+    'com.instagram.new_picture': rename('com.instagram.get_pictures'),
+
+    'com.linkedin.get_profile': all(
+        renameParameter('picture_url', 'profile_picture')
+    ),
+
+    'com.gmail.receive_email': all(
+        rename('com.gmail.inbox'),
+        addProjection(['email_id']),
+        renameParameter('from_address', 'sender_address'),
+        renameParameter('from_name', 'sender_name')
+    ),
+    'com.gmail.receive_important_email': all(
+        rename('com.gmail.inbox'),
+        addProjection(['email_id']),
+        addParameter('is_important', Ast.Value.Boolean(true)),
+        renameParameter('from_address', 'sender_address'),
+        renameParameter('from_name', 'sender_name')
+    ),
+    'com.gmail.receive_primary_email': all(
+        rename('com.gmail.inbox'),
+        addProjection(['email_id']),
+        addParameter('is_primary', Ast.Value.Boolean(true)),
+        renameParameter('from_address', 'sender_address'),
+        renameParameter('from_name', 'sender_name')
+    ),
+    'com.gmail.get_latest': all(
+        rename('com.gmail.inbox'),
+        renameParameter('from', 'sender_address'),
+        (inv) => {
+            // move "label ==" to "labels contains"
+            if (!inv.predicate)
+                return;
+            for (let andclause of inv.predicate) {
+                for (let orclause of andclause) {
+                    if (orclause.name.id === 'tt:param.label') {
+                        orclause.name.id = 'tt:param.labels';
+                        orclause.operator = 'has';
+                    }
+                }
+            }
+        }
+    ),
+
 };
 
 // what has been ported
@@ -112,6 +165,7 @@ const AVAILABLE = new Set(['com.bing',
 'com.facebook',
 'com.giphy',
 'com.github',
+'com.gmail',
 'com.google',
 'com.google.drive',
 'com.lg.tv.webos2',
@@ -188,7 +242,7 @@ function processOneRow(ex) {
                 throw new Error(kind + ' has not been ported');
             let transform = TRANSFORMATIONS[kind + '.' + channel];
             if (transform)
-                transform(inv);
+                transform(inv, json);
         }
 
         return Promise.all([
