@@ -112,6 +112,10 @@ const TEST_CASES = [
     ['timer base = now , interval = DURATION_0 => notify',
     {DURATION_0: { value: 2, unit: 'h'}},
     `timer(base=makeDate(), interval=2h) => notify;`],
+
+    ['monitor ( ( @com.phdcomics.get_post ) filter not param:title =~ QUOTED_STRING_0 ) => notify',
+    {QUOTED_STRING_0: 'abc'},
+    `monitor ((@com.phdcomics.get_post()), !(title =~ "abc")) => notify;`]
 ];
 
 function testCase(test, i) {
