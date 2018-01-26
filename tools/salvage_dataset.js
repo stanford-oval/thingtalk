@@ -42,6 +42,20 @@ function addParameter(pname, value) {
         });
     };
 }
+function renameParameter(oldName, newName) {
+    return function(inv) {
+        inv.args.forEach((arg) => {
+            if (arg.name.id === 'tt:param.' + oldName)
+                arg.name.id = 'tt:param.' + newName;
+        });
+        for (let andclause of inv.predicate) {
+            for (let orclause of andclause) {
+                if (orclause.name.id === 'tt:param.' + oldName)
+                    orclause.name.id = 'tt:param.' + newName;
+            }
+        }
+    }
+}
 
 function all(...transformations) {
     return function(inv) {
@@ -60,6 +74,10 @@ const TRANSFORMATIONS = {
         addParameter('order_by', Ast.Value.Enum('created_time_decreasing'))
     ),
 
+    'com.bodytrace.scale.source': rename('com.bodytrace.scale.get'),
+
+    'com.dropbox.list_folder': renameParameter('last_modified', 'modified_time'),
+
     'com.xkcd.new_whatif': rename('com.xkcd.what_if'),
     'com.xkcd.new_comic': rename('com.xkcd.get_comic'),
 
@@ -77,6 +95,8 @@ const TRANSFORMATIONS = {
 
 // what has been ported
 const AVAILABLE = new Set(['com.bing',
+'com.bodytrace.scale',
+'com.dropbox',
 'com.facebook',
 'com.giphy',
 'com.google',
