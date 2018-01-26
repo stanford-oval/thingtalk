@@ -54,7 +54,7 @@ function renameParameter(oldName, newName) {
                     orclause.name.id = 'tt:param.' + newName;
             }
         }
-    }
+    };
 }
 
 function all(...transformations) {
@@ -74,9 +74,16 @@ const TRANSFORMATIONS = {
         addParameter('order_by', Ast.Value.Enum('created_time_decreasing'))
     ),
 
-    'com.bodytrace.scale.source': rename('com.bodytrace.scale.get'),
+    'com.bodytrace.scale.source': all(
+        rename('com.bodytrace.scale.get'),
+        renameParameter('weight', 'value')
+    ),
 
     'com.dropbox.list_folder': renameParameter('last_modified', 'modified_time'),
+    'com.dropbox.get_space_usage': all(
+        renameParameter('used', 'used_space'),
+        renameParameter('total', 'total_space')
+    ),
 
     'com.xkcd.new_whatif': rename('com.xkcd.what_if'),
     'com.xkcd.new_comic': rename('com.xkcd.get_comic'),
