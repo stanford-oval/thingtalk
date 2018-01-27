@@ -95,6 +95,13 @@ const TRANSFORMATIONS = {
         renameParameter('total', 'total_space')
     ),
 
+    'com.live.onedrive.file_modified': rename('com.live.onedrive.list_files'),
+    'com.live.onedrive.file_created': all(
+        rename('com.live.onedrive.list_files'),
+        addProjection(['file_id']),
+        addParameter('order_by', Ast.Value.Enum('created_time_decreasing'))
+    ),
+
     'com.github.new_issue': rename('com.github.get_issue'),
     'com.github.new_commit': rename('com.github.get_commit'),
     'com.github.new_milestone': rename('com.github.get_milestone'),
@@ -171,6 +178,7 @@ const AVAILABLE = new Set(['com.bing',
 'com.lg.tv.webos2',
 'com.instagram',
 'com.linkedin',
+'com.live.onedrive',
 'com.nest',
 'com.nytimes',
 'com.phdcomics',
