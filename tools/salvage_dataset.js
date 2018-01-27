@@ -163,6 +163,55 @@ const TRANSFORMATIONS = {
         }
     ),
 
+    'security-camera.new_event': all(
+        rename('security-camera.current_event'),
+        renameParameter('picture_url', 'event_picture')
+    ),
+
+    'thermostat.temperature': rename('thermostat.get_temperature'),
+    'thermostat.humidity': rename('thermostat.get_humidity'),
+
+    'com.reddit.frontpage.newpost': rename('com.reddit.frontpage.get'),
+
+    'com.slack.receive': all(
+        rename('com.slack.channel_history'),
+        renameParameter('timestamp', 'date'),
+        renameParameter('from', 'sender')
+    ),
+
+    'com.washingtonpost.new_article': rename('com.washingtonpost.get_article'),
+    'com.washingtonpost.new_blog_post': rename('com.washingtonpost.get_blog_post'),
+
+    'com.wsj.opinions': all(
+        rename('com.wsj.get'),
+        addParameter('section', Ast.Value.Enum('opinions'))
+    ),
+    'com.wsj.get_opinions': all(
+        rename('com.wsj.get'),
+        addParameter('section', Ast.Value.Enum('opinions'))
+    ),
+    'com.wsj.us_business': all(
+        rename('com.wsj.get'),
+        addParameter('section', Ast.Value.Enum('us_business'))
+    ),
+    'com.wsj.technology': all(
+        rename('com.wsj.get'),
+        addParameter('section', Ast.Value.Enum('technology'))
+    ),
+    'com.wsj.markets': all(
+        rename('com.wsj.get'),
+        addParameter('section', Ast.Value.Enum('markets'))
+    ),
+    'com.wsj.world_news': all(
+        rename('com.wsj.get'),
+        addParameter('section', Ast.Value.Enum('world_news'))
+    ),
+    'com.wsj.lifestyle': all(
+        rename('com.wsj.get'),
+        addParameter('section', Ast.Value.Enum('lifestyle'))
+    ),
+
+    'com.yandex.translate.detect_language': renameParameter('detected_language', 'value')
 };
 
 // what has been ported
@@ -176,21 +225,30 @@ const AVAILABLE = new Set(['com.bing',
 'com.google',
 'com.google.drive',
 'com.lg.tv.webos2',
+'com.imgflip',
 'com.instagram',
 'com.linkedin',
 'com.live.onedrive',
 'com.nest',
 'com.nytimes',
 'com.phdcomics',
+'com.reddit.frontpage',
+'com.slack',
 'com.tesla',
 'com.thecatapi',
 'com.twitter',
+'com.washingtonpost',
+'com.wsj',
 'com.xkcd',
+'com.yandex.translate',
 'org.thingpedia.builtin.bluetooth.generic',
 'org.thingpedia.builtin.matrix',
 'org.thingpedia.builtin.thingengine',
 'org.thingpedia.builtin.thingengine.remote',
-'org.thingpedia.demo.coffee']);
+'org.thingpedia.demo.coffee',
+'light-bulb',
+'security-camera',
+'thermostat']);
 
 const language = process.argv[2] || 'en';
 const _schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(undefined, language), undefined, true);
@@ -262,6 +320,7 @@ function processOneRow(ex) {
         let entitiesClone = {};
         Object.assign(entitiesClone, entities);
         let nnprogram = NNSyntax.toNN(program, entitiesClone);
+
         // try to convert this back into the program, for shits and giggles
         NNSyntax.fromNN(nnprogram, entities);
 
