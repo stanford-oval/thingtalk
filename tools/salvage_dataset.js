@@ -243,7 +243,15 @@ const TRANSFORMATIONS = {
         renameParameter('sunset', 'sunset_time'),
         renameParameter('sunrise', 'sunrise_time')
     ),
-    'org.thingpedia.weather.monitor': rename('org.thingpedia.weather.current')
+    'org.thingpedia.weather.monitor': rename('org.thingpedia.weather.current'),
+
+    'org.thingpedia.builtin.thingengine.phone.receive_sms': all(
+        rename('org.thingpedia.builtin.thingengine.phone.sms'),
+        renameParameter('from', 'sender'),
+        renameParameter('body', 'message')
+    ),
+    'org.thingpedia.builtin.thingengine.phone.send_sms': renameParameter('body', 'message'),
+    'org.thingpedia.builtin.thingengine.phone.gps': rename('org.thingpedia.builtin.thingengine.phone.get_gps')
 };
 
 // what has been ported
@@ -280,9 +288,11 @@ const AVAILABLE = new Set(['com.bing',
 'org.thingpedia.builtin.matrix',
 'org.thingpedia.builtin.thingengine',
 'org.thingpedia.builtin.thingengine.remote',
+'org.thingpedia.builtin.thingengine.phone',
 'org.thingpedia.demo.coffee',
 'org.thingpedia.rss',
 'org.thingpedia.weather',
+'uk.co.thedogapi',
 'light-bulb',
 'security-camera',
 'thermostat']);
