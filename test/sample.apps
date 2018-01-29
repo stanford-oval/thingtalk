@@ -485,3 +485,10 @@ monitor @xkcd.get_comic() => notify;
 monitor @xkcd.get_comic() on new [title] => notify;
 monitor @xkcd.get_comic() on new [title, number] => notify;
 }
+
+====
+// ** typecheck: expect TypeError **
+// No $events
+{
+now => @twitter.sink(status=$event);
+}
