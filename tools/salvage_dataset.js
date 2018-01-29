@@ -102,6 +102,18 @@ const TRANSFORMATIONS = {
         addParameter('order_by', Ast.Value.Enum('created_time_decreasing'))
     ),
 
+    'org.thingpedia.icalendar.event_begin': all(
+        rename('org.thingpedia.icalendar.list_events'),
+        (inv) => {
+            inv.edge_predicate = [[{
+                name: { id: 'tt:param.status' },
+                operator: '==',
+                type: 'Enum',
+                value: { value: 'started' }
+            }]]
+        }
+    ),
+
     'com.github.new_issue': rename('com.github.get_issue'),
     'com.github.new_commit': rename('com.github.get_commit'),
     'com.github.new_milestone': rename('com.github.get_milestone'),
@@ -255,6 +267,7 @@ const AVAILABLE = new Set(['com.bing',
 'com.yahoo.finance',
 'com.yandex.translate',
 'gov.nasa',
+'org.thingpedia.icalendar',
 'org.thingpedia.builtin.bluetooth.generic',
 'org.thingpedia.builtin.matrix',
 'org.thingpedia.builtin.thingengine',
