@@ -236,6 +236,14 @@ const TRANSFORMATIONS = {
         renameParameter('dangerous', 'is_dangerous'),
         renameParameter('closest_distance_to_earth', 'distance')
     ),
+
+    'org.thingpedia.rss.new_post': rename('org.thingpedia.rss.get_post'),
+
+    'org.thingpedia.weather.sunrise': all(
+        renameParameter('sunset', 'sunset_time'),
+        renameParameter('sunrise', 'sunrise_time')
+    ),
+    'org.thingpedia.weather.monitor': rename('org.thingpedia.weather.current')
 };
 
 // what has been ported
@@ -273,6 +281,8 @@ const AVAILABLE = new Set(['com.bing',
 'org.thingpedia.builtin.thingengine',
 'org.thingpedia.builtin.thingengine.remote',
 'org.thingpedia.demo.coffee',
+'org.thingpedia.rss',
+'org.thingpedia.weather',
 'light-bulb',
 'security-camera',
 'thermostat']);
