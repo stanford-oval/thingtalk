@@ -7,6 +7,9 @@
 // See COPYING for details
 "use strict";
 
+const Q = require('q');
+Q.longStackSupport = true;
+
 const SchemaRetriever = require('../lib/schema');
 const SEMPRESyntax = require('../lib/sempre_syntax');
 const NNSyntax = require('../lib/nn_syntax');
@@ -276,6 +279,7 @@ const AVAILABLE = new Set(['com.bing',
 'com.slack',
 'com.tesla',
 'com.thecatapi',
+'com.tumblr',
 'com.twitter',
 'com.washingtonpost',
 'com.wsj',
@@ -293,9 +297,11 @@ const AVAILABLE = new Set(['com.bing',
 'org.thingpedia.rss',
 'org.thingpedia.weather',
 'uk.co.thedogapi',
+'car',
 'light-bulb',
 'security-camera',
-'thermostat']);
+'thermostat',
+'tumblr-blog']);
 
 const language = process.argv[2] || 'en';
 const _schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(undefined, language), undefined, true);
