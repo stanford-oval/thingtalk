@@ -68,9 +68,9 @@ function renameParameter(oldName, newName) {
 }
 
 function all(...transformations) {
-    return function(inv, json) {
+    return function(inv, json, ex) {
         for (let t of transformations)
-            t(inv, json);
+            t(inv, json, ex);
     };
 }
 
@@ -211,7 +211,19 @@ const TRANSFORMATIONS = {
         addParameter('section', Ast.Value.Enum('lifestyle'))
     ),
 
-    'com.yandex.translate.detect_language': renameParameter('detected_language', 'value')
+    'com.yandex.translate.detect_language': renameParameter('detected_language', 'value'),
+
+    'com.yahoo.finance.stock_quote': rename('com.yahoo.finance.get_stock_quote'),
+    'com.yahoo.finance.stock_div': all(
+        rename('com.yahoo.finance.get_stock_div'),
+        renameParameter('div', 'value'),
+        renameParameter('ex_div_date', 'ex_dividend_date')
+    ),
+
+    'gov.nasa.asteroid': all(
+        renameParameter('dangerous', 'is_dangerous'),
+        renameParameter('closest_distance_to_earth', 'distance')
+    ),
 };
 
 // what has been ported
@@ -240,7 +252,9 @@ const AVAILABLE = new Set(['com.bing',
 'com.washingtonpost',
 'com.wsj',
 'com.xkcd',
+'com.yahoo.finance',
 'com.yandex.translate',
+'gov.nasa',
 'org.thingpedia.builtin.bluetooth.generic',
 'org.thingpedia.builtin.matrix',
 'org.thingpedia.builtin.thingengine',
@@ -308,7 +322,7 @@ function processOneRow(ex) {
                 throw new Error(kind + ' has not been ported');
             let transform = TRANSFORMATIONS[kind + '.' + channel];
             if (transform)
-                transform(inv, json);
+                transform(inv, json, ex);
         }
 
         return Promise.all([
