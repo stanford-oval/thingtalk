@@ -113,7 +113,7 @@ const TRANSFORMATIONS = {
                 operator: '==',
                 type: 'Enum',
                 value: { value: 'started' }
-            }]]
+            }]];
         }
     ),
 
@@ -254,7 +254,15 @@ const TRANSFORMATIONS = {
         renameParameter('body', 'message')
     ),
     'org.thingpedia.builtin.thingengine.phone.send_sms': renameParameter('body', 'message'),
-    'org.thingpedia.builtin.thingengine.phone.gps': rename('org.thingpedia.builtin.thingengine.phone.get_gps')
+    'org.thingpedia.builtin.thingengine.phone.gps': rename('org.thingpedia.builtin.thingengine.phone.get_gps'),
+
+    'com.youtube.source': rename('com.youtube.list_videos'),
+
+    'org.thingpedia.builtin.omlet.newmessage': rename('org.thingpedia.builtin.omlet.messages'),
+    'org.thingpedia.builtin.omlet.incomingmessage': all(
+        rename('org.thingpedia.builtin.omlet.messages'),
+        addParameter('from_me', Ast.Value.Boolean(true))
+    )
 };
 
 // what has been ported
@@ -274,6 +282,7 @@ const AVAILABLE = new Set(['com.bing',
 'com.live.onedrive',
 'com.nest',
 'com.nytimes',
+'com.parklonamerica.heatpad',
 'com.phdcomics',
 'com.reddit.frontpage',
 'com.slack',
@@ -281,15 +290,18 @@ const AVAILABLE = new Set(['com.bing',
 'com.thecatapi',
 'com.tumblr',
 'com.twitter',
+'com.uber',
 'com.washingtonpost',
 'com.wsj',
 'com.xkcd',
 'com.yahoo.finance',
 'com.yandex.translate',
+'com.youtube',
 'gov.nasa',
 'org.thingpedia.icalendar',
 'org.thingpedia.builtin.bluetooth.generic',
 'org.thingpedia.builtin.matrix',
+'org.thingpedia.builtin.omlet',
 'org.thingpedia.builtin.thingengine',
 'org.thingpedia.builtin.thingengine.remote',
 'org.thingpedia.builtin.thingengine.phone',
