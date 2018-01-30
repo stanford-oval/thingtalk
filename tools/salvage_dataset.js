@@ -130,9 +130,41 @@ const TRANSFORMATIONS = {
     'com.phdcomics.new_post': rename('com.phdcomics.get_post'),
 
     'com.twitter.sink': rename('com.twitter.post'),
-    'com.twitter.source': rename('com.twitter.home_timeline'),
-    'com.twitter.my_tweet': rename('com.twitter.my_tweets'),
-    'com.twitter.direct_message': rename('com.twitter.direct_messages'),
+    'com.twitter.source': all(
+        rename('com.twitter.home_timeline'),
+        renameParameter('from', 'author')
+    ),
+    'com.twitter.my_tweet': all(
+        rename('com.twitter.my_tweets'),
+        renameParameter('from', 'author')
+    ),
+    'com.twitter.direct_message': all(
+        rename('com.twitter.direct_messages'),
+        renameParameter('from', 'sender')
+    ),
+    'com.twitter.search': all(
+        renameParameter('from', 'author'),
+        (inv) => {
+            for (let arg of inv.args) {
+                if (arg.name.id === 'tt:param.query') {
+                    arg.name.id = 'tt:param.text';
+                    arg.operator = 'contains';
+                }
+            }
+        }
+    ),
+    'com.twitter.search_by_hashtag': all(
+        rename('com.twitter.search'),
+        renameParameter('from', 'author'),
+        (inv) => {
+            for (let arg of inv.args) {
+                if (arg.name.id === 'tt:param.query_hashtag') {
+                    arg.name.id = 'tt:param.hashtags';
+                    arg.operator = 'has';
+                }
+            }
+        }
+    ),
 
     'com.instagram.new_picture': rename('com.instagram.get_pictures'),
 
