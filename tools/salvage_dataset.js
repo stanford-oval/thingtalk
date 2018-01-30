@@ -262,7 +262,9 @@ const TRANSFORMATIONS = {
     'org.thingpedia.builtin.omlet.incomingmessage': all(
         rename('org.thingpedia.builtin.omlet.messages'),
         addParameter('from_me', Ast.Value.Boolean(true))
-    )
+    ),
+
+    'org.thingpedia.builtin.thingengine.builtin.get_random': rename('org.thingpedia.builtin.thingengine.builtin.get_random_between')
 };
 
 // what has been ported
@@ -303,6 +305,7 @@ const AVAILABLE = new Set(['com.bing',
 'org.thingpedia.builtin.matrix',
 'org.thingpedia.builtin.omlet',
 'org.thingpedia.builtin.thingengine',
+'org.thingpedia.builtin.thingengine.builtin',
 'org.thingpedia.builtin.thingengine.remote',
 'org.thingpedia.builtin.thingengine.phone',
 'org.thingpedia.demo.coffee',
