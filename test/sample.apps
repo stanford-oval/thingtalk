@@ -492,3 +492,9 @@ monitor @xkcd.get_comic() on new [title, number] => notify;
 {
 now => @twitter.sink(status=$event);
 }
+
+====
+// Join with parameter passing
+{
+((monitor @wsj.get()) join @yandex.translate() on (text=$event)) => notify;
+}

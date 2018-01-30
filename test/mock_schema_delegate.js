@@ -277,6 +277,26 @@ module.exports = {
                     is_input: [false, false]
                 }
             }
+        },
+        "yandex": {
+            "queries": {
+                "translate": {
+                    args: ["source_language", "target_language", "text", "translated_text"],
+                    types: ["Entity(tt:iso_lang_code)", "Entity(tt:iso_lang_code)", "String", "String"],
+                    required: [false, true, true, false],
+                    is_input: [true, true, true, false]
+                }
+            }
+        },
+        "wsj": {
+            "queries": {
+                "get": {
+                    args: ["section", "titile", "link", "updated"],
+                    types: ["Enum(opinions,world_news)", "String", "Entity(tt:url)", "Boolean"],
+                    required: [true, false, false, false],
+                    is_input: [true, false, false, false]
+                }
+            }
         }
     },
 
