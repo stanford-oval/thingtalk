@@ -268,71 +268,63 @@ const TRANSFORMATIONS = {
 
     'us.sportradar.nba_team': all(
         rename('us.sportradar.nba'),
-        renameParameter('watched_team_alias', 'team_alias'),
-        renameParameter('other_team_alias', 'opponent_alias'),
+        renameParameter('watched_team_alias', 'team'),
+        renameParameter('other_team_alias', 'opponent'),
         renameParameter('watched_is_home', 'is_home'),
-        renameParameter('away_name', 'opponent_name'),
-        renameParameter('home_name', 'team_name'),
         renameParameter('away_points', 'opponent_score'),
         renameParameter('home_points', 'team_score')
     ),
         'us.sportradar.soccer_eu_team': all(
         rename('us.sportradar.soccer_eu'),
-        renameParameter('watched_team_alias', 'team_alias'),
-        renameParameter('other_team_alias', 'opponent_alias'),
+        renameParameter('watched_team_alias', 'team'),
+        renameParameter('other_team_alias', 'opponent'),
         renameParameter('watched_is_home', 'is_home'),
-        renameParameter('away_name', 'opponent_name'),
-        renameParameter('home_name', 'team_name'),
         renameParameter('away_points', 'opponent_score'),
         renameParameter('home_points', 'team_score')
     ),
         'us.sportradar.soccer_us_team': all(
         rename('us.sportradar.soccer_us'),
-        renameParameter('watched_team_alias', 'team_alias'),
-        renameParameter('other_team_alias', 'opponent_alias'),
+        renameParameter('watched_team_alias', 'team'),
+        renameParameter('other_team_alias', 'opponent'),
         renameParameter('watched_is_home', 'is_home'),
-        renameParameter('away_name', 'opponent_name'),
-        renameParameter('home_name', 'team_name'),
         renameParameter('away_points', 'opponent_score'),
         renameParameter('home_points', 'team_score')
     ),
         'us.sportradar.soccer_eu_tourney': all(
         renameParameter('tournament_search_term', 'tournament'),
+        renameParameter('away_name', 'away_team'),
+        renameParameter('home_name', 'home_team'),
         renameParameter('away_points', 'away_score'),
         renameParameter('home_points', 'home_score')
     ),
         'us.sportradar.soccer_us_tourney': all(
         renameParameter('tournament_search_term', 'tournament'),
+        renameParameter('away_name', 'away_team'),
+        renameParameter('home_name', 'home_team'),
         renameParameter('away_points', 'away_score'),
         renameParameter('home_points', 'home_score')
     ),
         'us.sportradar.mlb_team':all(
         rename('us.sportradar.mlb'),
-        renameParameter('watched_team_abbr', 'team_alias'),
-        renameParameter('other_team_abbr', 'opponent_alias'),
+        renameParameter('watched_team_abbr', 'team'),
+        renameParameter('other_team_abbr', 'opponent'),
         renameParameter('watched_is_home', 'is_home'),
-        renameParameter('away_name', 'opponent_name'),
-        renameParameter('home_name', 'team_name'),
         renameParameter('away_run', 'opponent_run'),
         renameParameter('home_run', 'team_run')
     ),
         'us.sportradar.ncaambb_team': all(
         rename('us.sportradar.ncaambb'),
-        renameParameter('watched_team_alias', 'team_alias'),
-        renameParameter('other_team_alias', 'opponent_alias'),
+        renameParameter('watched_team_alias', 'team'),
+        renameParameter('other_team_alias', 'opponent'),
         renameParameter('watched_is_home', 'is_home'),
-        renameParameter('away_name', 'opponent_name'),
-        renameParameter('home_name', 'team_name'),
         renameParameter('away_points', 'opponent_score'),
         renameParameter('home_points', 'team_score')
     ),
         'us.sportradar.ncaafb_team': all(
         rename('us.sportradar.ncaafb'),
-        renameParameter('watched_team_abbr', 'team_alias'),
-        renameParameter('other_team_abbr', 'opponent_alias'),
+        renameParameter('watched_team_abbr', 'team'),
+        renameParameter('other_team_abbr', 'opponent'),
         renameParameter('watched_is_home', 'is_home'),
-        renameParameter('away_name', 'opponent_name'),
-        renameParameter('home_name', 'team_name'),
         renameParameter('away_points', 'opponent_score'),
         renameParameter('home_points', 'team_score')
     )
