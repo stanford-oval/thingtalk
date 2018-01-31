@@ -4,7 +4,9 @@
 //
 // This file is part of ThingTalk
 //
-// Copyright 2017 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2017 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
@@ -174,7 +176,9 @@ $(() => {
 //
 // This file is part of ThingTalk
 //
-// Copyright 2016 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2016 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
@@ -271,7 +275,9 @@ module.exports = class ThingpediaClientBrowser {
 //
 // This file is part of ThingEngine
 //
-// Copyright 2016 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2016 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 
@@ -323,7 +329,9 @@ module.exports = {
 //
 // This file is part of ThingEngine
 //
-// Copyright 2015-2016 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2015-2016 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
@@ -655,7 +663,9 @@ module.exports.prettyprintFilterExpression = prettyprintFilterExpression;
 //
 // This file is part of ThingEngine
 //
-// Copyright 2015-2016 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2015-2016 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
@@ -898,7 +908,9 @@ module.exports.Queries = {};
 //
 // This file is part of ThingEngine
 //
-// Copyright 2017 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2017 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
@@ -972,7 +984,9 @@ module.exports.Time = Time;
 //
 // This file is part of ThingEngine
 //
-// Copyright 2015-2016 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2015-2016 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
@@ -1397,7 +1411,9 @@ module.exports = class AppCompiler {
 //
 // This file is part of Almond
 //
-// Copyright 2016 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2016 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
@@ -2075,7 +2091,9 @@ module.exports = {
 //
 // This file is part of ThingEngine
 //
-// Copyright 2017 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2017 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
@@ -2097,7 +2115,9 @@ module.exports = {
 //
 // This file is part of ThingEngine
 //
-// Copyright 2015 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2015 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
@@ -2154,7 +2174,9 @@ module.exports = class ExecEnvironment {
 //
 // This file is part of ThingTalk
 //
-// Copyright 2017 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2017 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
@@ -2402,7 +2424,9 @@ module.exports = class Formatter {
 //
 // This file is part of ThingEngine
 //
-// Copyright 2016 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2016 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
@@ -3168,7 +3192,9 @@ module.exports = {
 //
 // This file is part of ThingEngine
 //
-// Copyright 2016 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2016 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
@@ -3333,7 +3359,9 @@ module.exports = genValueList;
 //
 // This file is part of Almond
 //
-// Copyright 2016 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2016 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
@@ -11315,7 +11343,9 @@ module.exports = (function() {
 //
 // This file is part of ThingTalk
 //
-// Copyright 2017 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2017 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
@@ -11346,7 +11376,9 @@ module.exports = {
 //
 // This file is part of ThingEngine
 //
-// Copyright 2015-2016 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2015-2016 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
@@ -11467,7 +11499,9 @@ exports.transformToBaseUnit = function(value, unit) {
 //
 // This file is part of ThingEngine
 //
-// Copyright 2015-2016 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2015-2016 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
@@ -11860,7 +11894,9 @@ module.exports = {
 //
 // This file is part of Almond
 //
-// Copyright 2016 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2016 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
@@ -11998,7 +12034,9 @@ module.exports = {
 //
 // This file is part of ThingTalk
 //
-// Copyright 2017 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2017 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
@@ -13215,7 +13253,9 @@ module.exports = class PermissionChecker {
 //
 // This file is part of ThingEngine
 //
-// Copyright 2015-2016 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2015-2016 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
@@ -13427,7 +13467,9 @@ module.exports = {
 //
 // This file is part of ThingEngine
 //
-// Copyright 2015 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2015 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
@@ -13581,7 +13623,9 @@ module.exports = class SchemaRetriever {
 //
 // This file is part of ThingTalk
 //
-// Copyright 2015-2017 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2015-2017 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
@@ -14251,7 +14295,9 @@ module.exports.toSEMPRE = toSEMPRE;
 //
 // This file is part of ThingEngine
 //
-// Copyright 2015-2016 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2015-2016 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
@@ -14385,7 +14431,9 @@ module.exports.isAssignable = function isAssignable(type, assignableTo, typeScop
 //
 // This file is part of ThingEngine
 //
-// Copyright 2015-2016 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2015-2016 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
@@ -14644,7 +14692,9 @@ module.exports = {
 //
 // This file is part of ThingEngine
 //
-// Copyright 2015-2016 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2015-2016 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
@@ -17465,7 +17515,9 @@ return Q;
 },{"_process":236}],30:[function(require,module,exports){
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// Copyright 2017 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2017 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See LICENSE for details
 "use strict";
@@ -17478,7 +17530,9 @@ module.exports.LocalCVC4Solver = require('./lib/local_cvc4');
 },{"./lib/base_solver":31,"./lib/local_cvc4":32,"./lib/smtlib":33}],31:[function(require,module,exports){
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// Copyright 2017 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2017 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See LICENSE for details
 "use strict";
@@ -17534,7 +17588,9 @@ module.exports = class BaseSmtSolver {
 },{"./smtlib":33}],32:[function(require,module,exports){
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// Copyright 2017 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2017 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See LICENSE for details
 "use strict";
@@ -17637,7 +17693,9 @@ module.exports = class LocalCVC4Solver extends BaseSolver {
 },{"./base_solver":31,"./smtlib":33,"byline":28,"child_process":34}],33:[function(require,module,exports){
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// Copyright 2017 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2017 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See LICENSE for details
 "use strict";
