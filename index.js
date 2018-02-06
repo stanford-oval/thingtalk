@@ -19,6 +19,7 @@ const Generate = require('./lib/generate');
 const Describe = require('./lib/describe');
 const Formatter = require('./lib/formatter');
 const PermissionChecker = require('./lib/permission_checker');
+const Units = require('./lib/internal');
 
 let { genRandomRules, genRandomPermissionRule } = require('./lib/gen_random_rule');
 Generate.genRandomRules = genRandomRules;
@@ -46,7 +47,7 @@ module.exports = {
     SEMPRESyntax: SEMPRESyntax,
     Formatter: Formatter,
     PermissionChecker: PermissionChecker,
-
+    Units: Units,
     Location: builtin_values.Location,
     Entity: builtin_values.Entity,
     Time: builtin_values.Time,
