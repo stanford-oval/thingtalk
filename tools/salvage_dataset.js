@@ -79,6 +79,45 @@ function all(...transformations) {
     };
 }
 
+function replaceNumberWithCurrency(params) {
+    function isToChange(arg) {
+        for (let toChange of params) {
+            if (arg.name.id === 'tt:param.' + toChange)
+                return true;
+        }
+        return false;
+    }
+    
+    return function(inv) {
+        for (let arg of inv.args) {
+            if (isToChange(arg)) {
+                arg.type = 'Currency';
+                arg.value = { value: arg.value.value, unit: 'usd' };
+            }
+        }
+        if (inv.predicate) {
+            for (let andclause of inv.predicate) {
+                for (let orclause of andclause) {
+                    if (isToChange(orclause)) {
+                        orclause.type = 'Currency';
+                        orclause.value = { value: orclause.value.value, unit: 'usd' };
+                    }
+                }
+            }
+        }
+        if (inv.edge_predicate) {
+            for (let andclause of inv.edge_predicate) {
+                for (let orclause of andclause) {
+                    if (isToChange(orclause)) {
+                        orclause.type = 'Currency';
+                        orclause.value = { value: orclause.value.value, unit: 'usd' };
+                    }
+                }
+            }
+        }
+    }
+}
+
 // What to apply, and where
 const TRANSFORMATIONS = {
     // new_drive_file -> monitor [file_name] of @list_drive_files()
@@ -262,11 +301,16 @@ const TRANSFORMATIONS = {
 
     'com.yandex.translate.detect_language': renameParameter('detected_language', 'value'),
 
-    'com.yahoo.finance.stock_quote': rename('com.yahoo.finance.get_stock_quote'),
+    'com.yahoo.finance.stock_quote': all(
+        rename('com.yahoo.finance.get_stock_quote'),
+        replaceNumberWithCurrency(['ask_price', 'bid_price'])
+    ),
+    'com.yahoo.finance.get_stock_quote': replaceNumberWithCurrency(['ask_price', 'bid_price']),
     'com.yahoo.finance.stock_div': all(
         rename('com.yahoo.finance.get_stock_div'),
         renameParameter('div', 'value'),
-        renameParameter('ex_div_date', 'ex_dividend_date')
+        renameParameter('ex_div_date', 'ex_dividend_date'),
+        replaceNumberWithCurrency(['value'])
     ),
 
     'gov.nasa.asteroid': all(
@@ -295,7 +339,7 @@ const TRANSFORMATIONS = {
     'org.thingpedia.builtin.omlet.newmessage': rename('org.thingpedia.builtin.omlet.messages'),
     'org.thingpedia.builtin.omlet.incomingmessage': all(
         rename('org.thingpedia.builtin.omlet.messages'),
-        addParameter('from_me', Ast.Value.Boolean(true))
+        addParameter('from_me', Ast.Value.Boolean(false))
     ),
 
     'org.thingpedia.builtin.thingengine.builtin.get_random': rename('org.thingpedia.builtin.thingengine.builtin.get_random_between'),
@@ -354,14 +398,16 @@ const TRANSFORMATIONS = {
         renameParameter('away_points', 'opponent_score'),
         renameParameter('home_points', 'team_score')
     ),
-        'us.sportradar.ncaafb_team': all(
+    'us.sportradar.ncaafb_team': all(
         rename('us.sportradar.ncaafb'),
         renameParameter('watched_team_abbr', 'team'),
         renameParameter('other_team_abbr', 'opponent'),
         renameParameter('watched_is_home', 'is_home'),
         renameParameter('away_points', 'opponent_score'),
         renameParameter('home_points', 'team_score')
-    )
+    ),
+            
+    'com.uber.price_estimate': replaceNumberWithCurrency(['low_estimate', 'high_estimate'])
 };
 
 // what has been ported
