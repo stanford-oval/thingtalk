@@ -498,3 +498,10 @@ now => @twitter.sink(status=$event);
 {
 ((monitor @wsj.get()) join @yandex.translate() on (text=$event)) => notify;
 }
+
+====
+// Currencies
+{
+now => @uber.get_price_estimate(start=$context.location.home,end=$context.location.work) => notify;
+now => @uber.get_price_estimate(start=$context.location.home,end=$context.location.work), estimate >= makeCurrency(50,usd) => notify;
+}

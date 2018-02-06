@@ -122,7 +122,11 @@ const TEST_CASES = [
 
     ['monitor ( ( @com.phdcomics.get_post ) filter not param:title =~ QUOTED_STRING_0 ) => notify',
     {QUOTED_STRING_0: 'abc'},
-    `monitor ((@com.phdcomics.get_post()), !(title =~ "abc")) => notify;`]
+    `monitor ((@com.phdcomics.get_post()), !(title =~ "abc")) => notify;`],
+
+    ['now => ( @uber.get_price_estimate param:end = location:home param:start = location:work ) filter param:estimate >= CURRENCY_0 => notify',
+    {CURRENCY_0: { value: 50, unit: 'usd' } },
+    `now => (@uber.get_price_estimate(end=$context.location.home, start=$context.location.work)), estimate >= makeCurrency(50, usd) => notify;`]
 ];
 
 function testCase(test, i) {

@@ -297,6 +297,16 @@ module.exports = {
                     is_input: [true, false, false, false]
                 }
             }
+        },
+        "uber": {
+            "queries": {
+                "get_price_estimate": {
+                    args: ["start", "end", "estimate"],
+                    types: ["Location","Location","Currency"],
+                    required: [true,true,false],
+                    is_input: [true,true,false]
+                }
+            }
         }
     },
 
