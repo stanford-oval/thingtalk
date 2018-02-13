@@ -87,7 +87,7 @@ function replaceNumberWithCurrency(params) {
         }
         return false;
     }
-    
+
     return function(inv) {
         for (let arg of inv.args) {
             if (isToChange(arg)) {
@@ -251,10 +251,9 @@ const TRANSFORMATIONS = {
         }
     ),
 
-    'security-camera.new_event': all(
-        rename('security-camera.current_event'),
-        renameParameter('picture_url', 'event_picture')
-    ),
+    'security-camera.new_event': rename('security-camera.current_event'),
+    'security-camera.get_snapshot': rename('security-camera.current_event'),
+    'security-camera.get_url': rename('security-camera.current_event'),
 
     'thermostat.temperature': rename('thermostat.get_temperature'),
     'thermostat.humidity': rename('thermostat.get_humidity'),
@@ -406,8 +405,10 @@ const TRANSFORMATIONS = {
         renameParameter('away_points', 'opponent_score'),
         renameParameter('home_points', 'team_score')
     ),
-            
-    'com.uber.price_estimate': replaceNumberWithCurrency(['low_estimate', 'high_estimate'])
+
+    'com.uber.price_estimate': replaceNumberWithCurrency(['low_estimate', 'high_estimate']),
+
+    'org.thingpedia.builtin.thingengine.phone.notify': rename('org.thingpedia.builtin.thingengine.builtin.say')
 };
 
 // what has been ported
