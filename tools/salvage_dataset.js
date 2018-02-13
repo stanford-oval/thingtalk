@@ -16,8 +16,8 @@ const SchemaRetriever = require('../lib/schema');
 const SEMPRESyntax = require('../lib/sempre_syntax');
 const NNSyntax = require('../lib/nn_syntax');
 const Ast = require('../lib/ast');
+const TokenizerService = require('../lib/tokenizer_service');
 
-const TokenizerService = require('../test/tokenizer_service');
 const ThingpediaClientHttp = require('../test/http_client');
 const db = require('../test/db');
 
