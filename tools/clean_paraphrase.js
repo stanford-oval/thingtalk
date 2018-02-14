@@ -7,7 +7,8 @@ const csv = require('csv');
 const Grammar = require('../lib/grammar_api');
 const Ast = require('../lib/ast');
 
-var counter = {
+const aggressive = false;
+const counter = {
     'no_idea': 0,
     'string': 0,
     'number/measure/currency': 0,
@@ -16,7 +17,8 @@ var counter = {
     'email/path': 0,
     'hashtag': 0,
     'phone_number': 0
-}
+};
+
 
 /**
  * approve/reject automatically based on the number of rejected paraphrases (>= 3)
@@ -79,7 +81,6 @@ function mark_paraphrase(raw, marked) {
     });
 }
 
-
 function clean_paraphrase(formatted, cleaned) {
     let count = 0;
     formatted.on('data', (row) => {
@@ -123,7 +124,7 @@ class Paraphrase {
         };
     }
 
-    clean(){
+    clean() {
         this.paraphrase = this.paraphrase.replace('""', '"');
         this.paraphrase = this.paraphrase.replace('http:///', 'http://');
         this.paraphrase = this.paraphrase.replace('“', '"')
@@ -171,8 +172,8 @@ class Paraphrase {
                     let index = this.paraphrase.indexOf(arg.value);
                     let len = arg.value.toString().length;
                     if (index === -1 ||
-                        (index !== 0 && this.paraphrase[index - 1] !== ' ') ||
-                        (index !== this.paraphrase.length - len && this.paraphrase[index + len] !== ' ')) {
+                        (aggressive && index !== 0 && this.paraphrase[index - 1] !== ' ') ||
+                        (aggressive && index !== this.paraphrase.length - len && this.paraphrase[index + len] !== ' ')) {
                         counter['number/measure/currency'] += 1;
                         return false;
                     }
@@ -200,8 +201,8 @@ class Paraphrase {
                     }
                 }
                 if (arg.type === 'tt:url') {
-                    if (this.paraphrase.indexOf(arg.value) === -1 &&
-                        this.paraphrase.indexOf(arg.value.substring('http://'.length)) === -1) {
+                    if (this.paraphrase.indexOf(arg.value.substring('http://'.length)) === -1) {
+                        counter['url'] += 1;
                         return false;
                     }
                 }
