@@ -31,6 +31,7 @@ let { typeCheckProgram, typeCheckPermissionRule } = require('./lib/typecheck');
 Generate.typeCheckProgram = typeCheckProgram;
 Generate.typeCheckPermissionRule = typeCheckPermissionRule;
 const SEMPRESyntax = require('./lib/sempre_syntax');
+const TokenizerService = require('./lib/tokenizer_service');
 
 const builtin = require('./lib/builtin');
 
@@ -47,6 +48,7 @@ module.exports = {
     NNSyntax: NNSyntax,
     Formatter: Formatter,
     PermissionChecker: PermissionChecker,
+    TokenizerService: TokenizerService,
 
     Location: builtin.Location,
     Entity: builtin.Entity,

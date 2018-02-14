@@ -307,7 +307,31 @@ module.exports = {
                     is_input: [true,true,false]
                 }
             }
-        }
+        },
+        "com.live.onedrive": {
+            "triggers": {},
+            "actions": {},
+            "queries": {
+                "list_files": {
+                    args: ["file_name", "description"],
+                    types: ["Entity(tt:path_name)", "String"],
+                    required: [false, false],
+                    is_input: [false, false]
+                }
+            }
+        },
+        "com.bing": {
+            "triggers": {},
+            "actions": {},
+            "queries": {
+                "web_search": {
+                    args: ["query", "title", "description"],
+                    types: ["String", "String", "String"],
+                    required: [true, false, false],
+                    is_input: [true, false, false]
+                }
+            }
+        },
     },
 
     getSchemas: function() {

@@ -310,7 +310,7 @@ now => aggregate count of Q1 => notify;
 ====
 
 // LogQueryCountParamPassingTest
-now => aggregate count str1 of Q1 join @xkcd.get_comic(number=count) => notify;
+now => aggregate count str1 of Q1 join @xkcd.get_comic() on (number=count) => notify;
 
 ====
 
@@ -504,4 +504,15 @@ now => @twitter.sink(status=$event);
 {
 now => @uber.get_price_estimate(start=$context.location.home,end=$context.location.work) => notify;
 now => @uber.get_price_estimate(start=$context.location.home,end=$context.location.work), estimate >= makeCurrency(50,usd) => notify;
+}
+
+====
+
+{
+now => (@com.live.onedrive.list_files() join @com.bing.web_search() on (query=description)) => notify;
+(monitor (@com.live.onedrive.list_files())) join @com.bing.web_search() on (query=description) => notify;
+now => (@com.live.onedrive.list_files() join @com.bing.web_search() on (query=description)) => @twitter.sink(status=title);
+(monitor (@com.live.onedrive.list_files())) join @com.bing.web_search() on (query=description) => @twitter.sink(status=title);
+now => (@com.live.onedrive.list_files() join @com.bing.web_search() on (query=description)) => @twitter.sink(status=description);
+(monitor (@com.live.onedrive.list_files())) join @com.bing.web_search() on (query=description) => @twitter.sink(status=description);
 }

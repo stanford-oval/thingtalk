@@ -16,8 +16,8 @@ const SchemaRetriever = require('../lib/schema');
 const SEMPRESyntax = require('../lib/sempre_syntax');
 const NNSyntax = require('../lib/nn_syntax');
 const Ast = require('../lib/ast');
+const TokenizerService = require('../lib/tokenizer_service');
 
-const TokenizerService = require('../test/tokenizer_service');
 const ThingpediaClientHttp = require('../test/http_client');
 const db = require('../test/db');
 
@@ -87,7 +87,7 @@ function replaceNumberWithCurrency(params) {
         }
         return false;
     }
-    
+
     return function(inv) {
         for (let arg of inv.args) {
             if (isToChange(arg)) {
@@ -251,10 +251,9 @@ const TRANSFORMATIONS = {
         }
     ),
 
-    'security-camera.new_event': all(
-        rename('security-camera.current_event'),
-        renameParameter('picture_url', 'event_picture')
-    ),
+    'security-camera.new_event': rename('security-camera.current_event'),
+    'security-camera.get_snapshot': rename('security-camera.current_event'),
+    'security-camera.get_url': rename('security-camera.current_event'),
 
     'thermostat.temperature': rename('thermostat.get_temperature'),
     'thermostat.humidity': rename('thermostat.get_humidity'),
@@ -387,8 +386,8 @@ const TRANSFORMATIONS = {
         renameParameter('watched_team_abbr', 'team'),
         renameParameter('other_team_abbr', 'opponent'),
         renameParameter('watched_is_home', 'is_home'),
-        renameParameter('away_run', 'opponent_run'),
-        renameParameter('home_run', 'team_run')
+        renameParameter('away_runs', 'opponent_runs'),
+        renameParameter('home_runs', 'team_runs')
     ),
         'us.sportradar.ncaambb_team': all(
         rename('us.sportradar.ncaambb'),
@@ -406,8 +405,10 @@ const TRANSFORMATIONS = {
         renameParameter('away_points', 'opponent_score'),
         renameParameter('home_points', 'team_score')
     ),
-            
-    'com.uber.price_estimate': replaceNumberWithCurrency(['low_estimate', 'high_estimate'])
+
+    'com.uber.price_estimate': replaceNumberWithCurrency(['low_estimate', 'high_estimate']),
+
+    'org.thingpedia.builtin.thingengine.phone.notify': rename('org.thingpedia.builtin.thingengine.builtin.say')
 };
 
 // what has been ported
@@ -443,7 +444,9 @@ const AVAILABLE = new Set(['com.bing',
 'com.yandex.translate',
 'com.youtube',
 'gov.nasa',
+'edu.stanford.rakeshr1.fitbit',
 'org.thingpedia.icalendar',
+'org.thingpedia.bluetooth.speaker.a2dp',
 'org.thingpedia.builtin.bluetooth.generic',
 'org.thingpedia.builtin.matrix',
 'org.thingpedia.builtin.omlet',
@@ -455,6 +458,7 @@ const AVAILABLE = new Set(['com.bing',
 'org.thingpedia.rss',
 'org.thingpedia.weather',
 'uk.co.thedogapi',
+//'us.sportradar',
 'car',
 'light-bulb',
 'security-camera',
@@ -508,7 +512,7 @@ function handleSelector(sel) {
     return [match[1], match[2]];
 }
 
-function processOneRow(ex) {
+function processOneRow(dbClient, ex) {
     return Promise.resolve().then(() => {
         let json = JSON.parse(ex.target_json);
         for (let inv of forEachInvocation(json)) {
@@ -535,7 +539,9 @@ function processOneRow(ex) {
         // try to convert this back into the program, for shits and giggles
         NNSyntax.fromNN(nnprogram, entities);
 
-        console.log(ex.id + '\t' + tokens.join(' ') + '\t' + nnprogram.join(' '));
+        //console.log(ex.id + '\t' + tokens.join(' ') + '\t' + nnprogram.join(' '));
+        return dbClient.query('update example_utterances set target_code = ?, preprocessed = ? where id = ?',
+            [nnprogram.join(' '), tokens.join(' '), ex.id]);
     }).catch((e) => {
         if (e.message === 'Not a ThingTalk program' || e.message === 'Principals are not implemented')
             return;
@@ -560,9 +566,10 @@ function batchLoop(array, batchSize, f) {
 function main() {
     const types = process.argv[3].split(',');
 
-    db.withClient((dbClient) =>
-        db.selectAll(dbClient, `select * from example_utterances where type in (?) and language = ?`, [types, language])
-    ).then((rows) => batchLoop(rows, 100, processOneRow))
+    db.withTransaction((dbClient) => {
+        return db.selectAll(dbClient, `select * from example_utterances where type in (?) and language = ? and target_code = ''`, [types, language])
+            .then((rows) => batchLoop(rows, 100, (row) => processOneRow(dbClient, row)));
+    })
     .then(() => process.exit()).done();
 }
 main();
