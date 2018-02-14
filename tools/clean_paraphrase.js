@@ -18,9 +18,71 @@ var counter = {
     'phone_number': 0
 }
 
-function clean_paraphrase(raw, cleaned) {
+/**
+ * approve/reject automatically based on the number of rejected paraphrases (>= 3)
+ * because of the heursitics adopted, this is kind of aggressive, currently still eyeball the result first
+ * before we reject
+ */
+function mark_paraphrase(raw, marked) {
     let count = 0;
+    let reject_count = 0
+    let idx_accept, idx_reject;
+    let idx_id = [];
+    let idx_thingtalk = [];
+    let idx_synthetic = [];
+    let idx_paraphrases = [];
     raw.on('data', (row) => {
+        count += 1;
+        if (count === 1) {
+            idx_accept = row.indexOf('Approve');
+            idx_reject = row.indexOf('Reject');
+            for (let i = 1; i < 5; i ++ ) {
+                idx_id.push(row.indexOf('Input.id' + i));
+                idx_thingtalk.push(row.indexOf('Input.thingtalk' + i));
+                idx_synthetic.push(row.indexOf('Input.sentence' + i));
+                idx_paraphrases.push([row.indexOf(`Answer.Paraphrase${i}-1`), 
+                                      row.indexOf(`Answer.Paraphrase${i}-2`)])
+            }
+            return; 
+        }
+            
+        let rejected = [];
+        for (let i = 0; i < 4; i ++) {
+            for (let j = 0; j < 2; j ++) {
+                let paraphrase = new Paraphrase(
+                    row[idx_id[i]],
+                    row[idx_thingtalk[i]],
+                    row[idx_synthetic[i]],
+                    row[idx_paraphrases[i][j]]
+                );
+                paraphrase.clean();
+                if (!paraphrase.isValid()) 
+                    rejected.push(paraphrase);
+            }
+        }
+        if (rejected.length >= 3) {
+            reject_count += 1;
+            console.log(`\n${row[0]}: failed in ${rejected.length} paraphrases:`);
+            rejected.forEach((p) => {
+                console.log(p.paraphrase);
+            })
+            row[idx_reject] = 'Failed to give reasonable result or failed to follow the instruction in at least 3 of 8 paraphrases'
+        } else {
+            row[idx_accept] = 'x';
+        }
+        marked.write(row);
+    }).on('end', () => {
+        console.log(reject_count);
+        marked.end();
+    }).on('error', (err) => {
+        console.error(err);
+    });
+}
+
+
+function clean_paraphrase(formatted, cleaned) {
+    let count = 0;
+    formatted.on('data', (row) => {
         count += 1;
         if (count === 1) return; // skip headers
         let pid, thingtalk, synthetic;
@@ -42,6 +104,7 @@ function clean_paraphrase(raw, cleaned) {
     });
 }
 
+
 class Paraphrase {
     constructor(pid, thingtalk, synthetic, paraphrase) {
         this.pid = pid;
@@ -62,6 +125,9 @@ class Paraphrase {
 
     clean(){
         this.paraphrase = this.paraphrase.replace('""', '"');
+        this.paraphrase = this.paraphrase.replace('http:///', 'http://');
+        this.paraphrase = this.paraphrase.replace('“', '"')
+        this.paraphrase = this.paraphrase.replace('”', '"')
     }
 
     isValid() {
@@ -107,7 +173,6 @@ class Paraphrase {
                     if (index === -1 ||
                         (index !== 0 && this.paraphrase[index - 1] !== ' ') ||
                         (index !== this.paraphrase.length - len && this.paraphrase[index + len] !== ' ')) {
-                        //console.log(arg.value, len, index, this.paraphrase);
                         counter['number/measure/currency'] += 1;
                         return false;
                     }
@@ -178,20 +243,26 @@ class Paraphrase {
 }
 
 
-
-
 function main() {
-    //const raw = '/home/silei/Workspace/mturk/acl18/batch_3/paraphrase_out_formatted.csv'
+    //const formatted = '/home/silei/Workspace/mturk/acl18/batch_3/paraphrase_out_formatted.csv'
     //const cleaned = '/home/silei/Workspace/mturk/acl18/batch_3/paraphrase_out_cleaned.tsv'
-    const raw = process.argv[2];
-    const cleaned = process.argv[3]
-
+    const task = process.argv[2];
     const parser = csv.parse();
-    const input = fs.createReadStream(raw).pipe(parser);
-    const output = csv.stringify({ header: true, delimiter: '\t' });
-    output.pipe(fs.createWriteStream(cleaned));
-
-    clean_paraphrase(input, output);
+    if (task === 'clean') {
+        const formatted = process.argv[3];
+        const cleaned = process.argv[4]
+        const input = fs.createReadStream(formatted).pipe(parser);
+        const output = csv.stringify({ header: true, delimiter: '\t' });
+        output.pipe(fs.createWriteStream(cleaned));
+        clean_paraphrase(input, output);
+    } else if (task === 'mark') {
+        const raw = process.argv[3];
+        const marked = process.argv[4];
+        const input = fs.createReadStream(raw).pipe(parser);
+        const output = csv.stringify({ header: true, delimiter: ','});
+        output.pipe(fs.createWriteStream(marked));
+        mark_paraphrase(input, output);
+    }
 }
 
 
