@@ -142,7 +142,11 @@ const TEST_CASES = [
 
     ['now => ( @com.uber.price_estimate ) filter param:uber_type:Enum(pool,uber_x,uber_xl,uber_black,select,suv,assist) == enum:uber_x => notify',
     {},
-    `now => (@com.uber.price_estimate()), uber_type == enum(uber_x) => notify;`]
+    `now => (@com.uber.price_estimate()), uber_type == enum(uber_x) => notify;`],
+
+    ['now => @org.thingpedia.builtin.thingengine.builtin.configure param:device:Entity(tt:device) = device:com.google',
+    {},
+    `now => @org.thingpedia.builtin.thingengine.builtin.configure(device="com.google"^^tt:device);`]
 ];
 
 function testCase(test, i) {
