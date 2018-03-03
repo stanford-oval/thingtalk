@@ -146,7 +146,15 @@ const TEST_CASES = [
 
     ['now => @org.thingpedia.builtin.thingengine.builtin.configure param:device:Entity(tt:device) = device:com.google',
     {},
-    `now => @org.thingpedia.builtin.thingengine.builtin.configure(device="com.google"^^tt:device);`]
+    `now => @org.thingpedia.builtin.thingengine.builtin.configure(device="com.google"^^tt:device);`],
+
+    [`now => @com.xkcd.get_comic param:number:Number = SLOT_0 => notify`,
+     {'SLOT_0': Ast.Value.Number(1234)},
+     `now => @com.xkcd.get_comic(number=1234) => notify;`],
+
+    [`now => @com.xkcd.get_comic param:number:Number = SLOT_0 => notify`,
+     {'SLOT_0': undefined},
+     `now => @com.xkcd.get_comic(number=$undefined) => notify;`],
 ];
 
 function testCase(test, i) {
