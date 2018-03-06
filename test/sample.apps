@@ -516,3 +516,15 @@ now => (@com.live.onedrive.list_files() join @com.bing.web_search() on (query=de
 now => (@com.live.onedrive.list_files() join @com.bing.web_search() on (query=description)) => @twitter.sink(status=description);
 (monitor (@com.live.onedrive.list_files())) join @com.bing.web_search() on (query=description) => @twitter.sink(status=description);
 }
+
+====
+// Bug 1
+{
+   now => @yandex.translate(target_language="it"^^tt:iso_lang_code("Italian")) => notify;
+}
+
+====
+// Bug 2
+{
+now => @twitter.my_tweets() join @com.bing.web_search() on (query=text) => notify ;
+}

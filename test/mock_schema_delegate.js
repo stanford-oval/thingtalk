@@ -157,6 +157,12 @@ module.exports = {
                     types: ["String", "String","Array(String)","Array(String)","String","String"],
                     required: [true, false,false,false,false,false],
                     is_input: [true, false,false,false,false,false],
+                },
+                "my_tweets": {
+                    args: ["text", "hashtags", "urls", "in_reply_to", "tweet_id"],
+                    types: ["String", "Array(Hashtag)", "Array(URL)", "Username", "String"],
+                    required: [false, false, false, false, false],
+                    is_input: [false, false, false, false, false]
                 }
             }
         },
