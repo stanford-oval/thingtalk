@@ -21,6 +21,7 @@ const TEST_CASES = [
   let _t_5;
   let _t_6;
   let _t_7;
+  let _t_8;
   try {
     _t_0 = {};
     _t_1 = yield env.invokeMonitor(0, _t_0, false);
@@ -31,11 +32,12 @@ const TEST_CASES = [
         _t_3 = _t_2[0];
         _t_4 = _t_2[1];
         _t_5 = _t_2[2];
+        _t_6 = _t_5.value;
         try {
-          _t_6 = {};
-          _t_7 = "Test App received an event on Test Channel";
-          _t_6.message = _t_7;
-          yield env.invokeAction(1, _t_6);
+          _t_7 = {};
+          _t_8 = "Test App received an event on Test Channel";
+          _t_7.message = _t_8;
+          yield env.invokeAction(1, _t_7);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
@@ -159,6 +161,7 @@ const TEST_CASES = [
   let _t_4;
   let _t_5;
   let _t_6;
+  let _t_7;
   try {
     _t_0 = {};
     _t_1 = new __builtin.Location(1, 3, "Somewhere");
@@ -171,8 +174,9 @@ const TEST_CASES = [
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
         _t_6 = _t_3[2];
+        _t_7 = _t_6.temperature;
         try {
-          yield env.output(String(_t_4), _t_6, _t_5);
+          yield env.output(String(_t_undefined), _t_undefined, _t_undefined);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
@@ -192,6 +196,7 @@ const TEST_CASES = [
   let _t_4;
   let _t_5;
   let _t_6;
+  let _t_7;
   try {
     _t_0 = {};
     _t_1 = new __builtin.Location(1, 3, null);
@@ -204,8 +209,9 @@ const TEST_CASES = [
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
         _t_6 = _t_3[2];
+        _t_7 = _t_6.temperature;
         try {
-          yield env.output(String(_t_4), _t_6, _t_5);
+          yield env.output(String(_t_undefined), _t_undefined, _t_undefined);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
@@ -239,7 +245,8 @@ const TEST_CASES = [
     env.reportError("Failed to invoke at-timer", _exc_);
   }`]],
 
-    [`now => @youtube.search_videos(query="lol"), video_url == "http://www.youtube.com"^^tt:url =>  notify;`, [`"use strict";
+    [`now => @youtube.search_videos(query="lol"), video_url == "http://www.youtube.com"^^tt:url =>  notify;`,
+     [`"use strict";
   let _t_0;
   let _t_1;
   let _t_2;
@@ -250,40 +257,32 @@ const TEST_CASES = [
   let _t_7;
   let _t_8;
   let _t_9;
-  let _t_10;
-  let _t_11;
   try {
-    _t_0 = new Array(2);
-    _t_1 = "lol";
-    _t_0[0] = _t_1;
-    _t_2 = yield env.invokeQuery(0, _t_0);
-    _t_3 = _t_2[Symbol.iterator]();
+    _t_0 = {};
+    _t_1 = yield env.invokeMonitor(0, _t_0, false);
     {
-      let _iter_tmp = yield _t_3.next();
+      let _iter_tmp = yield _t_1.next();
       while (!_iter_tmp.done) {
-        _t_4 = _iter_tmp.value;
-        _t_5 = _t_4[0];
-        _t_6 = _t_4[1];
-        _t_7 = _t_4[2];
-        _t_9 = _t_7[1];
-        _t_10 = new __builtin.Entity("http://www.youtube.com", null);
-        _t_8 = __builtin.equality(_t_9, _t_10);
-        if (_t_8) {
-          _t_11 = new Array(0);
-          yield env.save("auto+youtube:search_videos:", {}, _t_11);
-          try {
-            yield env.output(String(_t_5), _t_7, _t_6);
-          } catch(_exc_) {
-            env.reportError("Failed to invoke action", _exc_);
-          }
-        } else {
-
+        _t_2 = _iter_tmp.value;
+        _t_3 = _t_2[0];
+        _t_4 = _t_2[1];
+        _t_5 = _t_2[2];
+        _t_6 = _t_5.title;
+        _t_7 = _t_5.link;
+        _t_8 = _t_5.picture_url;
+        try {
+          _t_9 = {};
+          _t_9.caption = _t_6;
+          _t_9.picture_url = _t_8;
+          yield env.invokeAction(1, _t_9);
+        } catch(_exc_) {
+          env.reportError("Failed to invoke action", _exc_);
         }
-        _iter_tmp = yield _t_3.next();
+        _iter_tmp = yield _t_1.next();
       }
     }
   } catch(_exc_) {
-    env.reportError("Failed to invoke query", _exc_);
+    env.reportError("Failed to invoke trigger", _exc_);
   }`]],
 
     [`monitor @xkcd(id="com.xkcd-6").get_comic() => @twitter(id="twitter-foo").post_picture(caption=title, picture_url=picture_url);`,
@@ -423,6 +422,12 @@ const TEST_CASES = [
   let _t_5;
   let _t_6;
   let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
   try {
     _t_0 = {};
     _t_1 = yield env.invokeMonitor(0, _t_0, false);
@@ -433,11 +438,17 @@ const TEST_CASES = [
         _t_3 = _t_2[0];
         _t_4 = _t_2[1];
         _t_5 = _t_2[2];
+        _t_6 = _t_5.text;
+        _t_7 = _t_5.hashtags;
+        _t_8 = _t_5.urls;
+        _t_9 = _t_5.from;
+        _t_10 = _t_5.inReplyTo;
+        _t_11 = _t_5.__reserved;
         try {
-          _t_6 = {};
-          _t_7 = yield env.formatEvent(_t_4, _t_3, _t_5, "string-title");
-          _t_6.message = _t_7;
-          yield env.invokeAction(1, _t_6);
+          _t_12 = {};
+          _t_13 = yield env.formatEvent(_t_undefined, _t_undefined, _t_undefined, "string-title");
+          _t_12.message = _t_13;
+          yield env.invokeAction(1, _t_12);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
@@ -458,6 +469,12 @@ const TEST_CASES = [
   let _t_5;
   let _t_6;
   let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
   try {
     _t_0 = {};
     _t_1 = yield env.invokeMonitor(0, _t_0, false);
@@ -468,11 +485,17 @@ const TEST_CASES = [
         _t_3 = _t_2[0];
         _t_4 = _t_2[1];
         _t_5 = _t_2[2];
+        _t_6 = _t_5.text;
+        _t_7 = _t_5.hashtags;
+        _t_8 = _t_5.urls;
+        _t_9 = _t_5.from;
+        _t_10 = _t_5.inReplyTo;
+        _t_11 = _t_5.__reserved;
         try {
-          _t_6 = {};
-          _t_7 = String (_t_3);
-          _t_6.message = _t_7;
-          yield env.invokeAction(1, _t_6);
+          _t_12 = {};
+          _t_13 = String (_t_undefined);
+          _t_12.message = _t_13;
+          yield env.invokeAction(1, _t_12);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
@@ -496,26 +519,22 @@ const TEST_CASES = [
   let _t_9;
   let _t_10;
   try {
-    _t_0 = new Array(3);
-    _t_1 = yield env.invokeTrigger(0, _t_0, false);
+    _t_0 = {};
+    _t_1 = yield env.invokeMonitor(0, _t_0, false);
     {
       let _iter_tmp = yield _t_1.next();
       while (!_iter_tmp.done) {
         _t_2 = _iter_tmp.value;
-        env.clearGetCache();
         _t_3 = _t_2[0];
         _t_4 = _t_2[1];
         _t_5 = _t_2[2];
-        _t_6 = _t_5[0];
-        _t_7 = _t_5[2];
-        _t_8 = new Array(2);
-        _t_8[0] = _t_6;
-        _t_8[1] = _t_7;
-        yield env.save("auto+xkcd:get_comic:v_title:title,v_picture_url:picture_url", {}, _t_8);
+        _t_6 = _t_5.title;
+        _t_7 = _t_5.link;
+        _t_8 = _t_5.picture_url;
         try {
-          _t_9 = new Array(1);
-          _t_10 = String (_t_7);
-          _t_9[0] = _t_10;
+          _t_9 = {};
+          _t_10 = String (_t_8);
+          _t_9.status = _t_10;
           yield env.invokeAction(1, _t_9);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
@@ -594,6 +613,12 @@ const TEST_CASES = [
   let _t_9;
   let _t_10;
   let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
   try {
     _t_0 = {};
     _t_1 = yield env.invokeMonitor(0, _t_0, false);
@@ -604,16 +629,22 @@ const TEST_CASES = [
         _t_3 = _t_2[0];
         _t_4 = _t_2[1];
         _t_5 = _t_2[2];
+        _t_6 = _t_5.text;
+        _t_7 = _t_5.hashtags;
+        _t_8 = _t_5.urls;
+        _t_9 = _t_5.from;
+        _t_10 = _t_5.inReplyTo;
+        _t_11 = _t_5.__reserved;
         try {
-          _t_6 = {};
-          _t_7 = new __builtin.Entity("mock-account:12345678", "me");
-          _t_6.__principal = _t_7;
-          _t_8 = env.program_id;
-          _t_6.__program_id = _t_8;
-          _t_9 = 0;
-          _t_6.__flow = _t_9;
-          _t_6.__kindChannel = _t_3;
-          yield env.invokeAction(1, _t_6);
+          _t_12 = {};
+          _t_13 = new __builtin.Entity("mock-account:12345678", "me");
+          _t_12.__principal = _t_13;
+          _t_14 = env.program_id;
+          _t_12.__program_id = _t_14;
+          _t_15 = 0;
+          _t_12.__flow = _t_15;
+          _t_12.__kindChannel = _t_undefined;
+          yield env.invokeAction(1, _t_12);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
@@ -624,9 +655,9 @@ const TEST_CASES = [
     env.reportError("Failed to invoke trigger", _exc_);
   }
   try {
-    _t_10 = new __builtin.Entity("mock-account:12345678", "me");
-    _t_11 = 0;
-    yield env.sendEndOfFlow(_t_10, _t_11);
+    _t_16 = new __builtin.Entity("mock-account:12345678", "me");
+    _t_17 = 0;
+    yield env.sendEndOfFlow(_t_16, _t_17);
   } catch(_exc_) {
     env.reportError("Failed to signal end-of-flow", _exc_);
   }`]],
@@ -838,6 +869,8 @@ const TEST_CASES = [
   let _t_8;
   let _t_9;
   let _t_10;
+  let _t_11;
+  let _t_12;
   try {
     _t_0 = {};
     _t_1 = [new __builtin.Entity("mock-account:12345678", "me")];
@@ -854,11 +887,13 @@ const TEST_CASES = [
         _t_6 = _t_5[0];
         _t_7 = _t_5[1];
         _t_8 = _t_5[2];
+        _t_9 = _t_8.__kindChannel;
+        _t_10 = _t_8.interval;
         try {
-          _t_9 = {};
-          _t_10 = "on";
-          _t_9.power = _t_10;
-          yield env.invokeAction(1, _t_9);
+          _t_11 = {};
+          _t_12 = "on";
+          _t_11.power = _t_12;
+          yield env.invokeAction(1, _t_11);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
