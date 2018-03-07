@@ -3,20 +3,6 @@
 module.exports = {
     _schema: {
         "builtin": {
-            "triggers": {
-                "timer": {
-                    args: ["interval"],
-                    types: ["Measure(ms)"],
-                    required: [true],
-                    is_input: [true],
-                },
-                "at": {
-                    args: ["time"],
-                    types: ["Time"],
-                    required: [true],
-                    is_input: [true],
-                }
-            },
             "queries": {
                 "get_time": {
                     args: ["time"],
@@ -41,15 +27,13 @@ module.exports = {
             }
         },
         "security-camera": {
-            "triggers": {
-                "new_event": {
+            "queries": {
+                "current_event": {
                     args: ["start_time", "has_sound", "has_motion", "has_person", "picture_url"],
                     types: ["Date", "Boolean", "Boolean", "Boolean", "Picture"],
                     required: [false,false,false,false,false],
                     is_input: [false,false,false,false,false]
-                }
-            },
-            "queries": {
+                },
                 "get_snapshot": {
                     args: ["picture_url"],
                     types: ["Picture"],
@@ -67,7 +51,6 @@ module.exports = {
             }
         },
         "youtube": {
-            "triggers": {},
             "queries": {
                 "search_videos": {
                     args: ["query", "video_url"],
@@ -79,14 +62,6 @@ module.exports = {
             "actions": {}
         },
         "phone": {
-            "triggers": {
-                "receive_sms": {
-                    args: ["from", "body"],
-                    types: ["Entity(tt:phone_number)", "String"],
-                    required: [false,false],
-                    is_input: [false,false],
-                }
-            },
             "actions": {
                 "send_sms": {
                     args: ["to", "body"],
@@ -111,7 +86,6 @@ module.exports = {
             }
         },
         "ninegag": {
-            "triggers": {},
             "actions": {},
             "queries": {
                 "get_latest": {
@@ -123,14 +97,6 @@ module.exports = {
             }
         },
         "twitter": {
-            "triggers": {
-                "source": {
-                    args: ["text", "hashtags", "urls", "from", "inReplyTo", "__reserved"],
-                    types: ["String","Array(Entity(tt:hashtag))","Array(String)","String","String","Boolean"],
-                    required: [false,false,false,false,false,false],
-                    is_input: [false,false,false,false,false,false],
-                }
-            },
             "actions": {
                 "sink": {
                     args: ["status"],
@@ -167,14 +133,6 @@ module.exports = {
             }
         },
         "weatherapi": {
-            "triggers": {
-                "weather": {
-                    args: ["location", "temperature"],
-                    types: ["Location", "Measure(C)"],
-                    required: [true,false],
-                    is_input: [true,false],
-                }
-            },
             "actions": {},
             "queries": {
                 "weather": {
@@ -186,38 +144,28 @@ module.exports = {
             }
         },
         "omlet": {
-            "triggers": {
+            "actions": {},
+            "queries": {
                 "incomingmessage": {
                     args: ["type", "message"],
                     types: ["Enum(text,picture)", "String"],
                     required: [false,false],
                     is_input: [false,false],
                 }
-            },
-            "actions": {},
-            "queries": {}
+            }
         },
         "test": {
-            "triggers": {
+            "actions": {},
+            "queries": {
                 "source": {
                     args: ["value"],
                     types: ["Number"],
                     required: [false],
                     is_input: [false],
                 }
-            },
-            "actions": {},
-            "queries": {}
+            }
         },
         "thermostat": {
-            "triggers": {
-                "temperature": {
-                    args: ["time", "temperature"],
-                    types: ["Date", "Measure(C)"],
-                    required: [false,false],
-                    is_input: [false,false],
-                }
-            },
             "actions": {
                 "set_target_temperature": {
                     args: ["value"],
@@ -236,22 +184,8 @@ module.exports = {
             }
         },
         "xkcd": {
-            "triggers": {
-                "new_comic": {
-                    args: ["title", "link", "picture_url"],
-                    types: ["String", "Entity(tt:url)", "Entity(tt:picture)"],
-                    required: [false,false,false],
-                    is_input: [false,false,false],
-                }
-            },
             "actions": {},
             "queries": {
-                "new_comic": {
-                    args: ["title", "link", "picture_url"],
-                    types: ["String", "Entity(tt:url)", "Entity(tt:picture)"],
-                    required: [false,false,false],
-                    is_input: [false,false,false],
-                },
                 "get_comic": {
                     args: ["number", "title", "link", "picture_url"],
                     types: ["Number", "String", "Entity(tt:url)", "Entity(tt:picture)"],
@@ -315,7 +249,6 @@ module.exports = {
             }
         },
         "com.live.onedrive": {
-            "triggers": {},
             "actions": {},
             "queries": {
                 "list_files": {
@@ -327,7 +260,6 @@ module.exports = {
             }
         },
         "com.bing": {
-            "triggers": {},
             "actions": {},
             "queries": {
                 "web_search": {

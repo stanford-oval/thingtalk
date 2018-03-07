@@ -162,7 +162,7 @@ monitor @twitter.source() => notify;
 
 // ParameterPassing
 {
-    monitor @xkcd(id="com.xkcd-6").new_comic()
+    monitor @xkcd(id="com.xkcd-6").get_comic()
     => @twitter(id="twitter-foo").post_picture(caption=title, picture_url=picture_url);
 }
 
@@ -528,3 +528,10 @@ now => (@com.live.onedrive.list_files() join @com.bing.web_search() on (query=de
 {
 now => @twitter.my_tweets() join @com.bing.web_search() on (query=text) => notify ;
 }
+
+====
+// Bug 3
+{
+let action x := \(p_status :String) -> @twitter.sink(status=p_status);
+}
+
