@@ -21,7 +21,6 @@ const TEST_CASES = [
   let _t_5;
   let _t_6;
   let _t_7;
-  let _t_8;
   try {
     _t_0 = {};
     _t_1 = yield env.invokeMonitor(0, _t_0, false);
@@ -31,13 +30,12 @@ const TEST_CASES = [
         _t_2 = _iter_tmp.value;
         _t_3 = _t_2[0];
         _t_4 = _t_2[1];
-        _t_5 = _t_2[2];
-        _t_6 = _t_5.value;
+        _t_5 = _t_4.value;
         try {
-          _t_7 = {};
-          _t_8 = "Test App received an event on Test Channel";
-          _t_7.message = _t_8;
-          yield env.invokeAction(1, _t_7);
+          _t_6 = {};
+          _t_7 = "Test App received an event on Test Channel";
+          _t_6.message = _t_7;
+          yield env.invokeAction(1, _t_6);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
@@ -161,7 +159,6 @@ const TEST_CASES = [
   let _t_4;
   let _t_5;
   let _t_6;
-  let _t_7;
   try {
     _t_0 = {};
     _t_1 = new __builtin.Location(1, 3, "Somewhere");
@@ -173,10 +170,9 @@ const TEST_CASES = [
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
-        _t_6 = _t_3[2];
-        _t_7 = _t_6.temperature;
+        _t_6 = _t_5.temperature;
         try {
-          yield env.output(String(_t_undefined), _t_undefined, _t_undefined);
+          yield env.output(String(_t_4), _t_5);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
@@ -196,7 +192,6 @@ const TEST_CASES = [
   let _t_4;
   let _t_5;
   let _t_6;
-  let _t_7;
   try {
     _t_0 = {};
     _t_1 = new __builtin.Location(1, 3, null);
@@ -208,10 +203,9 @@ const TEST_CASES = [
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
-        _t_6 = _t_3[2];
-        _t_7 = _t_6.temperature;
+        _t_6 = _t_5.temperature;
         try {
-          yield env.output(String(_t_undefined), _t_undefined, _t_undefined);
+          yield env.output(String(_t_4), _t_5);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
@@ -222,7 +216,8 @@ const TEST_CASES = [
     env.reportError("Failed to invoke trigger", _exc_);
   }`]],
 
-    [`attimer(time=makeTime(12, 30)) => notify;`, [`"use strict";
+    [`attimer(time=makeTime(12, 30)) => notify;`,
+     [`"use strict";
   let _t_0;
   let _t_1;
   let _t_2;
@@ -234,7 +229,7 @@ const TEST_CASES = [
       while (!_iter_tmp.done) {
         _t_2 = _iter_tmp.value;
         try {
-          yield env.output(String(_t_undefined), _t_undefined, _t_undefined);
+          yield env.output(null, _t_2);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
@@ -256,7 +251,6 @@ const TEST_CASES = [
   let _t_6;
   let _t_7;
   let _t_8;
-  let _t_9;
   try {
     _t_0 = {};
     _t_1 = yield env.invokeMonitor(0, _t_0, false);
@@ -266,15 +260,14 @@ const TEST_CASES = [
         _t_2 = _iter_tmp.value;
         _t_3 = _t_2[0];
         _t_4 = _t_2[1];
-        _t_5 = _t_2[2];
-        _t_6 = _t_5.title;
-        _t_7 = _t_5.link;
-        _t_8 = _t_5.picture_url;
+        _t_5 = _t_4.title;
+        _t_6 = _t_4.link;
+        _t_7 = _t_4.picture_url;
         try {
-          _t_9 = {};
-          _t_9.caption = _t_6;
-          _t_9.picture_url = _t_8;
-          yield env.invokeAction(1, _t_9);
+          _t_8 = {};
+          _t_8.caption = _t_5;
+          _t_8.picture_url = _t_7;
+          yield env.invokeAction(1, _t_8);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
@@ -427,7 +420,6 @@ const TEST_CASES = [
   let _t_10;
   let _t_11;
   let _t_12;
-  let _t_13;
   try {
     _t_0 = {};
     _t_1 = yield env.invokeMonitor(0, _t_0, false);
@@ -437,18 +429,17 @@ const TEST_CASES = [
         _t_2 = _iter_tmp.value;
         _t_3 = _t_2[0];
         _t_4 = _t_2[1];
-        _t_5 = _t_2[2];
-        _t_6 = _t_5.text;
-        _t_7 = _t_5.hashtags;
-        _t_8 = _t_5.urls;
-        _t_9 = _t_5.from;
-        _t_10 = _t_5.inReplyTo;
-        _t_11 = _t_5.__reserved;
+        _t_5 = _t_4.text;
+        _t_6 = _t_4.hashtags;
+        _t_7 = _t_4.urls;
+        _t_8 = _t_4.from;
+        _t_9 = _t_4.inReplyTo;
+        _t_10 = _t_4.__reserved;
         try {
-          _t_12 = {};
-          _t_13 = yield env.formatEvent(_t_undefined, _t_undefined, _t_undefined, "string-title");
-          _t_12.message = _t_13;
-          yield env.invokeAction(1, _t_12);
+          _t_11 = {};
+          _t_12 = yield env.formatEvent(_t_3, _t_4, "string-title");
+          _t_11.message = _t_12;
+          yield env.invokeAction(1, _t_11);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
@@ -474,7 +465,6 @@ const TEST_CASES = [
   let _t_10;
   let _t_11;
   let _t_12;
-  let _t_13;
   try {
     _t_0 = {};
     _t_1 = yield env.invokeMonitor(0, _t_0, false);
@@ -484,18 +474,17 @@ const TEST_CASES = [
         _t_2 = _iter_tmp.value;
         _t_3 = _t_2[0];
         _t_4 = _t_2[1];
-        _t_5 = _t_2[2];
-        _t_6 = _t_5.text;
-        _t_7 = _t_5.hashtags;
-        _t_8 = _t_5.urls;
-        _t_9 = _t_5.from;
-        _t_10 = _t_5.inReplyTo;
-        _t_11 = _t_5.__reserved;
+        _t_5 = _t_4.text;
+        _t_6 = _t_4.hashtags;
+        _t_7 = _t_4.urls;
+        _t_8 = _t_4.from;
+        _t_9 = _t_4.inReplyTo;
+        _t_10 = _t_4.__reserved;
         try {
-          _t_12 = {};
-          _t_13 = String (_t_undefined);
-          _t_12.message = _t_13;
-          yield env.invokeAction(1, _t_12);
+          _t_11 = {};
+          _t_12 = String (_t_3);
+          _t_11.message = _t_12;
+          yield env.invokeAction(1, _t_11);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
@@ -517,7 +506,6 @@ const TEST_CASES = [
   let _t_7;
   let _t_8;
   let _t_9;
-  let _t_10;
   try {
     _t_0 = {};
     _t_1 = yield env.invokeMonitor(0, _t_0, false);
@@ -527,15 +515,14 @@ const TEST_CASES = [
         _t_2 = _iter_tmp.value;
         _t_3 = _t_2[0];
         _t_4 = _t_2[1];
-        _t_5 = _t_2[2];
-        _t_6 = _t_5.title;
-        _t_7 = _t_5.link;
-        _t_8 = _t_5.picture_url;
+        _t_5 = _t_4.title;
+        _t_6 = _t_4.link;
+        _t_7 = _t_4.picture_url;
         try {
-          _t_9 = {};
-          _t_10 = String (_t_8);
-          _t_9.status = _t_10;
-          yield env.invokeAction(1, _t_9);
+          _t_8 = {};
+          _t_9 = String (_t_7);
+          _t_8.status = _t_9;
+          yield env.invokeAction(1, _t_8);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
@@ -643,7 +630,7 @@ const TEST_CASES = [
           _t_12.__program_id = _t_14;
           _t_15 = 0;
           _t_12.__flow = _t_15;
-          _t_12.__kindChannel = _t_undefined;
+          _t_12.__kindChannel = _t_3;
           yield env.invokeAction(1, _t_12);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
@@ -815,39 +802,50 @@ const TEST_CASES = [
   let _t_8;
   let _t_9;
   let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
   try {
-    _t_1 = new Date(XNOWX);
-    _t_2 = 10000;
-    _t_0 = yield env.invokeTimer(_t_1, _t_2);
+    _t_0 = {};
+    _t_1 = yield env.invokeMonitor(0, _t_0, false);
     {
-      let _iter_tmp = yield _t_0.next();
+      let _iter_tmp = yield _t_1.next();
       while (!_iter_tmp.done) {
-        _t_3 = _iter_tmp.value;
+        _t_2 = _iter_tmp.value;
+        _t_3 = _t_2[0];
+        _t_4 = _t_2[1];
+        _t_5 = _t_4.text;
+        _t_6 = _t_4.hashtags;
+        _t_7 = _t_4.urls;
+        _t_8 = _t_4.from;
+        _t_9 = _t_4.inReplyTo;
+        _t_10 = _t_4.__reserved;
         try {
-          _t_4 = {};
-          _t_5 = new __builtin.Entity("1234", null);
-          _t_4.__principal = _t_5;
-          _t_6 = env.program_id;
-          _t_4.__program_id = _t_6;
-          _t_7 = 0;
-          _t_4.__flow = _t_7;
-          _t_4.__kindChannel = _t_undefined;
-          _t_8 = 10000;
-          _t_4.interval = _t_8;
-          yield env.invokeAction(0, _t_4);
+          _t_11 = {};
+          _t_12 = new __builtin.Entity("mock-account:12345678", "me");
+          _t_11.__principal = _t_12;
+          _t_13 = env.program_id;
+          _t_11.__program_id = _t_13;
+          _t_14 = 0;
+          _t_11.__flow = _t_14;
+          _t_11.__kindChannel = _t_3;
+          yield env.invokeAction(1, _t_11);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
-        _iter_tmp = yield _t_0.next();
+        _iter_tmp = yield _t_1.next();
       }
     }
   } catch(_exc_) {
-    env.reportError("Failed to invoke timer", _exc_);
+    env.reportError("Failed to invoke trigger", _exc_);
   }
   try {
-    _t_9 = new __builtin.Entity("1234", null);
-    _t_10 = 0;
-    yield env.sendEndOfFlow(_t_9, _t_10);
+    _t_15 = new __builtin.Entity("mock-account:12345678", "me");
+    _t_16 = 0;
+    yield env.sendEndOfFlow(_t_15, _t_16);
   } catch(_exc_) {
     env.reportError("Failed to signal end-of-flow", _exc_);
   }`]],
@@ -870,7 +868,6 @@ const TEST_CASES = [
   let _t_9;
   let _t_10;
   let _t_11;
-  let _t_12;
   try {
     _t_0 = {};
     _t_1 = [new __builtin.Entity("mock-account:12345678", "me")];
@@ -886,14 +883,13 @@ const TEST_CASES = [
         _t_5 = _iter_tmp.value;
         _t_6 = _t_5[0];
         _t_7 = _t_5[1];
-        _t_8 = _t_5[2];
-        _t_9 = _t_8.__kindChannel;
-        _t_10 = _t_8.interval;
+        _t_8 = _t_7.__kindChannel;
+        _t_9 = _t_7.interval;
         try {
-          _t_11 = {};
-          _t_12 = "on";
-          _t_11.power = _t_12;
-          yield env.invokeAction(1, _t_11);
+          _t_10 = {};
+          _t_11 = "on";
+          _t_10.power = _t_11;
+          yield env.invokeAction(1, _t_10);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
