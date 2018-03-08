@@ -97,5 +97,41 @@ function testCrossJoin() {
     });
 }
 
+function testEdgeNew() {
+    let stream = [
+        { __timestamp: 0, a: 1, x: 1 },
+        { __timestamp: 0, a: 1, x: 2 },
+        { __timestamp: 1, a: 1, x: 3 },
+        { __timestamp: 1, a: 2, x: 4 },
+        { __timestamp: 2, a: 3, x: 5 },
+        { __timestamp: 3, a: 4, x: 6 },
+        { __timestamp: 3, a: 1, x: 7 },
+        { __timestamp: 4, a: 1, x: 8 },
+    ];
+    let expect = [
+        { __timestamp: 0, a: 1, x: 1 },
+        { __timestamp: 0, a: 1, x: 2 },
+        { __timestamp: 1, a: 2, x: 4 },
+        { __timestamp: 2, a: 3, x: 5 },
+        { __timestamp: 3, a: 4, x: 6 },
+        { __timestamp: 3, a: 1, x: 7 },
+    ];
+
+    let state = null;
+    let computed = [];
+    for (let i = 0; i < stream.length; i++) {
+        if (Builtin.isNewTuple(state, stream[i], ['a']))
+            computed.push(stream[i]);
+        state = Builtin.addTuple(state, stream[i]);
+    }
+
+    if (JSON.stringify(computed) !== JSON.stringify(expect)) {
+        console.error('testEdgeNew FAILED');
+        console.error('Expected:', expect);
+        console.error('Computed:', computed);
+    }
+}
+
 testStreamUnion();
 testCrossJoin();
+testEdgeNew();
