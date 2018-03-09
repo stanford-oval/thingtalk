@@ -7,6 +7,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
 const Ast = require('./lib/ast');
 const Compiler = require('./lib/compiler');
@@ -19,6 +20,7 @@ const Describe = require('./lib/describe');
 const Formatter = require('./lib/formatter');
 const PermissionChecker = require('./lib/permission_checker');
 const Units = require('./lib/internal');
+const NNSyntax = require('./lib/nn_syntax');
 
 let { genRandomRules, genRandomPermissionRule } = require('./lib/gen_random_rule');
 Generate.genRandomRules = genRandomRules;
@@ -30,6 +32,7 @@ let { typeCheckProgram, typeCheckPermissionRule } = require('./lib/typecheck');
 Generate.typeCheckProgram = typeCheckProgram;
 Generate.typeCheckPermissionRule = typeCheckPermissionRule;
 const SEMPRESyntax = require('./lib/sempre_syntax');
+const TokenizerService = require('./lib/tokenizer_service');
 
 const builtin = require('./lib/builtin');
 
@@ -43,8 +46,10 @@ module.exports = {
     Generate: Generate,
     Describe: Describe,
     SEMPRESyntax: SEMPRESyntax,
+    NNSyntax: NNSyntax,
     Formatter: Formatter,
     PermissionChecker: PermissionChecker,
+    TokenizerService: TokenizerService,
 
     Units: Units,
     Location: builtin.Location,

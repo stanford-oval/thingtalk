@@ -46,7 +46,7 @@ function latexprintValue(v, renames) {
     if (v.isNumber)
         return v.value;
     if (v.isDate)
-        return '\\text{makeDate}(' + v.value.getTime() + ')';
+        return '\\text{makeDate}(' + v.toJS().getTime() + ')'; // TODO relative dates
     if (v.isTime)
         return '\\text{makeTime}(' + v.hour + ',' + v.minute + ')';
     if (v.isEntity)

@@ -1,93 +1,113 @@
 // -* mode: js -*-
 
-TestExternalPredicate() {
-    @twitter.source(), @builtin.get_time() { time >= makeTime(9,0) && time <= makeTime(10, 0) } => notify;
-    @twitter.source(), text =~ "lol" && @builtin.get_time() { time >= makeTime(9,0) && time <= makeTime(10, 0) } => notify;
+// ** typecheck: expect Error **
+// ArrayPrincipals
+now => @org.thingpedia.builtin.test(principal=["matrix-account:@testuser2:camembert.stanford.edu"^^tt:contact, "matrix-account:@testuser3:camembert.stanford.edu"^^tt:contact]).eat_data(data='AAAAAA');
+
+====
+
+// Array
+monitor @twitter.source(), in_array(from, ["alice"^^tt:hashtag, "bob"^^tt:hashtag])  => notify;
+
+====
+
+// TestExternalPredicate
+{
+monitor @twitter.source(), @builtin.get_time() { time >= makeTime(9,0) && time <= makeTime(10, 0) } => notify;
+monitor @twitter.source(), text =~ "lol" && @builtin.get_time() { time >= makeTime(9,0) && time <= makeTime(10, 0) } => notify;
 }
 
 ====
 
+// ** typecheck: expect TypeError **
 // these should not typecheck
-TestInvalidExternalPredicate1() {
-    @twitter.source(), @builtin.get_time() { time =~ "lol" } => notify;
+// TestInvalidExternalPredicate1
+monitor @twitter.source(), @builtin.get_time() { time =~ "lol" } => notify;
+
+====
+
+// ** typecheck: expect TypeError **
+// TestInvalidExternalPredicate2
+monitor @twitter.source(), @builtin.get_time() { lol =~ "lol" } => notify;
+
+====
+
+// ** typecheck: expect Error **
+// TestInvalidExternalPredicate3
+monitor @twitter.source(), @twitter.sink() { text =~ "lol" } => notify;
+
+====
+
+executor = "bob"^^tt:contact_name : { // TestReturn
+    monitor @twitter.source() => return;
 }
 
 ====
 
-TestInvalidExternalPredicate2() {
-    @twitter.source(), @builtin.get_time() { text =~ "lol" } => notify;
-}
-
-====
-
-TestInvalidExternalPredicate3() {
-    @twitter.source(), @twitter.source() { text =~ "lol" } => notify;
-}
-
-====
-
-"bob"^^tt:contact_name : TestReturn() {
-    @org.twitter.source() => return;
-}
-
-====
-
-self : ExplicitSelf() {
+executor = self : { // ExplicitSelf
     now => @builtin.say(message="lol");
 }
 
 ====
 
-"matrix-account:@gcampax:matrix.org"^^tt:contact : WithPrincipal() {
+executor = "matrix-account:@gcampax:matrix.org"^^tt:contact : { // WithPrincipals
     now => @builtin.say(message="lol");
 }
 
 ====
 
-CompareDate() {
+// CompareDate
+{
     now => @builtin.get_time(), time > makeTime(10,0) => notify;
 }
 
 ====
 
-StartsWith() {
-    @twitter.source(), starts_with(text, "foo") => notify;
+// StartsWith
+{
+    monitor @twitter.source(), starts_with(text, "foo") => notify;
 }
 
 ====
 
-EntityNames() {
+// EntityNames
+{
     now => @twitter.post_picture(caption="lol", picture_url="http://foo.com/bar.jpg"^^tt:picture("A funny picture"));
 }
 
 ====
 
-DownCast() {
-    @xkcd(id="com.xkcd-6").new_comic(), v_title := title, v_picture_url := picture_url
-    => @twitter.sink(status=v_picture_url);
+// DownCast
+{
+    monitor @xkcd(id="com.xkcd-6").get_comic()
+    => @twitter.sink(status=picture_url);
 }
 
 ====
 
-EventType() {
-    @twitter.source() => @builtin.say(message=$event.type);
+// EventType
+{
+    monitor @twitter.source() => @builtin.say(message=$event.type);
 }
 
 ====
 
-FormatEvent() {
-    @twitter.source() => @builtin.say(message=$event.title);
+// FormatEvent
+{
+    monitor @twitter.source() => @builtin.say(message=$event.title);
 }
 
 ====
 
-ComplexFilter() {
-    @twitter.source(), text =~ "foo" || (text =~"bar" && !(text =~ "lol")) => notify;
+// ComplexFilter
+{
+    monitor @twitter.source(), text =~ "foo" || (text =~"bar" && !(text =~ "lol")) => notify;
 }
 
 ====
 
-WithClassDef() {
+// WithClassDef
+{
     class @dyn_0 extends @remote {
         action send(in req foo : String);
     }
@@ -96,7 +116,9 @@ WithClassDef() {
 
 ====
 
-WrongClassDef() {
+// ** typecheck: expect TypeError **
+// WrongClassDef
+{
     class @dyn_0 extends @remote {
         action send(in req foo : Number);
     }
@@ -107,7 +129,7 @@ WrongClassDef() {
 
 // without wrapping it should still work
 
-@twitter.source() => notify;
+monitor @twitter.source() => notify;
 
 ====
 
@@ -116,117 +138,400 @@ now => @security-camera.get_snapshot() => notify;
 
 ====
 
-// same for multiple rules
-@twitter.source() => notify;
-@builtin.at(time=makeTime(20,30)) => notify;
+// PrimaryKind
+monitor @twitter.source() => notify;
 
 ====
 
-PrimaryKind() {
-    @org.twitter.source() => notify;
-}
-
-====
-
-Principals() {
-    @twitter(principal="omlet-account:foo"^^tt:contact).source() => notify;
-    @twitter(principal="giovanni"^^tt:contact_name).source() => notify;
+// Principals
+{
+    monitor @twitter(principal="omlet-account:foo"^^tt:contact).source() => notify;
+    monitor @twitter(principal="giovanni"^^tt:contact_name).source() => notify;
     // the following is identical to the previous one
-    @twitter(principal="giovanni").source() => notify;
+    monitor @twitter(principal="giovanni").source() => notify;
 }
 
 ====
 
-Contains() {
-    @twitter.source(), contains(hashtags, "lol") => notify;
+// Contains
+{
+    monitor @twitter.source(), contains(hashtags, "lol") => notify;
 }
 
 ====
 
-ParameterPassing() {
-    @xkcd(id="com.xkcd-6").new_comic(), v_title := title, v_picture_url := picture_url
-    => @twitter(id="twitter-foo").post_picture(caption=v_title, picture_url=v_picture_url);
+// ParameterPassing
+{
+    monitor @xkcd(id="com.xkcd-6").get_comic()
+    => @twitter(id="twitter-foo").post_picture(caption=title, picture_url=picture_url);
 }
 
 ====
 
-DoOnlyOnce() {
-    once @builtin.at(time=makeTime(12, 30)) => notify;
+// SecurityCamera
+    now => @security-camera.get_snapshot() => notify;
+
+====
+
+// SearchYoutube
+    now => @youtube.search_videos(query="lol"), video_url == "http://www.youtube.com"^^tt:url =>  notify;
+
+====
+
+// TimeTest
+{
+    attimer(time=makeTime(12, 30)) => notify;
 }
 
 ====
 
-SecurityCamera() {
-    now => @security-camera.get_snapshot(), pic := picture_url => notify;
+// PhoneNumberTest
+{
+    now => @phone.send_sms(to="+15555555555", body="");
+    now => @phone.send_sms(to="+15555555555"^^tt:phone_number, body="");
+    monitor @phone.receive_sms(), from=="+15555555555"^^tt:phone_number => notify;
 }
 
 ====
 
-SearchYoutube() {
-        now => @youtube.search_videos(query="lol"), video_url = "http://www.youtube.com"^^tt:url =>  notify;
-}
-
-====
-
-TimeTest() {
-        @builtin.at(time=makeTime(12, 30)) => notify;
-}
-
-====
-
-PhoneNumberTest() {
-  now => @phone.send_sms(to="+15555555555", body="");
-  now => @phone.send_sms(to="+15555555555"^^tt:phone_number, body="");
-  @phone.receive_sms(), from="+15555555555"^^phone_number => notify;
-}
-
-====
-
-InvalidPhoneNumberTest() {
+// ** typecheck: expect TypeError **
+// InvalidPhoneNumberTest
     now => @phone.send_sms(to="+15555555555"^^tt:email_address, body="");
+
+====
+
+// LocationAsTriggerParam
+    monitor @weatherapi.weather(location=makeLocation(1, 3)) => notify;
+
+====
+
+// RelativeLocation
+    monitor @weatherapi.weather(location=$context.location.current_location) => notify;
+
+====
+
+// LocationWithDisplayAsTriggerParam
+    monitor @weatherapi.weather(location=makeLocation(1, 3, "Somewhere"))  => notify;
+
+====
+
+// SabrinaGeneratedMonitorTwitter
+{
+    monitor @twitter(id="twitter-foo").source(), from == "HillaryClinton"^^tt:username => notify;
 }
 
 ====
 
-LocationAsTriggerParam() {
-    @weatherapi.weather(location=makeLocation(1, 3)) => notify;
-}
-
-====
-
-RelativeLocation() {
-    @weatherapi.weather(location=$context.location.current_location) => notify;
-}
-
-====
-
-LocationWithDisplayAsTriggerParam() {
-    @weatherapi.weather(location=makeLocation(1, 3, "Somewhere")) => notify;
-}
-
-====
-
-SabrinaGeneratedMonitorTwitter() {
-    @twitter(id="twitter-foo").source(), from="HillaryClinton"^^tt:username => notify;
-}
-
-====
-
-CommandTest() {
+// CommandTest
   now => @builtin.say(message="test");
+
+====
+
+// LogQueryTest
+    now => t => notify;
+
+====
+
+// LogQueryTestProjection
+    now => [col1] of Q1 => notify;
+
+====
+
+// LogQueryTestSelection
+    now => [col1] of (Q1, col2 >= 42) => notify;
+
+/* select col1 as v_1 from Q1 where col2 >= 42 */
+
+====
+
+// LogQueryTestRemote
+    now => [col1] of ("1234"^^tt:contact :: Q4, col2 >= 42) => notify;
+
+====
+
+// ** typecheck: expect TypeError **
+// LogQueryTestRemoteInvalid1
+// there is no such table Q0
+now => [col1] of ("1234"^^tt:contact :: Q0, col2 >= 42) => notify;
+
+====
+
+// ** typecheck: expect TypeError **
+// LogQueryTestRemoteInvalid2
+// principal must be contact not group
+now => [col1] of ("1234"^^tt:contact_group :: Q4, col2 >= 42) => notify;
+
+====
+
+// ** typecheck: expect TypeError **
+// LogQueryTestRemoteInvalid2
+// col1 is a string in Q4
+now => [col1] of ("1234"^^tt:contact :: Q4, col1 >= 42) => notify;
+
+====
+
+// LogQueryTestJoin
+{
+  now => ([col1] of Q1 join Q2), col2 >= col1 => notify;
+  now => [col2] of (([col1] of Q1 join Q2), col2 >= col1) => notify;
 }
 
 ====
 
-SabrinaLikesItHot(Threshold : Measure(C)) {
-    @thermostat.temperature(), temperature > Threshold => @builtin.say(message="bla");
+// LogQueryAggregationTest
+now => aggregate max field of Q1 => notify;
+
+====
+
+// LogQueryAggregationMeasureTest
+// col1 has type Measure(C)
+{
+now => aggregate max col1 of Q3 => @thermostat.set_target_temperature(value=max);
+now => (aggregate max col1 of Q3) as tmp => @thermostat.set_target_temperature(value=tmp.max);
 }
 
 ====
 
-/* This should not run directly, but it gives an idea of the syntax */
-/* They should all at least parse successfully. */
+// ** typecheck: expect TypeError **
+// LogQueryInvalidAggregationTest
+now => aggregate max nonexisting_field of Q1 => notify;
 
-Test() {
-    @test.source() => @builtin.debug_log(message="Test App received an event on Test Channel");
+====
+
+// ** typecheck: expect TypeError **
+// LogQueryInvalidAggregation2Test
+now => aggregate max str1 of Q1 => notify;
+
+====
+
+// LogQueryCountTest
+now => aggregate count of Q1 => notify;
+
+====
+
+// LogQueryCountParamPassingTest
+now => aggregate count str1 of Q1 join @xkcd.get_comic() on (number=count) => notify;
+
+====
+
+// ** typecheck: expect TypeError **
+// LogQueryCountInvalidParamPassingTest
+now => aggregate count str1 of Q1 => @twitter.sink(status=count);
+
+====
+
+// LogQueryArgmTest
+{
+now => [field1, field2] of aggregate argmax 1,1 another_field of Q0 => notify;
+now => [field1, field2] of aggregate argmax 1,3 another_field of Q0 => notify;
 }
+
+====
+
+// ** typecheck: expect TypeError **
+// LogQueryInvalidArgmTest
+now => [field1, field2] of aggregate argmax 1,1 nonexisting_field of Q0 => notify;
+
+====
+
+// WithSave
+{
+let table steps    := @fitbit.get_steps();
+let table my_table := aggregate max steps of Q1;
+now => my_table => notify;
+}
+
+====
+
+// LogTriggerTest
+monitor Q1 join Q2 => notify;
+
+====
+
+// LogTriggerAggregationTest
+monitor (aggregate max field of Q1) => notify;
+
+====
+
+// LogTriggerArgmTest
+monitor ([field1, field2] of aggregate argmax 1,1 another_field of Q0) => notify;
+
+====
+
+// LogTestAll
+let stream saved := [foo] of (monitor Q0 join Q1);
+
+====
+
+// LogTestTableName
+let stream lol := [foo] of (monitor Q0 join Q1);
+
+====
+
+// RelativeTime
+{
+now => Q1, _timestamp > makeDate() + 2year => notify;
+now => Q1, _timestamp > makeDate() + -2year => notify;
+now => Q1, _timestamp > makeDate() - 2year => notify;
+now => Q1, _timestamp > makeDate() + 24mon => notify;
+now => Q1, _timestamp > makeDate() + (-1year + -12mon) => notify;
+now => Q1, _timestamp > start_of(mon) && _timestamp < end_of(day) => notify;
+}
+
+====
+
+// Lambdas
+{
+let table macro := \(p_number : Number) -> @xkcd.get_comic(number=p_number) ;
+now => macro(p_number=1234) => notify;
+}
+
+====
+
+// EdgeFilter
+{
+let stream once := \(x : Stream) -> edge x on (true) ;
+
+edge (monitor @thermostat.get_temperature()) on temperature > 70F => notify;
+}
+
+====
+
+// Window
+{
+let table A := window 1, 3 of timer(base=makeDate(), interval=10min);
+let table B := timeseries makeDate(), -1week of timer(base=makeDate(), interval=10min);
+let table C := sequence 1, 3 of Q1;
+let table D := history start_of(week), -1week of Q1;
+
+let table this_week := \(x : Table) -> history end_of(week), -1week of x;
+let table last_week := \(x : Table) -> history start_of(week), -1week of x;
+let table current := \(x : Table) -> sequence 1,1 of x;
+let table previous := \(x : Table) -> sequence 2,1 of x;
+let table latest_K := \(x : Table, k : Number) -> sequence 1, k of x;
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// Table x doesn't have field score. Maybe fix this later.
+// Argmaxes
+{
+let table gold_medal := \(x : Table) -> aggregate argmax 1, 1 score of x ;
+let table silver_medal := \(x : Table) -> aggregate argmax 2,1 score of x ;
+
+let table top_K := \(x : Any, k : Number) -> aggregate argmax 1,k score of x ;
+
+let table bottom_K := \(x : Any, k : Number) -> aggregate argmin 1,k score of x ;
+now => gold_medal(x=Q4) => notify;
+
+}
+
+====
+
+// Computation
+{
+let table x := compute distance(location, makeLocation(1,2)) of @phone.get_gps();
+let table y := compute distance(location, $context.location.home) of @phone.get_gps();
+let table z := compute (col1 + col2) of Q1;
+let table xx := compute (1 + sum) of aggregate sum col1 of Q1;
+let table xy := compute (1 + colsum) of aggregate sum col1 as colsum of Q1;
+let table xxy := compute (1 + colsum) as colwhatever of aggregate sum col1 as colsum of Q1;
+}
+
+====
+
+// Action Lambdas
+let action x := \(x : String) -> @twitter.sink(status=x);
+
+====
+
+// Partial Application
+{
+let table x := @twitter.search();
+now => x(query="foo") => notify;
+}
+
+====
+
+// Lambdas Join
+{
+let table macro := \(number : Number) -> @xkcd.get_comic(number=number) ;
+now => Q1 join macro() on (number=steps) => notify;
+}
+
+====
+
+// Entities
+{
+  // allow spaces in entity types
+  let table x1 := \(y : Entity(tt : hashtag)) -> @twitter.source(), contains(hashtags, y);
+
+  // allow dots in entity types
+  let table x2 := \(y : Entity(com.google.drive : file_id)) -> @com.google.drive.list_drive_files(), file_id == y;
+  let table x3 := \(y : Entity(com.google . drive : file_id)) -> @com.google.drive.list_drive_files(), file_id == y;
+
+  now => x1(y="foo"^^ tt : hashtag) => notify;
+  now => x2(y="xxx"^^ com . google . drive : file_id ( "Some file" ) ) => notify;
+}
+
+====
+// ** typecheck: expect TypeError **
+// number is not a valid field in @xkcd.get_comic()
+// Monitor on param
+
+{
+monitor @xkcd.get_comic() => notify;
+monitor @xkcd.get_comic() on new [title] => notify;
+monitor @xkcd.get_comic() on new [title, number] => notify;
+}
+
+====
+// ** typecheck: expect TypeError **
+// No $events
+{
+now => @twitter.sink(status=$event);
+}
+
+====
+// Join with parameter passing
+{
+((monitor @wsj.get()) join @yandex.translate() on (text=$event)) => notify;
+}
+
+====
+// Currencies
+{
+now => @uber.get_price_estimate(start=$context.location.home,end=$context.location.work) => notify;
+now => @uber.get_price_estimate(start=$context.location.home,end=$context.location.work), estimate >= makeCurrency(50,usd) => notify;
+}
+
+====
+
+{
+now => (@com.live.onedrive.list_files() join @com.bing.web_search() on (query=description)) => notify;
+(monitor (@com.live.onedrive.list_files())) join @com.bing.web_search() on (query=description) => notify;
+now => (@com.live.onedrive.list_files() join @com.bing.web_search() on (query=description)) => @twitter.sink(status=title);
+(monitor (@com.live.onedrive.list_files())) join @com.bing.web_search() on (query=description) => @twitter.sink(status=title);
+now => (@com.live.onedrive.list_files() join @com.bing.web_search() on (query=description)) => @twitter.sink(status=description);
+(monitor (@com.live.onedrive.list_files())) join @com.bing.web_search() on (query=description) => @twitter.sink(status=description);
+}
+
+====
+// Bug 1
+{
+   now => @yandex.translate(target_language="it"^^tt:iso_lang_code("Italian")) => notify;
+}
+
+====
+// Bug 2
+{
+now => @twitter.my_tweets() join @com.bing.web_search() on (query=text) => notify ;
+}
+
+====
+// Bug 3
+{
+let action x := \(p_status :String) -> @twitter.sink(status=p_status);
+}
+

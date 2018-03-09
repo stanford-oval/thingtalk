@@ -1,3 +1,5 @@
+"use strict";
+
 const Q = require('q');
 const fs = require('fs');
 const deq = require('deep-equal');
@@ -34,7 +36,7 @@ function fillSlots(prog) {
                 else if (type.isBoolean)
                     inParam.value = Ast.Value.Boolean(true);
                 else if (type.isDate)
-                    inParam.value = Ast.Value.Date(new Date(2016, 5, 6, 12, 29, 0));
+                    inParam.value = Ast.Value.Date(new Date(2016, 5, 6, 12, 29, 0), null);
                 else if (type.isTime)
                     inParam.value = new Ast.Value.Time(8, 30, 0);
                 else if (type.isEntity)

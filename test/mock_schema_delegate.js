@@ -1,20 +1,8 @@
+"use strict";
+
 module.exports = {
     _schema: {
         "builtin": {
-            "triggers": {
-                "timer": {
-                    args: ["interval"],
-                    types: ["Measure(ms)"],
-                    required: [true],
-                    is_input: [true],
-                },
-                "at": {
-                    args: ["time"],
-                    types: ["Time"],
-                    required: [true],
-                    is_input: [true],
-                }
-            },
             "queries": {
                 "get_time": {
                     args: ["time"],
@@ -39,8 +27,13 @@ module.exports = {
             }
         },
         "security-camera": {
-            "triggers": {},
             "queries": {
+                "current_event": {
+                    args: ["start_time", "has_sound", "has_motion", "has_person", "picture_url"],
+                    types: ["Date", "Boolean", "Boolean", "Boolean", "Picture"],
+                    required: [false,false,false,false,false],
+                    is_input: [false,false,false,false,false]
+                },
                 "get_snapshot": {
                     args: ["picture_url"],
                     types: ["Picture"],
@@ -48,10 +41,16 @@ module.exports = {
                     is_input: [false],
                 }
             },
-            "actions": {}
+            "actions": {
+                "set_power": {
+                    args: ["power"],
+                    types: ["Enum(on,off)"],
+                    required: [true],
+                    is_input: [true]
+                }
+            }
         },
         "youtube": {
-            "triggers": {},
             "queries": {
                 "search_videos": {
                     args: ["query", "video_url"],
@@ -63,14 +62,6 @@ module.exports = {
             "actions": {}
         },
         "phone": {
-            "triggers": {
-                "receive_sms": {
-                    args: ["from", "body"],
-                    types: ["Entity(tt:phone_number)", "String"],
-                    required: [false,false],
-                    is_input: [false,false],
-                }
-            },
             "actions": {
                 "send_sms": {
                     args: ["to", "body"],
@@ -79,10 +70,22 @@ module.exports = {
                     is_input: [true,true],
                 }
             },
-            "queries": {}
+            "queries": {
+                "receive_sms": {
+                    args: ["from", "body"],
+                    types: ["Entity(tt:phone_number)", "String"],
+                    required: [false,false],
+                    is_input: [false,false],
+                },
+                "get_gps": {
+                    args: ["location"],
+                    types: ["Location"],
+                    required: [false],
+                    is_input: [false],
+                }
+            }
         },
         "ninegag": {
-            "triggers": {},
             "actions": {},
             "queries": {
                 "get_latest": {
@@ -94,14 +97,6 @@ module.exports = {
             }
         },
         "twitter": {
-            "triggers": {
-                "source": {
-                    args: ["text", "hashtags", "urls", "from", "inReplyTo", "__reserved"],
-                    types: ["String","Array(String)","Array(String)","String","String","Boolean"],
-                    required: [false,false,false,false,false,false],
-                    is_input: [false,false,false,false,false,false],
-                }
-            },
             "actions": {
                 "sink": {
                     args: ["status"],
@@ -116,78 +111,61 @@ module.exports = {
                     is_input: [true,true],
                 }
             },
-            "queries": {}
-        },
-        "org.twitter": {
-            "triggers": {
+            "queries": {
                 "source": {
                     args: ["text", "hashtags", "urls", "from", "inReplyTo", "__reserved"],
-                    types: ["String","Array(String)","Array(String)","String","String","Boolean"],
+                    types: ["String","Array(Entity(tt:hashtag))","Array(String)","String","String","Boolean"],
                     required: [false,false,false,false,false,false],
                     is_input: [false,false,false,false,false,false],
-                }
-            },
-            "actions": {
-                "sink": {
-                    args: ["status"],
-                    types: ["String"],
-                    required: [true],
-                    is_input: [true],
                 },
-                "post_picture": {
-                    args: ["caption", "picture_url"],
-                    types: ["String", "Entity(tt:picture)"],
-                    required: [true,true],
-                    is_input: [true,true],
+                "search": {
+                    args: ["query", "text", "hashtags", "urls", "from", "inReplyTo"],
+                    types: ["String", "String","Array(String)","Array(String)","String","String"],
+                    required: [true, false,false,false,false,false],
+                    is_input: [true, false,false,false,false,false],
+                },
+                "my_tweets": {
+                    args: ["text", "hashtags", "urls", "in_reply_to", "tweet_id"],
+                    types: ["String", "Array(Hashtag)", "Array(URL)", "Username", "String"],
+                    required: [false, false, false, false, false],
+                    is_input: [false, false, false, false, false]
                 }
-            },
-            "queries": {}
+            }
         },
         "weatherapi": {
-            "triggers": {
+            "actions": {},
+            "queries": {
                 "weather": {
                     args: ["location", "temperature"],
                     types: ["Location", "Measure(C)"],
                     required: [true,false],
                     is_input: [true,false],
                 }
-            },
-            "actions": {},
-            "queries": {}
+            }
         },
         "omlet": {
-            "triggers": {
+            "actions": {},
+            "queries": {
                 "incomingmessage": {
                     args: ["type", "message"],
                     types: ["Enum(text,picture)", "String"],
                     required: [false,false],
                     is_input: [false,false],
                 }
-            },
-            "actions": {},
-            "queries": {}
+            }
         },
         "test": {
-            "triggers": {
+            "actions": {},
+            "queries": {
                 "source": {
                     args: ["value"],
                     types: ["Number"],
                     required: [false],
                     is_input: [false],
                 }
-            },
-            "actions": {},
-            "queries": {}
+            }
         },
         "thermostat": {
-            "triggers": {
-                "temperature": {
-                    args: ["time", "temperature"],
-                    types: ["Date", "Measure(C)"],
-                    required: [false,false],
-                    is_input: [false,false],
-                }
-            },
             "actions": {
                 "set_target_temperature": {
                     args: ["value"],
@@ -196,20 +174,102 @@ module.exports = {
                     is_input: [true],
                 }
             },
-            "queries": {}
+            "queries": {
+                "get_temperature": {
+                    args: ["time", "temperature"],
+                    types: ["Date", "Measure(C)"],
+                    required: [false,false],
+                    is_input: [false,false],
+                }
+            }
         },
         "xkcd": {
-            "triggers": {
-                "new_comic": {
-                    args: ["title", "link", "picture_url"],
-                    types: ["String", "Entity(tt:url)", "Entity(tt:picture)"],
-                    required: [false,false,false],
-                    is_input: [false,false,false],
-                }
-            },
             "actions": {},
-            "queries": {}
-        }
+            "queries": {
+                "get_comic": {
+                    args: ["number", "title", "link", "picture_url"],
+                    types: ["Number", "String", "Entity(tt:url)", "Entity(tt:picture)"],
+                    required: [false,false,false,false],
+                    is_input: [true,false,false,false],
+                }
+            }
+        },
+        "fitbit": {
+            "triggers": {},
+            "actions": {},
+            "queries": {
+                "get_steps": {
+                    args: ["date", "steps"],
+                    types: ["Date", "Number"],
+                    required: [false,false],
+                    is_input: [false,false],
+                }
+            }
+        },
+        "com.google.drive": {
+            "triggers": {},
+            "actions": {},
+            "queries": {
+                "list_drive_files": {
+                    args: ["file_id", "file_name"],
+                    types: ["Entity(com.google.drive:file_id)", "String"],
+                    required: [false, false],
+                    is_input: [false, false]
+                }
+            }
+        },
+        "yandex": {
+            "queries": {
+                "translate": {
+                    args: ["source_language", "target_language", "text", "translated_text"],
+                    types: ["Entity(tt:iso_lang_code)", "Entity(tt:iso_lang_code)", "String", "String"],
+                    required: [false, true, true, false],
+                    is_input: [true, true, true, false]
+                }
+            }
+        },
+        "wsj": {
+            "queries": {
+                "get": {
+                    args: ["section", "titile", "link", "updated"],
+                    types: ["Enum(opinions,world_news)", "String", "Entity(tt:url)", "Boolean"],
+                    required: [true, false, false, false],
+                    is_input: [true, false, false, false]
+                }
+            }
+        },
+        "uber": {
+            "queries": {
+                "get_price_estimate": {
+                    args: ["start", "end", "estimate"],
+                    types: ["Location","Location","Currency"],
+                    required: [true,true,false],
+                    is_input: [true,true,false]
+                }
+            }
+        },
+        "com.live.onedrive": {
+            "actions": {},
+            "queries": {
+                "list_files": {
+                    args: ["file_name", "description"],
+                    types: ["Entity(tt:path_name)", "String"],
+                    required: [false, false],
+                    is_input: [false, false]
+                }
+            }
+        },
+        "com.bing": {
+            "actions": {},
+            "queries": {
+                "web_search": {
+                    args: ["query", "title", "description"],
+                    types: ["String", "String", "String"],
+                    required: [true, false, false],
+                    is_input: [true, false, false]
+                }
+            }
+        },
     },
 
     getSchemas: function() {

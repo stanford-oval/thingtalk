@@ -16,7 +16,7 @@ const path = require('path');
 const fs = require('fs');
 const url = require('url');
 
-const THINGPEDIA_URL = process.env.THINGPEDIA_URL || 'https://thingpedia.stanford.edu/thingpedia';
+const THINGPEDIA_URL = process.env.THINGPEDIA_URL || 'https://crowdie.stanford.edu/thingpedia';
 
 function getModule(parsed) {
     if (parsed.protocol === 'https:')
