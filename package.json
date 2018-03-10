@@ -17,11 +17,12 @@
     "smtlib": "^0.1.1"
   },
   "devDependencies": {
+    "coveralls": "^3.0.0",
     "csv": "^1.1.1",
     "deep-equal": "^1.0.1",
     "eslint": "^4.0.0",
     "mysql": "^2.13.0",
-    "nyc": "^10.3.2",
+    "nyc": "^11.4.1",
     "pegjs": "~0.9.0"
   },
   "optionalDependencies": {
@@ -34,6 +35,7 @@
     "update-po": "for i in po/*.po ; do msgmerge -U $i po/${npm_package_name}.pot ; done",
     "compile-mo": "for i in po/*.po ; do msgfmt $i -o po/`basename $i .po`.mo ; done",
     "lint": "eslint ./lib",
-    "test": "node ./test/test_all"
+    "test": "nyc node ./test/test_all",
+    "coverage": "nyc report --reporter=text-lcov | coveralls"
   }
 }

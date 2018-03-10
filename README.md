@@ -1,6 +1,6 @@
 # ThingTalk
 
-[![Build Status](https://travis-ci.org/Stanford-Mobisocial-IoT-Lab/ThingTalk.svg?branch=master)](https://travis-ci.org/Stanford-Mobisocial-IoT-Lab/ThingTalk)
+[![Build Status](https://travis-ci.org/Stanford-Mobisocial-IoT-Lab/ThingTalk.svg?branch=master)](https://travis-ci.org/Stanford-Mobisocial-IoT-Lab/ThingTalk) [![Coverage Status](https://coveralls.io/repos/github/Stanford-Mobisocial-IoT-Lab/ThingTalk/badge.svg?branch=master)](https://coveralls.io/github/Stanford-Mobisocial-IoT-Lab/ThingTalk?branch=master)
 
 ## The Programming Language of Virtual Assistants
 
