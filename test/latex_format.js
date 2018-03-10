@@ -60,7 +60,7 @@ function latexprintValue(v, renames) {
 
 function isFilterInfix(op) {
     switch (op) {
-    case '=':
+    case '==':
     case '!=':
     case '>':
     case '>=':
@@ -74,10 +74,11 @@ function isFilterInfix(op) {
 
 function opToLatex(op) {
     switch (op) {
-    case '=':
     case '>':
     case '<':
         return op;
+    case '==':
+        return '=';
     case '!=':
         return '\\ne';
     case '>=':
