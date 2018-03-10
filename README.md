@@ -1,5 +1,7 @@
 # ThingTalk
 
+[![Build Status](https://travis-ci.org/Stanford-Mobisocial-IoT-Lab/ThingTalk.svg?branch=master)](https://travis-ci.org/Stanford-Mobisocial-IoT-Lab/ThingTalk)
+
 ## The Programming Language of Virtual Assistants
 
 ThingTalk is the declarative (rule-based) distributed programming
@@ -20,7 +22,7 @@ or [thingengine-platform-cmdline](thingengine-platform-cmdline).
 
 Almond is a research project led by prof. Monica Lam,
 from Stanford University.  You can find more information at
-http://www.thingpedia.org
+<https://almond.stanford.edu>
 
 ## License
 
