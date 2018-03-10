@@ -2,6 +2,7 @@
 "use strict";
 
 require('./test_units');
+require('./test_ast');
 require('./test_generated_parser');
 require('./app_grammar_test');
 require('./test_typecheck');
