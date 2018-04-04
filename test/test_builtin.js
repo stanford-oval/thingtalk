@@ -56,12 +56,14 @@ function testStreamUnion() {
     let union = Builtin.streamUnion(lhs, rhs);
     Utils.generatorToAsync(runStream)(acc, union).then(() => {
         if (JSON.stringify(acc) !== expect) {
-            console.error('testStreamUnion FAILED');
             console.error('Expected:', expect);
             console.error('Computed:', acc);
+            throw new Error();
         }
     }).catch((e) => {
         console.error('testStreamUnion FAILED', e.stack);
+        if (process.env.TEST_MODE)
+            throw e;
     });
 }
 
@@ -88,12 +90,14 @@ function testCrossJoin() {
     let union = Builtin.tableCrossJoin(lhs, rhs);
     Utils.generatorToAsync(runStream)(acc, union).then(() => {
         if (JSON.stringify(acc) !== expect) {
-            console.error('testCrossJoin FAILED');
             console.error('Expected:', expect);
             console.error('Computed:', acc);
+            throw new Error();
         }
     }).catch((e) => {
         console.error('testCrossJoin FAILED', e.stack);
+        if (process.env.TEST_MODE)
+            throw e;
     });
 }
 
@@ -129,6 +133,8 @@ function testEdgeNew() {
         console.error('testEdgeNew FAILED');
         console.error('Expected:', expect);
         console.error('Computed:', computed);
+        if (process.env.TEST_MODE)
+            throw new Error('testEdgeNew FAILED');
     }
 }
 

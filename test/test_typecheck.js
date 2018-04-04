@@ -27,6 +27,8 @@ function typecheckTest() {
             console.error('Failed');
             console.error(code);
             console.error(e);
+            if (process.env.TEST_MODE)
+                throw e;
         });
     })).done();
 }

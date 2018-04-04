@@ -5,6 +5,7 @@ const fs = require('fs');
 const AppGrammar = require('../lib/grammar_api');
 const { prettyprint } = require('../lib/prettyprint');
 
+const debug = false;
 
 function parserTest() {
     var code = fs.readFileSync('./test/sample.apps').toString('utf8').split('====');
@@ -27,12 +28,14 @@ function parserTest() {
             var codegenned = prettyprint(ast, true);
             AppGrammar.parse(codegenned);
 
-            console.log('Code:');
-            console.log(code);
-            console.log('Codegenned:');
-            console.log(codegenned);
-            console.log('====');
-            console.log();
+            if (debug) {
+                console.log('Code:');
+                console.log(code);
+                console.log('Codegenned:');
+                console.log(codegenned);
+                console.log('====');
+                console.log();
+            }
         } catch(e) {
             console.error('Codegen failed');
             console.error('AST:');
@@ -43,6 +46,8 @@ function parserTest() {
             console.error(code);
             console.error('====');
             console.error(e.stack);
+            if (process.env.TEST_MODE)
+                throw e;
         }
     });
 }

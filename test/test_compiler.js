@@ -1944,6 +1944,8 @@ function test(i) {
         console.error('Code: ' + code);
         console.error('Error: ' + e.message);
         console.error(e.stack);
+        if (process.env.TEST_MODE)
+            throw e;
     });
 }
 
