@@ -1839,6 +1839,78 @@ yield env.writeState(0, _t_43);
       }
       _iter_tmp = yield _t_23.next();
     }
+  }`]],
+
+
+  [`(attimer(time=makeTime(20, 10)) join @com.thecatapi(id="com.thecatapi").get()) => @com.gmail(id="xxxx").send_picture(to="xxxx"^^tt:email_address, subject="xxx", message="xxx", picture_url=picture_url);`,
+  [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  try {
+    _t_1 = new __builtin.Time(20, 10, 0);
+    _t_0 = yield env.invokeAtTimer(_t_1);
+    {
+      let _iter_tmp = yield _t_0.next();
+      while (!_iter_tmp.done) {
+        _t_2 = _iter_tmp.value;
+        _t_3 = {};
+        _t_4 = yield env.invokeQuery(0, _t_3);
+        _t_5 = _t_4[Symbol.iterator]();
+        {
+          let _iter_tmp = yield _t_5.next();
+          while (!_iter_tmp.done) {
+            _t_6 = _iter_tmp.value;
+            _t_7 = _t_6[0];
+            _t_8 = _t_6[1];
+            _t_9 = _t_8.image_id;
+            _t_10 = _t_8.picture_url;
+            _t_11 = _t_8.link;
+            _t_12 = {};
+            _t_12.image_id = _t_9;
+            _t_12.picture_url = _t_10;
+            _t_12.link = _t_11;
+            _t_13 = _t_12.image_id;
+            _t_14 = _t_12.picture_url;
+            _t_15 = _t_12.link;
+            try {
+              _t_16 = {};
+              _t_17 = new __builtin.Entity("xxxx", null);
+              _t_16.to = _t_17;
+              _t_18 = "xxx";
+              _t_16.subject = _t_18;
+              _t_19 = "xxx";
+              _t_16.message = _t_19;
+              _t_16.picture_url = _t_14;
+              yield env.invokeAction(1, _t_16);
+            } catch(_exc_) {
+              env.reportError("Failed to invoke action", _exc_);
+            }
+            _iter_tmp = yield _t_5.next();
+          }
+        }
+        _iter_tmp = yield _t_0.next();
+      }
+    }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke at-timer", _exc_);
   }`]]
 ];
 

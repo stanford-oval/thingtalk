@@ -270,6 +270,37 @@ module.exports = {
                 }
             }
         },
+        "com.thecatapi": {
+            "actions": {},
+            "queries": {
+                "get": {
+                    args: ["image_id", "count", "picture_url", "link"],
+                    types: ["Entity(com.thecatapi:image_id)", "Number", "Picture", "URL"],
+                    required: [false, false, false, false],
+                    is_input: [false, true, false, false]
+                }
+            }
+        },
+        "com.gmail": {
+            "actions": {
+                "send_picture": {
+                    // in req to : EmailAddress, in req subject : String, in req message : String, in req picture_url : Picture
+                    args: ["to", "subject", "message", "picture_url"],
+                    types: ["EmailAddress", "String", "String", "Picture"],
+                    required: [true, true, true, true],
+                    is_input: [true, true, true, true]
+                }
+            },
+            "queries": {
+                "inbox": {
+                    // out sender_name : String, out sender_address : EmailAddress, out subject : String, out date : Date, out labels : Array(String), out snippet : String, out thread_id : Entity(com.gmail:thread_id), out email_id : Entity(com.gmail:email_id), in opt is_important : Boolean, in opt is_primary : Boolean
+                    args: ["sender_name", "sender_address", "subject", "date", "labels", "snippet", "thread_id", "email_id", "is_important", "is_primary"],
+                    types: ["String", "EmailAddress", "String", "Date", "Array(String)", "String", "Entity(com.gmail:thread_id)", "Entity(com.gmail:email_id)", "Boolean", "Boolean"],
+                    required: [false, false, false, false, false, false, false, false, false, false],
+                    is_input: [false, false, false, false, false, false, false, false, true, true],
+                }
+            }
+        }
     },
 
     getSchemas: function() {
