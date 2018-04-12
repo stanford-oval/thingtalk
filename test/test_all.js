@@ -14,7 +14,7 @@ require('./app_grammar_test');
 require('./test_typecheck');
 require('./test_nn_syntax');
 require('./test_compiler');
-require('./test_builtin');
+//require('./test_builtin');
 //require('./test_describe');
 //require('./test_describe_policy');
 //require('./test_permissions');
