@@ -148,6 +148,10 @@ const TEST_CASES = [
     {},
     `now => @org.thingpedia.builtin.thingengine.builtin.configure(device="com.google"^^tt:device);`],
 
+    ['now => ( @com.nytimes.get_front_page ) filter param:updated:Date >= now - DURATION_0 => notify',
+     { DURATION_0: { value: 2, unit: 'h' } },
+     `now => (@com.nytimes.get_front_page()), updated >= makeDate() - 2h => notify;`],
+
     /*[`now => @com.xkcd.get_comic param:number:Number = SLOT_0 => notify`,
      {'SLOT_0': Ast.Value.Number(1234)},
      `now => @com.xkcd.get_comic(number=1234) => notify;`],
