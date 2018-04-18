@@ -58,7 +58,7 @@ executor = "matrix-account:@gcampax:matrix.org"^^tt:contact : { // WithPrincipal
 
 // CompareDate
 {
-    now => @builtin.get_time(), time > makeTime(10,0) => notify;
+    now => @builtin.get_time(), time >= makeTime(10,0) => notify;
 }
 
 ====
@@ -370,12 +370,12 @@ let stream lol := [foo] of (monitor Q0 join Q1);
 
 // RelativeTime
 {
-now => Q1, _timestamp > makeDate() + 2year => notify;
-now => Q1, _timestamp > makeDate() + -2year => notify;
-now => Q1, _timestamp > makeDate() - 2year => notify;
-now => Q1, _timestamp > makeDate() + 24mon => notify;
-now => Q1, _timestamp > makeDate() + (-1year + -12mon) => notify;
-now => Q1, _timestamp > start_of(mon) && _timestamp < end_of(day) => notify;
+now => Q1, _timestamp >= makeDate() + 2year => notify;
+now => Q1, _timestamp >= makeDate() + -2year => notify;
+now => Q1, _timestamp >= makeDate() - 2year => notify;
+now => Q1, _timestamp >= makeDate() + 24mon => notify;
+now => Q1, _timestamp >= makeDate() + (-1year + -12mon) => notify;
+now => Q1, _timestamp >= start_of(mon) && _timestamp <= end_of(day) => notify;
 }
 
 ====
@@ -392,7 +392,7 @@ now => macro(p_number=1234) => notify;
 {
 let stream once := \(x : Stream) -> edge x on (true) ;
 
-edge (monitor @thermostat.get_temperature()) on temperature > 70F => notify;
+edge (monitor @thermostat.get_temperature()) on temperature >= 70F => notify;
 }
 
 ====
