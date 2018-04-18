@@ -64,7 +64,7 @@ yield env.writeState(0, _t_8);
     env.reportError("Failed to invoke trigger", _exc_);
   }`]],
 
-    [`monitor @thermostat.get_temperature(), temperature > 21C => @builtin.say(message="bla");`,
+    [`monitor @thermostat.get_temperature(), temperature >= 21C => @builtin.say(message="bla");`,
      [`"use strict";
   let _t_0;
   let _t_1;
@@ -104,7 +104,7 @@ yield env.writeState(0, _t_9);
         _t_0 = _t_9;
         if (_t_8) {
           _t_12 = 21;
-          _t_11 = _t_7 > _t_12;
+          _t_11 = _t_7 >= _t_12;
           if (_t_11) {
             try {
               _t_13 = {};
@@ -127,7 +127,7 @@ yield env.writeState(0, _t_9);
     env.reportError("Failed to invoke trigger", _exc_);
   }`]],
 
-    [`monitor (@thermostat.get_temperature(), temperature > 21C) => @builtin.say(message="bla");`,
+    [`monitor (@thermostat.get_temperature(), temperature >= 21C) => @builtin.say(message="bla");`,
      [`"use strict";
   let _t_0;
   let _t_1;
@@ -167,7 +167,7 @@ yield env.writeState(0, _t_9);
         _t_0 = _t_9;
         if (_t_8) {
           _t_12 = 21;
-          _t_11 = _t_7 > _t_12;
+          _t_11 = _t_7 >= _t_12;
           if (_t_11) {
             try {
               _t_13 = {};
@@ -859,7 +859,7 @@ yield env.writeState(0, _t_10);
     env.reportError("Failed to invoke trigger", _exc_);
   }`]],
 
-    [`now => @builtin.get_time(), time > makeTime(10,0) => notify;`,
+    [`now => @builtin.get_time(), time >= makeTime(10,0) => notify;`,
      [`"use strict";
   let _t_0;
   let _t_1;
@@ -883,7 +883,7 @@ yield env.writeState(0, _t_10);
       _t_6 = _t_5.time;
       _t_8 = __builtin.getTime (_t_6);
       _t_9 = new __builtin.Time(10, 0, 0);
-      _t_7 = _t_8 > _t_9;
+      _t_7 = _t_8 >= _t_9;
       if (_t_7) {
         try {
           yield env.output(String(_t_4), _t_5);
