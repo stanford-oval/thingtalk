@@ -142,9 +142,7 @@ function test(i) {
     return AppGrammar.parseAndTypecheck(testCase, schemaRetriever).then((prog) => {
         let newprogram, sendprograms;
         if (type === 'factor') {
-            console.log('xxx: factoring not implemented');
-            return;
-            //[newprogram, sendprograms] = Generate.factorProgram(_mockMessaging, prog);
+            [newprogram, sendprograms] = Generate.factorProgram(_mockMessaging, prog);
         } else {
             newprogram = prog;
             sendprograms = Generate.lowerReturn(_mockMessaging, prog);
