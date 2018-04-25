@@ -172,6 +172,8 @@ function test(i) {
         console.error('Test Case #' + (i+1) + ': failed with exception');
         console.error('Error: ' + e.message);
         console.error(e.stack);
+        if (process.env.TEST_MODE)
+            throw e;
     });
 }
 
