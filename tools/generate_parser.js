@@ -185,6 +185,8 @@ function setEquals(one, two) {
     return true;
 }
 
+const ITEM_SET_MARKER = { toString() { return `[ItemSetSep]`; } };
+
 class SLRParserGenerator {
     /*
     Construct a shift-reduce parser given an SLR grammar.
@@ -285,7 +287,7 @@ class SLRParserGenerator {
         for (let rule of itemSet.rules) {
             let rhs = rule.get(1);
             for (let i = 0; i < rhs.length-1; i++) {
-                if (rhs[i] === '*' && rhs[i+1] !== EOF_TOKEN)
+                if (rhs[i] === ITEM_SET_MARKER && rhs[i+1] !== EOF_TOKEN)
                     set.add(rhs[i+1]);
             }
         }
@@ -296,8 +298,8 @@ class SLRParserGenerator {
         for (let rule of itemSet.rules) {
             let [rule_id, rhs] = rule.stuff;
             for (let i = 0; i < rhs.length-1; i++) {
-                if (rhs[i] === '*' && rhs[i+1] === token) {
-                    yield new Tuple(rule_id, rhs.slice(0, i).concat([token, '*'], rhs.slice(i+2)));
+                if (rhs[i] === ITEM_SET_MARKER && rhs[i+1] === token) {
+                    yield new Tuple(rule_id, rhs.slice(0, i).concat([token, ITEM_SET_MARKER], rhs.slice(i+2)));
                     break;
                 }
             }
@@ -307,7 +309,7 @@ class SLRParserGenerator {
     *_makeItemSet(lhs) {
         for (let ruleId of this.grammar.get(lhs)) {
             let [, rhs, ] = this.rules[ruleId];
-            yield new Tuple(ruleId, ['*'].concat(rhs));
+            yield new Tuple(ruleId, [ITEM_SET_MARKER].concat(rhs));
         }
     }
 
@@ -322,7 +324,7 @@ class SLRParserGenerator {
             let item = stack.pop();
             let rhs = item.get(1);
             for (let i = 0; i < rhs.length-1; i++) {
-                if (rhs[i] === '*' && _isNonterminal(rhs[i+1])) {
+                if (rhs[i] === ITEM_SET_MARKER && _isNonterminal(rhs[i+1])) {
                     for (let newRule of this._makeItemSet(rhs[i+1])) {
                         if (!itemSet.has(newRule)) {
                             itemSet.add(newRule);
@@ -526,7 +528,7 @@ class SLRParserGenerator {
             for (let item of itemSet.rules) {
                 let rhs = item.get(1);
                 for (let i = 0; i < rhs.length-1; i++) {
-                    if (rhs[i] === '*' && rhs[i+1] === EOF_TOKEN)
+                    if (rhs[i] === ITEM_SET_MARKER && rhs[i+1] === EOF_TOKEN)
                         this.actionTable[itemSet.info.id][EOF_TOKEN] = ['accept'];
                 }
             }
@@ -535,7 +537,7 @@ class SLRParserGenerator {
         for (let itemSet of this._itemSets) {
             for (let item of itemSet.rules) {
                 let [ruleId, rhs] = item.stuff;
-                if (rhs[rhs.length-1] !== '*')
+                if (rhs[rhs.length-1] !== ITEM_SET_MARKER)
                     continue;
                 let [lhs,,] = this.rules[ruleId];
                 for (let term of this.terminals) {

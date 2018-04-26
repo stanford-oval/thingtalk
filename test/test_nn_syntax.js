@@ -14,7 +14,7 @@ const Q = require('q');
 const NNSyntax = require('../lib/nn_syntax');
 //const NNOutputParser = require('../lib/nn_output_parser');
 const Ast = require('../lib/ast');
-const { typeCheckProgram } = require('../lib/typecheck');
+const { typeCheckProgram, typeCheckPermissionRule } = require('../lib/typecheck');
 const SchemaRetriever = require('../lib/schema');
 
 const ThingpediaClientHttp = require('./http_client');
@@ -164,9 +164,49 @@ const TEST_CASES = [
      { USERNAME_0: 'bob', QUOTED_STRING_0: 'lol' },
      `now => @com.twitter(principal="bob"^^tt:username).post(status="lol");`],
 
-    [`now => ( @security-camera.current_event ) filter ( @org.thingpedia.builtin.thingengine.phone.get_gps { not param:location:Location == location:home } ) => notify`,
+    [`executor = USERNAME_0 : now => @com.twitter.post`,
+     { USERNAME_0: 'bob' },
+     `executor = "bob"^^tt:contact_name : now => @com.twitter.post();`],
+
+    [`now => ( @security-camera.current_event ) filter @org.thingpedia.builtin.thingengine.phone.get_gps { not param:location:Location == location:home } => notify`,
      {},
      `now => (@security-camera.current_event()), @org.thingpedia.builtin.thingengine.phone.get_gps() { !(location == $context.location.home) } => notify;`],
+
+    [`policy source = * : now => @com.twitter.post`,
+    {},
+    `source = * : now => @com.twitter.post;`],
+
+    [`policy source = * : now => @com.twitter.post filter param:status:String =~ QUOTED_STRING_0`,
+    { QUOTED_STRING_0: 'foo' },
+    `source = * : now => @com.twitter.post, status =~ "foo";`],
+
+    [`policy source = USERNAME_0 : now => @com.twitter.post`,
+    { USERNAME_0: 'bob' },
+    `source = "bob"^^tt:contact_name : now => @com.twitter.post;`],
+
+    [`policy source = USERNAME_0 : now => @com.twitter.post filter param:status:String =~ QUOTED_STRING_0`,
+    { USERNAME_0: 'bob', QUOTED_STRING_0: 'foo' },
+    `source = "bob"^^tt:contact_name : now => @com.twitter.post, status =~ "foo";`],
+
+    [`policy source = * : @com.bing.web_search => notify`,
+    {},
+    `source = * : @com.bing.web_search => notify;`],
+
+    [`policy source = * : @com.bing.web_search filter param:query:String =~ QUOTED_STRING_0 => notify`,
+    { QUOTED_STRING_0: 'foo' },
+    `source = * : @com.bing.web_search, query =~ "foo" => notify;`],
+
+    [`policy source = * : @com.bing.web_search filter param:description:String =~ QUOTED_STRING_0 => notify`,
+    { QUOTED_STRING_0: 'foo' },
+    `source = * : @com.bing.web_search, description =~ "foo" => notify;`],
+
+    [`policy source = * : @com.bing.web_search filter param:description:String =~ QUOTED_STRING_0 => @com.twitter.post filter param:status:String =~ QUOTED_STRING_0`,
+    { QUOTED_STRING_0: 'foo' },
+    `source = * : @com.bing.web_search, description =~ "foo" => @com.twitter.post, status =~ "foo";`],
+
+    [`policy source = * : @com.bing.web_search filter @org.thingpedia.builtin.thingengine.phone.get_gps { not param:location:Location == location:home } and param:description:String =~ QUOTED_STRING_0 => notify`,
+    { QUOTED_STRING_0: 'foo' },
+    `source = * : @com.bing.web_search, (@org.thingpedia.builtin.thingengine.phone.get_gps() { !(location == $context.location.home) } && description =~ "foo") => notify;`],
 
     /*[`now => @com.xkcd.get_comic param:number:Number = SLOT_0 => notify`,
      {'SLOT_0': Ast.Value.Number(1234)},
@@ -177,6 +217,20 @@ const TEST_CASES = [
      `now => @com.xkcd.get_comic(number=$undefined) => notify;`],*/
 ];
 
+function typeCheck(what, schemaRetriever) {
+    if (what instanceof Ast.Program)
+        return typeCheckProgram(what, schemaRetriever);
+    else
+        return typeCheckPermissionRule(what, schemaRetriever);
+}
+
+function prettyprint(what) {
+    if (what instanceof Ast.Program)
+        return Ast.prettyprint(what, true);
+    else
+        return Ast.prettyprintPermissionRule(what);
+}
+
 function testCase(test, i) {
     let [sequence, entities, expected] = test;
 
@@ -184,7 +238,7 @@ function testCase(test, i) {
     return Q.try(() => {
         sequence = sequence.split(' ');
         let program = NNSyntax.fromNN(sequence, entities);
-        let generated = Ast.prettyprint(program, true).trim();
+        let generated = prettyprint(program);
 
         if (generated !== expected) {
             console.error('Test Case #' + (i+1) + ' failed (wrong program)');
@@ -192,7 +246,7 @@ function testCase(test, i) {
             console.error('Generated:', generated);
         }
 
-        return typeCheckProgram(program, schemaRetriever).then(() => {
+        return typeCheck(program, schemaRetriever).then(() => {
 
             let reconstructed = NNSyntax.toNN(program, entities).join(' ');
             if (reconstructed !== test[0]) {
