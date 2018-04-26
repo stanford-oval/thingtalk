@@ -164,6 +164,10 @@ const TEST_CASES = [
      { USERNAME_0: 'bob', QUOTED_STRING_0: 'lol' },
      `now => @com.twitter(principal="bob"^^tt:username).post(status="lol");`],
 
+    [`now => ( @security-camera.current_event ) filter ( @org.thingpedia.builtin.thingengine.phone.get_gps { not param:location:Location == location:home } ) => notify`,
+     {},
+     `now => (@security-camera.current_event()), @org.thingpedia.builtin.thingengine.phone.get_gps() { !(location == $context.location.home) } => notify;`],
+
     /*[`now => @com.xkcd.get_comic param:number:Number = SLOT_0 => notify`,
      {'SLOT_0': Ast.Value.Number(1234)},
      `now => @com.xkcd.get_comic(number=1234) => notify;`],
