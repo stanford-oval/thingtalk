@@ -16,7 +16,7 @@ require('./test_nn_syntax');
 require('./test_compiler');
 //require('./test_builtin');
 require('./test_describe');
-//require('./test_describe_policy');
+require('./test_describe_policy');
 //require('./test_permissions');
 require('./test_lowerings');
 //require('./test_sql_compiler');

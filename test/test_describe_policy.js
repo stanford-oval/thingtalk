@@ -15,40 +15,36 @@ const Q = require('q');
 Q.longStackSupport = true;
 const Describe = require('../lib/describe');
 const Grammar = require('../lib/grammar_api');
-const Compiler = require('../lib/compiler');
 const SchemaRetriever = require('../lib/schema');
-const PermissionChecker = require('../lib/permission_checker');
-const { optimizeProgram } = require('../lib/optimize');
 const { typeCheckPermissionRule } = require('../lib/typecheck');
 
-const _mockSchemaDelegate = require('./mock_schema_delegate');
 const ThingpediaClientHttp = require('./http_client');
 
 var TEST_CASES = [
     // manually written test cases
-    ['now => @twitter.sink',
+    ['now => @com.twitter.post',
      'anyone is allowed to tweet any status'],
 
-    ['now => @twitter.sink, status = "foo"',
+    ['now => @com.twitter.post, status == "foo"',
      'anyone is allowed to tweet "foo"'],
 
-    ['now => @twitter.sink, status =~ "foo"',
+    ['now => @com.twitter.post, status =~ "foo"',
      'anyone is allowed to tweet any status if status contains "foo"'],
 
-    ['now => @twitter.sink, status = "foo" || status = "bar"',
+    ['now => @com.twitter.post, status == "foo" || status == "bar"',
      'anyone is allowed to tweet any status if status is equal to "foo" or status is equal to "bar"'],
 
-    ['now => @twitter.search, query = "foo" => notify',
-     'anyone is allowed to search "foo" on Twitter'],
+    ['@com.bing.web_search, query == "foo" => notify',
+     'anyone is allowed to read search for "foo" on Bing'],
 
-    ['now => @twitter.search, query = "foo" || query = "bar" => notify',
-     'anyone is allowed to search any query on Twitter if query is equal to "foo" or query is equal to "bar"'],
+    ['@com.bing.web_search, query == "foo" || query == "bar" => notify',
+     'anyone is allowed to read search for any query on Bing if query is equal to "foo" or query is equal to "bar"'],
 
-    ['now => @twitter.search, query = "foo" && text =~ "lol" => notify',
-     'anyone is allowed to search "foo" on Twitter if text contains "lol"'],
+    ['@com.bing.web_search, query == "foo" && description =~ "lol" => notify',
+     'anyone is allowed to read search for "foo" on Bing if description contains "lol"'],
 
-    ['now => @twitter.search, (query = "foo" || query = "bar") && text =~ "lol" => notify',
-     'anyone is allowed to search any query on Twitter if query is equal to "foo" or query is equal to "bar" and text contains "lol"']
+    ['@com.bing.web_search, (query == "foo" || query == "bar") && description =~ "lol" => notify',
+     'anyone is allowed to read search for any query on Bing if query is equal to "foo" or query is equal to "bar" and description contains "lol"']
 ];
 
 const schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(), true);
@@ -72,6 +68,8 @@ function test(i) {
         console.error('Test Case #' + (i+1) + ': failed with exception');
         console.error('Error: ' + e.message);
         console.error(e.stack);
+        if (process.env.TEST_MODE)
+            throw e;
     });
 }
 
