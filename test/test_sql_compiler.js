@@ -2,7 +2,6 @@
 
 const Q = require('q');
 Q.longStackSupport = true;
-const CVC4Solver = require('cvc4');
 const deq = require('deep-equal');
 
 const Ast = require('../lib/ast');

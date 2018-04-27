@@ -2,7 +2,7 @@
 
 const Q = require('q');
 Q.longStackSupport = true;
-const CVC4Solver = require('cvc4');
+const CVC4Solver = require('smtlib').LocalCVC4Solver;
 
 const Ast = require('../lib/ast');
 const Grammar = require('../lib/grammar_api');

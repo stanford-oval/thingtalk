@@ -23,8 +23,7 @@
     "eslint": "^4.0.0",
     "mysql": "^2.13.0",
     "nyc": "^11.4.1",
-    "pegjs": "~0.9.0",
-    "cvc4": "^0.1.1"
+    "pegjs": "~0.9.0"
   },
   "scripts": {
     "regen-grammar": "pegjs --allowed-start-rules program,type_ref,permission_rule ./lib/grammar.pegjs",
