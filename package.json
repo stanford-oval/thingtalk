@@ -13,6 +13,7 @@
   "dependencies": {
     "adt": "~0.7.2",
     "byline": "^5.0.0",
+    "consumer-queue": "^1.0.0",
     "q": "~1.4.1",
     "smtlib": "^0.1.1"
   },
