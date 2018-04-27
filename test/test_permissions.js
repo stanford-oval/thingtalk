@@ -1,3 +1,5 @@
+"use strict";
+
 const Q = require('q');
 Q.longStackSupport = true;
 const CVC4Solver = require('cvc4');
@@ -7,195 +9,58 @@ const Grammar = require('../lib/grammar_api');
 const Compiler = require('../lib/compiler');
 const SchemaRetriever = require('../lib/schema');
 const PermissionChecker = require('../lib/permission_checker');
-const { optimizeProgram } = require('../lib/optimize');
 
-const _mockSchemaDelegate = require('./mock_schema_delegate');
 const ThingpediaClientHttp = require('./http_client');
 
 var schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(), false);
 
 const TEST_CASES = [
-    [`Main() {
-    now => @holidays.next_us_holiday_event(), (((date = makeDate(1462320000000) && summary =~ "merry christmas" && description = "i'm happy") || description = "you would never believe what happened")) , v_date := date, v_summary := summary, v_description := description => @github.comment_issue(repo_name=v_summary, body=v_summary, issue_number=7) ;
-}`, `Main() {
-    now => @holidays.next_us_holiday_event(), ((date = makeDate(1462320000000) && summary =~ "merry christmas" && description = "i'm happy") || description = "you would never believe what happened") , v_date := date, v_summary := summary, v_description := description => @github.comment_issue(repo_name=v_summary, body=v_summary, issue_number=7) ;
-}`],
+    [`now => @com.facebook.post(status="this is really funny lol");`,
+     `now => @com.facebook.post(status="this is really funny lol");`],
 
-    [`Main() {
-    @activity-tracker.getmove(), (calories <= 500kcal) , v_updateTime := updateTime, v_day := day, v_distance := distance, v_steps := steps, v_activeTime := activeTime, v_inactiveTime := inactiveTime, v_calories := calories => @builtin.get_random_between(low=v_steps, high=v_steps), (((low < 14 && high >= 11 && random <= 7) || (low = 7 && high > 42 && random < 42) || (low <= 7 && high > 42 && random >= 42) || (low <= 42 && high <= 7))) , v_random := random => @light-bulb.alert_long() ;
-}`, null],
+    [`now => @com.facebook.post(status="this is totally not funny");`, null],
 
-    [`@google_drive.new_drive_file(), v_foo := file_name => @dropbox.list_folder(folder_name=v_foo) => notify ;`,
-    `Main() {
-    @google_drive.new_drive_file(), (file_name =~ "you would never believe what happened" || file_name = "merry christmas" || file_name = "love you") , v_foo := file_name => @dropbox.list_folder(folder_name=v_foo), ((file_name =~ "you would never believe what happened" || file_name = "merry christmas" || file_name = "love you") && ((is_folder = true && file_size <= 20MB) || (v_foo = "merry christmas" && file_name =~ "merry christmas") || (file_name = "you would never believe what happened" && full_path = "i'm happy") || (last_modified = makeDate(1462320000000) && full_path =~ "love you") || (v_foo =~ "merry christmas" && file_size = 5KB && full_path =~ "merry christmas")))  => notify;
-}`],
+    [`now => @com.twitter.search(), text =~ "funny lol" => @com.facebook.post(status=text);`,
+     `now => (@com.twitter.search()), text =~ "funny lol" => @com.facebook.post(status=text);`],
 
-    [`AlmondGenerated() {
-    class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-        trigger receive(in req __principal : Entity(tt:contact),
-                        in req __token : Entity(tt:flow_token),
-                        in req __kindChannel : Entity(tt:function),
-                        out v : Enum(on, off));
-    }
-    @__dyn_0.receive(__principal="omlet-messaging:testtesttest"^^tt:contact,
-        __token="123456789"^^tt:flow_token,
-        __kindChannel=""^^tt:function),
-        v_v := v
-    =>
-    @lg_webos_tv.set_power(power=v_v);
-    }`, `AlmondGenerated() {
-    class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-        trigger receive (in req __principal : Entity(tt:contact), in req __token : Entity(tt:flow_token), in req __kindChannel : Entity(tt:function), out v : Enum(on,off));
-    }
-    @__dyn_0.receive(__principal="omlet-messaging:testtesttest"^^tt:contact, __token="123456789"^^tt:flow_token, __kindChannel=""^^tt:function) , v_v := v => @lg_webos_tv.set_power(power=v_v) ;
-}`],
+    [`now => @com.twitter.search() => @com.facebook.post(status=text);`,
+     `now => (@com.twitter.search()), ((text =~ "funny" && text =~ "lol") || text =~ "https://www.wsj.com" || text =~ "https://www.washingtonpost.com") => @com.facebook.post(status=text);`],
 
-    [`AlmondGenerated() {
-    class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-        trigger receive(in req __principal : Entity(tt:contact),
-                        in req __token : Entity(tt:flow_token),
-                        in req __kindChannel : Entity(tt:function),
-                        out text : String);
-    }
-    @__dyn_0.receive(__principal="omlet-messaging:testtesttest"^^tt:contact,
-        __token="123456789"^^tt:flow_token,
-        __kindChannel=""^^tt:function),
-        (text =~ "lol" || text =~ "funny"),
-        v_txt := text
-    =>
-    @facebook.post(status=v_txt);
-    }`, `AlmondGenerated() {
-    class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-        trigger receive (in req __principal : Entity(tt:contact), in req __token : Entity(tt:flow_token), in req __kindChannel : Entity(tt:function), out text : String);
-    }
-    @__dyn_0.receive(__principal="omlet-messaging:testtesttest"^^tt:contact, __token="123456789"^^tt:flow_token, __kindChannel=""^^tt:function), ((text =~ "lol" || text =~ "funny") && ((text =~ "funny" && text =~ "lol") || text =~ "https://www.wsj.com" || text =~ "https://www.washingtonpost.com")) , v_txt := text => @facebook.post(status=v_txt) ;
-}`],
+    [`now => @com.bing.web_search(query="cats") => @com.facebook.post(status=description);`,
+     `now => (@com.bing.web_search(query="cats")), ((description =~ "funny" && description =~ "lol") || description =~ "https://www.wsj.com" || description =~ "https://www.washingtonpost.com" || description =~ "cat") => @com.facebook.post(status=description);`],
 
-    [`AlmondGenerated() {
-    class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-        action send(in req __principal : Entity(tt:contact),
-                    in req __token : Entity(tt:flow_token),
-                    in req from_name : String,
-                    in req from_address : Entity(tt:email_address),
-                    in req subject : String,
-                    in req date : Date,
-                    in req labels : Array(String),
-                    in req snippet : String);
-    }
-    @gmail.receive_email(),
-        subject =~ "lol",
-        v_from_name := from_name,
-        v_from_address := from_address,
-        v_subject := subject,
-        v_date := date,
-        v_labels := labels,
-        v_snippet := snippet
-    =>
-    @__dyn_0.send(__principal="omlet-messaging:testtesttest"^^tt:contact,
-        __token="123456789"^^tt:flow_token,
-        from_name = v_from_name,
-        from_address = v_from_address,
-        subject = v_subject,
-        date = v_date,
-        labels = v_labels,
-        snippet = v_snippet);
-    }`, `AlmondGenerated() {
-    class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-        action send (in req __principal : Entity(tt:contact), in req __token : Entity(tt:flow_token), in req from_name : String, in req from_address : Entity(tt:email_address), in req subject : String, in req date : Date, in req labels : Array(String), in req snippet : String);
-    }
-    @gmail.receive_email(), (subject =~ "lol" && from_address = "bob@stanford.edu"^^tt:email_address) , v_from_name := from_name, v_from_address := from_address, v_subject := subject, v_date := date, v_labels := labels, v_snippet := snippet => @__dyn_0.send(__principal="omlet-messaging:testtesttest"^^tt:contact, __token="123456789"^^tt:flow_token, from_name=v_from_name, from_address=v_from_address, subject=v_subject, date=v_date, labels=v_labels, snippet=v_snippet) ;
-}`],
+    [`monitor @security-camera.current_event(), has_person == true => notify;`,
+    `monitor ((@security-camera.current_event()), (@org.thingpedia.builtin.thingengine.phone.get_gps() { location == makeLocation(1, 2) } && has_person == true)) => notify;`],
 
-    [`AlmondGenerated() {
-    class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-        trigger receive(in req __principal : Entity(tt:contact),
-                        in req __token : Entity(tt:flow_token),
-                        in req __kindChannel : Entity(tt:function),
-                        out q1 : String,
-                        out q2 : String);
-    }
-    @__dyn_0.receive(__principal="omlet-messaging:testtesttest"^^tt:contact,
-        __token="123456789"^^tt:flow_token,
-        __kindChannel=""^^tt:function),
-        q1 =~ "cats",
-        v_q1 := q1,
-        v_q2 := q2
-    =>
-    @twitter.search(query=v_q1),
-        text =~ "funny lol", v_txt := text
-    =>
-    @facebook.post(status=v_txt);
-    }`,`AlmondGenerated() {
-    class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-        trigger receive (in req __principal : Entity(tt:contact), in req __token : Entity(tt:flow_token), in req __kindChannel : Entity(tt:function), out q1 : String, out q2 : String);
-    }
-    @__dyn_0.receive(__principal="omlet-messaging:testtesttest"^^tt:contact, __token="123456789"^^tt:flow_token, __kindChannel=""^^tt:function), q1 =~ "cats" , v_q1 := q1, v_q2 := q2 => @twitter.search(query=v_q1), (text =~ "funny lol" && (text =~ "https://www.wsj.com" || text =~ "https://www.washingtonpost.com" || (v_q1 =~ "cats" && contains(hashtags, "cat"^^tt:hashtag)) || (v_q1 =~ "dogs" && contains(hashtags, "dog"^^tt:hashtag)))) , v_txt := text => @facebook.post(status=v_txt) ;
-}`],
+    // the program should be rejected because there is no rule that allows phone.get_gps()
+    [`monitor @security-camera.current_event(), (has_person == true && @org.thingpedia.builtin.thingengine.phone.get_gps() { location == makeLocation(1, 2) })  => notify;`,
+     null],
 
-    [`AlmondGenerated() {
-    now =>
-    @twitter.search(query="cats"),
-        text =~ "funny lol", v_txt := text
-    =>
-    @facebook.post(status=v_txt);
-    }`, `AlmondGenerated() {
-    now => @twitter.search(query="cats"), (text =~ "funny lol" && (text =~ "https://www.wsj.com" || text =~ "https://www.washingtonpost.com" || contains(hashtags, "cat"^^tt:hashtag))) , v_txt := text => @facebook.post(status=v_txt) ;
-}`],
+    [`now => @org.thingpedia.builtin.thingengine.phone.get_gps() => notify;`, null],
 
-    [`AlmondGenerated() {
-    now =>
-    @twitter.search(query="cats"),
-        v_txt := text
-    =>
-    @facebook.post(status=v_txt);
-    }`, `AlmondGenerated() {
-    now => @twitter.search(query="cats"), (text =~ "https://www.wsj.com" || text =~ "https://www.washingtonpost.com" || contains(hashtags, "cat"^^tt:hashtag)) , v_txt := text => @facebook.post(status=v_txt) ;
-}`],
+    [`now => @thermostat.get_temperature() => notify;`,
+     `now => (@thermostat.get_temperature()), @com.xkcd.get_comic(number=10) { title =~ "lol" } => notify;`],
 
-    [`AlmondGenerated() { @security-camera.new_event(), has_person = true => notify; }`,
+    [`attimer(time=makeTime(10,30)) join @thermostat.get_temperature() => notify;`,
+     `(attimer(time=makeTime(10, 30)) join @thermostat.get_temperature()), @com.xkcd.get_comic(number=10) { title =~ "lol" } => notify;`],
+
+    /*[`monitor @thermostat.get_temperature(), @com.xkcd.get_comic(number=10) { title =~ "lol" }  => notify;`,
+    `@thermostat.temperature(), @xkcd.get_comic(number=10) { title =~ "lol" }  => notify;`],
+
+    [`monitor @thermostat.get_temperature(), @xkcd.get_comic(number=11) { title =~ "lol" }  => notify;`,
     `AlmondGenerated() {
-    @security-camera.new_event(), (has_person = true && @phone.get_gps() { location = makeLocation(1, 2) })  => notify;
-}`],
-
-    [`AlmondGenerated() {
-    @security-camera.new_event(), (has_person = true && @phone.get_gps() { location = makeLocation(1, 2) })  => notify;
-}`, `AlmondGenerated() {
-    @security-camera.new_event(), (has_person = true && @phone.get_gps() { location = makeLocation(1, 2) })  => notify;
-}`],
-
-    [`AlmondGenerated() {
-    @security-camera.new_event(), (has_person = true && @phone.get_gps() { location = makeLocation(1, 2) && location = makeLocation(2, 3) })  => notify;
-}`, null],
-
-    [`AlmondGenerated() {
-    @thermostat.temperature() => notify;
-}`, `AlmondGenerated() {
-    @thermostat.temperature(), @xkcd.get_comic(number=10) { title =~ "lol" }  => notify;
-}`],
-
-    [`AlmondGenerated() {
-    @thermostat.temperature(), @xkcd.get_comic(number=10) { title =~ "lol" }  => notify;
-}`,`AlmondGenerated() {
-    @thermostat.temperature(), @xkcd.get_comic(number=10) { title =~ "lol" }  => notify;
-}`],
-
-    [`AlmondGenerated() {
-    @thermostat.temperature(), @xkcd.get_comic(number=11) { title =~ "lol" }  => notify;
-}`, `AlmondGenerated() {
     @thermostat.temperature(), (@xkcd.get_comic(number=11) { title =~ "lol" } && @xkcd.get_comic(number=10) { title =~ "lol" })  => notify;
 }`],
 
-    [`AlmondGenerated() {
-    @thermostat.temperature(), @xkcd.get_comic() { title =~ "lol" }  => notify;
-}`, `AlmondGenerated() {
+    [`monitor @thermostat.get_temperature(), @xkcd.get_comic() { title =~ "lol" }  => notify;`,
+    `AlmondGenerated() {
     @thermostat.temperature(), (@xkcd.get_comic() { title =~ "lol" } && @xkcd.get_comic(number=10) { title =~ "lol" })  => notify;
 }`],
 
-    [`AlmondGenerated() {
-    @thermostat.humidity(), @xkcd.get_comic() { title =~ "lol" }  => notify;
+    [`monitor @thermostat.get_humidity(), @xkcd.get_comic() { title =~ "lol" }  => notify;
 }`, `AlmondGenerated() {
     @thermostat.humidity(), @xkcd.get_comic() { title =~ "lol" }  => notify;
-}`]
+}`]*/
 ];
 
 function promiseLoop(array, fn) {
@@ -207,24 +72,22 @@ function promiseLoop(array, fn) {
 }
 
 const PERMISSION_DATABASE = [
-    `now => @holidays.next_us_holiday_event, (summary =~ "you would never believe what happened" || (date = makeDate(1487030400000) && summary = "you would never believe what happened" && description =~ "you would never believe what happened") || summary = "i'm happy" || date = makeDate(1462320000000) || date = makeDate(1462320000000) || description =~ "you would never believe what happened") , v_date := date, v_summary := summary, v_description := description => @github.comment_issue, ((repo_name = v_summary && issue_number <= 7 && body =~ v_summary) || body =~ v_summary || (repo_name =~ "i'm happy" && body =~ "i'm happy") || repo_name =~ "merry christmas") `,
-    `@activity-tracker.getmove, (day = "merry christmas" && distance < 42cm && steps > 14 && activeTime <= 2h && inactiveTime < 2h && calories >= 500kcal) , v_updateTime := updateTime, v_day := day, v_distance := distance, v_steps := steps, v_activeTime := activeTime, v_inactiveTime := inactiveTime, v_calories := calories => * => *`,
-    `@google_drive.new_drive_file, ((file_name =~ "you would never believe what happened") || (file_name = "merry christmas") || (file_name = "love you")), v_file_name := file_name => @dropbox.list_folder, ((folder_name = v_file_name && is_folder = true && file_size <= 20MB) || (folder_name = "merry christmas" && file_name =~ "merry christmas") || (file_name = "you would never believe what happened" && full_path = "i'm happy") || (last_modified = makeDate(1462320000000) && full_path =~ "love you") || (folder_name =~ "merry christmas" && file_size = 5KB && full_path =~ "merry christmas")) => *`,
-    `@gmail.receive_email, from_address = "bob@stanford.edu"^^tt:email_address => * => *`,
-    `* => * => @builtin.say`,
-    `* => @facebook.post, status =~ "funny" && status =~ "lol"`,
-    `* => * => @facebook.post, status =~ "https://www.wsj.com" || status =~ "https://www.washingtonpost.com"`,
-    `* => * => @twitter.sink, status =~ "funny"`,
-    `* => @twitter.search, query =~ "cats" && contains(hashtags, "cat"^^tt:hashtag) => *`,
-    `* => @twitter.search, query =~ "dogs" && contains(hashtags, "dog"^^tt:hashtag) => *`,
-    `* => * => @thermostat.set_target_temperature, value > 70F && value <= 75F`,
-    `* => * => @lg_webos_tv.set_power, power = enum(off)`,
-    `* => * => @lg_webos_tv.set_power, group_member(__pi, "role:mom"^^tt:contact_group) && power = enum(on)`,
-    `* => * => @lg_webos_tv.set_power, __pi = "mom@stanford.edu"^^tt:contact && power = enum(on)`,
+    `@com.gmail.inbox, sender_address == "bob@stanford.edu"^^tt:email_address => *`,
+    `* => @org.thingpedia.builtin.thingengine.builtin.say`,
+    `* => @com.facebook.post, status =~ "funny" && status =~ "lol"`,
+    `* => @com.facebook.post, status =~ "https://www.wsj.com" || status =~ "https://www.washingtonpost.com"`,
+    `* => @com.twitter.post, status =~ "funny"`,
+    `@com.bing.web_search, query == "cats" && description =~ "cat" => *`,
+    `@com.bing.web_search, query == "dogs" && description =~ "dog" => *`,
+    `* => @thermostat.set_target_temperature, value >= 70F && value <= 75F`,
+    `* => @com.lg.tv.webos2.set_power, power == enum(off)`,
+    `* => @com.lg.tv.webos2.set_power, group_member(__pi, "role:mom"^^tt:contact_group) && power == enum(on)`,
+    `* => @com.lg.tv.webos2.set_power, __pi == "mom@stanford.edu"^^tt:contact && power == enum(on)`,
+    `@com.xkcd.get_comic => *`,
 
-    `@security-camera.new_event, @phone.get_gps() { location = makeLocation(1,2) } => notify`,
-    `@thermostat.temperature, @xkcd.get_comic(number=10) { title =~ "lol" } => notify`,
-    `@thermostat.humidity, @xkcd.get_comic() { title =~ "lol" } => notify`
+    `@security-camera.current_event, @org.thingpedia.builtin.thingengine.phone.get_gps() { location == makeLocation(1,2) } => notify`,
+    `@thermostat.get_temperature, @com.xkcd.get_comic(number=10) { title =~ "lol" } => notify`,
+    `@thermostat.get_humidity, @com.xkcd.get_comic() { title =~ "lol" } => notify`
 ];
 
 class MockGroupDelegate {
@@ -255,7 +118,7 @@ function main() {
             return checker.check(principal, Grammar.parse(input)).then((prog) => {
                 if (prog) {
                     console.log('Program accepted');
-                    let code = Ast.prettyprint(prog);
+                    let code = Ast.prettyprint(prog, true);
                     if (code !== expected) {
                         console.error('Test case #' + (i+1) + ' FAIL');
                         console.error('Program does not match what expected');
