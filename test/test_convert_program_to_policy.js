@@ -26,6 +26,7 @@ var TEST_CASES = [
      'source == "test-account:foobar"^^tt:contact("Bob") : now => @com.twitter.post;'],
     [`now => @com.twitter.post(status="foo");`,
      'source == "test-account:foobar"^^tt:contact("Bob") : now => @com.twitter.post, status == "foo";'],
+
     [`now => @com.twitter.search(), text =~ "lol" => @com.twitter.post(status=text);`,
      'source == "test-account:foobar"^^tt:contact("Bob") : @com.twitter.search, text =~ "lol" => @com.twitter.post, status == text;'],
     [`now => @com.bing.web_search(query="lol") => @com.twitter.post(status=description);`,
@@ -38,6 +39,19 @@ var TEST_CASES = [
      'source == "test-account:foobar"^^tt:contact("Bob") : @com.bing.web_search, (query == "lol" && description =~ "bar") => @com.twitter.post, status == description;'],
     [`monitor (@com.bing.web_search(query="lol"), description =~ "bar") => @com.twitter.post(status=description);`,
      'source == "test-account:foobar"^^tt:contact("Bob") : @com.bing.web_search, (query == "lol" && description =~ "bar") => @com.twitter.post, status == description;'],
+
+    [`now => @com.twitter.search(), text =~ "lol" => notify;`,
+     'source == "test-account:foobar"^^tt:contact("Bob") : @com.twitter.search, text =~ "lol" => notify;'],
+    [`now => @com.bing.web_search(query="lol") => notify;`,
+     'source == "test-account:foobar"^^tt:contact("Bob") : @com.bing.web_search, query == "lol" => notify;'],
+    [`now => @com.bing.web_search(query="lol"), description =~ "bar" => notify;`,
+     'source == "test-account:foobar"^^tt:contact("Bob") : @com.bing.web_search, (query == "lol" && description =~ "bar") => notify;'],
+    [`monitor @com.bing.web_search(query="lol") => notify;`,
+     'source == "test-account:foobar"^^tt:contact("Bob") : @com.bing.web_search, query == "lol" => notify;'],
+    [`monitor @com.bing.web_search(query="lol"), description =~ "bar" => notify;`,
+     'source == "test-account:foobar"^^tt:contact("Bob") : @com.bing.web_search, (query == "lol" && description =~ "bar") => notify;'],
+    [`monitor (@com.bing.web_search(query="lol"), description =~ "bar") => notify;`,
+     'source == "test-account:foobar"^^tt:contact("Bob") : @com.bing.web_search, (query == "lol" && description =~ "bar") => notify;'],
 ];
 
 const schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(), true);
