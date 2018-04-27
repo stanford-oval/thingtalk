@@ -44,6 +44,8 @@ const TEST_CASES = [
     [`attimer(time=makeTime(10,30)) join @thermostat.get_temperature() => notify;`,
      `(attimer(time=makeTime(10, 30)) join @thermostat.get_temperature()), @com.xkcd.get_comic(number=10) { title =~ "lol" } => notify;`],
 
+    [`now => @com.lg.tv.webos2.set_power(power=enum(on));`, null],
+
     /*[`monitor @thermostat.get_temperature(), @com.xkcd.get_comic(number=10) { title =~ "lol" }  => notify;`,
     `@thermostat.temperature(), @xkcd.get_comic(number=10) { title =~ "lol" }  => notify;`],
 
@@ -72,22 +74,22 @@ function promiseLoop(array, fn) {
 }
 
 const PERMISSION_DATABASE = [
-    `@com.gmail.inbox, sender_address == "bob@stanford.edu"^^tt:email_address => *`,
-    `* => @org.thingpedia.builtin.thingengine.builtin.say`,
-    `* => @com.facebook.post, status =~ "funny" && status =~ "lol"`,
-    `* => @com.facebook.post, status =~ "https://www.wsj.com" || status =~ "https://www.washingtonpost.com"`,
-    `* => @com.twitter.post, status =~ "funny"`,
-    `@com.bing.web_search, query == "cats" && description =~ "cat" => *`,
-    `@com.bing.web_search, query == "dogs" && description =~ "dog" => *`,
-    `* => @thermostat.set_target_temperature, value >= 70F && value <= 75F`,
-    `* => @com.lg.tv.webos2.set_power, power == enum(off)`,
-    `* => @com.lg.tv.webos2.set_power, group_member(__pi, "role:mom"^^tt:contact_group) && power == enum(on)`,
-    `* => @com.lg.tv.webos2.set_power, __pi == "mom@stanford.edu"^^tt:contact && power == enum(on)`,
-    `@com.xkcd.get_comic => *`,
+    `true : @com.gmail.inbox, sender_address == "bob@stanford.edu"^^tt:email_address => *`,
+    `true : * => @org.thingpedia.builtin.thingengine.builtin.say`,
+    `true : * => @com.facebook.post, status =~ "funny" && status =~ "lol"`,
+    `true : * => @com.facebook.post, status =~ "https://www.wsj.com" || status =~ "https://www.washingtonpost.com"`,
+    `true : * => @com.twitter.post, status =~ "funny"`,
+    `true : @com.bing.web_search, query == "cats" && description =~ "cat" => *`,
+    `true : @com.bing.web_search, query == "dogs" && description =~ "dog" => *`,
+    `true : * => @thermostat.set_target_temperature, value >= 70F && value <= 75F`,
+    `true : * => @com.lg.tv.webos2.set_power, power == enum(off)`,
+    `group_member(source, "role:sister"^^tt:contact_group) : * => @com.lg.tv.webos2.set_power, power == enum(on)`,
+    `source == "mom@stanford.edu"^^tt:contact : * => @com.lg.tv.webos2.set_power, power == enum(on)`,
+    `true : @com.xkcd.get_comic => *`,
 
-    `@security-camera.current_event, @org.thingpedia.builtin.thingengine.phone.get_gps() { location == makeLocation(1,2) } => notify`,
-    `@thermostat.get_temperature, @com.xkcd.get_comic(number=10) { title =~ "lol" } => notify`,
-    `@thermostat.get_humidity, @com.xkcd.get_comic() { title =~ "lol" } => notify`
+    `true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.phone.get_gps() { location == makeLocation(1,2) } => notify`,
+    `true : @thermostat.get_temperature, @com.xkcd.get_comic(number=10) { title =~ "lol" } => notify`,
+    `true : @thermostat.get_humidity, @com.xkcd.get_comic() { title =~ "lol" } => notify`
 ];
 
 class MockGroupDelegate {
@@ -108,7 +110,10 @@ class MockGroupDelegate {
 function main() {
     var checker = new PermissionChecker(CVC4Solver, schemaRetriever, new MockGroupDelegate());
 
-    Q.all(PERMISSION_DATABASE.map((a) => checker.allowed(Grammar.parsePermissionRule(a)))).then(() => {
+    Q.all(PERMISSION_DATABASE.map((a, i) => {
+        console.log('Parsing rule ', i+1);
+        return checker.allowed(Grammar.parsePermissionRule(a));
+    })).then(() => {
         const principal = Ast.Value.Entity('omlet-messaging:testtesttest', 'tt:contact', null);
 
         return promiseLoop(TEST_CASES, ([input, expected], i) => {

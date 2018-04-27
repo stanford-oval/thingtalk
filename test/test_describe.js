@@ -29,7 +29,7 @@ var TEST_CASES = [
      'tweet ____'],
     ['monitor @com.twitter.home_timeline() => @com.twitter.post(status=text);',
     'tweet the text when tweets from anyone you follow changes'],
-    [`monitor @thermostat(principal="foo"^^tt:contact_name).get_temperature(), value >= 70F
+    [`monitor @thermostat(principal="foo"^^tt:username).get_temperature(), value >= 70F
      => notify;`,
     'notify you when get the temperature on @foo\'s thermostat changes and value is greater than or equal to 70 F'],
     ['attimer(time=makeTime(8,30)) => @org.thingpedia.builtin.thingengine.builtin.say(message=$undefined);',
@@ -52,6 +52,8 @@ function test(i) {
             console.error('Test Case #' + (i+1) + ': does not match what expected');
             console.error('Expected: ' + expected);
             console.error('Generated: ' + reconstructed);
+            if (process.env.TEST_MODE)
+                throw new Error(`testDescribe ${i+1} FAILED`);
         }
     }).catch((e) => {
         console.error('Test Case #' + (i+1) + ': failed with exception');

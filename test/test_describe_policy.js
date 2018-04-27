@@ -22,28 +22,37 @@ const ThingpediaClientHttp = require('./http_client');
 
 var TEST_CASES = [
     // manually written test cases
-    ['now => @com.twitter.post',
+    ['true : now => @com.twitter.post',
      'anyone is allowed to tweet any status'],
 
-    ['now => @com.twitter.post, status == "foo"',
+    ['source == "mom"^^tt:username : now => @com.twitter.post',
+     '@mom is allowed to tweet any status'],
+
+    ['group_member(source, "family"^^tt:contact_group_name) : now => @com.twitter.post',
+     'anyone in the @family group is allowed to tweet any status'],
+
+    ['source == "mom"^^tt:username || source == "dad"^^tt:username : now => @com.twitter.post',
+     'anyone if they is equal to @mom or they is equal to @dad is allowed to tweet any status'],
+
+    ['true : now => @com.twitter.post, status == "foo"',
      'anyone is allowed to tweet "foo"'],
 
-    ['now => @com.twitter.post, status =~ "foo"',
+    ['true : now => @com.twitter.post, status =~ "foo"',
      'anyone is allowed to tweet any status if status contains "foo"'],
 
-    ['now => @com.twitter.post, status == "foo" || status == "bar"',
+    ['true : now => @com.twitter.post, status == "foo" || status == "bar"',
      'anyone is allowed to tweet any status if status is equal to "foo" or status is equal to "bar"'],
 
-    ['@com.bing.web_search, query == "foo" => notify',
+    ['true : @com.bing.web_search, query == "foo" => notify',
      'anyone is allowed to read search for "foo" on Bing'],
 
-    ['@com.bing.web_search, query == "foo" || query == "bar" => notify',
+    ['true : @com.bing.web_search, query == "foo" || query == "bar" => notify',
      'anyone is allowed to read search for any query on Bing if query is equal to "foo" or query is equal to "bar"'],
 
-    ['@com.bing.web_search, query == "foo" && description =~ "lol" => notify',
+    ['true : @com.bing.web_search, query == "foo" && description =~ "lol" => notify',
      'anyone is allowed to read search for "foo" on Bing if description contains "lol"'],
 
-    ['@com.bing.web_search, (query == "foo" || query == "bar") && description =~ "lol" => notify',
+    ['true : @com.bing.web_search, (query == "foo" || query == "bar") && description =~ "lol" => notify',
      'anyone is allowed to read search for any query on Bing if query is equal to "foo" or query is equal to "bar" and description contains "lol"']
 ];
 
@@ -63,6 +72,8 @@ function test(i) {
             console.error('Test Case #' + (i+1) + ': does not match what expected');
             console.error('Expected: ' + expected);
             console.error('Generated: ' + reconstructed);
+            if (process.env.TEST_MODE)
+                throw new Error(`testDescribePolicy ${i+1} FAILED`);
         }
     }).catch((e) => {
         console.error('Test Case #' + (i+1) + ': failed with exception');

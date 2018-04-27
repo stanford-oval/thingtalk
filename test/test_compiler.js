@@ -1209,9 +1209,9 @@ yield env.writeState(0, _t_13);
 
     [`{
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-        action send (in req __principal : Entity(tt:contact_group), in req __program_id : Entity(tt:program_id), in req __flow : Number, in req __kindChannel : Entity(tt:function), in opt interval : Measure(ms));
+        action send (in req __principal : Entity(tt:contact), in req __program_id : Entity(tt:program_id), in req __flow : Number, in req __kindChannel : Entity(tt:function), in opt interval : Measure(ms));
     }
-    timer(base=makeDate(), interval=10s)  => @__dyn_0.send(__principal="1234"^^tt:contact_group, __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, interval=10s) ;
+    timer(base=makeDate(), interval=10s)  => @__dyn_0.send(__principal="1234"^^tt:contact, __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, interval=10s) ;
 }`, [`"use strict";
   let _t_0;
   let _t_1;
@@ -1261,11 +1261,11 @@ yield env.writeState(0, _t_13);
     env.reportError("Failed to signal end-of-flow", _exc_);
   }`]],
 
-  [`executor = "1234"^^tt:contact_group : {
+  [`executor = "1234"^^tt:contact : {
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-        query receive (in req __principal : Entity(tt:contact_group), in req __program_id : Entity(tt:program_id), in req __flow : Number, out __kindChannel : Entity(tt:function), out interval : Measure(ms));
+        query receive (in req __principal : Entity(tt:contact), in req __program_id : Entity(tt:program_id), in req __flow : Number, out __kindChannel : Entity(tt:function), out interval : Measure(ms));
     }
-    monitor @__dyn_0.receive(__principal=["mock-account:12345678"^^tt:contact("me")], __program_id=$event.program_id, __flow=0)  => @security-camera.set_power(power=enum(on)) ;
+    monitor @__dyn_0.receive(__principal="mock-account:12345678"^^tt:contact("me"), __program_id=$event.program_id, __flow=0)  => @security-camera.set_power(power=enum(on)) ;
 }`, [`"use strict";
   let _t_0;
   let _t_1;
@@ -1286,7 +1286,7 @@ yield env.writeState(0, _t_13);
   _t_0 = yield env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = [new __builtin.Entity("mock-account:12345678", "me")];
+    _t_2 = new __builtin.Entity("mock-account:12345678", "me");
     _t_1.__principal = _t_2;
     _t_3 = env.program_id;
     _t_1.__program_id = _t_3;
@@ -1934,6 +1934,8 @@ function test(i) {
                     console.error('Test Case #' + (i+1) + ': compiled code does not match what expected');
                     //console.error('Expected: ' + expected[j]);
                     console.error('Compiled: ' + code);
+                    if (process.env.TEST_MODE)
+                        throw new Error(`testCompiler ${i+1} FAILED`);
                 } else {
                     new GeneratorFunction('__builtin', 'env', code);
                 }

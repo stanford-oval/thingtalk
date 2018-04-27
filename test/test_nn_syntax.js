@@ -166,47 +166,47 @@ const TEST_CASES = [
 
     [`executor = USERNAME_0 : now => @com.twitter.post`,
      { USERNAME_0: 'bob' },
-     `executor = "bob"^^tt:contact_name : now => @com.twitter.post();`],
+     `executor = "bob"^^tt:username : now => @com.twitter.post();`],
 
     [`now => ( @security-camera.current_event ) filter @org.thingpedia.builtin.thingengine.phone.get_gps { not param:location:Location == location:home } => notify`,
      {},
      `now => (@security-camera.current_event()), @org.thingpedia.builtin.thingengine.phone.get_gps() { !(location == $context.location.home) } => notify;`],
 
-    [`policy source = * : now => @com.twitter.post`,
+    [`policy true : now => @com.twitter.post`,
     {},
-    `source = * : now => @com.twitter.post;`],
+    `true : now => @com.twitter.post;`],
 
-    [`policy source = * : now => @com.twitter.post filter param:status:String =~ QUOTED_STRING_0`,
+    [`policy true : now => @com.twitter.post filter param:status:String =~ QUOTED_STRING_0`,
     { QUOTED_STRING_0: 'foo' },
-    `source = * : now => @com.twitter.post, status =~ "foo";`],
+    `true : now => @com.twitter.post, status =~ "foo";`],
 
-    [`policy source = USERNAME_0 : now => @com.twitter.post`,
+    [`policy param:source:Entity(tt:contact) == USERNAME_0 : now => @com.twitter.post`,
     { USERNAME_0: 'bob' },
-    `source = "bob"^^tt:contact_name : now => @com.twitter.post;`],
+    `source == "bob"^^tt:username : now => @com.twitter.post;`],
 
-    [`policy source = USERNAME_0 : now => @com.twitter.post filter param:status:String =~ QUOTED_STRING_0`,
+    [`policy param:source:Entity(tt:contact) == USERNAME_0 : now => @com.twitter.post filter param:status:String =~ QUOTED_STRING_0`,
     { USERNAME_0: 'bob', QUOTED_STRING_0: 'foo' },
-    `source = "bob"^^tt:contact_name : now => @com.twitter.post, status =~ "foo";`],
+    `source == "bob"^^tt:username : now => @com.twitter.post, status =~ "foo";`],
 
-    [`policy source = * : @com.bing.web_search => notify`,
+    [`policy true : @com.bing.web_search => notify`,
     {},
-    `source = * : @com.bing.web_search => notify;`],
+    `true : @com.bing.web_search => notify;`],
 
-    [`policy source = * : @com.bing.web_search filter param:query:String =~ QUOTED_STRING_0 => notify`,
+    [`policy true : @com.bing.web_search filter param:query:String =~ QUOTED_STRING_0 => notify`,
     { QUOTED_STRING_0: 'foo' },
-    `source = * : @com.bing.web_search, query =~ "foo" => notify;`],
+    `true : @com.bing.web_search, query =~ "foo" => notify;`],
 
-    [`policy source = * : @com.bing.web_search filter param:description:String =~ QUOTED_STRING_0 => notify`,
+    [`policy true : @com.bing.web_search filter param:description:String =~ QUOTED_STRING_0 => notify`,
     { QUOTED_STRING_0: 'foo' },
-    `source = * : @com.bing.web_search, description =~ "foo" => notify;`],
+    `true : @com.bing.web_search, description =~ "foo" => notify;`],
 
-    [`policy source = * : @com.bing.web_search filter param:description:String =~ QUOTED_STRING_0 => @com.twitter.post filter param:status:String =~ QUOTED_STRING_0`,
+    [`policy true : @com.bing.web_search filter param:description:String =~ QUOTED_STRING_0 => @com.twitter.post filter param:status:String =~ QUOTED_STRING_0`,
     { QUOTED_STRING_0: 'foo' },
-    `source = * : @com.bing.web_search, description =~ "foo" => @com.twitter.post, status =~ "foo";`],
+    `true : @com.bing.web_search, description =~ "foo" => @com.twitter.post, status =~ "foo";`],
 
-    [`policy source = * : @com.bing.web_search filter @org.thingpedia.builtin.thingengine.phone.get_gps { not param:location:Location == location:home } and param:description:String =~ QUOTED_STRING_0 => notify`,
+    [`policy true : @com.bing.web_search filter @org.thingpedia.builtin.thingengine.phone.get_gps { not param:location:Location == location:home } and param:description:String =~ QUOTED_STRING_0 => notify`,
     { QUOTED_STRING_0: 'foo' },
-    `source = * : @com.bing.web_search, (@org.thingpedia.builtin.thingengine.phone.get_gps() { !(location == $context.location.home) } && description =~ "foo") => notify;`],
+    `true : @com.bing.web_search, (@org.thingpedia.builtin.thingengine.phone.get_gps() { !(location == $context.location.home) } && description =~ "foo") => notify;`],
 
     /*[`now => @com.xkcd.get_comic param:number:Number = SLOT_0 => notify`,
      {'SLOT_0': Ast.Value.Number(1234)},
@@ -244,6 +244,8 @@ function testCase(test, i) {
             console.error('Test Case #' + (i+1) + ' failed (wrong program)');
             console.error('Expected:', expected);
             console.error('Generated:', generated);
+            if (process.env.TEST_MODE)
+                throw new Error(`testNNSyntax ${i+1} FAILED`);
         }
 
         return typeCheck(program, schemaRetriever).then(() => {
@@ -253,6 +255,8 @@ function testCase(test, i) {
                 console.error('Test Case #' + (i+1) + ' failed (wrong NN syntax)');
                 console.error('Expected:', test[0]);
                 console.error('Generated:', reconstructed);
+                if (process.env.TEST_MODE)
+                    throw new Error(`testNNSyntax ${i+1} FAILED`);
             }
 
             /*let parser = new NNOutputParser();

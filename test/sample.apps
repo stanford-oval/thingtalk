@@ -1,11 +1,5 @@
 // -* mode: js -*-
 
-// ** typecheck: expect Error **
-// ArrayPrincipals
-now => @org.thingpedia.builtin.test(principal=["matrix-account:@testuser2:camembert.stanford.edu"^^tt:contact, "matrix-account:@testuser3:camembert.stanford.edu"^^tt:contact]).eat_data(data='AAAAAA');
-
-====
-
 // Array
 monitor @twitter.source(), in_array(from, ["alice"^^tt:hashtag, "bob"^^tt:hashtag])  => notify;
 
@@ -38,7 +32,7 @@ monitor @twitter.source(), @twitter.sink() { text =~ "lol" } => notify;
 
 ====
 
-executor = "bob"^^tt:contact_name : { // TestReturn
+executor = "bob"^^tt:username : { // TestReturn
     monitor @twitter.source() => return;
 }
 
@@ -146,7 +140,7 @@ monitor @twitter.source() => notify;
 // Principals
 {
     monitor @twitter(principal="omlet-account:foo"^^tt:contact).source() => notify;
-    monitor @twitter(principal="giovanni"^^tt:contact_name).source() => notify;
+    monitor @twitter(principal="giovanni"^^tt:username).source() => notify;
     // the following is identical to the previous one
     monitor @twitter(principal="giovanni").source() => notify;
 }
@@ -538,3 +532,4 @@ let action x := \(p_status :String) -> @twitter.sink(status=p_status);
 ====
 // Bug 4
 now => @security-camera.set_power(power=enum(on));
+
