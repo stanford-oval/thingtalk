@@ -19,4 +19,5 @@ require('./test_describe');
 require('./test_describe_policy');
 require('./test_permissions');
 require('./test_lowerings');
+require('./test_declaration_program');
 //require('./test_sql_compiler');
