@@ -22,36 +22,39 @@ const PermissionChecker = require('./lib/permission_checker');
 const Units = require('./lib/internal');
 const NNSyntax = require('./lib/nn_syntax');
 
-let { genRandomRules, genRandomPermissionRule } = require('./lib/gen_random_rule');
-Generate.genRandomRules = genRandomRules;
-Generate.genRandomValue = require('./lib/gen_random_value');
-let { optimizeFilter, optimizeProgram } = require('./lib/optimize');
-Generate.optimizeFilter = optimizeFilter;
-Generate.optimizeProgram = optimizeProgram;
 let { typeCheckProgram, typeCheckPermissionRule } = require('./lib/typecheck');
 Generate.typeCheckProgram = typeCheckProgram;
 Generate.typeCheckPermissionRule = typeCheckPermissionRule;
-const SEMPRESyntax = require('./lib/sempre_syntax');
-const TokenizerService = require('./lib/tokenizer_service');
 
 const builtin = require('./lib/builtin');
 
 module.exports = {
-    Ast: Ast,
-    Compiler: Compiler,
-    Grammar: Grammar,
-    ExecEnvironment: ExecEnvironment,
-    Type: Type,
-    SchemaRetriever: SchemaRetriever,
-    Generate: Generate,
-    Describe: Describe,
-    SEMPRESyntax: SEMPRESyntax,
-    NNSyntax: NNSyntax,
-    Formatter: Formatter,
-    PermissionChecker: PermissionChecker,
-    TokenizerService: TokenizerService,
+    // AST definitions
+    Ast,
+    Type,
 
-    Units: Units,
+    // Syntax support
+    Grammar,
+    NNSyntax,
+
+    // Compiler and runtime
+    Compiler,
+    ExecEnvironment,
+    Formatter,
+    SchemaRetriever,
+
+    // Helper modules to manipulate ASTs
+    Generate,
+    Describe,
+
+    // Policy support
+    PermissionChecker,
+
+    // Misc
+    Units,
+
+    // Value Types, exposed so that Thingpedia can reexpose them to device impls
+    // (to create values of the appropriate types)
     Location: builtin.Location,
     Entity: builtin.Entity,
     Time: builtin.Time,
