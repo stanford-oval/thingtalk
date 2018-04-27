@@ -168,6 +168,14 @@ const TEST_CASES = [
      { USERNAME_0: 'bob' },
      `executor = "bob"^^tt:username : now => @com.twitter.post();`],
 
+    [`executor = USERNAME_0 : now => @com.xkcd.get_comic => notify`,
+     { USERNAME_0: 'bob' },
+     `executor = "bob"^^tt:username : now => @com.xkcd.get_comic() => notify;`],
+
+    [`executor = USERNAME_0 : now => @com.xkcd.get_comic => return`,
+     { USERNAME_0: 'bob' },
+     `executor = "bob"^^tt:username : now => @com.xkcd.get_comic() => return;`],
+
     [`now => ( @security-camera.current_event ) filter @org.thingpedia.builtin.thingengine.phone.get_gps { not param:location:Location == location:home } => notify`,
      {},
      `now => (@security-camera.current_event()), @org.thingpedia.builtin.thingengine.phone.get_gps() { !(location == $context.location.home) } => notify;`],
@@ -207,6 +215,10 @@ const TEST_CASES = [
     [`policy true : @com.bing.web_search filter @org.thingpedia.builtin.thingengine.phone.get_gps { not param:location:Location == location:home } and param:description:String =~ QUOTED_STRING_0 => notify`,
     { QUOTED_STRING_0: 'foo' },
     `true : @com.bing.web_search, (@org.thingpedia.builtin.thingengine.phone.get_gps() { !(location == $context.location.home) } && description =~ "foo") => notify;`],
+
+    [`executor = USERNAME_0 : now => @com.twitter.post_picture`,
+     { USERNAME_0: 'mom' },
+     `executor = "mom"^^tt:username : now => @com.twitter.post_picture();`]
 
     /*[`now => @com.xkcd.get_comic param:number:Number = SLOT_0 => notify`,
      {'SLOT_0': Ast.Value.Number(1234)},

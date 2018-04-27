@@ -35,6 +35,14 @@ var TEST_CASES = [
     ['attimer(time=makeTime(8,30)) => @org.thingpedia.builtin.thingengine.builtin.say(message=$undefined);',
     'send me a message ____ every day at 08:30'],
 
+    [`now => @com.xkcd.get_comic() => notify;`,
+    'get get an Xkcd comic and then notify you'],
+    [`now => @com.xkcd.get_comic() => return;`,
+    'get get an Xkcd comic and then send it to me'],
+    [`monitor @com.xkcd.get_comic() => notify;`,
+    'notify you when get an Xkcd comic changes'],
+    [`monitor @com.xkcd.get_comic() => return;`,
+    'send it to me when get an Xkcd comic changes']
 ];
 
 const schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(), true);
