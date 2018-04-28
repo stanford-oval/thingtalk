@@ -364,6 +364,20 @@ module.exports = {
                     is_monitorable: true,
                 }
             }
+        },
+        "org.thingpedia.builtin.test": {
+            "actions": {},
+
+            "queries": {
+                "get_data": {
+                    args: ["size", "count", "data"],
+                    types: ["Measure(byte)", "Number", "String"],
+                    required: [true, false, false],
+                    is_input: [true, true, false],
+                    is_list: true,
+                    is_monitorable: true
+                }
+            }
         }
     },
 
