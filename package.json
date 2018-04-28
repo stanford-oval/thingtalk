@@ -14,7 +14,6 @@
     "adt": "~0.7.2",
     "byline": "^5.0.0",
     "consumer-queue": "^1.0.0",
-    "q": "~1.4.1",
     "smtlib": "^0.1.1"
   },
   "devDependencies": {
@@ -24,7 +23,8 @@
     "eslint": "^4.0.0",
     "mysql": "^2.13.0",
     "nyc": "^11.4.1",
-    "pegjs": "~0.9.0"
+    "pegjs": "~0.9.0",
+    "q": "^1.5.1"
   },
   "scripts": {
     "regen-grammar": "pegjs --allowed-start-rules program,type_ref,permission_rule ./lib/grammar.pegjs",
