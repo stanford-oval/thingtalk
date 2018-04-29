@@ -492,31 +492,35 @@ yield env.writeState(0, _t_9);
   let _t_7;
   let _t_8;
   let _t_9;
-  _t_0 = {};
-  _t_1 = "lol";
-  _t_0.query = _t_1;
-  _t_2 = yield env.invokeQuery(0, _t_0);
-  _t_3 = _t_2[Symbol.iterator]();
-  {
-    let _iter_tmp = yield _t_3.next();
-    while (!_iter_tmp.done) {
-      _t_4 = _iter_tmp.value;
-      _t_5 = _t_4[0];
-      _t_6 = _t_4[1];
-      _t_7 = _t_6.video_url;
-      _t_9 = new __builtin.Entity("http://www.youtube.com", null);
-      _t_8 = __builtin.equality(_t_7, _t_9);
-      if (_t_8) {
-        try {
-          yield env.output(String(_t_5), _t_6);
-        } catch(_exc_) {
-          env.reportError("Failed to invoke action", _exc_);
-        }
-      } else {
+  try {
+    _t_0 = {};
+    _t_1 = "lol";
+    _t_0.query = _t_1;
+    _t_2 = yield env.invokeQuery(0, _t_0);
+    _t_3 = _t_2[Symbol.iterator]();
+    {
+      let _iter_tmp = yield _t_3.next();
+      while (!_iter_tmp.done) {
+        _t_4 = _iter_tmp.value;
+        _t_5 = _t_4[0];
+        _t_6 = _t_4[1];
+        _t_7 = _t_6.video_url;
+        _t_9 = new __builtin.Entity("http://www.youtube.com", null);
+        _t_8 = __builtin.equality(_t_7, _t_9);
+        if (_t_8) {
+          try {
+            yield env.output(String(_t_5), _t_6);
+          } catch(_exc_) {
+            env.reportError("Failed to invoke action", _exc_);
+          }
+        } else {
 
+        }
+        _iter_tmp = yield _t_3.next();
       }
-      _iter_tmp = yield _t_3.next();
     }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke query", _exc_);
   }`]],
 
     [`monitor @xkcd(id="com.xkcd-6").get_comic() => @twitter(id="twitter-foo").post_picture(caption=title, picture_url=picture_url);`,
@@ -871,30 +875,34 @@ yield env.writeState(0, _t_10);
   let _t_7;
   let _t_8;
   let _t_9;
-  _t_0 = {};
-  _t_1 = yield env.invokeQuery(0, _t_0);
-  _t_2 = _t_1[Symbol.iterator]();
-  {
-    let _iter_tmp = yield _t_2.next();
-    while (!_iter_tmp.done) {
-      _t_3 = _iter_tmp.value;
-      _t_4 = _t_3[0];
-      _t_5 = _t_3[1];
-      _t_6 = _t_5.time;
-      _t_8 = __builtin.getTime (_t_6);
-      _t_9 = new __builtin.Time(10, 0, 0);
-      _t_7 = _t_8 >= _t_9;
-      if (_t_7) {
-        try {
-          yield env.output(String(_t_4), _t_5);
-        } catch(_exc_) {
-          env.reportError("Failed to invoke action", _exc_);
-        }
-      } else {
+  try {
+    _t_0 = {};
+    _t_1 = yield env.invokeQuery(0, _t_0);
+    _t_2 = _t_1[Symbol.iterator]();
+    {
+      let _iter_tmp = yield _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.time;
+        _t_8 = __builtin.getTime (_t_6);
+        _t_9 = new __builtin.Time(10, 0, 0);
+        _t_7 = _t_8 >= _t_9;
+        if (_t_7) {
+          try {
+            yield env.output(String(_t_4), _t_5);
+          } catch(_exc_) {
+            env.reportError("Failed to invoke action", _exc_);
+          }
+        } else {
 
+        }
+        _iter_tmp = yield _t_2.next();
       }
-      _iter_tmp = yield _t_2.next();
     }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke query", _exc_);
   }`]],
 
     [`{
@@ -1684,61 +1692,69 @@ yield env.writeState(0, _t_43);
   let _t_27;
   let _t_28;
   let _t_29;
-  _t_0 = {};
-  _t_1 = yield env.invokeQuery(0, _t_0);
-  _t_2 = _t_1[Symbol.iterator]();
-  {
-    let _iter_tmp = yield _t_2.next();
-    while (!_iter_tmp.done) {
-      _t_3 = _iter_tmp.value;
-      _t_4 = _t_3[0];
-      _t_5 = _t_3[1];
-      _t_6 = _t_5.text;
-      _t_7 = _t_5.hashtags;
-      _t_8 = _t_5.urls;
-      _t_9 = _t_5.from;
-      _t_10 = _t_5.inReplyTo;
-      _t_11 = _t_5.__reserved;
-      _t_12 = {};
-      _t_12.query = _t_6;
-      _t_13 = yield env.invokeQuery(1, _t_12);
-      _t_14 = _t_13[Symbol.iterator]();
-      {
-        let _iter_tmp = yield _t_14.next();
-        while (!_iter_tmp.done) {
-          _t_15 = _iter_tmp.value;
-          _t_16 = _t_15[0];
-          _t_17 = _t_15[1];
-          _t_18 = _t_17.title;
-          _t_19 = _t_17.description;
-          _t_20 = __builtin.combineOutputTypes(_t_4, _t_16);
-          _t_21 = {};
-          _t_21.title = _t_18;
-          _t_21.description = _t_19;
-          _t_21.text = _t_6;
-          _t_21.hashtags = _t_7;
-          _t_21.urls = _t_8;
-          _t_21.from = _t_9;
-          _t_21.inReplyTo = _t_10;
-          _t_21.__reserved = _t_11;
-          _t_22 = _t_21.title;
-          _t_23 = _t_21.description;
-          _t_24 = _t_21.text;
-          _t_25 = _t_21.hashtags;
-          _t_26 = _t_21.urls;
-          _t_27 = _t_21.from;
-          _t_28 = _t_21.inReplyTo;
-          _t_29 = _t_21.__reserved;
-          try {
-            yield env.output(String(_t_20), _t_21);
-          } catch(_exc_) {
-            env.reportError("Failed to invoke action", _exc_);
+  try {
+    _t_0 = {};
+    _t_1 = yield env.invokeQuery(0, _t_0);
+    _t_2 = _t_1[Symbol.iterator]();
+    {
+      let _iter_tmp = yield _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.text;
+        _t_7 = _t_5.hashtags;
+        _t_8 = _t_5.urls;
+        _t_9 = _t_5.from;
+        _t_10 = _t_5.inReplyTo;
+        _t_11 = _t_5.__reserved;
+        try {
+          _t_12 = {};
+          _t_12.query = _t_6;
+          _t_13 = yield env.invokeQuery(1, _t_12);
+          _t_14 = _t_13[Symbol.iterator]();
+          {
+            let _iter_tmp = yield _t_14.next();
+            while (!_iter_tmp.done) {
+              _t_15 = _iter_tmp.value;
+              _t_16 = _t_15[0];
+              _t_17 = _t_15[1];
+              _t_18 = _t_17.title;
+              _t_19 = _t_17.description;
+              _t_20 = __builtin.combineOutputTypes(_t_4, _t_16);
+              _t_21 = {};
+              _t_21.title = _t_18;
+              _t_21.description = _t_19;
+              _t_21.text = _t_6;
+              _t_21.hashtags = _t_7;
+              _t_21.urls = _t_8;
+              _t_21.from = _t_9;
+              _t_21.inReplyTo = _t_10;
+              _t_21.__reserved = _t_11;
+              _t_22 = _t_21.title;
+              _t_23 = _t_21.description;
+              _t_24 = _t_21.text;
+              _t_25 = _t_21.hashtags;
+              _t_26 = _t_21.urls;
+              _t_27 = _t_21.from;
+              _t_28 = _t_21.inReplyTo;
+              _t_29 = _t_21.__reserved;
+              try {
+                yield env.output(String(_t_20), _t_21);
+              } catch(_exc_) {
+                env.reportError("Failed to invoke action", _exc_);
+              }
+              _iter_tmp = yield _t_14.next();
+            }
           }
-          _iter_tmp = yield _t_14.next();
+        } catch(_exc_) {
+          env.reportError("Failed to invoke query", _exc_);
         }
+        _iter_tmp = yield _t_2.next();
       }
-      _iter_tmp = yield _t_2.next();
     }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke query", _exc_);
   }`]],
 
     [`now => @twitter.source() join @com.bing.web_search(query="foo") => notify;`, [`"use strict";
@@ -1778,43 +1794,51 @@ yield env.writeState(0, _t_43);
   let _t_33;
   let _t_34;
   _t_0 = function*(emit) {
-    _t_1 = {};
-    _t_2 = yield env.invokeQuery(0, _t_1);
-    _t_3 = _t_2[Symbol.iterator]();
-    {
-      let _iter_tmp = yield _t_3.next();
-      while (!_iter_tmp.done) {
-        _t_4 = _iter_tmp.value;
-        _t_5 = _t_4[0];
-        _t_6 = _t_4[1];
-        _t_7 = _t_6.text;
-        _t_8 = _t_6.hashtags;
-        _t_9 = _t_6.urls;
-        _t_10 = _t_6.from;
-        _t_11 = _t_6.inReplyTo;
-        _t_12 = _t_6.__reserved;
-        emit(_t_6)
-        _iter_tmp = yield _t_3.next();
+    try {
+      _t_1 = {};
+      _t_2 = yield env.invokeQuery(0, _t_1);
+      _t_3 = _t_2[Symbol.iterator]();
+      {
+        let _iter_tmp = yield _t_3.next();
+        while (!_iter_tmp.done) {
+          _t_4 = _iter_tmp.value;
+          _t_5 = _t_4[0];
+          _t_6 = _t_4[1];
+          _t_7 = _t_6.text;
+          _t_8 = _t_6.hashtags;
+          _t_9 = _t_6.urls;
+          _t_10 = _t_6.from;
+          _t_11 = _t_6.inReplyTo;
+          _t_12 = _t_6.__reserved;
+          emit(_t_6)
+          _iter_tmp = yield _t_3.next();
+        }
       }
+    } catch(_exc_) {
+      env.reportError("Failed to invoke query", _exc_);
     }
   }
   _t_13 = function*(emit) {
-    _t_14 = {};
-    _t_15 = "foo";
-    _t_14.query = _t_15;
-    _t_16 = yield env.invokeQuery(1, _t_14);
-    _t_17 = _t_16[Symbol.iterator]();
-    {
-      let _iter_tmp = yield _t_17.next();
-      while (!_iter_tmp.done) {
-        _t_18 = _iter_tmp.value;
-        _t_19 = _t_18[0];
-        _t_20 = _t_18[1];
-        _t_21 = _t_20.title;
-        _t_22 = _t_20.description;
-        emit(_t_20)
-        _iter_tmp = yield _t_17.next();
+    try {
+      _t_14 = {};
+      _t_15 = "foo";
+      _t_14.query = _t_15;
+      _t_16 = yield env.invokeQuery(1, _t_14);
+      _t_17 = _t_16[Symbol.iterator]();
+      {
+        let _iter_tmp = yield _t_17.next();
+        while (!_iter_tmp.done) {
+          _t_18 = _iter_tmp.value;
+          _t_19 = _t_18[0];
+          _t_20 = _t_18[1];
+          _t_21 = _t_20.title;
+          _t_22 = _t_20.description;
+          emit(_t_20)
+          _iter_tmp = yield _t_17.next();
+        }
       }
+    } catch(_exc_) {
+      env.reportError("Failed to invoke query", _exc_);
     }
   }
   _t_23 = __builtin.tableCrossJoin(_t_0, _t_13);
@@ -1871,40 +1895,44 @@ yield env.writeState(0, _t_43);
       let _iter_tmp = yield _t_0.next();
       while (!_iter_tmp.done) {
         _t_2 = _iter_tmp.value;
-        _t_3 = {};
-        _t_4 = yield env.invokeQuery(0, _t_3);
-        _t_5 = _t_4[Symbol.iterator]();
-        {
-          let _iter_tmp = yield _t_5.next();
-          while (!_iter_tmp.done) {
-            _t_6 = _iter_tmp.value;
-            _t_7 = _t_6[0];
-            _t_8 = _t_6[1];
-            _t_9 = _t_8.image_id;
-            _t_10 = _t_8.picture_url;
-            _t_11 = _t_8.link;
-            _t_12 = {};
-            _t_12.image_id = _t_9;
-            _t_12.picture_url = _t_10;
-            _t_12.link = _t_11;
-            _t_13 = _t_12.image_id;
-            _t_14 = _t_12.picture_url;
-            _t_15 = _t_12.link;
-            try {
-              _t_16 = {};
-              _t_17 = new __builtin.Entity("xxxx", null);
-              _t_16.to = _t_17;
-              _t_18 = "xxx";
-              _t_16.subject = _t_18;
-              _t_19 = "xxx";
-              _t_16.message = _t_19;
-              _t_16.picture_url = _t_14;
-              yield env.invokeAction(1, _t_16);
-            } catch(_exc_) {
-              env.reportError("Failed to invoke action", _exc_);
+        try {
+          _t_3 = {};
+          _t_4 = yield env.invokeQuery(0, _t_3);
+          _t_5 = _t_4[Symbol.iterator]();
+          {
+            let _iter_tmp = yield _t_5.next();
+            while (!_iter_tmp.done) {
+              _t_6 = _iter_tmp.value;
+              _t_7 = _t_6[0];
+              _t_8 = _t_6[1];
+              _t_9 = _t_8.image_id;
+              _t_10 = _t_8.picture_url;
+              _t_11 = _t_8.link;
+              _t_12 = {};
+              _t_12.image_id = _t_9;
+              _t_12.picture_url = _t_10;
+              _t_12.link = _t_11;
+              _t_13 = _t_12.image_id;
+              _t_14 = _t_12.picture_url;
+              _t_15 = _t_12.link;
+              try {
+                _t_16 = {};
+                _t_17 = new __builtin.Entity("xxxx", null);
+                _t_16.to = _t_17;
+                _t_18 = "xxx";
+                _t_16.subject = _t_18;
+                _t_19 = "xxx";
+                _t_16.message = _t_19;
+                _t_16.picture_url = _t_14;
+                yield env.invokeAction(1, _t_16);
+              } catch(_exc_) {
+                env.reportError("Failed to invoke action", _exc_);
+              }
+              _iter_tmp = yield _t_5.next();
             }
-            _iter_tmp = yield _t_5.next();
           }
+        } catch(_exc_) {
+          env.reportError("Failed to invoke query", _exc_);
         }
         _iter_tmp = yield _t_0.next();
       }
@@ -1935,36 +1963,40 @@ yield env.writeState(0, _t_43);
   let _t_12;
   let _t_13;
   let _t_14;
-  _t_0 = {};
-  _t_1 = 10;
-  _t_0.size = _t_1;
-  _t_2 = 1;
-  _t_0.count = _t_2;
-  _t_3 = yield env.invokeQuery(0, _t_0);
-  _t_4 = _t_3[Symbol.iterator]();
-  {
-    let _iter_tmp = yield _t_4.next();
-    while (!_iter_tmp.done) {
-      _t_5 = _iter_tmp.value;
-      _t_6 = _t_5[0];
-      _t_7 = _t_5[1];
-      _t_8 = _t_7.data;
-      try {
-        _t_9 = {};
-        _t_10 = new __builtin.Entity("matrix-account:@gcampax2:matrix.org", null);
-        _t_9.__principal = _t_10;
-        _t_11 = env.program_id;
-        _t_9.__program_id = _t_11;
-        _t_12 = 0;
-        _t_9.__flow = _t_12;
-        _t_9.__kindChannel = _t_6;
-        _t_9.data = _t_8;
-        yield env.invokeAction(1, _t_9);
-      } catch(_exc_) {
-        env.reportError("Failed to invoke action", _exc_);
+  try {
+    _t_0 = {};
+    _t_1 = 10;
+    _t_0.size = _t_1;
+    _t_2 = 1;
+    _t_0.count = _t_2;
+    _t_3 = yield env.invokeQuery(0, _t_0);
+    _t_4 = _t_3[Symbol.iterator]();
+    {
+      let _iter_tmp = yield _t_4.next();
+      while (!_iter_tmp.done) {
+        _t_5 = _iter_tmp.value;
+        _t_6 = _t_5[0];
+        _t_7 = _t_5[1];
+        _t_8 = _t_7.data;
+        try {
+          _t_9 = {};
+          _t_10 = new __builtin.Entity("matrix-account:@gcampax2:matrix.org", null);
+          _t_9.__principal = _t_10;
+          _t_11 = env.program_id;
+          _t_9.__program_id = _t_11;
+          _t_12 = 0;
+          _t_9.__flow = _t_12;
+          _t_9.__kindChannel = _t_6;
+          _t_9.data = _t_8;
+          yield env.invokeAction(1, _t_9);
+        } catch(_exc_) {
+          env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = yield _t_4.next();
       }
-      _iter_tmp = yield _t_4.next();
     }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke query", _exc_);
   }
   try {
     _t_13 = new __builtin.Entity("matrix-account:@gcampax2:matrix.org", null);
