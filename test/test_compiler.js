@@ -2005,6 +2005,89 @@ yield env.writeState(0, _t_43);
   } catch(_exc_) {
     env.reportError("Failed to signal end-of-flow", _exc_);
   }`]],
+
+    [`timer(base=makeDate(), interval=1h) join @twitter.search(), text =~ "lol" => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  try {
+    _t_1 = new Date(XNOWX);
+    _t_2 = 3600000;
+    _t_0 = yield env.invokeTimer(_t_1, _t_2);
+    {
+      let _iter_tmp = yield _t_0.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        try {
+          _t_4 = {};
+          _t_5 = yield env.invokeQuery(0, _t_4);
+          _t_6 = _t_5[Symbol.iterator]();
+          {
+            let _iter_tmp = yield _t_6.next();
+            while (!_iter_tmp.done) {
+              _t_7 = _iter_tmp.value;
+              _t_8 = _t_7[0];
+              _t_9 = _t_7[1];
+              _t_10 = _t_9.text;
+              _t_11 = _t_9.hashtags;
+              _t_12 = _t_9.urls;
+              _t_13 = _t_9.from;
+              _t_14 = _t_9.inReplyTo;
+              _t_16 = "lol";
+              _t_15 = __builtin.like(_t_10, _t_16);
+              if (_t_15) {
+                _t_17 = {};
+                _t_17.text = _t_10;
+                _t_17.hashtags = _t_11;
+                _t_17.urls = _t_12;
+                _t_17.from = _t_13;
+                _t_17.inReplyTo = _t_14;
+                _t_18 = _t_17.text;
+                _t_19 = _t_17.hashtags;
+                _t_20 = _t_17.urls;
+                _t_21 = _t_17.from;
+                _t_22 = _t_17.inReplyTo;
+                try {
+                  yield env.output(String(_t_8), _t_17);
+                } catch(_exc_) {
+                  env.reportError("Failed to invoke action", _exc_);
+                }
+              } else {
+
+              }
+              _iter_tmp = yield _t_6.next();
+            }
+          }
+        } catch(_exc_) {
+          env.reportError("Failed to invoke query", _exc_);
+        }
+        _iter_tmp = yield _t_0.next();
+      }
+    }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke timer", _exc_);
+  }`]]
 ];
 
 const GeneratorFunction = Object.getPrototypeOf(function*(){}).constructor;
