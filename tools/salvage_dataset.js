@@ -37,13 +37,12 @@ function addProjection(fields) {
 }
 function addParameter(pname, value) {
     return function(inv) {
-        let [sempreType, sempreValue] = SEMPRESyntax.valueToSEMPRE(value);
 
         inv.args.push({
             name: { id: 'tt:param.' + pname },
             operator: 'is',
-            type: sempreType,
-            value: sempreValue
+            type: 'Ast',
+            value: value
         });
     };
 }
@@ -115,7 +114,7 @@ function replaceNumberWithCurrency(params) {
                 }
             }
         }
-    }
+    };
 }
 
 // What to apply, and where
@@ -474,6 +473,10 @@ function *forEachInvocation(json) {
         yield* forEachInvocation(json.setup);
         return;
     }
+    if (json.access) {
+        yield* forEachInvocation(json.access);
+        return;
+    }
     if (json.rule) {
         yield* forEachInvocation(json.rule);
         return;
@@ -516,8 +519,6 @@ function processOneRow(dbClient, ex) {
     return Promise.resolve().then(() => {
         let json = JSON.parse(ex.target_json);
         for (let inv of forEachInvocation(json)) {
-            if (inv.person)
-                throw new Error('Principals are not implemented');
             let [kind, channel] = handleSelector(inv.name);
             if (!AVAILABLE.has(kind))
                 throw new Error(kind + ' has not been ported');
@@ -535,15 +536,20 @@ function processOneRow(dbClient, ex) {
         let entitiesClone = {};
         Object.assign(entitiesClone, entities);
         let nnprogram = NNSyntax.toNN(program, entitiesClone);
+        for (let name in entitiesClone) {
+            if (name === '$used') continue;
+            throw new Error('Unused entity ' + name);
+        }
 
         // try to convert this back into the program, for shits and giggles
         NNSyntax.fromNN(nnprogram, entities);
+
 
         //console.log(ex.id + '\t' + tokens.join(' ') + '\t' + nnprogram.join(' '));
         return dbClient.query('update example_utterances set target_code = ?, preprocessed = ? where id = ?',
             [nnprogram.join(' '), tokens.join(' '), ex.id]);
     }).catch((e) => {
-        if (e.message === 'Not a ThingTalk program' || e.message === 'Principals are not implemented')
+        if (e.message === 'Not a ThingTalk program')
             return;
         if (e.message.endsWith(' has not been ported'))
             return;
