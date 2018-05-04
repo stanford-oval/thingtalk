@@ -31,9 +31,11 @@ var TEST_CASES = [
     'tweet the text when tweets from anyone you follow changes'],
     [`monitor @thermostat(principal="foo"^^tt:username).get_temperature(), value >= 70F
      => notify;`,
-    'notify you when get the temperature on @foo\'s thermostat changes and value is greater than or equal to 70 F'],
+    'notify you when get the temperature on @foo\'s thermostat changes and the value is greater than or equal to 70 F'],
     ['attimer(time=makeTime(8,30)) => @org.thingpedia.builtin.thingengine.builtin.say(message=$undefined);',
-    'send me a message ____ every day at 08:30'],
+    'send me a message ____ every day at 8:30am'],
+    ['attimer(time=makeTime(20,30)) => @org.thingpedia.builtin.thingengine.builtin.say(message=$undefined);',
+    'send me a message ____ every day at 8:30pm'],
 
     [`now => @com.xkcd.get_comic() => notify;`,
     'get get an Xkcd comic and then notify you'],

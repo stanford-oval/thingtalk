@@ -532,4 +532,3 @@ let action x := \(p_status :String) -> @twitter.sink(status=p_status);
 ====
 // Bug 4
 now => @security-camera.set_power(power=enum(on));
-
