@@ -22,7 +22,8 @@ const PermissionChecker = require('./lib/permission_checker');
 const Units = require('./lib/internal');
 const NNSyntax = require('./lib/nn_syntax');
 
-let { typeCheckProgram, typeCheckPermissionRule } = require('./lib/typecheck');
+let { typeCheckFilter, typeCheckProgram, typeCheckPermissionRule } = require('./lib/typecheck');
+Generate.typeCheckFilter = typeCheckFilter;
 Generate.typeCheckProgram = typeCheckProgram;
 Generate.typeCheckPermissionRule = typeCheckPermissionRule;
 
