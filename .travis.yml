@@ -1,14 +1,17 @@
 language: node_js
 node_js:
- - "6"
- - "8"
-
+- '6'
+- '8'
 before_install:
-  - "mkdir cvc4/"
-  - "wget https://cvc4.cs.stanford.edu/downloads/builds/x86_64-linux-opt/cvc4-1.5-x86_64-linux-opt -O cvc4/cvc4"
-  - chmod +x cvc4/cvc4
-  - export PATH="`pwd`/cvc4:$PATH"
+- mkdir cvc4/
+- wget https://cvc4.cs.stanford.edu/downloads/builds/x86_64-linux-opt/cvc4-1.5-x86_64-linux-opt
+  -O cvc4/cvc4
+- chmod +x cvc4/cvc4
+- export PATH="`pwd`/cvc4:$PATH"
 script:
-  - yarn lint
-  - yarn test
+- yarn lint
+- yarn test
 after_success: yarn run coverage
+notifications:
+  slack:
+    secure: wNHnndWTeGoSYLdNUGKp0decx+fJzYER/038x79qDVoaDHRPQm4AO6bCMZXfCq7gu+2VFau84UrQ5K0PWEO1kVcIIQ+dbPWqblXd5eFBNrZXSutD7f2wPKNSR4K1Yxzi9u76P+w6XKDKzVDDKNB4kmTLkd0tO8AFhp+cgO4qmzL0oMOjE2BEWCzA9lhiY6S/nB/d5arJhmx3+3FDbkBmiopf5Z9p7/wED7xdQ6El9fpaAlZRsXBaxdPxVmGd+EVV3ge+XgQ2GQdWCjZ763dPe42dxfXK+wL09mM87MWwbbBEbAZ9748dBuGde9fAE3T2xN/0CV3wuJU4BJzgqPDuuvu4SBBHCjJWR5VbipQFboQ8354Gq4Xy1Rkub7z7QY/5Vh8dBlpMAQHydoOiWwof8cpYnhym7Ksrnyf7B04hMFXahlEdtvzPEH0smmN8huM9bbMZStuMBNDF+5152u4eZ8e1D6E6Uaz07vqLov2z9IstMU4zlT4fKFXfXZh8FKPUFW2E7wlZBP2HzaNP8v+kdOGgKZM+7vKy96wbSY2VctmfntCWmuTKYAAa/eJZKqwfQkQR/IB8UL7xpVHegd8qnDfG3g1HwYGgeYb61nRomZBoZJSpfmophGoY73e4WIRG98B6k1nh0T+ua5L+ZN0vJdNDjEoYxWMBSQARD5+7bSY=
