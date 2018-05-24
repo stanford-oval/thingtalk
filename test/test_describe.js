@@ -69,7 +69,7 @@ var TEST_CASES = [
     `get show the current weather for Somewhere and then notify you`,
     'Weather ⇒ Notification'],
 
-    [`now => @org.thingpedia.weather.sunrise(date=makeDate(2018,4,24)) => notify;`,
+    /*[`now => @org.thingpedia.weather.sunrise(date=makeDate(2018,4,24)) => notify;`,
     `get get the sunrise and sunset time for location ____ with date equal to 4/24/2018 and then notify you`,
     'Weather ⇒ Notification'],
     [`now => @org.thingpedia.weather.sunrise(date=makeDate(2018,4,24,10,0,0)) => notify;`,
@@ -77,7 +77,7 @@ var TEST_CASES = [
     'Weather ⇒ Notification'],
     [`now => @org.thingpedia.weather.sunrise(date=makeDate(2018,4,24,22,0,0)) => notify;`,
     `get get the sunrise and sunset time for location ____ with date equal to 4/24/2018, 10:00:00 PM and then notify you`,
-    'Weather ⇒ Notification'],
+    'Weather ⇒ Notification'],*/
 
     [`now => @com.instagram.get_pictures(), in_array(caption,["foo","bar"]) => notify;`,
     `get retrieve your recent Instagram pictures if "foo", "bar" contains the caption and then notify you`,
