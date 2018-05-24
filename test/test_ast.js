@@ -40,7 +40,7 @@ function testValues() {
         let v = Ast.Value.fromJS(type, jsvalue);
         let newjs = v.toJS();
 
-        assert(Builtin.equality(jsvalue, newjs));
+        assert(Builtin.equality(jsvalue, newjs), jsvalue);
 
         let newv = Ast.Value.fromJS(type, newjs);
         assert(v.equals(newv));
