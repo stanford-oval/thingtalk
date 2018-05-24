@@ -19,7 +19,7 @@ const Generate = require('./lib/generate');
 const Describe = require('./lib/describe');
 const Formatter = require('./lib/formatter');
 const PermissionChecker = require('./lib/permission_checker');
-const Units = require('./lib/internal');
+const Units = require('./lib/units');
 const NNSyntax = require('./lib/nn_syntax');
 
 let { typeCheckFilter, typeCheckProgram, typeCheckPermissionRule } = require('./lib/typecheck');

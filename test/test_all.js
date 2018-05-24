@@ -8,6 +8,7 @@ process.on('unhandledRejection', (up) => { throw up; });
 process.env.TEST_MODE = '1';
 
 require('./test_units');
+require('./test_date_utils');
 require('./test_ast');
 require('./test_generated_parser');
 require('./app_grammar_test');

@@ -218,7 +218,23 @@ const TEST_CASES = [
 
     [`executor = USERNAME_0 : now => @com.twitter.post_picture`,
      { USERNAME_0: 'mom' },
-     `executor = "mom"^^tt:username : now => @com.twitter.post_picture();`]
+     `executor = "mom"^^tt:username : now => @com.twitter.post_picture();`],
+
+    [`now => @org.thingpedia.weather.sunrise param:date:Date = DATE_0 => notify`,
+     { DATE_0: { year: 2018, month: 5, day: 23, hour: -1, minute: -1, second: -1 } },
+     `now => @org.thingpedia.weather.sunrise(date=makeDate(1527058800000)) => notify;`],
+
+    [`now => @org.thingpedia.weather.sunrise param:date:Date = DATE_0 => notify`,
+     { DATE_0: { year: 2018, month: 5, day: 23, hour: 10, minute: 40, second: 0 } },
+     `now => @org.thingpedia.weather.sunrise(date=makeDate(1527097200000)) => notify;`],
+
+    [`now => @org.thingpedia.weather.sunrise param:date:Date = DATE_0 => notify`,
+     { DATE_0: { year: 2018, month: 5, day: 23, hour: 10, minute: 40, second: -1 } },
+     `now => @org.thingpedia.weather.sunrise(date=makeDate(1527097200000)) => notify;`],
+
+    [`now => @org.thingpedia.weather.sunrise param:date:Date = DATE_0 => notify`,
+     { DATE_0: { year: 2018, month: 5, day: 23, hour: 10, minute: 40, second: 40.5 } },
+     `now => @org.thingpedia.weather.sunrise(date=makeDate(1527097240500)) => notify;`],
 
     /*[`now => @com.xkcd.get_comic param:number:Number = SLOT_0 => notify`,
      {'SLOT_0': Ast.Value.Number(1234)},
