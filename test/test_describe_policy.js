@@ -160,6 +160,18 @@ var TEST_CASES = [
     ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.phone.get_gps() { !(location == $context.location.home) && !(location == $context.location.work) } => notify',
      'anyone is allowed to read the current event detected on your security camera if the my location is not equal to at home and the my location is not equal to at work'],
 
+    ['true : @security-camera.current_event, @org.thingpedia.weather.current(location=$context.location.current_location) { temperature >= 21C } => notify',
+     'anyone is allowed to read the current event detected on your security camera if the the temperature of show the current weather for here is greater than or equal to 21 C'],
+    ['true : @security-camera.current_event, @org.thingpedia.weather.current(location=$context.location.current_location) { temperature == 21C } => notify',
+     'anyone is allowed to read the current event detected on your security camera if the the temperature of show the current weather for here is equal to 21 C'],
+    ['true : @security-camera.current_event, @org.thingpedia.weather.current(location=$context.location.current_location) { !(temperature == 21C) } => notify',
+     'anyone is allowed to read the current event detected on your security camera if the the temperature of show the current weather for here is not equal to 21 C'],
+    ['true : @security-camera.current_event, @org.thingpedia.weather.current(location=$context.location.current_location) { temperature <= 21C && temperature >= 19C } => notify',
+     'anyone is allowed to read the current event detected on your security camera if for show the current weather for here, the temperature is less than or equal to 21 C and the temperature is greater than or equal to 19 C'],
+    ['true : @security-camera.current_event, @org.thingpedia.weather.current(location=$context.location.current_location) { temperature >= 21C || temperature <= 19C } => notify',
+     'anyone is allowed to read the current event detected on your security camera if for show the current weather for here, the temperature is greater than or equal to 21 C or the temperature is less than or equal to 19 C'],
+
+
     ['true : @com.bing.web_search, query == "foo" => notify',
      'anyone is allowed to read search for "foo" on Bing'],
 
@@ -191,6 +203,12 @@ var TEST_CASES = [
 
     ['true : @com.wsj.get, section == enum(world) && updated >= makeDate(2018, 5, 4) => notify',
     'anyone is allowed to read articles published in the world section if the updated is after 5/4/2018'],
+    ['true : @com.wsj.get, section == enum(world) && updated <= makeDate(2018, 5, 4) => notify',
+    'anyone is allowed to read articles published in the world section if the updated is before 5/4/2018'],
+    ['true : @com.wsj.get, section == enum(world) && !(updated <= makeDate(2018, 5, 4)) => notify',
+    'anyone is allowed to read articles published in the world section if the updated is after 5/4/2018'],
+    ['true : @com.wsj.get, section == enum(world) && !(updated >= makeDate(2018, 5, 4)) => notify',
+    'anyone is allowed to read articles published in the world section if the updated is before 5/4/2018'],
 
     /*['true : @com.wsj.get, section == enum(world) && updated >= makeDate(2018, 5, 4, 17, 30, 0) => notify',
     'anyone is allowed to read articles published in the world section if the updated is after 5/4/2018, 5:30:00 PM'],*/

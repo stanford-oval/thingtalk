@@ -88,7 +88,7 @@ executor = "matrix-account:@gcampax:matrix.org"^^tt:contact : { // WithPrincipal
 
 // FormatEvent
 {
-    monitor @twitter.source() => @builtin.say(message=$event.title);
+    monitor @twitter.source() => @builtin.say(message=$event);
 }
 
 ====

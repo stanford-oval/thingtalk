@@ -680,7 +680,7 @@ yield env.writeState(0, _t_13);
     env.reportError("Failed to invoke trigger", _exc_);
   }`]],
 
-    [`monitor @twitter.source() => @builtin.say(message=$event.title);`,
+    [`monitor @twitter.source() => @builtin.say(message=$event);`,
      [`"use strict";
   let _t_0;
   let _t_1;
@@ -727,7 +727,7 @@ yield env.writeState(0, _t_13);
         if (_t_12) {
           try {
             _t_15 = {};
-            _t_16 = yield env.formatEvent(_t_4, _t_5, "string-title");
+            _t_16 = yield env.formatEvent(_t_4, _t_5, "string");
             _t_15.message = _t_16;
             yield env.invokeAction(1, _t_15);
           } catch(_exc_) {
