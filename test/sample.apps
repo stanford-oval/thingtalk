@@ -137,16 +137,6 @@ monitor @twitter.source() => notify;
 
 ====
 
-// Principals
-{
-    monitor @twitter(principal="omlet-account:foo"^^tt:contact).source() => notify;
-    monitor @twitter(principal="giovanni"^^tt:username).source() => notify;
-    // the following is identical to the previous one
-    monitor @twitter(principal="giovanni").source() => notify;
-}
-
-====
-
 // Contains
 {
     monitor @twitter.source(), contains(hashtags, "lol") => notify;
@@ -235,32 +225,6 @@ monitor @twitter.source() => notify;
     now => [col1] of (Q1, col2 >= 42) => notify;
 
 /* select col1 as v_1 from Q1 where col2 >= 42 */
-
-====
-
-// LogQueryTestRemote
-    now => [col1] of ("1234"^^tt:contact :: Q4, col2 >= 42) => notify;
-
-====
-
-// ** typecheck: expect TypeError **
-// LogQueryTestRemoteInvalid1
-// there is no such table Q0
-now => [col1] of ("1234"^^tt:contact :: Q0, col2 >= 42) => notify;
-
-====
-
-// ** typecheck: expect TypeError **
-// LogQueryTestRemoteInvalid2
-// principal must be contact not group
-now => [col1] of ("1234"^^tt:contact_group :: Q4, col2 >= 42) => notify;
-
-====
-
-// ** typecheck: expect TypeError **
-// LogQueryTestRemoteInvalid2
-// col1 is a string in Q4
-now => [col1] of ("1234"^^tt:contact :: Q4, col1 >= 42) => notify;
 
 ====
 
@@ -532,3 +496,4 @@ let action x := \(p_status :String) -> @twitter.sink(status=p_status);
 ====
 // Bug 4
 now => @security-camera.set_power(power=enum(on));
+

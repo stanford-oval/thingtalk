@@ -15,12 +15,8 @@ const Q = require('q');
 Q.longStackSupport = true;
 const Describe = require('../lib/describe');
 const Grammar = require('../lib/grammar_api');
-const Compiler = require('../lib/compiler');
 const SchemaRetriever = require('../lib/schema');
-const PermissionChecker = require('../lib/permission_checker');
-const { optimizeProgram } = require('../lib/optimize');
 
-const _mockSchemaDelegate = require('./mock_schema_delegate');
 const ThingpediaClientHttp = require('./http_client');
 
 var TEST_CASES = [
@@ -29,9 +25,6 @@ var TEST_CASES = [
      'tweet ____'],
     ['monitor @com.twitter.home_timeline() => @com.twitter.post(status=text);',
     'tweet the text when tweets from anyone you follow changes'],
-    [`monitor @thermostat(principal="foo"^^tt:username).get_temperature(), value >= 70F
-     => notify;`,
-    'notify you when get the temperature on @foo\'s thermostat changes and the value is greater than or equal to 70 F'],
     ['attimer(time=makeTime(8,30)) => @org.thingpedia.builtin.thingengine.builtin.say(message=$undefined);',
     'send me a message ____ every day at 8:30am'],
     ['attimer(time=makeTime(20,30)) => @org.thingpedia.builtin.thingengine.builtin.say(message=$undefined);',

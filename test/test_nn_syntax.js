@@ -152,18 +152,6 @@ const TEST_CASES = [
      { DURATION_0: { value: 2, unit: 'h' } },
      `now => (@com.nytimes.get_front_page()), updated >= makeDate() - 2h => notify;`],
 
-    [`now => @security-camera.current_event of USERNAME_0 => notify`,
-     { USERNAME_0: 'bob' },
-     `now => @security-camera(principal="bob"^^tt:username).current_event() => notify;`],
-
-    [`now => @com.twitter.post of USERNAME_0`,
-     { USERNAME_0: 'bob' },
-     `now => @com.twitter(principal="bob"^^tt:username).post();`],
-
-    [`now => @com.twitter.post of USERNAME_0 param:status:String = QUOTED_STRING_0`,
-     { USERNAME_0: 'bob', QUOTED_STRING_0: 'lol' },
-     `now => @com.twitter(principal="bob"^^tt:username).post(status="lol");`],
-
     [`executor = USERNAME_0 : now => @com.twitter.post`,
      { USERNAME_0: 'bob' },
      `executor = "bob"^^tt:username : now => @com.twitter.post();`],
