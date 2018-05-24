@@ -4,6 +4,7 @@ const fs = require('fs');
 
 const AppGrammar = require('../lib/grammar_api');
 const { prettyprint } = require('../lib/prettyprint');
+const Generate = require('../lib/generate');
 
 const debug = false;
 
@@ -44,6 +45,18 @@ function parserTest() {
             console.error(codegenned);
             console.error('====\nCode:');
             console.error(code);
+            console.error('====');
+            console.error(e.stack);
+            if (process.env.TEST_MODE)
+                throw e;
+        }
+
+        try {
+            Array.from(Generate.iteratePrimitives(ast));
+        } catch(e) {
+            console.error('Iterate primitives failed');
+            console.log('Code:');
+            console.log(code);
             console.error('====');
             console.error(e.stack);
             if (process.env.TEST_MODE)

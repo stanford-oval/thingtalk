@@ -4,6 +4,7 @@ const Q = require('q');
 const fs = require('fs');
 
 const AppGrammar = require('../lib/grammar_api');
+const Generate = require('../lib/generate');
 const SchemaRetriever = require('../lib/schema');
 
 const _mockSchemaDelegate = require('./mock_schema_delegate');
@@ -16,10 +17,22 @@ function typecheckTest() {
 
     Q.all(code.map((code) => {
         code = code.trim();
-        return Q(AppGrammar.parseAndTypecheck(code, _schemaRetriever)).then(() => {
+        return Q(AppGrammar.parseAndTypecheck(code, _schemaRetriever)).then((program) => {
             if (code.indexOf(`** typecheck: expect `) >= 0) {
                 console.error('Failed (expected error)');
                 console.error(code);
+            }
+
+            try {
+                Array.from(Generate.iterateSlots(program));
+            } catch(e) {
+                console.error('Iterate slots failed');
+                console.log('Code:');
+                console.log(code);
+                console.error('====');
+                console.error(e.stack);
+                if (process.env.TEST_MODE)
+                    throw e;
             }
         }, (e) => {
             if (code.indexOf(`** typecheck: expect ${e.name} **`) >= 0)
