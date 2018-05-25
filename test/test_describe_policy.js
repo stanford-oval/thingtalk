@@ -11,12 +11,12 @@
 
 require('./polyfill');
 
+const assert = require('assert');
 const Q = require('q');
 Q.longStackSupport = true;
 const Describe = require('../lib/describe');
 const Grammar = require('../lib/grammar_api');
 const SchemaRetriever = require('../lib/schema');
-const { typeCheckPermissionRule } = require('../lib/typecheck');
 
 const _mockSchemaDelegate = require('./mock_schema_delegate');
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
@@ -256,8 +256,8 @@ function test(i) {
     console.log('Test Case #' + (i+1));
     var [code, expected] = TEST_CASES[i];
 
-    const prog = Grammar.parsePermissionRule(code);
-    return typeCheckPermissionRule(prog, schemaRetriever, true).then(() => {
+    return Grammar.parseAndTypecheck(code, schemaRetriever, true).then((prog) => {
+        assert(prog.isPermissionRule);
         let reconstructed = Describe.describePermissionRule(gettext, prog);
 
         reconstructed = reconstructed.replace('2018-5-4', '5/4/2018');
