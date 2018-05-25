@@ -24,7 +24,6 @@ const TEST_CASES = [
   let _t_8;
   let _t_9;
   let _t_10;
-  let _t_11;
   _t_0 = yield env.readState(0);
   try {
     _t_1 = {};
@@ -38,19 +37,14 @@ const TEST_CASES = [
         _t_6 = _t_5.value;
         _t_7 = __builtin.isNewTuple(_t_0, _t_5, ["value"]);
         _t_8 = __builtin.addTuple(_t_0, _t_5);
-        _t_9 = _t_8 != _t_0;
-        if (_t_9) {
-yield env.writeState(0, _t_8);
-        } else {
-
-        }
+        yield env.writeState(0, _t_8);
         _t_0 = _t_8;
         if (_t_7) {
           try {
-            _t_10 = {};
-            _t_11 = "Test App received an event on Test Channel";
-            _t_10.message = _t_11;
-            yield env.invokeAction(1, _t_10);
+            _t_9 = {};
+            _t_10 = "Test App received an event on Test Channel";
+            _t_9.message = _t_10;
+            yield env.invokeAction(1, _t_9);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
@@ -80,7 +74,6 @@ yield env.writeState(0, _t_8);
   let _t_11;
   let _t_12;
   let _t_13;
-  let _t_14;
   _t_0 = yield env.readState(0);
   try {
     _t_1 = {};
@@ -95,22 +88,17 @@ yield env.writeState(0, _t_8);
         _t_7 = _t_5.temperature;
         _t_8 = __builtin.isNewTuple(_t_0, _t_5, ["time", "temperature"]);
         _t_9 = __builtin.addTuple(_t_0, _t_5);
-        _t_10 = _t_9 != _t_0;
-        if (_t_10) {
-yield env.writeState(0, _t_9);
-        } else {
-
-        }
+        yield env.writeState(0, _t_9);
         _t_0 = _t_9;
         if (_t_8) {
-          _t_12 = 21;
-          _t_11 = _t_7 >= _t_12;
-          if (_t_11) {
+          _t_11 = 21;
+          _t_10 = _t_7 >= _t_11;
+          if (_t_10) {
             try {
-              _t_13 = {};
-              _t_14 = "bla";
-              _t_13.message = _t_14;
-              yield env.invokeAction(1, _t_13);
+              _t_12 = {};
+              _t_13 = "bla";
+              _t_12.message = _t_13;
+              yield env.invokeAction(1, _t_12);
             } catch(_exc_) {
               env.reportError("Failed to invoke action", _exc_);
             }
@@ -143,7 +131,6 @@ yield env.writeState(0, _t_9);
   let _t_11;
   let _t_12;
   let _t_13;
-  let _t_14;
   _t_0 = yield env.readState(0);
   try {
     _t_1 = {};
@@ -158,22 +145,17 @@ yield env.writeState(0, _t_9);
         _t_7 = _t_5.temperature;
         _t_8 = __builtin.isNewTuple(_t_0, _t_5, ["time", "temperature"]);
         _t_9 = __builtin.addTuple(_t_0, _t_5);
-        _t_10 = _t_9 != _t_0;
-        if (_t_10) {
-yield env.writeState(0, _t_9);
-        } else {
-
-        }
+        yield env.writeState(0, _t_9);
         _t_0 = _t_9;
         if (_t_8) {
-          _t_12 = 21;
-          _t_11 = _t_7 >= _t_12;
-          if (_t_11) {
+          _t_11 = 21;
+          _t_10 = _t_7 >= _t_11;
+          if (_t_10) {
             try {
-              _t_13 = {};
-              _t_14 = "bla";
-              _t_13.message = _t_14;
-              yield env.invokeAction(1, _t_13);
+              _t_12 = {};
+              _t_13 = "bla";
+              _t_12.message = _t_13;
+              yield env.invokeAction(1, _t_12);
             } catch(_exc_) {
               env.reportError("Failed to invoke action", _exc_);
             }
@@ -220,7 +202,6 @@ yield env.writeState(0, _t_9);
   let _t_13;
   let _t_14;
   let _t_15;
-  let _t_16;
   _t_0 = yield env.readState(0);
   try {
     _t_1 = {};
@@ -239,17 +220,12 @@ yield env.writeState(0, _t_9);
         _t_11 = _t_5.__reserved;
         _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "from", "inReplyTo", "__reserved"]);
         _t_13 = __builtin.addTuple(_t_0, _t_5);
-        _t_14 = _t_13 != _t_0;
-        if (_t_14) {
-yield env.writeState(0, _t_13);
-        } else {
-
-        }
+        yield env.writeState(0, _t_13);
         _t_0 = _t_13;
         if (_t_12) {
-          _t_16 = new __builtin.Entity("HillaryClinton", null);
-          _t_15 = __builtin.equality(_t_9, _t_16);
-          if (_t_15) {
+          _t_15 = new __builtin.Entity("HillaryClinton", null);
+          _t_14 = __builtin.equality(_t_9, _t_15);
+          if (_t_14) {
             try {
               yield env.output(String(_t_4), _t_5);
             } catch(_exc_) {
@@ -280,7 +256,6 @@ yield env.writeState(0, _t_13);
   let _t_7;
   let _t_8;
   let _t_9;
-  let _t_10;
   _t_0 = yield env.readState(0);
   try {
     _t_1 = {};
@@ -296,12 +271,7 @@ yield env.writeState(0, _t_13);
         _t_7 = _t_6.temperature;
         _t_8 = __builtin.isNewTuple(_t_0, _t_6, ["temperature"]);
         _t_9 = __builtin.addTuple(_t_0, _t_6);
-        _t_10 = _t_9 != _t_0;
-        if (_t_10) {
-yield env.writeState(0, _t_9);
-        } else {
-
-        }
+        yield env.writeState(0, _t_9);
         _t_0 = _t_9;
         if (_t_8) {
           try {
@@ -331,7 +301,6 @@ yield env.writeState(0, _t_9);
   let _t_7;
   let _t_8;
   let _t_9;
-  let _t_10;
   _t_0 = yield env.readState(0);
   try {
     _t_1 = {};
@@ -347,12 +316,7 @@ yield env.writeState(0, _t_9);
         _t_7 = _t_6.temperature;
         _t_8 = __builtin.isNewTuple(_t_0, _t_6, ["temperature"]);
         _t_9 = __builtin.addTuple(_t_0, _t_6);
-        _t_10 = _t_9 != _t_0;
-        if (_t_10) {
-yield env.writeState(0, _t_9);
-        } else {
-
-        }
+        yield env.writeState(0, _t_9);
         _t_0 = _t_9;
         if (_t_8) {
           try {
@@ -537,7 +501,6 @@ yield env.writeState(0, _t_9);
   let _t_9;
   let _t_10;
   let _t_11;
-  let _t_12;
   _t_0 = yield env.readState(0);
   try {
     _t_1 = {};
@@ -553,19 +516,14 @@ yield env.writeState(0, _t_9);
         _t_8 = _t_5.picture_url;
         _t_9 = __builtin.isNewTuple(_t_0, _t_5, ["title", "link", "picture_url"]);
         _t_10 = __builtin.addTuple(_t_0, _t_5);
-        _t_11 = _t_10 != _t_0;
-        if (_t_11) {
-yield env.writeState(0, _t_10);
-        } else {
-
-        }
+        yield env.writeState(0, _t_10);
         _t_0 = _t_10;
         if (_t_9) {
           try {
-            _t_12 = {};
-            _t_12.caption = _t_6;
-            _t_12.picture_url = _t_8;
-            yield env.invokeAction(1, _t_12);
+            _t_11 = {};
+            _t_11.caption = _t_6;
+            _t_11.picture_url = _t_8;
+            yield env.invokeAction(1, _t_11);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
@@ -621,7 +579,6 @@ yield env.writeState(0, _t_10);
   let _t_20;
   let _t_21;
   let _t_22;
-  let _t_23;
   _t_0 = yield env.readState(0);
   try {
     _t_1 = {};
@@ -640,28 +597,23 @@ yield env.writeState(0, _t_10);
         _t_11 = _t_5.__reserved;
         _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "from", "inReplyTo", "__reserved"]);
         _t_13 = __builtin.addTuple(_t_0, _t_5);
-        _t_14 = _t_13 != _t_0;
-        if (_t_14) {
-yield env.writeState(0, _t_13);
-        } else {
-
-        }
+        yield env.writeState(0, _t_13);
         _t_0 = _t_13;
         if (_t_12) {
-          _t_15 = false;
-          _t_17 = "foo";
-          _t_16 = __builtin.like(_t_6, _t_17);
-          _t_15 = _t_15 || _t_16;
-          _t_18 = true;
-          _t_20 = "bar";
-          _t_19 = __builtin.like(_t_6, _t_20);
-          _t_18 = _t_18 && _t_19;
-          _t_23 = "lol";
-          _t_22 = __builtin.like(_t_6, _t_23);
-          _t_21 = ! (_t_22);
-          _t_18 = _t_18 && _t_21;
-          _t_15 = _t_15 || _t_18;
-          if (_t_15) {
+          _t_14 = false;
+          _t_16 = "foo";
+          _t_15 = __builtin.like(_t_6, _t_16);
+          _t_14 = _t_14 || _t_15;
+          _t_17 = true;
+          _t_19 = "bar";
+          _t_18 = __builtin.like(_t_6, _t_19);
+          _t_17 = _t_17 && _t_18;
+          _t_22 = "lol";
+          _t_21 = __builtin.like(_t_6, _t_22);
+          _t_20 = ! (_t_21);
+          _t_17 = _t_17 && _t_20;
+          _t_14 = _t_14 || _t_17;
+          if (_t_14) {
             try {
               yield env.output(String(_t_4), _t_5);
             } catch(_exc_) {
@@ -698,7 +650,6 @@ yield env.writeState(0, _t_13);
   let _t_13;
   let _t_14;
   let _t_15;
-  let _t_16;
   _t_0 = yield env.readState(0);
   try {
     _t_1 = {};
@@ -717,19 +668,14 @@ yield env.writeState(0, _t_13);
         _t_11 = _t_5.__reserved;
         _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "from", "inReplyTo", "__reserved"]);
         _t_13 = __builtin.addTuple(_t_0, _t_5);
-        _t_14 = _t_13 != _t_0;
-        if (_t_14) {
-yield env.writeState(0, _t_13);
-        } else {
-
-        }
+        yield env.writeState(0, _t_13);
         _t_0 = _t_13;
         if (_t_12) {
           try {
-            _t_15 = {};
-            _t_16 = yield env.formatEvent(_t_4, _t_5, "string");
-            _t_15.message = _t_16;
-            yield env.invokeAction(1, _t_15);
+            _t_14 = {};
+            _t_15 = yield env.formatEvent(_t_4, _t_5, "string");
+            _t_14.message = _t_15;
+            yield env.invokeAction(1, _t_14);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
@@ -761,7 +707,6 @@ yield env.writeState(0, _t_13);
   let _t_13;
   let _t_14;
   let _t_15;
-  let _t_16;
   _t_0 = yield env.readState(0);
   try {
     _t_1 = {};
@@ -780,19 +725,14 @@ yield env.writeState(0, _t_13);
         _t_11 = _t_5.__reserved;
         _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "from", "inReplyTo", "__reserved"]);
         _t_13 = __builtin.addTuple(_t_0, _t_5);
-        _t_14 = _t_13 != _t_0;
-        if (_t_14) {
-yield env.writeState(0, _t_13);
-        } else {
-
-        }
+        yield env.writeState(0, _t_13);
         _t_0 = _t_13;
         if (_t_12) {
           try {
-            _t_15 = {};
-            _t_16 = String (_t_4);
-            _t_15.message = _t_16;
-            yield env.invokeAction(1, _t_15);
+            _t_14 = {};
+            _t_15 = String (_t_4);
+            _t_14.message = _t_15;
+            yield env.invokeAction(1, _t_14);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
@@ -821,7 +761,6 @@ yield env.writeState(0, _t_13);
   let _t_10;
   let _t_11;
   let _t_12;
-  let _t_13;
   _t_0 = yield env.readState(0);
   try {
     _t_1 = {};
@@ -837,19 +776,14 @@ yield env.writeState(0, _t_13);
         _t_8 = _t_5.picture_url;
         _t_9 = __builtin.isNewTuple(_t_0, _t_5, ["title", "link", "picture_url"]);
         _t_10 = __builtin.addTuple(_t_0, _t_5);
-        _t_11 = _t_10 != _t_0;
-        if (_t_11) {
-yield env.writeState(0, _t_10);
-        } else {
-
-        }
+        yield env.writeState(0, _t_10);
         _t_0 = _t_10;
         if (_t_9) {
           try {
-            _t_12 = {};
-            _t_13 = String (_t_8);
-            _t_12.status = _t_13;
-            yield env.invokeAction(1, _t_12);
+            _t_11 = {};
+            _t_12 = String (_t_8);
+            _t_11.status = _t_12;
+            yield env.invokeAction(1, _t_11);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
@@ -931,7 +865,6 @@ yield env.writeState(0, _t_10);
   let _t_17;
   let _t_18;
   let _t_19;
-  let _t_20;
   _t_0 = yield env.readState(0);
   try {
     _t_1 = {};
@@ -950,24 +883,19 @@ yield env.writeState(0, _t_10);
         _t_11 = _t_5.__reserved;
         _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "from", "inReplyTo", "__reserved"]);
         _t_13 = __builtin.addTuple(_t_0, _t_5);
-        _t_14 = _t_13 != _t_0;
-        if (_t_14) {
-yield env.writeState(0, _t_13);
-        } else {
-
-        }
+        yield env.writeState(0, _t_13);
         _t_0 = _t_13;
         if (_t_12) {
           try {
-            _t_15 = {};
-            _t_16 = new __builtin.Entity("mock-account:12345678", "me");
-            _t_15.__principal = _t_16;
-            _t_17 = env.program_id;
-            _t_15.__program_id = _t_17;
-            _t_18 = 0;
-            _t_15.__flow = _t_18;
-            _t_15.__kindChannel = _t_4;
-            yield env.invokeAction(1, _t_15);
+            _t_14 = {};
+            _t_15 = new __builtin.Entity("mock-account:12345678", "me");
+            _t_14.__principal = _t_15;
+            _t_16 = env.program_id;
+            _t_14.__program_id = _t_16;
+            _t_17 = 0;
+            _t_14.__flow = _t_17;
+            _t_14.__kindChannel = _t_4;
+            yield env.invokeAction(1, _t_14);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
@@ -981,9 +909,9 @@ yield env.writeState(0, _t_13);
     env.reportError("Failed to invoke trigger", _exc_);
   }
   try {
-    _t_19 = new __builtin.Entity("mock-account:12345678", "me");
-    _t_20 = 0;
-    yield env.sendEndOfFlow(_t_19, _t_20);
+    _t_18 = new __builtin.Entity("mock-account:12345678", "me");
+    _t_19 = 0;
+    yield env.sendEndOfFlow(_t_18, _t_19);
   } catch(_exc_) {
     env.reportError("Failed to signal end-of-flow", _exc_);
   }`]],
@@ -1021,7 +949,6 @@ yield env.writeState(0, _t_13);
   let _t_26;
   let _t_27;
   let _t_28;
-  let _t_29;
   _t_0 = yield env.readState(0);
   try {
     _t_1 = {};
@@ -1040,48 +967,43 @@ yield env.writeState(0, _t_13);
         _t_11 = _t_5.__reserved;
         _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "from", "inReplyTo", "__reserved"]);
         _t_13 = __builtin.addTuple(_t_0, _t_5);
-        _t_14 = _t_13 != _t_0;
-        if (_t_14) {
-yield env.writeState(0, _t_13);
-        } else {
-
-        }
+        yield env.writeState(0, _t_13);
         _t_0 = _t_13;
         if (_t_12) {
-          _t_15 = false;
+          _t_14 = false;
           try {
-            _t_17 = {};
-            _t_16 = yield env.invokeQuery(1, _t_17);
-            _t_18 = _t_16[Symbol.iterator]();
+            _t_16 = {};
+            _t_15 = yield env.invokeQuery(1, _t_16);
+            _t_17 = _t_15[Symbol.iterator]();
             {
-              let _iter_tmp = yield _t_18.next();
+              let _iter_tmp = yield _t_17.next();
               while (!_iter_tmp.done) {
-                _t_19 = _iter_tmp.value;
-                _t_20 = _t_19[0];
-                _t_21 = _t_19[1];
-                _t_22 = _t_21.time;
-                _t_23 = true;
-                _t_25 = __builtin.getTime (_t_22);
-                _t_26 = new __builtin.Time(9, 0, 0);
-                _t_24 = _t_25 >= _t_26;
-                _t_23 = _t_23 && _t_24;
-                _t_28 = __builtin.getTime (_t_22);
-                _t_29 = new __builtin.Time(10, 0, 0);
-                _t_27 = _t_28 <= _t_29;
-                _t_23 = _t_23 && _t_27;
-                if (_t_23) {
-                  _t_15 = true;
+                _t_18 = _iter_tmp.value;
+                _t_19 = _t_18[0];
+                _t_20 = _t_18[1];
+                _t_21 = _t_20.time;
+                _t_22 = true;
+                _t_24 = __builtin.getTime (_t_21);
+                _t_25 = new __builtin.Time(9, 0, 0);
+                _t_23 = _t_24 >= _t_25;
+                _t_22 = _t_22 && _t_23;
+                _t_27 = __builtin.getTime (_t_21);
+                _t_28 = new __builtin.Time(10, 0, 0);
+                _t_26 = _t_27 <= _t_28;
+                _t_22 = _t_22 && _t_26;
+                if (_t_22) {
+                  _t_14 = true;
                   break;
                 } else {
 
                 }
-                _iter_tmp = yield _t_18.next();
+                _iter_tmp = yield _t_17.next();
               }
             }
           } catch(_exc_) {
             env.reportError("Failed to invoke get-predicate query", _exc_);
           }
-          if (_t_15) {
+          if (_t_14) {
             try {
               yield env.output(String(_t_4), _t_5);
             } catch(_exc_) {
@@ -1131,7 +1053,6 @@ yield env.writeState(0, _t_13);
   let _t_29;
   let _t_30;
   let _t_31;
-  let _t_32;
   _t_0 = yield env.readState(0);
   try {
     _t_1 = {};
@@ -1150,53 +1071,48 @@ yield env.writeState(0, _t_13);
         _t_11 = _t_5.__reserved;
         _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "from", "inReplyTo", "__reserved"]);
         _t_13 = __builtin.addTuple(_t_0, _t_5);
-        _t_14 = _t_13 != _t_0;
-        if (_t_14) {
-yield env.writeState(0, _t_13);
-        } else {
-
-        }
+        yield env.writeState(0, _t_13);
         _t_0 = _t_13;
         if (_t_12) {
-          _t_15 = true;
-          _t_17 = "lol";
-          _t_16 = __builtin.like(_t_6, _t_17);
-          _t_15 = _t_15 && _t_16;
-          _t_18 = false;
+          _t_14 = true;
+          _t_16 = "lol";
+          _t_15 = __builtin.like(_t_6, _t_16);
+          _t_14 = _t_14 && _t_15;
+          _t_17 = false;
           try {
-            _t_20 = {};
-            _t_19 = yield env.invokeQuery(1, _t_20);
-            _t_21 = _t_19[Symbol.iterator]();
+            _t_19 = {};
+            _t_18 = yield env.invokeQuery(1, _t_19);
+            _t_20 = _t_18[Symbol.iterator]();
             {
-              let _iter_tmp = yield _t_21.next();
+              let _iter_tmp = yield _t_20.next();
               while (!_iter_tmp.done) {
-                _t_22 = _iter_tmp.value;
-                _t_23 = _t_22[0];
-                _t_24 = _t_22[1];
-                _t_25 = _t_24.time;
-                _t_26 = true;
-                _t_28 = __builtin.getTime (_t_25);
-                _t_29 = new __builtin.Time(9, 0, 0);
-                _t_27 = _t_28 >= _t_29;
-                _t_26 = _t_26 && _t_27;
-                _t_31 = __builtin.getTime (_t_25);
-                _t_32 = new __builtin.Time(10, 0, 0);
-                _t_30 = _t_31 <= _t_32;
-                _t_26 = _t_26 && _t_30;
-                if (_t_26) {
-                  _t_18 = true;
+                _t_21 = _iter_tmp.value;
+                _t_22 = _t_21[0];
+                _t_23 = _t_21[1];
+                _t_24 = _t_23.time;
+                _t_25 = true;
+                _t_27 = __builtin.getTime (_t_24);
+                _t_28 = new __builtin.Time(9, 0, 0);
+                _t_26 = _t_27 >= _t_28;
+                _t_25 = _t_25 && _t_26;
+                _t_30 = __builtin.getTime (_t_24);
+                _t_31 = new __builtin.Time(10, 0, 0);
+                _t_29 = _t_30 <= _t_31;
+                _t_25 = _t_25 && _t_29;
+                if (_t_25) {
+                  _t_17 = true;
                   break;
                 } else {
 
                 }
-                _iter_tmp = yield _t_21.next();
+                _iter_tmp = yield _t_20.next();
               }
             }
           } catch(_exc_) {
             env.reportError("Failed to invoke get-predicate query", _exc_);
           }
-          _t_15 = _t_15 && _t_18;
-          if (_t_15) {
+          _t_14 = _t_14 && _t_17;
+          if (_t_14) {
             try {
               yield env.output(String(_t_4), _t_5);
             } catch(_exc_) {
@@ -1290,7 +1206,6 @@ yield env.writeState(0, _t_13);
   let _t_12;
   let _t_13;
   let _t_14;
-  let _t_15;
   _t_0 = yield env.readState(0);
   try {
     _t_1 = {};
@@ -1311,19 +1226,14 @@ yield env.writeState(0, _t_13);
         _t_10 = _t_8.interval;
         _t_11 = __builtin.isNewTuple(_t_0, _t_8, ["__kindChannel", "interval"]);
         _t_12 = __builtin.addTuple(_t_0, _t_8);
-        _t_13 = _t_12 != _t_0;
-        if (_t_13) {
-yield env.writeState(0, _t_12);
-        } else {
-
-        }
+        yield env.writeState(0, _t_12);
         _t_0 = _t_12;
         if (_t_11) {
           try {
-            _t_14 = {};
-            _t_15 = "on";
-            _t_14.power = _t_15;
-            yield env.invokeAction(1, _t_14);
+            _t_13 = {};
+            _t_14 = "on";
+            _t_13.power = _t_14;
+            yield env.invokeAction(1, _t_13);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
@@ -1380,9 +1290,6 @@ yield env.writeState(0, _t_12);
   let _t_39;
   let _t_40;
   let _t_41;
-  let _t_42;
-  let _t_43;
-  let _t_44;
   _t_0 = yield env.readState(0);
   _t_1 = function*(emit) {
     _t_2 = yield env.readState(1);
@@ -1403,12 +1310,7 @@ yield env.writeState(0, _t_12);
           _t_13 = _t_7.__reserved;
           _t_14 = __builtin.isNewTuple(_t_2, _t_7, ["text", "hashtags", "urls", "from", "inReplyTo", "__reserved"]);
           _t_15 = __builtin.addTuple(_t_2, _t_7);
-          _t_16 = _t_15 != _t_2;
-          if (_t_16) {
-yield env.writeState(1, _t_15);
-          } else {
-
-          }
+          yield env.writeState(1, _t_15);
           _t_2 = _t_15;
           if (_t_14) {
             emit(_t_7)
@@ -1422,76 +1324,66 @@ yield env.writeState(1, _t_15);
       env.reportError("Failed to invoke trigger", _exc_);
     }
   }
-  _t_17 = function*(emit) {
-    _t_18 = yield env.readState(2);
+  _t_16 = function*(emit) {
+    _t_17 = yield env.readState(2);
     try {
-      _t_19 = {};
-      _t_20 = "foo";
-      _t_19.query = _t_20;
-      _t_21 = yield env.invokeMonitor(1, _t_19, false);
+      _t_18 = {};
+      _t_19 = "foo";
+      _t_18.query = _t_19;
+      _t_20 = yield env.invokeMonitor(1, _t_18, false);
       {
-        let _iter_tmp = yield _t_21.next();
+        let _iter_tmp = yield _t_20.next();
         while (!_iter_tmp.done) {
-          _t_22 = _iter_tmp.value;
-          _t_23 = _t_22[0];
-          _t_24 = _t_22[1];
-          _t_25 = _t_24.title;
-          _t_26 = _t_24.description;
-          _t_27 = __builtin.isNewTuple(_t_18, _t_24, ["title", "description"]);
-          _t_28 = __builtin.addTuple(_t_18, _t_24);
-          _t_29 = _t_28 != _t_18;
-          if (_t_29) {
-yield env.writeState(2, _t_28);
+          _t_21 = _iter_tmp.value;
+          _t_22 = _t_21[0];
+          _t_23 = _t_21[1];
+          _t_24 = _t_23.title;
+          _t_25 = _t_23.description;
+          _t_26 = __builtin.isNewTuple(_t_17, _t_23, ["title", "description"]);
+          _t_27 = __builtin.addTuple(_t_17, _t_23);
+          yield env.writeState(2, _t_27);
+          _t_17 = _t_27;
+          if (_t_26) {
+            emit(_t_23)
           } else {
 
           }
-          _t_18 = _t_28;
-          if (_t_27) {
-            emit(_t_24)
-          } else {
-
-          }
-          _iter_tmp = yield _t_21.next();
+          _iter_tmp = yield _t_20.next();
         }
       }
     } catch(_exc_) {
       env.reportError("Failed to invoke trigger", _exc_);
     }
   }
-  _t_30 = __builtin.streamUnion(_t_1, _t_17);
+  _t_28 = __builtin.streamUnion(_t_1, _t_16);
   {
-    let _iter_tmp = yield _t_30.next();
+    let _iter_tmp = yield _t_28.next();
     while (!_iter_tmp.done) {
-      _t_31 = _iter_tmp.value;
-      _t_32 = _t_31[0];
-      _t_33 = _t_31[1];
-      _t_34 = _t_33.title;
-      _t_35 = _t_33.description;
-      _t_36 = _t_33.text;
-      _t_37 = _t_33.hashtags;
-      _t_38 = _t_33.urls;
-      _t_39 = _t_33.from;
-      _t_40 = _t_33.inReplyTo;
-      _t_41 = _t_33.__reserved;
-      _t_42 = __builtin.isNewTuple(_t_0, _t_33, ["title", "description", "text", "hashtags", "urls", "from", "inReplyTo", "__reserved"]);
-      _t_43 = __builtin.addTuple(_t_0, _t_33);
-      _t_44 = _t_43 != _t_0;
-      if (_t_44) {
-yield env.writeState(0, _t_43);
-      } else {
-
-      }
-      _t_0 = _t_43;
-      if (_t_42) {
+      _t_29 = _iter_tmp.value;
+      _t_30 = _t_29[0];
+      _t_31 = _t_29[1];
+      _t_32 = _t_31.title;
+      _t_33 = _t_31.description;
+      _t_34 = _t_31.text;
+      _t_35 = _t_31.hashtags;
+      _t_36 = _t_31.urls;
+      _t_37 = _t_31.from;
+      _t_38 = _t_31.inReplyTo;
+      _t_39 = _t_31.__reserved;
+      _t_40 = __builtin.isNewTuple(_t_0, _t_31, ["title", "description", "text", "hashtags", "urls", "from", "inReplyTo", "__reserved"]);
+      _t_41 = __builtin.addTuple(_t_0, _t_31);
+      yield env.writeState(0, _t_41);
+      _t_0 = _t_41;
+      if (_t_40) {
         try {
-          yield env.output(String(_t_32), _t_33);
+          yield env.output(String(_t_30), _t_31);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
       } else {
 
       }
-      _iter_tmp = yield _t_30.next();
+      _iter_tmp = yield _t_28.next();
     }
   }`]],
 
@@ -1540,9 +1432,6 @@ yield env.writeState(0, _t_43);
   let _t_41;
   let _t_42;
   let _t_43;
-  let _t_44;
-  let _t_45;
-  let _t_46;
   _t_0 = yield env.readState(0);
   _t_1 = function*(emit) {
     _t_2 = yield env.readState(1);
@@ -1563,12 +1452,7 @@ yield env.writeState(0, _t_43);
           _t_13 = _t_7.__reserved;
           _t_14 = __builtin.isNewTuple(_t_2, _t_7, ["text", "hashtags", "urls", "from", "inReplyTo", "__reserved"]);
           _t_15 = __builtin.addTuple(_t_2, _t_7);
-          _t_16 = _t_15 != _t_2;
-          if (_t_16) {
-yield env.writeState(1, _t_15);
-          } else {
-
-          }
+          yield env.writeState(1, _t_15);
           _t_2 = _t_15;
           if (_t_14) {
             emit(_t_7)
@@ -1582,72 +1466,62 @@ yield env.writeState(1, _t_15);
       env.reportError("Failed to invoke trigger", _exc_);
     }
   }
-  _t_17 = function*(emit) {
-    _t_18 = yield env.readState(2);
+  _t_16 = function*(emit) {
+    _t_17 = yield env.readState(2);
     try {
-      _t_19 = {};
-      _t_20 = "foo";
-      _t_19.query = _t_20;
-      _t_21 = yield env.invokeMonitor(1, _t_19, false);
+      _t_18 = {};
+      _t_19 = "foo";
+      _t_18.query = _t_19;
+      _t_20 = yield env.invokeMonitor(1, _t_18, false);
       {
-        let _iter_tmp = yield _t_21.next();
+        let _iter_tmp = yield _t_20.next();
         while (!_iter_tmp.done) {
-          _t_22 = _iter_tmp.value;
-          _t_23 = _t_22[0];
-          _t_24 = _t_22[1];
-          _t_25 = _t_24.title;
-          _t_26 = _t_24.description;
-          _t_27 = __builtin.isNewTuple(_t_18, _t_24, ["title", "description"]);
-          _t_28 = __builtin.addTuple(_t_18, _t_24);
-          _t_29 = _t_28 != _t_18;
-          if (_t_29) {
-yield env.writeState(2, _t_28);
+          _t_21 = _iter_tmp.value;
+          _t_22 = _t_21[0];
+          _t_23 = _t_21[1];
+          _t_24 = _t_23.title;
+          _t_25 = _t_23.description;
+          _t_26 = __builtin.isNewTuple(_t_17, _t_23, ["title", "description"]);
+          _t_27 = __builtin.addTuple(_t_17, _t_23);
+          yield env.writeState(2, _t_27);
+          _t_17 = _t_27;
+          if (_t_26) {
+            emit(_t_23)
           } else {
 
           }
-          _t_18 = _t_28;
-          if (_t_27) {
-            emit(_t_24)
-          } else {
-
-          }
-          _iter_tmp = yield _t_21.next();
+          _iter_tmp = yield _t_20.next();
         }
       }
     } catch(_exc_) {
       env.reportError("Failed to invoke trigger", _exc_);
     }
   }
-  _t_30 = __builtin.streamUnion(_t_1, _t_17);
+  _t_28 = __builtin.streamUnion(_t_1, _t_16);
   {
-    let _iter_tmp = yield _t_30.next();
+    let _iter_tmp = yield _t_28.next();
     while (!_iter_tmp.done) {
-      _t_31 = _iter_tmp.value;
-      _t_32 = _t_31[0];
-      _t_33 = _t_31[1];
-      _t_34 = _t_33.title;
-      _t_35 = _t_33.description;
-      _t_36 = _t_33.text;
-      _t_37 = _t_33.hashtags;
-      _t_38 = _t_33.urls;
-      _t_39 = _t_33.from;
-      _t_40 = _t_33.inReplyTo;
-      _t_41 = _t_33.__reserved;
-      _t_42 = __builtin.isNewTuple(_t_0, _t_33, ["title", "description", "text", "hashtags", "urls", "from", "inReplyTo", "__reserved"]);
-      _t_43 = __builtin.addTuple(_t_0, _t_33);
-      _t_44 = _t_43 != _t_0;
-      if (_t_44) {
-yield env.writeState(0, _t_43);
-      } else {
-
-      }
-      _t_0 = _t_43;
-      if (_t_42) {
-        _t_46 = "lol";
-        _t_45 = __builtin.like(_t_36, _t_46);
-        if (_t_45) {
+      _t_29 = _iter_tmp.value;
+      _t_30 = _t_29[0];
+      _t_31 = _t_29[1];
+      _t_32 = _t_31.title;
+      _t_33 = _t_31.description;
+      _t_34 = _t_31.text;
+      _t_35 = _t_31.hashtags;
+      _t_36 = _t_31.urls;
+      _t_37 = _t_31.from;
+      _t_38 = _t_31.inReplyTo;
+      _t_39 = _t_31.__reserved;
+      _t_40 = __builtin.isNewTuple(_t_0, _t_31, ["title", "description", "text", "hashtags", "urls", "from", "inReplyTo", "__reserved"]);
+      _t_41 = __builtin.addTuple(_t_0, _t_31);
+      yield env.writeState(0, _t_41);
+      _t_0 = _t_41;
+      if (_t_40) {
+        _t_43 = "lol";
+        _t_42 = __builtin.like(_t_34, _t_43);
+        if (_t_42) {
           try {
-            yield env.output(String(_t_32), _t_33);
+            yield env.output(String(_t_30), _t_31);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
@@ -1657,7 +1531,7 @@ yield env.writeState(0, _t_43);
       } else {
 
       }
-      _iter_tmp = yield _t_30.next();
+      _iter_tmp = yield _t_28.next();
     }
   }`]],
 
