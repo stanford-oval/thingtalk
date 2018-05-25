@@ -11,12 +11,13 @@
 
 const Q = require('q');
 Q.longStackSupport = true;
+const assert = require('assert');
 
 const Compiler = require('../lib/compiler');
 const SchemaRetriever = require('../lib/schema');
-const assert = require('assert');
 
 const ExecEnvironment = require('../lib/exec_environment');
+const builtin = require('../lib/builtin_values');
 
 const ThingpediaClientHttp = require('./http_client');
 var schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(), null, true);
@@ -48,7 +49,7 @@ class MockExecEnvironment extends ExecEnvironment {
         if (!this._trigger || this._trigger.fn !== fn)
             throw new Error('Unexpected trigger ' + fn);
 
-        return this._trigger.value[Symbol.iterator]();
+        return this._trigger.value.map((v) => [fn,v])[Symbol.iterator]();
     }
     invokeTimer(base, interval) {
         // reset base
@@ -69,7 +70,12 @@ class MockExecEnvironment extends ExecEnvironment {
         if (!(fn in this._query))
             throw new Error('Unexpected query ' + fn);
 
-        return this._query[fn].map((v) => [fn,v]);
+        return this._query[fn].map((v) => {
+            if (typeof v === 'function')
+                return [fn, v(params)];
+            else
+                return [fn,v];
+        });
     }
     /* istanbul ignore next */
     invokeAction(fnid, params) {
@@ -257,6 +263,381 @@ some alt text` }
      type: 'action',
      fn: 'com.twitter:post',
      params: { status: `uuid-XXXXXXXXXXXX` }
+    }
+    ]],
+
+    [`monitor @com.xkcd.get_comic() => @com.twitter.post(status=title);`,
+    { fn: 'com.xkcd:get_comic',
+      value: [
+        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+          link: 'https://xkcd.com/1234/',
+          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' }
+      ]
+    },
+    {},
+    [
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'Douglas Engelbart (1925-2013)' }
+    }
+    ]],
+
+    [`monitor @com.xkcd.get_comic(), number >= 1235 => @com.twitter.post(status=title);`,
+    { fn: 'com.xkcd:get_comic',
+      value: [
+        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+          link: 'https://xkcd.com/1234/',
+          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
+        { __timestamp: 1, number: 1235, title: 'Settled',
+          link: 'https://xkcd.com/1235/',
+          picture_url: 'https://imgs.xkcd.com/comics/settled.png' }
+      ]
+    },
+    {},
+    [
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'Settled' }
+    }
+    ]],
+
+    [`monitor @com.xkcd.get_comic(), number >= 1234 => @com.twitter.post(status=title);`,
+    { fn: 'com.xkcd:get_comic',
+      value: [
+        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+          link: 'https://xkcd.com/1234/',
+          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
+        { __timestamp: 1, number: 1235, title: 'Settled',
+          link: 'https://xkcd.com/1235/',
+          picture_url: 'https://imgs.xkcd.com/comics/settled.png' }
+      ]
+    },
+    {},
+    [
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'Douglas Engelbart (1925-2013)' }
+    },
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'Settled' }
+    }
+    ]],
+
+    [`monitor @com.xkcd.get_comic(), number >= 1234 => @com.twitter.post(status=title);`,
+    { fn: 'com.xkcd:get_comic',
+      value: [
+        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+          link: 'https://xkcd.com/1234/',
+          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
+        { __timestamp: 1, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+          link: 'https://xkcd.com/1234/',
+          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
+        { __timestamp: 2, number: 1235, title: 'Settled',
+          link: 'https://xkcd.com/1235/',
+          picture_url: 'https://imgs.xkcd.com/comics/settled.png' }
+      ]
+    },
+    {},
+    [
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'Douglas Engelbart (1925-2013)' }
+    },
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'Settled' }
+    }
+    ]],
+
+    [`monitor @com.xkcd.get_comic(), number >= 1234 => @com.twitter.post(status=title);`,
+    { fn: 'com.xkcd:get_comic',
+      value: [
+        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+          link: 'https://xkcd.com/1234/',
+          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
+        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+          link: 'https://xkcd.com/1234/',
+          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
+        { __timestamp: 1, number: 1235, title: 'Settled',
+          link: 'https://xkcd.com/1235/',
+          picture_url: 'https://imgs.xkcd.com/comics/settled.png' }
+      ]
+    },
+    {},
+    [
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'Douglas Engelbart (1925-2013)' }
+    },
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'Douglas Engelbart (1925-2013)' }
+    },
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'Settled' }
+    }
+    ]],
+
+    [`monitor @com.xkcd.get_comic(), number >= 1234 => @com.twitter.post(status=title);`,
+    { fn: 'com.xkcd:get_comic',
+      value: [
+        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+          link: 'https://xkcd.com/1234/',
+          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
+        { __timestamp: 1, number: 1235, title: 'Settled',
+          link: 'https://xkcd.com/1235/',
+          picture_url: 'https://imgs.xkcd.com/comics/settled.png' },
+        { __timestamp: 2, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+          link: 'https://xkcd.com/1234/',
+          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
+      ]
+    },
+    {},
+    [
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'Douglas Engelbart (1925-2013)' }
+    },
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'Settled' }
+    },
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'Douglas Engelbart (1925-2013)' }
+    },
+    ]],
+
+    [`monitor @com.xkcd.get_comic(), number >= 1234 => @com.twitter.post(status=title);`,
+    { fn: 'com.xkcd:get_comic',
+      value: [
+        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+          link: 'https://xkcd.com/1234/',
+          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
+        { __timestamp: 0, number: 1235, title: 'Settled',
+          link: 'https://xkcd.com/1235/',
+          picture_url: 'https://imgs.xkcd.com/comics/settled.png' },
+        { __timestamp: 1, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+          link: 'https://xkcd.com/1234/',
+          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
+      ]
+    },
+    {},
+    [
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'Douglas Engelbart (1925-2013)' }
+    },
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'Settled' }
+    }
+    ]],
+
+    [`monitor @com.xkcd.get_comic() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code) on (text=title) => @com.twitter.post(status=translated_text);`,
+    { fn: 'com.xkcd:get_comic',
+      value: [
+        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+          link: 'https://xkcd.com/1234/',
+          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' }
+      ]
+    },
+    {
+        'com.yandex.translate:translate': [(params) => {
+            assert(params.text);
+            assert(params.target_language instanceof builtin.Entity);
+            assert.strictEqual(params.target_language.value, 'it');
+
+            assert.strictEqual(params.text, 'Douglas Engelbart (1925-2013)');
+            return { translated_text: 'some translation' };
+        }]
+    },
+    [
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'some translation' }
+    }
+    ]],
+
+    [`monitor @com.xkcd.get_comic() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code) on (text=title) => @com.twitter.post(status=translated_text);`,
+    { fn: 'com.xkcd:get_comic',
+      value: [
+        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+          link: 'https://xkcd.com/1234/',
+          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
+        { __timestamp: 1, number: 1235, title: 'Settled',
+          link: 'https://xkcd.com/1235/',
+          picture_url: 'https://imgs.xkcd.com/comics/settled.png' },
+      ]
+    },
+    {
+        'com.yandex.translate:translate': [(params) => {
+            assert(params.text);
+            assert(params.target_language instanceof builtin.Entity);
+            assert.strictEqual(params.target_language.value, 'it');
+
+            if (params.text === 'Settled')
+                return { translated_text: 'Deciso' }; // in this context...
+            else
+                return { translated_text: params.text };
+        }]
+    },
+    [
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'Douglas Engelbart (1925-2013)' }
+    },
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'Deciso' }
+    }
+    ]],
+
+    [`monitor @com.xkcd.get_comic() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code) on (text=title) => @com.twitter.post(status=translated_text);`,
+    { fn: 'com.xkcd:get_comic',
+      value: [
+        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+          link: 'https://xkcd.com/1234/',
+          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
+        { __timestamp: 0, number: 1235, title: 'Settled',
+          link: 'https://xkcd.com/1235/',
+          picture_url: 'https://imgs.xkcd.com/comics/settled.png' },
+      ]
+    },
+    {
+        'com.yandex.translate:translate': [(params) => {
+            assert(params.text);
+            assert(params.target_language instanceof builtin.Entity);
+            assert.strictEqual(params.target_language.value, 'it');
+
+            if (params.text === 'Settled')
+                return { translated_text: 'Deciso' }; // in this context...
+            else
+                return { translated_text: params.text };
+        }]
+    },
+    [
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'Douglas Engelbart (1925-2013)' }
+    },
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'Deciso' }
+    }
+    ]],
+
+    [`(monitor @com.xkcd.get_comic() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code) on (text=title)), translated_text =~ "deciso" => @com.twitter.post(status=translated_text);`,
+    { fn: 'com.xkcd:get_comic',
+      value: [
+        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+          link: 'https://xkcd.com/1234/',
+          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
+        { __timestamp: 0, number: 1235, title: 'Settled',
+          link: 'https://xkcd.com/1235/',
+          picture_url: 'https://imgs.xkcd.com/comics/settled.png' },
+      ]
+    },
+    {
+        'com.yandex.translate:translate': [(params) => {
+            assert(params.text);
+            assert(params.target_language instanceof builtin.Entity);
+            assert.strictEqual(params.target_language.value, 'it');
+
+            if (params.text === 'Settled')
+                return { translated_text: 'Deciso' }; // in this context...
+            else
+                return { translated_text: params.text };
+        }]
+    },
+    [
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'Deciso' }
+    }
+    ]],
+
+    [`(monitor @com.xkcd.get_comic() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code) on (text=title)), translated_text == "Deciso" => @com.twitter.post(status=translated_text);`,
+    { fn: 'com.xkcd:get_comic',
+      value: [
+        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+          link: 'https://xkcd.com/1234/',
+          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
+        { __timestamp: 0, number: 1235, title: 'Settled',
+          link: 'https://xkcd.com/1235/',
+          picture_url: 'https://imgs.xkcd.com/comics/settled.png' },
+      ]
+    },
+    {
+        'com.yandex.translate:translate': [(params) => {
+            assert(params.text);
+            assert(params.target_language instanceof builtin.Entity);
+            assert.strictEqual(params.target_language.value, 'it');
+
+            if (params.text === 'Settled')
+                return { translated_text: 'Deciso' }; // in this context...
+            else
+                return { translated_text: params.text };
+        }]
+    },
+    [
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'Deciso' }
+    }
+    ]],
+
+    [`(monitor @com.xkcd.get_comic() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code), translated_text =~ "deciso" on (text=title)) => @com.twitter.post(status=translated_text);`,
+    { fn: 'com.xkcd:get_comic',
+      value: [
+        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+          link: 'https://xkcd.com/1234/',
+          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
+        { __timestamp: 0, number: 1235, title: 'Settled',
+          link: 'https://xkcd.com/1235/',
+          picture_url: 'https://imgs.xkcd.com/comics/settled.png' },
+      ]
+    },
+    {
+        'com.yandex.translate:translate': [(params) => {
+            assert(params.text);
+            assert(params.target_language instanceof builtin.Entity);
+            assert.strictEqual(params.target_language.value, 'it');
+
+            if (params.text === 'Settled')
+                return { translated_text: 'Deciso' }; // in this context...
+            else
+                return { translated_text: params.text };
+        }]
+    },
+    [
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'Deciso' }
     }
     ]],
 ];
