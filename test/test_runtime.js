@@ -18,13 +18,12 @@ const assert = require('assert');
 
 const ExecEnvironment = require('../lib/exec_environment');
 
-const _mockSchemaDelegate = require('./mock_schema_delegate');
-const _mockMemoryClient = require('./mock_memory_client');
-var schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, _mockMemoryClient, true);
+const ThingpediaClientHttp = require('./http_client');
+var schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(), null, true);
 
 class MockExecEnvironment extends ExecEnvironment {
     constructor(compiledrule, triggerdata, querydata, outputdata) {
-        super('en-US', 'America/Los_Angeles');
+        super('en-US', 'America/Los_Angeles', schemaRetriever);
 
         this._compiled = compiledrule;
         this._trigger = triggerdata;
@@ -117,25 +116,25 @@ class MockExecEnvironment extends ExecEnvironment {
 
 
 const TEST_CASES = [
-    [`now => @xkcd.get_comic() => notify;`,
+    [`now => @com.xkcd.get_comic() => notify;`,
     null,
-    { 'xkcd:get_comic': [
+    { 'com.xkcd:get_comic': [
         { number: 1234, title: 'Douglas Engelbart (1925-2013)',
           link: 'https://xkcd.com/1234/',
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' }
     ]},
     [
     { type: 'output',
-      outputType: 'xkcd:get_comic',
+      outputType: 'com.xkcd:get_comic',
       value: { number: 1234, title: 'Douglas Engelbart (1925-2013)',
         link: 'https://xkcd.com/1234/',
         picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' }
     }
     ]],
 
-    [`now => @xkcd.get_comic() => @twitter.sink(status=title);`,
+    [`now => @com.xkcd.get_comic() => @com.twitter.post(status=title);`,
     null,
-    { 'xkcd:get_comic': [
+    { 'com.xkcd:get_comic': [
         { number: 1234, title: 'Douglas Engelbart (1925-2013)',
           link: 'https://xkcd.com/1234/',
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' }
@@ -143,76 +142,123 @@ const TEST_CASES = [
     [
     {
      type: 'action',
-     fn: 'twitter:sink',
+     fn: 'com.twitter:post',
      params: { status: 'Douglas Engelbart (1925-2013)' }
     }
     ]],
 
-    [`now => @xkcd.get_comic() => { notify; @twitter.sink(status=title); };`,
+    [`now => @com.xkcd.get_comic() => { notify; @com.twitter.post(status=title); };`,
     null,
-    { 'xkcd:get_comic': [
+    { 'com.xkcd:get_comic': [
         { number: 1234, title: 'Douglas Engelbart (1925-2013)',
           link: 'https://xkcd.com/1234/',
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' }
     ]},
     [
     { type: 'output',
-      outputType: 'xkcd:get_comic',
+      outputType: 'com.xkcd:get_comic',
       value: { number: 1234, title: 'Douglas Engelbart (1925-2013)',
         link: 'https://xkcd.com/1234/',
         picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' }
     },
     {
      type: 'action',
-     fn: 'twitter:sink',
+     fn: 'com.twitter:post',
      params: { status: 'Douglas Engelbart (1925-2013)' }
     }
     ]],
 
-    [`now => @xkcd.get_comic(), number <= 1000 => { notify; @twitter.sink(status=title); };`,
+    [`now => @com.xkcd.get_comic(), number <= 1000 => { notify; @com.twitter.post(status=title); };`,
     null,
-    { 'xkcd:get_comic': [
+    { 'com.xkcd:get_comic': [
         { number: 1234, title: 'Douglas Engelbart (1925-2013)',
           link: 'https://xkcd.com/1234/',
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' }
     ]},
     []],
 
-    [`now => @xkcd.get_comic(), number >= 1234 => { notify; @twitter.sink(status=title); };`,
+    [`now => @com.xkcd.get_comic(), number >= 1234 => { notify; @com.twitter.post(status=title); };`,
     null,
-    { 'xkcd:get_comic': [
+    { 'com.xkcd:get_comic': [
         { number: 1234, title: 'Douglas Engelbart (1925-2013)',
           link: 'https://xkcd.com/1234/',
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' }
     ]},
     [
     { type: 'output',
-      outputType: 'xkcd:get_comic',
+      outputType: 'com.xkcd:get_comic',
       value: { number: 1234, title: 'Douglas Engelbart (1925-2013)',
         link: 'https://xkcd.com/1234/',
         picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' }
     },
     {
      type: 'action',
-     fn: 'twitter:sink',
+     fn: 'com.twitter:post',
      params: { status: 'Douglas Engelbart (1925-2013)' }
     }
     ]],
 
-    /*[`now => @xkcd.get_comic() => @twitter.sink(status=$event);`,
+    [`now => @com.xkcd.get_comic() => @com.twitter.post(status=$event);`,
     null,
-    { 'xkcd:get_comic': [
+    { 'com.xkcd:get_comic': [
         { number: 1234, title: 'Douglas Engelbart (1925-2013)',
           link: 'https://xkcd.com/1234/',
-          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' }
+          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png',
+          alt_text: 'some alt text' }
     ]},
     [
     {
      type: 'action',
-     fn: 'twitter:sink',
-     params: { status: 'Douglas Engelbart (1925-2013)' }
+     fn: 'com.twitter:post',
+     params: { status:
+`Link: Douglas Engelbart (1925-2013) <https://xkcd.com/1234/>
+Picture: https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png
+some alt text` }
     }
-    ]],*/
+    ]],
+
+    [`now => @com.xkcd.get_comic() => @com.twitter.post(status=$event.program_id);`,
+    null,
+    { 'com.xkcd:get_comic': [
+        { number: 1234, title: 'Douglas Engelbart (1925-2013)',
+          link: 'https://xkcd.com/1234/',
+          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png',
+          alt_text: 'some alt text' }
+    ]},
+    [
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: `uuid-XXXXXXXXXXXX` }
+    }
+    ]],
+
+    [`now => @com.xkcd.get_comic() => @com.twitter.post(status=$event.type);`,
+    null,
+    { 'com.xkcd:get_comic': [
+        { number: 1234, title: 'Douglas Engelbart (1925-2013)',
+          link: 'https://xkcd.com/1234/',
+          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png',
+          alt_text: 'some alt text' }
+    ]},
+    [
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: `com.xkcd:get_comic` }
+    }
+    ]],
+
+    [`now => @com.twitter.post(status=$event.program_id);`,
+    null,
+    {},
+    [
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: `uuid-XXXXXXXXXXXX` }
+    }
+    ]],
 ];
 
 function test(i) {
