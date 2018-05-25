@@ -9,8 +9,6 @@
 // See COPYING for details
 "use strict";
 
-require('./polyfill');
-
 const Q = require('q');
 Q.longStackSupport = true;
 const Generate = require('../lib/generate');
@@ -46,9 +44,7 @@ function test(i) {
         let tt = Ast.prettyprint(program, true);
 
         if (expected !== tt) {
-            console.error('Test Case #' + (i+1) + ': does not match what expected');
-            console.error('Expected: ' + expected);
-            console.error('Generated: ' + tt);
+
             if (process.env.TEST_MODE)
                 throw new Error(`testDeclarationProgram ${i+1} FAILED`);
         }
