@@ -19,8 +19,8 @@ const SchemaRetriever = require('../lib/schema');
 const ExecEnvironment = require('../lib/exec_environment');
 const builtin = require('../lib/builtin_values');
 
-const ThingpediaClientHttp = require('./http_client');
-var schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(), null, true);
+const _mockSchemaDelegate = require('./mock_schema_delegate');
+const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 class MockExecEnvironment extends ExecEnvironment {
     constructor(compiledrule, triggerdata, querydata, outputdata) {

@@ -10,9 +10,8 @@ const Compiler = require('../lib/compiler');
 const SchemaRetriever = require('../lib/schema');
 const PermissionChecker = require('../lib/permission_checker');
 
-const ThingpediaClientHttp = require('./http_client');
-
-var schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(), null, true);
+const _mockSchemaDelegate = require('./mock_schema_delegate');
+const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 const TEST_CASES = [
     [`now => @com.facebook.post(status="this is really funny lol");`,

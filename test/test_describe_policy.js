@@ -18,7 +18,8 @@ const Grammar = require('../lib/grammar_api');
 const SchemaRetriever = require('../lib/schema');
 const { typeCheckPermissionRule } = require('../lib/typecheck');
 
-const ThingpediaClientHttp = require('./http_client');
+const _mockSchemaDelegate = require('./mock_schema_delegate');
+const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 var TEST_CASES = [
     ['true : * => *',
@@ -53,10 +54,10 @@ var TEST_CASES = [
      'anyone is allowed to read your Bing and then use it to tweet any status'],
 
     ['true : @com.bing.web_search => *',
-     'anyone is allowed to read search for any query on Bing and then perform any action with it'],
+     'anyone is allowed to read websites matching any query on Bing and then perform any action with it'],
 
     ['true : @com.bing.web_search => @com.twitter.*',
-     'anyone is allowed to read search for any query on Bing and then use it to perform any action on your Twitter'],
+     'anyone is allowed to read websites matching any query on Bing and then use it to perform any action on your Twitter'],
 
     ['source == "mom"^^tt:username : now => @com.twitter.post',
      '@mom is allowed to tweet any status'],
@@ -161,31 +162,31 @@ var TEST_CASES = [
      'anyone is allowed to read the current event detected on your security camera if the my location is not equal to at home and the my location is not equal to at work'],
 
     ['true : @security-camera.current_event, @org.thingpedia.weather.current(location=$context.location.current_location) { temperature >= 21C } => notify',
-     'anyone is allowed to read the current event detected on your security camera if the the temperature of show the current weather for here is greater than or equal to 21 C'],
+     'anyone is allowed to read the current event detected on your security camera if the the temperature of the current weather for here is greater than or equal to 21 C'],
     ['true : @security-camera.current_event, @org.thingpedia.weather.current(location=$context.location.current_location) { temperature == 21C } => notify',
-     'anyone is allowed to read the current event detected on your security camera if the the temperature of show the current weather for here is equal to 21 C'],
+     'anyone is allowed to read the current event detected on your security camera if the the temperature of the current weather for here is equal to 21 C'],
     ['true : @security-camera.current_event, @org.thingpedia.weather.current(location=$context.location.current_location) { !(temperature == 21C) } => notify',
-     'anyone is allowed to read the current event detected on your security camera if the the temperature of show the current weather for here is not equal to 21 C'],
+     'anyone is allowed to read the current event detected on your security camera if the the temperature of the current weather for here is not equal to 21 C'],
     ['true : @security-camera.current_event, @org.thingpedia.weather.current(location=$context.location.current_location) { temperature <= 21C && temperature >= 19C } => notify',
-     'anyone is allowed to read the current event detected on your security camera if for show the current weather for here, the temperature is less than or equal to 21 C and the temperature is greater than or equal to 19 C'],
+     'anyone is allowed to read the current event detected on your security camera if for the current weather for here, the temperature is less than or equal to 21 C and the temperature is greater than or equal to 19 C'],
     ['true : @security-camera.current_event, @org.thingpedia.weather.current(location=$context.location.current_location) { temperature >= 21C || temperature <= 19C } => notify',
-     'anyone is allowed to read the current event detected on your security camera if for show the current weather for here, the temperature is greater than or equal to 21 C or the temperature is less than or equal to 19 C'],
+     'anyone is allowed to read the current event detected on your security camera if for the current weather for here, the temperature is greater than or equal to 21 C or the temperature is less than or equal to 19 C'],
 
 
     ['true : @com.bing.web_search, query == "foo" => notify',
-     'anyone is allowed to read search for "foo" on Bing'],
+     'anyone is allowed to read websites matching "foo" on Bing'],
 
     ['true : @com.bing.web_search, query == "foo" || query == "bar" => notify',
-     'anyone is allowed to read search for any query on Bing if the query is equal to "foo" or the query is equal to "bar"'],
+     'anyone is allowed to read websites matching any query on Bing if the query is equal to "foo" or the query is equal to "bar"'],
 
     ['true : @com.bing.web_search, query == "foo" && description =~ "lol" => notify',
-     'anyone is allowed to read search for "foo" on Bing if the description contains "lol"'],
+     'anyone is allowed to read websites matching "foo" on Bing if the description contains "lol"'],
 
     ['true : @com.bing.web_search, !(query == "foo" && description =~ "lol") => notify',
-     'anyone is allowed to read search for any query on Bing if not the query is equal to "foo" and the description contains "lol"'],
+     'anyone is allowed to read websites matching any query on Bing if not the query is equal to "foo" and the description contains "lol"'],
 
     ['true : @com.bing.web_search, (query == "foo" || query == "bar") && description =~ "lol" => notify',
-     'anyone is allowed to read search for any query on Bing if the query is equal to "foo" or the query is equal to "bar" and the description contains "lol"'],
+     'anyone is allowed to read websites matching any query on Bing if the query is equal to "foo" or the query is equal to "bar" and the description contains "lol"'],
 
     ['true : @com.washingtonpost.get_article => notify',
     'anyone is allowed to read the latest articles in the any section section of the Washington Post'],
@@ -197,57 +198,56 @@ var TEST_CASES = [
     'anyone is allowed to read the latest articles in the any section section of the Washington Post if the section is equal to world or the section is equal to opinions'],
 
     ['true : @com.wsj.get, section == enum(world) && updated >= makeDate() => notify',
-    'anyone is allowed to read articles published in the world section if the updated is after now'],
+    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is after now'],
     ['true : @com.wsj.get, section == enum(world) && updated <= makeDate() => notify',
-    'anyone is allowed to read articles published in the world section if the updated is before now'],
+    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is before now'],
 
     ['true : @com.wsj.get, section == enum(world) && updated >= makeDate(2018, 5, 4) => notify',
-    'anyone is allowed to read articles published in the world section if the updated is after 5/4/2018'],
+    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is after 5/4/2018'],
     ['true : @com.wsj.get, section == enum(world) && updated <= makeDate(2018, 5, 4) => notify',
-    'anyone is allowed to read articles published in the world section if the updated is before 5/4/2018'],
+    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is before 5/4/2018'],
     ['true : @com.wsj.get, section == enum(world) && !(updated <= makeDate(2018, 5, 4)) => notify',
-    'anyone is allowed to read articles published in the world section if the updated is after 5/4/2018'],
+    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is after 5/4/2018'],
     ['true : @com.wsj.get, section == enum(world) && !(updated >= makeDate(2018, 5, 4)) => notify',
-    'anyone is allowed to read articles published in the world section if the updated is before 5/4/2018'],
+    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is before 5/4/2018'],
 
     /*['true : @com.wsj.get, section == enum(world) && updated >= makeDate(2018, 5, 4, 17, 30, 0) => notify',
     'anyone is allowed to read articles published in the world section if the updated is after 5/4/2018, 5:30:00 PM'],*/
 
     ['true : @com.wsj.get, section == enum(world) && updated >= start_of(day) => notify',
-    'anyone is allowed to read articles published in the world section if the updated is after the start of today'],
+    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is after the start of today'],
 
     ['true : @com.wsj.get, section == enum(world) && updated >= start_of(week) => notify',
-    'anyone is allowed to read articles published in the world section if the updated is after the start of this week'],
+    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is after the start of this week'],
 
     ['true : @com.wsj.get, section == enum(world) && updated >= start_of(mon) => notify',
-    'anyone is allowed to read articles published in the world section if the updated is after the start of this month'],
+    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is after the start of this month'],
 
     ['true : @com.wsj.get, section == enum(world) && updated >= start_of(year) => notify',
-    'anyone is allowed to read articles published in the world section if the updated is after the start of this year'],
+    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is after the start of this year'],
 
     ['true : @com.wsj.get, section == enum(world) && updated >= end_of(day) => notify',
-    'anyone is allowed to read articles published in the world section if the updated is after the end of today'],
+    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is after the end of today'],
 
     ['true : @com.wsj.get, section == enum(world) && updated >= end_of(week) => notify',
-    'anyone is allowed to read articles published in the world section if the updated is after the end of this week'],
+    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is after the end of this week'],
 
     ['true : @com.wsj.get, section == enum(world) && updated >= end_of(mon) => notify',
-    'anyone is allowed to read articles published in the world section if the updated is after the end of this month'],
+    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is after the end of this month'],
 
     ['true : @com.wsj.get, section == enum(world) && updated >= end_of(year) => notify',
-    'anyone is allowed to read articles published in the world section if the updated is after the end of this year'],
+    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is after the end of this year'],
 
     ['true : @com.wsj.get, section == enum(world) && updated >= makeDate() + 1h => notify',
-    'anyone is allowed to read articles published in the world section if the updated is after 1 h past now'],
+    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is after 1 h past now'],
 
     ['true : @com.wsj.get, section == enum(world) && updated >= makeDate() + 30min => notify',
-    'anyone is allowed to read articles published in the world section if the updated is after 30 min past now'],
+    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is after 30 min past now'],
 
     ['true : @com.wsj.get, section == enum(world) && updated >= makeDate() - 30min => notify',
-    'anyone is allowed to read articles published in the world section if the updated is after 30 min before now'],
+    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is after 30 min before now'],
 ];
 
-const schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(), true);
 const gettext = {
     dgettext: (domain, msgid) => msgid
 };

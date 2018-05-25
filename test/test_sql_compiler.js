@@ -4,18 +4,13 @@ const Q = require('q');
 Q.longStackSupport = true;
 const deq = require('deep-equal');
 
-const Ast = require('../lib/ast');
 const AppGrammar = require('../lib/grammar_api');
-const Compiler = require('../lib/compiler');
 const SqlCompiler = require('../lib/sql_compiler');
 const SchemaRetriever = require('../lib/schema');
-const PermissionChecker = require('../lib/permission_checker');
-const { optimizeProgram } = require('../lib/optimize');
 
-const _mockSchemaDelegate = require('./mock_schema_delegate');
-const ThingpediaClientHttp = require('./http_client');
 const _mockMemoryClient = require('./mock_memory_client');
-var schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, _mockMemoryClient, true);
+const _mockSchemaDelegate = require('./mock_schema_delegate');
+const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, _mockMemoryClient, true);
 
 const TEST_CASES = [
     // selection

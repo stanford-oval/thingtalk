@@ -17,7 +17,8 @@ const Describe = require('../lib/describe');
 const Grammar = require('../lib/grammar_api');
 const SchemaRetriever = require('../lib/schema');
 
-const ThingpediaClientHttp = require('./http_client');
+const _mockSchemaDelegate = require('./mock_schema_delegate');
+const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 var TEST_CASES = [
     // manually written test cases
@@ -35,38 +36,38 @@ var TEST_CASES = [
     'Say'],
 
     [`now => @com.xkcd.get_comic() => notify;`,
-    'get get an Xkcd comic and then notify you',
+    'get an Xkcd comic and then notify you',
     'Xkcd ⇒ Notification'],
     [`now => @com.xkcd.get_comic(number=42) => notify;`,
-    'get get an Xkcd comic with number equal to 42 and then notify you',
+    'get an Xkcd comic with number equal to 42 and then notify you',
     'Xkcd ⇒ Notification',],
     [`now => @com.xkcd.get_comic(number=$undefined) => notify;`,
-    'get get an Xkcd comic with number equal to ____ and then notify you',
+    'get an Xkcd comic with number equal to ____ and then notify you',
     'Xkcd ⇒ Notification'],
     [`now => @com.xkcd.get_comic() => return;`,
-    'get get an Xkcd comic and then send it to me',
+    'get an Xkcd comic and then send it to me',
     'Xkcd ⇒ Notification'],
     [`monitor @com.xkcd.get_comic() => notify;`,
-    'notify you when get an Xkcd comic changes',
+    'notify you when an Xkcd comic changes',
     'Xkcd ⇒ Notification'],
     [`monitor @com.xkcd.get_comic() => return;`,
-    'send it to me when get an Xkcd comic changes',
+    'send it to me when an Xkcd comic changes',
     'Xkcd ⇒ Notification'],
 
     [`now => @org.thingpedia.weather.current(location=$context.location.current_location) => notify;`,
-    `get show the current weather for here and then notify you`,
+    `get the current weather for here and then notify you`,
     'Weather ⇒ Notification'],
     [`now => @org.thingpedia.weather.current(location=$context.location.home) => notify;`,
-    `get show the current weather for at home and then notify you`,
+    `get the current weather for at home and then notify you`,
     'Weather ⇒ Notification'],
     [`now => @org.thingpedia.weather.current(location=$context.location.work) => notify;`,
-    `get show the current weather for at work and then notify you`,
+    `get the current weather for at work and then notify you`,
     'Weather ⇒ Notification'],
     [`now => @org.thingpedia.weather.current(location=makeLocation(37,-137)) => notify;`,
-    `get show the current weather for [Latitude: 37.000 deg, Longitude: -137.000 deg] and then notify you`,
+    `get the current weather for [Latitude: 37.000 deg, Longitude: -137.000 deg] and then notify you`,
     'Weather ⇒ Notification'],
     [`now => @org.thingpedia.weather.current(location=makeLocation(37,-137, "Somewhere")) => notify;`,
-    `get show the current weather for Somewhere and then notify you`,
+    `get the current weather for Somewhere and then notify you`,
     'Weather ⇒ Notification'],
 
     /*[`now => @org.thingpedia.weather.sunrise(date=makeDate(2018,4,24)) => notify;`,
@@ -80,10 +81,10 @@ var TEST_CASES = [
     'Weather ⇒ Notification'],*/
 
     [`now => @com.instagram.get_pictures(), in_array(caption,["foo","bar"]) => notify;`,
-    `get retrieve your recent Instagram pictures if "foo", "bar" contains the caption and then notify you`,
+    `get your recent Instagram pictures if "foo", "bar" contains the caption and then notify you`,
     'Instagram ⇒ Notification'],
     [`now => @com.instagram.get_pictures(), contains(hashtags, "foo"^^tt:hashtag) => notify;`,
-    `get retrieve your recent Instagram pictures if the hashtags contain #foo and then notify you`,
+    `get your recent Instagram pictures if the hashtags contain #foo and then notify you`,
     'Instagram ⇒ Notification'],
 
     [`now => @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code, text="hello") => @com.facebook.post(status=$event);`,
@@ -100,28 +101,28 @@ var TEST_CASES = [
     'Yandex Translate ⇒ Facebook'],
 
     [`monitor (@com.xkcd.get_comic()) join @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code("Chinese")) on (text=title) => @com.facebook.post(status=$event);`,
-    `post the result on Facebook when get an Xkcd comic changes and then get the translation of the title to Chinese`,
+    `post the result on Facebook when an Xkcd comic changes and then get the translation of the title to Chinese`,
     'Xkcd ⇒ Yandex Translate ⇒ Facebook'],
     [`monitor (@com.xkcd.get_comic()) join @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code("Chinese")) on (text=title) => notify;`,
-    `notify you when get an Xkcd comic changes and then get the translation of the title to Chinese`,
+    `notify you when an Xkcd comic changes and then get the translation of the title to Chinese`,
     'Xkcd ⇒ Yandex Translate ⇒ Notification'],
     [`monitor (@com.xkcd.get_comic(), title =~ "lol") join @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code("Chinese")) on (text=title) => notify;`,
-    'notify you when get an Xkcd comic changes if the title contains "lol" and then get the translation of the title to Chinese',
+    'notify you when an Xkcd comic changes if the title contains "lol" and then get the translation of the title to Chinese',
     'Xkcd ⇒ Yandex Translate ⇒ Notification'],
     [`monitor (@com.xkcd.get_comic(), title =~ "lol") => notify;`,
-    'notify you when get an Xkcd comic changes if the title contains "lol"',
+    'notify you when an Xkcd comic changes if the title contains "lol"',
     'Xkcd ⇒ Notification'],
     [`monitor (@com.xkcd.get_comic(), title =~ "lol") => @com.facebook.post(status=link);`,
-    `post the link on Facebook when get an Xkcd comic changes if the title contains "lol"`,
+    `post the link on Facebook when an Xkcd comic changes if the title contains "lol"`,
     'Xkcd ⇒ Facebook'],
     [`monitor (@com.gmail.inbox(), contains(labels, "work")) => @com.facebook.post(status=snippet);`,
-    `post the snippet on Facebook when list the emails in your GMail inbox change if the labels contain "work"`,
+    `post the snippet on Facebook when the emails in your GMail inbox change if the labels contain "work"`,
     'Gmail ⇒ Facebook'],
     [`monitor (@com.gmail.inbox(), contains(labels, "work")) => @com.facebook.post(status=snippet);`,
-    `post the snippet on Facebook when list the emails in your GMail inbox change if the labels contain "work"`,
+    `post the snippet on Facebook when the emails in your GMail inbox change if the labels contain "work"`,
     'Gmail ⇒ Facebook'],
     [`monitor (@com.gmail.inbox(), !contains(labels, "work")) => @com.facebook.post(status=snippet);`,
-    `post the snippet on Facebook when list the emails in your GMail inbox change if the labels do not contain "work"`,
+    `post the snippet on Facebook when the emails in your GMail inbox change if the labels do not contain "work"`,
     'Gmail ⇒ Facebook'],
 
     ['monitor @com.twitter.home_timeline(), contains(hashtags, "funny") => @com.twitter.post(status=text);',
@@ -138,12 +139,11 @@ var TEST_CASES = [
     'get get dog pictures and then notify you', 'Thedogapi ⇒ Notification'],
 
     ['now => @org.thingpedia.builtin.thingengine.phone.sms() => notify;',
-    'get you receive an SMS and then notify you', 'Phone ⇒ Notification'],
+    'get your SMS and then notify you', 'Phone ⇒ Notification'],
     ['now => @org.thingpedia.builtin.thingengine.phone.set_ringer(mode=enum(vibrate));',
     'set your phone to vibrate', 'Phone']
 ];
 
-const schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(), true);
 const gettext = {
     dgettext: (domain, msgid) => msgid
 };

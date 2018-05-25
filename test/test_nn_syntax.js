@@ -17,9 +17,8 @@ const Ast = require('../lib/ast');
 const { typeCheckProgram, typeCheckPermissionRule } = require('../lib/typecheck');
 const SchemaRetriever = require('../lib/schema');
 
-const ThingpediaClientHttp = require('./http_client');
-
-var schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(), false);
+const _mockSchemaDelegate = require('./mock_schema_delegate');
+const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 /*class SimpleSequenceLexer {
     constructor(sequence) {

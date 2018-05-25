@@ -16,8 +16,9 @@ const SchemaRetriever = require('../lib/schema');
 const { prettyprint } = require('../lib/prettyprint');
 const Generate = require('../lib/generate');
 
-const ThingpediaClientHttp = require('./http_client');
+const _mockSchemaDelegate = require('./mock_schema_delegate');
 const _mockMemoryClient = require('./mock_memory_client');
+const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, _mockMemoryClient, true);
 
 const TEST_CASES = [
     ['now => @security-camera.current_event() => return;',
@@ -67,8 +68,6 @@ const TEST_CASES = [
 
 ];
 
-//var schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, _mockMemoryClient, true);
-var schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(), _mockMemoryClient, true);
 var _mockMessaging = {
     type: 'mock',
     account: '12345678'

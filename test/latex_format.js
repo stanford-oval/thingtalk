@@ -1,17 +1,6 @@
-const Q = require('q');
-const fs = require('fs');
-const deq = require('deep-equal');
+"use strict";
 
-const AppCompiler = require('../lib/compiler');
 const AppGrammar = require('../lib/grammar_api');
-const SchemaRetriever = require('../lib/schema');
-const prettyprint = require('../lib/prettyprint');
-const Ast = require('../lib/ast');
-const SEMPRESyntax = require('../lib/sempre_syntax');
-
-const _mockSchemaDelegate = require('./mock_schema_delegate');
-const ThingpediaClientHttp = require('./http_client');
-const db = require('./db');
 
 function latexprintLocation(l) {
     if (l.isAbsolute)
@@ -106,7 +95,7 @@ function latexprintFilter(expr, renames) {
             return `\\texttt{!}(` + recursiveHelper(expr.expr) + `)`;
         if (expr.isExternal) {
             `@\\text{${cleanIdent(expr.selector.kind)}.${cleanIdent(expr.channel)}}(`
-            + invocation.in_params.map((ip) => `\\textit{${cleanIdent(ip.name)}} = ${latexprintValue(ip.value, renames)}`).join(', ')
+            + expr.in_params.map((ip) => `\\textit{${cleanIdent(ip.name)}} = ${latexprintValue(ip.value, renames)}`).join(', ')
             + `) \\{ ${latexprintFilter(expr.filter, renames)} \\}`;
         }
 

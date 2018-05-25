@@ -17,7 +17,8 @@ const Generate = require('../lib/generate');
 const Grammar = require('../lib/grammar_api');
 const SchemaRetriever = require('../lib/schema');
 
-const ThingpediaClientHttp = require('./http_client');
+const _mockSchemaDelegate = require('./mock_schema_delegate');
+const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 function assertArrayEquals(testCase, array, expected) {
     assert.strictEqual(array.length, expected.length);
@@ -177,8 +178,6 @@ var TEST_CASES = [
      'Atom(title, =~, String(bar)) com.washingtonpost:get_article',
      'Builtin undefined:notify']],
 ];
-
-const schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(), true);
 
 function test(i) {
     console.log('Test Case #' + (i+1));

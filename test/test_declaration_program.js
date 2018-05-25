@@ -16,7 +16,8 @@ const Grammar = require('../lib/grammar_api');
 const Ast = require('../lib/ast');
 const SchemaRetriever = require('../lib/schema');
 
-const ThingpediaClientHttp = require('./http_client');
+const _mockSchemaDelegate = require('./mock_schema_delegate');
+const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 var TEST_CASES = [
     // manually written test cases
@@ -32,8 +33,6 @@ var TEST_CASES = [
     [`let table x := \\(p_query : String, p_width : Number) -> @com.bing.image_search(query=p_query), width >= p_width;`,
     'now => (@com.bing.image_search(query=__const_SLOT_0)), width >= __const_SLOT_1 => notify;'],
 ];
-
-const schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(), true);
 
 function test(i) {
     console.log('Test Case #' + (i+1));

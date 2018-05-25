@@ -18,7 +18,8 @@ const Grammar = require('../lib/grammar_api');
 const Ast = require('../lib/ast');
 const SchemaRetriever = require('../lib/schema');
 
-const ThingpediaClientHttp = require('./http_client');
+const _mockSchemaDelegate = require('./mock_schema_delegate');
+const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 var TEST_CASES = [
     // manually written test cases
@@ -53,8 +54,6 @@ var TEST_CASES = [
     [`monitor (@com.bing.web_search(query="lol"), description =~ "bar") => notify;`,
      'source == "test-account:foobar"^^tt:contact("Bob") : @com.bing.web_search, (query == "lol" && description =~ "bar") => notify;'],
 ];
-
-const schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(), true);
 
 function test(i) {
     console.log('Test Case #' + (i+1));

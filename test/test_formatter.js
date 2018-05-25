@@ -20,8 +20,8 @@ const assert = require('assert');
 const Formatter = require('../lib/formatter');
 const builtin = require('../lib/builtin_values');
 
-const ThingpediaClientHttp = require('./http_client');
-var schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(), null, true);
+const _mockSchemaDelegate = require('./mock_schema_delegate');
+const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 
 const TEST_CASES = [

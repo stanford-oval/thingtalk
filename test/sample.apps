@@ -1,14 +1,14 @@
 // -* mode: js -*-
 
 // Array
-monitor @twitter.source(), in_array(from, ["alice"^^tt:hashtag, "bob"^^tt:hashtag])  => notify;
+monitor @com.twitter.home_timeline(), in_array(author, ["alice"^^tt:username, "bob"^^tt:username])  => notify;
 
 ====
 
 // TestExternalPredicate
 {
-monitor @twitter.source(), @builtin.get_time() { time >= makeTime(9,0) && time <= makeTime(10, 0) } => notify;
-monitor @twitter.source(), text =~ "lol" && @builtin.get_time() { time >= makeTime(9,0) && time <= makeTime(10, 0) } => notify;
+monitor @com.twitter.home_timeline(), @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= makeTime(9,0) && time <= makeTime(10, 0) } => notify;
+monitor @com.twitter.home_timeline(), text =~ "lol" && @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= makeTime(9,0) && time <= makeTime(10, 0) } => notify;
 }
 
 ====
@@ -16,86 +16,86 @@ monitor @twitter.source(), text =~ "lol" && @builtin.get_time() { time >= makeTi
 // ** typecheck: expect TypeError **
 // these should not typecheck
 // TestInvalidExternalPredicate1
-monitor @twitter.source(), @builtin.get_time() { time =~ "lol" } => notify;
+monitor @com.twitter.home_timeline(), @org.thingpedia.builtin.thingengine.builtin.get_time() { time =~ "lol" } => notify;
 
 ====
 
 // ** typecheck: expect TypeError **
 // TestInvalidExternalPredicate2
-monitor @twitter.source(), @builtin.get_time() { lol =~ "lol" } => notify;
+monitor @com.twitter.home_timeline(), @org.thingpedia.builtin.thingengine.builtin.get_time() { lol =~ "lol" } => notify;
 
 ====
 
 // ** typecheck: expect Error **
 // TestInvalidExternalPredicate3
-monitor @twitter.source(), @twitter.sink() { text =~ "lol" } => notify;
+monitor @com.twitter.home_timeline(), @com.twitter.post() { text =~ "lol" } => notify;
 
 ====
 
 executor = "bob"^^tt:username : { // TestReturn
-    monitor @twitter.source() => return;
+    monitor @com.twitter.home_timeline() => return;
 }
 
 ====
 
 executor = self : { // ExplicitSelf
-    now => @builtin.say(message="lol");
+    now => @org.thingpedia.builtin.thingengine.builtin.say(message="lol");
 }
 
 ====
 
 executor = "matrix-account:@gcampax:matrix.org"^^tt:contact : { // WithPrincipals
-    now => @builtin.say(message="lol");
+    now => @org.thingpedia.builtin.thingengine.builtin.say(message="lol");
 }
 
 ====
 
 // CompareDate
 {
-    now => @builtin.get_time(), time >= makeTime(10,0) => notify;
+    now => @org.thingpedia.builtin.thingengine.builtin.get_time(), time >= makeTime(10,0) => notify;
 }
 
 ====
 
 // StartsWith
 {
-    monitor @twitter.source(), starts_with(text, "foo") => notify;
+    monitor @com.twitter.home_timeline(), starts_with(text, "foo") => notify;
 }
 
 ====
 
 // EntityNames
 {
-    now => @twitter.post_picture(caption="lol", picture_url="http://foo.com/bar.jpg"^^tt:picture("A funny picture"));
+    now => @com.twitter.post_picture(caption="lol", picture_url="http://foo.com/bar.jpg"^^tt:picture("A funny picture"));
 }
 
 ====
 
 // DownCast
 {
-    monitor @xkcd(id="com.xkcd-6").get_comic()
-    => @twitter.sink(status=picture_url);
+    monitor @com.xkcd(id="com.xkcd-6").get_comic()
+    => @com.twitter.post(status=picture_url);
 }
 
 ====
 
 // EventType
 {
-    monitor @twitter.source() => @builtin.say(message=$event.type);
+    monitor @com.twitter.home_timeline() => @org.thingpedia.builtin.thingengine.builtin.say(message=$event.type);
 }
 
 ====
 
 // FormatEvent
 {
-    monitor @twitter.source() => @builtin.say(message=$event);
+    monitor @com.twitter.home_timeline() => @org.thingpedia.builtin.thingengine.builtin.say(message=$event);
 }
 
 ====
 
 // ComplexFilter
 {
-    monitor @twitter.source(), text =~ "foo" || (text =~"bar" && !(text =~ "lol")) => notify;
+    monitor @com.twitter.home_timeline(), text =~ "foo" || (text =~"bar" && !(text =~ "lol")) => notify;
 }
 
 ====
@@ -123,42 +123,42 @@ executor = "matrix-account:@gcampax:matrix.org"^^tt:contact : { // WithPrincipal
 
 // without wrapping it should still work
 
-monitor @twitter.source() => notify;
+monitor @com.twitter.home_timeline() => notify;
 
 ====
 
 // same for immediates
-now => @security-camera.get_snapshot() => notify;
+now => @security-camera.current_event() => notify;
 
 ====
 
 // PrimaryKind
-monitor @twitter.source() => notify;
+monitor @com.twitter.home_timeline() => notify;
 
 ====
 
 // Contains
 {
-    monitor @twitter.source(), contains(hashtags, "lol") => notify;
+    monitor @com.twitter.home_timeline(), contains(hashtags, "lol") => notify;
 }
 
 ====
 
 // ParameterPassing
 {
-    monitor @xkcd(id="com.xkcd-6").get_comic()
-    => @twitter(id="twitter-foo").post_picture(caption=title, picture_url=picture_url);
+    monitor @com.xkcd(id="com.xkcd-6").get_comic()
+    => @com.twitter(id="com.twitter-foo").post_picture(caption=title, picture_url=picture_url);
 }
 
 ====
 
 // SecurityCamera
-    now => @security-camera.get_snapshot() => notify;
+    now => @security-camera.current_event() => notify;
 
 ====
 
 // SearchYoutube
-    now => @youtube.search_videos(query="lol"), video_url == "http://www.youtube.com"^^tt:url =>  notify;
+    now => @com.youtube.search_videos(query="lol"), video_url == "http://www.youtube.com"^^tt:url =>  notify;
 
 ====
 
@@ -171,43 +171,43 @@ monitor @twitter.source() => notify;
 
 // PhoneNumberTest
 {
-    now => @phone.send_sms(to="+15555555555", body="");
-    now => @phone.send_sms(to="+15555555555"^^tt:phone_number, body="");
-    monitor @phone.receive_sms(), from=="+15555555555"^^tt:phone_number => notify;
+    now => @org.thingpedia.builtin.thingengine.phone.send_sms(to="+15555555555", message="");
+    now => @org.thingpedia.builtin.thingengine.phone.send_sms(to="+15555555555"^^tt:phone_number, message="");
+    monitor @org.thingpedia.builtin.thingengine.phone.sms(), sender=="+15555555555"^^tt:phone_number => notify;
 }
 
 ====
 
 // ** typecheck: expect TypeError **
 // InvalidPhoneNumberTest
-    now => @phone.send_sms(to="+15555555555"^^tt:email_address, body="");
+    now => @org.thingpedia.builtin.thingengine.phone.send_sms(to="+15555555555"^^tt:email_address, message="");
 
 ====
 
 // LocationAsTriggerParam
-    monitor @weatherapi.weather(location=makeLocation(1, 3)) => notify;
+    monitor @org.thingpedia.weather.current(location=makeLocation(1, 3)) => notify;
 
 ====
 
 // RelativeLocation
-    monitor @weatherapi.weather(location=$context.location.current_location) => notify;
+    monitor @org.thingpedia.weather.current(location=$context.location.current_location) => notify;
 
 ====
 
 // LocationWithDisplayAsTriggerParam
-    monitor @weatherapi.weather(location=makeLocation(1, 3, "Somewhere"))  => notify;
+    monitor @org.thingpedia.weather.current(location=makeLocation(1, 3, "Somewhere"))  => notify;
 
 ====
 
-// SabrinaGeneratedMonitorTwitter
+// SabrinaGeneratedMonitorcom.twitter
 {
-    monitor @twitter(id="twitter-foo").source(), from == "HillaryClinton"^^tt:username => notify;
+    monitor @com.twitter(id="com.twitter-foo").home_timeline(), author == "HillaryClinton"^^tt:username => notify;
 }
 
 ====
 
 // CommandTest
-  now => @builtin.say(message="test");
+  now => @org.thingpedia.builtin.thingengine.builtin.say(message="test");
 
 ====
 
@@ -268,13 +268,13 @@ now => aggregate count of Q1 => notify;
 ====
 
 // LogQueryCountParamPassingTest
-now => aggregate count str1 of Q1 join @xkcd.get_comic() on (number=count) => notify;
+now => aggregate count str1 of Q1 join @com.xkcd.get_comic() on (number=count) => notify;
 
 ====
 
 // ** typecheck: expect TypeError **
 // LogQueryCountInvalidParamPassingTest
-now => aggregate count str1 of Q1 => @twitter.sink(status=count);
+now => aggregate count str1 of Q1 => @com.twitter.post(status=count);
 
 ====
 
@@ -294,7 +294,7 @@ now => [field1, field2] of aggregate argmax 1,1 nonexisting_field of Q0 => notif
 
 // WithSave
 {
-let table steps    := @fitbit.get_steps();
+let table steps    := @edu.stanford.rakeshr1.fitbit.getsteps();
 let table my_table := aggregate max steps of Q1;
 now => my_table => notify;
 }
@@ -340,7 +340,7 @@ now => Q1, _timestamp >= start_of(mon) && _timestamp <= end_of(day) => notify;
 
 // Lambdas
 {
-let table macro := \(p_number : Number) -> @xkcd.get_comic(number=p_number) ;
+let table macro := \(p_number : Number) -> @com.xkcd.get_comic(number=p_number) ;
 now => macro(p_number=1234) => notify;
 }
 
@@ -350,7 +350,7 @@ now => macro(p_number=1234) => notify;
 {
 let stream once := \(x : Stream) -> edge x on (true) ;
 
-edge (monitor @thermostat.get_temperature()) on temperature >= 70F => notify;
+edge (monitor @thermostat.get_temperature()) on value >= 70F => notify;
 }
 
 ====
@@ -389,8 +389,8 @@ now => gold_medal(x=Q4) => notify;
 
 // Computation
 {
-let table x := compute distance(location, makeLocation(1,2)) of @phone.get_gps();
-let table y := compute distance(location, $context.location.home) of @phone.get_gps();
+let table x := compute distance(location, makeLocation(1,2)) of @org.thingpedia.builtin.thingengine.phone.get_gps();
+let table y := compute distance(location, $context.location.home) of @org.thingpedia.builtin.thingengine.phone.get_gps();
 let table z := compute (col1 + col2) of Q1;
 let table xx := compute (1 + sum) of aggregate sum col1 of Q1;
 let table xy := compute (1 + colsum) of aggregate sum col1 as colsum of Q1;
@@ -400,13 +400,13 @@ let table xxy := compute (1 + colsum) as colwhatever of aggregate sum col1 as co
 ====
 
 // Action Lambdas
-let action x := \(x : String) -> @twitter.sink(status=x);
+let action x := \(x : String) -> @com.twitter.post(status=x);
 
 ====
 
 // Partial Application
 {
-let table x := @twitter.search();
+let table x := @com.bing.web_search();
 now => x(query="foo") => notify;
 }
 
@@ -414,7 +414,7 @@ now => x(query="foo") => notify;
 
 // Lambdas Join
 {
-let table macro := \(number : Number) -> @xkcd.get_comic(number=number) ;
+let table macro := \(number : Number) -> @com.xkcd.get_comic(number=number) ;
 now => Q1 join macro() on (number=steps) => notify;
 }
 
@@ -423,7 +423,7 @@ now => Q1 join macro() on (number=steps) => notify;
 // Entities
 {
   // allow spaces in entity types
-  let table x1 := \(y : Entity(tt : hashtag)) -> @twitter.source(), contains(hashtags, y);
+  let table x1 := \(y : Entity(tt : hashtag)) -> @com.twitter.home_timeline(), contains(hashtags, y);
 
   // allow dots in entity types
   let table x2 := \(y : Entity(com.google.drive : file_id)) -> @com.google.drive.list_drive_files(), file_id == y;
@@ -435,33 +435,33 @@ now => Q1 join macro() on (number=steps) => notify;
 
 ====
 // ** typecheck: expect TypeError **
-// number is not a valid field in @xkcd.get_comic()
+// number is not a valid field in @com.xkcd.get_comic()
 // Monitor on param
 
 {
-monitor @xkcd.get_comic() => notify;
-monitor @xkcd.get_comic() on new [title] => notify;
-monitor @xkcd.get_comic() on new [title, number] => notify;
+monitor @com.xkcd.get_comic() => notify;
+monitor @com.xkcd.get_comic() on new [title] => notify;
+monitor @com.xkcd.get_comic() on new [title, number] => notify;
 }
 
 ====
 // ** typecheck: expect TypeError **
 // No $events
 {
-now => @twitter.sink(status=$event);
+now => @com.twitter.post(status=$event);
 }
 
 ====
 // Join with parameter passing
 {
-((monitor @wsj.get()) join @yandex.translate() on (text=$event)) => notify;
+((monitor @com.wsj.get()) join @com.yandex.translate.translate() on (text=$event)) => notify;
 }
 
 ====
 // Currencies
 {
-now => @uber.get_price_estimate(start=$context.location.home,end=$context.location.work) => notify;
-now => @uber.get_price_estimate(start=$context.location.home,end=$context.location.work), estimate >= makeCurrency(50,usd) => notify;
+now => @com.uber.price_estimate(start=$context.location.home,end=$context.location.work) => notify;
+now => @com.uber.price_estimate(start=$context.location.home,end=$context.location.work), low_estimate >= makeCurrency(50,usd) => notify;
 }
 
 ====
@@ -469,31 +469,32 @@ now => @uber.get_price_estimate(start=$context.location.home,end=$context.locati
 {
 now => (@com.live.onedrive.list_files() join @com.bing.web_search() on (query=description)) => notify;
 (monitor (@com.live.onedrive.list_files())) join @com.bing.web_search() on (query=description) => notify;
-now => (@com.live.onedrive.list_files() join @com.bing.web_search() on (query=description)) => @twitter.sink(status=title);
-(monitor (@com.live.onedrive.list_files())) join @com.bing.web_search() on (query=description) => @twitter.sink(status=title);
-now => (@com.live.onedrive.list_files() join @com.bing.web_search() on (query=description)) => @twitter.sink(status=description);
-(monitor (@com.live.onedrive.list_files())) join @com.bing.web_search() on (query=description) => @twitter.sink(status=description);
+now => (@com.live.onedrive.list_files() join @com.bing.web_search() on (query=description)) => @com.twitter.post(status=title);
+(monitor (@com.live.onedrive.list_files())) join @com.bing.web_search() on (query=description) => @com.twitter.post(status=title);
+now => (@com.live.onedrive.list_files() join @com.bing.web_search() on (query=description)) => @com.twitter.post(status=description);
+(monitor (@com.live.onedrive.list_files())) join @com.bing.web_search() on (query=description) => @com.twitter.post(status=description);
 }
 
 ====
 // Bug 1
 {
-   now => @yandex.translate(target_language="it"^^tt:iso_lang_code("Italian")) => notify;
+   now => @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code("Italian")) => notify;
 }
 
 ====
 // Bug 2
 {
-now => @twitter.my_tweets() join @com.bing.web_search() on (query=text) => notify ;
+now => @com.twitter.my_tweets() join @com.bing.web_search() on (query=text) => notify ;
 }
 
 ====
 // Bug 3
 {
-let action x := \(p_status :String) -> @twitter.sink(status=p_status);
+let action x := \(p_status :String) -> @com.twitter.post(status=p_status);
 }
 
 ====
 // Bug 4
 now => @security-camera.set_power(power=enum(on));
+
 

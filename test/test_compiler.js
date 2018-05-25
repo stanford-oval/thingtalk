@@ -11,45 +11,7 @@ const _mockMemoryClient = require('./mock_memory_client');
 var schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, _mockMemoryClient, true);
 
 const TEST_CASES = [
-    [`now => @xkcd.get_comic() => notify;`,
-    [`"use strict";
-  let _t_0;
-  let _t_1;
-  let _t_2;
-  let _t_3;
-  let _t_4;
-  let _t_5;
-  let _t_6;
-  let _t_7;
-  let _t_8;
-  let _t_9;
-  try {
-    _t_0 = {};
-    _t_1 = yield env.invokeQuery(0, _t_0);
-    _t_2 = _t_1[Symbol.iterator]();
-    {
-      let _iter_tmp = yield _t_2.next();
-      while (!_iter_tmp.done) {
-        _t_3 = _iter_tmp.value;
-        _t_4 = _t_3[0];
-        _t_5 = _t_3[1];
-        _t_6 = _t_5.number;
-        _t_7 = _t_5.title;
-        _t_8 = _t_5.link;
-        _t_9 = _t_5.picture_url;
-        try {
-          yield env.output(String(_t_4), _t_5);
-        } catch(_exc_) {
-          env.reportError("Failed to invoke action", _exc_);
-        }
-        _iter_tmp = yield _t_2.next();
-      }
-    }
-  } catch(_exc_) {
-    env.reportError("Failed to invoke query", _exc_);
-  }`]],
-
-    [`now => @xkcd.get_comic() => { notify; @twitter.sink(status=title); };`,
+    [`now => @com.xkcd.get_comic() => notify;`,
     [`"use strict";
   let _t_0;
   let _t_1;
@@ -74,17 +36,11 @@ const TEST_CASES = [
         _t_5 = _t_3[1];
         _t_6 = _t_5.number;
         _t_7 = _t_5.title;
-        _t_8 = _t_5.link;
-        _t_9 = _t_5.picture_url;
+        _t_8 = _t_5.picture_url;
+        _t_9 = _t_5.link;
+        _t_10 = _t_5.alt_text;
         try {
           yield env.output(String(_t_4), _t_5);
-        } catch(_exc_) {
-          env.reportError("Failed to invoke action", _exc_);
-        }
-        try {
-          _t_10 = {};
-          _t_10.status = _t_7;
-          yield env.invokeAction(1, _t_10);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
@@ -95,7 +51,55 @@ const TEST_CASES = [
     env.reportError("Failed to invoke query", _exc_);
   }`]],
 
-    [`now => @xkcd.get_comic(), number <= 1000 => { notify; @twitter.sink(status=title); };`,
+    [`now => @com.xkcd.get_comic() => { notify; @com.twitter.post(status=title); };`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  try {
+    _t_0 = {};
+    _t_1 = yield env.invokeQuery(0, _t_0);
+    _t_2 = _t_1[Symbol.iterator]();
+    {
+      let _iter_tmp = yield _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.number;
+        _t_7 = _t_5.title;
+        _t_8 = _t_5.picture_url;
+        _t_9 = _t_5.link;
+        _t_10 = _t_5.alt_text;
+        try {
+          yield env.output(String(_t_4), _t_5);
+        } catch(_exc_) {
+          env.reportError("Failed to invoke action", _exc_);
+        }
+        try {
+          _t_11 = {};
+          _t_11.status = _t_7;
+          yield env.invokeAction(1, _t_11);
+        } catch(_exc_) {
+          env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = yield _t_2.next();
+      }
+    }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke query", _exc_);
+  }`]],
+
+    [`now => @com.xkcd.get_comic(), number <= 1000 => { notify; @com.twitter.post(status=title); };`,
     [`"use strict";
   let _t_0;
   let _t_1;
@@ -110,6 +114,7 @@ const TEST_CASES = [
   let _t_10;
   let _t_11;
   let _t_12;
+  let _t_13;
   try {
     _t_0 = {};
     _t_1 = yield env.invokeQuery(0, _t_0);
@@ -122,20 +127,21 @@ const TEST_CASES = [
         _t_5 = _t_3[1];
         _t_6 = _t_5.number;
         _t_7 = _t_5.title;
-        _t_8 = _t_5.link;
-        _t_9 = _t_5.picture_url;
-        _t_11 = 1000;
-        _t_10 = _t_6 <= _t_11;
-        if (_t_10) {
+        _t_8 = _t_5.picture_url;
+        _t_9 = _t_5.link;
+        _t_10 = _t_5.alt_text;
+        _t_12 = 1000;
+        _t_11 = _t_6 <= _t_12;
+        if (_t_11) {
           try {
             yield env.output(String(_t_4), _t_5);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
           try {
-            _t_12 = {};
-            _t_12.status = _t_7;
-            yield env.invokeAction(1, _t_12);
+            _t_13 = {};
+            _t_13.status = _t_7;
+            yield env.invokeAction(1, _t_13);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
@@ -149,7 +155,64 @@ const TEST_CASES = [
     env.reportError("Failed to invoke query", _exc_);
   }`]],
 
-    [`monitor @test.source() => @builtin.debug_log(message="Test App received an event on Test Channel");`,
+    [`now => @com.xkcd.get_comic(number=999), number <= 1000 => { notify; @com.twitter.post(status=title); };`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  try {
+    _t_0 = {};
+    _t_1 = 999;
+    _t_0.number = _t_1;
+    _t_2 = yield env.invokeQuery(0, _t_0);
+    _t_3 = _t_2[Symbol.iterator]();
+    {
+      let _iter_tmp = yield _t_3.next();
+      while (!_iter_tmp.done) {
+        _t_4 = _iter_tmp.value;
+        _t_5 = _t_4[0];
+        _t_6 = _t_4[1];
+        _t_7 = _t_6.title;
+        _t_8 = _t_6.picture_url;
+        _t_9 = _t_6.link;
+        _t_10 = _t_6.alt_text;
+        _t_12 = 1000;
+        _t_11 = _t_1 <= _t_12;
+        if (_t_11) {
+          try {
+            yield env.output(String(_t_5), _t_6);
+          } catch(_exc_) {
+            env.reportError("Failed to invoke action", _exc_);
+          }
+          try {
+            _t_13 = {};
+            _t_13.status = _t_7;
+            yield env.invokeAction(1, _t_13);
+          } catch(_exc_) {
+            env.reportError("Failed to invoke action", _exc_);
+          }
+        } else {
+
+        }
+        _iter_tmp = yield _t_3.next();
+      }
+    }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke query", _exc_);
+  }`]],
+
+    [`monitor @thermostat.get_temperature(), value >= 21C => @org.thingpedia.builtin.thingengine.builtin.say(message="bla");`,
      [`"use strict";
   let _t_0;
   let _t_1;
@@ -162,6 +225,8 @@ const TEST_CASES = [
   let _t_8;
   let _t_9;
   let _t_10;
+  let _t_11;
+  let _t_12;
   _t_0 = yield env.readState(0);
   try {
     _t_1 = {};
@@ -178,65 +243,14 @@ const TEST_CASES = [
         yield env.writeState(0, _t_8);
         _t_0 = _t_8;
         if (_t_7) {
-          try {
-            _t_9 = {};
-            _t_10 = "Test App received an event on Test Channel";
-            _t_9.message = _t_10;
-            yield env.invokeAction(1, _t_9);
-          } catch(_exc_) {
-            env.reportError("Failed to invoke action", _exc_);
-          }
-        } else {
-
-        }
-        _iter_tmp = yield _t_2.next();
-      }
-    }
-  } catch(_exc_) {
-    env.reportError("Failed to invoke trigger", _exc_);
-  }`]],
-
-    [`monitor @thermostat.get_temperature(), temperature >= 21C => @builtin.say(message="bla");`,
-     [`"use strict";
-  let _t_0;
-  let _t_1;
-  let _t_2;
-  let _t_3;
-  let _t_4;
-  let _t_5;
-  let _t_6;
-  let _t_7;
-  let _t_8;
-  let _t_9;
-  let _t_10;
-  let _t_11;
-  let _t_12;
-  let _t_13;
-  _t_0 = yield env.readState(0);
-  try {
-    _t_1 = {};
-    _t_2 = yield env.invokeMonitor(0, _t_1, false);
-    {
-      let _iter_tmp = yield _t_2.next();
-      while (!_iter_tmp.done) {
-        _t_3 = _iter_tmp.value;
-        _t_4 = _t_3[0];
-        _t_5 = _t_3[1];
-        _t_6 = _t_5.time;
-        _t_7 = _t_5.temperature;
-        _t_8 = __builtin.isNewTuple(_t_0, _t_5, ["time", "temperature"]);
-        _t_9 = __builtin.addTuple(_t_0, _t_5);
-        yield env.writeState(0, _t_9);
-        _t_0 = _t_9;
-        if (_t_8) {
-          _t_11 = 21;
-          _t_10 = _t_7 >= _t_11;
-          if (_t_10) {
+          _t_10 = 21;
+          _t_9 = _t_6 >= _t_10;
+          if (_t_9) {
             try {
-              _t_12 = {};
-              _t_13 = "bla";
-              _t_12.message = _t_13;
-              yield env.invokeAction(1, _t_12);
+              _t_11 = {};
+              _t_12 = "bla";
+              _t_11.message = _t_12;
+              yield env.invokeAction(1, _t_11);
             } catch(_exc_) {
               env.reportError("Failed to invoke action", _exc_);
             }
@@ -253,7 +267,7 @@ const TEST_CASES = [
     env.reportError("Failed to invoke trigger", _exc_);
   }`]],
 
-    [`monitor (@thermostat.get_temperature(), temperature >= 21C) => @builtin.say(message="bla");`,
+    [`monitor (@thermostat.get_temperature(), value >= 21C) => @org.thingpedia.builtin.thingengine.builtin.say(message="bla");`,
      [`"use strict";
   let _t_0;
   let _t_1;
@@ -268,7 +282,6 @@ const TEST_CASES = [
   let _t_10;
   let _t_11;
   let _t_12;
-  let _t_13;
   _t_0 = yield env.readState(0);
   try {
     _t_1 = {};
@@ -279,21 +292,20 @@ const TEST_CASES = [
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
-        _t_6 = _t_5.time;
-        _t_7 = _t_5.temperature;
-        _t_8 = __builtin.isNewTuple(_t_0, _t_5, ["time", "temperature"]);
-        _t_9 = __builtin.addTuple(_t_0, _t_5);
-        yield env.writeState(0, _t_9);
-        _t_0 = _t_9;
-        if (_t_8) {
-          _t_11 = 21;
-          _t_10 = _t_7 >= _t_11;
-          if (_t_10) {
+        _t_6 = _t_5.value;
+        _t_7 = __builtin.isNewTuple(_t_0, _t_5, ["value"]);
+        _t_8 = __builtin.addTuple(_t_0, _t_5);
+        yield env.writeState(0, _t_8);
+        _t_0 = _t_8;
+        if (_t_7) {
+          _t_10 = 21;
+          _t_9 = _t_6 >= _t_10;
+          if (_t_9) {
             try {
-              _t_12 = {};
-              _t_13 = "bla";
-              _t_12.message = _t_13;
-              yield env.invokeAction(1, _t_12);
+              _t_11 = {};
+              _t_12 = "bla";
+              _t_11.message = _t_12;
+              yield env.invokeAction(1, _t_11);
             } catch(_exc_) {
               env.reportError("Failed to invoke action", _exc_);
             }
@@ -310,7 +322,7 @@ const TEST_CASES = [
     env.reportError("Failed to invoke trigger", _exc_);
   }`]],
 
-    [`now => @builtin.say(message="test");`, [`"use strict";
+    [`now => @org.thingpedia.builtin.thingengine.builtin.say(message="test");`, [`"use strict";
   let _t_0;
   let _t_1;
   try {
@@ -322,7 +334,7 @@ const TEST_CASES = [
     env.reportError("Failed to invoke action", _exc_);
   }`]],
 
-    [`monitor @twitter(id="twitter-foo").source(), from=="HillaryClinton"^^tt:username => notify;`,
+    [`monitor @com.twitter(id="twitter-foo").home_timeline(), author=="HillaryClinton"^^tt:username => notify;`,
      [`"use strict";
   let _t_0;
   let _t_1;
@@ -353,10 +365,10 @@ const TEST_CASES = [
         _t_6 = _t_5.text;
         _t_7 = _t_5.hashtags;
         _t_8 = _t_5.urls;
-        _t_9 = _t_5.from;
-        _t_10 = _t_5.inReplyTo;
-        _t_11 = _t_5.__reserved;
-        _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "from", "inReplyTo", "__reserved"]);
+        _t_9 = _t_5.author;
+        _t_10 = _t_5.in_reply_to;
+        _t_11 = _t_5.tweet_id;
+        _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
         _t_13 = __builtin.addTuple(_t_0, _t_5);
         yield env.writeState(0, _t_13);
         _t_0 = _t_13;
@@ -382,7 +394,7 @@ const TEST_CASES = [
     env.reportError("Failed to invoke trigger", _exc_);
   }`]],
 
-    [`monitor @weatherapi.weather(location=makeLocation(1, 3, "Somewhere")) => notify;`,
+    [`monitor @org.thingpedia.weather.current(location=makeLocation(1, 3, "Somewhere")) => notify;`,
      [`"use strict";
   let _t_0;
   let _t_1;
@@ -394,6 +406,12 @@ const TEST_CASES = [
   let _t_7;
   let _t_8;
   let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
   _t_0 = yield env.readState(0);
   try {
     _t_1 = {};
@@ -407,11 +425,17 @@ const TEST_CASES = [
         _t_5 = _t_4[0];
         _t_6 = _t_4[1];
         _t_7 = _t_6.temperature;
-        _t_8 = __builtin.isNewTuple(_t_0, _t_6, ["location", "temperature"]);
-        _t_9 = __builtin.addTuple(_t_0, _t_6);
-        yield env.writeState(0, _t_9);
-        _t_0 = _t_9;
-        if (_t_8) {
+        _t_8 = _t_6.wind_speed;
+        _t_9 = _t_6.humidity;
+        _t_10 = _t_6.cloudiness;
+        _t_11 = _t_6.fog;
+        _t_12 = _t_6.status;
+        _t_13 = _t_6.icon;
+        _t_14 = __builtin.isNewTuple(_t_0, _t_6, ["location", "temperature", "wind_speed", "humidity", "cloudiness", "fog", "status", "icon"]);
+        _t_15 = __builtin.addTuple(_t_0, _t_6);
+        yield env.writeState(0, _t_15);
+        _t_0 = _t_15;
+        if (_t_14) {
           try {
             yield env.output(String(_t_5), _t_6);
           } catch(_exc_) {
@@ -427,7 +451,7 @@ const TEST_CASES = [
     env.reportError("Failed to invoke trigger", _exc_);
   }`]],
 
-    [`monitor @weatherapi.weather(location=makeLocation(1, 3)) => notify;`,
+    [`monitor @org.thingpedia.weather.current(location=makeLocation(1, 3)) => notify;`,
      [`"use strict";
   let _t_0;
   let _t_1;
@@ -439,6 +463,12 @@ const TEST_CASES = [
   let _t_7;
   let _t_8;
   let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
   _t_0 = yield env.readState(0);
   try {
     _t_1 = {};
@@ -452,11 +482,17 @@ const TEST_CASES = [
         _t_5 = _t_4[0];
         _t_6 = _t_4[1];
         _t_7 = _t_6.temperature;
-        _t_8 = __builtin.isNewTuple(_t_0, _t_6, ["location", "temperature"]);
-        _t_9 = __builtin.addTuple(_t_0, _t_6);
-        yield env.writeState(0, _t_9);
-        _t_0 = _t_9;
-        if (_t_8) {
+        _t_8 = _t_6.wind_speed;
+        _t_9 = _t_6.humidity;
+        _t_10 = _t_6.cloudiness;
+        _t_11 = _t_6.fog;
+        _t_12 = _t_6.status;
+        _t_13 = _t_6.icon;
+        _t_14 = __builtin.isNewTuple(_t_0, _t_6, ["location", "temperature", "wind_speed", "humidity", "cloudiness", "fog", "status", "icon"]);
+        _t_15 = __builtin.addTuple(_t_0, _t_6);
+        yield env.writeState(0, _t_15);
+        _t_0 = _t_15;
+        if (_t_14) {
           try {
             yield env.output(String(_t_5), _t_6);
           } catch(_exc_) {
@@ -496,7 +532,7 @@ const TEST_CASES = [
     env.reportError("Failed to invoke at-timer", _exc_);
   }`]],
 
-    [`attimer(time=makeTime(12, 30)) => @twitter.sink(status="lol");`,
+    [`attimer(time=makeTime(12, 30)) => @com.twitter.post(status="lol");`,
      [`"use strict";
   let _t_0;
   let _t_1;
@@ -551,7 +587,7 @@ const TEST_CASES = [
     env.reportError("Failed to invoke timer", _exc_);
   }`]],
 
-    [`timer(base=makeDate(), interval=1h) => @twitter.sink(status="lol");`,
+    [`timer(base=makeDate(), interval=1h) => @com.twitter.post(status="lol");`,
      [`"use strict";
   let _t_0;
   let _t_1;
@@ -582,7 +618,7 @@ const TEST_CASES = [
     env.reportError("Failed to invoke timer", _exc_);
   }`]],
 
-    [`now => @youtube.search_videos(query="lol"), video_url == "http://www.youtube.com"^^tt:url =>  notify;`,
+    [`now => @com.youtube.search_videos(query="lol"), video_url == "http://www.youtube.com"^^tt:url =>  notify;`,
      [`"use strict";
   let _t_0;
   let _t_1;
@@ -594,6 +630,12 @@ const TEST_CASES = [
   let _t_7;
   let _t_8;
   let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
   try {
     _t_0 = {};
     _t_1 = "lol";
@@ -606,10 +648,16 @@ const TEST_CASES = [
         _t_4 = _iter_tmp.value;
         _t_5 = _t_4[0];
         _t_6 = _t_4[1];
-        _t_7 = _t_6.video_url;
-        _t_9 = new __builtin.Entity("http://www.youtube.com", null);
-        _t_8 = __builtin.equality(_t_7, _t_9);
-        if (_t_8) {
+        _t_7 = _t_6.channel_id;
+        _t_8 = _t_6.count;
+        _t_9 = _t_6.video_id;
+        _t_10 = _t_6.title;
+        _t_11 = _t_6.description;
+        _t_12 = _t_6.thumbnail;
+        _t_13 = _t_6.video_url;
+        _t_15 = new __builtin.Entity("http://www.youtube.com", null);
+        _t_14 = __builtin.equality(_t_13, _t_15);
+        if (_t_14) {
           try {
             yield env.output(String(_t_5), _t_6);
           } catch(_exc_) {
@@ -625,7 +673,7 @@ const TEST_CASES = [
     env.reportError("Failed to invoke query", _exc_);
   }`]],
 
-    [`monitor @xkcd(id="com.xkcd-6").get_comic() => @twitter(id="twitter-foo").post_picture(caption=title, picture_url=picture_url);`,
+    [`monitor @com.xkcd(id="com.xkcd-6").get_comic() => @com.twitter(id="twitter-foo").post_picture(caption=title, picture_url=picture_url);`,
      [`"use strict";
   let _t_0;
   let _t_1;
@@ -640,6 +688,7 @@ const TEST_CASES = [
   let _t_10;
   let _t_11;
   let _t_12;
+  let _t_13;
   _t_0 = yield env.readState(0);
   try {
     _t_1 = {};
@@ -652,18 +701,19 @@ const TEST_CASES = [
         _t_5 = _t_3[1];
         _t_6 = _t_5.number;
         _t_7 = _t_5.title;
-        _t_8 = _t_5.link;
-        _t_9 = _t_5.picture_url;
-        _t_10 = __builtin.isNewTuple(_t_0, _t_5, ["number", "title", "link", "picture_url"]);
-        _t_11 = __builtin.addTuple(_t_0, _t_5);
-        yield env.writeState(0, _t_11);
-        _t_0 = _t_11;
-        if (_t_10) {
+        _t_8 = _t_5.picture_url;
+        _t_9 = _t_5.link;
+        _t_10 = _t_5.alt_text;
+        _t_11 = __builtin.isNewTuple(_t_0, _t_5, ["number", "title", "picture_url", "link", "alt_text"]);
+        _t_12 = __builtin.addTuple(_t_0, _t_5);
+        yield env.writeState(0, _t_12);
+        _t_0 = _t_12;
+        if (_t_11) {
           try {
-            _t_12 = {};
-            _t_12.caption = _t_7;
-            _t_12.picture_url = _t_9;
-            yield env.invokeAction(1, _t_12);
+            _t_13 = {};
+            _t_13.caption = _t_7;
+            _t_13.picture_url = _t_8;
+            yield env.invokeAction(1, _t_13);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
@@ -694,7 +744,7 @@ const TEST_CASES = [
     env.reportError("Failed to invoke action", _exc_);
   }`]],
 
-    [`monitor @twitter.source(), text =~ "foo" || (text =~"bar" && !(text =~ "lol")) => notify;`,
+    [`monitor @com.twitter.home_timeline(), text =~ "foo" || (text =~"bar" && !(text =~ "lol")) => notify;`,
      [`"use strict";
   let _t_0;
   let _t_1;
@@ -732,10 +782,10 @@ const TEST_CASES = [
         _t_6 = _t_5.text;
         _t_7 = _t_5.hashtags;
         _t_8 = _t_5.urls;
-        _t_9 = _t_5.from;
-        _t_10 = _t_5.inReplyTo;
-        _t_11 = _t_5.__reserved;
-        _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "from", "inReplyTo", "__reserved"]);
+        _t_9 = _t_5.author;
+        _t_10 = _t_5.in_reply_to;
+        _t_11 = _t_5.tweet_id;
+        _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
         _t_13 = __builtin.addTuple(_t_0, _t_5);
         yield env.writeState(0, _t_13);
         _t_0 = _t_13;
@@ -772,7 +822,7 @@ const TEST_CASES = [
     env.reportError("Failed to invoke trigger", _exc_);
   }`]],
 
-    [`monitor @twitter.source() => @builtin.say(message=$event);`,
+    [`monitor @com.twitter.home_timeline() => @org.thingpedia.builtin.thingengine.builtin.say(message=$event);`,
      [`"use strict";
   let _t_0;
   let _t_1;
@@ -803,10 +853,10 @@ const TEST_CASES = [
         _t_6 = _t_5.text;
         _t_7 = _t_5.hashtags;
         _t_8 = _t_5.urls;
-        _t_9 = _t_5.from;
-        _t_10 = _t_5.inReplyTo;
-        _t_11 = _t_5.__reserved;
-        _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "from", "inReplyTo", "__reserved"]);
+        _t_9 = _t_5.author;
+        _t_10 = _t_5.in_reply_to;
+        _t_11 = _t_5.tweet_id;
+        _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
         _t_13 = __builtin.addTuple(_t_0, _t_5);
         yield env.writeState(0, _t_13);
         _t_0 = _t_13;
@@ -829,7 +879,7 @@ const TEST_CASES = [
     env.reportError("Failed to invoke trigger", _exc_);
   }`]],
 
-    [`monitor @twitter.source() => @builtin.say(message=$event.type);`,
+    [`monitor @com.twitter.home_timeline() => @org.thingpedia.builtin.thingengine.builtin.say(message=$event.type);`,
      [`"use strict";
   let _t_0;
   let _t_1;
@@ -860,10 +910,10 @@ const TEST_CASES = [
         _t_6 = _t_5.text;
         _t_7 = _t_5.hashtags;
         _t_8 = _t_5.urls;
-        _t_9 = _t_5.from;
-        _t_10 = _t_5.inReplyTo;
-        _t_11 = _t_5.__reserved;
-        _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "from", "inReplyTo", "__reserved"]);
+        _t_9 = _t_5.author;
+        _t_10 = _t_5.in_reply_to;
+        _t_11 = _t_5.tweet_id;
+        _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
         _t_13 = __builtin.addTuple(_t_0, _t_5);
         yield env.writeState(0, _t_13);
         _t_0 = _t_13;
@@ -886,7 +936,7 @@ const TEST_CASES = [
     env.reportError("Failed to invoke trigger", _exc_);
   }`]],
 
-    [`monitor @xkcd(id="com.xkcd-6").get_comic() => @twitter.sink(status=picture_url);`,
+    [`monitor @com.xkcd(id="com.xkcd-6").get_comic() => @com.twitter.post(status=picture_url);`,
      [`"use strict";
   let _t_0;
   let _t_1;
@@ -902,6 +952,7 @@ const TEST_CASES = [
   let _t_11;
   let _t_12;
   let _t_13;
+  let _t_14;
   _t_0 = yield env.readState(0);
   try {
     _t_1 = {};
@@ -914,18 +965,19 @@ const TEST_CASES = [
         _t_5 = _t_3[1];
         _t_6 = _t_5.number;
         _t_7 = _t_5.title;
-        _t_8 = _t_5.link;
-        _t_9 = _t_5.picture_url;
-        _t_10 = __builtin.isNewTuple(_t_0, _t_5, ["number", "title", "link", "picture_url"]);
-        _t_11 = __builtin.addTuple(_t_0, _t_5);
-        yield env.writeState(0, _t_11);
-        _t_0 = _t_11;
-        if (_t_10) {
+        _t_8 = _t_5.picture_url;
+        _t_9 = _t_5.link;
+        _t_10 = _t_5.alt_text;
+        _t_11 = __builtin.isNewTuple(_t_0, _t_5, ["number", "title", "picture_url", "link", "alt_text"]);
+        _t_12 = __builtin.addTuple(_t_0, _t_5);
+        yield env.writeState(0, _t_12);
+        _t_0 = _t_12;
+        if (_t_11) {
           try {
-            _t_12 = {};
-            _t_13 = String (_t_9);
-            _t_12.status = _t_13;
-            yield env.invokeAction(1, _t_12);
+            _t_13 = {};
+            _t_14 = String (_t_8);
+            _t_13.status = _t_14;
+            yield env.invokeAction(1, _t_13);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
@@ -939,7 +991,7 @@ const TEST_CASES = [
     env.reportError("Failed to invoke trigger", _exc_);
   }`]],
 
-    [`now => @builtin.get_time(), time >= makeTime(10,0) => notify;`,
+    [`now => @org.thingpedia.builtin.thingengine.builtin.get_time(), time >= makeTime(10,0) => notify;`,
      [`"use strict";
   let _t_0;
   let _t_1;
@@ -985,7 +1037,7 @@ const TEST_CASES = [
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
         action send (in req __principal : Entity(tt:contact), in req __program_id : Entity(tt:program_id), in req __flow : Number, in req __kindChannel : Entity(tt:function));
     }
-    monitor @twitter.source()  => @__dyn_0.send(__principal="mock-account:12345678"^^tt:contact("me"), __program_id=$event.program_id, __flow=0, __kindChannel=$event.type) ;
+    monitor @com.twitter.home_timeline()  => @__dyn_0.send(__principal="mock-account:12345678"^^tt:contact("me"), __program_id=$event.program_id, __flow=0, __kindChannel=$event.type) ;
 }`, [`"use strict";
   let _t_0;
   let _t_1;
@@ -1020,10 +1072,10 @@ const TEST_CASES = [
         _t_6 = _t_5.text;
         _t_7 = _t_5.hashtags;
         _t_8 = _t_5.urls;
-        _t_9 = _t_5.from;
-        _t_10 = _t_5.inReplyTo;
-        _t_11 = _t_5.__reserved;
-        _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "from", "inReplyTo", "__reserved"]);
+        _t_9 = _t_5.author;
+        _t_10 = _t_5.in_reply_to;
+        _t_11 = _t_5.tweet_id;
+        _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
         _t_13 = __builtin.addTuple(_t_0, _t_5);
         yield env.writeState(0, _t_13);
         _t_0 = _t_13;
@@ -1059,8 +1111,8 @@ const TEST_CASES = [
   }`]],
 
     [`{
-    monitor @twitter.source(), @builtin.get_time() { time >= makeTime(9,0) && time <= makeTime(10, 0) } => notify;
-    monitor @twitter.source(), text =~ "lol" && @builtin.get_time() { time >= makeTime(9,0) && time <= makeTime(10, 0) } => notify;
+    monitor @com.twitter.home_timeline(), @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= makeTime(9,0) && time <= makeTime(10, 0) } => notify;
+    monitor @com.twitter.home_timeline(), text =~ "lol" && @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= makeTime(9,0) && time <= makeTime(10, 0) } => notify;
 }`, [`"use strict";
   let _t_0;
   let _t_1;
@@ -1104,10 +1156,10 @@ const TEST_CASES = [
         _t_6 = _t_5.text;
         _t_7 = _t_5.hashtags;
         _t_8 = _t_5.urls;
-        _t_9 = _t_5.from;
-        _t_10 = _t_5.inReplyTo;
-        _t_11 = _t_5.__reserved;
-        _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "from", "inReplyTo", "__reserved"]);
+        _t_9 = _t_5.author;
+        _t_10 = _t_5.in_reply_to;
+        _t_11 = _t_5.tweet_id;
+        _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
         _t_13 = __builtin.addTuple(_t_0, _t_5);
         yield env.writeState(0, _t_13);
         _t_0 = _t_13;
@@ -1208,10 +1260,10 @@ const TEST_CASES = [
         _t_6 = _t_5.text;
         _t_7 = _t_5.hashtags;
         _t_8 = _t_5.urls;
-        _t_9 = _t_5.from;
-        _t_10 = _t_5.inReplyTo;
-        _t_11 = _t_5.__reserved;
-        _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "from", "inReplyTo", "__reserved"]);
+        _t_9 = _t_5.author;
+        _t_10 = _t_5.in_reply_to;
+        _t_11 = _t_5.tweet_id;
+        _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
         _t_13 = __builtin.addTuple(_t_0, _t_5);
         yield env.writeState(0, _t_13);
         _t_0 = _t_13;
@@ -1389,150 +1441,7 @@ const TEST_CASES = [
     env.reportError("Failed to invoke trigger", _exc_);
   }`]],
 
-    [`monitor (@twitter.source() join @com.bing.web_search(query="foo")) => notify;`,
-    [`"use strict";
-  let _t_0;
-  let _t_1;
-  let _t_2;
-  let _t_3;
-  let _t_4;
-  let _t_5;
-  let _t_6;
-  let _t_7;
-  let _t_8;
-  let _t_9;
-  let _t_10;
-  let _t_11;
-  let _t_12;
-  let _t_13;
-  let _t_14;
-  let _t_15;
-  let _t_16;
-  let _t_17;
-  let _t_18;
-  let _t_19;
-  let _t_20;
-  let _t_21;
-  let _t_22;
-  let _t_23;
-  let _t_24;
-  let _t_25;
-  let _t_26;
-  let _t_27;
-  let _t_28;
-  let _t_29;
-  let _t_30;
-  let _t_31;
-  let _t_32;
-  let _t_33;
-  let _t_34;
-  let _t_35;
-  let _t_36;
-  let _t_37;
-  let _t_38;
-  let _t_39;
-  let _t_40;
-  let _t_41;
-  let _t_42;
-  _t_0 = yield env.readState(0);
-  _t_1 = function*(emit) {
-    _t_2 = yield env.readState(1);
-    try {
-      _t_3 = {};
-      _t_4 = yield env.invokeMonitor(0, _t_3, false);
-      {
-        let _iter_tmp = yield _t_4.next();
-        while (!_iter_tmp.done) {
-          _t_5 = _iter_tmp.value;
-          _t_6 = _t_5[0];
-          _t_7 = _t_5[1];
-          _t_8 = _t_7.text;
-          _t_9 = _t_7.hashtags;
-          _t_10 = _t_7.urls;
-          _t_11 = _t_7.from;
-          _t_12 = _t_7.inReplyTo;
-          _t_13 = _t_7.__reserved;
-          _t_14 = __builtin.isNewTuple(_t_2, _t_7, ["text", "hashtags", "urls", "from", "inReplyTo", "__reserved"]);
-          _t_15 = __builtin.addTuple(_t_2, _t_7);
-          yield env.writeState(1, _t_15);
-          _t_2 = _t_15;
-          if (_t_14) {
-            emit(_t_7)
-          } else {
-
-          }
-          _iter_tmp = yield _t_4.next();
-        }
-      }
-    } catch(_exc_) {
-      env.reportError("Failed to invoke trigger", _exc_);
-    }
-  }
-  _t_16 = function*(emit) {
-    _t_17 = yield env.readState(2);
-    try {
-      _t_18 = {};
-      _t_19 = "foo";
-      _t_18.query = _t_19;
-      _t_20 = yield env.invokeMonitor(1, _t_18, false);
-      {
-        let _iter_tmp = yield _t_20.next();
-        while (!_iter_tmp.done) {
-          _t_21 = _iter_tmp.value;
-          _t_22 = _t_21[0];
-          _t_23 = _t_21[1];
-          _t_24 = _t_23.title;
-          _t_25 = _t_23.description;
-          _t_26 = __builtin.isNewTuple(_t_17, _t_23, ["query", "title", "description"]);
-          _t_27 = __builtin.addTuple(_t_17, _t_23);
-          yield env.writeState(2, _t_27);
-          _t_17 = _t_27;
-          if (_t_26) {
-            emit(_t_23)
-          } else {
-
-          }
-          _iter_tmp = yield _t_20.next();
-        }
-      }
-    } catch(_exc_) {
-      env.reportError("Failed to invoke trigger", _exc_);
-    }
-  }
-  _t_28 = __builtin.streamUnion(_t_1, _t_16);
-  {
-    let _iter_tmp = yield _t_28.next();
-    while (!_iter_tmp.done) {
-      _t_29 = _iter_tmp.value;
-      _t_30 = _t_29[0];
-      _t_31 = _t_29[1];
-      _t_32 = _t_31.query;
-      _t_33 = _t_31.title;
-      _t_34 = _t_31.description;
-      _t_35 = _t_31.text;
-      _t_36 = _t_31.hashtags;
-      _t_37 = _t_31.urls;
-      _t_38 = _t_31.from;
-      _t_39 = _t_31.inReplyTo;
-      _t_40 = _t_31.__reserved;
-      _t_41 = __builtin.isNewTuple(_t_0, _t_31, ["query", "title", "description", "text", "hashtags", "urls", "from", "inReplyTo", "__reserved"]);
-      _t_42 = __builtin.addTuple(_t_0, _t_31);
-      yield env.writeState(0, _t_42);
-      _t_0 = _t_42;
-      if (_t_41) {
-        try {
-          yield env.output(String(_t_30), _t_31);
-        } catch(_exc_) {
-          env.reportError("Failed to invoke action", _exc_);
-        }
-      } else {
-
-      }
-      _iter_tmp = yield _t_28.next();
-    }
-  }`]],
-
-    [`monitor (@twitter.source() join @com.bing.web_search(query="foo")), text =~ "lol" => notify;`,
+    [`monitor (@com.twitter.home_timeline() join @com.bing.web_search(query="foo")) => notify;`,
     [`"use strict";
   let _t_0;
   let _t_1;
@@ -1594,10 +1503,10 @@ const TEST_CASES = [
           _t_8 = _t_7.text;
           _t_9 = _t_7.hashtags;
           _t_10 = _t_7.urls;
-          _t_11 = _t_7.from;
-          _t_12 = _t_7.inReplyTo;
-          _t_13 = _t_7.__reserved;
-          _t_14 = __builtin.isNewTuple(_t_2, _t_7, ["text", "hashtags", "urls", "from", "inReplyTo", "__reserved"]);
+          _t_11 = _t_7.author;
+          _t_12 = _t_7.in_reply_to;
+          _t_13 = _t_7.tweet_id;
+          _t_14 = __builtin.isNewTuple(_t_2, _t_7, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
           _t_15 = __builtin.addTuple(_t_2, _t_7);
           yield env.writeState(1, _t_15);
           _t_2 = _t_15;
@@ -1628,11 +1537,12 @@ const TEST_CASES = [
           _t_23 = _t_21[1];
           _t_24 = _t_23.title;
           _t_25 = _t_23.description;
-          _t_26 = __builtin.isNewTuple(_t_17, _t_23, ["query", "title", "description"]);
-          _t_27 = __builtin.addTuple(_t_17, _t_23);
-          yield env.writeState(2, _t_27);
-          _t_17 = _t_27;
-          if (_t_26) {
+          _t_26 = _t_23.link;
+          _t_27 = __builtin.isNewTuple(_t_17, _t_23, ["query", "title", "description", "link"]);
+          _t_28 = __builtin.addTuple(_t_17, _t_23);
+          yield env.writeState(2, _t_28);
+          _t_17 = _t_28;
+          if (_t_27) {
             emit(_t_23)
           } else {
 
@@ -1644,146 +1554,41 @@ const TEST_CASES = [
       env.reportError("Failed to invoke trigger", _exc_);
     }
   }
-  _t_28 = __builtin.streamUnion(_t_1, _t_16);
+  _t_29 = __builtin.streamUnion(_t_1, _t_16);
   {
-    let _iter_tmp = yield _t_28.next();
+    let _iter_tmp = yield _t_29.next();
     while (!_iter_tmp.done) {
-      _t_29 = _iter_tmp.value;
-      _t_30 = _t_29[0];
-      _t_31 = _t_29[1];
-      _t_32 = _t_31.query;
-      _t_33 = _t_31.title;
-      _t_34 = _t_31.description;
-      _t_35 = _t_31.text;
-      _t_36 = _t_31.hashtags;
-      _t_37 = _t_31.urls;
-      _t_38 = _t_31.from;
-      _t_39 = _t_31.inReplyTo;
-      _t_40 = _t_31.__reserved;
-      _t_41 = __builtin.isNewTuple(_t_0, _t_31, ["query", "title", "description", "text", "hashtags", "urls", "from", "inReplyTo", "__reserved"]);
-      _t_42 = __builtin.addTuple(_t_0, _t_31);
-      yield env.writeState(0, _t_42);
-      _t_0 = _t_42;
-      if (_t_41) {
-        _t_44 = "lol";
-        _t_43 = __builtin.like(_t_35, _t_44);
-        if (_t_43) {
-          try {
-            yield env.output(String(_t_30), _t_31);
-          } catch(_exc_) {
-            env.reportError("Failed to invoke action", _exc_);
-          }
-        } else {
-
+      _t_30 = _iter_tmp.value;
+      _t_31 = _t_30[0];
+      _t_32 = _t_30[1];
+      _t_33 = _t_32.query;
+      _t_34 = _t_32.title;
+      _t_35 = _t_32.description;
+      _t_36 = _t_32.link;
+      _t_37 = _t_32.text;
+      _t_38 = _t_32.hashtags;
+      _t_39 = _t_32.urls;
+      _t_40 = _t_32.author;
+      _t_41 = _t_32.in_reply_to;
+      _t_42 = _t_32.tweet_id;
+      _t_43 = __builtin.isNewTuple(_t_0, _t_32, ["query", "title", "description", "link", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
+      _t_44 = __builtin.addTuple(_t_0, _t_32);
+      yield env.writeState(0, _t_44);
+      _t_0 = _t_44;
+      if (_t_43) {
+        try {
+          yield env.output(String(_t_31), _t_32);
+        } catch(_exc_) {
+          env.reportError("Failed to invoke action", _exc_);
         }
       } else {
 
       }
-      _iter_tmp = yield _t_28.next();
+      _iter_tmp = yield _t_29.next();
     }
   }`]],
 
-    [`now => @twitter.source() join @com.bing.web_search() on (query=text) => notify;`,
-    [`"use strict";
-  let _t_0;
-  let _t_1;
-  let _t_2;
-  let _t_3;
-  let _t_4;
-  let _t_5;
-  let _t_6;
-  let _t_7;
-  let _t_8;
-  let _t_9;
-  let _t_10;
-  let _t_11;
-  let _t_12;
-  let _t_13;
-  let _t_14;
-  let _t_15;
-  let _t_16;
-  let _t_17;
-  let _t_18;
-  let _t_19;
-  let _t_20;
-  let _t_21;
-  let _t_22;
-  let _t_23;
-  let _t_24;
-  let _t_25;
-  let _t_26;
-  let _t_27;
-  let _t_28;
-  let _t_29;
-  let _t_30;
-  try {
-    _t_0 = {};
-    _t_1 = yield env.invokeQuery(0, _t_0);
-    _t_2 = _t_1[Symbol.iterator]();
-    {
-      let _iter_tmp = yield _t_2.next();
-      while (!_iter_tmp.done) {
-        _t_3 = _iter_tmp.value;
-        _t_4 = _t_3[0];
-        _t_5 = _t_3[1];
-        _t_6 = _t_5.text;
-        _t_7 = _t_5.hashtags;
-        _t_8 = _t_5.urls;
-        _t_9 = _t_5.from;
-        _t_10 = _t_5.inReplyTo;
-        _t_11 = _t_5.__reserved;
-        try {
-          _t_12 = {};
-          _t_12.query = _t_6;
-          _t_13 = yield env.invokeQuery(1, _t_12);
-          _t_14 = _t_13[Symbol.iterator]();
-          {
-            let _iter_tmp = yield _t_14.next();
-            while (!_iter_tmp.done) {
-              _t_15 = _iter_tmp.value;
-              _t_16 = _t_15[0];
-              _t_17 = _t_15[1];
-              _t_18 = _t_17.title;
-              _t_19 = _t_17.description;
-              _t_20 = __builtin.combineOutputTypes(_t_4, _t_16);
-              _t_21 = {};
-              _t_21.query = _t_6;
-              _t_21.title = _t_18;
-              _t_21.description = _t_19;
-              _t_21.text = _t_6;
-              _t_21.hashtags = _t_7;
-              _t_21.urls = _t_8;
-              _t_21.from = _t_9;
-              _t_21.inReplyTo = _t_10;
-              _t_21.__reserved = _t_11;
-              _t_22 = _t_21.query;
-              _t_23 = _t_21.title;
-              _t_24 = _t_21.description;
-              _t_25 = _t_21.text;
-              _t_26 = _t_21.hashtags;
-              _t_27 = _t_21.urls;
-              _t_28 = _t_21.from;
-              _t_29 = _t_21.inReplyTo;
-              _t_30 = _t_21.__reserved;
-              try {
-                yield env.output(String(_t_20), _t_21);
-              } catch(_exc_) {
-                env.reportError("Failed to invoke action", _exc_);
-              }
-              _iter_tmp = yield _t_14.next();
-            }
-          }
-        } catch(_exc_) {
-          env.reportError("Failed to invoke query", _exc_);
-        }
-        _iter_tmp = yield _t_2.next();
-      }
-    }
-  } catch(_exc_) {
-    env.reportError("Failed to invoke query", _exc_);
-  }`]],
-
-    [`now => @twitter.source() join @com.bing.web_search(query="foo") => notify;`,
+    [`monitor (@com.twitter.home_timeline() join @com.bing.web_search(query="foo")), text =~ "lol" => notify;`,
     [`"use strict";
   let _t_0;
   let _t_1;
@@ -1821,6 +1626,268 @@ const TEST_CASES = [
   let _t_33;
   let _t_34;
   let _t_35;
+  let _t_36;
+  let _t_37;
+  let _t_38;
+  let _t_39;
+  let _t_40;
+  let _t_41;
+  let _t_42;
+  let _t_43;
+  let _t_44;
+  let _t_45;
+  let _t_46;
+  _t_0 = yield env.readState(0);
+  _t_1 = function*(emit) {
+    _t_2 = yield env.readState(1);
+    try {
+      _t_3 = {};
+      _t_4 = yield env.invokeMonitor(0, _t_3, false);
+      {
+        let _iter_tmp = yield _t_4.next();
+        while (!_iter_tmp.done) {
+          _t_5 = _iter_tmp.value;
+          _t_6 = _t_5[0];
+          _t_7 = _t_5[1];
+          _t_8 = _t_7.text;
+          _t_9 = _t_7.hashtags;
+          _t_10 = _t_7.urls;
+          _t_11 = _t_7.author;
+          _t_12 = _t_7.in_reply_to;
+          _t_13 = _t_7.tweet_id;
+          _t_14 = __builtin.isNewTuple(_t_2, _t_7, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
+          _t_15 = __builtin.addTuple(_t_2, _t_7);
+          yield env.writeState(1, _t_15);
+          _t_2 = _t_15;
+          if (_t_14) {
+            emit(_t_7)
+          } else {
+
+          }
+          _iter_tmp = yield _t_4.next();
+        }
+      }
+    } catch(_exc_) {
+      env.reportError("Failed to invoke trigger", _exc_);
+    }
+  }
+  _t_16 = function*(emit) {
+    _t_17 = yield env.readState(2);
+    try {
+      _t_18 = {};
+      _t_19 = "foo";
+      _t_18.query = _t_19;
+      _t_20 = yield env.invokeMonitor(1, _t_18, false);
+      {
+        let _iter_tmp = yield _t_20.next();
+        while (!_iter_tmp.done) {
+          _t_21 = _iter_tmp.value;
+          _t_22 = _t_21[0];
+          _t_23 = _t_21[1];
+          _t_24 = _t_23.title;
+          _t_25 = _t_23.description;
+          _t_26 = _t_23.link;
+          _t_27 = __builtin.isNewTuple(_t_17, _t_23, ["query", "title", "description", "link"]);
+          _t_28 = __builtin.addTuple(_t_17, _t_23);
+          yield env.writeState(2, _t_28);
+          _t_17 = _t_28;
+          if (_t_27) {
+            emit(_t_23)
+          } else {
+
+          }
+          _iter_tmp = yield _t_20.next();
+        }
+      }
+    } catch(_exc_) {
+      env.reportError("Failed to invoke trigger", _exc_);
+    }
+  }
+  _t_29 = __builtin.streamUnion(_t_1, _t_16);
+  {
+    let _iter_tmp = yield _t_29.next();
+    while (!_iter_tmp.done) {
+      _t_30 = _iter_tmp.value;
+      _t_31 = _t_30[0];
+      _t_32 = _t_30[1];
+      _t_33 = _t_32.query;
+      _t_34 = _t_32.title;
+      _t_35 = _t_32.description;
+      _t_36 = _t_32.link;
+      _t_37 = _t_32.text;
+      _t_38 = _t_32.hashtags;
+      _t_39 = _t_32.urls;
+      _t_40 = _t_32.author;
+      _t_41 = _t_32.in_reply_to;
+      _t_42 = _t_32.tweet_id;
+      _t_43 = __builtin.isNewTuple(_t_0, _t_32, ["query", "title", "description", "link", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
+      _t_44 = __builtin.addTuple(_t_0, _t_32);
+      yield env.writeState(0, _t_44);
+      _t_0 = _t_44;
+      if (_t_43) {
+        _t_46 = "lol";
+        _t_45 = __builtin.like(_t_37, _t_46);
+        if (_t_45) {
+          try {
+            yield env.output(String(_t_31), _t_32);
+          } catch(_exc_) {
+            env.reportError("Failed to invoke action", _exc_);
+          }
+        } else {
+
+        }
+      } else {
+
+      }
+      _iter_tmp = yield _t_29.next();
+    }
+  }`]],
+
+    [`now => @com.twitter.home_timeline() join @com.bing.web_search() on (query=text) => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  let _t_25;
+  let _t_26;
+  let _t_27;
+  let _t_28;
+  let _t_29;
+  let _t_30;
+  let _t_31;
+  let _t_32;
+  try {
+    _t_0 = {};
+    _t_1 = yield env.invokeQuery(0, _t_0);
+    _t_2 = _t_1[Symbol.iterator]();
+    {
+      let _iter_tmp = yield _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.text;
+        _t_7 = _t_5.hashtags;
+        _t_8 = _t_5.urls;
+        _t_9 = _t_5.author;
+        _t_10 = _t_5.in_reply_to;
+        _t_11 = _t_5.tweet_id;
+        try {
+          _t_12 = {};
+          _t_12.query = _t_6;
+          _t_13 = yield env.invokeQuery(1, _t_12);
+          _t_14 = _t_13[Symbol.iterator]();
+          {
+            let _iter_tmp = yield _t_14.next();
+            while (!_iter_tmp.done) {
+              _t_15 = _iter_tmp.value;
+              _t_16 = _t_15[0];
+              _t_17 = _t_15[1];
+              _t_18 = _t_17.title;
+              _t_19 = _t_17.description;
+              _t_20 = _t_17.link;
+              _t_21 = __builtin.combineOutputTypes(_t_4, _t_16);
+              _t_22 = {};
+              _t_22.query = _t_6;
+              _t_22.title = _t_18;
+              _t_22.description = _t_19;
+              _t_22.link = _t_20;
+              _t_22.text = _t_6;
+              _t_22.hashtags = _t_7;
+              _t_22.urls = _t_8;
+              _t_22.author = _t_9;
+              _t_22.in_reply_to = _t_10;
+              _t_22.tweet_id = _t_11;
+              _t_23 = _t_22.query;
+              _t_24 = _t_22.title;
+              _t_25 = _t_22.description;
+              _t_26 = _t_22.link;
+              _t_27 = _t_22.text;
+              _t_28 = _t_22.hashtags;
+              _t_29 = _t_22.urls;
+              _t_30 = _t_22.author;
+              _t_31 = _t_22.in_reply_to;
+              _t_32 = _t_22.tweet_id;
+              try {
+                yield env.output(String(_t_21), _t_22);
+              } catch(_exc_) {
+                env.reportError("Failed to invoke action", _exc_);
+              }
+              _iter_tmp = yield _t_14.next();
+            }
+          }
+        } catch(_exc_) {
+          env.reportError("Failed to invoke query", _exc_);
+        }
+        _iter_tmp = yield _t_2.next();
+      }
+    }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke query", _exc_);
+  }`]],
+
+    [`now => @com.twitter.home_timeline() join @com.bing.web_search(query="foo") => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  let _t_25;
+  let _t_26;
+  let _t_27;
+  let _t_28;
+  let _t_29;
+  let _t_30;
+  let _t_31;
+  let _t_32;
+  let _t_33;
+  let _t_34;
+  let _t_35;
+  let _t_36;
+  let _t_37;
   _t_0 = function*(emit) {
     try {
       _t_1 = {};
@@ -1835,9 +1902,9 @@ const TEST_CASES = [
           _t_7 = _t_6.text;
           _t_8 = _t_6.hashtags;
           _t_9 = _t_6.urls;
-          _t_10 = _t_6.from;
-          _t_11 = _t_6.inReplyTo;
-          _t_12 = _t_6.__reserved;
+          _t_10 = _t_6.author;
+          _t_11 = _t_6.in_reply_to;
+          _t_12 = _t_6.tweet_id;
           emit(_t_6)
           _iter_tmp = yield _t_3.next();
         }
@@ -1861,6 +1928,7 @@ const TEST_CASES = [
           _t_20 = _t_18[1];
           _t_21 = _t_20.title;
           _t_22 = _t_20.description;
+          _t_23 = _t_20.link;
           emit(_t_20)
           _iter_tmp = yield _t_17.next();
         }
@@ -1869,28 +1937,29 @@ const TEST_CASES = [
       env.reportError("Failed to invoke query", _exc_);
     }
   }
-  _t_23 = __builtin.tableCrossJoin(_t_0, _t_13);
+  _t_24 = __builtin.tableCrossJoin(_t_0, _t_13);
   {
-    let _iter_tmp = yield _t_23.next();
+    let _iter_tmp = yield _t_24.next();
     while (!_iter_tmp.done) {
-      _t_24 = _iter_tmp.value;
-      _t_25 = _t_24[0];
-      _t_26 = _t_24[1];
-      _t_27 = _t_26.query;
-      _t_28 = _t_26.title;
-      _t_29 = _t_26.description;
-      _t_30 = _t_26.text;
-      _t_31 = _t_26.hashtags;
-      _t_32 = _t_26.urls;
-      _t_33 = _t_26.from;
-      _t_34 = _t_26.inReplyTo;
-      _t_35 = _t_26.__reserved;
+      _t_25 = _iter_tmp.value;
+      _t_26 = _t_25[0];
+      _t_27 = _t_25[1];
+      _t_28 = _t_27.query;
+      _t_29 = _t_27.title;
+      _t_30 = _t_27.description;
+      _t_31 = _t_27.link;
+      _t_32 = _t_27.text;
+      _t_33 = _t_27.hashtags;
+      _t_34 = _t_27.urls;
+      _t_35 = _t_27.author;
+      _t_36 = _t_27.in_reply_to;
+      _t_37 = _t_27.tweet_id;
       try {
-        yield env.output(String(_t_25), _t_26);
+        yield env.output(String(_t_26), _t_27);
       } catch(_exc_) {
         env.reportError("Failed to invoke action", _exc_);
       }
-      _iter_tmp = yield _t_23.next();
+      _iter_tmp = yield _t_24.next();
     }
   }`]],
 
@@ -2038,7 +2107,7 @@ const TEST_CASES = [
     env.reportError("Failed to signal end-of-flow", _exc_);
   }`]],
 
-    [`timer(base=makeDate(), interval=1h) join @twitter.search(), text =~ "lol" => notify;`,
+    [`timer(base=makeDate(), interval=1h) join @com.twitter.search(), text =~ "lol" => notify;`,
     [`"use strict";
   let _t_0;
   let _t_1;
@@ -2063,6 +2132,10 @@ const TEST_CASES = [
   let _t_20;
   let _t_21;
   let _t_22;
+  let _t_23;
+  let _t_24;
+  let _t_25;
+  let _t_26;
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
@@ -2081,27 +2154,33 @@ const TEST_CASES = [
               _t_7 = _iter_tmp.value;
               _t_8 = _t_7[0];
               _t_9 = _t_7[1];
-              _t_10 = _t_9.text;
-              _t_11 = _t_9.hashtags;
-              _t_12 = _t_9.urls;
-              _t_13 = _t_9.from;
-              _t_14 = _t_9.inReplyTo;
-              _t_16 = "lol";
-              _t_15 = __builtin.like(_t_10, _t_16);
-              if (_t_15) {
-                _t_17 = {};
-                _t_17.text = _t_10;
-                _t_17.hashtags = _t_11;
-                _t_17.urls = _t_12;
-                _t_17.from = _t_13;
-                _t_17.inReplyTo = _t_14;
-                _t_18 = _t_17.text;
-                _t_19 = _t_17.hashtags;
-                _t_20 = _t_17.urls;
-                _t_21 = _t_17.from;
-                _t_22 = _t_17.inReplyTo;
+              _t_10 = _t_9.count;
+              _t_11 = _t_9.text;
+              _t_12 = _t_9.hashtags;
+              _t_13 = _t_9.urls;
+              _t_14 = _t_9.author;
+              _t_15 = _t_9.in_reply_to;
+              _t_16 = _t_9.tweet_id;
+              _t_18 = "lol";
+              _t_17 = __builtin.like(_t_11, _t_18);
+              if (_t_17) {
+                _t_19 = {};
+                _t_19.count = _t_10;
+                _t_19.text = _t_11;
+                _t_19.hashtags = _t_12;
+                _t_19.urls = _t_13;
+                _t_19.author = _t_14;
+                _t_19.in_reply_to = _t_15;
+                _t_19.tweet_id = _t_16;
+                _t_20 = _t_19.count;
+                _t_21 = _t_19.text;
+                _t_22 = _t_19.hashtags;
+                _t_23 = _t_19.urls;
+                _t_24 = _t_19.author;
+                _t_25 = _t_19.in_reply_to;
+                _t_26 = _t_19.tweet_id;
                 try {
-                  yield env.output(String(_t_8), _t_17);
+                  yield env.output(String(_t_8), _t_19);
                 } catch(_exc_) {
                   env.reportError("Failed to invoke action", _exc_);
                 }

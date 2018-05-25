@@ -18,7 +18,8 @@ const NNSyntax = require('../lib/nn_syntax');
 const Ast = require('../lib/ast');
 const TokenizerService = require('../lib/tokenizer_service');
 
-const ThingpediaClientHttp = require('../test/http_client');
+const _mockSchemaDelegate = require('../test/mock_schema_delegate');
+const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 const db = require('../test/db');
 
 // Extract as much as possible from the dataset, and convert it
@@ -465,7 +466,6 @@ const AVAILABLE = new Set(['com.bing',
 'tumblr-blog']);
 
 const language = process.argv[2] || 'en';
-const _schemaRetriever = new SchemaRetriever(new ThingpediaClientHttp(undefined, language), undefined, true);
 const _tokenizerService = new TokenizerService(language);
 
 function *forEachInvocation(json) {
