@@ -11,6 +11,144 @@ const _mockMemoryClient = require('./mock_memory_client');
 var schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, _mockMemoryClient, true);
 
 const TEST_CASES = [
+    [`now => @xkcd.get_comic() => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  try {
+    _t_0 = {};
+    _t_1 = yield env.invokeQuery(0, _t_0);
+    _t_2 = _t_1[Symbol.iterator]();
+    {
+      let _iter_tmp = yield _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.number;
+        _t_7 = _t_5.title;
+        _t_8 = _t_5.link;
+        _t_9 = _t_5.picture_url;
+        try {
+          yield env.output(String(_t_4), _t_5);
+        } catch(_exc_) {
+          env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = yield _t_2.next();
+      }
+    }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke query", _exc_);
+  }`]],
+
+    [`now => @xkcd.get_comic() => { notify; @twitter.sink(status=title); };`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  try {
+    _t_0 = {};
+    _t_1 = yield env.invokeQuery(0, _t_0);
+    _t_2 = _t_1[Symbol.iterator]();
+    {
+      let _iter_tmp = yield _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.number;
+        _t_7 = _t_5.title;
+        _t_8 = _t_5.link;
+        _t_9 = _t_5.picture_url;
+        try {
+          yield env.output(String(_t_4), _t_5);
+        } catch(_exc_) {
+          env.reportError("Failed to invoke action", _exc_);
+        }
+        try {
+          _t_10 = {};
+          _t_10.status = _t_7;
+          yield env.invokeAction(1, _t_10);
+        } catch(_exc_) {
+          env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = yield _t_2.next();
+      }
+    }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke query", _exc_);
+  }`]],
+
+    [`now => @xkcd.get_comic(), number <= 1000 => { notify; @twitter.sink(status=title); };`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  try {
+    _t_0 = {};
+    _t_1 = yield env.invokeQuery(0, _t_0);
+    _t_2 = _t_1[Symbol.iterator]();
+    {
+      let _iter_tmp = yield _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.number;
+        _t_7 = _t_5.title;
+        _t_8 = _t_5.link;
+        _t_9 = _t_5.picture_url;
+        _t_11 = 1000;
+        _t_10 = _t_6 <= _t_11;
+        if (_t_10) {
+          try {
+            yield env.output(String(_t_4), _t_5);
+          } catch(_exc_) {
+            env.reportError("Failed to invoke action", _exc_);
+          }
+          try {
+            _t_12 = {};
+            _t_12.status = _t_7;
+            yield env.invokeAction(1, _t_12);
+          } catch(_exc_) {
+            env.reportError("Failed to invoke action", _exc_);
+          }
+        } else {
+
+        }
+        _iter_tmp = yield _t_2.next();
+      }
+    }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke query", _exc_);
+  }`]],
+
     [`monitor @test.source() => @builtin.debug_log(message="Test App received an event on Test Channel");`,
      [`"use strict";
   let _t_0;
@@ -269,7 +407,7 @@ const TEST_CASES = [
         _t_5 = _t_4[0];
         _t_6 = _t_4[1];
         _t_7 = _t_6.temperature;
-        _t_8 = __builtin.isNewTuple(_t_0, _t_6, ["temperature"]);
+        _t_8 = __builtin.isNewTuple(_t_0, _t_6, ["location", "temperature"]);
         _t_9 = __builtin.addTuple(_t_0, _t_6);
         yield env.writeState(0, _t_9);
         _t_0 = _t_9;
@@ -314,7 +452,7 @@ const TEST_CASES = [
         _t_5 = _t_4[0];
         _t_6 = _t_4[1];
         _t_7 = _t_6.temperature;
-        _t_8 = __builtin.isNewTuple(_t_0, _t_6, ["temperature"]);
+        _t_8 = __builtin.isNewTuple(_t_0, _t_6, ["location", "temperature"]);
         _t_9 = __builtin.addTuple(_t_0, _t_6);
         yield env.writeState(0, _t_9);
         _t_0 = _t_9;
@@ -501,6 +639,7 @@ const TEST_CASES = [
   let _t_9;
   let _t_10;
   let _t_11;
+  let _t_12;
   _t_0 = yield env.readState(0);
   try {
     _t_1 = {};
@@ -511,19 +650,20 @@ const TEST_CASES = [
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
-        _t_6 = _t_5.title;
-        _t_7 = _t_5.link;
-        _t_8 = _t_5.picture_url;
-        _t_9 = __builtin.isNewTuple(_t_0, _t_5, ["title", "link", "picture_url"]);
-        _t_10 = __builtin.addTuple(_t_0, _t_5);
-        yield env.writeState(0, _t_10);
-        _t_0 = _t_10;
-        if (_t_9) {
+        _t_6 = _t_5.number;
+        _t_7 = _t_5.title;
+        _t_8 = _t_5.link;
+        _t_9 = _t_5.picture_url;
+        _t_10 = __builtin.isNewTuple(_t_0, _t_5, ["number", "title", "link", "picture_url"]);
+        _t_11 = __builtin.addTuple(_t_0, _t_5);
+        yield env.writeState(0, _t_11);
+        _t_0 = _t_11;
+        if (_t_10) {
           try {
-            _t_11 = {};
-            _t_11.caption = _t_6;
-            _t_11.picture_url = _t_8;
-            yield env.invokeAction(1, _t_11);
+            _t_12 = {};
+            _t_12.caption = _t_7;
+            _t_12.picture_url = _t_9;
+            yield env.invokeAction(1, _t_12);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
@@ -761,6 +901,7 @@ const TEST_CASES = [
   let _t_10;
   let _t_11;
   let _t_12;
+  let _t_13;
   _t_0 = yield env.readState(0);
   try {
     _t_1 = {};
@@ -771,19 +912,20 @@ const TEST_CASES = [
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
-        _t_6 = _t_5.title;
-        _t_7 = _t_5.link;
-        _t_8 = _t_5.picture_url;
-        _t_9 = __builtin.isNewTuple(_t_0, _t_5, ["title", "link", "picture_url"]);
-        _t_10 = __builtin.addTuple(_t_0, _t_5);
-        yield env.writeState(0, _t_10);
-        _t_0 = _t_10;
-        if (_t_9) {
+        _t_6 = _t_5.number;
+        _t_7 = _t_5.title;
+        _t_8 = _t_5.link;
+        _t_9 = _t_5.picture_url;
+        _t_10 = __builtin.isNewTuple(_t_0, _t_5, ["number", "title", "link", "picture_url"]);
+        _t_11 = __builtin.addTuple(_t_0, _t_5);
+        yield env.writeState(0, _t_11);
+        _t_0 = _t_11;
+        if (_t_10) {
           try {
-            _t_11 = {};
-            _t_12 = String (_t_8);
-            _t_11.status = _t_12;
-            yield env.invokeAction(1, _t_11);
+            _t_12 = {};
+            _t_13 = String (_t_9);
+            _t_12.status = _t_13;
+            yield env.invokeAction(1, _t_12);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
@@ -1224,7 +1366,7 @@ const TEST_CASES = [
         _t_8 = _t_6[1];
         _t_9 = _t_8.__kindChannel;
         _t_10 = _t_8.interval;
-        _t_11 = __builtin.isNewTuple(_t_0, _t_8, ["__kindChannel", "interval"]);
+        _t_11 = __builtin.isNewTuple(_t_0, _t_8, ["__principal", "__program_id", "__flow", "__kindChannel", "interval"]);
         _t_12 = __builtin.addTuple(_t_0, _t_8);
         yield env.writeState(0, _t_12);
         _t_0 = _t_12;
@@ -1247,7 +1389,8 @@ const TEST_CASES = [
     env.reportError("Failed to invoke trigger", _exc_);
   }`]],
 
-    [`monitor (@twitter.source() join @com.bing.web_search(query="foo")) => notify;`, [`"use strict";
+    [`monitor (@twitter.source() join @com.bing.web_search(query="foo")) => notify;`,
+    [`"use strict";
   let _t_0;
   let _t_1;
   let _t_2;
@@ -1290,6 +1433,7 @@ const TEST_CASES = [
   let _t_39;
   let _t_40;
   let _t_41;
+  let _t_42;
   _t_0 = yield env.readState(0);
   _t_1 = function*(emit) {
     _t_2 = yield env.readState(1);
@@ -1339,7 +1483,7 @@ const TEST_CASES = [
           _t_23 = _t_21[1];
           _t_24 = _t_23.title;
           _t_25 = _t_23.description;
-          _t_26 = __builtin.isNewTuple(_t_17, _t_23, ["title", "description"]);
+          _t_26 = __builtin.isNewTuple(_t_17, _t_23, ["query", "title", "description"]);
           _t_27 = __builtin.addTuple(_t_17, _t_23);
           yield env.writeState(2, _t_27);
           _t_17 = _t_27;
@@ -1362,19 +1506,20 @@ const TEST_CASES = [
       _t_29 = _iter_tmp.value;
       _t_30 = _t_29[0];
       _t_31 = _t_29[1];
-      _t_32 = _t_31.title;
-      _t_33 = _t_31.description;
-      _t_34 = _t_31.text;
-      _t_35 = _t_31.hashtags;
-      _t_36 = _t_31.urls;
-      _t_37 = _t_31.from;
-      _t_38 = _t_31.inReplyTo;
-      _t_39 = _t_31.__reserved;
-      _t_40 = __builtin.isNewTuple(_t_0, _t_31, ["title", "description", "text", "hashtags", "urls", "from", "inReplyTo", "__reserved"]);
-      _t_41 = __builtin.addTuple(_t_0, _t_31);
-      yield env.writeState(0, _t_41);
-      _t_0 = _t_41;
-      if (_t_40) {
+      _t_32 = _t_31.query;
+      _t_33 = _t_31.title;
+      _t_34 = _t_31.description;
+      _t_35 = _t_31.text;
+      _t_36 = _t_31.hashtags;
+      _t_37 = _t_31.urls;
+      _t_38 = _t_31.from;
+      _t_39 = _t_31.inReplyTo;
+      _t_40 = _t_31.__reserved;
+      _t_41 = __builtin.isNewTuple(_t_0, _t_31, ["query", "title", "description", "text", "hashtags", "urls", "from", "inReplyTo", "__reserved"]);
+      _t_42 = __builtin.addTuple(_t_0, _t_31);
+      yield env.writeState(0, _t_42);
+      _t_0 = _t_42;
+      if (_t_41) {
         try {
           yield env.output(String(_t_30), _t_31);
         } catch(_exc_) {
@@ -1387,7 +1532,8 @@ const TEST_CASES = [
     }
   }`]],
 
-    [`monitor (@twitter.source() join @com.bing.web_search(query="foo")), text =~ "lol" => notify;`, [`"use strict";
+    [`monitor (@twitter.source() join @com.bing.web_search(query="foo")), text =~ "lol" => notify;`,
+    [`"use strict";
   let _t_0;
   let _t_1;
   let _t_2;
@@ -1432,6 +1578,7 @@ const TEST_CASES = [
   let _t_41;
   let _t_42;
   let _t_43;
+  let _t_44;
   _t_0 = yield env.readState(0);
   _t_1 = function*(emit) {
     _t_2 = yield env.readState(1);
@@ -1481,7 +1628,7 @@ const TEST_CASES = [
           _t_23 = _t_21[1];
           _t_24 = _t_23.title;
           _t_25 = _t_23.description;
-          _t_26 = __builtin.isNewTuple(_t_17, _t_23, ["title", "description"]);
+          _t_26 = __builtin.isNewTuple(_t_17, _t_23, ["query", "title", "description"]);
           _t_27 = __builtin.addTuple(_t_17, _t_23);
           yield env.writeState(2, _t_27);
           _t_17 = _t_27;
@@ -1504,22 +1651,23 @@ const TEST_CASES = [
       _t_29 = _iter_tmp.value;
       _t_30 = _t_29[0];
       _t_31 = _t_29[1];
-      _t_32 = _t_31.title;
-      _t_33 = _t_31.description;
-      _t_34 = _t_31.text;
-      _t_35 = _t_31.hashtags;
-      _t_36 = _t_31.urls;
-      _t_37 = _t_31.from;
-      _t_38 = _t_31.inReplyTo;
-      _t_39 = _t_31.__reserved;
-      _t_40 = __builtin.isNewTuple(_t_0, _t_31, ["title", "description", "text", "hashtags", "urls", "from", "inReplyTo", "__reserved"]);
-      _t_41 = __builtin.addTuple(_t_0, _t_31);
-      yield env.writeState(0, _t_41);
-      _t_0 = _t_41;
-      if (_t_40) {
-        _t_43 = "lol";
-        _t_42 = __builtin.like(_t_34, _t_43);
-        if (_t_42) {
+      _t_32 = _t_31.query;
+      _t_33 = _t_31.title;
+      _t_34 = _t_31.description;
+      _t_35 = _t_31.text;
+      _t_36 = _t_31.hashtags;
+      _t_37 = _t_31.urls;
+      _t_38 = _t_31.from;
+      _t_39 = _t_31.inReplyTo;
+      _t_40 = _t_31.__reserved;
+      _t_41 = __builtin.isNewTuple(_t_0, _t_31, ["query", "title", "description", "text", "hashtags", "urls", "from", "inReplyTo", "__reserved"]);
+      _t_42 = __builtin.addTuple(_t_0, _t_31);
+      yield env.writeState(0, _t_42);
+      _t_0 = _t_42;
+      if (_t_41) {
+        _t_44 = "lol";
+        _t_43 = __builtin.like(_t_35, _t_44);
+        if (_t_43) {
           try {
             yield env.output(String(_t_30), _t_31);
           } catch(_exc_) {
@@ -1535,7 +1683,8 @@ const TEST_CASES = [
     }
   }`]],
 
-    [`now => @twitter.source() join @com.bing.web_search() on (query=text) => notify;`, [`"use strict";
+    [`now => @twitter.source() join @com.bing.web_search() on (query=text) => notify;`,
+    [`"use strict";
   let _t_0;
   let _t_1;
   let _t_2;
@@ -1566,6 +1715,7 @@ const TEST_CASES = [
   let _t_27;
   let _t_28;
   let _t_29;
+  let _t_30;
   try {
     _t_0 = {};
     _t_1 = yield env.invokeQuery(0, _t_0);
@@ -1597,6 +1747,7 @@ const TEST_CASES = [
               _t_19 = _t_17.description;
               _t_20 = __builtin.combineOutputTypes(_t_4, _t_16);
               _t_21 = {};
+              _t_21.query = _t_6;
               _t_21.title = _t_18;
               _t_21.description = _t_19;
               _t_21.text = _t_6;
@@ -1605,14 +1756,15 @@ const TEST_CASES = [
               _t_21.from = _t_9;
               _t_21.inReplyTo = _t_10;
               _t_21.__reserved = _t_11;
-              _t_22 = _t_21.title;
-              _t_23 = _t_21.description;
-              _t_24 = _t_21.text;
-              _t_25 = _t_21.hashtags;
-              _t_26 = _t_21.urls;
-              _t_27 = _t_21.from;
-              _t_28 = _t_21.inReplyTo;
-              _t_29 = _t_21.__reserved;
+              _t_22 = _t_21.query;
+              _t_23 = _t_21.title;
+              _t_24 = _t_21.description;
+              _t_25 = _t_21.text;
+              _t_26 = _t_21.hashtags;
+              _t_27 = _t_21.urls;
+              _t_28 = _t_21.from;
+              _t_29 = _t_21.inReplyTo;
+              _t_30 = _t_21.__reserved;
               try {
                 yield env.output(String(_t_20), _t_21);
               } catch(_exc_) {
@@ -1631,7 +1783,8 @@ const TEST_CASES = [
     env.reportError("Failed to invoke query", _exc_);
   }`]],
 
-    [`now => @twitter.source() join @com.bing.web_search(query="foo") => notify;`, [`"use strict";
+    [`now => @twitter.source() join @com.bing.web_search(query="foo") => notify;`,
+    [`"use strict";
   let _t_0;
   let _t_1;
   let _t_2;
@@ -1667,6 +1820,7 @@ const TEST_CASES = [
   let _t_32;
   let _t_33;
   let _t_34;
+  let _t_35;
   _t_0 = function*(emit) {
     try {
       _t_1 = {};
@@ -1722,14 +1876,15 @@ const TEST_CASES = [
       _t_24 = _iter_tmp.value;
       _t_25 = _t_24[0];
       _t_26 = _t_24[1];
-      _t_27 = _t_26.title;
-      _t_28 = _t_26.description;
-      _t_29 = _t_26.text;
-      _t_30 = _t_26.hashtags;
-      _t_31 = _t_26.urls;
-      _t_32 = _t_26.from;
-      _t_33 = _t_26.inReplyTo;
-      _t_34 = _t_26.__reserved;
+      _t_27 = _t_26.query;
+      _t_28 = _t_26.title;
+      _t_29 = _t_26.description;
+      _t_30 = _t_26.text;
+      _t_31 = _t_26.hashtags;
+      _t_32 = _t_26.urls;
+      _t_33 = _t_26.from;
+      _t_34 = _t_26.inReplyTo;
+      _t_35 = _t_26.__reserved;
       try {
         yield env.output(String(_t_25), _t_26);
       } catch(_exc_) {
@@ -1738,7 +1893,6 @@ const TEST_CASES = [
       _iter_tmp = yield _t_23.next();
     }
   }`]],
-
 
   [`(attimer(time=makeTime(20, 10)) join @com.thecatapi(id="com.thecatapi").get()) => @com.gmail(id="xxxx").send_picture(to="xxxx"^^tt:email_address, subject="xxx", message="xxx", picture_url=picture_url);`,
   [`"use strict";
@@ -1762,6 +1916,8 @@ const TEST_CASES = [
   let _t_17;
   let _t_18;
   let _t_19;
+  let _t_20;
+  let _t_21;
   try {
     _t_1 = new __builtin.Time(20, 10, 0);
     _t_0 = yield env.invokeAtTimer(_t_1);
@@ -1779,26 +1935,29 @@ const TEST_CASES = [
               _t_6 = _iter_tmp.value;
               _t_7 = _t_6[0];
               _t_8 = _t_6[1];
-              _t_9 = _t_8.image_id;
-              _t_10 = _t_8.picture_url;
-              _t_11 = _t_8.link;
-              _t_12 = {};
-              _t_12.image_id = _t_9;
-              _t_12.picture_url = _t_10;
-              _t_12.link = _t_11;
-              _t_13 = _t_12.image_id;
-              _t_14 = _t_12.picture_url;
-              _t_15 = _t_12.link;
+              _t_9 = _t_8.count;
+              _t_10 = _t_8.image_id;
+              _t_11 = _t_8.picture_url;
+              _t_12 = _t_8.link;
+              _t_13 = {};
+              _t_13.count = _t_9;
+              _t_13.image_id = _t_10;
+              _t_13.picture_url = _t_11;
+              _t_13.link = _t_12;
+              _t_14 = _t_13.count;
+              _t_15 = _t_13.image_id;
+              _t_16 = _t_13.picture_url;
+              _t_17 = _t_13.link;
               try {
-                _t_16 = {};
-                _t_17 = new __builtin.Entity("xxxx", null);
-                _t_16.to = _t_17;
-                _t_18 = "xxx";
-                _t_16.subject = _t_18;
-                _t_19 = "xxx";
-                _t_16.message = _t_19;
-                _t_16.picture_url = _t_14;
-                yield env.invokeAction(1, _t_16);
+                _t_18 = {};
+                _t_19 = new __builtin.Entity("xxxx", null);
+                _t_18.to = _t_19;
+                _t_20 = "xxx";
+                _t_18.subject = _t_20;
+                _t_21 = "xxx";
+                _t_18.message = _t_21;
+                _t_18.picture_url = _t_16;
+                yield env.invokeAction(1, _t_18);
               } catch(_exc_) {
                 env.reportError("Failed to invoke action", _exc_);
               }
@@ -1814,7 +1973,6 @@ const TEST_CASES = [
   } catch(_exc_) {
     env.reportError("Failed to invoke at-timer", _exc_);
   }`]],
-
 
     [`{
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
