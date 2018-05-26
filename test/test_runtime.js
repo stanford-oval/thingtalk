@@ -13,6 +13,7 @@ const Q = require('q');
 Q.longStackSupport = true;
 const assert = require('assert');
 
+require('../lib/ast_api');
 const Compiler = require('../lib/compiler');
 const SchemaRetriever = require('../lib/schema');
 
@@ -30,6 +31,11 @@ class MockExecEnvironment extends ExecEnvironment {
         this._trigger = triggerdata;
         this._query = querydata;
         this._actions = outputdata;
+
+        this._states = [];
+        this._states.length = compiledrule.states;
+        for (let i = 0; i < this._states.length; i++)
+            this._states[i] = null;
     }
 
     /* istanbul ignore next */
@@ -107,11 +113,13 @@ class MockExecEnvironment extends ExecEnvironment {
 
     /* istanbul ignore next */
     readState(stateId) {
-        return null;
+        return this._states[stateId];
     }
     /* istanbul ignore next */
     writeState(stateId, value) {
-        // do nothing
+        assert(value.length >= 0);
+        assert(value.length <= 3);
+        return this._states[stateId] = value;
     }
 
     reportError(message, err) {
@@ -419,6 +427,88 @@ some alt text` }
      type: 'action',
      fn: 'com.twitter:post',
      params: { status: 'Douglas Engelbart (1925-2013)' }
+    },
+    ]],
+
+    [`monitor @com.xkcd.get_comic(), number >= 1234 => @com.twitter.post(status=title);`,
+    { fn: 'com.xkcd:get_comic',
+      value: [
+        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+          link: 'https://xkcd.com/1234/',
+          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
+        { __timestamp: 1, number: 1235, title: 'Settled',
+          link: 'https://xkcd.com/1235/',
+          picture_url: 'https://imgs.xkcd.com/comics/settled.png' },
+        { __timestamp: 2, number: 1236, title: 'Seashell',
+          link: 'https://xkcd.com/1236/',
+          picture_url: 'https://imgs.xkcd.com/comics/seashell_2x.png' },
+        { __timestamp: 3, number: 1237, title: 'QR Code',
+          link: 'https://xkcd.com/1237/',
+          picture_url: 'https://imgs.xkcd.com/comics/qr_code_2x.png' },
+      ]
+    },
+    {},
+    [
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'Douglas Engelbart (1925-2013)' }
+    },
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'Settled' }
+    },
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'Seashell' }
+    },
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'QR Code' }
+    },
+    ]],
+
+    [`monitor @com.xkcd.get_comic(), number >= 1234 => @com.twitter.post(status=title);`,
+    { fn: 'com.xkcd:get_comic',
+      value: [
+        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+          link: 'https://xkcd.com/1234/',
+          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
+        { __timestamp: 1, number: 1235, title: 'Settled',
+          link: 'https://xkcd.com/1235/',
+          picture_url: 'https://imgs.xkcd.com/comics/settled.png' },
+        { __timestamp: 2, number: 1236, title: 'Seashell',
+          link: 'https://xkcd.com/1236/',
+          picture_url: 'https://imgs.xkcd.com/comics/seashell_2x.png' },
+        { __timestamp: 2, number: 1237, title: 'QR Code',
+          link: 'https://xkcd.com/1237/',
+          picture_url: 'https://imgs.xkcd.com/comics/qr_code_2x.png' },
+      ]
+    },
+    {},
+    [
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'Douglas Engelbart (1925-2013)' }
+    },
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'Settled' }
+    },
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'Seashell' }
+    },
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'QR Code' }
     },
     ]],
 
