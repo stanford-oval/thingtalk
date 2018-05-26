@@ -141,7 +141,14 @@ var TEST_CASES = [
     ['now => @org.thingpedia.builtin.thingengine.phone.sms() => notify;',
     'get your SMS and then notify you', 'Phone ⇒ Notification'],
     ['now => @org.thingpedia.builtin.thingengine.phone.set_ringer(mode=enum(vibrate));',
-    'set your phone to vibrate', 'Phone']
+    'set your phone to vibrate', 'Phone'],
+
+    ['now => (@com.bing.web_search() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code("Italian")) on (text=$event)) => notify;',
+    'get websites matching ____ on Bing and the translation of the result to Italian and then notify you',
+    'Bing ⇒ Yandex Translate ⇒ Notification'],
+    ['monitor @com.bing.web_search() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code("Italian")) on (text=$event) => notify;',
+    'notify you when websites matching ____ on Bing change and then get the translation of the result to Italian',
+    'Bing ⇒ Yandex Translate ⇒ Notification']
 ];
 
 const gettext = {

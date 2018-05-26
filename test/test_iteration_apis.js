@@ -112,19 +112,21 @@ var TEST_CASES = [
      'Builtin undefined:notify']],
 
     [`(monitor @com.washingtonpost.get_article() join @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code) on (text=title)) => notify;`,
-    ['table: Invocation(Device(com.washingtonpost, , ), get_article, , )',
+    ['table: Invocation(Device(com.washingtonpost, , ), get_article, InputParam(section, Undefined(true)), )',
      'table: Invocation(Device(com.yandex.translate, , ), translate, InputParam(target_language, Entity(zh, tt:iso_lang_code, )), )',
      'action: Invocation(Builtin, notify, , )'],
     ['Device(com.washingtonpost, , ) com.washingtonpost:get_article',
+     'InputParam(section, Undefined(true)) com.washingtonpost:get_article',
      'Device(com.yandex.translate, , ) com.yandex.translate:translate',
      'InputParam(target_language, Entity(zh, tt:iso_lang_code, )) com.yandex.translate:translate',
      'Builtin undefined:notify']],
 
     [`monitor (@com.washingtonpost.get_article() join @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code) on (text=title)) => notify;`,
-    ['table: Invocation(Device(com.washingtonpost, , ), get_article, , )',
+    ['table: Invocation(Device(com.washingtonpost, , ), get_article, InputParam(section, Undefined(true)), )',
      'table: Invocation(Device(com.yandex.translate, , ), translate, InputParam(target_language, Entity(zh, tt:iso_lang_code, )), )',
      'action: Invocation(Builtin, notify, , )'],
     ['Device(com.washingtonpost, , ) com.washingtonpost:get_article',
+     'InputParam(section, Undefined(true)) com.washingtonpost:get_article',
      'Device(com.yandex.translate, , ) com.yandex.translate:translate',
      'InputParam(target_language, Entity(zh, tt:iso_lang_code, )) com.yandex.translate:translate',
      'Builtin undefined:notify']],
@@ -169,6 +171,7 @@ var TEST_CASES = [
      'InputParam(section, Enum(world)) com.washingtonpost:get_article',
      'Atom(title, =~, String(lol)) com.washingtonpost:get_article',
      'Builtin undefined:notify']],
+
     [`now => @com.washingtonpost.get_article(section=enum(world)), title =~ "lol" || title =~ "bar" => notify;`,
     ['table: Invocation(Device(com.washingtonpost, , ), get_article, InputParam(section, Enum(world)), )',
      'action: Invocation(Builtin, notify, , )'],
@@ -177,6 +180,26 @@ var TEST_CASES = [
      'Atom(title, =~, String(lol)) com.washingtonpost:get_article',
      'Atom(title, =~, String(bar)) com.washingtonpost:get_article',
      'Builtin undefined:notify']],
+
+    ['now => (@com.bing.web_search() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code("Italian")) on (text=$event)) => notify;',
+    ['table: Invocation(Device(com.bing, , ), web_search, InputParam(query, Undefined(true)), )',
+     'table: Invocation(Device(com.yandex.translate, , ), translate, InputParam(target_language, Entity(it, tt:iso_lang_code, Italian)), )',
+     'action: Invocation(Builtin, notify, , )'],
+    ['Device(com.bing, , ) com.bing:web_search',
+     'InputParam(query, Undefined(true)) com.bing:web_search',
+     'Device(com.yandex.translate, , ) com.yandex.translate:translate',
+     'InputParam(target_language, Entity(it, tt:iso_lang_code, Italian)) com.yandex.translate:translate',
+     'Builtin undefined:notify']],
+
+    ['monitor @com.bing.web_search() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code("Italian")) on (text=$event) => notify;',
+    ['table: Invocation(Device(com.bing, , ), web_search, InputParam(query, Undefined(true)), )',
+     'table: Invocation(Device(com.yandex.translate, , ), translate, InputParam(target_language, Entity(it, tt:iso_lang_code, Italian)), )',
+     'action: Invocation(Builtin, notify, , )'],
+    ['Device(com.bing, , ) com.bing:web_search',
+     'InputParam(query, Undefined(true)) com.bing:web_search',
+     'Device(com.yandex.translate, , ) com.yandex.translate:translate',
+     'InputParam(target_language, Entity(it, tt:iso_lang_code, Italian)) com.yandex.translate:translate',
+     'Builtin undefined:notify']]
 ];
 
 function test(i) {
