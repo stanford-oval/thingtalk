@@ -25,4 +25,6 @@ require('./test_declaration_program');
 require('./test_convert_program_to_policy');
 require('./test_iteration_apis');
 require('./test_runtime');
+require('./test_formatter');
+require('./test_formatter_api');
 //require('./test_sql_compiler');
