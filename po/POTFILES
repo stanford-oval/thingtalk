@@ -6,14 +6,11 @@ lib/describe.js
 lib/exec_environment.js
 lib/formatter.js
 lib/generate.js
-lib/gen_random_rule.js
-lib/gen_random_value.js
 lib/grammar.js
 lib/grammar_api.js
 lib/internal.js
 lib/ir.js
 lib/jsir.js
-lib/multimap.js
 lib/optimize.js
 lib/permission_checker.js
 lib/prettyprint.js
