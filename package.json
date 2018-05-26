@@ -35,5 +35,12 @@
     "lint": "eslint ./lib",
     "test": "nyc node ./test/test_all",
     "coverage": "nyc report --reporter=text-lcov | coveralls"
+  },
+  "nyc": {
+    "exclude": [
+      "lib/grammar.js",
+      "test/**",
+      "coverage/**"
+    ]
   }
 }
