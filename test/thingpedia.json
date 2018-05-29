@@ -2,6 +2,45 @@
     "result": "ok",
     "data": [
         {
+            "id": 0,
+            "kind": "org.thingpedia.invalid",
+            "kind_type": "primary",
+            "owner": 1,
+            "version": 0,
+            "developer_version": 24,
+            "approved_version": null,
+            "triggers": {},
+            "queries": {
+                "get": {
+                    "schema": [
+                        "Invalid"
+                    ],
+                    "args": [
+                        "value"
+                    ],
+                    "required": [
+                        false
+                    ],
+                    "is_input": [
+                        false
+                    ],
+                    "is_list": true,
+                    "is_monitorable": true,
+                    "confirmation": "",
+                    "confirmation_remote": "",
+                    "doc": "",
+                    "canonical": "",
+                    "argcanonicals": [
+                        "value"
+                    ],
+                    "questions": [
+                        ""
+                    ]
+                }
+            },
+            "actions": {}
+        },
+        {
             "id": 1,
             "kind": "com.bodytrace.scale",
             "kind_type": "primary",

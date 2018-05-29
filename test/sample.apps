@@ -1,5 +1,11 @@
 // -* mode: js -*-
 
+// InvalidType
+// ** typecheck: expect TypeError **
+now => @org.thingpedia.invalid.get() => notify;
+
+====
+
 // Array
 monitor @com.twitter.home_timeline(), in_array(author, ["alice"^^tt:username, "bob"^^tt:username])  => notify;
 
@@ -501,3 +507,4 @@ now => @security-camera.set_power(power=enum(on));
 
 // ** typecheck: expect TypeError **
 now => notify; 
+
