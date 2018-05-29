@@ -6,6 +6,18 @@ now => @org.thingpedia.invalid.get() => notify;
 
 ====
 
+// InvalidType2
+// ** typecheck: expect TypeError **
+now => @org.thingpedia.invalid2.get() => notify;
+
+====
+
+// InvalidType3
+// ** typecheck: expect TypeError **
+now => @org.thingpedia.builtin.test.invalid() => notify;
+
+====
+
 // Array
 monitor @com.twitter.home_timeline(), in_array(author, ["alice"^^tt:username, "bob"^^tt:username])  => notify;
 
@@ -32,7 +44,7 @@ monitor @com.twitter.home_timeline(), @org.thingpedia.builtin.thingengine.builti
 
 ====
 
-// ** typecheck: expect Error **
+// ** typecheck: expect TypeError **
 // TestInvalidExternalPredicate3
 monitor @com.twitter.home_timeline(), @com.twitter.post() { text =~ "lol" } => notify;
 
