@@ -6,9 +6,19 @@
 
 ThingTalk is the declarative (rule-based) distributed programming
 language for virtual assistants. It connects to multiple web services
-and IoT devices.
+and IoT devices in a single _when-get-do_ statement.
 
-It is the language component of the Almond virtual assistant.
+For example, in ThingTalk you can say:
+```
+monitor (@com.washingtonpost.get_article(section=enum(world))) join @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code) on (text=title) =>
+@com.facebook.post(status=$event);
+```
+
+This program automatically monitors Washington Post headlines, translates them to Chinese, and then posts them on Facebook.
+It does so by referring to primitives defined in [Thingpedia](https://thingpedia.stanford.edu), an open-source crowdsourced repository of APIs and metadata.
+
+ThingTalk the language component of the Almond virtual assistant.
+You can find a guide to the ThingTalk language on the [Almond website](https://almond.stanford.edu/thingpedia/developers/thingtalk-intro.md).
 
 This package contains the grammar, the compiler of the language,
 the interface to analyze programs using SMT, the code to translate
@@ -26,5 +36,5 @@ from Stanford University.  You can find more information at
 
 ## License
 
-This package is covered by the GNU General Public License, version 2
-or any later version.
+This package is covered by the GNU General Public License, version 3
+or any later version. See [LICENSE] for details.

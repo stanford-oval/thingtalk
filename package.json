@@ -2,7 +2,9 @@
   "name": "thingtalk",
   "version": "1.0.0",
   "description": "ThingTalk Just-In-Time Compiler, Library and Runtime",
-  "author": "Stanford Mobisocial lab",
+  "license": "GPL-3.0-or-later",
+  "repository": "https://github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk",
+  "author": "Stanford University Mobile and Social Computing Lab",
   "contributors": [
     {
       "name": "Giovanni Campagna",

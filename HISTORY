@@ -1,0 +1,6 @@
+1.0.0
+=====
+
+* First official release
+* Includes the ThingTalk language, compiler, and library to manipulate ThingTalk programs
+* Includes a preview (not yet stable) of the Comma extensions for ThingTalk
