@@ -4,7 +4,6 @@ const Q = require('q');
 const fs = require('fs');
 
 const AppGrammar = require('../lib/grammar_api');
-const Generate = require('../lib/generate');
 const SchemaRetriever = require('../lib/schema');
 
 const _mockSchemaDelegate = require('./mock_schema_delegate');
@@ -24,7 +23,7 @@ function typecheckTest() {
             }
 
             try {
-                Array.from(Generate.iterateSlots(program));
+                Array.from(program.iterateSlots());
             } catch(e) {
                 console.error('Iterate slots failed');
                 console.log('Code:');

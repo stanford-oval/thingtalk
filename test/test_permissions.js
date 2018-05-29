@@ -136,7 +136,7 @@ function main() {
             return checker.check(principal, Grammar.parse(input)).then((prog) => {
                 if (prog) {
                     console.log('Program accepted');
-                    let code = Ast.prettyprint(prog, true);
+                    let code = prog.prettyprint(true);
                     if (code !== expected) {
                         console.error('Test case #' + (i+1) + ' FAIL');
                         console.error('Program does not match what expected');

@@ -13,9 +13,7 @@ require('./polyfill');
 
 const Q = require('q');
 Q.longStackSupport = true;
-const Generate = require('../lib/generate');
 const Grammar = require('../lib/grammar_api');
-const Ast = require('../lib/ast');
 const SchemaRetriever = require('../lib/schema');
 
 const _mockSchemaDelegate = require('./mock_schema_delegate');
@@ -60,8 +58,8 @@ function test(i) {
     var [code, expected] = TEST_CASES[i];
 
     return Grammar.parseAndTypecheck(code, schemaRetriever, true).then((prog) => {
-        let rule = Generate.convertProgramToPermissionRule('test-account:foobar', 'Bob', prog);
-        let tt = Ast.prettyprintPermissionRule(rule, true);
+        let rule = prog.convertToPermissionRule('test-account:foobar', 'Bob');
+        let tt = rule.prettyprint(true);
 
         if (expected !== tt) {
             console.error('Test Case #' + (i+1) + ': does not match what expected');

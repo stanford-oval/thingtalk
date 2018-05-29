@@ -243,13 +243,6 @@ function typeCheck(what, schemaRetriever) {
         return typeCheckPermissionRule(what, schemaRetriever);
 }
 
-function prettyprint(what) {
-    if (what instanceof Ast.Program)
-        return Ast.prettyprint(what, true);
-    else
-        return Ast.prettyprintPermissionRule(what);
-}
-
 function testCase(test, i) {
     let [sequence, entities, expected] = test;
 
@@ -257,7 +250,7 @@ function testCase(test, i) {
     return Q.try(() => {
         sequence = sequence.split(' ');
         let program = NNSyntax.fromNN(sequence, entities);
-        let generated = prettyprint(program);
+        let generated = program.prettyprint(true);
 
         if (generated !== expected) {
             console.error('Test Case #' + (i+1) + ' failed (wrong program)');

@@ -52,7 +52,7 @@ function parserTest() {
         }
 
         try {
-            Array.from(Generate.iteratePrimitives(ast));
+            Array.from(ast.iteratePrimitives());
         } catch(e) {
             console.error('Iterate primitives failed');
             console.log('Code:');

@@ -11,9 +11,7 @@
 
 const Q = require('q');
 Q.longStackSupport = true;
-const Generate = require('../lib/generate');
 const Grammar = require('../lib/grammar_api');
-const Ast = require('../lib/ast');
 const SchemaRetriever = require('../lib/schema');
 
 const _mockSchemaDelegate = require('./mock_schema_delegate');
@@ -39,8 +37,8 @@ function test(i) {
     var [code, expected] = TEST_CASES[i];
 
     return Grammar.parseAndTypecheck(code, schemaRetriever, true).then((prog) => {
-        let program = Generate.declarationProgram(prog.declarations[0]);
-        let tt = Ast.prettyprint(program, true);
+        let program = prog.declarations[0].toProgram();
+        let tt = program.prettyprint(true);
 
         if (expected !== tt) {
 

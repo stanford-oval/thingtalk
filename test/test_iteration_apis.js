@@ -207,10 +207,10 @@ function test(i) {
     var [code, expectedPrim, expectedSlots] = TEST_CASES[i];
 
     return Grammar.parseAndTypecheck(code, schemaRetriever, true).then((prog) => {
-        const generatedSlots = Array.from(Generate.iterateSlots(prog)).map(([schema, slot, prim, scope]) => {
+        const generatedSlots = Array.from(prog.iterateSlots()).map(([schema, slot, prim, scope]) => {
             return `${slot} ${prim.selector.kind}:${prim.channel}`;
         });
-        const generatedPrims = Array.from(Generate.iteratePrimitives(prog)).map(([primType, prim]) => {
+        const generatedPrims = Array.from(prog.iteratePrimitives()).map(([primType, prim]) => {
             prim.schema = null;
             return `${primType}: ${prim}`;
         });

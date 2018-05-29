@@ -87,7 +87,7 @@ function test(i) {
 
     return AppGrammar.parseAndTypecheck(testCase, schemaRetriever).then((prog) => {
         let newprogram = prog;
-        let sendprograms = Generate.lowerReturn(_mockMessaging, prog);
+        let sendprograms = prog.lowerReturn(_mockMessaging);
 
         newprogram = safePrettyprint(newprogram);
         AppGrammar.parse(newprogram);
