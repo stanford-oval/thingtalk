@@ -30,6 +30,9 @@ var TEST_CASES = [
     'now => @com.bing.web_search(query=__const_SLOT_0) => notify;'],
     [`let table x := \\(p_query : String, p_width : Number) -> @com.bing.image_search(query=p_query), width >= p_width;`,
     'now => (@com.bing.image_search(query=__const_SLOT_0)), width >= __const_SLOT_1 => notify;'],
+
+    [`let action x := \\(status : String) -> @com.twitter.post(status=status);`,
+    `now => @com.twitter.post(status=__const_SLOT_0);`]
 ];
 
 function test(i) {
@@ -41,7 +44,9 @@ function test(i) {
         let tt = program.prettyprint(true);
 
         if (expected !== tt) {
-
+            console.error('Test Case #' + (i+1) + ': does not match what expected');
+            console.error('Expected: ' + expected);
+            console.error('Generated: ' + tt);
             if (process.env.TEST_MODE)
                 throw new Error(`testDeclarationProgram ${i+1} FAILED`);
         }

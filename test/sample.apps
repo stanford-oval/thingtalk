@@ -520,3 +520,11 @@ now => @security-camera.set_power(power=enum(on));
 // ** typecheck: expect TypeError **
 now => notify; 
 
+====
+
+let action x := \(status : String) -> @com.twitter.post(status=status);
+
+====
+
+// ** typecheck: expect TypeError **
+let action x := \(status : Number) -> @com.twitter.post(status=status);
