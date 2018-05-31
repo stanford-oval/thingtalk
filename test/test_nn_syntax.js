@@ -13,8 +13,6 @@ const Q = require('q');
 
 const NNSyntax = require('../lib/nn_syntax');
 //const NNOutputParser = require('../lib/nn_output_parser');
-const Ast = require('../lib/ast');
-const { typeCheckProgram, typeCheckPermissionRule } = require('../lib/typecheck');
 const SchemaRetriever = require('../lib/schema');
 
 const _mockSchemaDelegate = require('./mock_schema_delegate');
@@ -236,13 +234,6 @@ const TEST_CASES = [
      `now => @com.xkcd.get_comic(number=$undefined) => notify;`],*/
 ];
 
-function typeCheck(what, schemaRetriever) {
-    if (what instanceof Ast.Program)
-        return typeCheckProgram(what, schemaRetriever);
-    else
-        return typeCheckPermissionRule(what, schemaRetriever);
-}
-
 function testCase(test, i) {
     let [sequence, entities, expected] = test;
 
@@ -260,8 +251,7 @@ function testCase(test, i) {
                 throw new Error(`testNNSyntax ${i+1} FAILED`);
         }
 
-        return typeCheck(program, schemaRetriever).then(() => {
-
+        return program.typecheck(schemaRetriever).then(() => {
             let reconstructed = NNSyntax.toNN(program, entities).join(' ');
             if (reconstructed !== test[0]) {
                 console.error('Test Case #' + (i+1) + ' failed (wrong NN syntax)');
