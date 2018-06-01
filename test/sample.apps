@@ -528,3 +528,7 @@ let action x := \(status : String) -> @com.twitter.post(status=status);
 
 // ** typecheck: expect TypeError **
 let action x := \(status : Number) -> @com.twitter.post(status=status);
+
+====
+
+now => @com.twitter.follow(user_name=null^^tt:username("donald trump"));

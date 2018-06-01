@@ -47,183 +47,203 @@ const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 const TEST_CASES = [
     [`monitor ( @com.xkcd.get_comic ) => notify`,
-     {},
+     `monitor xkcd`, {},
      `monitor (@com.xkcd.get_comic()) => notify;`
     ],
 
     [`now => @com.twitter.post param:status:String = QUOTED_STRING_0`,
-     {'QUOTED_STRING_0': 'hello'},
+     `tweet QUOTED_STRING_0`, {'QUOTED_STRING_0': 'hello'},
      `now => @com.twitter.post(status="hello");`
     ],
 
     [`now => @com.twitter.post param:status:String = ""`,
-     {},
+     `post on twitter`, {},
      `now => @com.twitter.post(status="");`
     ],
 
     [`now => @com.xkcd.get_comic param:number:Number = NUMBER_0 => notify`,
-     {'NUMBER_0': 1234},
+     `get xkcd NUMBER_0`, {'NUMBER_0': 1234},
      `now => @com.xkcd.get_comic(number=1234) => notify;`],
 
     [`now => ( @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_1 param:low:Number = NUMBER_0 ) join ( @com.xkcd.get_comic ) on param:number:Number = param:random:Number => notify`,
-    {'NUMBER_0': 55, 'NUMBER_1': 1024},
+    `get xkcd whose number is a random number between NUMBER_0 and NUMBER_1`, {'NUMBER_0': 55, 'NUMBER_1': 1024},
     `now => (@org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55) join @com.xkcd.get_comic() on (number=random)) => notify;`],
 
     [`( ( timer base = now , interval = 1 unit:hour ) join ( @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_1 param:low:Number = NUMBER_0 ) ) join ( @com.xkcd.get_comic ) on param:number:Number = param:random:Number => notify`,
-    {'NUMBER_0': 55, 'NUMBER_1': 1024},
+    `every hour get xkcd whose number is a random number between NUMBER_0 and NUMBER_1`, {'NUMBER_0': 55, 'NUMBER_1': 1024},
     `((timer(base=makeDate(), interval=1hour) join @org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55)) join @com.xkcd.get_comic() on (number=random)) => notify;`],
 
     [`now => @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_1 param:low:Number = NUMBER_0 => notify`,
-    {'NUMBER_0': 55, 'NUMBER_1': 1024},
+    `get a random number between NUMBER_0 and NUMBER_1`,{'NUMBER_0': 55, 'NUMBER_1': 1024},
     `now => @org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55) => notify;`],
 
     [`now => @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_0 param:low:Number = NUMBER_1 => notify`,
-    {'NUMBER_0': 1024, 'NUMBER_1': 55},
+    `get xkcd whose number is a random number max is NUMBER_0 min is NUMBER_1`, {'NUMBER_0': 1024, 'NUMBER_1': 55},
     `now => @org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55) => notify;`],
 
     [`monitor ( @thermostat.get_temperature ) => notify`,
-    {},
+    `monitor thermostat`, {},
     `monitor (@thermostat.get_temperature()) => notify;`],
 
     [`monitor ( ( @thermostat.get_temperature ) filter param:value:Measure(C) > NUMBER_0 unit:F ) => notify`,
-    {'NUMBER_0': 70},
+    `notify me if the temperature is above NUMBER_0 degrees`, {'NUMBER_0': 70},
     `monitor ((@thermostat.get_temperature()), value > 70F) => notify;`],
 
     [`now => timeseries now , 1 unit:week of ( monitor ( @thermostat.get_temperature ) ) => notify`,
-    {},
+    `show me the temperature on the thermostat in the last week`, {},
     `now => timeseries makeDate(), 1week of monitor (@thermostat.get_temperature()) => notify;`],
 
     [`now => timeseries now , NUMBER_0 unit:week of ( monitor ( @thermostat.get_temperature ) ) => notify`,
-    {NUMBER_0: 2},
+    `show me the temperature on the thermostat in the last NUMBER_0 weeks`, {NUMBER_0: 2},
     `now => timeseries makeDate(), 2week of monitor (@thermostat.get_temperature()) => notify;`],
 
     [`now => ( @com.bing.image_search ) filter param:width:Number > NUMBER_0 or param:height:Number > NUMBER_1 => notify`,
-    {NUMBER_0: 100, NUMBER_1:200},
+    `search images wider than NUMBER_0 pixels or taller than NUMBER_1 pixels`, {NUMBER_0: 100, NUMBER_1:200},
     `now => (@com.bing.image_search()), (width > 100 || height > 200) => notify;`],
 
     [`now => ( @com.bing.image_search ) filter param:width:Number > NUMBER_0 or param:height:Number > NUMBER_1 and param:width:Number < NUMBER_2 => notify`,
-    {NUMBER_0: 100, NUMBER_1:200, NUMBER_2: 500},
+    `search images wider than NUMBER_0 pixels or taller than NUMBER_1 pixels and narrower than NUMBER_2 pixels`, {NUMBER_0: 100, NUMBER_1:200, NUMBER_2: 500},
     `now => (@com.bing.image_search()), ((width > 100 || height > 200) && width < 500) => notify;`],
 
     [`now => ( @com.bing.image_search ) filter param:width:Number > NUMBER_0 or param:height:Number > NUMBER_0 => notify`,
-    {NUMBER_0: 100},
+    `search images larger than NUMBER_0 pixels in either dimension`, {NUMBER_0: 100},
     `now => (@com.bing.image_search()), (width > 100 || height > 100) => notify;`],
 
     [`now => ( @com.bing.image_search ) filter param:width:Number > NUMBER_0 => notify`,
-    {NUMBER_0: 100 },
+    `search images wider than NUMBER_0 pixels`, {NUMBER_0: 100 },
     `now => (@com.bing.image_search()), width > 100 => notify;`],
 
     ['monitor ( @com.xkcd.get_comic ) on new param:title:String => notify',
-    {},
+    `monitor xkcd if the title changes`, {},
     `monitor (@com.xkcd.get_comic()) on new [title] => notify;`],
 
     ['monitor ( @com.xkcd.get_comic ) on new [ param:title:String , param:alt_text:String ] => notify',
-    {},
+    `monitor xkcd if the title or alt text changes`, {},
     `monitor (@com.xkcd.get_comic()) on new [title, alt_text] => notify;`],
 
     ['monitor ( ( @com.instagram.get_pictures param:count:Number = NUMBER_0 ) filter param:caption:String in_array [ QUOTED_STRING_0 , QUOTED_STRING_1 ] ) => notify',
-    {NUMBER_0: 100, QUOTED_STRING_0: 'abc', QUOTED_STRING_1: 'def'},
+    `monitor my last NUMBER_0 instagram pics if the caption is either QUOTED_STRING_0 or QUOTED_STRING_1`, {NUMBER_0: 100, QUOTED_STRING_0: 'abc', QUOTED_STRING_1: 'def'},
     `monitor ((@com.instagram.get_pictures(count=100)), in_array(caption, ["abc", "def"])) => notify;`],
 
     ['timer base = now , interval = DURATION_0 => notify',
-    {DURATION_0: { value: 2, unit: 'h'}},
+    `alert me every DURATION_0`, {DURATION_0: { value: 2, unit: 'h'}},
     `timer(base=makeDate(), interval=2h) => notify;`],
 
     ['monitor ( ( @com.phdcomics.get_post ) filter not param:title:String =~ QUOTED_STRING_0 ) => notify',
-    {QUOTED_STRING_0: 'abc'},
+    `monitor phd comics post that do n't have QUOTED_STRING_0 in the title`, {QUOTED_STRING_0: 'abc'}, //'
     `monitor ((@com.phdcomics.get_post()), !(title =~ "abc")) => notify;`],
 
     ['now => ( @com.uber.price_estimate param:end:Location = location:home param:start:Location = location:work ) filter param:low_estimate:Currency >= CURRENCY_0 => notify',
-    {CURRENCY_0: { value: 50, unit: 'usd' } },
+    `get an uber price estimate from home to work if the low estimate is greater than CURRENCY_0`, {CURRENCY_0: { value: 50, unit: 'usd' } },
     `now => (@com.uber.price_estimate(end=$context.location.home, start=$context.location.work)), low_estimate >= makeCurrency(50, usd) => notify;`],
 
     ['now => ( @com.uber.price_estimate ) filter param:uber_type:Enum(pool,uber_x,uber_xl,uber_black,select,suv,assist) == enum:uber_x => notify',
-    {},
+    `get a price estimate for uber x`, {},
     `now => (@com.uber.price_estimate()), uber_type == enum(uber_x) => notify;`],
 
     ['now => @org.thingpedia.builtin.thingengine.builtin.configure param:device:Entity(tt:device) = device:com.google',
-    {},
+    `configure google`, {},
     `now => @org.thingpedia.builtin.thingengine.builtin.configure(device="com.google"^^tt:device);`],
 
     ['now => ( @com.nytimes.get_front_page ) filter param:updated:Date >= now - DURATION_0 => notify',
-     { DURATION_0: { value: 2, unit: 'h' } },
+     `get new york times articles published in the last DURATION_0`, { DURATION_0: { value: 2, unit: 'h' } },
      `now => (@com.nytimes.get_front_page()), updated >= makeDate() - 2h => notify;`],
 
     [`executor = USERNAME_0 : now => @com.twitter.post`,
-     { USERNAME_0: 'bob' },
+     `ask USERNAME_0 to post on twitter`, { USERNAME_0: 'bob' },
      `executor = "bob"^^tt:username : now => @com.twitter.post();`],
 
     [`executor = USERNAME_0 : now => @com.xkcd.get_comic => notify`,
-     { USERNAME_0: 'bob' },
+     `ask USERNAME_0 to get xkcd`, { USERNAME_0: 'bob' },
      `executor = "bob"^^tt:username : now => @com.xkcd.get_comic() => notify;`],
 
     [`executor = USERNAME_0 : now => @com.xkcd.get_comic => return`,
-     { USERNAME_0: 'bob' },
+     `ask USERNAME_0 to get xkcd`, { USERNAME_0: 'bob' },
      `executor = "bob"^^tt:username : now => @com.xkcd.get_comic() => return;`],
 
     [`now => ( @security-camera.current_event ) filter @org.thingpedia.builtin.thingengine.phone.get_gps { not param:location:Location == location:home } => notify`,
-     {},
+     `show me my security camera if i 'm not home`, {}, //'
      `now => (@security-camera.current_event()), @org.thingpedia.builtin.thingengine.phone.get_gps() { !(location == $context.location.home) } => notify;`],
 
     [`policy true : now => @com.twitter.post`,
-    {},
+    `anyone can post on twitter`, {},
     `true : now => @com.twitter.post;`],
 
     [`policy true : now => @com.twitter.post filter param:status:String =~ QUOTED_STRING_0`,
-    { QUOTED_STRING_0: 'foo' },
+    `anyone can post on twitter if they put QUOTED_STRING_0 in the status`, { QUOTED_STRING_0: 'foo' },
     `true : now => @com.twitter.post, status =~ "foo";`],
 
     [`policy param:source:Entity(tt:contact) == USERNAME_0 : now => @com.twitter.post`,
-    { USERNAME_0: 'bob' },
+    `USERNAME_0 can post on twitter`, { USERNAME_0: 'bob' },
     `source == "bob"^^tt:username : now => @com.twitter.post;`],
 
     [`policy param:source:Entity(tt:contact) == USERNAME_0 : now => @com.twitter.post filter param:status:String =~ QUOTED_STRING_0`,
-    { USERNAME_0: 'bob', QUOTED_STRING_0: 'foo' },
+    `USERNAME_0 can post on twitter if he puts QUOTED_STRING_0 in the status`, { USERNAME_0: 'bob', QUOTED_STRING_0: 'foo' },
     `source == "bob"^^tt:username : now => @com.twitter.post, status =~ "foo";`],
 
     [`policy true : @com.bing.web_search => notify`,
-    {},
+    `anyone can search on bing`, {},
     `true : @com.bing.web_search => notify;`],
 
     [`policy true : @com.bing.web_search filter param:query:String =~ QUOTED_STRING_0 => notify`,
-    { QUOTED_STRING_0: 'foo' },
+    `anyone can search on bing if the query contains QUOTED_STRING_0`,{ QUOTED_STRING_0: 'foo' },
     `true : @com.bing.web_search, query =~ "foo" => notify;`],
 
     [`policy true : @com.bing.web_search filter param:description:String =~ QUOTED_STRING_0 => notify`,
-    { QUOTED_STRING_0: 'foo' },
+    `anyone can search on bing if the description contains QUOTED_STRING_0`, { QUOTED_STRING_0: 'foo' },
     `true : @com.bing.web_search, description =~ "foo" => notify;`],
 
     [`policy true : @com.bing.web_search filter param:description:String =~ QUOTED_STRING_0 => @com.twitter.post filter param:status:String =~ QUOTED_STRING_0`,
-    { QUOTED_STRING_0: 'foo' },
+    `anyone can search on bing if the description contains QUOTED_STRING_0 and then post on twitter if the status contains the same thing`, { QUOTED_STRING_0: 'foo' },
     `true : @com.bing.web_search, description =~ "foo" => @com.twitter.post, status =~ "foo";`],
 
     [`policy true : @com.bing.web_search filter @org.thingpedia.builtin.thingengine.phone.get_gps { not param:location:Location == location:home } and param:description:String =~ QUOTED_STRING_0 => notify`,
-    { QUOTED_STRING_0: 'foo' },
+    `anyone can search on bing if i am not at home and the description contains QUOTED_STRING_0`, { QUOTED_STRING_0: 'foo' },
     `true : @com.bing.web_search, (@org.thingpedia.builtin.thingengine.phone.get_gps() { !(location == $context.location.home) } && description =~ "foo") => notify;`],
 
     [`executor = USERNAME_0 : now => @com.twitter.post_picture`,
-     { USERNAME_0: 'mom' },
+     `USERNAME_0 can post pictures on twitter`, { USERNAME_0: 'mom' },
      `executor = "mom"^^tt:username : now => @com.twitter.post_picture();`],
 
     [`now => @org.thingpedia.weather.sunrise param:date:Date = DATE_0 => notify`,
-     { DATE_0: { year: 2018, month: 5, day: 23, hour: -1, minute: -1, second: -1 } },
+     `get sunrise sunset on date DATE_0`, { DATE_0: { year: 2018, month: 5, day: 23, hour: -1, minute: -1, second: -1 } },
      `now => @org.thingpedia.weather.sunrise(date=makeDate(1527058800000)) => notify;`],
 
     [`now => @org.thingpedia.weather.sunrise param:date:Date = DATE_0 => notify`,
-     { DATE_0: { year: 2018, month: 5, day: 23, hour: 10, minute: 40, second: 0 } },
+     `get sunrise sunset on date DATE_0`, { DATE_0: { year: 2018, month: 5, day: 23, hour: 10, minute: 40, second: 0 } },
      `now => @org.thingpedia.weather.sunrise(date=makeDate(1527097200000)) => notify;`],
 
     [`now => @org.thingpedia.weather.sunrise param:date:Date = DATE_0 => notify`,
-     { DATE_0: { year: 2018, month: 5, day: 23, hour: 10, minute: 40, second: -1 } },
+     `get sunrise sunset on date DATE_0`, { DATE_0: { year: 2018, month: 5, day: 23, hour: 10, minute: 40, second: -1 } },
      `now => @org.thingpedia.weather.sunrise(date=makeDate(1527097200000)) => notify;`],
 
     [`now => @org.thingpedia.weather.sunrise param:date:Date = DATE_0 => notify`,
-     { DATE_0: { year: 2018, month: 5, day: 23, hour: 10, minute: 40, second: 40.5 } },
+     `get sunrise sunset on date DATE_0`, { DATE_0: { year: 2018, month: 5, day: 23, hour: 10, minute: 40, second: 40.5 } },
      `now => @org.thingpedia.weather.sunrise(date=makeDate(1527097240500)) => notify;`],
 
     ['now => ( @com.bing.web_search ) join ( @com.yandex.translate.translate param:target_language:Entity(tt:iso_lang_code) = GENERIC_ENTITY_tt:iso_lang_code_0 ) on param:text:String = event => notify',
-    { 'GENERIC_ENTITY_tt:iso_lang_code_0': { value: 'it', display: "Italian" } },
-    `now => (@com.bing.web_search() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code("Italian")) on (text=$event)) => notify;`]
+    `translate web searches to GENERIC_ENTITY_tt:iso_lang_code_0`, { 'GENERIC_ENTITY_tt:iso_lang_code_0': { value: 'it', display: "Italian" } },
+    `now => (@com.bing.web_search() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code("Italian")) on (text=$event)) => notify;`],
+
+    ['now => ( @com.bing.web_search ) join ( @com.yandex.translate.translate param:target_language:Entity(tt:iso_lang_code) = " italian " ^^tt:iso_lang_code ) on param:text:String = event => notify',
+    `translate web searches to italian`, {},
+    `now => (@com.bing.web_search() join @com.yandex.translate.translate(target_language=null^^tt:iso_lang_code("italian")) on (text=$event)) => notify;`],
+
+    ['now => @com.bing.web_search param:query:String = " pizza " => notify',
+    `search pizza on bing`, {},
+    `now => @com.bing.web_search(query="pizza") => notify;`],
+
+    ['now => ( @com.twitter.search ) filter param:hashtags:Array(Entity(tt:hashtag)) contains " foo " ^^tt:hashtag => notify',
+    `search hashtag foo on twitter`, {},
+    `now => (@com.twitter.search()), contains(hashtags, "foo"^^tt:hashtag) => notify;`],
+
+    ['executor = " bob " ^^tt:username : now => @com.twitter.post',
+    `ask bob to post on twitter`, {},
+    `executor = "bob"^^tt:username : now => @com.twitter.post();`],
+
+    ['now => @com.twitter.follow param:user_name:Entity(tt:username) = " bob " ^^tt:username',
+    `follow bob on twitter`, {},
+    `now => @com.twitter.follow(user_name="bob"^^tt:username);`],
 
     /*[`now => @com.xkcd.get_comic param:number:Number = SLOT_0 => notify`,
      {'SLOT_0': Ast.Value.Number(1234)},
@@ -235,7 +255,9 @@ const TEST_CASES = [
 ];
 
 function testCase(test, i) {
-    let [sequence, entities, expected] = test;
+    if (test.length !== 4)
+        throw new Error('invalid test ' + test[0]);
+    let [sequence, sentence, entities, expected] = test;
 
     console.log('Test Case #' + (i+1));
     return Q.try(() => {
@@ -252,7 +274,7 @@ function testCase(test, i) {
         }
 
         return program.typecheck(schemaRetriever).then(() => {
-            let reconstructed = NNSyntax.toNN(program, entities).join(' ');
+            let reconstructed = NNSyntax.toNN(program, sentence, entities).join(' ');
             if (reconstructed !== test[0]) {
                 console.error('Test Case #' + (i+1) + ' failed (wrong NN syntax)');
                 console.error('Expected:', test[0]);
