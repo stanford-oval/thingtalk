@@ -233,6 +233,10 @@ const TEST_CASES = [
     `search pizza on bing`, {},
     `now => @com.bing.web_search(query="pizza") => notify;`],
 
+    ['now => @com.bing.web_search param:query:String = " donald trump " => notify',
+    `search donald trump on bing`, {},
+    `now => @com.bing.web_search(query="donald trump") => notify;`],
+
     ['now => ( @com.twitter.search ) filter param:hashtags:Array(Entity(tt:hashtag)) contains " foo " ^^tt:hashtag => notify',
     `search hashtag foo on twitter`, {},
     `now => (@com.twitter.search()), contains(hashtags, "foo"^^tt:hashtag) => notify;`],
