@@ -3,6 +3,7 @@
 const Q = require('q');
 Q.longStackSupport = true;
 
+require('../lib/grammar_api');
 const Compiler = require('../lib/compiler');
 const SchemaRetriever = require('../lib/schema');
 
@@ -26,10 +27,10 @@ const TEST_CASES = [
   let _t_10;
   try {
     _t_0 = {};
-    _t_1 = yield env.invokeQuery(0, _t_0);
+    _t_1 = await env.invokeQuery(0, _t_0);
     _t_2 = _t_1[Symbol.iterator]();
     {
-      let _iter_tmp = yield _t_2.next();
+      let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
@@ -40,11 +41,11 @@ const TEST_CASES = [
         _t_9 = _t_5.link;
         _t_10 = _t_5.alt_text;
         try {
-          yield env.output(String(_t_4), _t_5);
+          await env.output(String(_t_4), _t_5);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
-        _iter_tmp = yield _t_2.next();
+        _iter_tmp = await _t_2.next();
       }
     }
   } catch(_exc_) {
@@ -67,10 +68,10 @@ const TEST_CASES = [
   let _t_11;
   try {
     _t_0 = {};
-    _t_1 = yield env.invokeQuery(0, _t_0);
+    _t_1 = await env.invokeQuery(0, _t_0);
     _t_2 = _t_1[Symbol.iterator]();
     {
-      let _iter_tmp = yield _t_2.next();
+      let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
@@ -81,18 +82,18 @@ const TEST_CASES = [
         _t_9 = _t_5.link;
         _t_10 = _t_5.alt_text;
         try {
-          yield env.output(String(_t_4), _t_5);
+          await env.output(String(_t_4), _t_5);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
         try {
           _t_11 = {};
           _t_11.status = _t_7;
-          yield env.invokeAction(1, _t_11);
+          await env.invokeAction(1, _t_11);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
-        _iter_tmp = yield _t_2.next();
+        _iter_tmp = await _t_2.next();
       }
     }
   } catch(_exc_) {
@@ -117,10 +118,10 @@ const TEST_CASES = [
   let _t_13;
   try {
     _t_0 = {};
-    _t_1 = yield env.invokeQuery(0, _t_0);
+    _t_1 = await env.invokeQuery(0, _t_0);
     _t_2 = _t_1[Symbol.iterator]();
     {
-      let _iter_tmp = yield _t_2.next();
+      let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
@@ -134,21 +135,21 @@ const TEST_CASES = [
         _t_11 = _t_6 <= _t_12;
         if (_t_11) {
           try {
-            yield env.output(String(_t_4), _t_5);
+            await env.output(String(_t_4), _t_5);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
           try {
             _t_13 = {};
             _t_13.status = _t_7;
-            yield env.invokeAction(1, _t_13);
+            await env.invokeAction(1, _t_13);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
         } else {
 
         }
-        _iter_tmp = yield _t_2.next();
+        _iter_tmp = await _t_2.next();
       }
     }
   } catch(_exc_) {
@@ -175,10 +176,10 @@ const TEST_CASES = [
     _t_0 = {};
     _t_1 = 999;
     _t_0.number = _t_1;
-    _t_2 = yield env.invokeQuery(0, _t_0);
+    _t_2 = await env.invokeQuery(0, _t_0);
     _t_3 = _t_2[Symbol.iterator]();
     {
-      let _iter_tmp = yield _t_3.next();
+      let _iter_tmp = await _t_3.next();
       while (!_iter_tmp.done) {
         _t_4 = _iter_tmp.value;
         _t_5 = _t_4[0];
@@ -191,21 +192,21 @@ const TEST_CASES = [
         _t_11 = _t_1 <= _t_12;
         if (_t_11) {
           try {
-            yield env.output(String(_t_5), _t_6);
+            await env.output(String(_t_5), _t_6);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
           try {
             _t_13 = {};
             _t_13.status = _t_7;
-            yield env.invokeAction(1, _t_13);
+            await env.invokeAction(1, _t_13);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
         } else {
 
         }
-        _iter_tmp = yield _t_3.next();
+        _iter_tmp = await _t_3.next();
       }
     }
   } catch(_exc_) {
@@ -227,12 +228,12 @@ const TEST_CASES = [
   let _t_10;
   let _t_11;
   let _t_12;
-  _t_0 = yield env.readState(0);
+  _t_0 = await env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = yield env.invokeMonitor(0, _t_1, false);
+    _t_2 = await env.invokeMonitor(0, _t_1, false);
     {
-      let _iter_tmp = yield _t_2.next();
+      let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
@@ -240,7 +241,7 @@ const TEST_CASES = [
         _t_6 = _t_5.value;
         _t_7 = __builtin.isNewTuple(_t_0, _t_5, ["value"]);
         _t_8 = __builtin.addTuple(_t_0, _t_5);
-        yield env.writeState(0, _t_8);
+        await env.writeState(0, _t_8);
         _t_0 = _t_8;
         if (_t_7) {
           _t_10 = 21;
@@ -250,7 +251,7 @@ const TEST_CASES = [
               _t_11 = {};
               _t_12 = "bla";
               _t_11.message = _t_12;
-              yield env.invokeAction(1, _t_11);
+              await env.invokeAction(1, _t_11);
             } catch(_exc_) {
               env.reportError("Failed to invoke action", _exc_);
             }
@@ -260,7 +261,7 @@ const TEST_CASES = [
         } else {
 
         }
-        _iter_tmp = yield _t_2.next();
+        _iter_tmp = await _t_2.next();
       }
     }
   } catch(_exc_) {
@@ -282,12 +283,12 @@ const TEST_CASES = [
   let _t_10;
   let _t_11;
   let _t_12;
-  _t_0 = yield env.readState(0);
+  _t_0 = await env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = yield env.invokeMonitor(0, _t_1, false);
+    _t_2 = await env.invokeMonitor(0, _t_1, false);
     {
-      let _iter_tmp = yield _t_2.next();
+      let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
@@ -295,7 +296,7 @@ const TEST_CASES = [
         _t_6 = _t_5.value;
         _t_7 = __builtin.isNewTuple(_t_0, _t_5, ["value"]);
         _t_8 = __builtin.addTuple(_t_0, _t_5);
-        yield env.writeState(0, _t_8);
+        await env.writeState(0, _t_8);
         _t_0 = _t_8;
         if (_t_7) {
           _t_10 = 21;
@@ -305,7 +306,7 @@ const TEST_CASES = [
               _t_11 = {};
               _t_12 = "bla";
               _t_11.message = _t_12;
-              yield env.invokeAction(1, _t_11);
+              await env.invokeAction(1, _t_11);
             } catch(_exc_) {
               env.reportError("Failed to invoke action", _exc_);
             }
@@ -315,7 +316,7 @@ const TEST_CASES = [
         } else {
 
         }
-        _iter_tmp = yield _t_2.next();
+        _iter_tmp = await _t_2.next();
       }
     }
   } catch(_exc_) {
@@ -329,7 +330,7 @@ const TEST_CASES = [
     _t_0 = {};
     _t_1 = "test";
     _t_0.message = _t_1;
-    yield env.invokeAction(0, _t_0);
+    await env.invokeAction(0, _t_0);
   } catch(_exc_) {
     env.reportError("Failed to invoke action", _exc_);
   }`]],
@@ -352,12 +353,12 @@ const TEST_CASES = [
   let _t_13;
   let _t_14;
   let _t_15;
-  _t_0 = yield env.readState(0);
+  _t_0 = await env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = yield env.invokeMonitor(0, _t_1, false);
+    _t_2 = await env.invokeMonitor(0, _t_1, false);
     {
-      let _iter_tmp = yield _t_2.next();
+      let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
@@ -370,14 +371,14 @@ const TEST_CASES = [
         _t_11 = _t_5.tweet_id;
         _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
         _t_13 = __builtin.addTuple(_t_0, _t_5);
-        yield env.writeState(0, _t_13);
+        await env.writeState(0, _t_13);
         _t_0 = _t_13;
         if (_t_12) {
           _t_15 = new __builtin.Entity("HillaryClinton", null);
           _t_14 = __builtin.equality(_t_9, _t_15);
           if (_t_14) {
             try {
-              yield env.output(String(_t_4), _t_5);
+              await env.output(String(_t_4), _t_5);
             } catch(_exc_) {
               env.reportError("Failed to invoke action", _exc_);
             }
@@ -387,7 +388,7 @@ const TEST_CASES = [
         } else {
 
         }
-        _iter_tmp = yield _t_2.next();
+        _iter_tmp = await _t_2.next();
       }
     }
   } catch(_exc_) {
@@ -412,14 +413,14 @@ const TEST_CASES = [
   let _t_13;
   let _t_14;
   let _t_15;
-  _t_0 = yield env.readState(0);
+  _t_0 = await env.readState(0);
   try {
     _t_1 = {};
     _t_2 = new __builtin.Location(1, 3, "Somewhere");
     _t_1.location = _t_2;
-    _t_3 = yield env.invokeMonitor(0, _t_1, false);
+    _t_3 = await env.invokeMonitor(0, _t_1, false);
     {
-      let _iter_tmp = yield _t_3.next();
+      let _iter_tmp = await _t_3.next();
       while (!_iter_tmp.done) {
         _t_4 = _iter_tmp.value;
         _t_5 = _t_4[0];
@@ -433,18 +434,18 @@ const TEST_CASES = [
         _t_13 = _t_6.icon;
         _t_14 = __builtin.isNewTuple(_t_0, _t_6, ["location", "temperature", "wind_speed", "humidity", "cloudiness", "fog", "status", "icon"]);
         _t_15 = __builtin.addTuple(_t_0, _t_6);
-        yield env.writeState(0, _t_15);
+        await env.writeState(0, _t_15);
         _t_0 = _t_15;
         if (_t_14) {
           try {
-            yield env.output(String(_t_5), _t_6);
+            await env.output(String(_t_5), _t_6);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
         } else {
 
         }
-        _iter_tmp = yield _t_3.next();
+        _iter_tmp = await _t_3.next();
       }
     }
   } catch(_exc_) {
@@ -469,14 +470,14 @@ const TEST_CASES = [
   let _t_13;
   let _t_14;
   let _t_15;
-  _t_0 = yield env.readState(0);
+  _t_0 = await env.readState(0);
   try {
     _t_1 = {};
     _t_2 = new __builtin.Location(1, 3, null);
     _t_1.location = _t_2;
-    _t_3 = yield env.invokeMonitor(0, _t_1, false);
+    _t_3 = await env.invokeMonitor(0, _t_1, false);
     {
-      let _iter_tmp = yield _t_3.next();
+      let _iter_tmp = await _t_3.next();
       while (!_iter_tmp.done) {
         _t_4 = _iter_tmp.value;
         _t_5 = _t_4[0];
@@ -490,18 +491,18 @@ const TEST_CASES = [
         _t_13 = _t_6.icon;
         _t_14 = __builtin.isNewTuple(_t_0, _t_6, ["location", "temperature", "wind_speed", "humidity", "cloudiness", "fog", "status", "icon"]);
         _t_15 = __builtin.addTuple(_t_0, _t_6);
-        yield env.writeState(0, _t_15);
+        await env.writeState(0, _t_15);
         _t_0 = _t_15;
         if (_t_14) {
           try {
-            yield env.output(String(_t_5), _t_6);
+            await env.output(String(_t_5), _t_6);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
         } else {
 
         }
-        _iter_tmp = yield _t_3.next();
+        _iter_tmp = await _t_3.next();
       }
     }
   } catch(_exc_) {
@@ -515,17 +516,17 @@ const TEST_CASES = [
   let _t_2;
   try {
     _t_1 = new __builtin.Time(12, 30, 0);
-    _t_0 = yield env.invokeAtTimer(_t_1);
+    _t_0 = await env.invokeAtTimer(_t_1);
     {
-      let _iter_tmp = yield _t_0.next();
+      let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
         _t_2 = _iter_tmp.value;
         try {
-          yield env.output(null, _t_2);
+          await env.output(null, _t_2);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
-        _iter_tmp = yield _t_0.next();
+        _iter_tmp = await _t_0.next();
       }
     }
   } catch(_exc_) {
@@ -541,20 +542,20 @@ const TEST_CASES = [
   let _t_4;
   try {
     _t_1 = new __builtin.Time(12, 30, 0);
-    _t_0 = yield env.invokeAtTimer(_t_1);
+    _t_0 = await env.invokeAtTimer(_t_1);
     {
-      let _iter_tmp = yield _t_0.next();
+      let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
         _t_2 = _iter_tmp.value;
         try {
           _t_3 = {};
           _t_4 = "lol";
           _t_3.status = _t_4;
-          yield env.invokeAction(0, _t_3);
+          await env.invokeAction(0, _t_3);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
-        _iter_tmp = yield _t_0.next();
+        _iter_tmp = await _t_0.next();
       }
     }
   } catch(_exc_) {
@@ -570,17 +571,17 @@ const TEST_CASES = [
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
-    _t_0 = yield env.invokeTimer(_t_1, _t_2);
+    _t_0 = await env.invokeTimer(_t_1, _t_2);
     {
-      let _iter_tmp = yield _t_0.next();
+      let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
         _t_3 = _iter_tmp.value;
         try {
-          yield env.output(null, _t_3);
+          await env.output(null, _t_3);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
-        _iter_tmp = yield _t_0.next();
+        _iter_tmp = await _t_0.next();
       }
     }
   } catch(_exc_) {
@@ -598,20 +599,20 @@ const TEST_CASES = [
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
-    _t_0 = yield env.invokeTimer(_t_1, _t_2);
+    _t_0 = await env.invokeTimer(_t_1, _t_2);
     {
-      let _iter_tmp = yield _t_0.next();
+      let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
         _t_3 = _iter_tmp.value;
         try {
           _t_4 = {};
           _t_5 = "lol";
           _t_4.status = _t_5;
-          yield env.invokeAction(0, _t_4);
+          await env.invokeAction(0, _t_4);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
-        _iter_tmp = yield _t_0.next();
+        _iter_tmp = await _t_0.next();
       }
     }
   } catch(_exc_) {
@@ -640,10 +641,10 @@ const TEST_CASES = [
     _t_0 = {};
     _t_1 = "lol";
     _t_0.query = _t_1;
-    _t_2 = yield env.invokeQuery(0, _t_0);
+    _t_2 = await env.invokeQuery(0, _t_0);
     _t_3 = _t_2[Symbol.iterator]();
     {
-      let _iter_tmp = yield _t_3.next();
+      let _iter_tmp = await _t_3.next();
       while (!_iter_tmp.done) {
         _t_4 = _iter_tmp.value;
         _t_5 = _t_4[0];
@@ -659,14 +660,14 @@ const TEST_CASES = [
         _t_14 = __builtin.equality(_t_13, _t_15);
         if (_t_14) {
           try {
-            yield env.output(String(_t_5), _t_6);
+            await env.output(String(_t_5), _t_6);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
         } else {
 
         }
-        _iter_tmp = yield _t_3.next();
+        _iter_tmp = await _t_3.next();
       }
     }
   } catch(_exc_) {
@@ -689,12 +690,12 @@ const TEST_CASES = [
   let _t_11;
   let _t_12;
   let _t_13;
-  _t_0 = yield env.readState(0);
+  _t_0 = await env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = yield env.invokeMonitor(0, _t_1, false);
+    _t_2 = await env.invokeMonitor(0, _t_1, false);
     {
-      let _iter_tmp = yield _t_2.next();
+      let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
@@ -706,21 +707,21 @@ const TEST_CASES = [
         _t_10 = _t_5.alt_text;
         _t_11 = __builtin.isNewTuple(_t_0, _t_5, ["number", "title", "picture_url", "link", "alt_text"]);
         _t_12 = __builtin.addTuple(_t_0, _t_5);
-        yield env.writeState(0, _t_12);
+        await env.writeState(0, _t_12);
         _t_0 = _t_12;
         if (_t_11) {
           try {
             _t_13 = {};
             _t_13.caption = _t_7;
             _t_13.picture_url = _t_8;
-            yield env.invokeAction(1, _t_13);
+            await env.invokeAction(1, _t_13);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
         } else {
 
         }
-        _iter_tmp = yield _t_2.next();
+        _iter_tmp = await _t_2.next();
       }
     }
   } catch(_exc_) {
@@ -739,7 +740,7 @@ const TEST_CASES = [
     _t_0 = {};
     _t_1 = "foo";
     _t_0.foo = _t_1;
-    yield env.invokeAction(0, _t_0);
+    await env.invokeAction(0, _t_0);
   } catch(_exc_) {
     env.reportError("Failed to invoke action", _exc_);
   }`]],
@@ -769,12 +770,12 @@ const TEST_CASES = [
   let _t_20;
   let _t_21;
   let _t_22;
-  _t_0 = yield env.readState(0);
+  _t_0 = await env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = yield env.invokeMonitor(0, _t_1, false);
+    _t_2 = await env.invokeMonitor(0, _t_1, false);
     {
-      let _iter_tmp = yield _t_2.next();
+      let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
@@ -787,7 +788,7 @@ const TEST_CASES = [
         _t_11 = _t_5.tweet_id;
         _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
         _t_13 = __builtin.addTuple(_t_0, _t_5);
-        yield env.writeState(0, _t_13);
+        await env.writeState(0, _t_13);
         _t_0 = _t_13;
         if (_t_12) {
           _t_14 = false;
@@ -805,7 +806,7 @@ const TEST_CASES = [
           _t_14 = _t_14 || _t_17;
           if (_t_14) {
             try {
-              yield env.output(String(_t_4), _t_5);
+              await env.output(String(_t_4), _t_5);
             } catch(_exc_) {
               env.reportError("Failed to invoke action", _exc_);
             }
@@ -815,7 +816,7 @@ const TEST_CASES = [
         } else {
 
         }
-        _iter_tmp = yield _t_2.next();
+        _iter_tmp = await _t_2.next();
       }
     }
   } catch(_exc_) {
@@ -840,12 +841,12 @@ const TEST_CASES = [
   let _t_13;
   let _t_14;
   let _t_15;
-  _t_0 = yield env.readState(0);
+  _t_0 = await env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = yield env.invokeMonitor(0, _t_1, false);
+    _t_2 = await env.invokeMonitor(0, _t_1, false);
     {
-      let _iter_tmp = yield _t_2.next();
+      let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
@@ -858,21 +859,21 @@ const TEST_CASES = [
         _t_11 = _t_5.tweet_id;
         _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
         _t_13 = __builtin.addTuple(_t_0, _t_5);
-        yield env.writeState(0, _t_13);
+        await env.writeState(0, _t_13);
         _t_0 = _t_13;
         if (_t_12) {
           try {
             _t_14 = {};
-            _t_15 = yield env.formatEvent(_t_4, _t_5, "string");
+            _t_15 = await env.formatEvent(_t_4, _t_5, "string");
             _t_14.message = _t_15;
-            yield env.invokeAction(1, _t_14);
+            await env.invokeAction(1, _t_14);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
         } else {
 
         }
-        _iter_tmp = yield _t_2.next();
+        _iter_tmp = await _t_2.next();
       }
     }
   } catch(_exc_) {
@@ -897,12 +898,12 @@ const TEST_CASES = [
   let _t_13;
   let _t_14;
   let _t_15;
-  _t_0 = yield env.readState(0);
+  _t_0 = await env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = yield env.invokeMonitor(0, _t_1, false);
+    _t_2 = await env.invokeMonitor(0, _t_1, false);
     {
-      let _iter_tmp = yield _t_2.next();
+      let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
@@ -915,21 +916,21 @@ const TEST_CASES = [
         _t_11 = _t_5.tweet_id;
         _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
         _t_13 = __builtin.addTuple(_t_0, _t_5);
-        yield env.writeState(0, _t_13);
+        await env.writeState(0, _t_13);
         _t_0 = _t_13;
         if (_t_12) {
           try {
             _t_14 = {};
             _t_15 = String (_t_4);
             _t_14.message = _t_15;
-            yield env.invokeAction(1, _t_14);
+            await env.invokeAction(1, _t_14);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
         } else {
 
         }
-        _iter_tmp = yield _t_2.next();
+        _iter_tmp = await _t_2.next();
       }
     }
   } catch(_exc_) {
@@ -953,12 +954,12 @@ const TEST_CASES = [
   let _t_12;
   let _t_13;
   let _t_14;
-  _t_0 = yield env.readState(0);
+  _t_0 = await env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = yield env.invokeMonitor(0, _t_1, false);
+    _t_2 = await env.invokeMonitor(0, _t_1, false);
     {
-      let _iter_tmp = yield _t_2.next();
+      let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
@@ -970,21 +971,21 @@ const TEST_CASES = [
         _t_10 = _t_5.alt_text;
         _t_11 = __builtin.isNewTuple(_t_0, _t_5, ["number", "title", "picture_url", "link", "alt_text"]);
         _t_12 = __builtin.addTuple(_t_0, _t_5);
-        yield env.writeState(0, _t_12);
+        await env.writeState(0, _t_12);
         _t_0 = _t_12;
         if (_t_11) {
           try {
             _t_13 = {};
             _t_14 = String (_t_8);
             _t_13.status = _t_14;
-            yield env.invokeAction(1, _t_13);
+            await env.invokeAction(1, _t_13);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
         } else {
 
         }
-        _iter_tmp = yield _t_2.next();
+        _iter_tmp = await _t_2.next();
       }
     }
   } catch(_exc_) {
@@ -1005,10 +1006,10 @@ const TEST_CASES = [
   let _t_9;
   try {
     _t_0 = {};
-    _t_1 = yield env.invokeQuery(0, _t_0);
+    _t_1 = await env.invokeQuery(0, _t_0);
     _t_2 = _t_1[Symbol.iterator]();
     {
-      let _iter_tmp = yield _t_2.next();
+      let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
@@ -1019,14 +1020,14 @@ const TEST_CASES = [
         _t_7 = _t_8 >= _t_9;
         if (_t_7) {
           try {
-            yield env.output(String(_t_4), _t_5);
+            await env.output(String(_t_4), _t_5);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
         } else {
 
         }
-        _iter_tmp = yield _t_2.next();
+        _iter_tmp = await _t_2.next();
       }
     }
   } catch(_exc_) {
@@ -1059,12 +1060,12 @@ const TEST_CASES = [
   let _t_17;
   let _t_18;
   let _t_19;
-  _t_0 = yield env.readState(0);
+  _t_0 = await env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = yield env.invokeMonitor(0, _t_1, false);
+    _t_2 = await env.invokeMonitor(0, _t_1, false);
     {
-      let _iter_tmp = yield _t_2.next();
+      let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
@@ -1077,7 +1078,7 @@ const TEST_CASES = [
         _t_11 = _t_5.tweet_id;
         _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
         _t_13 = __builtin.addTuple(_t_0, _t_5);
-        yield env.writeState(0, _t_13);
+        await env.writeState(0, _t_13);
         _t_0 = _t_13;
         if (_t_12) {
           try {
@@ -1089,14 +1090,14 @@ const TEST_CASES = [
             _t_17 = 0;
             _t_14.__flow = _t_17;
             _t_14.__kindChannel = _t_4;
-            yield env.invokeAction(1, _t_14);
+            await env.invokeAction(1, _t_14);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
         } else {
 
         }
-        _iter_tmp = yield _t_2.next();
+        _iter_tmp = await _t_2.next();
       }
     }
   } catch(_exc_) {
@@ -1105,7 +1106,7 @@ const TEST_CASES = [
   try {
     _t_18 = new __builtin.Entity("mock-account:12345678", "me");
     _t_19 = 0;
-    yield env.sendEndOfFlow(_t_18, _t_19);
+    await env.sendEndOfFlow(_t_18, _t_19);
   } catch(_exc_) {
     env.reportError("Failed to signal end-of-flow", _exc_);
   }`]],
@@ -1143,12 +1144,12 @@ const TEST_CASES = [
   let _t_26;
   let _t_27;
   let _t_28;
-  _t_0 = yield env.readState(0);
+  _t_0 = await env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = yield env.invokeMonitor(0, _t_1, false);
+    _t_2 = await env.invokeMonitor(0, _t_1, false);
     {
-      let _iter_tmp = yield _t_2.next();
+      let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
@@ -1161,16 +1162,16 @@ const TEST_CASES = [
         _t_11 = _t_5.tweet_id;
         _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
         _t_13 = __builtin.addTuple(_t_0, _t_5);
-        yield env.writeState(0, _t_13);
+        await env.writeState(0, _t_13);
         _t_0 = _t_13;
         if (_t_12) {
           _t_14 = false;
           try {
             _t_16 = {};
-            _t_15 = yield env.invokeQuery(1, _t_16);
+            _t_15 = await env.invokeQuery(1, _t_16);
             _t_17 = _t_15[Symbol.iterator]();
             {
-              let _iter_tmp = yield _t_17.next();
+              let _iter_tmp = await _t_17.next();
               while (!_iter_tmp.done) {
                 _t_18 = _iter_tmp.value;
                 _t_19 = _t_18[0];
@@ -1191,7 +1192,7 @@ const TEST_CASES = [
                 } else {
 
                 }
-                _iter_tmp = yield _t_17.next();
+                _iter_tmp = await _t_17.next();
               }
             }
           } catch(_exc_) {
@@ -1199,7 +1200,7 @@ const TEST_CASES = [
           }
           if (_t_14) {
             try {
-              yield env.output(String(_t_4), _t_5);
+              await env.output(String(_t_4), _t_5);
             } catch(_exc_) {
               env.reportError("Failed to invoke action", _exc_);
             }
@@ -1209,7 +1210,7 @@ const TEST_CASES = [
         } else {
 
         }
-        _iter_tmp = yield _t_2.next();
+        _iter_tmp = await _t_2.next();
       }
     }
   } catch(_exc_) {
@@ -1247,12 +1248,12 @@ const TEST_CASES = [
   let _t_29;
   let _t_30;
   let _t_31;
-  _t_0 = yield env.readState(0);
+  _t_0 = await env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = yield env.invokeMonitor(0, _t_1, false);
+    _t_2 = await env.invokeMonitor(0, _t_1, false);
     {
-      let _iter_tmp = yield _t_2.next();
+      let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
@@ -1265,7 +1266,7 @@ const TEST_CASES = [
         _t_11 = _t_5.tweet_id;
         _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
         _t_13 = __builtin.addTuple(_t_0, _t_5);
-        yield env.writeState(0, _t_13);
+        await env.writeState(0, _t_13);
         _t_0 = _t_13;
         if (_t_12) {
           _t_14 = true;
@@ -1275,10 +1276,10 @@ const TEST_CASES = [
           _t_17 = false;
           try {
             _t_19 = {};
-            _t_18 = yield env.invokeQuery(1, _t_19);
+            _t_18 = await env.invokeQuery(1, _t_19);
             _t_20 = _t_18[Symbol.iterator]();
             {
-              let _iter_tmp = yield _t_20.next();
+              let _iter_tmp = await _t_20.next();
               while (!_iter_tmp.done) {
                 _t_21 = _iter_tmp.value;
                 _t_22 = _t_21[0];
@@ -1299,7 +1300,7 @@ const TEST_CASES = [
                 } else {
 
                 }
-                _iter_tmp = yield _t_20.next();
+                _iter_tmp = await _t_20.next();
               }
             }
           } catch(_exc_) {
@@ -1308,7 +1309,7 @@ const TEST_CASES = [
           _t_14 = _t_14 && _t_17;
           if (_t_14) {
             try {
-              yield env.output(String(_t_4), _t_5);
+              await env.output(String(_t_4), _t_5);
             } catch(_exc_) {
               env.reportError("Failed to invoke action", _exc_);
             }
@@ -1318,7 +1319,7 @@ const TEST_CASES = [
         } else {
 
         }
-        _iter_tmp = yield _t_2.next();
+        _iter_tmp = await _t_2.next();
       }
     }
   } catch(_exc_) {
@@ -1345,9 +1346,9 @@ const TEST_CASES = [
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 10000;
-    _t_0 = yield env.invokeTimer(_t_1, _t_2);
+    _t_0 = await env.invokeTimer(_t_1, _t_2);
     {
-      let _iter_tmp = yield _t_0.next();
+      let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
         _t_3 = _iter_tmp.value;
         try {
@@ -1361,11 +1362,11 @@ const TEST_CASES = [
           _t_4.__kindChannel = null;
           _t_8 = 10000;
           _t_4.interval = _t_8;
-          yield env.invokeAction(0, _t_4);
+          await env.invokeAction(0, _t_4);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
-        _iter_tmp = yield _t_0.next();
+        _iter_tmp = await _t_0.next();
       }
     }
   } catch(_exc_) {
@@ -1374,7 +1375,7 @@ const TEST_CASES = [
   try {
     _t_9 = new __builtin.Entity("1234", null);
     _t_10 = 0;
-    yield env.sendEndOfFlow(_t_9, _t_10);
+    await env.sendEndOfFlow(_t_9, _t_10);
   } catch(_exc_) {
     env.reportError("Failed to signal end-of-flow", _exc_);
   }`]],
@@ -1400,7 +1401,7 @@ const TEST_CASES = [
   let _t_12;
   let _t_13;
   let _t_14;
-  _t_0 = yield env.readState(0);
+  _t_0 = await env.readState(0);
   try {
     _t_1 = {};
     _t_2 = new __builtin.Entity("mock-account:12345678", "me");
@@ -1409,9 +1410,9 @@ const TEST_CASES = [
     _t_1.__program_id = _t_3;
     _t_4 = 0;
     _t_1.__flow = _t_4;
-    _t_5 = yield env.invokeMonitor(0, _t_1, false);
+    _t_5 = await env.invokeMonitor(0, _t_1, false);
     {
-      let _iter_tmp = yield _t_5.next();
+      let _iter_tmp = await _t_5.next();
       while (!_iter_tmp.done) {
         _t_6 = _iter_tmp.value;
         _t_7 = _t_6[0];
@@ -1420,21 +1421,21 @@ const TEST_CASES = [
         _t_10 = _t_8.interval;
         _t_11 = __builtin.isNewTuple(_t_0, _t_8, ["__principal", "__program_id", "__flow", "__kindChannel", "interval"]);
         _t_12 = __builtin.addTuple(_t_0, _t_8);
-        yield env.writeState(0, _t_12);
+        await env.writeState(0, _t_12);
         _t_0 = _t_12;
         if (_t_11) {
           try {
             _t_13 = {};
             _t_14 = "on";
             _t_13.power = _t_14;
-            yield env.invokeAction(1, _t_13);
+            await env.invokeAction(1, _t_13);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
         } else {
 
         }
-        _iter_tmp = yield _t_5.next();
+        _iter_tmp = await _t_5.next();
       }
     }
   } catch(_exc_) {
@@ -1488,14 +1489,14 @@ const TEST_CASES = [
   let _t_42;
   let _t_43;
   let _t_44;
-  _t_0 = yield env.readState(0);
-  _t_1 = function*(emit) {
-    _t_2 = yield env.readState(1);
+  _t_0 = await env.readState(0);
+  _t_1 = async function(emit) {
+    _t_2 = await env.readState(1);
     try {
       _t_3 = {};
-      _t_4 = yield env.invokeMonitor(0, _t_3, false);
+      _t_4 = await env.invokeMonitor(0, _t_3, false);
       {
-        let _iter_tmp = yield _t_4.next();
+        let _iter_tmp = await _t_4.next();
         while (!_iter_tmp.done) {
           _t_5 = _iter_tmp.value;
           _t_6 = _t_5[0];
@@ -1508,29 +1509,29 @@ const TEST_CASES = [
           _t_13 = _t_7.tweet_id;
           _t_14 = __builtin.isNewTuple(_t_2, _t_7, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
           _t_15 = __builtin.addTuple(_t_2, _t_7);
-          yield env.writeState(1, _t_15);
+          await env.writeState(1, _t_15);
           _t_2 = _t_15;
           if (_t_14) {
             emit(_t_7)
           } else {
 
           }
-          _iter_tmp = yield _t_4.next();
+          _iter_tmp = await _t_4.next();
         }
       }
     } catch(_exc_) {
       env.reportError("Failed to invoke trigger", _exc_);
     }
   }
-  _t_16 = function*(emit) {
-    _t_17 = yield env.readState(2);
+  _t_16 = async function(emit) {
+    _t_17 = await env.readState(2);
     try {
       _t_18 = {};
       _t_19 = "foo";
       _t_18.query = _t_19;
-      _t_20 = yield env.invokeMonitor(1, _t_18, false);
+      _t_20 = await env.invokeMonitor(1, _t_18, false);
       {
-        let _iter_tmp = yield _t_20.next();
+        let _iter_tmp = await _t_20.next();
         while (!_iter_tmp.done) {
           _t_21 = _iter_tmp.value;
           _t_22 = _t_21[0];
@@ -1540,14 +1541,14 @@ const TEST_CASES = [
           _t_26 = _t_23.link;
           _t_27 = __builtin.isNewTuple(_t_17, _t_23, ["query", "title", "description", "link"]);
           _t_28 = __builtin.addTuple(_t_17, _t_23);
-          yield env.writeState(2, _t_28);
+          await env.writeState(2, _t_28);
           _t_17 = _t_28;
           if (_t_27) {
             emit(_t_23)
           } else {
 
           }
-          _iter_tmp = yield _t_20.next();
+          _iter_tmp = await _t_20.next();
         }
       }
     } catch(_exc_) {
@@ -1556,7 +1557,7 @@ const TEST_CASES = [
   }
   _t_29 = __builtin.streamUnion(_t_1, _t_16);
   {
-    let _iter_tmp = yield _t_29.next();
+    let _iter_tmp = await _t_29.next();
     while (!_iter_tmp.done) {
       _t_30 = _iter_tmp.value;
       _t_31 = _t_30[0];
@@ -1573,18 +1574,18 @@ const TEST_CASES = [
       _t_42 = _t_32.tweet_id;
       _t_43 = __builtin.isNewTuple(_t_0, _t_32, ["query", "title", "description", "link", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
       _t_44 = __builtin.addTuple(_t_0, _t_32);
-      yield env.writeState(0, _t_44);
+      await env.writeState(0, _t_44);
       _t_0 = _t_44;
       if (_t_43) {
         try {
-          yield env.output(String(_t_31), _t_32);
+          await env.output(String(_t_31), _t_32);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
       } else {
 
       }
-      _iter_tmp = yield _t_29.next();
+      _iter_tmp = await _t_29.next();
     }
   }`]],
 
@@ -1637,14 +1638,14 @@ const TEST_CASES = [
   let _t_44;
   let _t_45;
   let _t_46;
-  _t_0 = yield env.readState(0);
-  _t_1 = function*(emit) {
-    _t_2 = yield env.readState(1);
+  _t_0 = await env.readState(0);
+  _t_1 = async function(emit) {
+    _t_2 = await env.readState(1);
     try {
       _t_3 = {};
-      _t_4 = yield env.invokeMonitor(0, _t_3, false);
+      _t_4 = await env.invokeMonitor(0, _t_3, false);
       {
-        let _iter_tmp = yield _t_4.next();
+        let _iter_tmp = await _t_4.next();
         while (!_iter_tmp.done) {
           _t_5 = _iter_tmp.value;
           _t_6 = _t_5[0];
@@ -1657,29 +1658,29 @@ const TEST_CASES = [
           _t_13 = _t_7.tweet_id;
           _t_14 = __builtin.isNewTuple(_t_2, _t_7, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
           _t_15 = __builtin.addTuple(_t_2, _t_7);
-          yield env.writeState(1, _t_15);
+          await env.writeState(1, _t_15);
           _t_2 = _t_15;
           if (_t_14) {
             emit(_t_7)
           } else {
 
           }
-          _iter_tmp = yield _t_4.next();
+          _iter_tmp = await _t_4.next();
         }
       }
     } catch(_exc_) {
       env.reportError("Failed to invoke trigger", _exc_);
     }
   }
-  _t_16 = function*(emit) {
-    _t_17 = yield env.readState(2);
+  _t_16 = async function(emit) {
+    _t_17 = await env.readState(2);
     try {
       _t_18 = {};
       _t_19 = "foo";
       _t_18.query = _t_19;
-      _t_20 = yield env.invokeMonitor(1, _t_18, false);
+      _t_20 = await env.invokeMonitor(1, _t_18, false);
       {
-        let _iter_tmp = yield _t_20.next();
+        let _iter_tmp = await _t_20.next();
         while (!_iter_tmp.done) {
           _t_21 = _iter_tmp.value;
           _t_22 = _t_21[0];
@@ -1689,14 +1690,14 @@ const TEST_CASES = [
           _t_26 = _t_23.link;
           _t_27 = __builtin.isNewTuple(_t_17, _t_23, ["query", "title", "description", "link"]);
           _t_28 = __builtin.addTuple(_t_17, _t_23);
-          yield env.writeState(2, _t_28);
+          await env.writeState(2, _t_28);
           _t_17 = _t_28;
           if (_t_27) {
             emit(_t_23)
           } else {
 
           }
-          _iter_tmp = yield _t_20.next();
+          _iter_tmp = await _t_20.next();
         }
       }
     } catch(_exc_) {
@@ -1705,7 +1706,7 @@ const TEST_CASES = [
   }
   _t_29 = __builtin.streamUnion(_t_1, _t_16);
   {
-    let _iter_tmp = yield _t_29.next();
+    let _iter_tmp = await _t_29.next();
     while (!_iter_tmp.done) {
       _t_30 = _iter_tmp.value;
       _t_31 = _t_30[0];
@@ -1722,14 +1723,14 @@ const TEST_CASES = [
       _t_42 = _t_32.tweet_id;
       _t_43 = __builtin.isNewTuple(_t_0, _t_32, ["query", "title", "description", "link", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
       _t_44 = __builtin.addTuple(_t_0, _t_32);
-      yield env.writeState(0, _t_44);
+      await env.writeState(0, _t_44);
       _t_0 = _t_44;
       if (_t_43) {
         _t_46 = "lol";
         _t_45 = __builtin.like(_t_37, _t_46);
         if (_t_45) {
           try {
-            yield env.output(String(_t_31), _t_32);
+            await env.output(String(_t_31), _t_32);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
@@ -1739,7 +1740,7 @@ const TEST_CASES = [
       } else {
 
       }
-      _iter_tmp = yield _t_29.next();
+      _iter_tmp = await _t_29.next();
     }
   }`]],
 
@@ -1780,10 +1781,10 @@ const TEST_CASES = [
   let _t_32;
   try {
     _t_0 = {};
-    _t_1 = yield env.invokeQuery(0, _t_0);
+    _t_1 = await env.invokeQuery(0, _t_0);
     _t_2 = _t_1[Symbol.iterator]();
     {
-      let _iter_tmp = yield _t_2.next();
+      let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
@@ -1797,10 +1798,10 @@ const TEST_CASES = [
         try {
           _t_12 = {};
           _t_12.query = _t_6;
-          _t_13 = yield env.invokeQuery(1, _t_12);
+          _t_13 = await env.invokeQuery(1, _t_12);
           _t_14 = _t_13[Symbol.iterator]();
           {
-            let _iter_tmp = yield _t_14.next();
+            let _iter_tmp = await _t_14.next();
             while (!_iter_tmp.done) {
               _t_15 = _iter_tmp.value;
               _t_16 = _t_15[0];
@@ -1831,17 +1832,17 @@ const TEST_CASES = [
               _t_31 = _t_22.in_reply_to;
               _t_32 = _t_22.tweet_id;
               try {
-                yield env.output(String(_t_21), _t_22);
+                await env.output(String(_t_21), _t_22);
               } catch(_exc_) {
                 env.reportError("Failed to invoke action", _exc_);
               }
-              _iter_tmp = yield _t_14.next();
+              _iter_tmp = await _t_14.next();
             }
           }
         } catch(_exc_) {
           env.reportError("Failed to invoke query", _exc_);
         }
-        _iter_tmp = yield _t_2.next();
+        _iter_tmp = await _t_2.next();
       }
     }
   } catch(_exc_) {
@@ -1888,13 +1889,13 @@ const TEST_CASES = [
   let _t_35;
   let _t_36;
   let _t_37;
-  _t_0 = function*(emit) {
+  _t_0 = async function(emit) {
     try {
       _t_1 = {};
-      _t_2 = yield env.invokeQuery(0, _t_1);
+      _t_2 = await env.invokeQuery(0, _t_1);
       _t_3 = _t_2[Symbol.iterator]();
       {
-        let _iter_tmp = yield _t_3.next();
+        let _iter_tmp = await _t_3.next();
         while (!_iter_tmp.done) {
           _t_4 = _iter_tmp.value;
           _t_5 = _t_4[0];
@@ -1906,22 +1907,22 @@ const TEST_CASES = [
           _t_11 = _t_6.in_reply_to;
           _t_12 = _t_6.tweet_id;
           emit(_t_6)
-          _iter_tmp = yield _t_3.next();
+          _iter_tmp = await _t_3.next();
         }
       }
     } catch(_exc_) {
       env.reportError("Failed to invoke query", _exc_);
     }
   }
-  _t_13 = function*(emit) {
+  _t_13 = async function(emit) {
     try {
       _t_14 = {};
       _t_15 = "foo";
       _t_14.query = _t_15;
-      _t_16 = yield env.invokeQuery(1, _t_14);
+      _t_16 = await env.invokeQuery(1, _t_14);
       _t_17 = _t_16[Symbol.iterator]();
       {
-        let _iter_tmp = yield _t_17.next();
+        let _iter_tmp = await _t_17.next();
         while (!_iter_tmp.done) {
           _t_18 = _iter_tmp.value;
           _t_19 = _t_18[0];
@@ -1930,7 +1931,7 @@ const TEST_CASES = [
           _t_22 = _t_20.description;
           _t_23 = _t_20.link;
           emit(_t_20)
-          _iter_tmp = yield _t_17.next();
+          _iter_tmp = await _t_17.next();
         }
       }
     } catch(_exc_) {
@@ -1939,7 +1940,7 @@ const TEST_CASES = [
   }
   _t_24 = __builtin.tableCrossJoin(_t_0, _t_13);
   {
-    let _iter_tmp = yield _t_24.next();
+    let _iter_tmp = await _t_24.next();
     while (!_iter_tmp.done) {
       _t_25 = _iter_tmp.value;
       _t_26 = _t_25[0];
@@ -1955,11 +1956,11 @@ const TEST_CASES = [
       _t_36 = _t_27.in_reply_to;
       _t_37 = _t_27.tweet_id;
       try {
-        yield env.output(String(_t_26), _t_27);
+        await env.output(String(_t_26), _t_27);
       } catch(_exc_) {
         env.reportError("Failed to invoke action", _exc_);
       }
-      _iter_tmp = yield _t_24.next();
+      _iter_tmp = await _t_24.next();
     }
   }`]],
 
@@ -1989,17 +1990,17 @@ const TEST_CASES = [
   let _t_21;
   try {
     _t_1 = new __builtin.Time(20, 10, 0);
-    _t_0 = yield env.invokeAtTimer(_t_1);
+    _t_0 = await env.invokeAtTimer(_t_1);
     {
-      let _iter_tmp = yield _t_0.next();
+      let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
         _t_2 = _iter_tmp.value;
         try {
           _t_3 = {};
-          _t_4 = yield env.invokeQuery(0, _t_3);
+          _t_4 = await env.invokeQuery(0, _t_3);
           _t_5 = _t_4[Symbol.iterator]();
           {
-            let _iter_tmp = yield _t_5.next();
+            let _iter_tmp = await _t_5.next();
             while (!_iter_tmp.done) {
               _t_6 = _iter_tmp.value;
               _t_7 = _t_6[0];
@@ -2026,17 +2027,17 @@ const TEST_CASES = [
                 _t_21 = "xxx";
                 _t_18.message = _t_21;
                 _t_18.picture_url = _t_16;
-                yield env.invokeAction(1, _t_18);
+                await env.invokeAction(1, _t_18);
               } catch(_exc_) {
                 env.reportError("Failed to invoke action", _exc_);
               }
-              _iter_tmp = yield _t_5.next();
+              _iter_tmp = await _t_5.next();
             }
           }
         } catch(_exc_) {
           env.reportError("Failed to invoke query", _exc_);
         }
-        _iter_tmp = yield _t_0.next();
+        _iter_tmp = await _t_0.next();
       }
     }
   } catch(_exc_) {
@@ -2070,10 +2071,10 @@ const TEST_CASES = [
     _t_0.size = _t_1;
     _t_2 = 1;
     _t_0.count = _t_2;
-    _t_3 = yield env.invokeQuery(0, _t_0);
+    _t_3 = await env.invokeQuery(0, _t_0);
     _t_4 = _t_3[Symbol.iterator]();
     {
-      let _iter_tmp = yield _t_4.next();
+      let _iter_tmp = await _t_4.next();
       while (!_iter_tmp.done) {
         _t_5 = _iter_tmp.value;
         _t_6 = _t_5[0];
@@ -2089,11 +2090,11 @@ const TEST_CASES = [
           _t_9.__flow = _t_12;
           _t_9.__kindChannel = _t_6;
           _t_9.data = _t_8;
-          yield env.invokeAction(1, _t_9);
+          await env.invokeAction(1, _t_9);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
-        _iter_tmp = yield _t_4.next();
+        _iter_tmp = await _t_4.next();
       }
     }
   } catch(_exc_) {
@@ -2102,7 +2103,7 @@ const TEST_CASES = [
   try {
     _t_13 = new __builtin.Entity("matrix-account:@gcampax2:matrix.org", null);
     _t_14 = 0;
-    yield env.sendEndOfFlow(_t_13, _t_14);
+    await env.sendEndOfFlow(_t_13, _t_14);
   } catch(_exc_) {
     env.reportError("Failed to signal end-of-flow", _exc_);
   }`]],
@@ -2139,17 +2140,17 @@ const TEST_CASES = [
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
-    _t_0 = yield env.invokeTimer(_t_1, _t_2);
+    _t_0 = await env.invokeTimer(_t_1, _t_2);
     {
-      let _iter_tmp = yield _t_0.next();
+      let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
         _t_3 = _iter_tmp.value;
         try {
           _t_4 = {};
-          _t_5 = yield env.invokeQuery(0, _t_4);
+          _t_5 = await env.invokeQuery(0, _t_4);
           _t_6 = _t_5[Symbol.iterator]();
           {
-            let _iter_tmp = yield _t_6.next();
+            let _iter_tmp = await _t_6.next();
             while (!_iter_tmp.done) {
               _t_7 = _iter_tmp.value;
               _t_8 = _t_7[0];
@@ -2180,20 +2181,20 @@ const TEST_CASES = [
                 _t_25 = _t_19.in_reply_to;
                 _t_26 = _t_19.tweet_id;
                 try {
-                  yield env.output(String(_t_8), _t_19);
+                  await env.output(String(_t_8), _t_19);
                 } catch(_exc_) {
                   env.reportError("Failed to invoke action", _exc_);
                 }
               } else {
 
               }
-              _iter_tmp = yield _t_6.next();
+              _iter_tmp = await _t_6.next();
             }
           }
         } catch(_exc_) {
           env.reportError("Failed to invoke query", _exc_);
         }
-        _iter_tmp = yield _t_0.next();
+        _iter_tmp = await _t_0.next();
       }
     }
   } catch(_exc_) {
@@ -2201,7 +2202,7 @@ const TEST_CASES = [
   }`]]
 ];
 
-const GeneratorFunction = Object.getPrototypeOf(function*(){}).constructor;
+const GeneratorFunction = Object.getPrototypeOf(async function(){}).constructor;
 function test(i) {
     console.log('Test Case #' + (i+1));
 

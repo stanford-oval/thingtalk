@@ -13,12 +13,12 @@ const Builtin = require('../lib/builtin');
 const Utils = require('../lib/utils');
 
 function testStream(spec) {
-    return function*(emit) {
+    return async function(emit) {
         let pos = 0;
 
         while (pos < spec.length) {
             let [delay, value] = spec[pos++];
-            yield new Promise((resolve, reject) => {
+            await new Promise((resolve, reject) => {
                 setTimeout(() => {
                     if (value === null)
                         resolve();
@@ -31,11 +31,11 @@ function testStream(spec) {
     };
 }
 
-function* runStream(into, stream) {
-    let iter = yield stream.next();
+async function runStream(into, stream) {
+    let iter = await stream.next();
     while (!iter.done) {
         into.push(iter.value);
-        iter = yield stream.next();
+        iter = await stream.next();
     }
 }
 
@@ -54,7 +54,7 @@ function testStreamUnion() {
     let acc = [];
 
     let union = Builtin.streamUnion(lhs, rhs);
-    Utils.generatorToAsync(runStream)(acc, union).then(() => {
+    runStream(acc, union).then(() => {
         if (JSON.stringify(acc) !== expect) {
             console.error('Expected:', expect);
             console.error('Computed:', acc);
@@ -88,7 +88,7 @@ function testCrossJoin() {
     let acc = [];
 
     let union = Builtin.tableCrossJoin(lhs, rhs);
-    Utils.generatorToAsync(runStream)(acc, union).then(() => {
+    runStream(acc, union).then(() => {
         if (JSON.stringify(acc) !== expect) {
             console.error('Expected:', expect);
             console.error('Computed:', acc);
