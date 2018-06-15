@@ -690,6 +690,7 @@ const TEST_CASES = [
   let _t_11;
   let _t_12;
   let _t_13;
+  let _t_14;
   _t_0 = await env.readState(0);
   try {
     _t_1 = {};
@@ -713,7 +714,8 @@ const TEST_CASES = [
           try {
             _t_13 = {};
             _t_13.caption = _t_7;
-            _t_13.picture_url = _t_8;
+            _t_14 = String (_t_8);
+            _t_13.picture_url = _t_14;
             await env.invokeAction(1, _t_13);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
@@ -1988,6 +1990,7 @@ const TEST_CASES = [
   let _t_19;
   let _t_20;
   let _t_21;
+  let _t_22;
   try {
     _t_1 = new __builtin.Time(20, 10, 0);
     _t_0 = await env.invokeAtTimer(_t_1);
@@ -2026,7 +2029,8 @@ const TEST_CASES = [
                 _t_18.subject = _t_20;
                 _t_21 = "xxx";
                 _t_18.message = _t_21;
-                _t_18.picture_url = _t_16;
+                _t_22 = String (_t_16);
+                _t_18.picture_url = _t_22;
                 await env.invokeAction(1, _t_18);
               } catch(_exc_) {
                 env.reportError("Failed to invoke action", _exc_);
@@ -2199,7 +2203,27 @@ const TEST_CASES = [
     }
   } catch(_exc_) {
     env.reportError("Failed to invoke timer", _exc_);
-  }`]]
+  }`]],
+
+  [`{
+    now => @com.twitter.post_picture(picture_url="file:///home/gcampagn/Pictures/Me/me%202016.jpg"^^tt:picture, caption="lol");
+}`,
+  [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  try {
+    _t_0 = {};
+    _t_1 = new __builtin.Entity("file:///home/gcampagn/Pictures/Me/me%202016.jpg", null);
+    _t_2 = String (_t_1);
+    _t_0.picture_url = _t_2;
+    _t_3 = "lol";
+    _t_0.caption = _t_3;
+    await env.invokeAction(0, _t_0);
+  } catch(_exc_) {
+    env.reportError("Failed to invoke action", _exc_);
+  }`]],
 ];
 
 const GeneratorFunction = Object.getPrototypeOf(async function(){}).constructor;
