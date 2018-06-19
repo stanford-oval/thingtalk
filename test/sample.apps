@@ -422,14 +422,6 @@ let action x := \(x : String) -> @com.twitter.post(status=x);
 
 ====
 
-// Partial Application
-{
-let table x := @com.bing.web_search();
-now => x(query="foo") => notify;
-}
-
-====
-
 // Lambdas Join
 {
 let table macro := \(number : Number) -> @com.xkcd.get_comic(number=number) ;

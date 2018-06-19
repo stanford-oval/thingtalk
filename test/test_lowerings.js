@@ -14,7 +14,6 @@ const Q = require('q');
 const AppGrammar = require('../lib/grammar_api');
 const SchemaRetriever = require('../lib/schema');
 const { prettyprint } = require('../lib/prettyprint');
-const Generate = require('../lib/generate');
 
 const _mockSchemaDelegate = require('./mock_schema_delegate');
 const _mockMemoryClient = require('./mock_memory_client');
@@ -27,13 +26,29 @@ const TEST_CASES = [
     [`executor = "1234"^^tt:contact : now => @security-camera.current_event() => return;`,
 `executor = "1234"^^tt:contact : {
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-        action send (in req __principal : Entity(tt:contact), in req __program_id : Entity(tt:program_id), in req __flow : Number, in req __kindChannel : Entity(tt:function), in req start_time : Date, in req has_sound : Boolean, in req has_motion : Boolean, in req has_person : Boolean, in req picture_url : Entity(tt:picture));
+      action send(in req __principal: Entity(tt:contact),
+                  in req __program_id: Entity(tt:program_id),
+                  in req __flow: Number,
+                  in req __kindChannel: Entity(tt:function),
+                  in req start_time: Date,
+                  in req has_sound: Boolean,
+                  in req has_motion: Boolean,
+                  in req has_person: Boolean,
+                  in req picture_url: Entity(tt:picture));
     }
     now => @security-camera.current_event() => @__dyn_0.send(__principal="mock-account:12345678"^^tt:contact("me"), __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, start_time=start_time, has_sound=has_sound, has_motion=has_motion, has_person=has_person, picture_url=picture_url);
 }`,
 [`{
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-        query receive (in req __principal : Entity(tt:contact), in req __program_id : Entity(tt:program_id), in req __flow : Number, out __kindChannel : Entity(tt:function), out start_time : Date, out has_sound : Boolean, out has_motion : Boolean, out has_person : Boolean, out picture_url : Entity(tt:picture));
+      monitorable list query receive(in req __principal: Entity(tt:contact),
+                                     in req __program_id: Entity(tt:program_id),
+                                     in req __flow: Number,
+                                     out __kindChannel: Entity(tt:function),
+                                     out start_time: Date,
+                                     out has_sound: Boolean,
+                                     out has_motion: Boolean,
+                                     out has_person: Boolean,
+                                     out picture_url: Entity(tt:picture));
     }
     monitor (@__dyn_0.receive(__principal="1234"^^tt:contact, __program_id=$event.program_id, __flow=0)) => notify;
 }`]],
@@ -41,13 +56,25 @@ const TEST_CASES = [
     [`executor = "1234"^^tt:contact : now => @com.bing.web_search(query="lol") => return;`,
 `executor = "1234"^^tt:contact : {
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-        action send (in req __principal : Entity(tt:contact), in req __program_id : Entity(tt:program_id), in req __flow : Number, in req __kindChannel : Entity(tt:function), in req title : String, in req description : String, in req link : Entity(tt:url));
+      action send(in req __principal: Entity(tt:contact),
+                  in req __program_id: Entity(tt:program_id),
+                  in req __flow: Number,
+                  in req __kindChannel: Entity(tt:function),
+                  in req title: String,
+                  in req description: String,
+                  in req link: Entity(tt:url));
     }
     now => @com.bing.web_search(query="lol") => @__dyn_0.send(__principal="mock-account:12345678"^^tt:contact("me"), __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, title=title, description=description, link=link);
 }`,
 [`{
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-        query receive (in req __principal : Entity(tt:contact), in req __program_id : Entity(tt:program_id), in req __flow : Number, out __kindChannel : Entity(tt:function), out title : String, out description : String, out link : Entity(tt:url));
+      monitorable list query receive(in req __principal: Entity(tt:contact),
+                                     in req __program_id: Entity(tt:program_id),
+                                     in req __flow: Number,
+                                     out __kindChannel: Entity(tt:function),
+                                     out title: String,
+                                     out description: String,
+                                     out link: Entity(tt:url));
     }
     monitor (@__dyn_0.receive(__principal="1234"^^tt:contact, __program_id=$event.program_id, __flow=0)) => notify;
 }`]],
@@ -55,13 +82,29 @@ const TEST_CASES = [
     [`executor = "1234"^^tt:contact : monitor @security-camera.current_event() => return;`,
 `executor = "1234"^^tt:contact : {
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-        action send (in req __principal : Entity(tt:contact), in req __program_id : Entity(tt:program_id), in req __flow : Number, in req __kindChannel : Entity(tt:function), in req start_time : Date, in req has_sound : Boolean, in req has_motion : Boolean, in req has_person : Boolean, in req picture_url : Entity(tt:picture));
+      action send(in req __principal: Entity(tt:contact),
+                  in req __program_id: Entity(tt:program_id),
+                  in req __flow: Number,
+                  in req __kindChannel: Entity(tt:function),
+                  in req start_time: Date,
+                  in req has_sound: Boolean,
+                  in req has_motion: Boolean,
+                  in req has_person: Boolean,
+                  in req picture_url: Entity(tt:picture));
     }
     monitor (@security-camera.current_event()) => @__dyn_0.send(__principal="mock-account:12345678"^^tt:contact("me"), __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, start_time=start_time, has_sound=has_sound, has_motion=has_motion, has_person=has_person, picture_url=picture_url);
 }`,
 [`{
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-        query receive (in req __principal : Entity(tt:contact), in req __program_id : Entity(tt:program_id), in req __flow : Number, out __kindChannel : Entity(tt:function), out start_time : Date, out has_sound : Boolean, out has_motion : Boolean, out has_person : Boolean, out picture_url : Entity(tt:picture));
+      monitorable list query receive(in req __principal: Entity(tt:contact),
+                                     in req __program_id: Entity(tt:program_id),
+                                     in req __flow: Number,
+                                     out __kindChannel: Entity(tt:function),
+                                     out start_time: Date,
+                                     out has_sound: Boolean,
+                                     out has_motion: Boolean,
+                                     out has_person: Boolean,
+                                     out picture_url: Entity(tt:picture));
     }
     monitor (@__dyn_0.receive(__principal="1234"^^tt:contact, __program_id=$event.program_id, __flow=0)) => notify;
 }`]],
@@ -90,12 +133,12 @@ function test(i) {
         let sendprograms = prog.lowerReturn(_mockMessaging);
 
         newprogram = safePrettyprint(newprogram);
-        AppGrammar.parse(newprogram);
         if (newprogram !== expectedLowered) {
             console.error('Test Case #' + (i+1) + ': lowered program does not match what expected');
             console.error('Expected: ' + expectedLowered);
             console.error('Generated: ' + newprogram);
         }
+        AppGrammar.parse(newprogram);
 
         for (let j = 0; j < Math.max(sendprograms.length, expectedSend.length); j++) {
             let tt = safePrettyprint(sendprograms[j]);

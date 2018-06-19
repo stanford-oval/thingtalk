@@ -26,7 +26,7 @@ const TEST_CASES = [
      `now => (@com.twitter.search()), ((text =~ "funny" && text =~ "lol") || text =~ "https://www.wsj.com" || text =~ "https://www.washingtonpost.com") => @com.facebook.post(status=text);`],
 
     [`now => @com.bing.web_search(query="cats") => @com.facebook.post(status=description);`,
-     `now => (@com.bing.web_search(query="cats")), (description =~ "cat" || (description =~ "funny" && description =~ "lol") || description =~ "https://www.wsj.com" || description =~ "https://www.washingtonpost.com") => @com.facebook.post(status=description);`],
+     `now => (@com.bing.web_search(query="cats")), ((description =~ "funny" && description =~ "lol") || description =~ "https://www.wsj.com" || description =~ "https://www.washingtonpost.com" || description =~ "cat") => @com.facebook.post(status=description);`],
 
     [`monitor @security-camera.current_event(), has_person == true => notify;`,
     `monitor ((@security-camera.current_event()), (@org.thingpedia.builtin.thingengine.phone.get_gps() { location == makeLocation(1, 2) } && has_person == true)) => notify;`],
@@ -52,7 +52,17 @@ const TEST_CASES = [
        now => @com.instagram.get_pictures() => @__dyn_0.send(__principal="matrix-account:@rayx6:matrix.org"^^tt:contact, __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, media_id=media_id, picture_url=picture_url, caption=caption, link=link, filter=filter, hashtags=hashtags, location=location);
    }`, `{
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-        action send (in req __principal : Entity(tt:contact), in req __program_id : Entity(tt:program_id), in req __flow : Number, in req __kindChannel : Entity(tt:function), in req media_id : Entity(instagram:media_id), in req picture_url : Entity(tt:picture), in req caption : String, in req link : Entity(tt:url), in req filter : Entity(com.instagram:filter), in req hashtags : Array(Entity(tt:hashtag)), in req location : Location);
+      action send(in req __principal: Entity(tt:contact),
+                  in req __program_id: Entity(tt:program_id),
+                  in req __flow: Number,
+                  in req __kindChannel: Entity(tt:function),
+                  in req media_id: Entity(instagram:media_id),
+                  in req picture_url: Entity(tt:picture),
+                  in req caption: String,
+                  in req link: Entity(tt:url),
+                  in req filter: Entity(com.instagram:filter),
+                  in req hashtags: Array(Entity(tt:hashtag)),
+                  in req location: Location);
     }
     now => (@com.instagram.get_pictures()), caption =~ "trip" => @__dyn_0.send(__principal="matrix-account:@rayx6:matrix.org"^^tt:contact, __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, media_id=media_id, picture_url=picture_url, caption=caption, link=link, filter=filter, hashtags=hashtags, location=location);
 }`],
