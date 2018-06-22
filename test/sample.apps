@@ -524,3 +524,16 @@ let action x := \(status : Number) -> @com.twitter.post(status=status);
 ====
 
 now => @com.twitter.follow(user_name=null^^tt:username("donald trump"));
+
+====
+
+// class definitions and import stmts
+{
+  class @com.foo {
+    import loader from @org.thingpedia.v2();
+    import config from @org.thingpedia.config.discovery(discovery_type=enum(bluetooth));
+
+    monitorable query get_power(out power : Enum(on, off));
+    action set_power(in req power : Enum(on,off));
+  }
+}
