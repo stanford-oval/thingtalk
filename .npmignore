@@ -1,1 +1,7 @@
+*~
+node_modules/
+coverage/
+.nyc_output/
+po/thingtalk.pot
+po/*.json
 smt/
