@@ -20,12 +20,12 @@
   },
   "devDependencies": {
     "coveralls": "^3.0.0",
-    "csv": "^1.1.1",
+    "csv": "^3.1.0",
     "deep-equal": "^1.0.1",
-    "eslint": "^4.19.1",
+    "eslint": "^5.3.0",
     "mysql": "^2.13.0",
-    "nyc": "^11.4.1",
-    "pegjs": "~0.9.0",
+    "nyc": "^12.0.2",
+    "pegjs": "~0.10.0",
     "q": "^1.5.1"
   },
   "scripts": {
