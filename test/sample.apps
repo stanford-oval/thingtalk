@@ -533,7 +533,87 @@ now => @com.twitter.follow(user_name=null^^tt:username("donald trump"));
     import loader from @org.thingpedia.v2();
     import config from @org.thingpedia.config.discovery(discovery_type=enum(bluetooth));
 
-    monitorable query get_power(out power : Enum(on, off));
-    action set_power(in req power : Enum(on,off));
+    monitorable query get_power(out power : Enum(on, off))
+    #_[canonical='power status of foo']
+    #_[confirmation='status of foo']
+    #[poll_interval=10min];
+
+    action set_power(in req power : Enum(on,off) #_[prompt='do you want turn on or off?'])
+    #_[canonical='set power of foo']
+    #_[confirmation='turn $power foo'];
   }
 }
+
+====
+
+{
+  class @com.foo {
+    list query get_random_number(out number : Number)
+    #_[canonical='get random number']
+    #_[confirmation='random number'];
+  }
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// Missing poll interval
+{
+  class @com.foo {
+    monitorable query get_power(out power : Enum(on, off))
+    #_[canonical='power status of foo']
+    #_[confirmation='status of foo'];
+  }
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// invalid value type for poll interval
+{
+  class @com.foo {
+    monitorable query get_power(out power : Enum(on, off))
+    #_[canonical='power status of foo']
+    #_[confirmation='status of foo']
+    #[poll_interval=10];
+  }
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// invalid value type for natural language annotations
+{
+  class @com.foo {
+    list query get_random_number(out number : Number)
+    #_[canonical='get random number']
+    #_[confirmation='random number']
+    #_[foo=10];
+  }
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// action is not monitorable
+{
+  class @com.foo {
+    monitorable action set_power(in req power : Enum(on,off) #_[prompt='do you want turn on or off?'])
+    #_[canonical='set power of foo']
+    #_[confirmation='turn $power foo'];
+  }
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// prompt for output argument
+{
+  class @com.foo {
+    list query get_random_number(out number : Number #_[prompt='what number?'])
+    #_[canonical='get random number']
+    #_[confirmation='random number'];
+  }
+}
+
+
