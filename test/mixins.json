@@ -1,0 +1,43 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "id": 0,
+      "kind": "org.thingpedia.v2",
+      "args": [],
+      "types": [],
+      "required": [],
+      "is_input": [],
+      "facets": [
+        "loader"
+      ]
+    },
+    {
+      "id": 1,
+      "kind": "org.thingpedia.config.none",
+      "args": [ "api_key" ],
+      "types": [ "String" ],
+      "required": [ true ],
+      "is_input": [ true ],
+      "facets": [ "config" ]
+    },
+    {
+      "id": 2,
+      "kind": "org.thingpedia.generic_rest",
+      "args": [],
+      "types": [],
+      "required": [],
+      "is_input": [],
+      "facets": [ "loader" ]
+    },
+    {
+      "id": 3,
+      "kind": "org.thingpedia.config.discovery",
+      "args": [ "discovery_type" ],
+      "types": [ "Enum(bluetooth, upnp)" ],
+      "required": [ true ],
+      "is_input": [ true ],
+      "facets": [ "config" ]
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 "use strict";
 
 const Thingpedia = require('./thingpedia.json');
+const Mixins = require('./mixins.json');
 const Q = require('q');
 const fs = require('fs');
 const path = require('path');
@@ -8,13 +9,18 @@ const path = require('path');
 module.exports = {
     _schema: {},
     _meta: {},
+    _mixins: {},
 
     getSchemas() {
-        return this._schema;
+        return Promise.resolve(this._schema);
     },
 
     getMetas() {
-        return this._meta;
+        return Promise.resolve(this._meta);
+    },
+
+    getMixins() {
+        return Promise.resolve(this._mixins);
     },
 
     getDeviceCode(kind) {
@@ -40,4 +46,7 @@ for (let dev of Thingpedia.data) {
             };
         }
     }
+}
+for (let mixin of Mixins.data) {
+    module.exports._mixins[mixin.kind] = mixin;
 }

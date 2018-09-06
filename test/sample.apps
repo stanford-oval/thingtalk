@@ -616,4 +616,32 @@ now => @com.twitter.follow(user_name=null^^tt:username("donald trump"));
   }
 }
 
+====
 
+// ** typecheck: expect TypeError **
+// invalid mixin
+{
+  class @com.foo {
+    import loader from @org.thingpedia.v3();
+  }
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// invalid parameter for mixin
+{
+  class @com.foo {
+    import loader from @org.thingpedia.v2(foo='bar');
+  }
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// missing required parameter for mixin
+{
+  class @com.foo {
+    import loader from @org.thingpedia.config.discovery();
+  }
+}
