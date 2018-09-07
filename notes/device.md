@@ -32,21 +32,20 @@ if it's implemented in ThingTalk.
 
 ## Configuration and Authentication
 ```java
-mixin @org.thingpedia.config.form(in req params : Map<String, Type>);
-mixin @org.thingpedia.config.basic_auth(in opt extra_params : Map<String, Type>);
+mixin @org.thingpedia.config.form(in req params : ArgMap);
+mixin @org.thingpedia.config.basic_auth(in opt extra_params : ArgMap); 
 mixin @org.thingpedia.config.custom_oauth(...);
 mixin @org.thingpedia.config.oauth2(in req client_id : String, in req client_secret : String, in opt authorize : Entity(tt:url), );
 mixin @org.thingpedia.config.discovery(in req protocol : Entity(tt:discovery_protocol));
 mixin @org.thingpedia.config.none(...);
 
 // in device class
-import config from @org.thingpedia.config.form(params={url=String});
+import config from @org.thingpedia.config.form(params=makeArgMap(url: String, ));
 import config from @org.thingpedia.config.basic_auth(extra_params={serial_number= String});
 import config from @org.thingpedia.config.custom_oauth();
 import config from @org.thingpedia.config.oauth2(client_id=..., client_secret=..., authorize="http://example.com", );
 import config from @org.thingpedia.config.discovery(protocol="upnp");
 import config from @org.thingpedia.config.none(api_key="foobar");
-
 ```
 
 ## Twitter as an Example

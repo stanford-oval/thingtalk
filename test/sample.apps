@@ -645,3 +645,13 @@ now => @com.twitter.follow(user_name=null^^tt:username("donald trump"));
     import loader from @org.thingpedia.config.discovery();
   }
 }
+
+====
+
+// Map type
+{
+  class @com.foo {
+    import loader from @org.thingpedia.config.form(params=makeArgMap(url:String));
+  }
+}
+

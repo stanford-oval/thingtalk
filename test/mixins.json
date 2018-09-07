@@ -38,6 +38,15 @@
       "required": [ true ],
       "is_input": [ true ],
       "facets": [ "config" ]
+    },
+    {
+      "id": 4,
+      "kind": "org.thingpedia.config.form",
+      "args": [ "params" ],
+      "types": [ "ArgMap"],
+      "required": [ true ],
+      "is_input": [ true ],
+      "facets": [ "config" ]
     }
   ]
 }
