@@ -1,0 +1,100 @@
+the implementation is in ThingTalk
+
+class @org.thingpedia.queue<V> {
+    // the class declares any data structure it needs with
+    // "import class @<class-name> as <name>"
+    
+    import class @org.thingpedia.deque<V> as impl;
+    
+    // <name> defines a name that can be used to refer to a
+    // specific instance of the imported class, which will
+    // be associated to the instance of the defining class
+    //
+    // that is, for each instance of @org.thingpedia.queue<V>,
+    // the name impl will refer to an instance of @org.thingpedia.deque<V>
+    //
+    // <name> can be referred as this.<name> where needed
+    
+    // the implementation is then provided inline,
+    // using functional syntax
+    
+    // as in other places in ThingTalk, the specific instance
+    // is referred to by (id=...)
+    action push(in req value : V) := @org.thingpedia.deque<V>(id=this.impl).push_back(value=value);
+    
+    // syntactic sugar is also available to make it less awkward
+    action pop(in req value : V) := this.impl.pop_back();
+    
+    monitorable maybe query front(out value : V) := this.impl.get_front();
+}
+
+// here is an example of how a music player that can play anything on from any file system
+// (eg OneDrive, Dropbox, Google Drive, local files...) onto any audio output (eg Bluetooth, local
+// speakers, ...) could be implemented:
+
+class @org.thingpedia.music_player {
+    import class @file-system as source;
+    import class @audio-sink as sink;
+    
+    import class @org.thingpedia.queue<Entity(tt:path_name)> as playlist;
+    
+    action queue_song(filename : Entity(tt:path_name)) :=
+        this.playlist.push(value=filename);
+    
+    // the { } block introduces ThingTalk programs that are started/stopped
+    // alongside this device instance
+    {
+        // this rule checks if the player is still playing (assuming that
+        // after it is done with a song it will pause itself), and if stopped,
+        // it queues one more song if one is present in the list
+        
+        edge (monitor this.sink.get_playing_status()) on (status=enum(stopped))
+        join (this.playlist.front())
+        join (this.source.get_download_link()) on (filename=value)
+        => { this.sink.play_url(url=link); this.playlist.pop(); }
+    }
+}
+
+
+// ThingTalk code can also be used to operate on databases
+
+// given the following from the library:
+class @org.thingpedia.database_table<Key extends Entity, Record extends Record> {    
+    monitorable list query select_all(out primary_key : Key, out row : Record);
+    
+    monitorable maybe query select_one(in req search_key : Key, out row : Record)
+        := this.select_all(), primary_key == search_key;
+        
+    // insert-or-update
+    action upsert(in opt primary_key : Key, in req row : Record);
+    action delete(in req primary_key : Key);
+}
+
+
+// you can write sticky-notes as:
+
+class @org.thingpedia.friendhub.stickynotes {
+    entity id;
+    
+    import class @org.thingpedia.database_table<Entity(org.thingpedia.friendhub.stickynotes:id),
+                                                Record(author : Entity(tt:username),
+                                                       text : String,
+                                                       date : Date)> as store;
+                                                       
+    action post_new_note(in req author : Entity(tt:username),
+                         in req text : String) :=
+        this.store.upsert(row=(author=author, text=text, date=makeDate()));
+        
+    monitorable list query all_notes(out id : Entity(org.thingpedia.friendhub.stickynotes:id),
+                                     out author : Entity(tt:username),
+                                     out text : String,
+                                     out date : Date) :=
+        [primary_key as id, row.author as author, row.text as text, row.date as date]
+        of this.store.select_all();
+        
+    monitorable list recent_notes(out id : Entity(org.thingpedia.friendhub.stickynotes:id),
+                                  out author : Entity(tt:username),
+                                  out text : String,
+                                  out date : Date) :=
+        this.all_notes(), date >= makeDate() - 1day;
+}

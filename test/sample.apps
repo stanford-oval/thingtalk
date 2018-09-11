@@ -422,14 +422,6 @@ let action x := \(x : String) -> @com.twitter.post(status=x);
 
 ====
 
-// Partial Application
-{
-let table x := @com.bing.web_search();
-now => x(query="foo") => notify;
-}
-
-====
-
 // Lambdas Join
 {
 let table macro := \(number : Number) -> @com.xkcd.get_comic(number=number) ;
@@ -532,3 +524,134 @@ let action x := \(status : Number) -> @com.twitter.post(status=status);
 ====
 
 now => @com.twitter.follow(user_name=null^^tt:username("donald trump"));
+
+====
+
+// class definitions and import stmts
+{
+  class @com.foo {
+    import loader from @org.thingpedia.v2();
+    import config from @org.thingpedia.config.discovery(discovery_type=enum(bluetooth));
+
+    monitorable query get_power(out power : Enum(on, off))
+    #_[canonical='power status of foo']
+    #_[confirmation='status of foo']
+    #[poll_interval=10min];
+
+    action set_power(in req power : Enum(on,off) #_[prompt='do you want turn on or off?'])
+    #_[canonical='set power of foo']
+    #_[confirmation='turn $power foo'];
+  }
+}
+
+====
+
+{
+  class @com.foo {
+    list query get_random_number(out number : Number)
+    #_[canonical='get random number']
+    #_[confirmation='random number'];
+  }
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// Missing poll interval
+{
+  class @com.foo {
+    monitorable query get_power(out power : Enum(on, off))
+    #_[canonical='power status of foo']
+    #_[confirmation='status of foo'];
+  }
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// invalid value type for poll interval
+{
+  class @com.foo {
+    monitorable query get_power(out power : Enum(on, off))
+    #_[canonical='power status of foo']
+    #_[confirmation='status of foo']
+    #[poll_interval=10];
+  }
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// invalid value type for natural language annotations
+{
+  class @com.foo {
+    list query get_random_number(out number : Number)
+    #_[canonical='get random number']
+    #_[confirmation='random number']
+    #_[foo=10];
+  }
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// action is not monitorable
+{
+  class @com.foo {
+    monitorable action set_power(in req power : Enum(on,off) #_[prompt='do you want turn on or off?'])
+    #_[canonical='set power of foo']
+    #_[confirmation='turn $power foo'];
+  }
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// prompt for output argument
+{
+  class @com.foo {
+    list query get_random_number(out number : Number #_[prompt='what number?'])
+    #_[canonical='get random number']
+    #_[confirmation='random number'];
+  }
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// invalid mixin
+{
+  class @com.foo {
+    import loader from @org.thingpedia.v3();
+  }
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// invalid parameter for mixin
+{
+  class @com.foo {
+    import loader from @org.thingpedia.v2(foo='bar');
+  }
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// missing required parameter for mixin
+{
+  class @com.foo {
+    import loader from @org.thingpedia.config.discovery();
+  }
+}
+
+====
+
+// Map type
+{
+  class @com.foo {
+    import loader from @org.thingpedia.config.form(params=makeArgMap(url:String));
+  }
+}
+
