@@ -1,6 +1,6 @@
 branches:
   except:
-  - /^wip/
+  - "/^wip/"
 language: node_js
 node_js:
 - '8'
@@ -10,6 +10,9 @@ before_install:
   -O cvc4/cvc4
 - chmod +x cvc4/cvc4
 - export PATH="`pwd`/cvc4:$PATH"
+- yarn global add greenkeeper-lockfile@1
+before_script: greenkeeper-lockfile-update
+after_script: greenkeeper-lockfile-upload
 script:
 - yarn lint
 - TZ="America/Los_Angeles" yarn test
@@ -17,3 +20,14 @@ after_success: yarn run coverage
 notifications:
   slack:
     secure: wNHnndWTeGoSYLdNUGKp0decx+fJzYER/038x79qDVoaDHRPQm4AO6bCMZXfCq7gu+2VFau84UrQ5K0PWEO1kVcIIQ+dbPWqblXd5eFBNrZXSutD7f2wPKNSR4K1Yxzi9u76P+w6XKDKzVDDKNB4kmTLkd0tO8AFhp+cgO4qmzL0oMOjE2BEWCzA9lhiY6S/nB/d5arJhmx3+3FDbkBmiopf5Z9p7/wED7xdQ6El9fpaAlZRsXBaxdPxVmGd+EVV3ge+XgQ2GQdWCjZ763dPe42dxfXK+wL09mM87MWwbbBEbAZ9748dBuGde9fAE3T2xN/0CV3wuJU4BJzgqPDuuvu4SBBHCjJWR5VbipQFboQ8354Gq4Xy1Rkub7z7QY/5Vh8dBlpMAQHydoOiWwof8cpYnhym7Ksrnyf7B04hMFXahlEdtvzPEH0smmN8huM9bbMZStuMBNDF+5152u4eZ8e1D6E6Uaz07vqLov2z9IstMU4zlT4fKFXfXZh8FKPUFW2E7wlZBP2HzaNP8v+kdOGgKZM+7vKy96wbSY2VctmfntCWmuTKYAAa/eJZKqwfQkQR/IB8UL7xpVHegd8qnDfG3g1HwYGgeYb61nRomZBoZJSpfmophGoY73e4WIRG98B6k1nh0T+ua5L+ZN0vJdNDjEoYxWMBSQARD5+7bSY=
+env:
+  global:
+    secure: Zq1EuaT8hx7hVrKygiAlCIjsNMOWVf+/68Ce5TgZc2+dg5gAAeLUkuEyvFswD3yfpCf8s3FtQBubwOFz0y1cNsAzUGUrJqPLeSUnuB47IzKvtV9MK8gh1fN/AOHRH0L6tMTWs8aXKzS9U8uhBLH8PNKUoukbwqUhNlfzNGyxC8eOq6mwkIeSKNqRW0Wckd+gjLJtXhNTJlKDfhWjdMkzh0SOThhT1K0yj2DiMUT4nQO4IxvsFYa1YfQU70MkJxgpFQ5EavqThwKRUqxnMgOYkpGDD2FgasG9ZI/yp1B3ukq/bwhe9FqvYoEpvNIHk7ggx7w13QzrB0AkaxEqzayOYLS6TjL+X8c8eTuNved3+uNh8Q9wxTnpZemlOBSxOuSZMLRl89yuDSl0aSLZ1jt3h7YVHJpszWNGcpF+kfWe4zDx83rdS61nZQC2b11WfOixapddGohlSmGXx4/cuzAYaFGssLt4OBo1mKPco8I9PiUZOTjx3PVk3UqzoDrrxRf0aK7WPFfG6EafXeuQOepxJsvTYss3+GdCl5oCsLk3As+BTkie5h3d+yDEk6E7nVZaeGcTQKSYFL/6OR0xBaraVmynL6I4EEF2IG/umJB2pM1QOni53PC5C6jFynAPNa9f6v75BZ2pEXjg1E0k93RztjXCU4EaRkDxrz+aNon0Lyk=
+deploy:
+  provider: npm
+  email: gcampagn@cs.stanford.edu
+  api_key:
+    secure: o1mOPOU65JR3o1Q/3kDcRE9mc75FgUAFrVQldvBrq3spXjm1gSd48vL8mqdu0h/5CjDwGgsWhagIs3aXXYzQBgJ1InBudQsEUo0dSGdkSezg5SNC0bthqtE068jXEpODuF9VrFaG7cY0+dEpfzHYuuseqgUpRg2cS824AkD+TtbkUDgX2EtWJ6GY4A87uniVB7EEbboqC1g52MJY1HDIQIyyxPrTehLpkGfAPBRSCimsa0Yq/Bw06NrYMwp4AOlD579kJi5Xse+BUPz64Gp+yVRggv+eU66mwxYjQwRQlyKo9gATGqCG47N+/dFFmYAz4fql0/Ut66IxY+0PwqaqUhwzT0GNB5/7z/OA4z7phRw45wcp0jRT65SWpNU/QgLC+PElsxeCPevSfl7MBxXCtXkV33D8RKZ2w5bah02rnQQcVWs4n6dvSWAAYNHtHMNz0KNVZjDffbynHKzLMA6zDN5c/AguHKaYDO36GL+2RqgajtYANagQLKTdJzXxZtKvrbMIHe2PSD7RQNR791R+tZhRlAGi3SfBzMc68NrHtunBndiuEHqNZCOEwLpu90xuNXTlIx/BTLbdfA75sfqxIwkZm32Mo05HObV9wI+gsZ9N8HKqhvNfyKfuyNuu02Ejs/ry9mwXmGN1NSf9LWeP3Xa5EyXEDh8BAtHpw+drCv4=
+  on:
+    tags: true
+    repo: Stanford-Mobisocial-IoT-Lab/ThingTalk

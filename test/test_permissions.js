@@ -15,6 +15,13 @@ const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 const TEST_CASES = [
     [`now => @com.facebook.post(status="this is really funny lol");`,
+      true, { transform: false }],
+    [`now => @com.facebook.post(status="this is sad");`,
+      false, { transform: false }],
+    [`now => @com.facebook.post(status=$undefined);`,
+      true, { transform: false }],
+
+    [`now => @com.facebook.post(status="this is really funny lol");`,
      `now => @com.facebook.post(status="this is really funny lol");`],
 
     [`now => @com.facebook.post(status="this is totally not funny");`, null],
@@ -139,14 +146,14 @@ function main() {
     })).then(() => {
         const principal = Ast.Value.Entity('omlet-messaging:testtesttest', 'tt:contact', null);
 
-        return promiseLoop(TEST_CASES, ([input, expected], i) => {
+        return promiseLoop(TEST_CASES, ([input, expected, options], i) => {
             console.error('Test case #' + (i+1));
             //console.log('Checking program');
             //console.log(input);
-            return checker.check(principal, Grammar.parse(input)).then((prog) => {
+            return checker.check(principal, Grammar.parse(input), options).then((prog) => {
                 if (prog) {
                     console.log('Program accepted');
-                    let code = prog.prettyprint(true);
+                    let code = typeof prog === 'boolean' ? prog : prog.prettyprint(true);
                     if (code !== expected) {
                         console.error('Test case #' + (i+1) + ' FAIL');
                         console.error('Program does not match what expected');
@@ -159,9 +166,11 @@ function main() {
                         console.error('Program matches what expected');
                     }
 
-                    let compiler = new Compiler();
-                    compiler.setSchemaRetriever(schemaRetriever);
-                    return compiler.compileProgram(prog);
+                    if (typeof prog !== 'boolean') {
+                        let compiler = new Compiler();
+                        compiler.setSchemaRetriever(schemaRetriever);
+                        return compiler.compileProgram(prog);
+                    }
                 } else if (expected !== null) {
                     console.error('Test case #' + (i+1) + ' FAIL');
                     console.error('Program rejected unexpectedly');
@@ -169,6 +178,9 @@ function main() {
                     console.error('Test case #' + (i+1) + ' PASS');
                     console.error('Program rejected as expected');
                 }
+
+                // quiet eslint
+                return Promise.resolve();
             });
         });
     }).done();

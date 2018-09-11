@@ -5,3 +5,5 @@ coverage/
 po/thingtalk.pot
 po/*.mo
 po/*.json
+
+*.tgz
