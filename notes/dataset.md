@@ -36,8 +36,6 @@ dataset @com.twitter language 'en' {
     ]]
 ;}
 
-dataset @org.thingpedia.turking4 language 'en' #[csv="..."];
-
 thingpedia @com.twitter.everything {
     import class @com.twitter;
     import dataset @org.thingpedia.turking4;

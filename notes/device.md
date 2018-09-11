@@ -41,7 +41,7 @@ mixin @org.thingpedia.config.none(...);
 
 // in device class
 import config from @org.thingpedia.config.form(params=makeArgMap(url: String, ));
-import config from @org.thingpedia.config.basic_auth(extra_params={serial_number= String});
+import config from @org.thingpedia.config.basic_auth(extra_params=makeArgMap(serial_number: String, ));
 import config from @org.thingpedia.config.custom_oauth();
 import config from @org.thingpedia.config.oauth2(client_id=..., client_secret=..., authorize="http://example.com", );
 import config from @org.thingpedia.config.discovery(protocol="upnp");

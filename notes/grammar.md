@@ -4,7 +4,7 @@
 ## Concrete Formal Grammar
 - add `let_program_def`
 - add `$action := $query => $action`, and change `rule` to `now => $action` instead of `now => $query => $action`
-- add `type_ref` (add map)
+- add `ArgMap` type for extra parameters in mixins
 
 ```bash
 
@@ -101,7 +101,7 @@ $prim_type_ref :=
     'Type'
 $comp_type_ref :=    
     'Array' '(' $prim_type_ref ')' |
-    'Map' '<' $prim_type_ref ',' $type_ref '>' |
+    'makeArgMap' '(' $prim_type_ref ',' $type_ref ')' |
     '(' $type_ref [',' $type_ref]* ')' 
 $type_ref :=
     'Any' | $prim_type_ref | $comp_type_ref
