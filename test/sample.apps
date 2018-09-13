@@ -655,3 +655,38 @@ now => @com.twitter.follow(user_name=null^^tt:username("donald trump"));
   }
 }
 
+====
+
+// Dataset language
+dataset @com.twitter language 'en' {
+    stream (p_author : Entity(tt:username)) := monitor (@com.twitter.search()), author == p_author
+    #_[utterances=['monitor ${p_author}\'s tweets']];
+
+    query := @com.twitter.search()
+    #_[utterances=['tweets', 'post on twitter']];
+
+    program := {
+        monitor (@com.twitter.search()) => notify;
+    }
+    #_[utterances=['notify me about new tweets']];
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// no argument for program
+dataset @com.twitter {
+    program (p_author : Entity(tt:username)) := {
+        monitor (@com.twitter.search()), author == p_author => notify;
+    }
+    #_[utterances=['notify me about new tweets']];
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// wrong type
+dataset foo {
+    stream (p_author : Number) := monitor (@com.twitter.search()), author == p_author
+    #_[utterances=['monitor ${p_author}\'s tweets']];
+}
