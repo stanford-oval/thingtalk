@@ -118,27 +118,6 @@ executor = "matrix-account:@gcampax:matrix.org"^^tt:contact : { // WithPrincipal
 
 ====
 
-// WithClassDef
-{
-    class @dyn_0 extends @remote {
-        action send(in req foo : String);
-    }
-    now => @dyn_0.send(foo="foo");
-}
-
-====
-
-// ** typecheck: expect TypeError **
-// WrongClassDef
-{
-    class @dyn_0 extends @remote {
-        action send(in req foo : Number);
-    }
-    now => @dyn_0.send(foo="foo");
-}
-
-====
-
 // without wrapping it should still work
 
 monitor @com.twitter.home_timeline() => notify;
@@ -690,3 +669,17 @@ dataset foo {
     stream (p_author : Number) := monitor (@com.twitter.search()), author == p_author
     #_[utterances=['monitor ${p_author}\'s tweets']];
 }
+
+
+====
+
+// Meta language
+class @com.foo {
+    import loader from @org.thingpedia.v2();
+}
+
+dataset @com.twitter language 'en' {
+    stream (p_author : Entity(tt:username)) := monitor (@com.twitter.search()), author == p_author
+    #_[utterances=['monitor ${p_author}\'s tweets']];
+}
+
