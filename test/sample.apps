@@ -702,10 +702,16 @@ class @foo {
 dataset @foo {
     action := @foo.send()
     #_[utterances=['send']];
+
+    program := {
+       now => @foo.send();
+   }
+   #_[utterances=['send']];
 }
 
 ====
 
+// ** typecheck: expect TypeError **
 // Meta language 2
 class @foo {
     action send(in req bar : Number)
@@ -720,6 +726,7 @@ dataset @foo {
 
 ====
 
+// ** typecheck: expect TypeError **
 // Meta language 3
 class @foo {
     action send(in req bar : Number)
