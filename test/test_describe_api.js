@@ -1,0 +1,104 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Almond
+//
+// Copyright 2018 Google LLC
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+"use strict";
+
+require('./polyfill');
+
+const assert = require('assert');
+
+const Q = require('q');
+Q.longStackSupport = true;
+const Ast = require('../lib/ast');
+const Describe = require('../lib/describe');
+const Grammar = require('../lib/grammar_api');
+const SchemaRetriever = require('../lib/schema');
+
+const _mockSchemaDelegate = require('./mock_schema_delegate');
+const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
+
+const gettext = {
+    locale: 'en-US',
+    dgettext: (domain, msgid) => msgid
+};
+
+async function testDescribeArg() {
+    const describer = new Describe.Describer(gettext, 'en-US', 'America/Los_Angeles');
+    const describer2 = new Describe.Describer(gettext, 'en-US', 'Asia/Tokyo');
+    const describer3 = new Describe.Describer(gettext, 'en-US', 'Pacific/Honolulu');
+    // we would like to test i18n here too but
+    // travis's nodejs does not have full-icu so Intl is
+    // broken (also on Android)
+
+    const TEST_CASES = [
+        [new Ast.Value.VarRef('picture_url'), 'the image'],
+        [new Ast.Value.VarRef('argument'), 'the argument'],
+        [new Ast.Value.VarRef('other_argument'), 'the other argument'],
+        [new Ast.Value.Undefined(true), '____'],
+        [new Ast.Value.Undefined(false), '____'],
+
+        [new Ast.Value.Boolean(true), 'true'],
+        [new Ast.Value.Boolean(false), 'false'],
+
+        [new Ast.Value.String('some string'), `“some string”`],
+        [new Ast.Value.String('some string with "'), `“some string with "”`], //"
+
+        [new Ast.Value.Measure(21, 'C'), `21 C`],
+        [new Ast.Value.Measure(21, 'kmph'), `21 kmph`],
+        [new Ast.Value.CompoundMeasure(
+            [new Ast.Value.Measure(6, 'ft'),
+             new Ast.Value.Measure(4, 'in')]),
+         `6 ft 4 in`],
+        [new Ast.Value.Number(4.0), `4`],
+        [new Ast.Value.Number(4.5), `4.5`],
+        [new Ast.Value.Number(1e+23), `100,000,000,000,000,000,000,000`],
+
+        // U+OOAO NO-BREAK SPACE
+        [new Ast.Value.Currency(1000, 'usd'), 'US$\u00a01,000.00'],
+        [new Ast.Value.Currency(1000.001, 'usd'), 'US$\u00a01,000.00'],
+        [new Ast.Value.Currency(1000.005, 'usd'), 'US$\u00a01,000.01'],
+        [new Ast.Value.Currency(1000.99, 'usd'), 'US$\u00a01,000.99'],
+        [new Ast.Value.Currency(1000.995, 'usd'), 'US$\u00a01,001.00'],
+        [new Ast.Value.Currency(1000, 'eur'), '€\u00a01,000.00'],
+
+        [new Ast.Value.Location(new Ast.Location.Relative('home')), `at home`],
+        [new Ast.Value.Location(new Ast.Location.Relative('work')), `at work`],
+        [new Ast.Value.Location(new Ast.Location.Relative('current_location')), `here`],
+        [new Ast.Value.Location(new Ast.Location.Absolute(0, 0, 'North Pole')), `North Pole`],
+        [new Ast.Value.Location(new Ast.Location.Absolute(0, 0, null)), `[Latitude: 0.000 deg, Longitude: 0.000 deg]`],
+
+        [new Ast.Value.Entity('foo', 'tt:foo', 'Some Entity'), 'Some Entity'],
+
+    ];
+
+    for (let [value, expected] of TEST_CASES) {
+        assert.strictEqual(describer.describeArg(value, { picture_url: 'image' }), expected);
+        assert.strictEqual(Describe.describeArg(gettext, value, { picture_url: 'image' }), expected);
+        if (!value.isVarRef)
+            assert.strictEqual(describer.describeArg(value), expected);
+    }
+
+    const date = new Ast.Value.Date(new Date(2018, 9, 13, 0, 0, 0), '+', null);
+
+    assert.strictEqual(describer.describeArg(date), 'Saturday, October 13, 2018');
+    assert.strictEqual(describer2.describeArg(date), 'Saturday, October 13, 2018');
+    assert.strictEqual(describer3.describeArg(date), 'Friday, October 12, 2018');
+
+    const date2 = new Ast.Value.Date(new Date(2018, 9, 13, 1, 0, 0), '+', null);
+    assert.strictEqual(describer.describeArg(date2), '10/13/2018, 1:00:00 AM');
+    assert.strictEqual(describer2.describeArg(date2), '10/13/2018, 5:00:00 PM');
+    assert.strictEqual(describer3.describeArg(date2), '10/12/2018, 10:00:00 PM');
+}
+
+async function main() {
+    await testDescribeArg();
+}
+module.exports = main;
+if (!module.parent)
+    main();

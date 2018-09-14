@@ -69,46 +69,46 @@ var TEST_CASES = [
      'anyone if the requester is equal to @mom or the requester is equal to @dad is allowed to tweet any status'],
 
     ['true : now => @com.twitter.post, status == "foo"',
-     'anyone is allowed to tweet "foo"'],
+     'anyone is allowed to tweet “foo”'],
 
     ['true : now => @com.twitter.post, !(status == "foo")',
-     'anyone is allowed to tweet any status if the status is not equal to "foo"'],
+     'anyone is allowed to tweet any status if the status is not equal to “foo”'],
 
     ['true : now => @com.twitter.post, status =~ "foo"',
-     'anyone is allowed to tweet any status if the status contains "foo"'],
+     'anyone is allowed to tweet any status if the status contains “foo”'],
 
     ['true : now => @com.twitter.post, !(status =~ "foo")',
-     'anyone is allowed to tweet any status if the status does not contain "foo"'],
+     'anyone is allowed to tweet any status if the status does not contain “foo”'],
 
     ['true : now => @com.twitter.post, starts_with(status, "foo")',
-     'anyone is allowed to tweet any status if the status starts with "foo"'],
+     'anyone is allowed to tweet any status if the status starts with “foo”'],
 
     ['true : now => @com.twitter.post, !starts_with(status, "foo")',
-     'anyone is allowed to tweet any status if the status does not start with "foo"'],
+     'anyone is allowed to tweet any status if the status does not start with “foo”'],
 
     ['true : now => @com.twitter.post, ends_with(status, "foo")',
-     'anyone is allowed to tweet any status if the status ends with "foo"'],
+     'anyone is allowed to tweet any status if the status ends with “foo”'],
 
     ['true : now => @com.twitter.post, !ends_with(status, "foo")',
-     'anyone is allowed to tweet any status if the status does not end with "foo"'],
+     'anyone is allowed to tweet any status if the status does not end with “foo”'],
 
     ['true : now => @com.twitter.post, prefix_of(status, "foo")',
-     'anyone is allowed to tweet any status if the status is a prefix of "foo"'],
+     'anyone is allowed to tweet any status if the status is a prefix of “foo”'],
 
     ['true : now => @com.twitter.post, !prefix_of(status, "foo")',
-     'anyone is allowed to tweet any status if the status is not a prefix of "foo"'],
+     'anyone is allowed to tweet any status if the status is not a prefix of “foo”'],
 
     ['true : now => @com.twitter.post, suffix_of(status, "foo")',
-     'anyone is allowed to tweet any status if the status is a suffix of "foo"'],
+     'anyone is allowed to tweet any status if the status is a suffix of “foo”'],
 
     ['true : now => @com.twitter.post, !suffix_of(status, "foo")',
-     'anyone is allowed to tweet any status if the status is not a suffix of "foo"'],
+     'anyone is allowed to tweet any status if the status is not a suffix of “foo”'],
 
     ['true : now => @com.twitter.post, status == "foo" || status == "bar"',
-     'anyone is allowed to tweet any status if the status is equal to "foo" or the status is equal to "bar"'],
+     'anyone is allowed to tweet any status if the status is equal to “foo” or the status is equal to “bar”'],
 
     ['true : now => @com.twitter.post, status =~ "foo" && status =~ "bar"',
-     'anyone is allowed to tweet any status if the status contains "foo" and the status contains "bar"'],
+     'anyone is allowed to tweet any status if the status contains “foo” and the status contains “bar”'],
 
     ['true : now => @thermostat.set_target_temperature, value == 70F',
      'anyone is allowed to set your thermostat to 70 F'],
@@ -132,25 +132,25 @@ var TEST_CASES = [
      'anyone is allowed to read the current event detected on your security camera if the has person is equal to true'],
 
     ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= makeTime(19,0) } => notify',
-     'anyone is allowed to read the current event detected on your security camera if the current time is after 7:00pm'],
+     'anyone is allowed to read the current event detected on your security camera if the current time is after 7:00 PM'],
 
     ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= makeTime(12,0) } => notify',
-     'anyone is allowed to read the current event detected on your security camera if the current time is after 12:00pm'],
+     'anyone is allowed to read the current event detected on your security camera if the current time is after 12:00 PM'],
 
     ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= makeTime(0,0) } => notify',
-     'anyone is allowed to read the current event detected on your security camera if the current time is after 12:00am'],
+     'anyone is allowed to read the current event detected on your security camera if the current time is after 12:00 AM'],
 
     ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= makeTime(7,30) } => notify',
-     'anyone is allowed to read the current event detected on your security camera if the current time is after 7:30am'],
+     'anyone is allowed to read the current event detected on your security camera if the current time is after 7:30 AM'],
 
     ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= makeTime(7,30,15) } => notify',
-     'anyone is allowed to read the current event detected on your security camera if the current time is after 07:30:15'],
+     'anyone is allowed to read the current event detected on your security camera if the current time is after 7:30:15 AM'],
 
     ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= makeTime(19,30,15) } => notify',
-     'anyone is allowed to read the current event detected on your security camera if the current time is after 19:30:15'],
+     'anyone is allowed to read the current event detected on your security camera if the current time is after 7:30:15 PM'],
 
     ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= makeTime(17,00) && time <= makeTime(19,00) } => notify',
-     'anyone is allowed to read the current event detected on your security camera if the current time is after 5:00pm and the current time is before 7:00pm'],
+     'anyone is allowed to read the current event detected on your security camera if the current time is after 5:00 PM and the current time is before 7:00 PM'],
 
     ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.phone.get_gps() { location == $context.location.home } => notify',
      'anyone is allowed to read the current event detected on your security camera if the my location is equal to at home'],
@@ -174,19 +174,19 @@ var TEST_CASES = [
 
 
     ['true : @com.bing.web_search, query == "foo" => notify',
-     'anyone is allowed to read websites matching "foo" on Bing'],
+     'anyone is allowed to read websites matching “foo” on Bing'],
 
     ['true : @com.bing.web_search, query == "foo" || query == "bar" => notify',
-     'anyone is allowed to read websites matching any query on Bing if the query is equal to "foo" or the query is equal to "bar"'],
+     'anyone is allowed to read websites matching any query on Bing if the query is equal to “foo” or the query is equal to “bar”'],
 
     ['true : @com.bing.web_search, query == "foo" && description =~ "lol" => notify',
-     'anyone is allowed to read websites matching "foo" on Bing if the description contains "lol"'],
+     'anyone is allowed to read websites matching “foo” on Bing if the description contains “lol”'],
 
     ['true : @com.bing.web_search, !(query == "foo" && description =~ "lol") => notify',
-     'anyone is allowed to read websites matching any query on Bing if not the query is equal to "foo" and the description contains "lol"'],
+     'anyone is allowed to read websites matching any query on Bing if not the query is equal to “foo” and the description contains “lol”'],
 
     ['true : @com.bing.web_search, (query == "foo" || query == "bar") && description =~ "lol" => notify',
-     'anyone is allowed to read websites matching any query on Bing if the query is equal to "foo" or the query is equal to "bar" and the description contains "lol"'],
+     'anyone is allowed to read websites matching any query on Bing if the query is equal to “foo” or the query is equal to “bar” and the description contains “lol”'],
 
     ['true : @com.washingtonpost.get_article => notify',
     'anyone is allowed to read the latest articles in the any section section of the Washington Post'],
@@ -203,13 +203,13 @@ var TEST_CASES = [
     'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is before now'],
 
     ['true : @com.wsj.get, section == enum(world) && updated >= makeDate(2018, 5, 4) => notify',
-    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is after 5/4/2018'],
+    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is after Friday, May 4, 2018'],
     ['true : @com.wsj.get, section == enum(world) && updated <= makeDate(2018, 5, 4) => notify',
-    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is before 5/4/2018'],
+    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is before Friday, May 4, 2018'],
     ['true : @com.wsj.get, section == enum(world) && !(updated <= makeDate(2018, 5, 4)) => notify',
-    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is after 5/4/2018'],
+    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is after Friday, May 4, 2018'],
     ['true : @com.wsj.get, section == enum(world) && !(updated >= makeDate(2018, 5, 4)) => notify',
-    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is before 5/4/2018'],
+    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is before Friday, May 4, 2018'],
 
     /*['true : @com.wsj.get, section == enum(world) && updated >= makeDate(2018, 5, 4, 17, 30, 0) => notify',
     'anyone is allowed to read articles published in the world section if the updated is after 5/4/2018, 5:30:00 PM'],*/
@@ -249,6 +249,7 @@ var TEST_CASES = [
 ];
 
 const gettext = {
+    locale: 'en-US',
     dgettext: (domain, msgid) => msgid
 };
 

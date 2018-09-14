@@ -22,5 +22,6 @@ function testClean() {
     assert.strictEqual(clean('otherWEIRD_Thing'), 'other weird thing');
     assert.strictEqual(clean('OtherArgument'), 'other argument');
 }
-
-testClean();
+module.exports = testClean;
+if (!module.parent)
+    testClean();
