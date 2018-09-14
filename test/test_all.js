@@ -7,6 +7,7 @@ process.on('unhandledRejection', (up) => { throw up; });
 
 process.env.TEST_MODE = '1';
 
+<<<<<<< HEAD
 async function seq(array) {
     for (let fn of array) {
         console.log(`Running ${fn}`);
@@ -18,6 +19,7 @@ seq([
     ('./test_version'),
     ('./test_units'),
     ('./test_date_utils'),
+    ('./test_utils'),
     ('./test_builtin_values'),
     ('./test_ast'),
     ('./test_generated_parser'),
