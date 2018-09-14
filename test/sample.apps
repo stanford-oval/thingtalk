@@ -118,6 +118,26 @@ executor = "matrix-account:@gcampax:matrix.org"^^tt:contact : { // WithPrincipal
 
 ====
 
+// WithClassDef
+{
+    class @dyn_0 extends @remote {
+        action send(in req foo : String);
+    }
+    now => @dyn_0.send(foo="foo");
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// WrongClassDef
+{
+    class @dyn_0 extends @remote {
+        action send(in req foo : Number);
+    }
+    now => @dyn_0.send(foo="foo");
+}
+====
+
 // without wrapping it should still work
 
 monitor @com.twitter.home_timeline() => notify;
@@ -670,16 +690,44 @@ dataset foo {
     #_[utterances=['monitor ${p_author}\'s tweets']];
 }
 
-
 ====
 
 // Meta language
-class @com.foo {
-    import loader from @org.thingpedia.v2();
+class @foo {
+    action send(in req bar : Number)
+    #_[canonical='send a number']
+    #_[confirmation='send $bar'];
 }
 
-dataset @com.twitter language 'en' {
-    stream (p_author : Entity(tt:username)) := monitor (@com.twitter.search()), author == p_author
-    #_[utterances=['monitor ${p_author}\'s tweets']];
+dataset @foo {
+    action := @foo.send()
+    #_[utterances=['send']];
 }
 
+====
+
+// Meta language 2
+class @foo {
+    action send(in req bar : Number)
+    #_[canonical='send a number']
+    #_[confirmation='send $bar'];
+}
+
+dataset @foo {
+    action := @bar.send()
+    #_[utterances=['send']];
+}
+
+====
+
+// Meta language 3
+class @foo {
+    action send(in req bar : Number)
+    #_[canonical='send a number']
+    #_[confirmation='send $bar'];
+}
+
+dataset @foo {
+    action := @foo.follow()
+    #_[utterances=['follow']];
+}
