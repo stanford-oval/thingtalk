@@ -136,7 +136,6 @@ executor = "matrix-account:@gcampax:matrix.org"^^tt:contact : { // WithPrincipal
     }
     now => @dyn_0.send(foo="foo");
 }
-
 ====
 
 // without wrapping it should still work
@@ -655,3 +654,87 @@ now => @com.twitter.follow(user_name=null^^tt:username("donald trump"));
   }
 }
 
+====
+
+// Dataset language
+dataset @com.twitter language 'en' {
+    stream (p_author : Entity(tt:username)) := monitor (@com.twitter.search()), author == p_author
+    #_[utterances=['monitor ${p_author}\'s tweets']];
+
+    query := @com.twitter.search()
+    #_[utterances=['tweets', 'post on twitter']];
+
+    program := {
+        monitor (@com.twitter.search()) => notify;
+    }
+    #_[utterances=['notify me about new tweets']];
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// no argument for program
+dataset @com.twitter {
+    program (p_author : Entity(tt:username)) := {
+        monitor (@com.twitter.search()), author == p_author => notify;
+    }
+    #_[utterances=['notify me about new tweets']];
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// wrong type
+dataset foo {
+    stream (p_author : Number) := monitor (@com.twitter.search()), author == p_author
+    #_[utterances=['monitor ${p_author}\'s tweets']];
+}
+
+====
+
+// Meta language
+class @foo {
+    action send(in req bar : Number)
+    #_[canonical='send a number']
+    #_[confirmation='send $bar'];
+}
+
+dataset @foo {
+    action := @foo.send()
+    #_[utterances=['send']];
+
+    program := {
+       now => @foo.send();
+   }
+   #_[utterances=['send']];
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// Meta language 2
+class @foo {
+    action send(in req bar : Number)
+    #_[canonical='send a number']
+    #_[confirmation='send $bar'];
+}
+
+dataset @foo {
+    action := @bar.send()
+    #_[utterances=['send']];
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// Meta language 3
+class @foo {
+    action send(in req bar : Number)
+    #_[canonical='send a number']
+    #_[confirmation='send $bar'];
+}
+
+dataset @foo {
+    action := @foo.follow()
+    #_[utterances=['follow']];
+}
