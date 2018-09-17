@@ -199,7 +199,25 @@ var TEST_CASES = [
      'InputParam(query, Undefined(true)) com.bing:web_search',
      'Device(com.yandex.translate, , ) com.yandex.translate:translate',
      'InputParam(target_language, Entity(it, tt:iso_lang_code, Italian)) com.yandex.translate:translate',
-     'Builtin undefined:notify']]
+     'Builtin undefined:notify']],
+
+    ['dataset @com.twitter language \'en\' {\n' +
+    '    stream (p_author : Entity(tt:username)) := monitor (@com.twitter.search()), author == p_author\n' +
+    '    #_[utterances=[\'monitor ${p_author}\\\'s tweets\']];\n' +
+    '    program := {\n' +
+    '        monitor (@com.twitter.search()) => notify;\n' +
+    '    }\n' +
+    '    #_[utterances=[\'notify me about new tweets\']];\n' +
+    '}',
+    ['query: Invocation(Device(com.twitter, , ), search, , )',
+     'query: Invocation(Device(com.twitter, , ), search, , )',
+     'action: Invocation(Builtin, notify, , )'
+    ],
+    ['Device(com.twitter, , ) com.twitter:search',
+     'Atom(author, ==, VarRef(p_author)) com.twitter:search',
+     'Device(com.twitter, , ) com.twitter:search',
+     'Builtin undefined:notify'
+    ]]
 ];
 
 function test(i) {
