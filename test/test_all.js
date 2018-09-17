@@ -22,6 +22,7 @@ require('./test_describe_policy');
 require('./test_permissions');
 require('./test_lowerings');
 require('./test_declaration_program');
+require('./test_example_program');
 require('./test_convert_program_to_policy');
 require('./test_iteration_apis');
 require('./test_runtime');

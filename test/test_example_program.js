@@ -19,28 +19,32 @@ const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 var TEST_CASES = [
     // manually written test cases
-    ['let action x := @com.twitter.post();',
+    [`dataset foo { action := @com.twitter.post() #_[utterances=['post']]; }`,
      'now => @com.twitter.post(status=$undefined);'],
-    [`let action x := \\(p_status : String) -> @com.twitter.post(status=p_status);`,
+    [`dataset foo { action (p_status : String) := @com.twitter.post(status=p_status) #_[utterances=['post $p_status']]; }`,
      'now => @com.twitter.post(status=__const_SLOT_0);'],
 
-    ['let table x := @com.bing.web_search();',
+    [`dataset foo { query () := @com.bing.web_search() #_[utterances=['bing search']]; }`,
      'now => @com.bing.web_search(query=$undefined) => notify;'],
-    [`let table x := \\(p_query : String) -> @com.bing.web_search(query=p_query);`,
+    [`dataset foo { query (p_query : String) := @com.bing.web_search(query=p_query) #_[utterances=['search $p_query']]; }`,
      'now => @com.bing.web_search(query=__const_SLOT_0) => notify;'],
-    [`let table x := \\(p_query : String, p_width : Number) -> @com.bing.image_search(query=p_query), width >= p_width;`,
+    [`dataset foo { query (p_query : String, p_width : Number) := @com.bing.image_search(query=p_query), width >= p_width #_[utterances=['search $p_query pictures with width greater than $p_width']]; }`,
      'now => (@com.bing.image_search(query=__const_SLOT_0)), width >= __const_SLOT_1 => notify;'],
 
-    [`let stream x := \\(p_author : Entity(tt:username)) -> monitor (@com.twitter.search()), author == p_author;`,
-     `monitor (@com.twitter.search()), author == __const_SLOT_0 => notify;`]
+    [`dataset foo { stream (p_author : Entity(tt:username)) := monitor (@com.twitter.search()), author == p_author #_[utterances=['monitor tweets from $p_author']]; }`,
+     `monitor (@com.twitter.search()), author == __const_SLOT_0 => notify;`],
+
+    [`dataset foo { program := { now => @com.twitter.post(); } #_[utterances=['post']]; }`,
+     'now => @com.twitter.post(status=$undefined);'],
 ];
 
 function test(i) {
     console.log('Test Case #' + (i+1));
     var [code, expected] = TEST_CASES[i];
 
-    return Grammar.parseAndTypecheck(code, schemaRetriever, true).then((prog) => {
-        let program = prog.declarations[0].toProgram();
+    return Grammar.parseAndTypecheck(code, schemaRetriever, true).then((meta) => {
+        let dataset = meta.datasets[0];
+        let program = dataset.examples[0].toProgram();
         let tt = program.prettyprint(true);
 
         if (expected !== tt) {
