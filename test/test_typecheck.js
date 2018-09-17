@@ -15,7 +15,6 @@ function typecheckTest() {
     var code = fs.readFileSync('./test/sample.apps').toString('utf8').split('====');
 
     Q.all(code.map((code) => {
-        if (code.indexOf(`// Meta language`) < 0) return Q();
         code = code.trim();
         return Q(AppGrammar.parseAndTypecheck(code, _schemaRetriever)).then((program) => {
             if (code.indexOf(`** typecheck: expect `) >= 0) {
