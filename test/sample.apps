@@ -698,6 +698,8 @@ class @foo {
     #_[canonical='send a number']
     #_[confirmation='send $bar'];
 }
+#_[name='Foo']
+#_[description='Bar']
 
 dataset @foo {
     action := @foo.send()
@@ -718,6 +720,8 @@ class @foo {
     #_[canonical='send a number']
     #_[confirmation='send $bar'];
 }
+#_[name='Foo']
+#_[description='Bar']
 
 dataset @foo {
     action := @bar.send()
@@ -733,8 +737,26 @@ class @foo {
     #_[canonical='send a number']
     #_[confirmation='send $bar'];
 }
+#_[name='Foo']
+#_[description='Bar']
 
 dataset @foo {
     action := @foo.follow()
     #_[utterances=['follow']];
+}
+
+====
+
+// Meta language: class annotations
+class @foo {
+    action send(in req bar : Number)
+    #_[canonical='send a number']
+    #_[confirmation='send $bar'];
+}
+#_[name='Foo']
+#_[description='Bar']
+
+dataset @foo {
+    action := @foo.send()
+    #_[utterances=['send']];
 }
