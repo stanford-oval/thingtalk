@@ -530,7 +530,7 @@ now => @com.twitter.follow(user_name=null^^tt:username("donald trump"));
 {
   class @com.foo {
     import loader from @org.thingpedia.v2();
-    import config from @org.thingpedia.config.discovery(discovery_type=enum(bluetooth));
+    import config from @org.thingpedia.config.discovery(protocol=enum(bluetooth));
 
     monitorable query get_power(out power : Enum(on, off))
     #_[canonical='power status of foo']
@@ -760,3 +760,14 @@ dataset @foo {
     action := @foo.send()
     #_[utterances=['send']];
 }
+
+====
+
+
+// duplicate import
+class @com.foo {
+    import loader from @org.thingpedia.config.discovery(protocol=enum(bluetooth));
+    import loader from @org.thingpedia.config.form(params=makeArgMap(url:String));
+}
+#_[name='Foo']
+#_[description='Bar']

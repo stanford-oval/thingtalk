@@ -33,7 +33,7 @@
     {
       "id": 3,
       "kind": "org.thingpedia.config.discovery",
-      "args": [ "discovery_type" ],
+      "args": [ "protocol" ],
       "types": [ "Enum(bluetooth, upnp)" ],
       "required": [ true ],
       "is_input": [ true ],
