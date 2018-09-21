@@ -650,7 +650,7 @@ now => @com.twitter.follow(user_name=null^^tt:username("donald trump"));
 // Map type
 {
   class @com.foo {
-    import loader from @org.thingpedia.config.form(params=makeArgMap(url:String));
+    import loader from @org.thingpedia.config.form(params=makeArgMap(url:String, password:Password));
   }
 }
 
@@ -698,8 +698,6 @@ class @foo {
     #_[canonical='send a number']
     #_[confirmation='send $bar'];
 }
-#_[name='Foo']
-#_[description='Bar']
 
 dataset @foo {
     action := @foo.send()
@@ -720,8 +718,6 @@ class @foo {
     #_[canonical='send a number']
     #_[confirmation='send $bar'];
 }
-#_[name='Foo']
-#_[description='Bar']
 
 dataset @foo {
     action := @bar.send()
@@ -737,8 +733,6 @@ class @foo {
     #_[canonical='send a number']
     #_[confirmation='send $bar'];
 }
-#_[name='Foo']
-#_[description='Bar']
 
 dataset @foo {
     action := @foo.follow()
@@ -763,11 +757,19 @@ dataset @foo {
 
 ====
 
-
+// ** typecheck: expect TypeError **
 // duplicate import
 class @com.foo {
     import loader from @org.thingpedia.config.discovery(protocol=enum(bluetooth));
     import loader from @org.thingpedia.config.form(params=makeArgMap(url:String));
 }
-#_[name='Foo']
-#_[description='Bar']
+
+====
+
+// formatted output
+class @foo {
+    query get(out title : String, out url : URL)
+    #_[canonical='send a number']
+    #_[confirmation='send $bar']
+    #_[formatted=['Here is something for you', { type='rdl', displayTitle='$title', webCallback='$url' } ]];
+}
