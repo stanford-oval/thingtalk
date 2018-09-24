@@ -24,6 +24,8 @@ const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 const TEST_CASES = [
     'class @com.foo {\n' +
+    '  import loader from @org.thingpedia.v2();\n' +
+    '  import config from @org.thingpedia.config.form(params=makeArgMap(url:Entity(tt:url),password:Entity(tt:password)));\n' +
     '  monitorable query get_power(out power: Enum(on,off))\n' +
     '  #_[canonical="power status of foo"]\n' +
     '  #_[confirmation="status of foo"]\n' +
@@ -35,7 +37,42 @@ const TEST_CASES = [
     '#_[name="Foo"]\n' +
     '#_[description="This is Foo"]\n' +
     '#[category="physical"]\n' +
-    '#[subcategory="home"]\n' // these annotations should be auto attached from a form
+    '#[subcategory="home"]\n', // these annotations should be auto attached from a form
+
+    'class @com.foo {\n' +
+    '  import loader from @org.thingpedia.v2();\n' +
+    '  import config from @org.thingpedia.config.oauth2(client_id="xxx", client_secret="yyy");\n' +
+    '}\n',
+
+    'class @com.foo {\n' +
+    '  import loader from @org.thingpedia.v2();\n' +
+    '  import config from @org.thingpedia.config.custom_oauth();\n' +
+    '}\n',
+
+    'class @com.foo {\n' +
+    '  import loader from @org.thingpedia.v2();\n' +
+    '  import config from @org.thingpedia.config.basic_auth(extra_params=makeArgMap(serial_number:String));\n' +
+    '}\n',
+
+    'class @com.foo {\n' +
+    '  import loader from @org.thingpedia.v2();\n' +
+    '  import config from @org.thingpedia.config.discovery(protocol=enum(bluetooth));\n' +
+    '}\n',
+
+    'class @com.foo {\n' +
+    '  import loader from @org.thingpedia.v2();\n' +
+    '  import config from @org.thingpedia.config.interactive();\n' +
+    '}\n',
+
+    'class @com.foo {\n' +
+    '  import loader from @org.thingpedia.v2();\n' +
+    '  import config from @org.thingpedia.config.builtin();\n' +
+    '}\n',
+
+    'class @com.foo {\n' +
+    '  import loader from @org.thingpedia.v2();\n' +
+    '  import config from @org.thingpedia.config.none();\n' +
+    '}\n',
 ];
 
 function test(i) {
@@ -49,12 +86,6 @@ function test(i) {
             console.error('Test Case #' + (i+1) + ': does not match what expected');
             console.error('Expected: ' + tt);
             console.error('Generated: ' + generated);
-            for (let i = 0; i < tt.length; i ++) {
-                if (tt[i] !== generated[i]) {
-                    console.error(`Different at ${i}'s character: ${tt[i-1]}`);
-                    break;
-                }
-            }
         }
     }).catch((e) => {
         console.error('Test Case #' + (i+1) + ': failed with exception');

@@ -617,6 +617,26 @@ now => @com.twitter.follow(user_name=null^^tt:username("donald trump"));
 
 ====
 
+// Mixins 1
+{
+  class @com.foo {
+    import loader from @org.thingpedia.v2();
+    import config from @org.thingpedia.config.custom_oauth();
+  }
+}
+
+====
+
+// Mixins 2
+{
+  class @com.foo {
+    import loader from @org.thingpedia.generic_rest();
+    import config from @org.thingpedia.config.oauth2(client_id="xxx", client_secret="yyy");
+  }
+}
+
+====
+
 // ** typecheck: expect TypeError **
 // invalid mixin
 {
