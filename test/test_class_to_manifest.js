@@ -11,7 +11,6 @@
 
 const Q = require('q');
 Q.longStackSupport = true;
-const assert = require('assert');
 
 const Ast = require('../lib/ast');
 const Grammar = require('../lib/grammar_api');
@@ -29,6 +28,7 @@ const TEST_CASES = [
     '  monitorable query get_power(out power: Enum(on,off))\n' +
     '  #_[canonical="power status of foo"]\n' +
     '  #_[confirmation="status of foo"]\n' +
+    '  #_[formatted=["Here is something for you", {type="rdl",displayTitle="$title",webCallback="$url"}]]\n' +
     '  #[poll_interval=600000ms];\n' +
     '  action set_power(in req power: Enum(on,off) #_[prompt="do you want turn on or off?"])\n' +
     '  #_[canonical="set power of foo"]\n' +

@@ -33,6 +33,9 @@ const VALUE_TESTS = [
     [Type.Entity('tt:foo'), new Builtin.Entity('foo')],
     [Type.Entity('tt:foo'), new Builtin.Entity('foo', 'Foo')],
     [Type.Entity('tt:foo'), 'foo'],
+    [Type.Array(Type.Any), [true, 'foo', 21, {x:1, y:2}]],
+    [Type.Object, {a: true, b: 'foo'}],
+    [Type.ArgMap, {a: Type.Boolean}]
 ];
 
 function testValues() {
@@ -43,7 +46,7 @@ function testValues() {
         assert(Builtin.equality(jsvalue, newjs), jsvalue);
 
         let newv = Ast.Value.fromJS(type, newjs);
-        assert(v.equals(newv));
+        assert.deepEqual(v, newv);
     }
 }
 
