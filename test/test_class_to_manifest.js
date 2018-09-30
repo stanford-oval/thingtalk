@@ -18,6 +18,7 @@ const SchemaRetriever = require('../lib/schema');
 
 const { prettyprint } = require('../lib/prettyprint');
 const { ClassDef } = require('../lib/ast');
+const { fromManifest, toManifest } = require('../lib/ast_api');
 const _mockSchemaDelegate = require('./mock_schema_delegate');
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
@@ -80,8 +81,8 @@ function test(i) {
     let tt = TEST_CASES[i];
 
     return Grammar.parseAndTypecheck(tt, schemaRetriever, true).then((meta) => {
-        let manifest_from_tt = meta.classes[0].toManifest();
-        let generated = prettyprint(new Ast.Input.Meta([new ClassDef(manifest_from_tt)], []));
+        let manifest_from_tt = toManifest(meta);
+        let generated = prettyprint(fromManifest(manifest_from_tt));
         if (tt !== generated) {
             console.error('Test Case #' + (i+1) + ': does not match what expected');
             console.error('Expected: ' + tt);
