@@ -20,7 +20,7 @@
   },
   "devDependencies": {
     "coveralls": "^3.0.0",
-    "csv": "^3.1.0",
+    "csv": "^4.0.0",
     "deep-equal": "^1.0.1",
     "eslint": "^5.3.0",
     "mysql": "^2.13.0",
