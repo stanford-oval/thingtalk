@@ -6,7 +6,7 @@ const AppGrammar = require('../lib/grammar_api');
 const { prettyprint } = require('../lib/prettyprint');
 const Generate = require('../lib/generate');
 
-const debug = true;
+const debug = false;
 
 function parserTest() {
     var code = fs.readFileSync('./test/sample.apps').toString('utf8').split('====');
