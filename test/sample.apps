@@ -740,4 +740,10 @@ dataset @foo {
     #_[utterances=['post ${p_status} on Twitter']]
     #_[preprocessed=['post ${p_status} on twitter']]
     #[id=1234];
+
+    query := @com.twitter.home_timeline()
+    #[id=1235] #[click_count=7];
+
+    query := @com.twitter.direct_messages()
+    #[id=1236] #[arbitrary='stri\ng'] #[arbitrary_number=42];
 }
