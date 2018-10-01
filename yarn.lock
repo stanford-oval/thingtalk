@@ -520,28 +520,28 @@ cryptiles@3.x.x:
   dependencies:
     boom "5.x.x"
 
-csv-generate@^2.0.2:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/csv-generate/-/csv-generate-2.1.0.tgz#ba4bea4aa06858eae78fe16a403ef20e7cde6374"
+csv-generate@^2.2.2:
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/csv-generate/-/csv-generate-2.2.2.tgz#c37808c5f3ead2deec940794073dd32d492adfd1"
 
-csv-parse@^2.4.0:
-  version "2.5.0"
-  resolved "https://registry.yarnpkg.com/csv-parse/-/csv-parse-2.5.0.tgz#65748997ecc3719c594622db1b9ea0e2eb7d56bb"
+csv-parse@^3.1.2:
+  version "3.1.2"
+  resolved "https://registry.yarnpkg.com/csv-parse/-/csv-parse-3.1.2.tgz#51bfd2d39b13e66f6da8656360b8ec82ca159494"
 
-csv-stringify@^3.0.0:
-  version "3.1.1"
-  resolved "https://registry.yarnpkg.com/csv-stringify/-/csv-stringify-3.1.1.tgz#3a4e180a84f9c45a6a0a0401c1b41b315b9131f0"
+csv-stringify@^4.3.1:
+  version "4.3.1"
+  resolved "https://registry.yarnpkg.com/csv-stringify/-/csv-stringify-4.3.1.tgz#7bee36f746ef555dd481a735a9e2938965f8478b"
   dependencies:
     lodash.get "~4.4.2"
 
-csv@^3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/csv/-/csv-3.1.0.tgz#91ad8625e294bf37a5b366b84d01aa40b2d20f15"
+csv@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/csv/-/csv-4.0.0.tgz#c7de44b9a0fd47f7a10db24064519f642a7ce92d"
   dependencies:
-    csv-generate "^2.0.2"
-    csv-parse "^2.4.0"
-    csv-stringify "^3.0.0"
-    stream-transform "^1.0.2"
+    csv-generate "^2.2.2"
+    csv-parse "^3.1.2"
+    csv-stringify "^4.3.1"
+    stream-transform "^1.0.7"
 
 dashdash@^1.12.0:
   version "1.14.1"
@@ -2211,9 +2211,9 @@ static-extend@^0.1.1:
     define-property "^0.2.5"
     object-copy "^0.1.0"
 
-stream-transform@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/stream-transform/-/stream-transform-1.0.2.tgz#47de4d15fbc29b7e2a7e54d25e99538876f114c1"
+stream-transform@^1.0.7:
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/stream-transform/-/stream-transform-1.0.7.tgz#5135dd6c29941a1179212da6083be2cacdebc15a"
 
 string-width@^1.0.1:
   version "1.0.2"
