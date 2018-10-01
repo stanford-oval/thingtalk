@@ -673,17 +673,6 @@ dataset @com.twitter language 'en' {
 ====
 
 // ** typecheck: expect TypeError **
-// no argument for program
-dataset @com.twitter {
-    program (p_author : Entity(tt:username)) := {
-        monitor (@com.twitter.search()), author == p_author => notify;
-    }
-    #_[utterances=['notify me about new tweets']];
-}
-
-====
-
-// ** typecheck: expect TypeError **
 // wrong type
 dataset foo {
     stream (p_author : Number) := monitor (@com.twitter.search()), author == p_author
@@ -737,4 +726,18 @@ class @foo {
 dataset @foo {
     action := @foo.follow()
     #_[utterances=['follow']];
+}
+
+====
+
+// Examples with annotations
+dataset @foo {
+    action () := @com.twitter.follow()
+    #_[utterances='follow somebody on Twitter']
+    #_[preprocessed='follow somebody on twitter'];
+
+    action (p_status : String) := @com.twitter.post(status=p_status)
+    #_[utterances=['post ${p_status} on Twitter']]
+    #_[preprocessed=['post ${p_status} on twitter']]
+    #[id=1234];
 }
