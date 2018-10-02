@@ -6,4 +6,7 @@ po/thingtalk.pot
 po/*.mo
 po/*.json
 
+lib/grammar.js
+lib/nn_output_parser.js
+
 *.tgz
