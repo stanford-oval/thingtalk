@@ -88,7 +88,7 @@ function test(i) {
 
     return Grammar.parseAndTypecheck(tt, schemaRetriever, true).then((meta) => {
         let manifest_from_tt = toManifest(meta);
-        let generated = prettyprint(fromManifest(manifest_from_tt));
+        let generated = prettyprint(fromManifest('com.foo', manifest_from_tt));
         if (tt !== generated) {
             console.error('Test Case #' + (i+1) + ': does not match what expected');
             console.error('Expected: ' + tt);
