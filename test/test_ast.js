@@ -33,8 +33,7 @@ const VALUE_TESTS = [
     [Type.Entity('tt:foo'), new Builtin.Entity('foo')],
     [Type.Entity('tt:foo'), new Builtin.Entity('foo', 'Foo')],
     [Type.Entity('tt:foo'), 'foo'],
-    [Type.Array(Type.Any), [true, 'foo', 21, {x:1, y:2}]],
-    [Type.Object, {a: true, b: 'foo'}],
+    [Type.Array(Type.Number), [22, 21]],
     [Type.ArgMap, {a: Type.Boolean}]
 ];
 
