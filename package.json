@@ -20,7 +20,7 @@
   },
   "devDependencies": {
     "coveralls": "^3.0.0",
-    "csv": "^3.1.0",
+    "csv": "^4.0.0",
     "deep-equal": "^1.0.1",
     "eslint": "^5.3.0",
     "mysql": "^2.13.0",
@@ -37,7 +37,7 @@
     "lint": "eslint ./lib",
     "test": "nyc node ./test/test_all",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
-    "prepublish": "which yarn && yarn compile-mo || npm run compile-mo"
+    "prepublish": "which yarn && (yarn compile-mo && yarn regen-grammar && yarn regen-nn-grammar) || (npm run compile-mo && npm run regen-grammar && npm run regen-nn-grammar)"
   },
   "nyc": {
     "exclude": [

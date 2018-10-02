@@ -7,4 +7,7 @@ po/*.mo
 po/*.json
 .idea/
 
+lib/grammar.js
+lib/nn_output_parser.js
+
 *.tgz

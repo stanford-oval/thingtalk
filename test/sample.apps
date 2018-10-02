@@ -693,17 +693,6 @@ dataset @com.twitter language 'en' {
 ====
 
 // ** typecheck: expect TypeError **
-// no argument for program
-dataset @com.twitter {
-    program (p_author : Entity(tt:username)) := {
-        monitor (@com.twitter.search()), author == p_author => notify;
-    }
-    #_[utterances=['notify me about new tweets']];
-}
-
-====
-
-// ** typecheck: expect TypeError **
 // wrong type
 dataset foo {
     stream (p_author : Number) := monitor (@com.twitter.search()), author == p_author
@@ -786,6 +775,26 @@ class @com.foo {
 
 ====
 
+// Examples with annotations
+dataset @foo {
+    action () := @com.twitter.follow()
+    #_[utterances='follow somebody on Twitter']
+    #_[preprocessed='follow somebody on twitter'];
+
+    action (p_status : String) := @com.twitter.post(status=p_status)
+    #_[utterances=['post ${p_status} on Twitter']]
+    #_[preprocessed=['post ${p_status} on twitter']]
+    #[id=1234];
+
+    query := @com.twitter.home_timeline()
+    #[id=1235] #[click_count=7];
+
+    query := @com.twitter.direct_messages()
+    #[id=1236] #[arbitrary='stri\ng'] #[arbitrary_number=42];
+}
+
+====
+
 // formatted output
 class @foo {
     query get(out title : String, out url : URL)
@@ -794,3 +803,38 @@ class @foo {
     #_[formatted=['Here is something for you', { type='rdl', displayTitle='$title', webCallback='$url' } ]];
 }
 
+====
+// Generated from Thingpedia, part of the Thingpedia tests
+dataset @org.thingpedia.dynamic.by_kinds.org_thingpedia_builtin_test language "en" {
+    action  := @org.thingpedia.builtin.test.eat_data()
+        #_[utterances=["eat some data"]]
+        #_[preprocessed=["eat some data"]]
+        #[id=1000] #[click_count=0];
+    query (p_size :Measure(byte)) := @org.thingpedia.builtin.test.get_data(size=p_size)
+        #_[utterances=["get some data"]]
+        #_[preprocessed=["get some data"]]
+        #[id=1001] #[click_count=0];
+    program := monitor (@org.thingpedia.builtin.test.get_data()) => @org.thingpedia.builtin.test.eat_data()
+        #_[utterances=["keep eating data!"]]
+        #_[preprocessed=["keep eating data !"]]
+        #[id=1002] #[click_count=0];
+    program := monitor (@org.thingpedia.builtin.test.get_data()) => @org.thingpedia.builtin.test.eat_data()
+        #_[utterances=["keep eating data! (v2)"]]
+        #_[preprocessed=["keep eating data ! -lrb- v2 -rrb-"]]
+        #[id=1003] #[click_count=0];
+    action (p_data : String) := @org.thingpedia.builtin.test.eat_data(data=p_data)
+        #_[utterances=["more data eating..."]]
+        #_[preprocessed=["more data eating ..."]]
+        #[id=1004] #[click_count=0];
+    query  := @org.thingpedia.builtin.test.get_data()
+        #_[utterances=["more data genning..."]]
+        #_[preprocessed=["more data genning ..."]]
+        #[id=1005] #[click_count=0];
+}
+
+dataset @org.thingpedia.dynamic.by_key.eat language "en" {
+    action  := @org.thingpedia.builtin.test.eat_data()
+        #_[utterances=["eat some data"]]
+        #_[preprocessed=["eat some data"]]
+        #[id=1000] #[click_count=0];
+}
