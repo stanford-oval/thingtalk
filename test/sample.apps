@@ -763,13 +763,12 @@ dataset @foo {
 
 // Meta language: class annotations
 class @foo {
-    #_[name='Foo']
-    #_[description='Bar']
-
     action send(in req bar : Number)
     #_[canonical='send a number']
     #_[confirmation='send $bar'];
 }
+#_[name='Foo']
+#_[description='Bar']
 
 dataset @foo {
     action := @foo.send()
