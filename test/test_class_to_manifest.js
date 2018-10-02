@@ -12,12 +12,10 @@
 const Q = require('q');
 Q.longStackSupport = true;
 
-const Ast = require('../lib/ast');
 const Grammar = require('../lib/grammar_api');
 const SchemaRetriever = require('../lib/schema');
 
 const { prettyprint } = require('../lib/prettyprint');
-const { ClassDef } = require('../lib/ast');
 const { fromManifest, toManifest } = require('../lib/ast_api');
 const _mockSchemaDelegate = require('./mock_schema_delegate');
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
@@ -74,6 +72,12 @@ const TEST_CASES = [
     '  import loader from @org.thingpedia.v2();\n' +
     '  import config from @org.thingpedia.config.none();\n' +
     '}\n',
+
+    'class @com.foo {\n' +
+    '  import loader from @org.thingpedia.v2();\n' +
+    '  import config from @org.thingpedia.config.none();\n' +
+    '}\n' +
+    '#[version=1]\n'
 ];
 
 function test(i) {
