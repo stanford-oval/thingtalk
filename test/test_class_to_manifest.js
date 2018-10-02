@@ -22,21 +22,24 @@ const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 const TEST_CASES = [
     'class @com.foo {\n' +
+    '  #_[name="Foo"]\n' +
+    '  #_[description="This is Foo"]\n' +
+    '  #[category="physical"]\n' +
+    '  #[subcategory="home"]\n' + // these annotations should be auto attached from a form
+    '\n' +
     '  import loader from @org.thingpedia.v2();\n' +
     '  import config from @org.thingpedia.config.form(params=makeArgMap(url:Entity(tt:url),password:Entity(tt:password)));\n' +
+    '\n' +
     '  monitorable query get_power(out power: Enum(on,off))\n' +
     '  #_[canonical="power status of foo"]\n' +
     '  #_[confirmation="status of foo"]\n' +
     '  #_[formatted=["Here is something for you", {type="rdl",displayTitle="$title",webCallback="$url"}]]\n' +
     '  #[poll_interval=600000ms];\n' +
+    '\n' +
     '  action set_power(in req power: Enum(on,off) #_[prompt="do you want turn on or off?"])\n' +
     '  #_[canonical="set power of foo"]\n' +
     '  #_[confirmation="turn $power foo"];\n' +
-    '}\n' +
-    '#_[name="Foo"]\n' +
-    '#_[description="This is Foo"]\n' +
-    '#[category="physical"]\n' +
-    '#[subcategory="home"]\n', // these annotations should be auto attached from a form
+    '}\n',
 
     'class @com.foo {\n' +
     '  import loader from @org.thingpedia.v2();\n' +
@@ -74,10 +77,11 @@ const TEST_CASES = [
     '}\n',
 
     'class @com.foo {\n' +
+    '  #[version=1]\n' +
+    '\n' +
     '  import loader from @org.thingpedia.v2();\n' +
     '  import config from @org.thingpedia.config.none();\n' +
-    '}\n' +
-    '#[version=1]\n'
+    '}\n'
 ];
 
 function test(i) {
