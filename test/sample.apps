@@ -605,7 +605,6 @@ now => @com.twitter.follow(user_name=null^^tt:username("donald trump"));
 
 ====
 
-// ** typecheck: expect TypeError **
 // prompt for output argument
 {
   class @com.foo {
