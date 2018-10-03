@@ -79,6 +79,17 @@ const TEST_CASES = [
     '#[version=1] {\n' +
     '  import loader from @org.thingpedia.v2();\n' +
     '  import config from @org.thingpedia.config.none();\n' +
+    '}\n',
+
+    'class @com.foo extends @com.twitter, @com.facebook {\n' +
+    '  import loader from @org.thingpedia.v2();\n' +
+    '  import config from @org.thingpedia.config.none();\n' +
+    '}\n',
+
+    'class @com.foo extends @com.twitter\n' +
+    '#[child_types=["com.facebook"]] {\n' +
+    '  import loader from @org.thingpedia.v2();\n' +
+    '  import config from @org.thingpedia.config.none();\n' +
     '}\n'
 ];
 

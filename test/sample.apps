@@ -775,6 +775,16 @@ class @com.foo {
 
 ====
 
+// class extends
+class @com.foo extends @com.twitter {}
+
+====
+
+// class extends
+class @com.foo extends @com.twitter, @com.facebook {}
+
+====
+
 // Examples with annotations
 dataset @foo {
     action () := @com.twitter.follow()
