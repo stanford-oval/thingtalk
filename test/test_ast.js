@@ -49,7 +49,27 @@ function testValues() {
     }
 }
 
+function testClone() {
+    let fn = new Ast.FunctionDef('action', 'foo',
+        [], // args
+        false, // is_list
+        false, // is_monitorable,
+        {}, // metadata
+        {} // annotations
+    );
+
+    let clone = fn.clone();
+    assert(clone.args !== fn.args);
+    assert(clone.args.length === fn.args.length);
+    assert(clone.types !== fn.types);
+    assert(clone.types.length === fn.types.length);
+    assert(clone.inReq !== fn.inReq);
+    assert(clone.inOpt !== fn.inOpt);
+    assert(clone.out !== fn.out);
+}
+
 function main() {
     testValues();
+    testClone();
 }
 main();
