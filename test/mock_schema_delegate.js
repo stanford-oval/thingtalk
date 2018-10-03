@@ -2,35 +2,110 @@
 
 const Thingpedia = require('./thingpedia.json');
 const Mixins = require('./mixins.json');
-const { ClassDef } = require('../lib/class_def_ast');
+const Ast = require('../lib/ast');
+const Type = require('../lib/type');
 const Q = require('q');
 const fs = require('fs');
 const path = require('path');
+
+// Parse the semi-obsolete JSON format for schemas used
+// by Thingpedia into a FunctionDef
+function makeSchemaFunctionDef(functionType, functionName, schema, isMeta) {
+    const args = [];
+    // compat with Thingpedia API quirks
+    const types = schema.types || schema.schema;
+
+    types.forEach((type, i) => {
+        type = Type.fromString(type);
+        const argname = schema.args[i];
+        const argrequired = !!schema.required[i];
+        const arginput = !!schema.is_input[i];
+
+        let direction;
+        if (argrequired)
+            direction = Ast.ArgDirection.IN_REQ;
+        else if (arginput)
+            direction = Ast.ArgDirection.IN_OPT;
+        else
+            direction = Ast.ArgDirection.OUT;
+        const metadata = {};
+        if (isMeta) {
+            metadata.prompt = schema.questions[i] || '';
+            metadata.canonical = schema.argcanonicals[i] || argname;
+        }
+        const annotations = {};
+
+        args.push(new Ast.ArgumentDef(direction, argname,
+            type, metadata, annotations));
+    });
+
+    const metadata = {};
+    if (isMeta) {
+        metadata.canonical = schema.canonical || '';
+        metadata.confirmation = schema.confirmation || '';
+    }
+    const annotations = {};
+
+    return new Ast.FunctionDef(functionType,
+                               functionName,
+                               args,
+                               schema.is_list,
+                               schema.is_monitorable,
+                               metadata,
+                               annotations);
+}
+
+function makeSchemaClassDef(kind, schema, isMeta) {
+    const queries = {};
+    for (let name in schema.queries)
+        queries[name] = makeSchemaFunctionDef('query', name, schema.queries[name], isMeta);
+    const actions = {};
+    for (let name in schema.actions)
+        actions[name] = makeSchemaFunctionDef('action', name, schema.actions[name], isMeta);
+
+    const imports = [];
+    const metadata = {};
+    const annotations = {};
+    return new Ast.ClassDef(kind, null, queries, actions,
+                            imports, metadata, annotations);
+}
 
 module.exports = {
     _schema: {},
     _meta: {},
     _mixins: {},
 
-    getSchemas() {
-        return Promise.resolve(this._schema);
+    // The Thingpedia APIs were changed to return ThingTalk class
+    // definitions rather than JSON
+    // We convert our JSON datafiles into ThingTalk code here
+
+    async getSchemas(kinds, useMeta) {
+        const source = useMeta ? this._meta : this._schema;
+
+        const classes = [];
+        for (let kind of kinds) {
+            // emulate Thingpedia's behavior of creating an empty class
+            // for invalid/unknown/invisible devices
+            if (!source[kind])
+                source[kind] = { queries: {}, actions: {} };
+            classes.push(makeSchemaClassDef(kind, source[kind], useMeta));
+        }
+        const input = new Ast.Input.Meta(classes, []);
+        return input.prettyprint();
+    },
+    async getDeviceCode(kind) {
+        const data = await Q.nfcall(fs.readFile, path.resolve(path.dirname(module.filename), kind + '.json'));
+        const parsed = JSON.parse(data);
+
+        const classDef = Ast.ClassDef.fromManifest(kind, parsed);
+        return classDef.prettyprint();
     },
 
-    getMetas() {
-        return Promise.resolve(this._meta);
-    },
-
+    // FIXME mixins too should be changed
     getMixins() {
         return Promise.resolve(this._mixins);
     },
 
-    async getDeviceCode(kind) {
-        const data = await Q.nfcall(fs.readFile, path.resolve(path.dirname(module.filename), kind + '.json'));
-        const parsed = JSON.parse(data);
-        // the modern API returns ThingTalk, not JSON, so convert here
-        const classDef = ClassDef.fromManifest(kind, parsed);
-        return classDef.prettyprint();
-    }
 };
 for (let dev of Thingpedia.data) {
     module.exports._meta[dev.kind] = dev;
