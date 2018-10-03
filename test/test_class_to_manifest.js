@@ -23,9 +23,7 @@ const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 const TEST_CASES = [
     'class @com.foo\n' +
     '#_[name="Foo"]\n' +
-    '#_[description="This is Foo"]\n' +
-    '#[category="physical"]\n' +
-    '#[subcategory="home"] {\n' +
+    '#_[description="This is Foo"] {\n' +
     '  import loader from @org.thingpedia.v2();\n' +
     '  import config from @org.thingpedia.config.form(params=makeArgMap(url:Entity(tt:url),password:Entity(tt:password)));\n' +
     '\n' +
