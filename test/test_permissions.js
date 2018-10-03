@@ -52,27 +52,28 @@ const TEST_CASES = [
 
     [`now => @com.lg.tv.webos2.set_power(power=enum(on));`, null],
 
-    [`{
-       class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-           action send (in req __principal : Entity(tt:contact), in req __program_id : Entity(tt:program_id), in req __flow : Number, in req __kindChannel : Entity(tt:function), in req media_id : Entity(instagram:media_id), in req picture_url : Entity(tt:picture), in req caption : String, in req link : Entity(tt:url), in req filter : Entity(com.instagram:filter), in req hashtags : Array(Entity(tt:hashtag)), in req location : Location);
-       }
-       now => @com.instagram.get_pictures() => @__dyn_0.send(__principal="matrix-account:@rayx6:matrix.org"^^tt:contact, __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, media_id=media_id, picture_url=picture_url, caption=caption, link=link, filter=filter, hashtags=hashtags, location=location);
-   }`, `{
-    class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-      action send(in req __principal: Entity(tt:contact),
-                  in req __program_id: Entity(tt:program_id),
-                  in req __flow: Number,
-                  in req __kindChannel: Entity(tt:function),
-                  in req media_id: Entity(instagram:media_id),
-                  in req picture_url: Entity(tt:picture),
-                  in req caption: String,
-                  in req link: Entity(tt:url),
-                  in req filter: Entity(com.instagram:filter),
-                  in req hashtags: Array(Entity(tt:hashtag)),
-                  in req location: Location);
-    }
-    now => (@com.instagram.get_pictures()), caption =~ "trip" => @__dyn_0.send(__principal="matrix-account:@rayx6:matrix.org"^^tt:contact, __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, media_id=media_id, picture_url=picture_url, caption=caption, link=link, filter=filter, hashtags=hashtags, location=location);
-}`],
+    [`{\n` +
+     `  class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {\n` +
+     `    action send (in req __principal : Entity(tt:contact), in req __program_id : Entity(tt:program_id), in req __flow : Number, in req __kindChannel : Entity(tt:function), in req media_id : Entity(instagram:media_id), in req picture_url : Entity(tt:picture), in req caption : String, in req link : Entity(tt:url), in req filter : Entity(com.instagram:filter), in req hashtags : Array(Entity(tt:hashtag)), in req location : Location);\n` +
+     `}\n` +
+     `  now => @com.instagram.get_pictures() => @__dyn_0.send(__principal="matrix-account:@rayx6:matrix.org"^^tt:contact, __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, media_id=media_id, picture_url=picture_url, caption=caption, link=link, filter=filter, hashtags=hashtags, location=location);\n` +
+     `}`,
+     `{\n` +
+     `  class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {\n` +
+     `    action send(in req __principal: Entity(tt:contact),\n` +
+     `                in req __program_id: Entity(tt:program_id),\n` +
+     `                in req __flow: Number,\n` +
+     `                in req __kindChannel: Entity(tt:function),\n` +
+     `                in req media_id: Entity(instagram:media_id),\n` +
+     `                in req picture_url: Entity(tt:picture),\n` +
+     `                in req caption: String,\n` +
+     `                in req link: Entity(tt:url),\n` +
+     `                in req filter: Entity(com.instagram:filter),\n` +
+     `                in req hashtags: Array(Entity(tt:hashtag)),\n` +
+     `                in req location: Location);\n` +
+     `  }\n` +
+     `  now => (@com.instagram.get_pictures()), caption =~ "trip" => @__dyn_0.send(__principal="matrix-account:@rayx6:matrix.org"^^tt:contact, __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, media_id=media_id, picture_url=picture_url, caption=caption, link=link, filter=filter, hashtags=hashtags, location=location);\n` +
+     `}`],
 
     /*[`monitor @thermostat.get_temperature(), @com.xkcd.get_comic(number=10) { title =~ "lol" }  => notify;`,
     `@thermostat.temperature(), @xkcd.get_comic(number=10) { title =~ "lol" }  => notify;`],

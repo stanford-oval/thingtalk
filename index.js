@@ -27,6 +27,10 @@ Generate.typeCheckFilter = typeCheckFilter;
 Generate.typeCheckProgram = typeCheckProgram;
 Generate.typeCheckPermissionRule = typeCheckPermissionRule;
 
+let { fromManifest, toManifest } = require('./lib/ast_api');
+Ast.fromManifest = fromManifest;
+Ast.toManifest = toManifest;
+
 const builtin = require('./lib/builtin');
 
 module.exports = {

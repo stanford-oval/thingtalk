@@ -530,7 +530,7 @@ now => @com.twitter.follow(user_name=null^^tt:username("donald trump"));
 {
   class @com.foo {
     import loader from @org.thingpedia.v2();
-    import config from @org.thingpedia.config.discovery(discovery_type=enum(bluetooth));
+    import config from @org.thingpedia.config.discovery(protocol=enum(bluetooth));
 
     monitorable query get_power(out power : Enum(on, off))
     #_[canonical='power status of foo']
@@ -605,13 +605,32 @@ now => @com.twitter.follow(user_name=null^^tt:username("donald trump"));
 
 ====
 
-// ** typecheck: expect TypeError **
 // prompt for output argument
 {
   class @com.foo {
     list query get_random_number(out number : Number #_[prompt='what number?'])
     #_[canonical='get random number']
     #_[confirmation='random number'];
+  }
+}
+
+====
+
+// Mixins 1
+{
+  class @com.foo {
+    import loader from @org.thingpedia.v2();
+    import config from @org.thingpedia.config.custom_oauth();
+  }
+}
+
+====
+
+// Mixins 2
+{
+  class @com.foo {
+    import loader from @org.thingpedia.generic_rest();
+    import config from @org.thingpedia.config.oauth2(client_id="xxx", client_secret="yyy");
   }
 }
 
@@ -650,7 +669,7 @@ now => @com.twitter.follow(user_name=null^^tt:username("donald trump"));
 // Map type
 {
   class @com.foo {
-    import loader from @org.thingpedia.config.form(params=makeArgMap(url:String));
+    import loader from @org.thingpedia.config.form(params=makeArgMap(url:String, password:Password));
   }
 }
 
@@ -730,6 +749,41 @@ dataset @foo {
 
 ====
 
+// Meta language: class annotations
+class @foo
+#_[name='Foo']
+#_[description='Bar'] {
+    action send(in req bar : Number)
+    #_[canonical='send a number']
+    #_[confirmation='send $bar'];
+}
+
+dataset @foo {
+    action := @foo.send()
+    #_[utterances=['send']];
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// duplicate import
+class @com.foo {
+    import loader from @org.thingpedia.config.discovery(protocol=enum(bluetooth));
+    import loader from @org.thingpedia.config.form(params=makeArgMap(url:String));
+}
+
+====
+
+// class extends
+class @com.foo extends @com.twitter {}
+
+====
+
+// class extends
+class @com.foo extends @com.twitter, @com.facebook {}
+
+====
+
 // Examples with annotations
 dataset @foo {
     action () := @com.twitter.follow()
@@ -750,6 +804,15 @@ dataset @foo {
 
 ====
 
+// formatted output
+class @foo {
+    query get(out title : String, out url : URL)
+    #_[canonical='send a number']
+    #_[confirmation='send $bar']
+    #_[formatted=['Here is something for you', { type='rdl', displayTitle='$title', webCallback='$url' } ]];
+}
+
+====
 // Generated from Thingpedia, part of the Thingpedia tests
 dataset @org.thingpedia.dynamic.by_kinds.org_thingpedia_builtin_test language "en" {
     action  := @org.thingpedia.builtin.test.eat_data()
