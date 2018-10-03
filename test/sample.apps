@@ -556,18 +556,6 @@ now => @com.twitter.follow(user_name=null^^tt:username("donald trump"));
 ====
 
 // ** typecheck: expect TypeError **
-// Missing poll interval
-{
-  class @com.foo {
-    monitorable query get_power(out power : Enum(on, off))
-    #_[canonical='power status of foo']
-    #_[confirmation='status of foo'];
-  }
-}
-
-====
-
-// ** typecheck: expect TypeError **
 // invalid value type for poll interval
 {
   class @com.foo {
