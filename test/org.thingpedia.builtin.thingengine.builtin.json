@@ -29,7 +29,8 @@
                     "text": "Current time is ${time:time}."
                 }
             ],
-            "poll_interval": -1
+            "poll_interval": -1,
+            "is_list": false
         },
         "get_date": {
             "args": [
@@ -51,7 +52,8 @@
                     "text": "Today is ${date:date}."
                 }
             ],
-            "poll_interval": -1
+            "poll_interval": -1,
+            "is_list": false
         },
         "get_random_between": {
             "args": [
@@ -87,7 +89,8 @@
                     "text": "${random}"
                 }
             ],
-            "poll_interval": -1
+            "poll_interval": -1,
+            "is_list": false
         },
         "get_commands": {
             "args": [
@@ -116,7 +119,8 @@
                     "text": "${program}"
                 }
             ],
-            "poll_interval": -1
+            "poll_interval": -1,
+            "is_list": true
         }
     },
     "actions": {

@@ -2,6 +2,7 @@
 
 const Thingpedia = require('./thingpedia.json');
 const Mixins = require('./mixins.json');
+const { ClassDef } = require('../lib/class_def_ast');
 const Q = require('q');
 const fs = require('fs');
 const path = require('path');
@@ -23,8 +24,12 @@ module.exports = {
         return Promise.resolve(this._mixins);
     },
 
-    getDeviceCode(kind) {
-        return Q.nfcall(fs.readFile, path.resolve(path.dirname(module.filename), kind + '.json')).then((data) => JSON.parse(data));
+    async getDeviceCode(kind) {
+        const data = await Q.nfcall(fs.readFile, path.resolve(path.dirname(module.filename), kind + '.json'));
+        const parsed = JSON.parse(data);
+        // the modern API returns ThingTalk, not JSON, so convert here
+        const classDef = ClassDef.fromManifest(kind, parsed);
+        return classDef.prettyprint();
     }
 };
 for (let dev of Thingpedia.data) {

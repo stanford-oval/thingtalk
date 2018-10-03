@@ -2,7 +2,6 @@
   "result": "ok",
   "data": [
     {
-      "id": 0,
       "kind": "org.thingpedia.v2",
       "args": [],
       "types": [],
@@ -13,16 +12,26 @@
       ]
     },
     {
-      "id": 1,
-      "kind": "org.thingpedia.config.none",
-      "args": [ "api_key" ],
-      "types": [ "String" ],
-      "required": [ false ],
-      "is_input": [ true ],
-      "facets": [ "config" ]
+      "kind": "org.thingpedia.builtin",
+      "args": [],
+      "types": [],
+      "required": [],
+      "is_input": [],
+      "facets": [
+        "loader"
+      ]
     },
     {
-      "id": 2,
+      "kind": "org.thingpedia.embedded",
+      "args": [],
+      "types": [],
+      "required": [],
+      "is_input": [],
+      "facets": [
+        "loader"
+      ]
+    },
+    {
       "kind": "org.thingpedia.generic_rest",
       "args": [],
       "types": [],
@@ -31,7 +40,14 @@
       "facets": [ "loader" ]
     },
     {
-      "id": 3,
+      "kind": "org.thingpedia.config.none",
+      "args": [ "api_key", "subscription_key" ],
+      "types": [ "String", "String" ],
+      "required": [ false, false ],
+      "is_input": [ true, true ],
+      "facets": [ "config" ]
+    },
+    {
       "kind": "org.thingpedia.config.discovery",
       "args": [ "protocol" ],
       "types": [ "Enum(bluetooth, upnp)" ],
@@ -40,7 +56,6 @@
       "facets": [ "config" ]
     },
     {
-      "id": 4,
       "kind": "org.thingpedia.config.form",
       "args": [ "params" ],
       "types": [ "ArgMap"],
@@ -49,7 +64,6 @@
       "facets": [ "config" ]
     },
     {
-      "id": 5,
       "kind": "org.thingpedia.config.oauth2",
       "args": [ "client_id", "client_secret" ],
       "types": [ "String", "String" ],
@@ -58,7 +72,6 @@
       "facets": [ "config" ]
     },
     {
-      "id": 6,
       "kind": "org.thingpedia.config.custom_oauth",
       "args": [ "client_id", "client_secret" ],
       "types": [ "String", "String" ],
@@ -67,7 +80,6 @@
       "facets": [ "config" ]
     },
     {
-      "id": 7,
       "kind": "org.thingpedia.config.basic_auth",
       "args": [ "extra_params" ],
       "types": [ "ArgMap" ],
@@ -76,7 +88,6 @@
       "facets": [ "config" ]
     },
     {
-      "id": 8,
       "kind": "org.thingpedia.config.interactive",
       "args": [],
       "types": [],
@@ -87,7 +98,6 @@
       ]
     },
     {
-      "id": 9,
       "kind": "org.thingpedia.config.builtin",
       "args": [],
       "types": [],

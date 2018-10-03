@@ -50,7 +50,8 @@
                     "text": "Sun times on ${date:date} for ${location}: rises at ${sunrise_time}, sets at ${sunset_time}"
                 }
             ],
-            "poll_interval": 86400000
+            "poll_interval": 86400000,
+            "is_list": false
         },
         "moon": {
             "args": [
@@ -86,7 +87,8 @@
                     "text": "Moon phase on ${date:date} for ${location}: ${phase}."
                 }
             ],
-            "poll_interval": 86400000
+            "poll_interval": 86400000,
+            "is_list": false
         },
         "current": {
             "args": [
@@ -157,7 +159,8 @@
                     "text": "Current weather for ${location}: ${status}, temperature ${temperature:C} C, wind speed ${wind_speed:mps} m/s, humidity ${humidity}%, cloudiness ${cloudiness}%, fog ${fog}%."
                 }
             ],
-            "poll_interval": 3600000
+            "poll_interval": 3600000,
+            "is_list": false
         }
     },
     "actions": {},
