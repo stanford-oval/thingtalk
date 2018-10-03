@@ -556,18 +556,6 @@ now => @com.twitter.follow(user_name=null^^tt:username("donald trump"));
 ====
 
 // ** typecheck: expect TypeError **
-// Missing poll interval
-{
-  class @com.foo {
-    monitorable query get_power(out power : Enum(on, off))
-    #_[canonical='power status of foo']
-    #_[confirmation='status of foo'];
-  }
-}
-
-====
-
-// ** typecheck: expect TypeError **
 // invalid value type for poll interval
 {
   class @com.foo {
@@ -847,3 +835,17 @@ dataset @org.thingpedia.dynamic.by_key.eat language "en" {
         #_[preprocessed=["eat some data"]]
         #[id=1000] #[click_count=0];
 }
+
+====
+
+// ** typecheck: expect TypeError **
+// Invalid type
+class @foo {
+  action foo (in req arg : Invalid);
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// Invalid type 2
+let action foo := \(arg : Invalid) -> @com.twitter.post();
