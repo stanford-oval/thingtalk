@@ -37,7 +37,7 @@
     "lint": "eslint ./lib",
     "test": "nyc node ./test/test_all",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
-    "prepublish": "which yarn && (yarn compile-mo && yarn regen-grammar && yarn regen-nn-grammar) || (npm run compile-mo && npm run regen-grammar && npm run regen-nn-grammar)"
+    "prepare": "which yarn && (yarn compile-mo && yarn regen-grammar && yarn regen-nn-grammar) || (npm run compile-mo && npm run regen-grammar && npm run regen-nn-grammar)"
   },
   "nyc": {
     "exclude": [
