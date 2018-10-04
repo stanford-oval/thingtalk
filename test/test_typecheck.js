@@ -11,10 +11,10 @@ const _mockMemoryClient = require('./mock_memory_client');
 
 const _schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, _mockMemoryClient, true);
 
-function typecheckTest() {
+function main() {
     var code = fs.readFileSync('./test/sample.apps').toString('utf8').split('====');
 
-    Q.all(code.map((code) => {
+    return Q.all(code.map((code) => {
         code = code.trim();
         return Q(AppGrammar.parseAndTypecheck(code, _schemaRetriever)).then((program) => {
             if (code.indexOf(`** typecheck: expect `) >= 0) {
@@ -42,7 +42,8 @@ function typecheckTest() {
             if (process.env.TEST_MODE)
                 throw e;
         });
-    })).done();
+    }));
 }
-
-typecheckTest();
+module.exports = main;
+if (!module.parent)
+    main();

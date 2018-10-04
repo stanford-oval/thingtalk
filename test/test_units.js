@@ -1,16 +1,16 @@
 // Unit Tests! Cause I'm testing units! Get it? Get it?
+"use strict";
 
 const assert = require('assert');
 
 const Units = require('../lib/units');
-const { parseDate } = require('../lib/utils');
 
 function test(v1, u1, v2, u2) {
     assert.strictEqual(Units.normalizeUnit(u1),
         Units.normalizeUnit(u2));
 
     let vn1 = Units.transformToBaseUnit(v1, u1);
-    let vn2 = Units.transformToBaseUnit(v2, u2)
+    let vn2 = Units.transformToBaseUnit(v2, u2);
     assert(Math.abs(vn1 - vn2) < 0.00001);
 }
 
@@ -27,4 +27,6 @@ function main() {
     test(1, 'kg', 2.20462, 'lb');
     test(1, 'ft', 30.48, 'cm');
 }
-main();
+module.exports = main;
+if (!module.parent)
+    main();

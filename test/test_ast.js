@@ -72,4 +72,6 @@ function main() {
     testValues();
     testClone();
 }
-main();
+module.exports = main;
+if (!module.parent)
+    main();

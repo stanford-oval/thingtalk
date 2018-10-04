@@ -193,6 +193,8 @@ function loop(i) {
 }
 
 function main() {
-    loop(0).done();
+    return loop(0);
 }
-main();
+module.exports = main;
+if (!module.parent)
+    main();

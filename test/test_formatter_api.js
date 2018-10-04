@@ -100,4 +100,6 @@ function main() {
         v7: 9.5
     }, 'string'), 'Link: text <lol$foo$ null 69.8 2018-05-24T04:18:00.000Z 42 10 9.50>');
 }
-main();
+module.exports = main;
+if (!module.parent)
+    main();

@@ -55,4 +55,6 @@ function main() {
     next_month.setMilliseconds(0);
     test(DateEdge('end_of', 'mon'), '+', null, next_month);
 }
-main();
+module.exports = main;
+if (!module.parent)
+    main();

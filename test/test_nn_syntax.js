@@ -312,6 +312,8 @@ function promiseLoop(array, fn) {
 }
 
 function main() {
-    promiseLoop(TEST_CASES, testCase).done();
+    return promiseLoop(TEST_CASES, testCase);
 }
-main();
+module.exports = main;
+if (!module.parent)
+    main();
