@@ -2,7 +2,7 @@
 //
 // This file is part of ThingTalk
 //
-// Copyright 2015-2016 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2018 The Board of Trustees of the Leland Stanford Junior University
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 //
