@@ -82,4 +82,6 @@ function main() {
     assert(equality(new __builtin.Currency(42, 'EUR'), 42));
     assert(equality(42, new __builtin.Currency(42, 'usd')));
 }
-main();
+module.exports = main;
+if (!module.parent)
+    main();

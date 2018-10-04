@@ -7,26 +7,35 @@ process.on('unhandledRejection', (up) => { throw up; });
 
 process.env.TEST_MODE = '1';
 
-require('./test_units');
-require('./test_date_utils');
-require('./test_builtin_values');
-require('./test_ast');
-require('./test_generated_parser');
-require('./app_grammar_test');
-require('./test_typecheck');
-require('./test_nn_syntax');
-require('./test_compiler');
-require('./test_builtin');
-require('./test_describe');
-require('./test_describe_policy');
-require('./test_permissions');
-require('./test_lowerings');
-require('./test_declaration_program');
-require('./test_example_program');
-require('./test_convert_program_to_policy');
-require('./test_iteration_apis');
-require('./test_runtime');
-require('./test_formatter');
-require('./test_formatter_api');
-require('./test_class_to_manifest');
-//require('./test_sql_compiler');
+async function seq(array) {
+    for (let fn of array) {
+        console.log(`Running ${fn}`);
+        await require(fn)();
+    }
+}
+
+seq([
+    ('./test_units'),
+    ('./test_date_utils'),
+    ('./test_builtin_values'),
+    ('./test_ast'),
+    ('./test_generated_parser'),
+    ('./test_grammar'),
+    //('./test_typecheck'),
+    ('./test_nn_syntax'),
+    ('./test_compiler'),
+    ('./test_builtin'),
+    ('./test_describe'),
+    ('./test_describe_policy'),
+    ('./test_permissions'),
+    ('./test_lowerings'),
+    ('./test_declaration_program'),
+    ('./test_example_program'),
+    ('./test_convert_program_to_policy'),
+    ('./test_iteration_apis'),
+    ('./test_runtime'),
+    ('./test_formatter'),
+    ('./test_formatter_api'),
+    ('./test_class_to_manifest'),
+    //('./test_sql_compiler'),
+]);

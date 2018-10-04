@@ -4,11 +4,10 @@ const fs = require('fs');
 
 const AppGrammar = require('../lib/grammar_api');
 const { prettyprint } = require('../lib/prettyprint');
-const Generate = require('../lib/generate');
 
 const debug = false;
 
-function parserTest() {
+function main() {
     var code = fs.readFileSync('./test/sample.apps').toString('utf8').split('====');
 
     code.forEach((code, i) => {
@@ -64,6 +63,6 @@ function parserTest() {
         }
     });
 }
-
-parserTest();
-
+module.exports = main;
+if (!module.parent)
+    main();

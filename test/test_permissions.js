@@ -141,7 +141,7 @@ class MockGroupDelegate {
 function main() {
     var checker = new PermissionChecker(CVC4Solver, schemaRetriever, new MockGroupDelegate());
 
-    Q.all(PERMISSION_DATABASE.map((a, i) => {
+    return Q.all(PERMISSION_DATABASE.map((a, i) => {
         console.log('Parsing rule ', i+1);
         return checker.allowed(Grammar.parsePermissionRule(a));
     })).then(() => {
@@ -184,6 +184,8 @@ function main() {
                 return Promise.resolve();
             });
         });
-    }).done();
+    });
 }
-main();
+module.exports = main;
+if (!module.parent)
+    main();

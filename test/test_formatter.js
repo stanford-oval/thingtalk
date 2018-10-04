@@ -201,5 +201,9 @@ function loop(i) {
 
     return Q(test(i)).then(() => loop(i+1));
 }
-
-loop(0).done();
+function main() {
+    return loop(0);
+}
+module.exports = main;
+if (!module.parent)
+    main();

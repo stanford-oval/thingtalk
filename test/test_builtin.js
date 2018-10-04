@@ -10,7 +10,12 @@
 "use strict";
 
 const Builtin = require('../lib/builtin');
-const Utils = require('../lib/utils');
+
+function sleep(timeout) {
+    return new Promise((resolve, reject) => {
+        setTimeout(resolve, timeout);
+    });
+}
 
 function testStream(spec) {
     return async function(emit) {
@@ -18,17 +23,16 @@ function testStream(spec) {
 
         while (pos < spec.length) {
             let [delay, value] = spec[pos++];
-            await new Promise((resolve, reject) => {
-                setTimeout(() => {
-                    if (value === null)
-                        resolve();
-                    else
-                        resolve();
-                }, delay);
-            });
+            await sleep(delay);
             emit(value);
         }
     };
+}
+
+function timeout(timeout, promise) {
+    return Promise.race([sleep(timeout).then((e) => {
+        throw new Error('Timed out');
+    }), promise]);
 }
 
 async function runStream(into, stream) {
@@ -54,7 +58,7 @@ function testStreamUnion() {
     let acc = [];
 
     let union = Builtin.streamUnion(lhs, rhs);
-    runStream(acc, union).then(() => {
+    return runStream(acc, union).then(() => {
         if (JSON.stringify(acc) !== expect) {
             console.error('Expected:', expect);
             console.error('Computed:', acc);
@@ -88,7 +92,7 @@ function testCrossJoin() {
     let acc = [];
 
     let union = Builtin.tableCrossJoin(lhs, rhs);
-    runStream(acc, union).then(() => {
+    return runStream(acc, union).then(() => {
         if (JSON.stringify(acc) !== expect) {
             console.error('Expected:', expect);
             console.error('Computed:', acc);
@@ -138,6 +142,14 @@ function testEdgeNew() {
     }
 }
 
-testStreamUnion();
-testCrossJoin();
-testEdgeNew();
+async function main() {
+    console.log('testStreamUnion');
+    await timeout(30000, testStreamUnion());
+    console.log('testCrossJoin');
+    await timeout(30000, testCrossJoin());
+    console.log('testEdgeNew');
+    await timeout(30000, testEdgeNew());
+}
+module.exports = main;
+if (!module.parent)
+    main();
