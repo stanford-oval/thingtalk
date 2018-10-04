@@ -14,9 +14,9 @@ const _schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, _mockMemoryCli
 function main() {
     var code = fs.readFileSync('./test/sample.apps').toString('utf8').split('====');
 
-    return Q.all(code.map((code) => {
+    return Promise.all(code.map((code) => {
         code = code.trim();
-        return Q(AppGrammar.parseAndTypecheck(code, _schemaRetriever)).then((program) => {
+        return AppGrammar.parseAndTypecheck(code, _schemaRetriever).then((program) => {
             if (code.indexOf(`** typecheck: expect `) >= 0) {
                 console.error('Failed (expected error)');
                 console.error(code);
