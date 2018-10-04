@@ -21,7 +21,7 @@ seq([
     ('./test_ast'),
     ('./test_generated_parser'),
     ('./test_grammar'),
-    //('./test_typecheck'),
+    ('./test_typecheck'),
     ('./test_nn_syntax'),
     ('./test_compiler'),
     ('./test_builtin'),
