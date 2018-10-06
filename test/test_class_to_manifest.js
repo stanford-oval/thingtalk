@@ -9,6 +9,7 @@
 // See COPYING for details
 "use strict";
 
+const assert = require('assert');
 const Q = require('q');
 Q.longStackSupport = true;
 
@@ -88,28 +89,73 @@ const TEST_CASES = [
     '#[child_types=["com.facebook"]] {\n' +
     '  import loader from @org.thingpedia.v2();\n' +
     '  import config from @org.thingpedia.config.none();\n' +
-    '}\n'
+    '}\n',
+
+    'class @com.foo {\n' +
+    '  import loader from @org.thingpedia.v2();\n' +
+    '  import config from @org.thingpedia.config.form(params=makeArgMap(url:Entity(tt:url),text:String));\n' +
+    '}\n',
+
+    {
+      kind: 'com.foo',
+      module_type: 'org.thingpedia.v2',
+      types: [],
+      child_types: [],
+      category: 'data',
+      params: {},
+      auth: {
+        type: 'none'
+      },
+      queries: {},
+      actions: {},
+      version: 0
+    },
+
+    {
+      kind: 'com.foo',
+      module_type: 'org.thingpedia.v2',
+      types: [],
+      child_types: [],
+      category: 'online',
+      params: {
+        'url': ['url', 'text']
+      },
+      auth: {
+        type: 'none'
+      },
+      queries: {},
+      actions: {},
+      version: 0
+    }
 ];
 
-function test(i) {
+async function test(i) {
     console.log('Test Case #' + (i+1));
     let tt = TEST_CASES[i];
 
-    return Grammar.parseAndTypecheck(tt, schemaRetriever, true).then((meta) => {
-        let manifest_from_tt = toManifest(meta);
-        let generated = prettyprint(fromManifest('com.foo', manifest_from_tt));
-        if (tt !== generated) {
-            console.error('Test Case #' + (i+1) + ': does not match what expected');
-            console.error('Expected: ' + tt);
-            console.error('Generated: ' + generated);
+    try {
+        if (typeof tt === 'string') {
+            const meta = await Grammar.parseAndTypecheck(tt, schemaRetriever, true);
+            let manifest_from_tt = toManifest(meta);
+            let generated = prettyprint(fromManifest('com.foo', manifest_from_tt));
+            if (tt !== generated) {
+                console.error('Test Case #' + (i+1) + ': does not match what expected');
+                console.error('Expected: ' + tt);
+                console.error('Generated: ' + generated);
+            }
+        } else {
+            const tt_from_manifest = fromManifest(tt.kind, tt);
+            const generated = toManifest(tt_from_manifest);
+            generated.kind = tt.kind;
+            assert.deepStrictEqual(generated, tt);
         }
-    }).catch((e) => {
+    } catch(e) {
         console.error('Test Case #' + (i+1) + ': failed with exception');
         console.error('Error: ' + e.message);
         console.error(e.stack);
         if (process.env.TEST_MODE)
             throw e;
-    });
+    }
 }
 
 function loop(i) {
