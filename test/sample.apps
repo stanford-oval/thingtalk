@@ -849,3 +849,12 @@ class @foo {
 // ** typecheck: expect TypeError **
 // Invalid type 2
 let action foo := \(arg : Invalid) -> @com.twitter.post();
+
+====
+
+// explicit double quotes in formatted
+class @com.foo {
+  list query foo(out foo : String,
+                 out bar : String)
+  #_[formatted=[{type="text", text="\"${foo}\": ${bar}"}]];
+}
