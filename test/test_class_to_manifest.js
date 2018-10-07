@@ -126,6 +126,40 @@ const TEST_CASES = [
       queries: {},
       actions: {},
       version: 0
+    },
+
+    {
+      kind: 'com.foo',
+      module_type: 'org.thingpedia.generic_rest.v1',
+      types: [],
+      child_types: [],
+      category: 'data',
+      params: {
+      },
+      auth: {
+        type: 'none'
+      },
+      queries: {
+        foo: {
+            args: [{
+                name: 'output',
+                type: 'String',
+                is_input: false,
+                required: false,
+                question: '',
+                json_key: 'output_key'
+            }],
+            canonical: 'foo',
+            confirmation: 'foo',
+            doc: 'foo',
+            formatted: [],
+            is_list: false,
+            poll_interval: -1,
+            json_key: 'data'
+        }
+      },
+      actions: {},
+      version: 0
     }
 ];
 
