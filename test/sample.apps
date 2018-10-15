@@ -593,6 +593,18 @@ now => @com.twitter.follow(user_name=null^^tt:username("donald trump"));
 
 ====
 
+// ** typecheck: expect TypeError **
+// action cannot have output parameter
+{
+  class @com.foo {
+    action set_power(in req power : Enum(on,off), out result : String)
+    #_[canonical='set power of foo']
+    #_[confirmation='turn $power foo'];
+  }
+}
+
+====
+
 // prompt for output argument
 {
   class @com.foo {
@@ -857,4 +869,22 @@ class @com.foo {
   list query foo(out foo : String,
                  out bar : String)
   #_[formatted=[{type="text", text="\"${foo}\": ${bar}"}]];
+}
+
+====
+
+// abstract class
+abstract class @com.foo {
+  list query foo(out foo : String,
+                 out bar : String);
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// no loader or config for abstract class
+abstract class @com.foo {
+  import loader from @org.thingpedia.config.discovery(protocol=enum(bluetooth));
+  list query foo(out foo : String,
+                 out bar : String);
 }
