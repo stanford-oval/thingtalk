@@ -26,6 +26,8 @@ function main() {
 
         try {
             var codegenned = prettyprint(ast, true);
+            if (code.indexOf('abstract') > 0)
+                console.log(codegenned)
             AppGrammar.parse(codegenned);
 
             if (debug) {

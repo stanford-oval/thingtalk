@@ -870,3 +870,22 @@ class @com.foo {
                  out bar : String)
   #_[formatted=[{type="text", text="\"${foo}\": ${bar}"}]];
 }
+
+====
+
+// abstract class
+abstract class @com.foo {
+  list query foo(out foo : String,
+                 out bar : String);
+}
+
+
+====
+
+// ** typecheck: expect TypeError **
+// no loader or config for abstract class
+abstract class @com.foo {
+  import loader from @org.thingpedia.config.discovery(protocol=enum(bluetooth));
+  list query foo(out foo : String,
+                 out bar : String);
+}
