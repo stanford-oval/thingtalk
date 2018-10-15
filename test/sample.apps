@@ -879,7 +879,6 @@ abstract class @com.foo {
                  out bar : String);
 }
 
-
 ====
 
 // ** typecheck: expect TypeError **
