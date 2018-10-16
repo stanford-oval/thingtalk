@@ -48,7 +48,7 @@ const TEST_CASES = [
      `now => (@thermostat.get_temperature()), @com.xkcd.get_comic(number=10) { title =~ "lol" } => notify;`],
 
     [`attimer(time=makeTime(10,30)) join @thermostat.get_temperature() => notify;`,
-     `(attimer(time=makeTime(10, 30)) join @thermostat.get_temperature()), @com.xkcd.get_comic(number=10) { title =~ "lol" } => notify;`],
+     `(attimer(time=makeTime(10, 30)) => @thermostat.get_temperature()), @com.xkcd.get_comic(number=10) { title =~ "lol" } => notify;`],
 
     [`now => @com.lg.tv.webos2.set_power(power=enum(on));`, null],
 
