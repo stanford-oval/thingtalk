@@ -323,6 +323,16 @@ monitor Q1 join Q2 => notify;
 
 ====
 
+// Another LogTriggerTest
+monitor Q1 => Q2 => notify;
+
+====
+
+// Another LogTriggerTest
+monitor Q1 => Q2 => @com.twitter.post(status="hello");
+
+====
+
 // LogTriggerAggregationTest
 monitor (aggregate max field of Q1) => notify;
 
