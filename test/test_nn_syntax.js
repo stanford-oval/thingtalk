@@ -65,6 +65,10 @@ const TEST_CASES = [
      `get xkcd NUMBER_0`, {'NUMBER_0': 1234},
      `now => @com.xkcd.get_comic(number=1234) => notify;`],
 
+    [`now => @com.xkcd.get_comic param:number:Number = NUMBER_0 => @com.twitter.post on param:status:String = param:title:String`,
+     `get xkcd NUMBER_0`, {'NUMBER_0': 1234},
+     `now => @com.xkcd.get_comic(number=1234) => @com.twitter.post(status=title);`],
+
     [`now => ( @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_1 param:low:Number = NUMBER_0 ) join ( @com.xkcd.get_comic ) on param:number:Number = param:random:Number => notify`,
     `get xkcd whose number is a random number between NUMBER_0 and NUMBER_1`, {'NUMBER_0': 55, 'NUMBER_1': 1024},
     `now => (@org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55) join @com.xkcd.get_comic() on (number=random)) => notify;`],
