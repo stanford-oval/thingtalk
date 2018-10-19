@@ -32,7 +32,7 @@
       ]
     },
     {
-      "kind": "org.thingpedia.generic_rest",
+      "kind": "org.thingpedia.generic_rest.v1",
       "args": [],
       "types": [],
       "required": [],
@@ -48,9 +48,17 @@
       "facets": [ "config" ]
     },
     {
-      "kind": "org.thingpedia.config.discovery",
-      "args": [ "protocol" ],
-      "types": [ "Enum(bluetooth, upnp)" ],
+      "kind": "org.thingpedia.config.discovery.bluetooth",
+      "args": [ "uuids", "device_class" ],
+      "types": [ "Array(String)", "Enum(audio_video,computer,health,imaging,misc,networking,peripheral,phone,toy,wearable)" ],
+      "required": [ true, false ],
+      "is_input": [ true, true ],
+      "facets": [ "config" ]
+    },
+    {
+      "kind": "org.thingpedia.config.discovery.upnp",
+      "args": [ "st" ],
+      "types": [ "Array(String)" ],
       "required": [ true ],
       "is_input": [ true ],
       "facets": [ "config" ]

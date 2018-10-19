@@ -56,11 +56,6 @@ const TEST_CASES = [
 
     'class @com.foo {\n' +
     '  import loader from @org.thingpedia.v2();\n' +
-    '  import config from @org.thingpedia.config.discovery(protocol=enum(bluetooth));\n' +
-    '}\n',
-
-    'class @com.foo {\n' +
-    '  import loader from @org.thingpedia.v2();\n' +
     '  import config from @org.thingpedia.config.interactive();\n' +
     '}\n',
 
@@ -160,7 +155,73 @@ const TEST_CASES = [
       },
       actions: {},
       version: 0
-    }
+    },
+
+    'class @org.thingpedia.bluetooth.speaker.a2dp {\n' +
+    '  import loader from @org.thingpedia.v2();\n' +
+    '  import config from @org.thingpedia.config.discovery.bluetooth(uuids=["0000110b-0000-1000-8000-00805f9b34fb"]);\n' +
+    '}\n',
+
+    {
+      kind: 'org.thingpedia.bluetooth.speaker.a2dp',
+      module_type: 'org.thingpedia.v2',
+      types: ['bluetooth-uuid-0000110b-0000-1000-8000-00805f9b34fb'],
+      child_types: [],
+      category: 'physical',
+      params: {
+      },
+      auth: {
+        type: 'discovery',
+        discoveryType: 'bluetooth'
+      },
+      queries: {},
+      actions: {},
+      version: 0
+    },
+
+    'class @org.thingpedia.bluetooth.foo {\n' +
+    '  import loader from @org.thingpedia.v2();\n' +
+    '  import config from @org.thingpedia.config.discovery.bluetooth(uuids=[], device_class=enum(computer));\n' +
+    '}\n',
+
+    {
+      kind: 'org.thingpedia.bluetooth.foo',
+      module_type: 'org.thingpedia.v2',
+      types: ['bluetooth-class-computer'],
+      child_types: [],
+      category: 'physical',
+      params: {
+      },
+      auth: {
+        type: 'discovery',
+        discoveryType: 'bluetooth'
+      },
+      queries: {},
+      actions: {},
+      version: 0
+    },
+
+    'class @com.lg.tv.webos2 {\n' +
+    '  import loader from @org.thingpedia.v2();\n' +
+    '  import config from @org.thingpedia.config.discovery.upnp(st=["urn:lge-com-service-webos-second-screen-1"]);\n' +
+    '}\n',
+
+    {
+      kind: 'com.lg.tv.webos2',
+      module_type: 'org.thingpedia.v2',
+      types: ['upnp-lge-com-service-webos-second-screen-1'],
+      child_types: [],
+      category: 'physical',
+      params: {
+      },
+      auth: {
+        type: 'discovery',
+        discoveryType: 'upnp'
+      },
+      queries: {},
+      actions: {},
+      version: 0
+    },
 ];
 
 async function test(i) {
@@ -169,9 +230,9 @@ async function test(i) {
 
     try {
         if (typeof tt === 'string') {
-            const meta = await Grammar.parseAndTypecheck(tt, schemaRetriever, true);
+            const meta = await Grammar.parseAndTypecheck(tt, schemaRetriever, false);
             let manifest_from_tt = toManifest(meta);
-            let generated = prettyprint(fromManifest('com.foo', manifest_from_tt));
+            let generated = prettyprint(fromManifest(meta.classes[0].kind, manifest_from_tt));
             if (tt !== generated) {
                 console.error('Test Case #' + (i+1) + ': does not match what expected');
                 console.error('Expected: ' + tt);
@@ -179,6 +240,7 @@ async function test(i) {
             }
         } else {
             const tt_from_manifest = fromManifest(tt.kind, tt);
+            await Grammar.parseAndTypecheck(tt_from_manifest.prettyprint(), schemaRetriever, false);
             const generated = toManifest(tt_from_manifest);
             generated.kind = tt.kind;
             assert.deepStrictEqual(generated, tt);
