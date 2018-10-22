@@ -203,7 +203,7 @@ const TEST_CASES = [
 
     'class @com.lg.tv.webos2 {\n' +
     '  import loader from @org.thingpedia.v2();\n' +
-    '  import config from @org.thingpedia.config.discovery.upnp(st=["urn:lge-com-service-webos-second-screen-1"]);\n' +
+    '  import config from @org.thingpedia.config.discovery.upnp(search_target=["urn:lge-com-service-webos-second-screen-1"]);\n' +
     '}\n',
 
     {

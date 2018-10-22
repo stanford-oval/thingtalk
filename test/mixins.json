@@ -57,7 +57,7 @@
     },
     {
       "kind": "org.thingpedia.config.discovery.upnp",
-      "args": [ "st" ],
+      "args": [ "search_target" ],
       "types": [ "Array(String)" ],
       "required": [ true ],
       "is_input": [ true ],
