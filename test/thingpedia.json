@@ -10027,6 +10027,282 @@
                     ]
                 }
             }
+        },
+
+        {
+          "id": 742,
+          "kind": "com.tesla.car",
+          "kind_type": "primary",
+          "kind_canonical": "tesla car",
+          "owner": 1,
+          "version": 28,
+          "developer_version": 28,
+          "approved_version": 16,
+          "triggers": {},
+          "queries": {
+            "get_charge_state": {
+              "schema": [
+                "String",
+                "Number",
+                "Boolean",
+                "String"
+              ],
+              "args": [
+                "charging_state",
+                "battery_level",
+                "charge_port_door_open",
+                "charge_port_latch"
+              ],
+              "required": [
+                false,
+                false,
+                false,
+                false
+              ],
+              "is_input": [
+                false,
+                false,
+                false,
+                false
+              ],
+              "is_list": false,
+              "is_monitorable": true,
+              "confirmation": "the charge state of your Tesla car",
+              "confirmation_remote": "$__person's charge state",
+              "doc": "get the charge state of your Tesla car",
+              "canonical": "get the charge state of the Tesla car",
+              "argcanonicals": [
+                "charging state",
+                "battery level",
+                "charge port door open",
+                "charge port latch"
+              ],
+              "questions": [
+                "",
+                "",
+                "",
+                ""
+              ]
+            },
+            "get_climate_state": {
+              "schema": [
+                "Measure(C)",
+                "Measure(C)",
+                "Boolean"
+              ],
+              "args": [
+                "inside_temperature",
+                "temperature_setting",
+                "conditioner_on"
+              ],
+              "required": [
+                false,
+                false,
+                false
+              ],
+              "is_input": [
+                false,
+                false,
+                false
+              ],
+              "is_list": false,
+              "is_monitorable": true,
+              "confirmation": "the climate state of your Tesla car",
+              "confirmation_remote": "$__person's car's climate state",
+              "doc": "get the climate state of your Tesla car",
+              "canonical": "get the climate state of the Tesla car",
+              "argcanonicals": [
+                "inside temperature",
+                "temperature setting",
+                "conditioner on"
+              ],
+              "questions": [
+                "",
+                "",
+                ""
+              ]
+            },
+            "get_drive_state": {
+              "schema": [
+                "Location"
+              ],
+              "args": [
+                "location"
+              ],
+              "required": [
+                false
+              ],
+              "is_input": [
+                false
+              ],
+              "is_list": false,
+              "is_monitorable": true,
+              "confirmation": "the location of your Tesla car",
+              "confirmation_remote": "$__person's car's location",
+              "doc": "get the location of your Tesla car",
+              "canonical": "get the location of the Tesla car",
+              "argcanonicals": [
+                "location"
+              ],
+              "questions": [
+                ""
+              ]
+            },
+            "get_mobile_enabled": {
+              "schema": [
+                "Boolean"
+              ],
+              "args": [
+                "mobile_enabled"
+              ],
+              "required": [
+                false
+              ],
+              "is_input": [
+                false
+              ],
+              "is_list": false,
+              "is_monitorable": true,
+              "confirmation": "remote accessibility of your Tesla ",
+              "confirmation_remote": "$__person's car remote accessibility",
+              "doc": "is your Tesla accessible remotely",
+              "canonical": "is your Tesla car remotely accessible",
+              "argcanonicals": [
+                "mobile enabled"
+              ],
+              "questions": [
+                ""
+              ]
+            },
+            "get_vehicle_state": {
+              "schema": [
+                "Number",
+                "Boolean"
+              ],
+              "args": [
+                "odometer",
+                "locked"
+              ],
+              "required": [
+                false,
+                false
+              ],
+              "is_input": [
+                false,
+                false
+              ],
+              "is_list": false,
+              "is_monitorable": true,
+              "confirmation": "your Tesla car state",
+              "confirmation_remote": "$__person's Tesla state",
+              "doc": "get your Tesla car state",
+              "canonical": "get state on Tesla",
+              "argcanonicals": [
+                "odometer",
+                "locked"
+              ],
+              "questions": [
+                "",
+                ""
+              ]
+            }
+          },
+          "actions": {
+            "flash": {
+              "schema": [],
+              "args": [],
+              "required": [],
+              "is_input": [],
+              "is_list": false,
+              "is_monitorable": false,
+              "confirmation": "flash your Tesla car",
+              "confirmation_remote": "flash $__person's Tesla car",
+              "doc": "flash the Tesla car",
+              "canonical": "flash your tesla car",
+              "argcanonicals": [],
+              "questions": []
+            },
+            "honk_horn": {
+              "schema": [],
+              "args": [],
+              "required": [],
+              "is_input": [],
+              "is_list": false,
+              "is_monitorable": false,
+              "confirmation": "honk the horn on your Tesla car",
+              "confirmation_remote": "honk $__person's Tesla car",
+              "doc": "honk the horn on the Tesla car",
+              "canonical": "honk your Tesla car",
+              "argcanonicals": [],
+              "questions": []
+            },
+            "set_air_conditioning": {
+              "schema": [
+                "Enum(on,off)"
+              ],
+              "args": [
+                "power"
+              ],
+              "required": [
+                true
+              ],
+              "is_input": [
+                true
+              ],
+              "is_list": false,
+              "is_monitorable": false,
+              "confirmation": "turn $power your Tesla air-conditioner",
+              "confirmation_remote": "turn $power $__person's Tesla's air conditioner",
+              "doc": "change the power status of your air-conditioner on the Tesla car",
+              "canonical": "set power on the Tesla air-conditioner",
+              "argcanonicals": [
+                "power"
+              ],
+              "questions": [
+                "Do you want to turn the air-conditioner on your Tesla car on or off?"
+              ]
+            },
+            "set_temperature": {
+              "schema": [
+                "Measure(C)"
+              ],
+              "args": [
+                "value"
+              ],
+              "required": [
+                true
+              ],
+              "is_input": [
+                true
+              ],
+              "is_list": false,
+              "is_monitorable": false,
+              "confirmation": "set the temperature of your Tesla car to $value",
+              "confirmation_remote": "set the temperature of $__person's Tesla car to $value",
+              "doc": "set target temperature",
+              "canonical": "set target temperature of the Tesla car",
+              "argcanonicals": [
+                "value"
+              ],
+              "questions": [
+                "What temperature do you want to set?"
+              ]
+            },
+            "wake_up": {
+              "schema": [],
+              "args": [],
+              "required": [],
+              "is_input": [],
+              "is_list": false,
+              "is_monitorable": false,
+              "confirmation": "wake up your Tesla car",
+              "confirmation_remote": "wake up $__person's Tesla car",
+              "doc": "wake up the Tesla car",
+              "canonical": "wake up your Tesla car",
+              "argcanonicals": [],
+              "questions": []
+            }
+          }
         }
     ]
 }

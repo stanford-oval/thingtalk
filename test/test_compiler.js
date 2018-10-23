@@ -1457,7 +1457,7 @@ const TEST_CASES = [
           await env.writeState(1, _t_15);
           _t_2 = _t_15;
           if (_t_14) {
-            emit(_t_7)
+            emit(_t_6, _t_7);
           } else {
 
           }
@@ -1489,7 +1489,7 @@ const TEST_CASES = [
           await env.writeState(2, _t_28);
           _t_17 = _t_28;
           if (_t_27) {
-            emit(_t_23)
+            emit(_t_22, _t_23);
           } else {
 
           }
@@ -1606,7 +1606,7 @@ const TEST_CASES = [
           await env.writeState(1, _t_15);
           _t_2 = _t_15;
           if (_t_14) {
-            emit(_t_7)
+            emit(_t_6, _t_7);
           } else {
 
           }
@@ -1638,7 +1638,7 @@ const TEST_CASES = [
           await env.writeState(2, _t_28);
           _t_17 = _t_28;
           if (_t_27) {
-            emit(_t_23)
+            emit(_t_22, _t_23);
           } else {
 
           }
@@ -1851,7 +1851,7 @@ const TEST_CASES = [
           _t_10 = _t_6.author;
           _t_11 = _t_6.in_reply_to;
           _t_12 = _t_6.tweet_id;
-          emit(_t_6)
+          emit(_t_5, _t_6);
           _iter_tmp = await _t_3.next();
         }
       }
@@ -1875,7 +1875,7 @@ const TEST_CASES = [
           _t_21 = _t_20.title;
           _t_22 = _t_20.description;
           _t_23 = _t_20.link;
-          emit(_t_20)
+          emit(_t_19, _t_20);
           _iter_tmp = await _t_17.next();
         }
       }

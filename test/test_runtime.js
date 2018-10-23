@@ -76,12 +76,13 @@ class MockExecEnvironment extends ExecEnvironment {
         if (!(fn in this._query))
             throw new Error('Unexpected query ' + fn);
 
-        return this._query[fn].map((v) => {
+        const result = this._query[fn].map((v) => {
             if (typeof v === 'function')
                 return [fn, v(params)];
             else
                 return [fn,v];
         });
+        return result;
     }
     /* istanbul ignore next */
     invokeAction(fnid, params) {
@@ -105,7 +106,7 @@ class MockExecEnvironment extends ExecEnvironment {
     output(outputType, output) {
         const nextaction = this._actions.shift();
         if (!nextaction || nextaction.type !== 'output')
-            throw new Error('Unexpected end-of-flow');
+            throw new Error('Unexpected output');
 
         assert.deepStrictEqual(outputType, nextaction.outputType);
         assert.deepStrictEqual(output, nextaction.value);
@@ -730,45 +731,176 @@ some alt text` }
      params: { status: 'Deciso' }
     }
     ]],
+
+    [
+    `now => (@com.xkcd.get_comic() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code), translated_text =~ "deciso" on (text=title)) => notify;`,
+    {},
+    {
+        'com.xkcd:get_comic': [() => {
+            return { number: 1235, title: 'Settled',
+                link: 'https://xkcd.com/1235/',
+                picture_url: 'https://imgs.xkcd.com/comics/settled.png' };
+        }],
+
+        'com.yandex.translate:translate': [(params) => {
+            assert(params.text);
+            assert(params.target_language instanceof builtin.Entity);
+            assert.strictEqual(params.target_language.value, 'it');
+
+            if (params.text === 'Settled')
+                return { translated_text: 'Deciso' }; // in this context...
+            else
+                return { translated_text: params.text };
+        }]
+    },
+    [{ type: 'output',
+      outputType: 'com.xkcd:get_comic+com.yandex.translate:translate',
+      value: { number: 1235, title: 'Settled',
+          link: 'https://xkcd.com/1235/',
+          picture_url: 'https://imgs.xkcd.com/comics/settled.png',
+        alt_text: undefined,
+        target_language: new builtin.Entity('it', null),
+        source_language: undefined,
+        text: 'Settled',
+        translated_text: 'Deciso' }
+    }],
+
+    ],
+
+    [
+    `now => (@com.xkcd.get_comic() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code) on (text=title)), translated_text =~ "deciso" => notify;`,
+    {},
+    {
+        'com.xkcd:get_comic': [() => {
+            return { number: 1235, title: 'Settled',
+                link: 'https://xkcd.com/1235/',
+                picture_url: 'https://imgs.xkcd.com/comics/settled.png' };
+        }],
+
+        'com.yandex.translate:translate': [(params) => {
+            assert(params.text);
+            assert(params.target_language instanceof builtin.Entity);
+            assert.strictEqual(params.target_language.value, 'it');
+
+            if (params.text === 'Settled')
+                return { translated_text: 'Deciso' }; // in this context...
+            else
+                return { translated_text: params.text };
+        }]
+    },
+    [{ type: 'output',
+      outputType: 'com.xkcd:get_comic+com.yandex.translate:translate',
+      value: { number: 1235, title: 'Settled',
+          link: 'https://xkcd.com/1235/',
+          picture_url: 'https://imgs.xkcd.com/comics/settled.png',
+        alt_text: undefined,
+        target_language: new builtin.Entity('it', null),
+        source_language: undefined,
+        text: 'Settled',
+        translated_text: 'Deciso' }
+    }],
+
+    ],
+
+    [
+    `now => (@com.xkcd.get_comic() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code) on (text=title)), translated_text =~ "fuffa" => notify;`,
+    {},
+    {
+        'com.xkcd:get_comic': [() => {
+            return { number: 1235, title: 'Settled',
+                link: 'https://xkcd.com/1235/',
+                picture_url: 'https://imgs.xkcd.com/comics/settled.png' };
+        }],
+
+        'com.yandex.translate:translate': [(params) => {
+            assert(params.text);
+            assert(params.target_language instanceof builtin.Entity);
+            assert.strictEqual(params.target_language.value, 'it');
+
+            if (params.text === 'Settled')
+                return { translated_text: 'Deciso' }; // in this context...
+            else
+                return { translated_text: params.text };
+        }]
+    },
+    [],
+
+    ],
+
+    [
+    `now => @com.tesla.car.get_drive_state() join @com.tesla.car.get_charge_state(),  charge_port_latch == "Engaged" => notify;`,
+    {},
+    {
+        'com.tesla.car:get_drive_state': [() => {
+            return { location: new builtin.Location(90,0, 'North Pole') };
+        }],
+
+        'com.tesla.car:get_charge_state': [(params) => {
+            return {
+                 charge_port_latch: 'Engaged'
+            };
+        }]
+    },
+    [{ type: 'output',
+      outputType: 'com.tesla.car:get_drive_state+com.tesla.car:get_charge_state',
+      value: {
+        location: new builtin.Location(90,0, 'North Pole'),
+        charge_port_latch: 'Engaged',
+      }
+    }],
+
+    ],
+
+    [
+    `now => @com.tesla.car.get_drive_state() join @com.tesla.car.get_charge_state(),  !(charge_port_latch == "Engaged") => notify;`,
+    {},
+    {
+        'com.tesla.car:get_drive_state': [() => {
+            return { location: new builtin.Location(90,0, 'North Pole') };
+        }],
+
+        'com.tesla.car:get_charge_state': [(params) => {
+            return {
+                 charge_port_latch: 'Engaged'
+            };
+        }]
+    },
+    [],
+
+    ],
 ];
 
-function test(i) {
+async function test(i) {
     console.log('Test Case #' + (i+1));
 
     let [code, trigger, queries, actions] = TEST_CASES[i];
 
-    return Q.try(() => {
+    try {
         var compiler = new Compiler();
         compiler.setSchemaRetriever(schemaRetriever);
 
-        return compiler.compileCode(code).then((compiled) => {
-            assert.strictEqual(compiler.rules.length, 1);
+        await compiler.compileCode(code);
+        assert.strictEqual(compiler.rules.length, 1);
 
-            const env = new MockExecEnvironment(compiler.rules[0],
-                trigger, queries, actions);
-            return Promise.resolve(compiler.rules[0].code(env)).then(() => {
-                if (actions.length !== 0)
-                    throw new Error(`Left-over actions in test ${i+1}`);
-            });
-        });
-    }).catch((e) => {
+        const env = new MockExecEnvironment(compiler.rules[0],
+            trigger, queries, actions);
+        await compiler.rules[0].code(env);
+
+        if (actions.length !== 0)
+            throw new Error(`Left-over actions in test ${i+1}`);
+    } catch (e) {
         console.error('Test Case #' + (i+1) + ': failed with exception');
         console.error('Code: ' + code);
         console.error('Error: ' + e.message);
         console.error(e.stack);
         if (process.env.TEST_MODE)
             throw e;
-    });
+    }
 }
 
-function loop(i) {
-    if (i === TEST_CASES.length)
-        return Q();
-
-    return Q(test(i)).then(() => loop(i+1));
-}
-function main() {
-    return loop(0);
+async function main() {
+    for (let i = 0; i < TEST_CASES.length; i++)
+        await test(i);
 }
 module.exports = main;
 if (!module.parent)
