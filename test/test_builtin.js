@@ -22,9 +22,9 @@ function testStream(spec) {
         let pos = 0;
 
         while (pos < spec.length) {
-            let [delay, value] = spec[pos++];
+            let [delay, [type, value]] = spec[pos++];
             await sleep(delay);
-            emit(value);
+            emit(type, value);
         }
     };
 }
