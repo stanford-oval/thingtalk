@@ -6,7 +6,7 @@ node_js:
 - '8'
 before_install:
 - mkdir cvc4/
-- wget https://d1ge76rambtuys.cloudfront.net/test-data/cvc4-1.6-x86_64-linux-opt
+- wget https://almond-static.stanford.edu/test-data/cvc4-1.6-x86_64-linux-opt
   -O cvc4/cvc4
 - chmod +x cvc4/cvc4
 - export PATH="`pwd`/cvc4:$PATH"
