@@ -898,3 +898,7 @@ abstract class @com.foo {
   list query foo(out foo : String,
                  out bar : String);
 }
+
+====
+
+timer(base=makeDate(), interval=30s) => @org.thingpedia.builtin.thingengine.builtin.get_random_between(low=2, high=20) => notify;
