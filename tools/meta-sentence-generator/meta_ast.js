@@ -62,6 +62,13 @@ class ForLoop extends Statement {
         this.head = head;
         this.statements = statements;
     }
+
+    codegen(stream, prefix = '') {
+        stream.write(`${prefix}for (${this.head}) {\n`);
+        for (let stmt of this.statements)
+            stmt.codegen(stream, prefix + '    ');
+        stream.write(`${prefix}}\n`);
+    }
 }
 Statement.ForLoop = ForLoop;
 
@@ -96,6 +103,21 @@ class Constants extends Rule {
 }
 Rule.Constants = Constants;
 
+function makeBodyLambda(head, body) {
+    const bodyArgs = [];
+    let i = 0;
+    for (let headPart of head) {
+        if (!headPart.isNonTerminal && !headPart.isComputed)
+            continue;
+        if (headPart.name)
+            bodyArgs.push(headPart.name);
+        else
+            bodyArgs.push(`$${i++}`);
+    }
+
+    return `(${bodyArgs.join(', ')}) => ${body}`;
+}
+
 class Expansion extends Rule {
     constructor(head, body, condition) {
         super();
@@ -107,18 +129,7 @@ class Expansion extends Rule {
     }
 
     codegen(stream, nonTerminal, prefix = '') {
-        const expanderArgs = [];
-        let i = 0;
-        for (let headPart of this.head) {
-            if (!headPart.isNonTerminal)
-                continue;
-            if (headPart.name)
-                expanderArgs.push(headPart.name);
-            else
-                expanderArgs.push(`$${i++}`);
-        }
-
-        const expanderCode = `(${expanderArgs.join(', ')}) => ${this.bodyCode}`;
+        const expanderCode = makeBodyLambda(this.head, this.bodyCode);
 
         stream.write(`${prefix}$grammar.addRule(${stringEscape(nonTerminal)}, [${this.head.map((h) => h.codegen()).join(', ')}], $runtime.simpleCombine((${expanderCode}), ${this.conditionCode ? stringEscape(this.conditionCode) : 'null'}));\n`);
     }
@@ -146,6 +157,24 @@ class Condition extends Rule {
     }
 }
 Rule.Condition = Condition;
+
+class Replacement extends Rule {
+    constructor(head, placeholder, bodyCode) {
+        super();
+
+        this.isReplacement = true;
+        this.head = head;
+        this.placeholder = placeholder;
+        this.bodyCode = bodyCode;
+    }
+
+    codegen(stream, nonTerminal, prefix = '') {
+        const expanderCode = makeBodyLambda(this.head, this.bodyCode);
+
+        stream.write(`${prefix}$grammar.addRule(${stringEscape(nonTerminal)}, [${this.head.map((h) => h.codegen()).join(', ')}], $runtime.combineReplacePlaceholder(${this.placeholder}, (${expanderCode}), {}));\n`);
+    }
+}
+Rule.Replacement = Replacement;
 
 class RuleHeadPart {}
 exports.RuleHeadPart = RuleHeadPart;
@@ -192,3 +221,18 @@ class ChoiceRuleHead extends RuleHeadPart {
     }
 }
 RuleHeadPart.Choice = ChoiceRuleHead;
+
+class ComputedRuleHead extends RuleHeadPart {
+    constructor(name, code) {
+        super();
+
+        this.isComputed = true;
+        this.name = name;
+        this.code = code;
+    }
+
+    codegen() {
+        return `new $runtime.NonTerminal(${this.code})`;
+    }
+}
+RuleHeadPart.Computed = ComputedRuleHead;

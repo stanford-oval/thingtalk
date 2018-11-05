@@ -110,19 +110,19 @@ module.exports = {
         return Promise.resolve('dataset @org.thingpedia.everything language "en" {\
     action () := @com.twitter.post()\
     #[id=0]\
-    #[preprocessed=["tweet something", "post on twitter"]];\
+    #_[preprocessed=["tweet something", "post on twitter"]];\
 \
     action (p_status : String) := @com.twitter.post(status=p_status)\
     #[id=1]\
-    #[preprocessed=["tweet ${p_status}", "post ${p_status} on twitter"]];\
+    #_[preprocessed=["tweet ${p_status}", "post ${p_status} on twitter"]];\
 \
     query (p_query : String) := @com.bing.web_search(query=p_query)\
     #[id=2]\
-    #[preprocessed=["websites matching ${p_query}", "${p_query:const} websites", "${p_query:const} on bing"]];\
+    #_[preprocessed=["websites matching ${p_query}", "${p_query:const} websites", "${p_query:const} on bing"]];\
 \
     query (p_query : String) := @com.bing.image_search(query=p_query)\
     #[id=3]\
-    #[preprocessed=["images matching ${p_query}", "${p_query:const} images"]];\
+    #_[preprocessed=["images matching ${p_query}", "${p_query:const} images"]];\
 }');
     },
 

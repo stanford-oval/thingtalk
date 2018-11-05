@@ -13,6 +13,7 @@ const assert = require('assert');
 
 const Ast = require('../../lib/ast');
 const Type = require('../../lib/type');
+const Generate = require('../../lib/generate');
 const { clean } = require('../../lib/utils');
 
 const TIMER_SCHEMA = new Ast.FunctionDef('stream', 'timer', [], false, true, {}, {});
@@ -24,6 +25,32 @@ const C = require('../../lib/sentence-generator/ast_manip');
 
 import './constants';
 import './filters';
+
+for (let [pname, ptype] of $options.params.in.values()) {
+    thingpedia_query = {
+        q:thingpedia_query v:$('constant_' + ptype) [-> pname] => C.replacePlaceholderWithConstant(q, pname, v, C.betaReduceTable);
+    }
+
+    thingpedia_get_command = {
+        q:thingpedia_get_command v:$('constant_' + ptype) [-> pname] => C.replacePlaceholderWithConstant(q, pname, v, C.betaReduceTable);
+    }
+
+    thingpedia_action = {
+        q:thingpedia_action v:$('constant_' + ptype) [-> pname] => C.replacePlaceholderWithConstant(q, pname, v, C.betaReduceAction);
+    }
+}
+/*
+            let [pname,] = key.split('+');
+            //if (!pname.startsWith('p_'))
+            //    continue;
+            //console.log(pname + ' := ' + ptype + ' ( ' + key + ' )');
+
+            grammar.thingpedia_query.push(['${thingpedia_query}${constant_' + ptype + '}', replacePlaceholderWithConstant(pname, betaReduceTable)]);
+            grammar.thingpedia_get_command.push(['${thingpedia_get_command}${constant_' + ptype + '}', replacePlaceholderWithConstant(pname, betaReduceTable)]);
+
+            grammar.thingpedia_stream.push(['${thingpedia_stream}${constant_' + ptype + '}', replacePlaceholderWithConstant(pname, betaReduceStream)]);
+            grammar.thingpedia_action.push(['${thingpedia_action}${constant_' + ptype + '}', replacePlaceholderWithConstant(pname, betaReduceAction)]);
+*/
 
 // out params nonterminals are automatically generated
 out_param_Any = {}
@@ -55,9 +82,9 @@ projection_Entity__tt__email_address = {}
 
 
 complete_table = {
-    q:thingpedia_query => { return q; } if complete;
-    t:table_join_replace_placeholder => { return t; } if complete;
-    gc:complete_get_command => { return gc; } if complete;
+    thingpedia_query if complete;
+    table_join_replace_placeholder if complete;
+    complete_get_command if complete;
 }
 if_filtered_table = {
     complete_table;
@@ -122,7 +149,7 @@ edge_stream = {
 }
 
 stream = {
-    s:thingpedia_stream => { return s; } if complete;
+    thingpedia_stream if complete;
     !turking choice('when', 'if', 'in case', 'whenever', 'any time', 'should', 'anytime') table:with_filtered_table choice('change', 'update') => C.tableToStream(table, null);
     ?turking choice('when', 'if', 'in case', 'whenever', 'any time', 'should', 'anytime') table:with_filtered_table 'update' => C.tableToStream(table, null);
 

@@ -46,29 +46,29 @@ Rule
     else
       return c;
   }
-  / flag:RuleFlag? __ head:Identifier __ ';' {
-    const r = new Ast.Rule.Expansion([new Ast.RuleHeadPart.NonTerminal(head, head)], `{ return ${head}; }`);
-    if (flag)
-      return new Ast.Rule.Condition(flag, [r]);
-    else
-      return r;
-  }
-  / flag:RuleFlag? __ head:RuleHead __ '=>' __ '{' body:Code '}' __ condition:(__ IfToken __ '!'? __ Identifier)? ';' {
-    const r = new Ast.Rule.Expansion(head, '{' + body + '}', condition ? (condition[3] || '') + condition[5] : null);
-    if (flag)
-      return new Ast.Rule.Condition(flag, [r]);
-    else
-      return r;
-  }
-  / flag:RuleFlag? __ head:RuleHead __ '=>' __ body:CodeNoSemicolon ';' {
-    const r = new Ast.Rule.Expansion(head, body, null);
-    if (flag)
-      return new Ast.Rule.Condition(flag, [r]);
-    else
-      return r;
-  }
   / flag:RuleFlag __ rules:RuleBlock {
     return new Ast.Rule.Condition(flag, rules);
+  }
+  / flag:RuleFlag? __ head:Identifier __ condition:(__ IfToken __ '!'? __ Identifier)? ';' {
+    const r = new Ast.Rule.Expansion([new Ast.RuleHeadPart.NonTerminal(head, head)], `{ return ${head}; }`, condition ? (condition[3] || '') + condition[5] : null);
+    if (flag)
+      return new Ast.Rule.Condition(flag, [r]);
+    else
+      return r;
+  }
+  / flag:RuleFlag? __ head:RuleHead __ condition:(__ IfToken __ '!'? __ Identifier)? '=>' __ body:CodeNoSemicolon ';' {
+    const r = new Ast.Rule.Expansion(head, body, condition ? (condition[3] || '') + condition[5] : null);
+    if (flag)
+      return new Ast.Rule.Condition(flag, [r]);
+    else
+      return r;
+  }
+  / flag:RuleFlag? __ head:RuleHead __ '[' __ '->' __ placeholder:Identifier __ ']' __ '=>' __ body:CodeNoSemicolon ';' {
+    const r = new Ast.Rule.Replacement(head, placeholder, body);
+    if (flag)
+      return new Ast.Rule.Condition(flag, [r]);
+    else
+      return r;
   }
 
 RuleFlag = dir:('!' / '?') __ name:Identifier __ { return dir + name; }
@@ -80,6 +80,9 @@ RuleHead = parts:(RuleHeadPart __)+ {
 RuleHeadPart
   = v:StringLiteral {
     return new Ast.RuleHeadPart.StringLiteral(v);
+  }
+  / name:(Identifier __ ':' __)? '$' __ '(' code:Code ')' {
+    return new Ast.RuleHeadPart.Computed(name ? name[0] : null, code);
   }
   / name:(Identifier __ ':' __)? category:Identifier {
     return new Ast.RuleHeadPart.NonTerminal(name ? name[0] : null, category);
