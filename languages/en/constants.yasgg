@@ -1,0 +1,188 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingTalk
+//
+// Copyright 2017-2018 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+{
+const assert = require('assert');
+
+const Ast = require('../../lib/ast');
+const Type = require('../../lib/type');
+const { clean } = require('../../lib/utils');
+
+// import the combinator library
+const C = require('../../lib/sentence-generator/ast_manip');
+}
+
+constant_String                    = const(QUOTED_STRING, Type.String);
+
+constant_Entity__tt__url           = const(URL, Type.Entity('tt:url'));
+
+constant_Entity__tt__username      = const(USERNAME, Type.Entity('tt:username'));
+constant_Entity__tt__hashtag       = const(HASHTAG, Type.Entity('tt:hashtag'));
+constant_Entity__tt__phone_number  = const(PHONE_NUMBER, Type.Entity('tt:phone_number'));
+constant_Entity__tt__email_address = const(EMAIL_ADDRESS, Type.Entity('tt:email_address'));
+constant_Entity__tt__path_name     = {
+    constant_String;
+    const(PATH_NAME, Type.Entity('tt:path_name'));
+}
+constant_Entity__tt__picture        = {}
+constant_Entity__tt__function      = {}
+constant_Entity__tt__program       = {}
+
+constant_Number = {
+    // `turking` is a flags that controls a group of grammar rules
+    // syntax is ?flag to enable the rule (or group of rules) only if the flag is set, !flag to disable the
+    // rule if the flag is set
+
+    !turking {
+    '0'    => Ast.Value.Number(0);
+    'zero' => Ast.Value.Number(0);
+    '1'    => Ast.Value.Number(1);
+    'one'  => Ast.Value.Number(1);
+    }
+    const(NUMBER, Type.Number);
+}
+
+constant_Currency = const(CURRENCY, Type.Currency);
+constant_Time = const(TIME, Type.Time);
+
+constant_date_point = {
+    'now'                 => Ast.Value.Date(null, '+', null);
+    'today'               => Ast.Value.Date(Ast.DateEdge('start_of', 'day'), '+', null);
+    'yesterday'           => Ast.Value.Date(Ast.DateEdge('start_of', 'day'), '-', Ast.Value.Measure(1, 'day'));
+    'this week'           => Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '+', null);
+
+    !turking {
+    'tomorrow'            => Ast.Value.Date(Ast.DateEdge('end_of', 'day'), '+', null);
+    'the end of the day'  => Ast.Value.Date(Ast.DateEdge('end_of', 'day'), '+', null);
+    'the end of the week' => Ast.Value.Date(Ast.DateEdge('end_of', 'week'), '+', null);
+    'last week'           => Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '-', Ast.Value.Measure(1, 'week'));
+    'this month'          => Ast.Value.Date(Ast.DateEdge('start_of', 'mon'), '+', null);
+    'this year'           => Ast.Value.Date(Ast.DateEdge('start_of', 'year'), '+', null);
+    'next month'          => Ast.Value.Date(Ast.DateEdge('end_of', 'mon'), '+', null);
+    'next year'           => Ast.Value.Date(Ast.DateEdge('end_of', 'year'), '+', null);
+    'last month'          => Ast.Value.Date(Ast.DateEdge('end_of', 'mon'), '-', Ast.Value.Measure(1, 'mon'));
+    'last year'           => Ast.Value.Date(Ast.DateEdge('end_of', 'year'), '-', Ast.Value.Measure(1, 'year'));
+    }
+}
+
+constant_Date = {
+    constant_date_point;
+
+    !turking {
+    duration:constant_Measure_ms 'from now' => Ast.Value.Date(null, '+', duration);
+    duration:constant_Measure_ms 'ago'      => Ast.Value.Date(null, '-', duration);
+    duration:constant_Measure_ms 'after' pt:constant_date_point  => Ast.Value.Date(pt.value, '+', duration);
+    duration:constant_Measure_ms 'before' pt:constant_date_point => Ast.Value.Date(pt.value, '-', duration);
+    }
+}
+
+constant_Measure_ms = const(DURATION, Type.Measure('ms'));
+constant_Measure_byte = {
+    !turking num:constant_Number 'byte' => C.addUnit('byte', num);
+    num:constant_Number 'kb' => C.addUnit('KB', num);
+    num:constant_Number 'mb' => C.addUnit('MB', num);
+    num:constant_Number 'gb' => C.addUnit('GB', num);
+    num:constant_Number 'tb' => C.addUnit('TB', num);
+    num:constant_Number 'kilobytes' => C.addUnit('KB', num);
+    num:constant_Number 'megabytes' => C.addUnit('MB', num);
+    num:constant_Number 'gigabytes' => C.addUnit('GB', num);
+    num:constant_Number 'terabytes' => C.addUnit('TB', num);
+}
+
+constant_Measure_kg = {
+    !turking num:constant_Number 'grams' => C.addUnit('g', num);
+    num:constant_Number 'kilograms' => C.addUnit('kg', num);
+    num:constant_Number 'kg' => C.addUnit('kg', num);
+    num:constant_Number 'pounds' => C.addUnit('lb', num);
+    num:constant_Number 'lbs' => C.addUnit('lb', num);
+    num:constant_Number 'ounces' => C.addUnit('oz', num);
+    num:constant_Number 'oz' => C.addUnit('oz', num);
+}
+
+constant_Measure_C = {
+    !turking {
+        num:constant_Number 'c' => C.addUnit('C', num);
+        num:constant_Number 'centigrade' => C.addUnit('C', num);
+    }
+    num:constant_Number 'f' => C.addUnit('F', num);
+    num:constant_Number 'fahrenheit' => C.addUnit('F', num);
+    num:constant_Number 'degrees' => C.addUnit('TB', num);
+}
+
+constant_Measure_m = {
+    !turking num:constant_Number 'm' => C.addUnit('m', num);
+    num:constant_Number 'meters' => C.addUnit('m', num);
+    num:constant_Number 'km' => C.addUnit('km', num);
+    num:constant_Number 'kilometers' => C.addUnit('km', num);
+    num:constant_Number 'mi' => C.addUnit('mi', num);
+    num:constant_Number 'miles' => C.addUnit('miles', num);
+    num:constant_Number 'ft' => C.addUnit('ft', num);
+    num:constant_Number 'in' => C.addUnit('in', num);
+    num:constant_Number 'inches' => C.addUnit('inches', num);
+    num:constant_Number 'cm' => C.addUnit('cm', num);
+}
+
+constant_Measure_mps = {
+    num:constant_Number 'mph' => C.addUnit('mph', num);
+    !turking num:constant_Number 'm/s' => C.addUnit('mps', num);
+    num:constant_Number 'kph' => C.addUnit('kmph', num);
+    num:constant_Number 'miles per hour' => C.addUnit('mph', num);
+    num:constant_Number 'kilometers per hour' => C.addUnit('kmph', num);
+    num:constant_Number 'km/h' => C.addUnit('kmph', num);
+}
+
+constant_Boolean = {}
+
+constant_Location = {
+    'here'                    => Ast.Value.Location(Ast.Location.Relative('current_location'));
+    !turking 'where i am now' => Ast.Value.Location(Ast.Location.Relative('current_location'));
+    'home'                    => Ast.Value.Location(Ast.Location.Relative('home'));
+    'work'                    => Ast.Value.Location(Ast.Location.Relative('work'));
+    const(LOCATION, Type.Location);
+}
+
+// comment below copied over from original gen-sentence script
+// this is used for equality filtering, so !turking anything that is weird when equality compared
+
+constant_Any = {
+    constant_String;
+    constant_Entity__tt__picture;
+    constant_Entity__tt__username;
+    constant_Entity__tt__hashtag;
+    constant_Entity__tt__phone_number;
+    constant_Entity__tt__email_address;
+    constant_Entity__tt__path_name;
+    constant_Number;
+    constant_Time;
+    constant_Location;
+    constant_Currency;
+
+    !turking {
+        constant_Entity__tt__url;
+        constant_Date;
+        constant_Measure_ms;
+        constant_Measure_byte;
+        constant_Measure_mps;
+        constant_Measure_m;
+        constant_Measure_C;
+        constant_Measure_kg;
+        constant_Boolean;
+    }
+}
+constant_Numeric = {
+    constant_Number;
+    constant_Currency;
+    constant_Measure_ms;
+    constant_Measure_byte;
+    constant_Measure_mps;
+    constant_Measure_m;
+    constant_Measure_C;
+    constant_Measure_kg;
+}
