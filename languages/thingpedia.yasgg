@@ -15,4 +15,8 @@ thingpedia_get_command = {}
 thingpedia_stream = {}
 thingpedia_action = {}
 
-constant_Entity__tt__device = {}
+import './common-constants';
+
+// out params nonterminals are automatically generated
+out_param_Any = {}
+out_param_Array__Any = {}

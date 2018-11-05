@@ -1,7 +1,40 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingTalk
+//
+// Copyright 2015-2018 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
 // Meta grammar for the synthetic-sentence-generator-generator
 //
 // Partially adapted from the PEG.js grammar, which in turn is based on the grammar
 // from ECMA-262, 5.1 Edition [1].
+//
+// Copyright (c) 2010-2016 David Majda
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
 //
 // [1] http://www.ecma-international.org/publications/standards/Ecma-262.htm
 
@@ -22,14 +55,28 @@ InitialCodeBlock = '{' code:Code '}' { return code; }
 Statement
   = NonTerminalDeclaration
   / ForLoop
+  / IfStmt
   / ImportStmt
 
-NonTerminalDeclaration
-  = name:Identifier __ '=' __ rule:Rule { return new Ast.Statement.NonTerminal(name, [rule]); }
-  / name:Identifier __ '=' __ block:RuleBlock { return new Ast.Statement.NonTerminal(name, block); }
+NonTerminalRef
+  = name:Identifier { return new Ast.NonTerminalRef.Identifier(name); }
+  / '$root' !IdentifierPart { return new Ast.NonTerminalRef.Identifier('$root'); }
+  / '$' __ '(' __ nameCode:Code __ ')' { return new Ast.NonTerminalRef.Computed(nameCode); }
 
-ForLoop = ForToken __ '(' head:Code ')' __ '{' __ body:(Statement __)* __ '}' {
-  return new Ast.Statement.ForLoop(head, take(body, 0));
+NonTerminalDeclaration
+  = name:NonTerminalRef __ '=' __ block:RuleBlock { return new Ast.Statement.NonTerminal(name, block); }
+  / name:NonTerminalRef __ '=' __ rule:Rule { return new Ast.Statement.NonTerminal(name, [rule]); }
+
+StatementOrBlock
+  = '{' __ body:(Statement __)* __ '}' { return take(body, 0); }
+  / body:Statement { return [body]; }
+
+ForLoop = ForToken __ '(' head:Code ')' __ body:StatementOrBlock {
+  return new Ast.Statement.ForLoop(head, body);
+}
+
+IfStmt = IfToken __ '(' cond:Code ')' __ body:StatementOrBlock elseClause:(__ ElseToken __ StatementOrBlock)? {
+    return new Ast.Statement.If(cond, body, elseClause ? elseClause[3] : []);
 }
 
 ImportStmt = ImportToken __ what:StringLiteral __ ';' {
@@ -49,22 +96,22 @@ Rule
   / flag:RuleFlag __ rules:RuleBlock {
     return new Ast.Rule.Condition(flag, rules);
   }
-  / flag:RuleFlag? __ head:Identifier __ condition:(__ IfToken __ '!'? __ Identifier)? ';' {
-    const r = new Ast.Rule.Expansion([new Ast.RuleHeadPart.NonTerminal(head, head)], `{ return ${head}; }`, condition ? (condition[3] || '') + condition[5] : null);
+  / flag:RuleFlag? __ head:NonTerminalRef __ condition:(__ IfToken __ '!'? __ Identifier __)? ';' {
+    const r = new Ast.Rule.Expansion([new Ast.RuleHeadPart.NonTerminal(null, head)], `{ return $0; }`, condition ? (condition[3] || '') + condition[5] : null);
     if (flag)
       return new Ast.Rule.Condition(flag, [r]);
     else
       return r;
   }
-  / flag:RuleFlag? __ head:RuleHead __ condition:(__ IfToken __ '!'? __ Identifier)? '=>' __ body:CodeNoSemicolon ';' {
+  / flag:RuleFlag? __ head:RuleHead __ condition:(__ IfToken __ '!'? __ Identifier __)? '=>' __ body:CodeNoSemicolon ';' {
     const r = new Ast.Rule.Expansion(head, body, condition ? (condition[3] || '') + condition[5] : null);
     if (flag)
       return new Ast.Rule.Condition(flag, [r]);
     else
       return r;
   }
-  / flag:RuleFlag? __ head:RuleHead __ '[' __ '->' __ placeholder:Identifier __ ']' __ '=>' __ body:CodeNoSemicolon ';' {
-    const r = new Ast.Rule.Replacement(head, placeholder, body);
+  / flag:RuleFlag? __ head:RuleHead __ '[' __ '->' __ placeholder:Identifier __ optionCode:$('{' Code '}')? ']' __ '=>' __ body:CodeNoSemicolon ';' {
+    const r = new Ast.Rule.Replacement(head, placeholder, body, optionCode || '{}');
     if (flag)
       return new Ast.Rule.Condition(flag, [r]);
     else
@@ -81,10 +128,7 @@ RuleHeadPart
   = v:StringLiteral {
     return new Ast.RuleHeadPart.StringLiteral(v);
   }
-  / name:(Identifier __ ':' __)? '$' __ '(' code:Code ')' {
-    return new Ast.RuleHeadPart.Computed(name ? name[0] : null, code);
-  }
-  / name:(Identifier __ ':' __)? category:Identifier {
+  / name:(Identifier __ ':' __)? category:NonTerminalRef {
     return new Ast.RuleHeadPart.NonTerminal(name ? name[0] : null, category);
   }
   / ChoiceToken __ '(' __ first:StringLiteral __ rest:(',' __ StringLiteral __)* ')' {
@@ -135,14 +179,19 @@ Identifier
 IdentifierName "identifier"
   = head:IdentifierStart tail:IdentifierPart* { return head + tail.join(""); }
 
+
+// NOTE: unlike JavaScript, $ is allowed only in the body of identifiers, not
+// at the beginning
+// Identifiers starting with $ are reserved and used for special syntax
+// (no such restriction exists within code blocks though)
 IdentifierStart
   = UnicodeLetter
-  / "$"
   / "_"
   / "\\" sequence:UnicodeEscapeSequence { return sequence; }
 
 IdentifierPart
   = IdentifierStart
+  / "$"
   / UnicodeCombiningMark
   / UnicodeDigit
   / UnicodeConnectorPunctuation
@@ -175,6 +224,7 @@ Keyword
   = ChoiceToken
   / ConstToken
   / IfToken
+  / ElseToken
   / ImportToken
   / ForToken
 
@@ -187,7 +237,6 @@ FutureReservedWord
   / DefaultToken
   / DeleteToken
   / DoToken
-  / ElseToken
   / FinallyToken
   / FunctionToken
   / InstanceofToken
@@ -385,6 +434,7 @@ ChoiceToken     = "choice"     !IdentifierPart
 
 __
   = (WhiteSpace / LineTerminatorSequence / Comment)*
+
 
 
 

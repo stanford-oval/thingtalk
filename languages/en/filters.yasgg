@@ -146,7 +146,7 @@ with_filter = {
     }
 }
 range_with_filter = {
-    p:out_param_Numeric range:range => {
+    param:out_param_Numeric range:range => {
         const [v1, v2] = range;
         return new Ast.BooleanExpression.And([
             Ast.BooleanExpression.Atom(param.name, '>=', v1),

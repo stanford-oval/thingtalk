@@ -37,6 +37,37 @@ exports.Grammar = Grammar;
 class Statement {}
 exports.Statement = Statement;
 
+class NonTerminalRef {}
+exports.NonTerminalRef = NonTerminalRef;
+
+class IdentifierNTR extends NonTerminalRef {
+    constructor(name) {
+        super();
+
+        this.isIdentifier = true;
+        this.name = name;
+    }
+
+    codegen() {
+        return stringEscape(this.name);
+    }
+}
+NonTerminalRef.Identifier = IdentifierNTR;
+
+class ComputedNTR extends NonTerminalRef {
+    constructor(nameCode) {
+        super();
+
+        this.isComputed = true;
+        this.code = nameCode;
+    }
+
+    codegen() {
+        return this.code;
+    }
+}
+NonTerminalRef.Computed = ComputedNTR;
+
 class NonTerminalStmt extends Statement {
     constructor(name, rules) {
         super();
@@ -47,7 +78,7 @@ class NonTerminalStmt extends Statement {
     }
 
     codegen(stream, prefix = '') {
-        stream.write(`${prefix}$grammar.declareSymbol(${stringEscape(this.name)});\n`);
+        stream.write(`${prefix}$grammar.declareSymbol(${this.name.codegen()});\n`);
         for (let rule of this.rules)
             rule.codegen(stream, this.name, prefix);
     }
@@ -71,6 +102,30 @@ class ForLoop extends Statement {
     }
 }
 Statement.ForLoop = ForLoop;
+
+class IfStmt extends Statement {
+    constructor(cond, iftrue, iffalse) {
+        super();
+
+        this.isIf = true;
+        this.cond = cond;
+        this.iftrue = iftrue;
+        this.iffalse = iffalse;
+    }
+
+    codegen(stream, prefix = '') {
+        stream.write(`${prefix}if (${this.cond}) {\n`);
+        for (let stmt of this.iftrue)
+            stmt.codegen(stream, prefix + '    ');
+        if (this.iffalse.length > 0) {
+            stream.write(`${prefix}} else {\n`);
+            for (let stmt of this.iffalse)
+                stmt.codegen(stream, prefix + '    ');
+        }
+        stream.write(`${prefix}}\n`);
+    }
+}
+Statement.If = IfStmt;
 
 class Import extends Statement {
     constructor(what) {
@@ -98,7 +153,7 @@ class Constants extends Rule {
     }
 
     codegen(stream, nonTerminal, prefix = '') {
-        stream.write(`${prefix}$grammar.addConstants(${stringEscape(nonTerminal)}, ${stringEscape(this.token)}, ${this.typeCode});\n`);
+        stream.write(`${prefix}$grammar.addConstants(${nonTerminal.codegen()}, ${stringEscape(this.token)}, ${this.typeCode});\n`);
     }
 }
 Rule.Constants = Constants;
@@ -107,7 +162,7 @@ function makeBodyLambda(head, body) {
     const bodyArgs = [];
     let i = 0;
     for (let headPart of head) {
-        if (!headPart.isNonTerminal && !headPart.isComputed)
+        if (!headPart.isNonTerminal)
             continue;
         if (headPart.name)
             bodyArgs.push(headPart.name);
@@ -131,7 +186,7 @@ class Expansion extends Rule {
     codegen(stream, nonTerminal, prefix = '') {
         const expanderCode = makeBodyLambda(this.head, this.bodyCode);
 
-        stream.write(`${prefix}$grammar.addRule(${stringEscape(nonTerminal)}, [${this.head.map((h) => h.codegen()).join(', ')}], $runtime.simpleCombine((${expanderCode}), ${this.conditionCode ? stringEscape(this.conditionCode) : 'null'}));\n`);
+        stream.write(`${prefix}$grammar.addRule(${nonTerminal.codegen()}, [${this.head.map((h) => h.codegen()).join(', ')}], $runtime.simpleCombine((${expanderCode}), ${this.conditionCode ? stringEscape(this.conditionCode) : 'null'}, ${nonTerminal.isIdentifier && nonTerminal.name === '$root'}));\n`);
     }
 }
 Rule.Expansion = Expansion;
@@ -159,19 +214,20 @@ class Condition extends Rule {
 Rule.Condition = Condition;
 
 class Replacement extends Rule {
-    constructor(head, placeholder, bodyCode) {
+    constructor(head, placeholder, bodyCode, optionCode) {
         super();
 
         this.isReplacement = true;
         this.head = head;
         this.placeholder = placeholder;
         this.bodyCode = bodyCode;
+        this.optionCode = optionCode;
     }
 
     codegen(stream, nonTerminal, prefix = '') {
         const expanderCode = makeBodyLambda(this.head, this.bodyCode);
 
-        stream.write(`${prefix}$grammar.addRule(${stringEscape(nonTerminal)}, [${this.head.map((h) => h.codegen()).join(', ')}], $runtime.combineReplacePlaceholder(${this.placeholder}, (${expanderCode}), {}));\n`);
+        stream.write(`${prefix}$grammar.addRule(${nonTerminal.codegen()}, [${this.head.map((h) => h.codegen()).join(', ')}], $runtime.combineReplacePlaceholder(${this.placeholder}, (${expanderCode}), ${this.optionCode}));\n`);
     }
 }
 Rule.Replacement = Replacement;
@@ -189,7 +245,7 @@ class NonTerminalRuleHead extends RuleHeadPart {
     }
 
     codegen() {
-        return `new $runtime.NonTerminal(${stringEscape(this.category)})`;
+        return `new $runtime.NonTerminal(${this.category.codegen()})`;
     }
 }
 RuleHeadPart.NonTerminal = NonTerminalRuleHead;
@@ -221,18 +277,3 @@ class ChoiceRuleHead extends RuleHeadPart {
     }
 }
 RuleHeadPart.Choice = ChoiceRuleHead;
-
-class ComputedRuleHead extends RuleHeadPart {
-    constructor(name, code) {
-        super();
-
-        this.isComputed = true;
-        this.name = name;
-        this.code = code;
-    }
-
-    codegen() {
-        return `new $runtime.NonTerminal(${this.code})`;
-    }
-}
-RuleHeadPart.Computed = ComputedRuleHead;
