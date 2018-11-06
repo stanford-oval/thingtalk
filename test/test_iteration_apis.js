@@ -13,7 +13,6 @@ const assert = require('assert');
 
 const Q = require('q');
 Q.longStackSupport = true;
-const Generate = require('../lib/generate');
 const Grammar = require('../lib/grammar_api');
 const SchemaRetriever = require('../lib/schema');
 
@@ -41,27 +40,31 @@ var TEST_CASES = [
     ['query: Invocation(Device(com.xkcd, , ), get_comic, , )',
      'action: Invocation(Builtin, notify, , )'],
     ['Device(com.xkcd, , ) com.xkcd:get_comic',
-     'Builtin undefined:notify']],
+     'Builtin undefined:notify'],
+    'com.xkcd'],
 
     [`monitor (@com.xkcd.get_comic()) => notify;`,
     ['query: Invocation(Device(com.xkcd, , ), get_comic, , )',
      'action: Invocation(Builtin, notify, , )'],
     ['Device(com.xkcd, , ) com.xkcd:get_comic',
-     'Builtin undefined:notify']],
+     'Builtin undefined:notify'],
+    'com.xkcd'],
 
     [`monitor (@com.xkcd.get_comic(number=$undefined)) => notify;`,
     ['query: Invocation(Device(com.xkcd, , ), get_comic, InputParam(number, Undefined(true)), )',
      'action: Invocation(Builtin, notify, , )'],
     ['Device(com.xkcd, , ) com.xkcd:get_comic',
      'InputParam(number, Undefined(true)) com.xkcd:get_comic',
-     'Builtin undefined:notify']],
+     'Builtin undefined:notify'],
+    'com.xkcd'],
 
     [`monitor (@com.xkcd.get_comic(number=1234)) => notify;`,
     ['query: Invocation(Device(com.xkcd, , ), get_comic, InputParam(number, Number(1234)), )',
      'action: Invocation(Builtin, notify, , )'],
     ['Device(com.xkcd, , ) com.xkcd:get_comic',
      'InputParam(number, Number(1234)) com.xkcd:get_comic',
-     'Builtin undefined:notify']],
+     'Builtin undefined:notify'],
+    'com.xkcd'],
 
     [`monitor (@com.xkcd.get_comic(number=1234)) => @com.facebook.post(status=title);`,
     ['query: Invocation(Device(com.xkcd, , ), get_comic, InputParam(number, Number(1234)), )',
@@ -69,7 +72,8 @@ var TEST_CASES = [
     ['Device(com.xkcd, , ) com.xkcd:get_comic',
      'InputParam(number, Number(1234)) com.xkcd:get_comic',
      'Device(com.facebook, , ) com.facebook:post',
-     'InputParam(status, VarRef(title)) com.facebook:post']],
+     'InputParam(status, VarRef(title)) com.facebook:post'],
+    'com.facebook'],
 
     [`monitor (@com.xkcd.get_comic(number=1234)) => @com.facebook.post(status=$event);`,
     ['query: Invocation(Device(com.xkcd, , ), get_comic, InputParam(number, Number(1234)), )',
@@ -77,7 +81,8 @@ var TEST_CASES = [
     ['Device(com.xkcd, , ) com.xkcd:get_comic',
      'InputParam(number, Number(1234)) com.xkcd:get_comic',
      'Device(com.facebook, , ) com.facebook:post',
-     'InputParam(status, Event()) com.facebook:post']],
+     'InputParam(status, Event()) com.facebook:post'],
+    'com.facebook'],
 
     [`now => aggregate count of @com.xkcd.get_comic(number=1234) => @com.facebook.post(status=$event);`,
     ['query: Invocation(Device(com.xkcd, , ), get_comic, InputParam(number, Number(1234)), )',
@@ -85,7 +90,8 @@ var TEST_CASES = [
     ['Device(com.xkcd, , ) com.xkcd:get_comic',
      'InputParam(number, Number(1234)) com.xkcd:get_comic',
      'Device(com.facebook, , ) com.facebook:post',
-     'InputParam(status, Event()) com.facebook:post']],
+     'InputParam(status, Event()) com.facebook:post'],
+    'com.facebook'],
 
     [`now => aggregate avg temperature of (@com.instagram.get_pictures() join @org.thingpedia.weather.current() on (location=location)) => notify;`,
     ['query: Invocation(Device(com.instagram, , ), get_pictures, , )',
@@ -93,7 +99,8 @@ var TEST_CASES = [
      'action: Invocation(Builtin, notify, , )'],
     ['Device(com.instagram, , ) com.instagram:get_pictures',
      'Device(org.thingpedia.weather, , ) org.thingpedia.weather:current',
-     'Builtin undefined:notify']],
+     'Builtin undefined:notify'],
+    'org.thingpedia.weather'],
 
     [`now => aggregate argmax 1,1 temperature of (@com.instagram.get_pictures() join @org.thingpedia.weather.current() on (location=location)) => notify;`,
     ['query: Invocation(Device(com.instagram, , ), get_pictures, , )',
@@ -101,7 +108,8 @@ var TEST_CASES = [
      'action: Invocation(Builtin, notify, , )'],
     ['Device(com.instagram, , ) com.instagram:get_pictures',
      'Device(org.thingpedia.weather, , ) org.thingpedia.weather:current',
-     'Builtin undefined:notify']],
+     'Builtin undefined:notify'],
+    'org.thingpedia.weather'],
 
     [`monitor (@com.instagram.get_pictures() join @org.thingpedia.weather.current() on (location=location)) => notify;`,
     ['query: Invocation(Device(com.instagram, , ), get_pictures, , )',
@@ -109,7 +117,8 @@ var TEST_CASES = [
      'action: Invocation(Builtin, notify, , )'],
     ['Device(com.instagram, , ) com.instagram:get_pictures',
      'Device(org.thingpedia.weather, , ) org.thingpedia.weather:current',
-     'Builtin undefined:notify']],
+     'Builtin undefined:notify'],
+    'org.thingpedia.weather'],
 
     [`(monitor @com.washingtonpost.get_article() join @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code) on (text=title)) => notify;`,
     ['query: Invocation(Device(com.washingtonpost, , ), get_article, InputParam(section, Undefined(true)), )',
@@ -119,7 +128,8 @@ var TEST_CASES = [
      'InputParam(section, Undefined(true)) com.washingtonpost:get_article',
      'Device(com.yandex.translate, , ) com.yandex.translate:translate',
      'InputParam(target_language, Entity(zh, tt:iso_lang_code, )) com.yandex.translate:translate',
-     'Builtin undefined:notify']],
+     'Builtin undefined:notify'],
+    'com.yandex.translate'],
 
     [`monitor (@com.washingtonpost.get_article() join @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code) on (text=title)) => notify;`,
     ['query: Invocation(Device(com.washingtonpost, , ), get_article, InputParam(section, Undefined(true)), )',
@@ -129,7 +139,8 @@ var TEST_CASES = [
      'InputParam(section, Undefined(true)) com.washingtonpost:get_article',
      'Device(com.yandex.translate, , ) com.yandex.translate:translate',
      'InputParam(target_language, Entity(zh, tt:iso_lang_code, )) com.yandex.translate:translate',
-     'Builtin undefined:notify']],
+     'Builtin undefined:notify'],
+    'com.yandex.translate'],
 
     [`monitor (@com.washingtonpost.get_article(section=enum(world)) join @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code) on (text=title)) => notify;`,
     ['query: Invocation(Device(com.washingtonpost, , ), get_article, InputParam(section, Enum(world)), )',
@@ -139,14 +150,16 @@ var TEST_CASES = [
      'InputParam(section, Enum(world)) com.washingtonpost:get_article',
      'Device(com.yandex.translate, , ) com.yandex.translate:translate',
      'InputParam(target_language, Entity(zh, tt:iso_lang_code, )) com.yandex.translate:translate',
-     'Builtin undefined:notify']],
+     'Builtin undefined:notify'],
+    'com.yandex.translate'],
 
     [`monitor @com.washingtonpost.get_article(section=enum(world)) => notify;`,
     ['query: Invocation(Device(com.washingtonpost, , ), get_article, InputParam(section, Enum(world)), )',
      'action: Invocation(Builtin, notify, , )'],
     ['Device(com.washingtonpost, , ) com.washingtonpost:get_article',
      'InputParam(section, Enum(world)) com.washingtonpost:get_article',
-     'Builtin undefined:notify']],
+     'Builtin undefined:notify'],
+    'com.washingtonpost'],
 
     [`monitor @com.washingtonpost.get_article(section=enum(world)), title =~ "lol" => notify;`,
     ['query: Invocation(Device(com.washingtonpost, , ), get_article, InputParam(section, Enum(world)), )',
@@ -154,7 +167,9 @@ var TEST_CASES = [
     ['Device(com.washingtonpost, , ) com.washingtonpost:get_article',
      'InputParam(section, Enum(world)) com.washingtonpost:get_article',
      'Atom(title, =~, String(lol)) com.washingtonpost:get_article',
-     'Builtin undefined:notify']],
+     'Builtin undefined:notify'],
+    'com.washingtonpost'],
+
     [`monitor @com.washingtonpost.get_article(section=enum(world)), title =~ "lol" || title =~ "bar" => notify;`,
     ['query: Invocation(Device(com.washingtonpost, , ), get_article, InputParam(section, Enum(world)), )',
      'action: Invocation(Builtin, notify, , )'],
@@ -162,7 +177,8 @@ var TEST_CASES = [
      'InputParam(section, Enum(world)) com.washingtonpost:get_article',
      'Atom(title, =~, String(lol)) com.washingtonpost:get_article',
      'Atom(title, =~, String(bar)) com.washingtonpost:get_article',
-     'Builtin undefined:notify']],
+     'Builtin undefined:notify'],
+    'com.washingtonpost'],
 
     [`now => @com.washingtonpost.get_article(section=enum(world)), title =~ "lol" => notify;`,
     ['query: Invocation(Device(com.washingtonpost, , ), get_article, InputParam(section, Enum(world)), )',
@@ -170,7 +186,8 @@ var TEST_CASES = [
     ['Device(com.washingtonpost, , ) com.washingtonpost:get_article',
      'InputParam(section, Enum(world)) com.washingtonpost:get_article',
      'Atom(title, =~, String(lol)) com.washingtonpost:get_article',
-     'Builtin undefined:notify']],
+     'Builtin undefined:notify'],
+    'com.washingtonpost'],
 
     [`now => @com.washingtonpost.get_article(section=enum(world)), title =~ "lol" || title =~ "bar" => notify;`,
     ['query: Invocation(Device(com.washingtonpost, , ), get_article, InputParam(section, Enum(world)), )',
@@ -179,7 +196,8 @@ var TEST_CASES = [
      'InputParam(section, Enum(world)) com.washingtonpost:get_article',
      'Atom(title, =~, String(lol)) com.washingtonpost:get_article',
      'Atom(title, =~, String(bar)) com.washingtonpost:get_article',
-     'Builtin undefined:notify']],
+     'Builtin undefined:notify'],
+    'com.washingtonpost'],
 
     ['now => (@com.bing.web_search() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code("Italian")) on (text=$event)) => notify;',
     ['query: Invocation(Device(com.bing, , ), web_search, InputParam(query, Undefined(true)), )',
@@ -189,7 +207,8 @@ var TEST_CASES = [
      'InputParam(query, Undefined(true)) com.bing:web_search',
      'Device(com.yandex.translate, , ) com.yandex.translate:translate',
      'InputParam(target_language, Entity(it, tt:iso_lang_code, Italian)) com.yandex.translate:translate',
-     'Builtin undefined:notify']],
+     'Builtin undefined:notify'],
+    'com.yandex.translate'],
 
     ['monitor @com.bing.web_search() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code("Italian")) on (text=$event) => notify;',
     ['query: Invocation(Device(com.bing, , ), web_search, InputParam(query, Undefined(true)), )',
@@ -199,7 +218,8 @@ var TEST_CASES = [
      'InputParam(query, Undefined(true)) com.bing:web_search',
      'Device(com.yandex.translate, , ) com.yandex.translate:translate',
      'InputParam(target_language, Entity(it, tt:iso_lang_code, Italian)) com.yandex.translate:translate',
-     'Builtin undefined:notify']],
+     'Builtin undefined:notify'],
+    'com.yandex.translate'],
 
     ['dataset @com.twitter language \'en\' {\n' +
     '    stream (p_author : Entity(tt:username)) := monitor (@com.twitter.search()), author == p_author\n' +
@@ -217,20 +237,23 @@ var TEST_CASES = [
      'Atom(author, ==, VarRef(p_author)) com.twitter:search',
      'Device(com.twitter, , ) com.twitter:search',
      'Builtin undefined:notify'
-    ]],
+    ],
+    'com.twitter'],
 
     [`now => { monitor (@com.xkcd.get_comic()) => notify; };`,
     ['query: Invocation(Device(com.xkcd, , ), get_comic, , )',
      'action: Invocation(Builtin, notify, , )'],
     ['Device(com.xkcd, , ) com.xkcd:get_comic',
-     'Builtin undefined:notify']],
+     'Builtin undefined:notify'],
+    'com.xkcd'],
 
     [`now => { monitor (@com.xkcd.get_comic(number=$undefined)) => notify ; };`,
     ['query: Invocation(Device(com.xkcd, , ), get_comic, InputParam(number, Undefined(true)), )',
      'action: Invocation(Builtin, notify, , )'],
     ['Device(com.xkcd, , ) com.xkcd:get_comic',
      'InputParam(number, Undefined(true)) com.xkcd:get_comic',
-     'Builtin undefined:notify']],
+     'Builtin undefined:notify'],
+    'com.xkcd'],
 
     [`monitor (@com.xkcd.get_comic(number=$undefined)) => { monitor @com.washingtonpost.get_article(section=enum(world)) => notify ; };`,
     ['query: Invocation(Device(com.xkcd, , ), get_comic, InputParam(number, Undefined(true)), )',
@@ -240,12 +263,13 @@ var TEST_CASES = [
      'InputParam(number, Undefined(true)) com.xkcd:get_comic',
      'Device(com.washingtonpost, , ) com.washingtonpost:get_article',
      'InputParam(section, Enum(world)) com.washingtonpost:get_article',
-     'Builtin undefined:notify']],
+     'Builtin undefined:notify'],
+    'com.washingtonpost']
 ];
 
 async function test(i) {
     console.log('Test Case #' + (i+1));
-    var [code, expectedPrim, expectedSlots] = TEST_CASES[i];
+    var [code, expectedPrim, expectedSlots, icon] = TEST_CASES[i];
     try {
         const prog = await Grammar.parseAndTypecheck(code, schemaRetriever, true);
         const generatedSlots = Array.from(prog.iterateSlots()).map(([schema, slot, prim, scope]) => {
@@ -255,6 +279,9 @@ async function test(i) {
             prim.schema = null;
             return `${primType}: ${prim}`;
         });
+
+        if (prog.isProgram)
+            assert(icon === prog.getIcon(), 'Icon does not match.');
 
         assertArrayEquals(i, generatedPrims, expectedPrim);
         assertArrayEquals(i, generatedSlots, expectedSlots);
