@@ -131,8 +131,8 @@ RuleHeadPart
   / name:(Identifier __ ':' __)? category:NonTerminalRef {
     return new Ast.RuleHeadPart.NonTerminal(name ? name[0] : null, category);
   }
-  / ChoiceToken __ '(' __ first:StringLiteral __ rest:(',' __ StringLiteral __)* ')' {
-    return new Ast.RuleHeadPart.Choice([first].concat(take(rest, 2)));
+  / '(' __ first:StringLiteral __ '|' __ second:StringLiteral __ rest:('|' __ StringLiteral __)* ')' {
+    return new Ast.RuleHeadPart.Choice([first, second].concat(take(rest, 2)));
   }
 
 CodeNoSemicolon = $(StringLiteral / SingleLineComment / MultiLineComment / (![{}()\[\];] SourceCharacter)+ / '{' Code '}' / '(' Code ')' / '[' Code ']')*
@@ -221,8 +221,7 @@ ReservedWord
   / FutureReservedWord
 
 Keyword
-  = ChoiceToken
-  / ConstToken
+  = ConstToken
   / IfToken
   / ElseToken
   / ImportToken
@@ -434,6 +433,7 @@ ChoiceToken     = "choice"     !IdentifierPart
 
 __
   = (WhiteSpace / LineTerminatorSequence / Comment)*
+
 
 
 
