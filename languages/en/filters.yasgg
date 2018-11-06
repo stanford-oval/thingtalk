@@ -29,8 +29,8 @@ atom_filter = {
     'i am at' loc:constant_Location            => C.locationGetPredicate($options, loc);
     'i am not at' loc:constant_Location        => C.locationGetPredicate($options, loc, true);
 
-    'the' proj:projection_Any ('is' | 'is exactly' | 'is equal to') x:constant_Any        => C.makeGetPredicate(proj, '==', x);
-    'the' proj:projection_Any ('is not' | 'is n\'t' | 'is different than') x:constant_Any => C.makeGetPredicate(proj, '==', x, true);
+    proj:projection_Any ('is' | 'is exactly' | 'is equal to') x:constant_Any        => C.makeGetPredicate(proj, '==', x);
+    proj:projection_Any ('is not' | 'is n\'t' | 'is different than') x:constant_Any => C.makeGetPredicate(proj, '==', x, true);
 
     'the' p:out_param_Any ('is' | 'is exactly' | 'is equal to') x:constant_Any        => C.makeFilter($options, p, '==', x);
     'the' p:out_param_Any ('is not' | 'is n\'t' | 'is different than') x:constant_Any => C.makeFilter($options, p, '==', x, true);
@@ -133,11 +133,11 @@ range_filter = {
 }
 
 with_filter = {
-    p:out_param_Any 'equal to' x:constant_Any => C.makeFilter(p, '==', x);
-    p:out_param_Numeric ('higher' | 'larger' | 'bigger') 'than' x:constant_Numeric => C.makeFilter(p, '>=', x);
-    p:out_param_Numeric ('smaller' | 'lower') 'than' x:constant_Numeric => C.makeFilter(p, '<=', x);
-    ('higher' | 'larger' | 'bigger') p:out_param_Numeric 'than' x:constant_Numeric => C.makeFilter(p, '>=', x);
-    ('smaller' | 'lower') p:out_param_Numeric 'than' x:constant_Numeric => C.makeFilter(p, '<=', x);
+    p:out_param_Any 'equal to' x:constant_Any => C.makeFilter($options, p, '==', x);
+    p:out_param_Numeric ('higher' | 'larger' | 'bigger') 'than' x:constant_Numeric => C.makeFilter($options, p, '>=', x);
+    p:out_param_Numeric ('smaller' | 'lower') 'than' x:constant_Numeric => C.makeFilter($options, p, '<=', x);
+    ('higher' | 'larger' | 'bigger') p:out_param_Numeric 'than' x:constant_Numeric => C.makeFilter($options, p, '>=', x);
+    ('smaller' | 'lower') p:out_param_Numeric 'than' x:constant_Numeric => C.makeFilter($options, p, '<=', x);
 
     !turking {
         f:range_with_filter => f;
