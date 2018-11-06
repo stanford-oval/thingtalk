@@ -2167,6 +2167,16 @@ const TEST_CASES = [
   } catch(_exc_) {
     env.reportError("Failed to invoke action", _exc_);
   }`]],
+
+  [`{
+    now => { now => @com.thecatapi.get() => notify; };  
+}`,
+  [`"use strict";
+  try {
+    await env.invokeProgram("{\\n  now => @com.thecatapi.get() => notify;\\n}");
+  } catch(_exc_) {
+    env.reportError("Failed to invoke action", _exc_);
+  }`]],
 ];
 
 const GeneratorFunction = Object.getPrototypeOf(async function(){}).constructor;
