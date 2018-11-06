@@ -217,14 +217,37 @@ var TEST_CASES = [
      'Atom(author, ==, VarRef(p_author)) com.twitter:search',
      'Device(com.twitter, , ) com.twitter:search',
      'Builtin undefined:notify'
-    ]]
+    ]],
+
+    [`now => { monitor (@com.xkcd.get_comic()) => notify; };`,
+    ['query: Invocation(Device(com.xkcd, , ), get_comic, , )',
+     'action: Invocation(Builtin, notify, , )'],
+    ['Device(com.xkcd, , ) com.xkcd:get_comic',
+     'Builtin undefined:notify']],
+
+    [`now => { monitor (@com.xkcd.get_comic(number=$undefined)) => notify ; };`,
+    ['query: Invocation(Device(com.xkcd, , ), get_comic, InputParam(number, Undefined(true)), )',
+     'action: Invocation(Builtin, notify, , )'],
+    ['Device(com.xkcd, , ) com.xkcd:get_comic',
+     'InputParam(number, Undefined(true)) com.xkcd:get_comic',
+     'Builtin undefined:notify']],
+
+    [`monitor (@com.xkcd.get_comic(number=$undefined)) => { monitor @com.washingtonpost.get_article(section=enum(world)) => notify ; };`,
+    ['query: Invocation(Device(com.xkcd, , ), get_comic, InputParam(number, Undefined(true)), )',
+     'query: Invocation(Device(com.washingtonpost, , ), get_article, InputParam(section, Enum(world)), )',
+     'action: Invocation(Builtin, notify, , )'],
+    ['Device(com.xkcd, , ) com.xkcd:get_comic',
+     'InputParam(number, Undefined(true)) com.xkcd:get_comic',
+     'Device(com.washingtonpost, , ) com.washingtonpost:get_article',
+     'InputParam(section, Enum(world)) com.washingtonpost:get_article',
+     'Builtin undefined:notify']],
 ];
 
-function test(i) {
+async function test(i) {
     console.log('Test Case #' + (i+1));
     var [code, expectedPrim, expectedSlots] = TEST_CASES[i];
-
-    return Grammar.parseAndTypecheck(code, schemaRetriever, true).then((prog) => {
+    try {
+        const prog = await Grammar.parseAndTypecheck(code, schemaRetriever, true);
         const generatedSlots = Array.from(prog.iterateSlots()).map(([schema, slot, prim, scope]) => {
             return `${slot} ${prim.selector.kind}:${prim.channel}`;
         });
@@ -235,24 +258,18 @@ function test(i) {
 
         assertArrayEquals(i, generatedPrims, expectedPrim);
         assertArrayEquals(i, generatedSlots, expectedSlots);
-    }).catch((e) => {
+    } catch(e) {
         console.error('Test Case #' + (i+1) + ': failed with exception');
         console.error('Error: ' + e.message);
         console.error(e.stack);
         if (process.env.TEST_MODE)
             throw e;
-    });
+    }
 }
 
-function loop(i) {
-    if (i === TEST_CASES.length)
-        return Q();
-
-    return Q(test(i)).then(() => loop(i+1));
-}
-
-function main() {
-    return loop(0);
+async function main() {
+    for (let i = 0; i < TEST_CASES.length; i++)
+        await test(i);
 }
 module.exports = main;
 if (!module.parent)
