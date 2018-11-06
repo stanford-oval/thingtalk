@@ -271,14 +271,18 @@ when_get_do_rule = {
 
 $root = {
     // when => notify
-    'notify me' stream:stream => C.makeProgram(new Ast.Statement.Rule(stream, [stream.isTimer || stream.isAtTimer ? C.builtinSayAction($options) : C.notifyAction()]));
-    ('alert me' | 'inform me' | 'let me know' | 'i get notified' | 'i get alerted') stream:stream => C.makeProgram(new Ast.Statement.Rule(stream, [stream.isTimer || stream.isAtTimer ? C.builtinSayAction($options) : C.notifyAction()]));
-    'send me' ('a message' | 'an alert' | 'a notification' | 'a pop up notification' | 'a popup notification') stream:stream => C.makeProgram(new Ast.Statement.Rule(stream, [stream.isTimer || stream.isAtTimer ? C.builtinSayAction($options) : C.notifyAction()]));
+    (
+          'notify me' stream:stream
+        | ('alert me' | 'inform me' | 'let me know' | 'i get notified' | 'i get alerted') stream:stream
+        | 'send me' ('a message' | 'an alert' | 'a notification' | 'a pop up notification' | 'a popup notification') stream:stream
+    ) => C.makeProgram(new Ast.Statement.Rule(stream, [stream.isTimer || stream.isAtTimer ? C.builtinSayAction($options) : C.notifyAction()]));
     'send me a reminder' stream:timer => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options)]));
     'send me' ('a message' | 'an alert' | 'a notification' | 'a reminder' | 'a popup notification') stream:timer ('saying' | 'with the text') constant:constant_String => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options, constant)]));
     !turking {
-        'alert me' stream:stream ('saying' | 'with the text') constant:constant_String => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options, constant)]));
-        'show' ('the notification' | 'the message' | 'a popup notification that says' | 'a popup containing') constant:constant_String stream:stream => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options, constant)]));
+        (
+              'alert me' stream:stream ('saying' | 'with the text') constant:constant_String
+            | 'show' ('the notification' | 'the message' | 'a popup notification that says' | 'a popup containing') constant:constant_String stream:stream
+        ) => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options, constant)]));
     }
     ('monitor' | 'watch') table:with_filtered_table => {
         if (!table.schema.is_monitorable)
@@ -321,6 +325,7 @@ $root = {
         let outParams = Object.keys(proj.table.schema.out);
         if (outParams.length === 1 && $options.flags.turking)
             return null;
+        // note that we intentionally don't use tableToStream here, because we don't want to introduce edge filters
         return C.makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, null, proj.table.schema), [C.notifyAction()]));
     };
     ('alert me' | 'tell me' | 'notify me' | 'let me know') ('if' | 'when') filter:atom_filter 'in' table:complete_table => {
@@ -353,33 +358,38 @@ $root = {
     };
 
     // now => get => notify
-    table:complete_get_command => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
-    'get' table:complete_table => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
-    ('tell me' | 'give me' | 'show me' | 'present' | 'retrieve' | 'pull up') table:complete_table => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
+    (
+          table:complete_get_command
+        | 'get' table:complete_table
+        | ('tell me' | 'give me' | 'show me' | 'present' | 'retrieve' | 'pull up') table:complete_table
+        | ('hey almond' | '') ('search' | 'find' | 'i want' | 'i need') table:with_filtered_table
+        | ('hey almond' | '') 'what are' table:with_filtered_table ('' | '?')
+    ) => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
     ('hey almond' | 'please' | '') ('list' | 'enumerate') table:with_filtered_table => {
         if (!table.schema.is_list)
             return null;
         return C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
     };
-    ('hey almond' | '') ('search' | 'find' | 'i want' | 'i need') table:with_filtered_table => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
-    ('hey almond' | '') 'what are' table:with_filtered_table ('' | '?') => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
-
     // now => get => say(...)
     // don't merge these, the output sizes are too small
-    ('hey almond' | '') ('get' | 'show me' | 'give me' | 'tell me' | 'say') proj:projection_Any => C.sayProjectionProgram($options, proj);
-    ('hey almond' | '') 'what is' proj:projection_Any ('' | '?') => C.sayProjectionProgram($options, proj);
-    ('show me' | 'tell me' | 'say') 'what is' proj:projection_Any => C.sayProjectionProgram($options, proj);
-    'who is' proj:projection_Entity__tt__username ('' | '?') => C.sayProjectionProgram($options, proj);
-    'who is' proj:projection_Entity__tt__email_address ('' | '?') => C.sayProjectionProgram($options, proj);
-    proj:projection_Any => C.sayProjectionProgram($options, proj);
+    (
+          ('hey almond' | '') ('get' | 'show me' | 'give me' | 'tell me' | 'say') proj:projection_Any
+        | ('hey almond' | '') 'what is' proj:projection_Any ('' | '?')
+        | ('show me' | 'tell me' | 'say') 'what is' proj:projection_Any
+        | 'who is' proj:projection_Entity__tt__username ('' | '?')
+        | 'who is' proj:projection_Entity__tt__email_address ('' | '?')
+        | proj:projection_Any
+    ) => C.sayProjectionProgram($options, proj);
 
     // now => do
-    action:thingpedia_action if complete => C.makeProgram(new Ast.Statement.Command(null, [action]));
-    'please' action:thingpedia_action if complete => C.makeProgram(new Ast.Statement.Command(null, [action]));
-    'i need you to' action:thingpedia_action if complete => C.makeProgram(new Ast.Statement.Command(null, [action]));
-    'i want to' action:thingpedia_action if complete => C.makeProgram(new Ast.Statement.Command(null, [action]));
-    'i \'d like to' action:thingpedia_action if complete => C.makeProgram(new Ast.Statement.Command(null, [action]));
-    ('hey' | '') ('sabrina' | 'almond') action:thingpedia_action if complete => C.makeProgram(new Ast.Statement.Command(null, [action]));
+    (
+          action:thingpedia_action
+        | 'please' action:thingpedia_action
+        | 'i need you to' action:thingpedia_action
+        | 'i want to' action:thingpedia_action
+        | 'i \'d like to' action:thingpedia_action
+        | ('hey' | '') ('sabrina' | 'almond') action:thingpedia_action
+    ) if complete => C.makeProgram(new Ast.Statement.Command(null, [action]));
 
     // now => get => do
     command:complete_get_do_command => C.makeProgram(command);
@@ -400,13 +410,17 @@ $root = {
     rule:when_get_do_rule => C.makeProgram(rule);
 
     // setup commands
-    ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to' action:thingpedia_action if complete => C.makeProgram(new Ast.Statement.Command(null, [action]), principal);
-    ('tell' | 'command' | 'order' | 'request' | 'inform') principal:constant_Entity__tt__username 'that' ('he needs' | 'she needs' | 'i need him' | 'i need her') 'to' action:thingpedia_action if complete => C.makeProgram(new Ast.Statement.Command(null, [action]), principal);
-    ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to get' table:complete_table 'and send it to me' => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction('return')]), principal);
-    ('request' | 'ask') principal:constant_Entity__tt__username 'to get' table:complete_table => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction('return')]), principal);
-    ('show me' | 'get') table:complete_table 'from' principal:constant_Entity__tt__username => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction('return')]), principal);
-    ('show me' | 'get' | 'what is') principal:constant_Entity__tt__username '\'s' table:complete_table => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction('return')]), principal);
-    ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to send me' table:complete_table => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction('return')]), principal);
+    (
+          ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to' action:thingpedia_action
+        | ('tell' | 'command' | 'order' | 'request' | 'inform') principal:constant_Entity__tt__username 'that' ('he needs' | 'she needs' | 'i need him' | 'i need her') 'to' action:thingpedia_action
+    ) if complete => C.makeProgram(new Ast.Statement.Command(null, [action]), principal);
+    (
+          ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to get' table:complete_table 'and send it to me'
+        | ('request' | 'ask') principal:constant_Entity__tt__username 'to get' table:complete_table
+        | ('show me' | 'get') table:complete_table 'from' principal:constant_Entity__tt__username
+        | ('show me' | 'get' | 'what is') principal:constant_Entity__tt__username '\'s' table:complete_table
+        | ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to send me' table:complete_table
+    ) => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction('return')]), principal);
     ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to' ('let me know' | 'inform me' | 'notify me' | 'alert me') stream:stream => C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction('return')]), principal);
 
     // policies

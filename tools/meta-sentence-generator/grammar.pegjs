@@ -65,7 +65,12 @@ NonTerminalRef
 
 NonTerminalDeclaration
   = name:NonTerminalRef __ '=' __ block:RuleBlock { return new Ast.Statement.NonTerminal(name, block); }
-  / name:NonTerminalRef __ '=' __ rule:Rule { return new Ast.Statement.NonTerminal(name, [rule]); }
+  / name:NonTerminalRef __ '=' __ rule:Rule {
+    if (Array.isArray(rule))
+      return new Ast.Statement.NonTerminal(name, rule);
+    else
+      return new Ast.Statement.NonTerminal(name, [rule]);
+  }
 
 StatementOrBlock
   = '{' __ body:(Statement __)* __ '}' { return take(body, 0); }
@@ -83,7 +88,16 @@ ImportStmt = ImportToken __ what:StringLiteral __ ';' {
   return new Ast.Statement.Import(what);
 }
 
-RuleBlock = '{' __ rules:(Rule __)* '}' { return take(rules, 0); }
+RuleBlock = '{' __ rules:(Rule __)* '}' {
+    const out = [];
+    for (let rule of take(rules, 0)) {
+      if (Array.isArray(rule))
+        out.push(...rule);
+      else
+        out.push(rule);
+    }
+    return out;
+  }
 
 Rule
   = flag:RuleFlag? __ ConstToken __ '(' __ name:Identifier __ ',' __ type:CodeNoComma __ ')' __ ';' {
@@ -116,6 +130,24 @@ Rule
       return new Ast.Rule.Condition(flag, [r]);
     else
       return r;
+  }
+  / flag:RuleFlag? __ '(' __ first:RuleHead __ '|' __ second:RuleHead __ rest:('|' __ RuleHead __)* ')' __ condition:(__ IfToken __ '!'? __ Identifier __)? '=>' __ body:CodeNoSemicolon ';' {
+    return [first, second].concat(take(rest, 2)).map((head) => {
+      const r = new Ast.Rule.Expansion(head, body, condition ? (condition[3] || '') + condition[5] : null);
+      if (flag)
+        return new Ast.Rule.Condition(flag, [r]);
+      else
+        return r;
+    });
+  }
+  / flag:RuleFlag? __ '(' __ first:RuleHead __ '|' __ second:RuleHead __ rest:('|' __ RuleHead __)* ')' __ '[' __ '->' __ placeholder:Identifier __ optionCode:$('{' Code '}')? ']' __ '=>' __ body:CodeNoSemicolon ';' {
+    return [first, second].concat(take(rest, 2)).map((head) => {
+      const r = new Ast.Rule.Replacement(head, placeholder, body, optionCode || '{}');
+      if (flag)
+        return new Ast.Rule.Condition(flag, [r]);
+      else
+        return r;
+    });
   }
 
 RuleFlag = dir:('!' / '?') __ name:Identifier __ { return dir + name; }
