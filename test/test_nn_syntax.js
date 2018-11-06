@@ -257,6 +257,10 @@ const TEST_CASES = [
     `follow bob on twitter`, {},
     `now => @com.twitter.follow(user_name="bob"^^tt:username);`],
 
+    ['policy true : now => @org.thingpedia.builtin.thingengine.builtin.discover filter @org.thingpedia.builtin.test.get_data { param:data:String == QUOTED_STRING_0 }',
+    'everybody has permission to discover new devices if the data of more data genning ... is exactly QUOTED_STRING_0', { QUOTED_STRING_0: 'foo' },
+    'true : now => @org.thingpedia.builtin.thingengine.builtin.discover, @org.thingpedia.builtin.test.get_data() { data == "foo" };']
+
     /*[`now => @com.xkcd.get_comic param:number:Number = SLOT_0 => notify`,
      {'SLOT_0': Ast.Value.Number(1234)},
      `now => @com.xkcd.get_comic(number=1234) => notify;`],
