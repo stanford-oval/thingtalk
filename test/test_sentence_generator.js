@@ -19,8 +19,6 @@ const SentenceGenerator = require('../lib/sentence-generator');
 const NNSyntax = require('../lib/nn_syntax');
 const SchemaRetriever = require('../lib/schema');
 
-const { uniform } = require('../lib/sentence-generator/random');
-
 const _tpClient = require('./mock_schema_delegate');
 const _mockMemoryClient = require('./mock_memory_client');
 const _schemaRetriever = new SchemaRetriever(_tpClient, _mockMemoryClient, true);
