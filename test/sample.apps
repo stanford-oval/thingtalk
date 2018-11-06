@@ -902,3 +902,13 @@ abstract class @com.foo {
 ====
 
 timer(base=makeDate(), interval=30s) => @org.thingpedia.builtin.thingengine.builtin.get_random_between(low=2, high=20) => notify;
+
+====
+// conditional monitor 
+monitor @com.twitter.home_timeline() => { monitor @org.thingpedia.weather.current() => notify; };
+
+==== 
+
+// ** typecheck: expect TypeError **
+// parameter passing is not supported yet
+monitor @com.twitter.home_timeline() => { monitor @com.wsj.get(), title == text => notify; };
