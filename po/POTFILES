@@ -12,7 +12,6 @@ lib/generate.js
 lib/grammar_api.js
 lib/grammar.js
 lib/jsir.js
-lib/json_datagram_socket.js
 lib/nn_grammar.js
 lib/nn_output_parser.js
 lib/nn_syntax.js
@@ -20,10 +19,8 @@ lib/optimize.js
 lib/permission_checker.js
 lib/prettyprint.js
 lib/schema.js
-lib/sempre_syntax.js
 lib/sql_compiler.js
 lib/sr_parser.js
-lib/tokenizer_service.js
 lib/typecheck.js
 lib/type.js
 lib/units.js
