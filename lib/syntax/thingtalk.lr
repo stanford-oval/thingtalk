@@ -1,0 +1,499 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingTalk
+//
+// Copyright 2017 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+{
+const Ast = require('./ast');
+const Generate = require('./generate');
+const { parseDate } = require('./date_utils');
+
+const TIMER_SCHEMA = new Ast.FunctionDef('stream',
+    'timer',
+    [], // args,
+    false, // is_list
+    true,  // is_monitorable
+    {
+    canonical: 'every fixed interval',
+    confirmation: 'every ${interval}',
+    },
+    {} // annotations
+);
+
+const AT_TIMER_SCHEMA = new Ast.FunctionDef('stream',
+    'attimer',
+    [], // args,
+    false, // is_list
+    true,  // is_monitorable
+    {
+    canonical: 'every day',
+    confirmation: 'every day at ${interval}',
+    },
+    {} // annotations
+);
+}
+
+/**
+ * Differences with the actual NN Grammar (as written in
+ * almond-nnparser/grammar/thingtalk.py):
+ *
+ * - almond-nnparser's grammar distinguishes $get and $do, while
+ *   while this one uses just $call
+ *   almond-nnparser can do that because it knows the full list of
+ *   gets and dos (and knows that they don't interset), whereas here
+ *   we have a single FUNCTION token
+ * - almond-nnparser's grammar is typed around parameter types and
+ *   constants, this one is not because otherwise it would be too unwieldly
+ *   to write
+ * - almond-nnparser uses different terminals for <entity>_i because
+ *   it autogenerates the grammar; this grammar uses a single terminal
+ *   <entity> plus a lexical analysis step because I was too lazy to write
+ *   down all cases by hand
+ *
+ * Missing features, compared with full TT:
+ * - single statement
+ * - no complex selectors
+ * - no remote primitives (yet)
+ * - no declarations
+ * - no multi-field projection
+ * - no alias (in aggregate and as a table/stream operator)
+ * - no compute
+ *
+ * Differences with full TT:
+ * - all filter operators are infix
+ * - multiple parameter passings are prefixed with on in a join
+ * - function names are one token
+ * - parameter names are prefixed with param:
+ * - enum choices are prefixed with enum:
+ * - units are prefixed with unit:
+ * - relative locations are prefixed with location:
+ *
+ * What to keep in mind when writing the grammar:
+ * - shifts are cheap, reduces are expensive
+ * - adding more symbols to a rule only increases the number of shifts
+ * - adding more non-terminals to the grammar increases the number of
+ *   reduces
+ * - splitting a rule into multiple non-terminals increases the number of
+ *   reduces
+ * - the breadth of reduces matters too
+ * - the overall number of rules affects the breadth of reduces
+ */
+
+input = {
+    program;
+    'answer' c:constant => c;
+    'filter' f:filter => f;
+    'policy' p:policy => p;
+}
+
+program = {
+    rule:rule => new Ast.Program([], [], [rule], null);
+    'executor' '=' user:constant ':' rule => {
+        if (!Type.isAssignable(user.getType(), Type.Entity('tt:username')))
+            return $.error(`Invalid type ${user.getType()} for executor`);
+        new Ast.Program([], [], [rule], user);
+    };
+}
+
+policy = {
+    'true' ':' policy:policy_body => policy;
+    user:filter ':' 'policy_body' => {
+        // XXX: typecheck user
+        return policy.set({ principal: user });
+    };
+}
+
+policy_body = {
+    'now' '=>' action:policy_fn => {
+        await typecheckPermissionFunction($, action, 'action');
+        return new Ast.PermissionRule(Ast.BooleanExpression.True, Ast.PermissionFunction.Builtin, action);
+    };
+    query:policy_fn '=>' 'notify' => {
+        await typecheckPermissionFunction($, query, 'query');
+        return new Ast.PermissionRule(Ast.BooleanExpression.True, query, Ast.PermissionFunction.Builtin);
+    };
+    query:policy_fn '=>' action:policy_fn => {
+        await typecheckPermissionFunction($, query, 'query');
+        await typecheckPermissionFunction($, action, 'action');
+        return new Ast.PermissionRule(Ast.BooleanExpression.True, query, action);
+    };
+}
+
+policy_fn = {
+    '*' => Ast.PermissionFunction.Star,
+    klass:CLASS_STAR => new Ast.PermissionFunction.ClassStar(klass.value),
+    fn:FUNCTION => new Ast.PermissionFunction.Specified(fn.value.kind, fn.value.channel, Ast.BooleanExpression.True, null);
+    fn:FUNCTION 'filter' filter => new Ast.PermissionFunction.Specified(fn.value.kind, fn.value.channel, filter, null);
+}
+
+rule = {
+    stream '=>' action => new Ast.Statement.Rule(stream, [action]);
+    'now' '=>' table '=>' action => new Ast.Statement.Command(table, [action]);
+    'now' '=>' action => new Ast.Statement.Command(null, [action]);
+
+    rule 'on' pp:param_passing => {
+        const action = rule.actions[0];
+        if (!action.isInvocation)
+            throw new Error('???');
+        if (!action.invocation.selector.isBuiltin)
+            throw $.error(`Cannot pass parameters to notify`);
+
+        const lhs = pp.name;
+        const rhs = pp.value.name;
+        const outParamType = rule.stream ? rule.stream.schema.out[rhs] :
+            rule.table ? rule.table.schema.out[rhs] : undefined;
+        const inParamType = action.schema.getArgType(lhs);
+        if (!inParamType)
+            throw $.error(`Action @${action.invocation.selector.kind}.${action.invocation.channel} has no parameter ${lhs}`);
+        if (!outParamType)
+            throw $.error(`Invalid output parameter ${rhs}`);
+        if (!Type.isAssignable(outParamType, inParamType))
+            throw $.error(`Cannot convert type ${outParamType} to ${inParamType} for parameter ${lhs}`);
+
+        rule = rule.clone();
+        rule.actions[0].invocation.in_params.push(pp);
+        rule.actions[0].schema = rule.actions[0].schema.filterArgument((arg) => arg.name !== lhs);
+        return rule;
+    };
+}
+
+aggr_op = {
+    'min';
+    'max';
+    'sum';
+    'avg';
+}
+
+table = {
+    call => return new Ast.Table.Invocation(call, await typecheckInvocation(call, 'query'));
+    '(' table ')' 'filter' filter => {
+        await typecheckFilter(filter, table.schema);
+        return new Ast.Table.Filter(table, filter, table.schema);
+    };
+
+    'aggregate' op:aggr_op field:out_param 'of' '(' table ')' => new Ast.Table.Aggregation(table, field.name, op, null, null);
+    'aggregate' 'count' 'of' '(' table ')'                    => new Ast.Table.Aggregation(table, '*', 'count', null, null);
+    'aggregate' 'argmin' field:out_param base:constant_Number ',' limit:constant_Number 'of' '(' table ')' => new Ast.Table.ArgMinMax(table, field.name, op, base, limit, null);
+    'aggregate' 'argmax' field:out_param base:constant_Number ',' limit:constant_Number 'of' '(' table ')' => new Ast.Table.ArgMinMax(table, field.name, op, base, limit, null);
+    'window' base:constant_Number ',' delta:constant_Number 'of' '(' stream ')'        => new Ast.Table.Window(base, delta, stream, null);
+    'timeseries' base:constant_Date ',' delta:constant_Measure(ms) 'of' '(' stream ')' => new Ast.Table.TimeSeries(base, delta, stream, null);
+    'sequence' base:constant_Number ',' delta:constant_Number 'of' '(' table ')'       => new Ast.Table.Sequence(base, delta, table, null);
+    'history' base:constant_Date ',' delta:constant_Measure(ms) 'of' '(' table ')'     => new Ast.Table.History(base, delta, table, null);
+
+    table_join;
+}
+
+table_join = {
+    '(' t1:table ')' 'join' '(' t2:table => new Ast.Table.Join(t1, t2, [], mergeSchema(t1.schema, t2.schema));
+    join:table_join 'on' pp:param_passing => {
+        const lhs = pp.name;
+        const rhs = pp.value.name;
+        const outParamType = join.lhs.schema.out[rhs];
+        const inParamType = join.rhs.schema.getArgType(lhs);
+        if (!inParamType || !join.rhs.schema.isArgInput(lhs));
+            throw $.error(`Invalid input parameter ${lhs}`);
+        if (!outParamType)
+            throw $.error(`Invalid output parameter ${rhs}`);
+        if (!Type.isAssignable(outParamType, inParamType))
+            throw $.error(`Cannot convert type ${outParamType} to ${inParamType} for parameter ${lhs}`);
+
+        join = join.clone();
+        join.in_params.push(pp);
+        join.schema = join.schema.filterArgument((arg) => arg.name !== lhs);
+        return join;
+    };
+}
+
+stream = {
+    'timer' 'base' '=' base:constant_Date ',' 'interval' '=' interval:constant_Measure_ms => new Ast.Stream.Timer(base, interval, TIMER_SCHEMA);
+    'attimer' 'time' '=' time:constant_Time => new Ast.Stream.AtTimer(time, ATTIMER_SCHEMA);
+
+    'monitor' '(' table ')' => new Ast.Stream.Monitor(table, null, table.schema);
+    'monitor' '(' table ')' 'on' 'new' pname:out_param => {
+        if (!table.schema.out[pname.name])
+            throw $.error(`No such output parameter ${pname}`);
+        return new Ast.Stream.Monitor(table, [pname.name], null);
+    };
+
+    'monitor' '(' table ')' 'on' 'new' '[' pnames:out_param_list ']' => {
+        pnames.forEach((pname) => {
+            if (!table.schema.out[pname.name])
+                throw $.error(`No such output parameter ${pname}`);
+        });
+        return new Ast.Stream.Monitor(table, pnames.map((p) => p.name), table.schema);
+    };
+
+    'edge' '(' stream ')' 'on' filter => {
+        await typecheckFilter($, filter, stream.schema);
+        return new Ast.Stream.EdgeFilter(stream, filter, stream.schema);
+    };
+
+    // edge on true is the equivalent of "only once"
+    'edge' '(' stream ')' 'on' 'true' => new Ast.Stream.EdgeFilter(stream, Ast.BooleanExpression.True, stream.schema);
+
+    stream_join;
+}
+
+stream_join = {
+    '(' stream ')' '=>' '(' table ')' => new Ast.Stream.Join(s1, t2, [], mergeSchema(s1.schema, s2.schema));
+    '(' stream ')' 'join' '(' table ')' => new Ast.Stream.Join(s1, t2, [], mergeSchema(s1.schema, s2.schema));
+    join:stream_join 'on' pp:param_passing => {
+        const lhs = pp.name;
+        const rhs = pp.value.name;
+        const outParamType = join.stream.schema.out[rhs];
+        const inParamType = join.table.schema.getArgType(lhs);
+        if (!inParamType || !join.table.schema.isArgInput(lhs));
+            throw $.error(`Invalid input parameter ${lhs}`);
+        if (!outParamType)
+            throw $.error(`Invalid output parameter ${rhs}`);
+        if (!Type.isAssignable(outParamType, inParamType))
+            throw $.error(`Cannot convert type ${outParamType} to ${inParamType} for parameter ${lhs}`);
+        join = join.clone();
+        join.in_params.push(pp);
+        join.schema = join.schema.filterArgument((arg) => arg.name !== lhs);
+        return join;
+    };
+}
+
+action = {
+    'notify' => Generate.notifyAction();
+    'return' => Generate.notifyAction('return');
+    call => new Ast.Action.Invocation(call, await typecheckInvocation(call, 'action'));
+}
+
+call = {
+    fn:FUNCTION => new Ast.Invocation(new Ast.Selector.Device(fn.value.kind, null, null), fn.value.channel, [], null);
+    inv:call ip:const_param => {
+        inv = inv.clone();
+        if (inv.schema) {
+            const inParamType = inv.schema.getArgType(ip.name);
+            if (!inParamType || !inv.schema.isArgInput(ip.name));
+                throw $.error(`Invalid input parameter ${ip.name}`);
+            const constType = ip.value.getType();
+            if (!Type.isAssignable(constType, inParamType))
+                throw $.error(`Cannot convert type ${constType} to ${inParamType} for parameter ${ip.name}`);
+        }
+        inv.in_params.push(ip);
+        return inv;
+    };
+}
+
+param_passing = {
+    pname:PARAM_NAME '=' out_param => new Ast.InputParam(pname.value, out_param);
+    pname:PARAM_NAME '=' 'event' => new Ast.InputParam(pname.value, new Ast.Value.Event(null));
+}
+
+const_param = pname:PARAM_NAME '=' v:constant => new Ast.InputParam(pname.value, v);
+
+out_param = pname:PARAM_NAME => new Ast.Value.VarRef(pname.value);
+
+out_param_list = {
+    pname:out_param => [pname];
+    list:out_param_list ',' pname:out_param => list.concat(pname);
+}
+
+// note that $filter is not recursive!
+// it must be in CNF form
+// also note that and takes priority over or
+// this is the opposite of regular TT (which copies JS in that respect)
+// because most filters are just a list of
+// "condition and this or that and foo or bar"
+// to be read as
+// "condition and (this or that) and (foo or bar)"
+filter = {
+    or_filter;
+    f1:filter 'and' f2:or_filter => new Ast.BooleanExpression.And([f1, f2]);
+}
+
+or_filter = {
+    atom_filter;
+    'not' f:atom_filter => new Ast.BooleanExpression.Not(f);
+    f1:or_filter 'or' f2:atom_filter => new Ast.BooleanExpression.Or([f1, f2]);
+}
+
+atom_filter = {
+    pname:PARAM_NAME filter:value_filter => {
+        const [op, v] = filter;
+        return new Ast.BooleanExpression.Atom(pname.value, op, v);
+    };
+    fn:call '{' filter '}' => {
+        await typecheckInvocation(fn, 'filter');
+        await typecheckFilter(filter, fn.schema);
+        new Ast.BooleanExpression.External(fn.selector, fn.channel, fn.in_params, filter, fn.schema);
+    };
+}
+
+// in luinet these are strongly typed constants, so only
+// numbers and measures can be compared for order, etc
+// we're a little looser here because otherwise it becomes unwieldly
+value_filter = {
+    '==' v:constant => ['==', v];
+    '>=' v:comparable_constant => ['>=', v];
+    '<=' v:comparable_constant => ['<=', v];
+    '>' v:comparable_constant => ['>', v];
+    '<' v:comparable_constant => ['<', v];
+    '=~' v:constant_String => ['=~', v];
+    '~=' v:constant_String => ['~=', v];
+    'starts_with' v:constant_String => ['starts_with', v];
+    'ends_with' v:constant_String => ['ends_with', v];
+    'prefix_of' v:constant_String => ['prefix_of', v];
+    'suffix_of' v:constant_String => ['suffix_of', v];
+    'contains' v:constant => ['contains', v];
+    'in_array' v:constant_Array => ['in_array', v];
+
+    '==' v:out_param => ['==', v];
+    '>=' v:out_param => ['>=', v];
+    '<=' v:out_param => ['<=', v];
+    '>' v:out_param => ['>', v];
+    '<' v:out_param => ['<', v];
+    '=~' v:out_param => ['=~', v];
+    '~=' v:out_param => ['~=', v];
+    'starts_with' v:out_param => ['starts_with', v];
+    'ends_with' v:out_param => ['ends_with', v];
+    'prefix_of' v:out_param => ['prefix_of', v];
+    'suffix_of' v:out_param => ['suffix_of', v];
+    'contains' v:out_param => ['contains', v];
+    'in_array' v:out_param => ['in_array', v];
+}
+
+// this non-terminal exists only for convenience
+// the almond nn-parser grammar does not have it
+constant = {
+    constant_Array;
+    constant_Boolean;
+    constant_String;
+    constant_Measure;
+    tok: DURATION => new Ast.Value.Measure(tok.value.value, tok.value.unit);
+    constant_Number;
+    constant_Currency;
+    constant_Location;
+    constant_Date;
+    constant_Time;
+    constant_Entity__unknown;
+    constant_Entity__tt__username;
+    constant_Entity__tt__hashtag;
+    constant_Entity__tt__phone_number;
+    constant_Entity__tt__email_address;
+    constant_Entity__tt__path_name;
+    constant_Entity__tt__url;
+    constant_Entity__tt__device;
+    constant_Entity__tt__function;
+    constant_Entity__tt__picture;
+    constant_Enum;
+    SLOT => (slot.value === undefined ? Ast.Value.Undefined(true) : slot.value);
+}
+
+comparable_constant = {
+    constant_String;
+    constant_Measure;
+    tok: DURATION => new Ast.Value.Measure(tok.value.value, tok.value.unit);
+    constant_Number;
+    constant_Currency;
+    constant_Date;
+}
+
+constant_Array = {
+    '[' ']' => new Ast.Value.Array([]);
+    '[' values:constant_array_values ']' => new Ast.Value.Array(values);
+}
+
+constant_array_values = {
+    constant;
+    array:constant_array_values ',' v:constant => array.concat([v]);
+}
+
+constant_Boolean = {
+    'true' => new Ast.Value.Boolean(true);
+    'false' => new Ast.Value.Boolean(false);
+}
+
+constant_String = {
+    '""' => new Ast.Value.String('');
+    str:QUOTED_STRING => new Ast.Value.String(str.value);
+    '"' str:word_list '"' => new Ast.Value.String(str);
+}
+
+word_list = {
+    word:WORD => word.value;
+    list:word_list word:WORD => list + ' ' + word.value;
+}
+
+// play fast and loose with units here, because I don't want to write
+// everything by hand
+// almond-nnparser autogenerates this part
+constant_Measure = {
+    num:constant_Number unit:UNIT => new Ast.Value.Measure(num.value, unit.value);
+    v1:constant_Measure num:constant_Number unit:UNIT => {
+      if (v1.isCompoundMeasure) {
+          v1.value.push(new Ast.Value.Measure(num.value, unit.value));
+          return v1;
+      } else {
+          return new Ast.Value.CompoundMeasure([v1, new Ast.Value.Measure(num.value, unit.value)]);
+      }
+    };
+}
+constant_Measure_ms = {
+    v:constant_Measure => {
+        if (!Type.Measure('ms').equals(v.getType()))
+            throw $.error(`Invalid Measure(ms) constant`);
+        return v;
+    };
+    tok:DURATION => new Ast.Value.Measure(tok.value.value, tok.value.unit);
+}
+
+constant_Number = {
+    num:NUMBER => new Ast.Value.Number(num.value);
+    '1' => new Ast.Value.Number(1);
+    '0' => new Ast.Value.Number(0);
+}
+
+constant_Currency = tok:CURRENCY => new Ast.Value.Currency(tok.value.value, tok.value.unit);
+constant_Location = {
+    'location:current_location' => new Ast.Value.Location(new Ast.Location.Relative('current_location'));
+    'location:home' => new Ast.Value.Location(new Ast.Location.Relative('home'));
+    'location:work' => new Ast.Value.Location(new Ast.Location.Relative('work'));
+    loc:LOCATION => new Ast.Value.Location(new Ast.Location.Absolute(loc.value.latitude, loc.value.longitude, loc.value.display||null));
+}
+
+// start_of/end_of with less than 1h are not supported
+// (they don't make sense)
+constant_Date = {
+    'now' => new Ast.Value.Date(null, '+', null);
+    'start_of' unit:UNIT => new Ast.Value.Date(new Ast.DateEdge('start_of', unit.value), '+', null);
+    'end_of' unit:UNIT => new Ast.Value.Date(new Ast.DateEdge('end_of', unit.value), '+', null);
+    abs:DATE => new Ast.Value.Date(parseDate(abs.value), '+', null);
+    date:constant_Date '+' offset:constant_Measure_ms => new Ast.Value.Date(date.value, '+', offset);
+    date:constant_Date '-' offset:constant_Measure_ms => new Ast.Value.Date(date.value, '-', offset);
+}
+
+constant_Time = time:TIME => new Ast.Value.Time(time.value.hour, time.value.minute, time.value.second||0);
+
+// luinet expands this into the various enums in the right
+// place for a parameter (as the meaning of an enum changes according
+// to the parameter anyway)
+constant_Enum = venum:ENUM => new Ast.Value.Enum(venum.value);
+
+constant_Entity__unknown = {
+    entity:GENERIC_ENTITY => new Ast.Value.Entity(entity.value.value, entity.value.type, entity.value.display);
+    '"' str:word_list '"' type:ENTITY_TYPE => {
+        if (type.value === 'tt:hashtag' || type.value === 'tt:username')
+            return new Ast.Value.Entity(str, type.value, null);
+        else
+            return new Ast.Value.Entity(null, type.value, str);
+    };
+}
+
+constant_Entity__tt__username      = entity:USERNAME      => new Ast.Value.Entity(entity.value, 'tt:username', null);
+constant_Entity__tt__hashtag       = entity:HASHTAG       => new Ast.Value.Entity(entity.value, 'tt:hashtag', null);
+constant_Entity__tt__url           = entity:URL           => new Ast.Value.Entity(entity.value, 'tt:url', null);
+constant_Entity__tt__phone_number  = entity:PHONE_NUMBER  => new Ast.Value.Entity(entity.value, 'tt:phone_number', null);
+constant_Entity__tt__email_address = entity:EMAIL_ADDRESS => new Ast.Value.Entity(entity.value, 'tt:email_address', null);
+constant_Entity__tt__path_name     = entity:PATH_NAME     => new Ast.Value.Entity(entity.value, 'tt:path_name', null);
+constant_Entity__tt__device        = entity:DEVICE        => new Ast.Value.Entity(entity.value, 'tt:device', null);
+constant_Entity__tt__function      = entity:FUNCTION      => new Ast.Value.Entity(entity.kind + ':' + entity.device, 'tt:function', null);
+constant_Entity__tt__picture       = entity:PICTURE       => new Ast.Value.Entity(entity.value, 'tt:picture', null);

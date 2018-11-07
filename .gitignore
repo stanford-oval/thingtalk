@@ -11,6 +11,8 @@ lib/grammar.js
 lib/nn_output_parser.js
 
 tools/meta-sentence-generator/grammar.js
+tools/generate-parser/grammar.js
+test/test_sr_parser_generator.js
 
 *.tgz
 *.tsv

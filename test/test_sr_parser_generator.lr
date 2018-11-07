@@ -1,0 +1,51 @@
+input = {
+    command;
+    rule;
+}
+
+rule = stream action => `combine ${stream} with ${action}`;
+command = {
+    table 'notify' => `${table} then notify`;
+    table action => `combine ${table} with ${action}`;
+}
+
+table = {
+    get;
+    get:table ip => `apply ${get} ${ip}`;
+    table filter => `apply ${filter} to ${table}`;
+}
+stream = {
+    'monitor' table => `monitor ${table}`;
+}
+
+get = {
+    'xkcd.get_comic' => `xkcd.get_comic`;
+    'thermostat.get_temp' => `thermostat.get_temp`;
+    'twitter.search' => `twitter.search`;
+}
+action = {
+    action ip => `apply ${action} ${ip}`;
+    'twitter.post' => `twitter.post`;
+}
+
+ip = {
+    'param:number' num:number => `number = ${num}`;
+    'param:text' str:string => `string = ${str}`;
+}
+
+number = {
+    'num0' => `num0`;
+    'num1' => `num1`;
+}
+string = {
+    'qs0' => `qs0`;
+    'qs1' => `qs1`;
+}
+
+filter = {
+    'param:number' '==' num:number => `number == ${num}`;
+    'param:number' '>' num:number => `number > ${num}`;
+    'param:number' '<' num:number => `number < ${num}`;
+    'param:text' '==' str:string => `text == ${str}`;
+    'param:text' '=~' str:string => `text =~ ${str}`;
+}
