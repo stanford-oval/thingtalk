@@ -106,6 +106,36 @@ module.exports = {
         return Promise.resolve(this._mixins);
     },
 
+    getAllExamples() {
+        return Promise.resolve('dataset @org.thingpedia.everything language "en" {\
+    action () := @com.twitter.post()\
+    #[id=0]\
+    #_[preprocessed=["tweet something", "post on twitter"]];\
+\
+    action (p_status : String) := @com.twitter.post(status=p_status)\
+    #[id=1]\
+    #_[preprocessed=["tweet ${p_status}", "post ${p_status} on twitter"]];\
+\
+    query (p_query : String) := @com.bing.web_search(query=p_query)\
+    #[id=2]\
+    #_[preprocessed=["websites matching ${p_query}", "${p_query:const} websites", "${p_query:const} on bing"]];\
+\
+    query (p_query : String) := @com.bing.image_search(query=p_query)\
+    #[id=3]\
+    #_[preprocessed=["images matching ${p_query}", "${p_query:const} images"]];\
+}');
+    },
+
+    getAllDeviceNames() {
+        let names = [];
+        for (let kind in this._meta)
+            names.push({ kind, kind_canonical: this._meta[kind].kind_canonical });
+        return Promise.resolve(names);
+    },
+
+    getAllEntityTypes() {
+        return Promise.resolve(require('./entities.json').data);
+    }
 };
 for (let dev of Thingpedia.data) {
     module.exports._meta[dev.kind] = dev;
