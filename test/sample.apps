@@ -912,3 +912,13 @@ monitor @com.twitter.home_timeline() => { monitor @org.thingpedia.weather.curren
 // ** typecheck: expect TypeError **
 // parameter passing is not supported yet
 monitor @com.twitter.home_timeline() => { monitor @com.wsj.get(), title == text => notify; };
+
+====
+
+// attimer with list
+attimer(time=[makeTime(9,0), makeTime(15,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");
+
+====
+
+// list syntax with single attimer
+attimer(time=[makeTime(9,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");

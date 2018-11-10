@@ -66,7 +66,7 @@ class MockExecEnvironment extends ExecEnvironment {
             {__timestamp: base+2*interval}][Symbol.iterator]();
     }
     /* istanbul ignore next */
-    invokeAtTimer(time) {
+    invokeAtTimer(timeArray) {
         throw new Error('Must be overridden');
     }
 

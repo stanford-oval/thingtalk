@@ -198,6 +198,14 @@ var TEST_CASES = [
     [`now => [file_name] of aggregate argmin 1,1 file_size of @com.google.drive.list_drive_files() => notify;`,
     'get the file name of the files in your Google Drive with the minimum file size and then notify you',
     'Google Drive ⇒ Notification'],
+
+    [`attimer(time=[makeTime(9,0), makeTime(15,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");`,
+    `send me a message “it's 9am or 3pm” every day at 9:00 AM and 3:00 PM`,//'
+    'Say'],
+
+    [`attimer(time=[makeTime(9,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");`,
+    `send me a message “it's 9am or 3pm” every day at 9:00 AM`,//'
+    'Say'],
 ];
 
 const gettext = {

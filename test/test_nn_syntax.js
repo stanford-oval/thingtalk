@@ -259,7 +259,7 @@ const TEST_CASES = [
 
     ['policy true : now => @org.thingpedia.builtin.thingengine.builtin.discover filter @org.thingpedia.builtin.test.get_data { param:data:String == QUOTED_STRING_0 }',
     'everybody has permission to discover new devices if the data of more data genning ... is exactly QUOTED_STRING_0', { QUOTED_STRING_0: 'foo' },
-    'true : now => @org.thingpedia.builtin.thingengine.builtin.discover, @org.thingpedia.builtin.test.get_data() { data == "foo" };']
+    'true : now => @org.thingpedia.builtin.thingengine.builtin.discover, @org.thingpedia.builtin.test.get_data() { data == "foo" };'],
 
     /*[`now => @com.xkcd.get_comic param:number:Number = SLOT_0 => notify`,
      {'SLOT_0': Ast.Value.Number(1234)},
@@ -268,6 +268,16 @@ const TEST_CASES = [
     [`now => @com.xkcd.get_comic param:number:Number = SLOT_0 => notify`,
      {'SLOT_0': undefined},
      `now => @com.xkcd.get_comic(number=$undefined) => notify;`],*/
+
+    ['attimer time = TIME_0 => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = QUOTED_STRING_0',
+    `say "it's 9am" every day at 9am`,
+    { TIME_0: { hour: 9, minute: 0 }, QUOTED_STRING_0: "it's 9am" },
+    `attimer(time=makeTime(9, 0)) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am");`],
+
+    ['attimer time = [ TIME_0 , TIME_1 ] => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = QUOTED_STRING_0',
+    `say "it's 9am or 3pm" every day at 9am and 3pm`,
+    { TIME_0: { hour: 9, minute: 0 }, TIME_1: { hour: 15, minute: 0 }, QUOTED_STRING_0: "it's 9am or 3pm" },
+    `attimer(time=[makeTime(9, 0), makeTime(15, 0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");`]
 ];
 
 function testCase(test, i) {
@@ -315,16 +325,9 @@ function testCase(test, i) {
     });
 }
 
-function promiseLoop(array, fn) {
-    return (function loop(i) {
-        if (i === array.length)
-            return Q();
-        return Q(fn(array[i], i)).then(() => loop(i+1));
-    })(0);
-}
-
-function main() {
-    return promiseLoop(TEST_CASES, testCase);
+async function main() {
+    for (let i = 0; i < TEST_CASES.length; i++)
+        await testCase(TEST_CASES[i], i);
 }
 module.exports = main;
 if (!module.parent)
