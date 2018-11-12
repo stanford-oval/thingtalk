@@ -24,9 +24,9 @@ projection_Number = {
     'the' ('number' | 'total number' | 'count') 'of' t:complete_table => {
         if (!t.schema.is_list)
             return null;
-        const agg = new Ast.Table.Aggregation(t, '*', 'count', null, t.schema);
         const newSchema = t.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT)
             .addArguments([new Ast.ArgumentDef(Ast.ArgDirection.OUT, 'count', Type.Number)]);
+        const agg = new Ast.Table.Aggregation(t, '*', 'count', null, newSchema);
         return new Ast.Table.Projection(agg, ['count'], newSchema);
     };
 }
@@ -38,8 +38,8 @@ projection_Any = {
         if (!t.schema.is_list)
             return null;
 
-        const agg = new Ast.Table.Aggregation(t, p.name, 'sum', null, t.schema);
         const newSchema = t.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
+        const agg = new Ast.Table.Aggregation(t, p.name, 'sum', null, newSchema);
         return new Ast.Table.Projection(agg, [p.name], newSchema);
     };
 
@@ -49,8 +49,8 @@ projection_Any = {
         if (!t.schema.is_list)
             return null;
 
-        const agg = new Ast.Table.Aggregation(t, p.name, 'avg', null, t.schema);
         const newSchema = t.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
+        const agg = new Ast.Table.Aggregation(t, p.name, 'avg', null, newSchema);
         return new Ast.Table.Projection(agg, [p.name], newSchema);
     };
     ?turking 'the' 'average' p:out_param_Numeric 'of' t:complete_table => {
@@ -59,8 +59,8 @@ projection_Any = {
         if (!t.schema.is_list)
             return null;
 
-        const agg = new Ast.Table.Aggregation(t, p.name, 'avg', null, t.schema);
         const newSchema = t.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
+        const agg = new Ast.Table.Aggregation(t, p.name, 'avg', null, newSchema);
         return new Ast.Table.Projection(agg, [p.name], newSchema);
     };
 
@@ -70,8 +70,8 @@ projection_Any = {
         if (!t.schema.is_list)
             return null;
 
-        const agg = new Ast.Table.Aggregation(t, p.name, 'min', null, t.schema);
         const newSchema = t.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
+        const agg = new Ast.Table.Aggregation(t, p.name, 'min', null, newSchema);
         return new Ast.Table.Projection(agg, [p.name], newSchema);
     };
 
@@ -81,8 +81,8 @@ projection_Any = {
         if (!t.schema.is_list)
             return null;
 
-        const agg = new Ast.Table.Aggregation(t, p.name, 'max', null, t.schema);
         const newSchema = t.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
+        const agg = new Ast.Table.Aggregation(t, p.name, 'max', null, newSchema);
         return new Ast.Table.Projection(agg, [p.name], newSchema);
     };
 }
