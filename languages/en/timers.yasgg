@@ -54,5 +54,31 @@ timer = {
         'daily at' time:constant_Time => new Ast.Stream.AtTimer([time], AT_TIMER_SCHEMA);
         'daily at' t1:constant_Time 'and' t2:constant_Time => new Ast.Stream.AtTimer([t1, t2], AT_TIMER_SCHEMA);
         'every day at' t1:constant_Time ',' t2:constant_Time 'and' t3:constant_Time => new Ast.Stream.AtTimer([t1, t2, t3], AT_TIMER_SCHEMA);
+
+        'twice a day' => new Ast.Stream.AtTimer([Ast.Value.Date.now(), Ast.Value.Date(Ast.Value.Date.now(), '+', Ast.Value.measure(12, 'h'))], AT_TIMER_SCHEMA);
+
+        'twice daily' => new Ast.Stream.AtTimer([Ast.Value.Date.now(), Ast.Value.Date(Ast.Value.Date.now(), '+', Ast.Value.measure(12, 'h'))], AT_TIMER_SCHEMA);
+
+        'two times a day' => new Ast.Stream.AtTimer([Ast.Value.Date.now(), Ast.Value.Date(Ast.Value.Date.now(), '+', Ast.Value.measure(12, 'h'))], AT_TIMER_SCHEMA);
+
+        'twice a day at' t1:constant_Time 'and' t2:constant_Time => new Ast.Stream.AtTimer([t1, t2], AT_TIMER_SCHEMA);
+
+        'every other day' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(2, 'day'), TIMER_SCHEMA);
+
+        'three times a day' => new Ast.Stream.AtTimer([Ast.Value.Date.now(), Ast.Value.Date(Ast.Value.Date.now(), '+', Ast.Value.measure(8, 'h')), Ast.Value.Date(Ast.Value.Date.now(), '+', Ast.Value.measure(16, 'h'))], AT_TIMER_SCHEMA);
+        
+        // 'three times a week' 
+        // 'three times a week at' 
+        // 'twice a week' => 
+
+        'weekly' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'week'), TIMER_SCHEMA);
+        
+        'weekly at' time:constant_Time => new Ast.Stream.AtTimer([time], AT_TIMER_SCHEMA);
+        
+        'hourly' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'h'), TIMER_SCHEMA);
+        
+        'every' n:constant_number 'hours' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(n, 'h'), TIMER_SCHEMA);
+        
+        'every' n:constant_number 'days' new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(n, 'day'), TIMER_SCHEMA);
     }
 }
