@@ -69,16 +69,10 @@ timer = {
         
         // 'three times a week' 
         // 'three times a week at' 
-        // 'twice a week' => 
+        // 'twice a week' 
 
-        'weekly' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'week'), TIMER_SCHEMA);
-        
+        'weekly' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'week'), TIMER_SCHEMA);        
         'weekly at' time:constant_Time => new Ast.Stream.AtTimer([time], AT_TIMER_SCHEMA);
-        
         'hourly' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'h'), TIMER_SCHEMA);
-        
-        'every' n:constant_number 'hours' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(n, 'h'), TIMER_SCHEMA);
-        
-        'every' n:constant_number 'days' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(n, 'day'), TIMER_SCHEMA);
     }
 }
