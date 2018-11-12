@@ -79,6 +79,6 @@ timer = {
         
         'every' n:constant_number 'hours' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(n, 'h'), TIMER_SCHEMA);
         
-        'every' n:constant_number 'days' new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(n, 'day'), TIMER_SCHEMA);
+        'every' n:constant_number 'days' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(n, 'day'), TIMER_SCHEMA);
     }
 }
