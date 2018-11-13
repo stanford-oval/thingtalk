@@ -922,3 +922,13 @@ attimer(time=[makeTime(9,0), makeTime(15,0)]) => @org.thingpedia.builtin.thingen
 
 // list syntax with single attimer
 attimer(time=[makeTime(9,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");
+
+====
+
+//hourly test
+timer(base=makeDate(), interval=1h) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's been 1 hour");
+
+====
+
+//twice a day test
+attimer(time=[makeTime(0,0), makeTime(12, 0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="twice a day alert");
