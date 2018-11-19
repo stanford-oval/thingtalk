@@ -2167,16 +2167,6 @@ const TEST_CASES = [
   } catch(_exc_) {
     env.reportError("Failed to invoke action", _exc_);
   }`]],
-
-  [`{
-    now => { monitor @org.thingpedia.weather.current() => notify; };  
-}`,
-  [`"use strict";
-  try {
-    await env.invokeRule("monitor (@org.thingpedia.weather.current(location=$undefined)) => notify;\\n");
-  } catch(_exc_) {
-    env.reportError("Failed to invoke action", _exc_);
-  }`]]
 ];
 
 const GeneratorFunction = Object.getPrototypeOf(async function(){}).constructor;
