@@ -13,8 +13,7 @@ const Ast = require('../../lib/ast');
 
 const TIMER_SCHEMA = new Ast.FunctionDef('stream',
     'timer',
-    [], // args,
-    false, // is_list
+    ['base', 'interval'], // args,    false, // is_list
     true,  // is_monitorable
     {
     canonical: 'every fixed interval',
@@ -42,30 +41,38 @@ timer = {
     'every day at' t1:constant_Time 'and' t2:constant_Time => new Ast.Stream.AtTimer([t1, t2], AT_TIMER_SCHEMA);
 
     !turking {
-        'every' interval:constant_Measure_ms => new Ast.Stream.Timer(Ast.Value.Date.now(), interval, TIMER_SCHEMA);
-        'once in' interval:constant_Measure_ms => new Ast.Stream.Timer(Ast.Value.Date.now(), interval, TIMER_SCHEMA);
-        'every day' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), TIMER_SCHEMA);
-        'daily' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), TIMER_SCHEMA);
-        'everyday' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), TIMER_SCHEMA);
-        'once a day' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), TIMER_SCHEMA);
-        'once a month' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'mon'), TIMER_SCHEMA);
-        'once a week' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'week'), TIMER_SCHEMA);
-        'once an hour' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'h'), TIMER_SCHEMA);
-        'daily at' time:constant_Time => new Ast.Stream.AtTimer([time], AT_TIMER_SCHEMA);
-        'daily at' t1:constant_Time 'and' t2:constant_Time => new Ast.Stream.AtTimer([t1, t2], AT_TIMER_SCHEMA);
-        'every day at' t1:constant_Time ',' t2:constant_Time 'and' t3:constant_Time => new Ast.Stream.AtTimer([t1, t2, t3], AT_TIMER_SCHEMA);
-        'twice a day' => new Ast.Stream.AtTimer([Ast.Value.Date.now(), Ast.Value.Date(Ast.Value.Date.now(), '+', Ast.Value.Measure(12, 'h'))], AT_TIMER_SCHEMA);
-        'twice daily' => new Ast.Stream.AtTimer([Ast.Value.Date.now(), Ast.Value.Date(Ast.Value.Date.now(), '+', Ast.Value.Measure(12, 'h'))], AT_TIMER_SCHEMA);
-        'two times a day' => new Ast.Stream.AtTimer([Ast.Value.Date.now(), Ast.Value.Date(Ast.Value.Date.now(), '+', Ast.Value.Measure(12, 'h'))], AT_TIMER_SCHEMA);
-        'twice a day at' t1:constant_Time 'and' t2:constant_Time => new Ast.Stream.AtTimer([t1, t2], AT_TIMER_SCHEMA);
-        'every other day' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(2, 'day'), TIMER_SCHEMA);
-        'three times a day' => new Ast.Stream.AtTimer([Ast.Value.Date.now(), Ast.Value.Date(Ast.Value.Date.now(), '+', Ast.Value.Measure(8, 'h')), Ast.Value.Date(Ast.Value.Date.now(), '+', Ast.Value.Measure(16, 'h'))], AT_TIMER_SCHEMA);
+        'every' interval:constant_Measure_ms => new Ast.Stream.Timer(Ast.Value.Array([Ast.Value.Date.now(), interval]), TIMER_SCHEMA);
+        'once in' interval:constant_Measure_ms => new Ast.Stream.Timer(Ast.Value.Array([Ast.Value.Date.now(), interval]), TIMER_SCHEMA);
+        'every day' => new Ast.Stream.Timer(Ast.Value.Array([Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day')]), TIMER_SCHEMA);
+        //'daily' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), TIMER_SCHEMA);
+        //'everyday' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), TIMER_SCHEMA);
+        //'once a day' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), TIMER_SCHEMA);
+        
+        //'once a month' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'mon'), TIMER_SCHEMA);
+        
+        //'once a week' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'week'), TIMER_SCHEMA);
+        //'once an hour' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'h'), TIMER_SCHEMA);
+        //'daily at' time:constant_Time => new Ast.Stream.AtTimer([time], AT_TIMER_SCHEMA);
+        //'daily at' t1:constant_Time 'and' t2:constant_Time => new Ast.Stream.AtTimer([t1, t2], AT_TIMER_SCHEMA);
+        //'every day at' t1:constant_Time ',' t2:constant_Time 'and' t3:constant_Time => new Ast.Stream.AtTimer([t1, t2, t3], AT_TIMER_SCHEMA);
+        //'twice a day' => new Ast.Stream.AtTimer(Ast.Value.Array([Ast.Value.Undefined(true),  Ast.Value.Undefined(true)]), AT_TIMER_SCHEMA);
+        
+        //'twice daily' => new Ast.Stream.AtTimer([Ast.Value.Date.now(),  Ast.Value.Measure(12, 'h')], AT_TIMER_SCHEMA);
+        //'two times a day' => new Ast.Stream.AtTimer([Ast.Value.Date.now(),  Ast.Value.Measure(12, 'h')], AT_TIMER_SCHEMA);
+        //'twice a day at' t1:constant_Time 'and' t2:constant_Time => new Ast.Stream.AtTimer([t1, t2], AT_TIMER_SCHEMA);
+        
+        //'every other day' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(2, 'day'), TIMER_SCHEMA);
+        //'every other week' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(2, 'week'), TIMER_SCHEMA);
+        
+        
+        //n:constant_Number ' times a day' => new Ast.Stream.AtTimer([Ast.Value.Date.now(), Ast.Value.Measure(8, 'h'), Ast.Value.Measure(16, 'h')], AT_TIMER_SCHEMA);
+        
         'weekly' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'week'), TIMER_SCHEMA);        
         'weekly at' time:constant_Time => new Ast.Stream.AtTimer([time], AT_TIMER_SCHEMA);      
         'hourly' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'h'), TIMER_SCHEMA);
         
         // 'three times a week' 
         // 'three times a week at' 
-        // 'twice a week' 
+        // 'twice a week'
     }
 }
