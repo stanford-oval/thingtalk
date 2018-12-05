@@ -99,11 +99,11 @@ const TEST_CASES = [
 
     [`now => timeseries now , 1 unit:week of ( monitor ( @thermostat.get_temperature ) ) => notify`,
     `show me the temperature on the thermostat in the last week`, {},
-    `now => timeseries makeDate(), 1week of monitor (@thermostat.get_temperature()) => notify;`],
+    `now => timeseries makeDate(), 1week of (monitor (@thermostat.get_temperature())) => notify;`],
 
     [`now => timeseries now , NUMBER_0 unit:week of ( monitor ( @thermostat.get_temperature ) ) => notify`,
     `show me the temperature on the thermostat in the last NUMBER_0 weeks`, {NUMBER_0: 2},
-    `now => timeseries makeDate(), 2week of monitor (@thermostat.get_temperature()) => notify;`],
+    `now => timeseries makeDate(), 2week of (monitor (@thermostat.get_temperature())) => notify;`],
 
     [`now => ( @com.bing.image_search ) filter param:width:Number > NUMBER_0 or param:height:Number > NUMBER_1 => notify`,
     `search images wider than NUMBER_0 pixels or taller than NUMBER_1 pixels`, {NUMBER_0: 100, NUMBER_1:200},

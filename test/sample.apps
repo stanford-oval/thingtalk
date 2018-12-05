@@ -261,8 +261,8 @@ now => aggregate max field of Q1 => notify;
 // LogQueryAggregationMeasureTest
 // col1 has type Measure(C)
 {
-now => aggregate max col1 of Q3 => @thermostat.set_target_temperature(value=max);
-now => (aggregate max col1 of Q3) as tmp => @thermostat.set_target_temperature(value=tmp.max);
+now => aggregate max col1 of Q3 => @thermostat.set_target_temperature(value=col1);
+now => (aggregate max col1 of Q3) as tmp => @thermostat.set_target_temperature(value=tmp.col1);
 }
 
 ====
@@ -285,7 +285,7 @@ now => aggregate count of Q1 => notify;
 ====
 
 // LogQueryCountParamPassingTest
-now => aggregate count str1 of Q1 join @com.xkcd.get_comic() on (number=count) => notify;
+now => aggregate count str1 of Q1 join @com.xkcd.get_comic() on (number=str1) => notify;
 
 ====
 
@@ -419,7 +419,7 @@ now => gold_medal(x=Q4) => notify;
 let table x := compute distance(location, makeLocation(1,2)) of @org.thingpedia.builtin.thingengine.phone.get_gps();
 let table y := compute distance(location, $context.location.home) of @org.thingpedia.builtin.thingengine.phone.get_gps();
 let table z := compute (col1 + col2) of Q1;
-let table xx := compute (1 + sum) of aggregate sum col1 of Q1;
+let table xx := compute (1 + col1) of aggregate sum col1 of Q1;
 let table xy := compute (1 + colsum) of aggregate sum col1 as colsum of Q1;
 let table xxy := compute (1 + colsum) as colwhatever of aggregate sum col1 as colsum of Q1;
 }

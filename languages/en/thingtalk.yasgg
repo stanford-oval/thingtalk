@@ -23,6 +23,7 @@ import './constants';
 import './timers';
 import './filters';
 import './parameters';
+import './aggregation';
 
 complete_table = {
     thingpedia_query if complete;
@@ -81,6 +82,8 @@ stream = {
 
         ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'anytime') proj:projection_Any 'changes' => {
             if (proj.args[0] === 'picture_url')
+                return null;
+            if (proj.table.isAggregation)
                 return null;
             let outParams = Object.keys(proj.table.schema.out);
             let stream;
@@ -169,6 +172,8 @@ forward_when_do_rule = {
     !turking ('monitor' | 'watch') proj:projection_Any ('and then' | 'then') action:thingpedia_action ('' | '.') if !complete => {
         if (!proj.schema.is_monitorable)
             return null;
+        if (proj.table.isAggregation)
+            return null;
         if (proj.args[0] === 'picture_url')
             return null;
         let outParams = Object.keys(proj.table.schema.out);
@@ -242,7 +247,7 @@ when_get_stream = {
         if (proj.args[0] === 'picture_url')
             return null;
         let outParams = Object.keys(proj.table.schema.out);
-        if (outParams.length === 1 && $options.flags.turking)
+        if (outParams.length === 1 && $options.flags.turking && !proj.table.isAggregation)
             return null;
 
         return C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, proj.table, [], proj.table.schema));
@@ -254,7 +259,7 @@ when_get_stream = {
         if (proj.args[0] === 'picture_url')
             return null;
         let outParams = Object.keys(proj.table.schema.out);
-        if (outParams.length === 1 && $options.flags.turking)
+        if (outParams.length === 1 && $options.flags.turking && !proj.table.isAggregation)
             return null;
 
         return C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, proj.table, [], proj.table.schema));
@@ -292,6 +297,8 @@ $root = {
     !turking ('monitor' | 'watch') proj:projection_Any => {
         if (!proj.schema.is_monitorable)
             return null;
+        if (proj.table.isAggregation)
+            return null;
         let stream = C.tableToStream(proj.table, proj.args);
         if (!stream)
             return null;
@@ -321,6 +328,8 @@ $root = {
     };
     !turking ('let me know' | 'notify me') ('of' | 'about') ('changes' | 'updates') 'in' proj:projection_Any => {
         if (!proj.schema.is_monitorable)
+            return null;
+        if (proj.table.isAggregation)
             return null;
         let outParams = Object.keys(proj.table.schema.out);
         if (outParams.length === 1 && $options.flags.turking)
