@@ -91,6 +91,16 @@ const TEST_CASES = [
     '  import config from @org.thingpedia.config.form(params=makeArgMap(url:Entity(tt:url),text:String));\n' +
     '}\n',
 
+    'class @com.foo {\n' +
+    '  import loader from @org.thingpedia.v2();\n' +
+    '  import config from @org.thingpedia.config.form(params=makeArgMap(email:Entity(tt:email_address),text:String));\n' +
+    '}\n',
+
+    'class @com.foo {\n' +
+    '  import loader from @org.thingpedia.v2();\n' +
+    '  import config from @org.thingpedia.config.form(params=makeArgMap(number:Entity(tt:phone_number),text:String));\n' +
+    '}\n',
+
     {
       kind: 'com.foo',
       module_type: 'org.thingpedia.v2',
@@ -114,6 +124,40 @@ const TEST_CASES = [
       category: 'online',
       params: {
         'url': ['url', 'text']
+      },
+      auth: {
+        type: 'none'
+      },
+      queries: {},
+      actions: {},
+      version: 0
+    },
+
+    {
+      kind: 'com.foo',
+      module_type: 'org.thingpedia.v2',
+      types: [],
+      child_types: [],
+      category: 'online',
+      params: {
+        'address': ['address', 'email']
+      },
+      auth: {
+        type: 'none'
+      },
+      queries: {},
+      actions: {},
+      version: 0
+    },
+
+    {
+      kind: 'com.foo',
+      module_type: 'org.thingpedia.v2',
+      types: [],
+      child_types: [],
+      category: 'online',
+      params: {
+        'number': ['number', 'tel']
       },
       auth: {
         type: 'none'
