@@ -17,7 +17,7 @@ const Grammar = require('../lib/grammar_api');
 const SchemaRetriever = require('../lib/schema');
 
 const { prettyprint } = require('../lib/prettyprint');
-const { fromManifest, toManifest } = require('../lib/ast_api');
+const { fromManifest, toManifest } = require('../lib/ast/api');
 const _mockSchemaDelegate = require('./mock_schema_delegate');
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 

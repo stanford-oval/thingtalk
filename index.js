@@ -28,7 +28,7 @@ Generate.typeCheckFilter = typeCheckFilter;
 Generate.typeCheckProgram = typeCheckProgram;
 Generate.typeCheckPermissionRule = typeCheckPermissionRule;
 
-let { fromManifest, toManifest } = require('./lib/ast_api');
+let { fromManifest, toManifest } = require('./lib/ast/api');
 Ast.fromManifest = fromManifest;
 Ast.toManifest = toManifest;
 
