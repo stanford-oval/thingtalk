@@ -17,8 +17,8 @@ require('./polyfill');
 const SchemaRetriever = require('../lib/schema');
 const assert = require('assert');
 
-const Formatter = require('../lib/formatter');
-const builtin = require('../lib/builtin_values');
+const Formatter = require('../lib/runtime/formatter');
+const builtin = require('../lib/builtin/values');
 
 const _mockSchemaDelegate = require('./mock_schema_delegate');
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);

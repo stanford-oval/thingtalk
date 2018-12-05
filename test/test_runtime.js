@@ -17,8 +17,8 @@ require('../lib/ast_api');
 const Compiler = require('../lib/compiler');
 const SchemaRetriever = require('../lib/schema');
 
-const ExecEnvironment = require('../lib/exec_environment');
-const builtin = require('../lib/builtin_values');
+const ExecEnvironment = require('../lib/runtime/exec_environment');
+const builtin = require('../lib/builtin/values');
 
 const _mockSchemaDelegate = require('./mock_schema_delegate');
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);

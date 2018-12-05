@@ -32,7 +32,7 @@ let { fromManifest, toManifest } = require('./lib/ast_api');
 Ast.fromManifest = fromManifest;
 Ast.toManifest = toManifest;
 
-const builtin = require('./lib/builtin');
+const Builtin = require('./lib/builtin');
 
 module.exports = {
     version: '1.3.1',
@@ -66,8 +66,8 @@ module.exports = {
 
     // Value Types, exposed so that Thingpedia can reexpose them to device impls
     // (to create values of the appropriate types)
-    Location: builtin.Location,
-    Entity: builtin.Entity,
-    Time: builtin.Time,
-    Builtin: builtin,
+    Location: Builtin.Location,
+    Entity: Builtin.Entity,
+    Time: Builtin.Time,
+    Builtin,
 };
