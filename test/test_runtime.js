@@ -868,6 +868,145 @@ some alt text` }
     [],
 
     ],
+
+    [
+    `now => (aggregate count of @com.xkcd.get_comic()) => notify;`,
+    {},
+    {
+        'com.xkcd:get_comic': [{
+            number: 1235, title: 'Settled',
+            link: 'https://xkcd.com/1235/',
+            picture_url: 'https://imgs.xkcd.com/comics/settled.png'
+        }, {
+            number: 1234, title: 'Douglas Engelbart (1925-2013)',
+            link: 'https://xkcd.com/1234/',
+            picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png'
+        }],
+    },
+    [{ type: 'output',
+      outputType: 'count(com.xkcd:get_comic)',
+      value: { count: 2 }
+    }],
+
+    ],
+
+    [
+    `now => (aggregate count of @com.xkcd.get_comic()) => notify;`,
+    {},
+    {
+        'com.xkcd:get_comic': [{
+            number: 1235, title: 'Settled',
+            link: 'https://xkcd.com/1235/',
+            picture_url: 'https://imgs.xkcd.com/comics/settled.png'
+        }, {
+            number: 1235, title: 'Settled',
+            link: 'https://xkcd.com/1235/',
+            picture_url: 'https://imgs.xkcd.com/comics/settled.png'
+        }, {
+            number: 1234, title: 'Douglas Engelbart (1925-2013)',
+            link: 'https://xkcd.com/1234/',
+            picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png'
+        }],
+    },
+    [{ type: 'output',
+      outputType: 'count(com.xkcd:get_comic)',
+      value: { count: 3 }
+    }],
+
+    ],
+
+    [
+    `now => (aggregate count title of @com.xkcd.get_comic()) => notify;`,
+    {},
+    {
+        'com.xkcd:get_comic': [{
+            number: 1235, title: 'Settled',
+            link: 'https://xkcd.com/1235/',
+            picture_url: 'https://imgs.xkcd.com/comics/settled.png'
+        }, {
+            number: 1235, title: 'Settled',
+            link: 'https://xkcd.com/1235/',
+            picture_url: 'https://imgs.xkcd.com/comics/settled.png'
+        }, {
+            number: 1234, title: 'Douglas Engelbart (1925-2013)',
+            link: 'https://xkcd.com/1234/',
+            picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png'
+        }],
+    },
+    [{ type: 'output',
+      outputType: 'count(com.xkcd:get_comic)',
+      value: { title: 2 }
+    }],
+
+    ],
+
+    [
+    `now => (aggregate min file_size of @com.google.drive.list_drive_files()) => notify;`,
+    {},
+    {
+        'com.google.drive:list_drive_files': [{
+            "order_by": 'name_increasing',
+            "file_id": 0,
+            "file_name": 'foo.png',
+            "mime_type": 'image/png',
+            "description": 'a foo meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1024
+        }, {
+            "order_by": 'name_increasing',
+            "file_id": 0,
+            "file_name": 'bar.png',
+            "mime_type": 'image/png',
+            "description": 'a bar meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1025
+        }
+        ],
+    },
+    [{ type: 'output',
+      outputType: 'min(com.google.drive:list_drive_files)',
+      value: { file_size: 1024 }
+    }],
+
+    ],
+
+    [
+    `now => (aggregate avg file_size of @com.google.drive.list_drive_files()) => notify;`,
+    {},
+    {
+        'com.google.drive:list_drive_files': [{
+            "order_by": 'name_increasing',
+            "file_id": 0,
+            "file_name": 'foo.png',
+            "mime_type": 'image/png',
+            "description": 'a foo meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1024
+        }, {
+            "order_by": 'name_increasing',
+            "file_id": 0,
+            "file_name": 'bar.png',
+            "mime_type": 'image/png',
+            "description": 'a bar meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1025
+        }
+        ],
+    },
+    [{ type: 'output',
+      outputType: 'avg(com.google.drive:list_drive_files)',
+      value: { file_size: 1024.5 }
+    }],
+
+    ],
 ];
 
 async function test(i) {

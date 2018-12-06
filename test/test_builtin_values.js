@@ -3,7 +3,7 @@
 const assert = require('assert');
 
 const __builtin = require('../lib/builtin/values');
-const { equality } = require('../lib/builtin/ops');
+const { equality } = require('../lib/builtin/primitive_ops');
 
 function testValueOf(what, expected) {
     assert.strictEqual(+what, expected);

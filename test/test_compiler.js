@@ -2167,6 +2167,669 @@ const TEST_CASES = [
   } catch(_exc_) {
     env.reportError("Failed to invoke action", _exc_);
   }`]],
+
+  [`{
+    now => aggregate count of @com.bing.web_search(query="dogs") => notify;
+}`,
+  [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  _t_0 = 0;
+  try {
+    _t_1 = {};
+    _t_2 = "dogs";
+    _t_1.query = _t_2;
+    _t_3 = await env.invokeQuery(0, _t_1);
+    _t_4 = _t_3[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_4.next();
+      while (!_iter_tmp.done) {
+        _t_5 = _iter_tmp.value;
+        _t_6 = _t_5[0];
+        _t_7 = _t_5[1];
+        _t_8 = _t_7.title;
+        _t_9 = _t_7.description;
+        _t_10 = _t_7.link;
+        _t_11 = 1;
+        _t_0 = _t_0 + _t_11;
+        _iter_tmp = await _t_4.next();
+      }
+    }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke query", _exc_);
+  }
+  _t_13 = "count";
+  _t_12 = __builtin.aggregateOutputType(_t_13, _t_6);
+  _t_14 = {};
+  _t_14.count = _t_0;
+  try {
+    await env.output(String(_t_12), _t_14);
+  } catch(_exc_) {
+    env.reportError("Failed to invoke action", _exc_);
+  }`]],
+
+  [`{
+    timer(base=makeDate(),interval=1h) => aggregate count of @com.bing.web_search(query="dogs") => notify;
+}`,
+  [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  try {
+    _t_1 = new Date(XNOWX);
+    _t_2 = 3600000;
+    _t_0 = await env.invokeTimer(_t_1, _t_2);
+    {
+      let _iter_tmp = await _t_0.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = 0;
+        try {
+          _t_5 = {};
+          _t_6 = "dogs";
+          _t_5.query = _t_6;
+          _t_7 = await env.invokeQuery(0, _t_5);
+          _t_8 = _t_7[Symbol.iterator]();
+          {
+            let _iter_tmp = await _t_8.next();
+            while (!_iter_tmp.done) {
+              _t_9 = _iter_tmp.value;
+              _t_10 = _t_9[0];
+              _t_11 = _t_9[1];
+              _t_12 = _t_11.title;
+              _t_13 = _t_11.description;
+              _t_14 = _t_11.link;
+              _t_15 = 1;
+              _t_4 = _t_4 + _t_15;
+              _iter_tmp = await _t_8.next();
+            }
+          }
+        } catch(_exc_) {
+          env.reportError("Failed to invoke query", _exc_);
+        }
+        _t_17 = "count";
+        _t_16 = __builtin.aggregateOutputType(_t_17, _t_10);
+        _t_18 = {};
+        _t_18.count = _t_4;
+        _t_19 = {};
+        _t_19.count = _t_4;
+        _t_20 = _t_19.count;
+        try {
+          await env.output(String(_t_16), _t_19);
+        } catch(_exc_) {
+          env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_0.next();
+      }
+    }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke timer", _exc_);
+  }`]],
+
+  [`{
+    timer(base=makeDate(),interval=1h) => aggregate count mime_type of @com.google.drive.list_drive_files() => notify;
+}`,
+  [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  let _t_25;
+  try {
+    _t_1 = new Date(XNOWX);
+    _t_2 = 3600000;
+    _t_0 = await env.invokeTimer(_t_1, _t_2);
+    {
+      let _iter_tmp = await _t_0.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = new __builtin.EqualitySet;
+        try {
+          _t_5 = {};
+          _t_6 = await env.invokeQuery(0, _t_5);
+          _t_7 = _t_6[Symbol.iterator]();
+          {
+            let _iter_tmp = await _t_7.next();
+            while (!_iter_tmp.done) {
+              _t_8 = _iter_tmp.value;
+              _t_9 = _t_8[0];
+              _t_10 = _t_8[1];
+              _t_11 = _t_10.order_by;
+              _t_12 = _t_10.file_id;
+              _t_13 = _t_10.file_name;
+              _t_14 = _t_10.mime_type;
+              _t_15 = _t_10.description;
+              _t_16 = _t_10.starred;
+              _t_17 = _t_10.created_time;
+              _t_18 = _t_10.modified_time;
+              _t_19 = _t_10.file_size;
+              _t_4.add(_t_10);
+              _iter_tmp = await _t_7.next();
+            }
+          }
+        } catch(_exc_) {
+          env.reportError("Failed to invoke query", _exc_);
+        }
+        _t_21 = "count";
+        _t_20 = __builtin.aggregateOutputType(_t_21, _t_9);
+        _t_22 = {};
+        _t_23 = _t_4.size;
+        _t_22.mime_type = _t_23;
+        _t_24 = {};
+        _t_24.mime_type = _t_23;
+        _t_25 = _t_24.mime_type;
+        try {
+          await env.output(String(_t_20), _t_24);
+        } catch(_exc_) {
+          env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_0.next();
+      }
+    }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke timer", _exc_);
+  }`]],
+
+  [`{
+    timer(base=makeDate(),interval=1h) => aggregate avg file_size of @com.google.drive.list_drive_files() => notify;
+}`,
+  [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  let _t_25;
+  let _t_26;
+  let _t_27;
+  try {
+    _t_1 = new Date(XNOWX);
+    _t_2 = 3600000;
+    _t_0 = await env.invokeTimer(_t_1, _t_2);
+    {
+      let _iter_tmp = await _t_0.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_5 = 0;
+        _t_4 = 0;
+        try {
+          _t_6 = {};
+          _t_7 = await env.invokeQuery(0, _t_6);
+          _t_8 = _t_7[Symbol.iterator]();
+          {
+            let _iter_tmp = await _t_8.next();
+            while (!_iter_tmp.done) {
+              _t_9 = _iter_tmp.value;
+              _t_10 = _t_9[0];
+              _t_11 = _t_9[1];
+              _t_12 = _t_11.order_by;
+              _t_13 = _t_11.file_id;
+              _t_14 = _t_11.file_name;
+              _t_15 = _t_11.mime_type;
+              _t_16 = _t_11.description;
+              _t_17 = _t_11.starred;
+              _t_18 = _t_11.created_time;
+              _t_19 = _t_11.modified_time;
+              _t_20 = _t_11.file_size;
+              _t_21 = 1;
+              _t_4 = _t_4 + _t_21;
+              _t_5 = _t_5 + _t_20;
+              _iter_tmp = await _t_8.next();
+            }
+          }
+        } catch(_exc_) {
+          env.reportError("Failed to invoke query", _exc_);
+        }
+        _t_23 = "avg";
+        _t_22 = __builtin.aggregateOutputType(_t_23, _t_10);
+        _t_24 = {};
+        _t_25 = _t_5 / _t_4;
+        _t_24.file_size = _t_25;
+        _t_26 = {};
+        _t_26.file_size = _t_25;
+        _t_27 = _t_26.file_size;
+        try {
+          await env.output(String(_t_22), _t_26);
+        } catch(_exc_) {
+          env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_0.next();
+      }
+    }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke timer", _exc_);
+  }`]],
+
+  [`{
+    timer(base=makeDate(),interval=1h) => aggregate max file_size of @com.google.drive.list_drive_files() => notify;
+}`,
+  [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  try {
+    _t_1 = new Date(XNOWX);
+    _t_2 = 3600000;
+    _t_0 = await env.invokeTimer(_t_1, _t_2);
+    {
+      let _iter_tmp = await _t_0.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = -Infinity;
+        try {
+          _t_5 = {};
+          _t_6 = await env.invokeQuery(0, _t_5);
+          _t_7 = _t_6[Symbol.iterator]();
+          {
+            let _iter_tmp = await _t_7.next();
+            while (!_iter_tmp.done) {
+              _t_8 = _iter_tmp.value;
+              _t_9 = _t_8[0];
+              _t_10 = _t_8[1];
+              _t_11 = _t_10.order_by;
+              _t_12 = _t_10.file_id;
+              _t_13 = _t_10.file_name;
+              _t_14 = _t_10.mime_type;
+              _t_15 = _t_10.description;
+              _t_16 = _t_10.starred;
+              _t_17 = _t_10.created_time;
+              _t_18 = _t_10.modified_time;
+              _t_19 = _t_10.file_size;
+              _t_4 = __builtin.max(_t_4, _t_19);
+              _iter_tmp = await _t_7.next();
+            }
+          }
+        } catch(_exc_) {
+          env.reportError("Failed to invoke query", _exc_);
+        }
+        _t_21 = "max";
+        _t_20 = __builtin.aggregateOutputType(_t_21, _t_9);
+        _t_22 = {};
+        _t_22.file_size = _t_4;
+        _t_23 = {};
+        _t_23.file_size = _t_4;
+        _t_24 = _t_23.file_size;
+        try {
+          await env.output(String(_t_20), _t_23);
+        } catch(_exc_) {
+          env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_0.next();
+      }
+    }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke timer", _exc_);
+  }`]],
+
+  [`{
+    now => @com.google.drive.list_drive_files() join aggregate max file_size of @com.google.drive.list_drive_files() => notify;
+}` ,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  let _t_25;
+  let _t_26;
+  let _t_27;
+  let _t_28;
+  let _t_29;
+  let _t_30;
+  let _t_31;
+  let _t_32;
+  let _t_33;
+  let _t_34;
+  let _t_35;
+  let _t_36;
+  let _t_37;
+  let _t_38;
+  let _t_39;
+  let _t_40;
+  let _t_41;
+  let _t_42;
+  let _t_43;
+  let _t_44;
+  let _t_45;
+  let _t_46;
+  let _t_47;
+  let _t_48;
+  _t_0 = async function(emit) {
+    try {
+      _t_1 = {};
+      _t_2 = await env.invokeQuery(0, _t_1);
+      _t_3 = _t_2[Symbol.iterator]();
+      {
+        let _iter_tmp = await _t_3.next();
+        while (!_iter_tmp.done) {
+          _t_4 = _iter_tmp.value;
+          _t_5 = _t_4[0];
+          _t_6 = _t_4[1];
+          _t_7 = _t_6.order_by;
+          _t_8 = _t_6.file_id;
+          _t_9 = _t_6.file_name;
+          _t_10 = _t_6.mime_type;
+          _t_11 = _t_6.description;
+          _t_12 = _t_6.starred;
+          _t_13 = _t_6.created_time;
+          _t_14 = _t_6.modified_time;
+          _t_15 = _t_6.file_size;
+          emit(_t_5, _t_6);
+          _iter_tmp = await _t_3.next();
+        }
+      }
+    } catch(_exc_) {
+      env.reportError("Failed to invoke query", _exc_);
+    }
+  }
+  _t_16 = async function(emit) {
+    _t_17 = -Infinity;
+    try {
+      _t_18 = {};
+      _t_19 = await env.invokeQuery(1, _t_18);
+      _t_20 = _t_19[Symbol.iterator]();
+      {
+        let _iter_tmp = await _t_20.next();
+        while (!_iter_tmp.done) {
+          _t_21 = _iter_tmp.value;
+          _t_22 = _t_21[0];
+          _t_23 = _t_21[1];
+          _t_24 = _t_23.order_by;
+          _t_25 = _t_23.file_id;
+          _t_26 = _t_23.file_name;
+          _t_27 = _t_23.mime_type;
+          _t_28 = _t_23.description;
+          _t_29 = _t_23.starred;
+          _t_30 = _t_23.created_time;
+          _t_31 = _t_23.modified_time;
+          _t_32 = _t_23.file_size;
+          _t_17 = __builtin.max(_t_17, _t_32);
+          _iter_tmp = await _t_20.next();
+        }
+      }
+    } catch(_exc_) {
+      env.reportError("Failed to invoke query", _exc_);
+    }
+    _t_34 = "max";
+    _t_33 = __builtin.aggregateOutputType(_t_34, _t_22);
+    _t_35 = {};
+    _t_35.file_size = _t_17;
+    emit(_t_33, _t_35);
+  }
+  _t_36 = __builtin.tableCrossJoin(_t_0, _t_16);
+  {
+    let _iter_tmp = await _t_36.next();
+    while (!_iter_tmp.done) {
+      _t_37 = _iter_tmp.value;
+      _t_38 = _t_37[0];
+      _t_39 = _t_37[1];
+      _t_40 = _t_39.file_size;
+      _t_41 = _t_39.order_by;
+      _t_42 = _t_39.file_id;
+      _t_43 = _t_39.file_name;
+      _t_44 = _t_39.mime_type;
+      _t_45 = _t_39.description;
+      _t_46 = _t_39.starred;
+      _t_47 = _t_39.created_time;
+      _t_48 = _t_39.modified_time;
+      try {
+        await env.output(String(_t_38), _t_39);
+      } catch(_exc_) {
+        env.reportError("Failed to invoke action", _exc_);
+      }
+      _iter_tmp = await _t_36.next();
+    }
+  }`]],
+
+    [`{
+    monitor (aggregate max file_size of @com.google.drive.list_drive_files()) => notify;
+}`,
+  [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  let _t_25;
+  let _t_26;
+  let _t_27;
+  let _t_28;
+  let _t_29;
+  let _t_30;
+  let _t_31;
+  let _t_32;
+  let _t_33;
+  let _t_34;
+  let _t_35;
+  let _t_36;
+  let _t_37;
+  let _t_38;
+  let _t_39;
+  let _t_40;
+  let _t_41;
+  let _t_42;
+  _t_0 = await env.readState(0);
+  _t_1 = await env.readState(1);
+  _t_2 = await env.readState(2);
+  try {
+    _t_3 = {};
+    _t_4 = await env.invokeMonitor(0, _t_3, false);
+    {
+      let _iter_tmp = await _t_4.next();
+      while (!_iter_tmp.done) {
+        _t_5 = _iter_tmp.value;
+        _t_6 = _t_5[0];
+        _t_7 = _t_5[1];
+        _t_8 = _t_7.order_by;
+        _t_9 = _t_7.file_id;
+        _t_10 = _t_7.file_name;
+        _t_11 = _t_7.mime_type;
+        _t_12 = _t_7.description;
+        _t_13 = _t_7.starred;
+        _t_14 = _t_7.created_time;
+        _t_15 = _t_7.modified_time;
+        _t_16 = _t_7.file_size;
+        _t_17 = __builtin.isNewTuple(_t_2, _t_7, ["order_by", "file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "file_size"]);
+        _t_18 = __builtin.addTuple(_t_2, _t_7);
+        await env.writeState(2, _t_18);
+        _t_2 = _t_18;
+        if (_t_17) {
+          _t_19 = _t_7.__timestamp;
+          _t_20 = _t_19 <= _t_1;
+          _t_21 = ! (_t_20);
+          if (_t_21) {
+            await env.writeState(1, _t_19);
+            _t_1 = _t_19;
+            _t_22 = -Infinity;
+            try {
+              _t_23 = {};
+              _t_24 = await env.invokeQuery(1, _t_23);
+              _t_25 = _t_24[Symbol.iterator]();
+              {
+                let _iter_tmp = await _t_25.next();
+                while (!_iter_tmp.done) {
+                  _t_26 = _iter_tmp.value;
+                  _t_27 = _t_26[0];
+                  _t_28 = _t_26[1];
+                  _t_29 = _t_28.order_by;
+                  _t_30 = _t_28.file_id;
+                  _t_31 = _t_28.file_name;
+                  _t_32 = _t_28.mime_type;
+                  _t_33 = _t_28.description;
+                  _t_34 = _t_28.starred;
+                  _t_35 = _t_28.created_time;
+                  _t_36 = _t_28.modified_time;
+                  _t_37 = _t_28.file_size;
+                  _t_22 = __builtin.max(_t_22, _t_37);
+                  _iter_tmp = await _t_25.next();
+                }
+              }
+            } catch(_exc_) {
+              env.reportError("Failed to invoke query", _exc_);
+            }
+            _t_39 = "max";
+            _t_38 = __builtin.aggregateOutputType(_t_39, _t_27);
+            _t_40 = {};
+            _t_40.file_size = _t_22;
+            _t_41 = __builtin.isNewTuple(_t_0, _t_40, ["file_size"]);
+            _t_42 = __builtin.addTuple(_t_0, _t_40);
+            await env.writeState(0, _t_42);
+            _t_0 = _t_42;
+            if (_t_41) {
+              try {
+                await env.output(String(_t_38), _t_40);
+              } catch(_exc_) {
+                env.reportError("Failed to invoke action", _exc_);
+              }
+            } else {
+
+            }
+          } else {
+
+          }
+        } else {
+
+        }
+        _iter_tmp = await _t_4.next();
+      }
+    }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke trigger", _exc_);
+  }`]],
 ];
 
 const GeneratorFunction = Object.getPrototypeOf(async function(){}).constructor;
