@@ -99,6 +99,10 @@ function main() {
         v6: 10,
         v7: 9.5
     }, 'string'), 'Link: text <lol$foo$ null 69.8 2018-05-24T04:18:00.000Z 42 10 9.50>');
+
+    assert.deepStrictEqual(formatter.format([{ type: 'text', text: '$v1 ${v1} ${v1:enum}' }], {
+        v1: 'some_enum'
+    }), ['some_enum some_enum some enum']);
 }
 module.exports = main;
 if (!module.parent)
