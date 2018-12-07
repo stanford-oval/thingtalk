@@ -12,12 +12,12 @@
 const Ast = require('./lib/ast');
 const Compiler = require('./lib/compiler');
 const Grammar = require('./lib/grammar_api');
-const ExecEnvironment = require('./lib/exec_environment');
+const ExecEnvironment = require('./lib/runtime/exec_environment');
 const Type = require('./lib/type');
 const SchemaRetriever = require('./lib/schema');
 const Generate = require('./lib/generate');
 const Describe = require('./lib/describe');
-const Formatter = require('./lib/formatter');
+const Formatter = require('./lib/runtime/formatter');
 const PermissionChecker = require('./lib/permission_checker');
 const Units = require('./lib/units');
 const NNSyntax = require('./lib/nn_syntax');
@@ -28,11 +28,11 @@ Generate.typeCheckFilter = typeCheckFilter;
 Generate.typeCheckProgram = typeCheckProgram;
 Generate.typeCheckPermissionRule = typeCheckPermissionRule;
 
-let { fromManifest, toManifest } = require('./lib/ast_api');
+let { fromManifest, toManifest } = require('./lib/ast/api');
 Ast.fromManifest = fromManifest;
 Ast.toManifest = toManifest;
 
-const builtin = require('./lib/builtin');
+const Builtin = require('./lib/builtin');
 
 module.exports = {
     version: '1.3.1',
@@ -66,8 +66,8 @@ module.exports = {
 
     // Value Types, exposed so that Thingpedia can reexpose them to device impls
     // (to create values of the appropriate types)
-    Location: builtin.Location,
-    Entity: builtin.Entity,
-    Time: builtin.Time,
-    Builtin: builtin,
+    Location: Builtin.Location,
+    Entity: Builtin.Entity,
+    Time: Builtin.Time,
+    Builtin,
 };
