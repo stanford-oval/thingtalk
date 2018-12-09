@@ -1,3 +1,16 @@
+1.4.0
+=====
+
+* New feature: aggregations and argmin/argmax are now fully implemented, including
+  the compiler and runtime parts [#56, #57, #60]
+* New module: SentenceGenerator; used to generate programs and their associated sentences.
+  The generator uses a new DSL, dubbed yasgg (Yet Another Sentence Generator Generator,
+  a reference to the well-known parser generator YACC).
+  This module is epxerimental and expected to change in the future.
+* Internal modules have been reorganized.
+* Misc bug fixes [#47, #55, #58].
+* Dependencies have been updated [#54].
+
 1.3.1
 =====
 

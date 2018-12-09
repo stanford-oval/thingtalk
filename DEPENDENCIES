@@ -132,32 +132,6 @@ The following software may be included in this product: ajv. A copy of the sourc
 
 The MIT License (MIT)
 
-Copyright (c) 2015 Evgeny Poberezkin
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
------
-
-The following software may be included in this product: ajv. A copy of the source code may be downloaded from https://github.com/epoberezkin/ajv.git. This software contains the following license and notice below:
-
-The MIT License (MIT)
-
 Copyright (c) 2015-2017 Evgeny Poberezkin
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -194,7 +168,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -----
 
-The following software may be included in this product: ansi-regex, array-union, array-uniq, arrify, builtin-modules, camelcase, cli-cursor, code-point-at, debug-log, decamelize, del, escape-string-regexp, figures, find-up, get-stream, globby, has-flag, is-builtin-module, is-fullwidth-code-point, is-path-in-cwd, is-path-inside, is-stream, lcid, load-json-file, locate-path, md5-hex, mem, npm-run-path, number-is-nan, object-assign, onetime, os-homedir, os-locale, os-tmpdir, p-finally, p-locate, p-try, parse-json, path-exists, path-is-absolute, path-key, path-type, pify, pkg-dir, read-pkg, read-pkg-up, require-uncached, resolve-from, restore-cursor, shebang-regex, string-width, strip-ansi, strip-bom, strip-eof, strip-json-comments, supports-color, trim-right, wrap-ansi. A copy of the source code may be downloaded from https://github.com/chalk/ansi-regex.git (ansi-regex), https://github.com/sindresorhus/array-union.git (array-union), https://github.com/sindresorhus/array-uniq.git (array-uniq), https://github.com/sindresorhus/arrify.git (arrify), https://github.com/sindresorhus/builtin-modules.git (builtin-modules), https://github.com/sindresorhus/camelcase.git (camelcase), https://github.com/sindresorhus/cli-cursor.git (cli-cursor), https://github.com/sindresorhus/code-point-at.git (code-point-at), https://github.com/sindresorhus/debug-log.git (debug-log), https://github.com/sindresorhus/decamelize.git (decamelize), https://github.com/sindresorhus/del.git (del), https://github.com/sindresorhus/escape-string-regexp.git (escape-string-regexp), https://github.com/sindresorhus/figures.git (figures), https://github.com/sindresorhus/find-up.git (find-up), https://github.com/sindresorhus/get-stream.git (get-stream), https://github.com/sindresorhus/globby.git (globby), https://github.com/sindresorhus/has-flag.git (has-flag), https://github.com/sindresorhus/is-builtin-module.git (is-builtin-module), https://github.com/sindresorhus/is-fullwidth-code-point.git (is-fullwidth-code-point), https://github.com/sindresorhus/is-path-in-cwd.git (is-path-in-cwd), https://github.com/sindresorhus/is-path-inside.git (is-path-inside), https://github.com/sindresorhus/is-stream.git (is-stream), https://github.com/sindresorhus/lcid.git (lcid), https://github.com/sindresorhus/load-json-file.git (load-json-file), https://github.com/sindresorhus/locate-path.git (locate-path), https://github.com/sindresorhus/md5-hex.git (md5-hex), https://github.com/sindresorhus/mem.git (mem), https://github.com/sindresorhus/npm-run-path.git (npm-run-path), https://github.com/sindresorhus/number-is-nan.git (number-is-nan), https://github.com/sindresorhus/object-assign.git (object-assign), https://github.com/sindresorhus/onetime.git (onetime), https://github.com/sindresorhus/os-homedir.git (os-homedir), https://github.com/sindresorhus/os-locale.git (os-locale), https://github.com/sindresorhus/os-tmpdir.git (os-tmpdir), https://github.com/sindresorhus/p-finally.git (p-finally), https://github.com/sindresorhus/p-locate.git (p-locate), https://github.com/sindresorhus/p-try.git (p-try), https://github.com/sindresorhus/parse-json.git (parse-json), https://github.com/sindresorhus/path-exists.git (path-exists), https://github.com/sindresorhus/path-is-absolute.git (path-is-absolute), https://github.com/sindresorhus/path-key.git (path-key), https://github.com/sindresorhus/path-type.git (path-type), https://github.com/sindresorhus/pify.git (pify), https://github.com/sindresorhus/pkg-dir.git (pkg-dir), https://github.com/sindresorhus/read-pkg.git (read-pkg), https://github.com/sindresorhus/read-pkg-up.git (read-pkg-up), https://github.com/sindresorhus/require-uncached.git (require-uncached), https://github.com/sindresorhus/resolve-from.git (resolve-from), https://github.com/sindresorhus/restore-cursor.git (restore-cursor), https://github.com/sindresorhus/shebang-regex.git (shebang-regex), https://github.com/sindresorhus/string-width.git (string-width), https://github.com/chalk/strip-ansi.git (strip-ansi), https://github.com/sindresorhus/strip-bom.git (strip-bom), https://github.com/sindresorhus/strip-eof.git (strip-eof), https://github.com/sindresorhus/strip-json-comments.git (strip-json-comments), https://github.com/chalk/supports-color.git (supports-color), https://github.com/sindresorhus/trim-right.git (trim-right), https://github.com/chalk/wrap-ansi.git (wrap-ansi). This software contains the following license and notice below:
+The following software may be included in this product: ansi-regex, arrify, builtin-modules, camelcase, cli-cursor, code-point-at, debug-log, decamelize, escape-string-regexp, figures, find-up, get-stream, has-flag, is-builtin-module, is-fullwidth-code-point, is-stream, lcid, load-json-file, locate-path, md5-hex, mem, npm-run-path, number-is-nan, object-assign, onetime, os-homedir, os-locale, os-tmpdir, p-finally, p-locate, p-try, parse-json, path-exists, path-is-absolute, path-key, path-type, pify, pkg-dir, read-pkg, read-pkg-up, require-uncached, resolve-from, restore-cursor, shebang-regex, string-width, strip-ansi, strip-bom, strip-eof, strip-json-comments, supports-color, trim-right, wrap-ansi. A copy of the source code may be downloaded from https://github.com/chalk/ansi-regex.git (ansi-regex), https://github.com/sindresorhus/arrify.git (arrify), https://github.com/sindresorhus/builtin-modules.git (builtin-modules), https://github.com/sindresorhus/camelcase.git (camelcase), https://github.com/sindresorhus/cli-cursor.git (cli-cursor), https://github.com/sindresorhus/code-point-at.git (code-point-at), https://github.com/sindresorhus/debug-log.git (debug-log), https://github.com/sindresorhus/decamelize.git (decamelize), https://github.com/sindresorhus/escape-string-regexp.git (escape-string-regexp), https://github.com/sindresorhus/figures.git (figures), https://github.com/sindresorhus/find-up.git (find-up), https://github.com/sindresorhus/get-stream.git (get-stream), https://github.com/sindresorhus/has-flag.git (has-flag), https://github.com/sindresorhus/is-builtin-module.git (is-builtin-module), https://github.com/sindresorhus/is-fullwidth-code-point.git (is-fullwidth-code-point), https://github.com/sindresorhus/is-stream.git (is-stream), https://github.com/sindresorhus/lcid.git (lcid), https://github.com/sindresorhus/load-json-file.git (load-json-file), https://github.com/sindresorhus/locate-path.git (locate-path), https://github.com/sindresorhus/md5-hex.git (md5-hex), https://github.com/sindresorhus/mem.git (mem), https://github.com/sindresorhus/npm-run-path.git (npm-run-path), https://github.com/sindresorhus/number-is-nan.git (number-is-nan), https://github.com/sindresorhus/object-assign.git (object-assign), https://github.com/sindresorhus/onetime.git (onetime), https://github.com/sindresorhus/os-homedir.git (os-homedir), https://github.com/sindresorhus/os-locale.git (os-locale), https://github.com/sindresorhus/os-tmpdir.git (os-tmpdir), https://github.com/sindresorhus/p-finally.git (p-finally), https://github.com/sindresorhus/p-locate.git (p-locate), https://github.com/sindresorhus/p-try.git (p-try), https://github.com/sindresorhus/parse-json.git (parse-json), https://github.com/sindresorhus/path-exists.git (path-exists), https://github.com/sindresorhus/path-is-absolute.git (path-is-absolute), https://github.com/sindresorhus/path-key.git (path-key), https://github.com/sindresorhus/path-type.git (path-type), https://github.com/sindresorhus/pify.git (pify), https://github.com/sindresorhus/pkg-dir.git (pkg-dir), https://github.com/sindresorhus/read-pkg.git (read-pkg), https://github.com/sindresorhus/read-pkg-up.git (read-pkg-up), https://github.com/sindresorhus/require-uncached.git (require-uncached), https://github.com/sindresorhus/resolve-from.git (resolve-from), https://github.com/sindresorhus/restore-cursor.git (restore-cursor), https://github.com/sindresorhus/shebang-regex.git (shebang-regex), https://github.com/sindresorhus/string-width.git (string-width), https://github.com/chalk/strip-ansi.git (strip-ansi), https://github.com/sindresorhus/strip-bom.git (strip-bom), https://github.com/sindresorhus/strip-eof.git (strip-eof), https://github.com/sindresorhus/strip-json-comments.git (strip-json-comments), https://github.com/chalk/supports-color.git (supports-color), https://github.com/sindresorhus/trim-right.git (trim-right), https://github.com/chalk/wrap-ansi.git (wrap-ansi). This software contains the following license and notice below:
 
 The MIT License (MIT)
 
@@ -472,6 +446,20 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
+
+-----
+
+The following software may be included in this product: astral-regex. A copy of the source code may be downloaded from https://github.com/kevva/astral-regex.git. This software contains the following license and notice below:
+
+MIT License
+
+Copyright (c) Kevin Mårtensson <kevinmartensson@gmail.com> (github.com/kevva)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 -----
 
@@ -1213,33 +1201,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 -----
 
-The following software may be included in this product: co. A copy of the source code may be downloaded from https://github.com/tj/co.git. This software contains the following license and notice below:
-
-(The MIT License)
-
-Copyright (c) 2014 TJ Holowaychuk &lt;tj@vision-media.ca&gt;
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-'Software'), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
------
-
 The following software may be included in this product: collection-visit, define-property, object-visit, unset-value. A copy of the source code may be downloaded from https://github.com/jonschlinkert/collection-visit.git (collection-visit), https://github.com/jonschlinkert/define-property.git (define-property), https://github.com/jonschlinkert/object-visit.git (object-visit), https://github.com/jonschlinkert/unset-value.git (unset-value). This software contains the following license and notice below:
 
 The MIT License (MIT)
@@ -1572,7 +1533,7 @@ THE SOFTWARE.
 
 -----
 
-The following software may be included in this product: csv, csv-generate, csv-parse, csv-stringify, stream-transform. A copy of the source code may be downloaded from https://github.com/adaltas/node-csv.git (csv), http://www.github.com/adaltas/node-csv-generate (csv-generate), https://github.com/wdavidw/node-csv-parse (csv-parse), http://www.github.com/adaltas/node-csv-stringify (csv-stringify), http://www.github.com/adaltas/node-stream-transform (stream-transform). This software contains the following license and notice below:
+The following software may be included in this product: csv. A copy of the source code may be downloaded from https://github.com/adaltas/node-csv.git. This software contains the following license and notice below:
 
 Software License Agreement (BSD License)
 ========================================
@@ -1590,6 +1551,32 @@ Redistribution and use of this software in source and binary forms, with or with
 -   Neither the name of SARL Adaltas nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission of the SARL Adaltas.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+-----
+
+The following software may be included in this product: csv-generate, csv-parse, csv-stringify, stream-transform. A copy of the source code may be downloaded from http://www.github.com/adaltas/node-csv-generate (csv-generate), https://github.com/wdavidw/node-csv-parse (csv-parse), http://www.github.com/adaltas/node-csv-stringify (csv-stringify), http://www.github.com/adaltas/node-stream-transform (stream-transform). This software contains the following license and notice below:
+
+The MIT License (MIT)
+
+Copyright (c) 2010 Adaltas
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 -----
 
@@ -2878,7 +2865,7 @@ THE SOFTWARE.
 
 -----
 
-The following software may be included in this product: har-schema, har-validator. A copy of the source code may be downloaded from https://github.com/ahmadnassri/har-schema.git (har-schema), https://github.com/ahmadnassri/har-validator.git (har-validator). This software contains the following license and notice below:
+The following software may be included in this product: har-schema. A copy of the source code may be downloaded from https://github.com/ahmadnassri/har-schema.git. This software contains the following license and notice below:
 
 Copyright (c) 2015, Ahmad Nassri <ahmad@ahmadnassri.com>
 
@@ -2893,6 +2880,20 @@ ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
 WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+-----
+
+The following software may be included in this product: har-validator. A copy of the source code may be downloaded from https://github.com/ahmadnassri/node-har-validator.git. This software contains the following license and notice below:
+
+MIT License
+
+Copyright (c) 2018 Ahmad Nassri <ahmad@ahmadnassri.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 -----
 
@@ -3107,17 +3108,6 @@ THE SOFTWARE.
 
 -----
 
-The following software may be included in this product: is-resolvable. A copy of the source code may be downloaded from https://github.com/shinnn/is-resolvable.git. This software contains the following license and notice below:
-
-ISC License (ISC)
-Copyright 2018 Shinnosuke Watanabe
-
-Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.
-
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
------
-
 The following software may be included in this product: is-utf8. A copy of the source code may be downloaded from https://github.com/wayfind/is-utf8.git. This software contains the following license and notice below:
 
 The MIT License (MIT)
@@ -3206,11 +3196,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 -----
 
-The following software may be included in this product: js-tokens. A copy of the source code may be downloaded from https://github.com/lydell/js-tokens.git. This software contains the following license and notice below:
+The following software may be included in this product: js-tokens, source-map-resolve. A copy of the source code may be downloaded from https://github.com/lydell/js-tokens.git (js-tokens), https://github.com/lydell/source-map-resolve.git (source-map-resolve). This software contains the following license and notice below:
 
 The MIT License (MIT)
 
-Copyright (c) 2014, 2015, 2016, 2017, 2018 Simon Lydell
+Copyright (c) 2014, 2015, 2016, 2017 Simon Lydell
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -3232,11 +3222,11 @@ THE SOFTWARE.
 
 -----
 
-The following software may be included in this product: js-tokens, source-map-resolve. A copy of the source code may be downloaded from https://github.com/lydell/js-tokens.git (js-tokens), https://github.com/lydell/source-map-resolve.git (source-map-resolve). This software contains the following license and notice below:
+The following software may be included in this product: js-tokens. A copy of the source code may be downloaded from https://github.com/lydell/js-tokens.git. This software contains the following license and notice below:
 
 The MIT License (MIT)
 
-Copyright (c) 2014, 2015, 2016, 2017 Simon Lydell
+Copyright (c) 2014, 2015, 2016, 2017, 2018 Simon Lydell
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
