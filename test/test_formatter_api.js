@@ -27,6 +27,7 @@ const formatter = new Formatter('en-US', 'America/Los_Angeles', schemaRetriever)
 
 function main() {
     let date = new Date(2018, 4, 23, 21, 18, 0);
+    let date2 = new Date(2018, 12, 7, 10, 30, 0);
 
     assert.strictEqual(formatter.dateToString(date), 'Wednesday, May 23, 2018');
     assert.strictEqual(formatter.dateToString(date, { year: 'numeric' }), '2018');
@@ -99,6 +100,17 @@ function main() {
         v6: 10,
         v7: 9.5
     }, 'string'), 'Link: text <lol$foo$ null 69.8 2018-05-24T04:18:00.000Z 42 10 9.50>');
+
+    assert.deepStrictEqual(formatter.format([{ type: 'text', text: '$v1 ${v1} ${v1:enum}' }], {
+        v1: 'some_enum'
+    }), ['some_enum some_enum some enum']);
+
+    assert.deepStrictEqual(formatter.format([{ type: 'text', text: '$v1 ${v2:F} ${v3} ${v3:iso-date} ${v4:%}' }], {
+        v1: ['lol', 'cat'],
+        v2: [21, 42],
+        v3: [date, date2],
+        v4: [0.42, 0.84],
+    }), [ 'lol, cat 69.8, 107.6 5/23/2018, 9:18:00 PM, 1/7/2019, 10:30:00 AM 2018-05-24T04:18:00.000Z, 2019-01-07T18:30:00.000Z 42, 84' ]);
 }
 module.exports = main;
 if (!module.parent)
