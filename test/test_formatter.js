@@ -167,10 +167,51 @@ Picture: http://example.com/security-camera.jpg`
     ['org.thingpedia.builtin.thingengine.builtin:get_date',
       {date: new Date(2018, 4, 24, 11, 4, 0) }, null,
     [ 'Today is Thursday, May 24, 2018.' ]
-    ]
+    ],
+
+    [`count(com.bing:web_search)`, {
+        count: 7,
+    }, null,
+    [ 'I found 7 results.' ]
+    ],
+
+    [`count(com.bing:web_search)`, {
+        title: 7,
+    }, null,
+    [ 'I found 7 distinct values of title.' ]
+    ],
+
+    [`max(com.google.drive:list_drive_files)`, {
+        file_size: 7,
+    }, null,
+    [ 'The maximum file size is 7.' ]
+    ],
+
+    [`min(com.google.drive:list_drive_files)`, {
+        file_size: 7,
+    }, null,
+    [ 'The minimum file size is 7.' ]
+    ],
+
+    [`avg(com.google.drive:list_drive_files)`, {
+        file_size: 7,
+    }, null,
+    [ 'The average file size is 7.' ]
+    ],
+
+    [`sum(com.google.drive:list_drive_files)`, {
+        file_size: 7,
+    }, null,
+    [ 'The total file size is 7.' ]
+    ],
 ];
 
-const formatter = new Formatter('en-US', 'America/Los_Angeles', schemaRetriever);
+const gettext = {
+    locale: 'en-US',
+    dgettext: (domain, msgid) => msgid
+};
+
+const formatter = new Formatter('en-US', 'America/Los_Angeles', schemaRetriever, gettext);
 
 function test(i) {
     console.log('Test Case #' + (i+1));
