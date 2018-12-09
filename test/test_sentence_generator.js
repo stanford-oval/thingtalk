@@ -232,7 +232,7 @@ async function main() {
         targetLanguage: 'thingtalk',
         thingpediaClient: _tpClient,
         turkingMode: false,
-        maxDepth: 7,
+        maxDepth: 6,
         debug: true
     };
 
