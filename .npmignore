@@ -5,8 +5,10 @@ coverage/
 po/thingtalk.pot
 po/*.json
 smt/
+notes/
 
 *.tgz
+*.tsv
 .travis.yml
 .gitignore
 .npmignore

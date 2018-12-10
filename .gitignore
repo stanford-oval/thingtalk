@@ -13,3 +13,4 @@ lib/nn_output_parser.js
 tools/meta-sentence-generator/grammar.js
 
 *.tgz
+*.tsv
