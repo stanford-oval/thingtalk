@@ -2225,6 +2225,7 @@ const TEST_CASES = [
 
 const GeneratorFunction = Object.getPrototypeOf(async function(){}).constructor;
 function test(i) {
+   
     console.log('Test Case #' + (i+1));
 
     let [code, expected] = TEST_CASES[i];
@@ -2252,6 +2253,7 @@ function test(i) {
         });
     }).catch((e) => {
         console.error('Test Case #' + (i+1) + ': failed with exception');
+        console.error(TEST_CASES[i])
         console.error('Code: ' + code);
         console.error('Error: ' + e.message);
         console.error(e.stack);

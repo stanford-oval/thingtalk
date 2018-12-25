@@ -23,6 +23,8 @@ function main() {
             }
 
             try {
+                console.log(program)
+                //console.log(Array.from(program.iterateSlots()))
                 Array.from(program.iterateSlots());
             } catch(e) {
                 console.error('Iterate slots failed');

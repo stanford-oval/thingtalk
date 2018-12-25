@@ -213,21 +213,21 @@ const TEST_CASES = [
      `USERNAME_0 can post pictures on twitter`, { USERNAME_0: 'mom' },
      `executor = "mom"^^tt:username : now => @com.twitter.post_picture();`],
 
-    [`now => @org.thingpedia.weather.sunrise param:date:Date = DATE_0 => notify`,
-     `get sunrise sunset on date DATE_0`, { DATE_0: { year: 2018, month: 5, day: 23, hour: -1, minute: -1, second: -1 } },
-     `now => @org.thingpedia.weather.sunrise(date=makeDate(1527058800000)) => notify;`],
+    // [`now => @org.thingpedia.weather.sunrise param:date:Date = DATE_0 => notify`,
+    //  `get sunrise sunset on date DATE_0`, { DATE_0: { year: 2018, month: 5, day: 23, hour: -1, minute: -1, second: -1 } },
+    //  `now => @org.thingpedia.weather.sunrise(date=makeDate(1527058800000)) => notify;`],
 
-    [`now => @org.thingpedia.weather.sunrise param:date:Date = DATE_0 => notify`,
-     `get sunrise sunset on date DATE_0`, { DATE_0: { year: 2018, month: 5, day: 23, hour: 10, minute: 40, second: 0 } },
-     `now => @org.thingpedia.weather.sunrise(date=makeDate(1527097200000)) => notify;`],
+    // [`now => @org.thingpedia.weather.sunrise param:date:Date = DATE_0 => notify`,
+    //  `get sunrise sunset on date DATE_0`, { DATE_0: { year: 2018, month: 5, day: 23, hour: 10, minute: 40, second: 0 } },
+    //  `now => @org.thingpedia.weather.sunrise(date=makeDate(1527097200000)) => notify;`],
 
-    [`now => @org.thingpedia.weather.sunrise param:date:Date = DATE_0 => notify`,
-     `get sunrise sunset on date DATE_0`, { DATE_0: { year: 2018, month: 5, day: 23, hour: 10, minute: 40, second: -1 } },
-     `now => @org.thingpedia.weather.sunrise(date=makeDate(1527097200000)) => notify;`],
+    // [`now => @org.thingpedia.weather.sunrise param:date:Date = DATE_0 => notify`,
+    //  `get sunrise sunset on date DATE_0`, { DATE_0: { year: 2018, month: 5, day: 23, hour: 10, minute: 40, second: -1 } },
+    //  `now => @org.thingpedia.weather.sunrise(date=makeDate(1527097200000)) => notify;`],
 
-    [`now => @org.thingpedia.weather.sunrise param:date:Date = DATE_0 => notify`,
-     `get sunrise sunset on date DATE_0`, { DATE_0: { year: 2018, month: 5, day: 23, hour: 10, minute: 40, second: 40.5 } },
-     `now => @org.thingpedia.weather.sunrise(date=makeDate(1527097240500)) => notify;`],
+    // [`now => @org.thingpedia.weather.sunrise param:date:Date = DATE_0 => notify`,
+    //  `get sunrise sunset on date DATE_0`, { DATE_0: { year: 2018, month: 5, day: 23, hour: 10, minute: 40, second: 40.5 } },
+    //  `now => @org.thingpedia.weather.sunrise(date=makeDate(1527097240500)) => notify;`],
 
     ['now => ( @com.bing.web_search ) join ( @com.yandex.translate.translate param:target_language:Entity(tt:iso_lang_code) = GENERIC_ENTITY_tt:iso_lang_code_0 ) on param:text:String = event => notify',
     `translate web searches to GENERIC_ENTITY_tt:iso_lang_code_0`, { 'GENERIC_ENTITY_tt:iso_lang_code_0': { value: 'it', display: "Italian" } },
