@@ -4,13 +4,14 @@ const Thingpedia = require('./thingpedia.json');
 const Mixins = require('./mixins.json');
 const Ast = require('../lib/ast');
 const Type = require('../lib/type');
+const { extractImports } = require('../lib/ast/manifest_utils');
 const Q = require('q');
 const fs = require('fs');
 const path = require('path');
 
 // Parse the semi-obsolete JSON format for schemas used
 // by Thingpedia into a FunctionDef
-function makeSchemaFunctionDef(functionType, functionName, schema, isMeta) {
+function makeSchemaFunctionDef(functionType, functionName, schema, useMeta) {
     const args = [];
     // compat with Thingpedia API quirks
     const types = schema.types || schema.schema;
@@ -29,7 +30,7 @@ function makeSchemaFunctionDef(functionType, functionName, schema, isMeta) {
         else
             direction = Ast.ArgDirection.OUT;
         const metadata = {};
-        if (isMeta) {
+        if (useMeta) {
             metadata.prompt = schema.questions[i] || '';
             metadata.canonical = schema.argcanonicals[i] || argname;
         }
@@ -40,7 +41,7 @@ function makeSchemaFunctionDef(functionType, functionName, schema, isMeta) {
     });
 
     const metadata = {};
-    if (isMeta) {
+    if (useMeta) {
         metadata.canonical = schema.canonical || '';
         metadata.confirmation = schema.confirmation || '';
     }
@@ -55,15 +56,15 @@ function makeSchemaFunctionDef(functionType, functionName, schema, isMeta) {
                                annotations);
 }
 
-function makeSchemaClassDef(kind, schema, isMeta) {
+function makeSchemaClassDef(kind, schema, useMeta) {
     const queries = {};
     for (let name in schema.queries)
-        queries[name] = makeSchemaFunctionDef('query', name, schema.queries[name], isMeta);
+        queries[name] = makeSchemaFunctionDef('query', name, schema.queries[name], useMeta);
     const actions = {};
     for (let name in schema.actions)
-        actions[name] = makeSchemaFunctionDef('action', name, schema.actions[name], isMeta);
+        actions[name] = makeSchemaFunctionDef('action', name, schema.actions[name], useMeta);
 
-    const imports = [];
+    const imports = extractImports(schema);
     const metadata = {};
     const annotations = {};
     return new Ast.ClassDef(kind, null, queries, actions,
@@ -80,7 +81,7 @@ module.exports = {
     // We convert our JSON datafiles into ThingTalk code here
 
     async getSchemas(kinds, useMeta) {
-        const source = useMeta ? this._meta : this._schema;
+        const source = this._meta;
 
         const classes = [];
         for (let kind of kinds) {
