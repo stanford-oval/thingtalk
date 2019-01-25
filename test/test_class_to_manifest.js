@@ -303,6 +303,27 @@ const TEST_CASES = [
       actions: {},
       version: 0
     },
+
+    'class @com.mai-hub {\n' +
+    '  import loader from @org.thingpedia.database();\n' +
+    '  import config from @org.thingpedia.config.none();\n' +
+    '}\n',
+
+    {
+      kind: 'com.mai-hub',
+      module_type: 'org.thingpedia.database',
+      types: [],
+      child_types: [],
+      category: 'data',
+      params: {
+      },
+      auth: {
+        type: 'none'
+      },
+      queries: {},
+      actions: {},
+      version: 0
+    },
 ];
 
 async function test(i) {

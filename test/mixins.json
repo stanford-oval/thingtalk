@@ -40,6 +40,14 @@
       "facets": [ "loader" ]
     },
     {
+      "kind": "org.thingpedia.database",
+      "args": [],
+      "types": [],
+      "required": [],
+      "is_input": [],
+      "facets": [ "loader" ]
+    },
+    {
       "kind": "org.thingpedia.config.none",
       "args": [ "api_key", "subscription_key" ],
       "types": [ "String", "String" ],

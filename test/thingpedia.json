@@ -10303,6 +10303,60 @@
               "questions": []
             }
           }
+        },
+        {
+            "id": 999,
+            "kind": "com.mai-hub",
+            "kind_type": "primary",
+            "kind_canonical": "Radiation Data API",
+            "module_type": "org.thingpedia.database",
+            "owner": 99,
+            "version": 1,
+            "developer_version": 1,
+            "approved_version": 1,
+            "triggers": {},
+            "queries": {
+                "get": {
+                    "schema": [
+                        "Number",
+                        "String",
+                        "String",
+                        "Entity(tt:url)"
+                    ],
+                    "args": [
+                        "count",
+                        "mtype",
+                        "patient",
+                        "link"
+                    ],
+                    "required": [
+                        false,
+                        false,
+                        false,
+                        false
+                    ],
+                    "is_input": [
+                        true,
+                        true,
+                        false,
+                        false
+                    ],
+                    "is_list": true,
+                    "is_monitorable": true,
+                    "confirmation": "patient data",
+                    "confirmation_remote": "",
+                    "doc": "get patient's radiation data",
+                    "canonical": "get patient data",
+                    "argcanonicals": [],
+                    "questions": [
+                        "How many records do you want?",
+                        "What type of cancer do you want?",
+                        "",
+                        ""
+                    ]
+                }
+            },
+            "actions": {}
         }
     ]
 }
