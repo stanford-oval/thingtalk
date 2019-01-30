@@ -47,12 +47,12 @@ function main() {
     test(DateEdge('start_of', 'mon'), '+', null, this_month);
 
     const next_month = new Date;
-    next_month.setMonth(next_month.getMonth()+1);
     next_month.setDate(1);
     next_month.setHours(0);
     next_month.setMinutes(0);
     next_month.setSeconds(0);
     next_month.setMilliseconds(0);
+    next_month.setMonth(next_month.getMonth()+1);
     test(DateEdge('end_of', 'mon'), '+', null, next_month);
 }
 module.exports = main;
