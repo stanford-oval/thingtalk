@@ -10,6 +10,7 @@
 "use strict";
 
 const Q = require('q');
+const assert = require('assert');
 
 const AppGrammar = require('../lib/grammar_api');
 const SchemaRetriever = require('../lib/schema');
@@ -112,8 +113,10 @@ const TEST_CASES = [
 ];
 
 var _mockMessaging = {
-    type: 'mock',
-    account: '12345678'
+    getSelf(sendTo) {
+        assert.strictEqual(sendTo, '1234');
+        return 'mock-account:12345678';
+    }
 };
 
 function safePrettyprint(prog) {
