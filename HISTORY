@@ -1,3 +1,12 @@
+1.4.2
+=====
+
+* Updated messaging interface to work with the latest version of thingengine-core [#67].
+* Fixed syntax of argmin/argmax [#62].
+* Misc bug fixes.
+* Dependencies have been updated [#61].
+* Build system and CI fixes.
+
 1.4.1
 =====
 
