@@ -43,5 +43,6 @@ seq([
     ('./test_formatter_api'),
     ('./test_class_to_manifest'),
     ('./test_schema_retriever'),
-    //('./test_sql_compiler'),
+    ('./test_sql_compiler'),
+    ('./test_sentence_generator')
 ]);
