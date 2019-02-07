@@ -204,6 +204,35 @@ Picture: http://example.com/security-camera.jpg`
     }, null,
     [ 'The total file size is 7.' ]
     ],
+
+    ['com.wikicfp:search', {
+        start: new Date('TBD'),
+        end: new Date('TBD'),
+        deadline: new Date(2019, 2,4 ),
+        link: 'http://www.abc.com',
+        name: 'Some Computer Conference',
+        abbr: 'SCC',
+        city: 'North Pole'
+    }, null,
+    [ { type: 'rdl',
+        callback: undefined,
+        webCallback: 'http://www.abc.com',
+        displayTitle: 'Some Computer Conference (SCC)',
+        displayText: 'Where: North Pole,\nWhen: N/A - N/A,\nDeadline: Monday, March 4, 2019.' } ]
+    ],
+
+    ['org.thingpedia.weather:current',
+        { location: undefined,
+            temperature: undefined,
+            wind_speed: undefined,
+            humidity: undefined,
+            cloudiness: undefined,
+            fog: undefined,
+            status: undefined,
+            icon: 'http://example.com/sunny.png'
+        }, null,
+        [ '' ]
+    ]
 ];
 
 const gettext = {
