@@ -221,17 +221,47 @@ Picture: http://example.com/security-camera.jpg`
         displayText: 'Where: North Pole,\nWhen: N/A - N/A,\nDeadline: Monday, March 4, 2019.' } ]
     ],
 
+
+    // when all parameters are undefined/null, do not include the output
     ['org.thingpedia.weather:current',
         { location: undefined,
             temperature: undefined,
-            wind_speed: undefined,
-            humidity: undefined,
+            wind_speed: null,
+            humidity: null,
             cloudiness: undefined,
             fog: undefined,
             status: undefined,
             icon: 'http://example.com/sunny.png'
         }, null,
-        [ '' ]
+        [ ]
+    ],
+
+    // when picture_url is undefined, do not output picture
+    ['com.nest.security_camera:current_event', {
+        start_time: new Date(2018, 4, 24, 11, 4, 0),
+        has_person: false,
+        has_motion: false,
+        has_sound: false,
+        picture_url: undefined
+    }, null,
+        [ 'Something detected on your camera at 5/24/2018, 11:04:00 AM' ]
+    ],
+
+    // when displayTitle and displayText are missing, only return a link
+    ['com.wikicfp:search', {
+        start: new Date('TBD'),
+        end: new Date('TBD'),
+        deadline: new Date('TBD'),
+        link: 'http://www.abc.com',
+        name: undefined,
+        abbr: undefined,
+        city: undefined
+    }, null,
+    [ { type: 'rdl',
+        callback: undefined,
+        webCallback: 'http://www.abc.com',
+        displayTitle: 'http://www.abc.com',
+        displayText: null } ]
     ]
 ];
 
