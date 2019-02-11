@@ -16,7 +16,7 @@ const stream = require('stream');
 const seedrandom = require('seedrandom');
 
 const SentenceGenerator = require('../lib/sentence-generator');
-const NNSyntax = require('../lib/nn_syntax');
+const NNSyntax = require('../lib/nn-syntax');
 const SchemaRetriever = require('../lib/schema');
 
 const _tpClient = require('./mock_schema_delegate');

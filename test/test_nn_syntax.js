@@ -11,7 +11,7 @@
 
 const Q = require('q');
 
-const NNSyntax = require('../lib/nn_syntax');
+const NNSyntax = require('../lib/nn-syntax');
 //const NNOutputParser = require('../lib/nn_output_parser');
 const SchemaRetriever = require('../lib/schema');
 
