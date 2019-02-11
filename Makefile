@@ -10,12 +10,14 @@
 
 all = \
 	$(patsubst %.po,%.mo,$(wildcard po/*.po)) \
+	tools/meta-sentence-generator/grammar.js \
 	tools/generate-parser/grammar.js \
 	lib/nn-syntax/parser.js \
 	lib/grammar.js \
 	test/test_sr_parser_generator.js
 
 all : $(all)
+	make -C languages
 
 lib/grammar.js : lib/grammar.pegjs
 	node ./node_modules/.bin/pegjs --allowed-start-rules input,program,type_ref,permission_rule -o $@ $<
