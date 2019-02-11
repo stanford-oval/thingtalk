@@ -215,7 +215,12 @@ NonTerminal.prototype.isTerminal = false;
 NonTerminal.prototype.isNonTerminal = true;
 
 const ROOT_NT = new NonTerminal('$ROOT');
-const EOF_TOKEN = new Terminal('<<EOF>>');
+
+// special tokens start with a space
+// so they sort earlier than all other tokens
+const PAD_TOKEN = new Terminal(' 0PAD');
+const EOF_TOKEN = new Terminal(' 1EOF');
+const START_TOKEN = new Terminal(' 2START');
 
 class SLRParserGenerator {
     // Construct a shift-reduce parser given an SLR grammar.
@@ -236,6 +241,10 @@ class SLRParserGenerator {
         this._checkFollowSets();
     }
 
+    get startSymbolId() {
+        return this.terminals.indexOf(this._startSymbol);
+    }
+
     _checkFirstSets() {
         for (let [lhs, firstSet] of this._firstSets) {
             if (firstSet.size === 0)
@@ -254,6 +263,9 @@ class SLRParserGenerator {
 
     _extractTerminalsNonTerminals() {
         let terminals = new Set();
+        terminals.add(PAD_TOKEN.symbol);
+        terminals.add(EOF_TOKEN.symbol);
+        terminals.add(START_TOKEN.symbol);
         let nonTerminals = new Set();
         for (let [lhs, rule,] of this.rules) {
             nonTerminals.add(lhs);

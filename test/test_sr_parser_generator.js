@@ -33,4 +33,4 @@ const SEMANTIC_ACTION = [
 (($,$0,$1,str) => `text =~ ${str}`),
 (async ($, $0) => $0),
 ];
-module.exports = require('./../lib/nn-syntax/sr_parser')(TERMINAL_IDS, RULE_NON_TERMINALS, ARITY, GOTO, PARSER_ACTION, SEMANTIC_ACTION);
+module.exports = require('./../lib/nn-syntax/sr_parser_runtime')(TERMINAL_IDS, RULE_NON_TERMINALS, ARITY, GOTO, PARSER_ACTION, SEMANTIC_ACTION);

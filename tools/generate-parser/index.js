@@ -34,69 +34,7 @@ function readall(stream) {
     });
 }
 
-function writeout(preamble, runtimepath, generator, output) {
-    const TERMINAL_IDS = {};
-    for (let i = 0; i < generator.terminals.length; i++)
-        TERMINAL_IDS[generator.terminals[i]] = i;
 
-    const NON_TERMINAL_IDS = {};
-    for (let i = 0; i < generator.nonTerminals.length; i++)
-        NON_TERMINAL_IDS[generator.nonTerminals[i]] = i;
-
-    const RULE_NON_TERMINALS = [];
-    for (let i = 0; i < generator.rules.length; i++) {
-        let [lhs,,] = generator.rules[i];
-        RULE_NON_TERMINALS[i] = NON_TERMINAL_IDS[lhs];
-    }
-
-    const GOTO_TABLE = [];
-    for (let i = 0; i < generator.gotoTable.length; i++) {
-        GOTO_TABLE[i] = {};
-        for (let nonterm in generator.gotoTable[i]) {
-            let nextState = generator.gotoTable[i][nonterm];
-            GOTO_TABLE[i][NON_TERMINAL_IDS[nonterm]] = nextState;
-        }
-    }
-
-    const ACTION_TABLE = [];
-    let foundAccept = false;
-    for (let i = 0; i < generator.actionTable.length; i++) {
-        ACTION_TABLE[i] = {};
-        for (let term in generator.actionTable[i]) {
-            let [action, param] = generator.actionTable[i][term];
-            if (action === 'accept')
-                foundAccept = true;
-
-            if (action === 'accept')
-                ACTION_TABLE[i][TERMINAL_IDS[term]] = [0];
-            else if (action === 'shift')
-                ACTION_TABLE[i][TERMINAL_IDS[term]] = [1, param];
-            else if (action === 'reduce')
-                ACTION_TABLE[i][TERMINAL_IDS[term]] = [2, param];
-        }
-    }
-    if (!foundAccept)
-        throw new Error('Parser generator bug: no accept state generated');
-
-    output.write(preamble);
-    output.write('\n');
-    output.write(`const TERMINAL_IDS = ${JSON.stringify(TERMINAL_IDS)};\n`);
-    output.write(`const RULE_NON_TERMINALS = ${JSON.stringify(RULE_NON_TERMINALS)};\n`);
-    output.write(`const ARITY = ${JSON.stringify(generator.rules.map(([,rhs,]) => rhs.length))};\n`);
-    output.write(`const GOTO = ${JSON.stringify(GOTO_TABLE)};\n`);
-    output.write(`const PARSER_ACTION = ${JSON.stringify(ACTION_TABLE)};\n`);
-    output.write(`const SEMANTIC_ACTION = [\n`);
-    for (let [,,action] of generator.rules)
-        output.write(`(${action}),\n`);
-    output.write(`];\n`);
-    output.write(`module.exports = require('${runtimepath}')(TERMINAL_IDS, RULE_NON_TERMINALS, ARITY, GOTO, PARSER_ACTION, SEMANTIC_ACTION);\n`);
-    output.end();
-
-    return new Promise((resolve, reject) => {
-        output.on('finish', resolve);
-        output.on('error', reject);
-    });
-}
 
 function handleRule(rule) {
     const head = rule.head.map((h) => h.getGeneratorInput());
@@ -137,6 +75,11 @@ async function processFile(filename, grammar, isTopLevel) {
     return parsed;
 }
 
+const TARGET_LANGUAGE = {
+    'javascript': require('./javascript'),
+    'python': require('./python'),
+};
+
 async function main() {
     const parser = new argparse.ArgumentParser({
         addHelp: true,
@@ -147,18 +90,25 @@ async function main() {
     });
     parser.addArgument(['-o', '--output'], {
         required: true,
+        help: "Where to write the specif"
     });
     parser.addArgument(['-s', '--start'], {
         required: false,
         defaultValue: 'input',
+        help: "The start symbol of the grammar (defaults to `input`)"
+    });
+    parser.addArgument(['-l', '--runtime-language'], {
+        required: false,
+        defaultValue: 'javascript',
+        choices: Object.keys(TARGET_LANGUAGE),
+        help: "Generate a parser in the given programming language"
+    });
+    parser.addArgument(['--runtime-path'], {
+        required: false,
+        help: "Path to the parser runtime code"
     });
 
     const args = parser.parseArgs();
-
-    const runtime = require.resolve('../../lib/nn-syntax/sr_parser_runtime');
-    const runtimedir = path.relative(path.dirname(args.output),
-                                     path.dirname(runtime));
-    const relativeruntimepath = './' + path.join(runtimedir, 'sr_parser');
 
     const grammar = {};
     let firstFile;
@@ -174,7 +124,6 @@ async function main() {
     }
 
     const generator = new SLRParserGenerator(grammar, 'input');
-    await writeout(firstFile.preamble, relativeruntimepath, generator, fs.createWriteStream(args.output));
-
+    await TARGET_LANGUAGE[args.runtime_language](firstFile.preamble, generator, fs.createWriteStream(args.output), args.runtime_path, args.output);
 }
 main();
