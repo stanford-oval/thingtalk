@@ -12,6 +12,9 @@
     }
   ],
   "main": "index.js",
+  "bin": {
+    "thingtalk-generate-parser": "./tools/generate-parser/index.js"
+  },
   "dependencies": {
     "adt": "~0.7.2",
     "byline": "^5.0.0",
