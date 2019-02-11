@@ -305,6 +305,7 @@ comparable_constant = {
     constant_Number;
     constant_Currency;
     constant_Date;
+    constant_Time;
 }
 
 constant_Array = {
