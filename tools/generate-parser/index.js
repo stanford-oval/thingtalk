@@ -110,7 +110,7 @@ function handleRule(rule) {
             bodyArgs.push(`$${i++}`);
     }
 
-    const action = `async (${bodyArgs}) => ${rule.bodyCode}`;
+    const action = `(${bodyArgs}) => ${rule.bodyCode}`;
     return [head, action];
 }
 
@@ -155,10 +155,10 @@ async function main() {
 
     const args = parser.parseArgs();
 
-    const runtime = require.resolve('../../lib/sr_parser');
+    const runtime = require.resolve('../../lib/nn-syntax/sr_parser_runtime');
     const runtimedir = path.relative(path.dirname(args.output),
                                      path.dirname(runtime));
-    const relativeruntimepath = path.join(runtimedir, 'sr_parser');
+    const relativeruntimepath = './' + path.join(runtimedir, 'sr_parser');
 
     const grammar = {};
     let firstFile;

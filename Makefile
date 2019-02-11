@@ -10,6 +10,7 @@
 
 all = \
 	$(patsubst %.po,%.mo,$(wildcard po/*.po)) \
+	tools/generate-parser/grammar.js \
 	lib/nn-syntax/parser.js \
 	lib/grammar.js \
 	test/test_sr_parser_generator.js

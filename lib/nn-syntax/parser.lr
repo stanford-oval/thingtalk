@@ -9,33 +9,10 @@
 // See COPYING for details
 
 {
-const Ast = require('./ast');
-const Generate = require('./generate');
-const { parseDate } = require('./date_utils');
-
-const TIMER_SCHEMA = new Ast.FunctionDef('stream',
-    'timer',
-    [], // args,
-    false, // is_list
-    true,  // is_monitorable
-    {
-    canonical: 'every fixed interval',
-    confirmation: 'every ${interval}',
-    },
-    {} // annotations
-);
-
-const AT_TIMER_SCHEMA = new Ast.FunctionDef('stream',
-    'attimer',
-    [], // args,
-    false, // is_list
-    true,  // is_monitorable
-    {
-    canonical: 'every day',
-    confirmation: 'every day at ${interval}',
-    },
-    {} // annotations
-);
+const { notifyAction } = require('../ast/api');
+const Ast = require('../ast');
+const Type = require('../type');
+const { parseDate } = require('../date_utils');
 }
 
 /**
@@ -94,39 +71,32 @@ input = {
 program = {
     rule:rule => new Ast.Program([], [], [rule], null);
     'executor' '=' user:constant ':' rule => {
-        if (!Type.isAssignable(user.getType(), Type.Entity('tt:username')))
-            return $.error(`Invalid type ${user.getType()} for executor`);
-        new Ast.Program([], [], [rule], user);
+        return new Ast.Program([], [], [rule], user);
     };
 }
 
 policy = {
     'true' ':' policy:policy_body => policy;
-    user:filter ':' 'policy_body' => {
-        // XXX: typecheck user
+    user:filter ':' policy:policy_body => {
         return policy.set({ principal: user });
     };
 }
 
 policy_body = {
     'now' '=>' action:policy_fn => {
-        await typecheckPermissionFunction($, action, 'action');
         return new Ast.PermissionRule(Ast.BooleanExpression.True, Ast.PermissionFunction.Builtin, action);
     };
     query:policy_fn '=>' 'notify' => {
-        await typecheckPermissionFunction($, query, 'query');
         return new Ast.PermissionRule(Ast.BooleanExpression.True, query, Ast.PermissionFunction.Builtin);
     };
     query:policy_fn '=>' action:policy_fn => {
-        await typecheckPermissionFunction($, query, 'query');
-        await typecheckPermissionFunction($, action, 'action');
         return new Ast.PermissionRule(Ast.BooleanExpression.True, query, action);
     };
 }
 
 policy_fn = {
-    '*' => Ast.PermissionFunction.Star,
-    klass:CLASS_STAR => new Ast.PermissionFunction.ClassStar(klass.value),
+    '*' => Ast.PermissionFunction.Star;
+    klass:CLASS_STAR => new Ast.PermissionFunction.ClassStar(klass.value);
     fn:FUNCTION => new Ast.PermissionFunction.Specified(fn.value.kind, fn.value.channel, Ast.BooleanExpression.True, null);
     fn:FUNCTION 'filter' filter => new Ast.PermissionFunction.Specified(fn.value.kind, fn.value.channel, filter, null);
 }
@@ -137,27 +107,8 @@ rule = {
     'now' '=>' action => new Ast.Statement.Command(null, [action]);
 
     rule 'on' pp:param_passing => {
-        const action = rule.actions[0];
-        if (!action.isInvocation)
-            throw new Error('???');
-        if (!action.invocation.selector.isBuiltin)
-            throw $.error(`Cannot pass parameters to notify`);
-
-        const lhs = pp.name;
-        const rhs = pp.value.name;
-        const outParamType = rule.stream ? rule.stream.schema.out[rhs] :
-            rule.table ? rule.table.schema.out[rhs] : undefined;
-        const inParamType = action.schema.getArgType(lhs);
-        if (!inParamType)
-            throw $.error(`Action @${action.invocation.selector.kind}.${action.invocation.channel} has no parameter ${lhs}`);
-        if (!outParamType)
-            throw $.error(`Invalid output parameter ${rhs}`);
-        if (!Type.isAssignable(outParamType, inParamType))
-            throw $.error(`Cannot convert type ${outParamType} to ${inParamType} for parameter ${lhs}`);
-
         rule = rule.clone();
         rule.actions[0].invocation.in_params.push(pp);
-        rule.actions[0].schema = rule.actions[0].schema.filterArgument((arg) => arg.name !== lhs);
         return rule;
     };
 }
@@ -170,16 +121,15 @@ aggr_op = {
 }
 
 table = {
-    call => return new Ast.Table.Invocation(call, await typecheckInvocation(call, 'query'));
+    call => new Ast.Table.Invocation(call, null);
     '(' table ')' 'filter' filter => {
-        await typecheckFilter(filter, table.schema);
         return new Ast.Table.Filter(table, filter, table.schema);
     };
 
     'aggregate' op:aggr_op field:out_param 'of' '(' table ')' => new Ast.Table.Aggregation(table, field.name, op, null, null);
     'aggregate' 'count' 'of' '(' table ')'                    => new Ast.Table.Aggregation(table, '*', 'count', null, null);
-    'aggregate' 'argmin' field:out_param base:constant_Number ',' limit:constant_Number 'of' '(' table ')' => new Ast.Table.ArgMinMax(table, field.name, op, base, limit, null);
-    'aggregate' 'argmax' field:out_param base:constant_Number ',' limit:constant_Number 'of' '(' table ')' => new Ast.Table.ArgMinMax(table, field.name, op, base, limit, null);
+    'aggregate' 'argmin' field:out_param base:constant_Number ',' limit:constant_Number 'of' '(' table ')' => new Ast.Table.ArgMinMax(table, field.name, 'argmin', base, limit, null);
+    'aggregate' 'argmax' field:out_param base:constant_Number ',' limit:constant_Number 'of' '(' table ')' => new Ast.Table.ArgMinMax(table, field.name, 'argmax', base, limit, null);
     'window' base:constant_Number ',' delta:constant_Number 'of' '(' stream ')'        => new Ast.Table.Window(base, delta, stream, null);
     'timeseries' base:constant_Date ',' delta:constant_Measure_ms 'of' '(' stream ')' => new Ast.Table.TimeSeries(base, delta, stream, null);
     'sequence' base:constant_Number ',' delta:constant_Number 'of' '(' table ')'       => new Ast.Table.Sequence(base, delta, table, null);
@@ -189,95 +139,57 @@ table = {
 }
 
 table_join = {
-    '(' t1:table ')' 'join' '(' t2:table => new Ast.Table.Join(t1, t2, [], mergeSchema(t1.schema, t2.schema));
+    '(' t1:table ')' 'join' '(' t2:table ')' => new Ast.Table.Join(t1, t2, [], null);
     join:table_join 'on' pp:param_passing => {
-        const lhs = pp.name;
-        const rhs = pp.value.name;
-        const outParamType = join.lhs.schema.out[rhs];
-        const inParamType = join.rhs.schema.getArgType(lhs);
-        if (!inParamType || !join.rhs.schema.isArgInput(lhs));
-            throw $.error(`Invalid input parameter ${lhs}`);
-        if (!outParamType)
-            throw $.error(`Invalid output parameter ${rhs}`);
-        if (!Type.isAssignable(outParamType, inParamType))
-            throw $.error(`Cannot convert type ${outParamType} to ${inParamType} for parameter ${lhs}`);
-
         join = join.clone();
         join.in_params.push(pp);
-        join.schema = join.schema.filterArgument((arg) => arg.name !== lhs);
         return join;
     };
 }
 
 stream = {
-    'timer' 'base' '=' base:constant_Date ',' 'interval' '=' interval:constant_Measure_ms => new Ast.Stream.Timer(base, interval, TIMER_SCHEMA);
-    'attimer' 'time' '=' time:constant_Time => new Ast.Stream.AtTimer(time, ATTIMER_SCHEMA);
+    'timer' 'base' '=' base:constant_Date ',' 'interval' '=' interval:constant_Measure_ms => new Ast.Stream.Timer(base, interval, null);
+    'attimer' 'time' '=' time:constant_Time => new Ast.Stream.AtTimer(time, null);
 
-    'monitor' '(' table ')' => new Ast.Stream.Monitor(table, null, table.schema);
+    'monitor' '(' table ')' => new Ast.Stream.Monitor(table, null, null);
     'monitor' '(' table ')' 'on' 'new' pname:out_param => {
-        if (!table.schema.out[pname.name])
-            throw $.error(`No such output parameter ${pname}`);
         return new Ast.Stream.Monitor(table, [pname.name], null);
     };
 
     'monitor' '(' table ')' 'on' 'new' '[' pnames:out_param_list ']' => {
-        pnames.forEach((pname) => {
-            if (!table.schema.out[pname.name])
-                throw $.error(`No such output parameter ${pname}`);
-        });
-        return new Ast.Stream.Monitor(table, pnames.map((p) => p.name), table.schema);
+        return new Ast.Stream.Monitor(table, pnames.map((p) => p.name), null);
     };
 
     'edge' '(' stream ')' 'on' filter => {
-        await typecheckFilter($, filter, stream.schema);
-        return new Ast.Stream.EdgeFilter(stream, filter, stream.schema);
+        return new Ast.Stream.EdgeFilter(stream, filter, null);
     };
 
     // edge on true is the equivalent of "only once"
-    'edge' '(' stream ')' 'on' 'true' => new Ast.Stream.EdgeFilter(stream, Ast.BooleanExpression.True, stream.schema);
+    'edge' '(' stream ')' 'on' 'true' => new Ast.Stream.EdgeFilter(stream, Ast.BooleanExpression.True, null);
 
     stream_join;
 }
 
 stream_join = {
-    '(' stream ')' '=>' '(' table ')' => new Ast.Stream.Join(s1, t2, [], mergeSchema(s1.schema, s2.schema));
-    '(' stream ')' 'join' '(' table ')' => new Ast.Stream.Join(s1, t2, [], mergeSchema(s1.schema, s2.schema));
+    '(' stream ')' '=>' '(' table ')' => new Ast.Stream.Join(stream, table, [], null);
+    '(' stream ')' 'join' '(' table ')' => new Ast.Stream.Join(stream, table, [], null);
     join:stream_join 'on' pp:param_passing => {
-        const lhs = pp.name;
-        const rhs = pp.value.name;
-        const outParamType = join.stream.schema.out[rhs];
-        const inParamType = join.table.schema.getArgType(lhs);
-        if (!inParamType || !join.table.schema.isArgInput(lhs));
-            throw $.error(`Invalid input parameter ${lhs}`);
-        if (!outParamType)
-            throw $.error(`Invalid output parameter ${rhs}`);
-        if (!Type.isAssignable(outParamType, inParamType))
-            throw $.error(`Cannot convert type ${outParamType} to ${inParamType} for parameter ${lhs}`);
         join = join.clone();
         join.in_params.push(pp);
-        join.schema = join.schema.filterArgument((arg) => arg.name !== lhs);
         return join;
     };
 }
 
 action = {
-    'notify' => Generate.notifyAction();
-    'return' => Generate.notifyAction('return');
-    call => new Ast.Action.Invocation(call, await typecheckInvocation(call, 'action'));
+    'notify' => notifyAction();
+    'return' => notifyAction('return');
+    call => new Ast.Action.Invocation(call, null);
 }
 
 call = {
     fn:FUNCTION => new Ast.Invocation(new Ast.Selector.Device(fn.value.kind, null, null), fn.value.channel, [], null);
     inv:call ip:const_param => {
         inv = inv.clone();
-        if (inv.schema) {
-            const inParamType = inv.schema.getArgType(ip.name);
-            if (!inParamType || !inv.schema.isArgInput(ip.name));
-                throw $.error(`Invalid input parameter ${ip.name}`);
-            const constType = ip.value.getType();
-            if (!Type.isAssignable(constType, inParamType))
-                throw $.error(`Cannot convert type ${constType} to ${inParamType} for parameter ${ip.name}`);
-        }
         inv.in_params.push(ip);
         return inv;
     };
@@ -322,9 +234,7 @@ atom_filter = {
         return new Ast.BooleanExpression.Atom(pname.value, op, v);
     };
     fn:call '{' filter '}' => {
-        await typecheckInvocation(fn, 'filter');
-        await typecheckFilter(filter, fn.schema);
-        new Ast.BooleanExpression.External(fn.selector, fn.channel, fn.in_params, filter, fn.schema);
+        return new Ast.BooleanExpression.External(fn.selector, fn.channel, fn.in_params, filter, null);
     };
 }
 
@@ -385,7 +295,7 @@ constant = {
     constant_Entity__tt__function;
     constant_Entity__tt__picture;
     constant_Enum;
-    SLOT => (slot.value === undefined ? Ast.Value.Undefined(true) : slot.value);
+    slot:SLOT => (slot.value === undefined ? Ast.Value.Undefined(true) : slot.value);
 }
 
 comparable_constant = {
@@ -403,7 +313,7 @@ constant_Array = {
 }
 
 constant_array_values = {
-    constant;
+    constant => [constant];
     array:constant_array_values ',' v:constant => array.concat([v]);
 }
 

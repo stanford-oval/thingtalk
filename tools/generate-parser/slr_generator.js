@@ -12,7 +12,7 @@
 // Generate and SLR parser, given a grammar
 // This is JavaScript version of almond-nnparser/grammar/slr.py
 
-const DEBUG = true;
+const DEBUG = false;
 
 class ItemSetInfo {
     constructor() {
