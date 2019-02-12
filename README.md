@@ -1,6 +1,6 @@
 # ThingTalk
 
-[![Build Status](https://travis-ci.org/Stanford-Mobisocial-IoT-Lab/ThingTalk.svg?branch=master)](https://travis-ci.org/Stanford-Mobisocial-IoT-Lab/ThingTalk) [![Coverage Status](https://coveralls.io/repos/github/Stanford-Mobisocial-IoT-Lab/ThingTalk/badge.svg?branch=master)](https://coveralls.io/github/Stanford-Mobisocial-IoT-Lab/ThingTalk?branch=master) [![Dependency Status](https://david-dm.org/Stanford-Mobisocial-IoT-Lab/ThingTalk/status.svg)](https://david-dm.org/Stanford-Mobisocial-IoT-Lab/ThingTalk) [![Greenkeeper badge](https://badges.greenkeeper.io/Stanford-Mobisocial-IoT-Lab/ThingTalk.svg)](https://greenkeeper.io/)
+[![Build Status](https://travis-ci.org/Stanford-Mobisocial-IoT-Lab/thingtalk.svg?branch=master)](https://travis-ci.org/Stanford-Mobisocial-IoT-Lab/thingtalk) [![Coverage Status](https://coveralls.io/repos/github/Stanford-Mobisocial-IoT-Lab/thingtalk/badge.svg?branch=master)](https://coveralls.io/github/Stanford-Mobisocial-IoT-Lab/thingtalk?branch=master) [![Dependency Status](https://david-dm.org/Stanford-Mobisocial-IoT-Lab/thingtalk/status.svg)](https://david-dm.org/Stanford-Mobisocial-IoT-Lab/thingtalk) [![Greenkeeper badge](https://badges.greenkeeper.io/Stanford-Mobisocial-IoT-Lab/thingtalk.svg)](https://greenkeeper.io/) [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/Stanford-Mobisocial-IoT-Lab/thingtalk.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/Stanford-Mobisocial-IoT-Lab/thingtalk/context:javascript)
 
 ## The Programming Language of Virtual Assistants
 
@@ -10,7 +10,7 @@ and IoT devices in a single _when-get-do_ statement.
 
 For example, in ThingTalk you can say:
 ```
-monitor (@com.washingtonpost.get_article(section=enum(world))) join @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code) on (text=title) =>
+monitor (@com.washingtonpost.get_article(section=enum(world))) => @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code) on (text=title) =>
 @com.facebook.post(status=$event);
 ```
 
@@ -27,8 +27,8 @@ and various libraries to manipulate ThingTalk ASTs.
 
 While this library is useful on its own for specific purposes, to
 run ThingTalk programs you will need a full Almond runtime, such
-as one provided by [thingengine-platform-cloud](thingengine-platform-cloud)
-or [thingengine-platform-cmdline](thingengine-platform-cmdline).
+as one provided by [almond-cloud](https://github.com/Stanford-Mobisocial-IoT-Lab/almond-cloud)
+or [almond-cmdline](https://github.com/Stanford-Mobisocial-IoT-Lab/almond-cmdline).
 
 Almond is a research project led by prof. Monica Lam,
 from Stanford University.  You can find more information at
@@ -37,4 +37,4 @@ from Stanford University.  You can find more information at
 ## License
 
 This package is covered by the GNU General Public License, version 3
-or any later version. See [LICENSE] for details.
+or any later version. See [LICENSE](LICENSE) for details.
