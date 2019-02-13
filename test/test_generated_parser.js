@@ -1,9 +1,9 @@
 "use strict";
 
 const assert = require('assert');
-const Parser = require('./generated_sr_parser');
+const Parser = require('./test_sr_parser_generator');
 
-function main() {
+async function main() {
     const parser = new Parser();
     assert.strictEqual(parser.parse(['monitor', 'thermostat.get_temp', 'twitter.post', 'param:text', 'qs0']),
     `combine monitor thermostat.get_temp with apply twitter.post string = qs0`);

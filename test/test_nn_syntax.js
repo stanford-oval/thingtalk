@@ -11,7 +11,7 @@
 
 const Q = require('q');
 
-const NNSyntax = require('../lib/nn_syntax');
+const NNSyntax = require('../lib/nn-syntax');
 //const NNOutputParser = require('../lib/nn_output_parser');
 const SchemaRetriever = require('../lib/schema');
 
@@ -73,13 +73,13 @@ const TEST_CASES = [
     `get xkcd whose number is a random number between NUMBER_0 and NUMBER_1`, {'NUMBER_0': 55, 'NUMBER_1': 1024},
     `now => (@org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55) join @com.xkcd.get_comic() on (number=random)) => notify;`],
 
-    [`( ( timer base = now , interval = 1 unit:hour ) => ( @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_1 param:low:Number = NUMBER_0 ) ) => ( @com.xkcd.get_comic ) on param:number:Number = param:random:Number => notify`,
+    [`( ( timer base = now , interval = 1 unit:h ) => ( @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_1 param:low:Number = NUMBER_0 ) ) => ( @com.xkcd.get_comic ) on param:number:Number = param:random:Number => notify`,
     `every hour get xkcd whose number is a random number between NUMBER_0 and NUMBER_1`, {'NUMBER_0': 55, 'NUMBER_1': 1024},
-    `((timer(base=makeDate(), interval=1hour) => @org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55)) => @com.xkcd.get_comic() on (number=random)) => notify;`],
+    `((timer(base=makeDate(), interval=1h) => @org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55)) => @com.xkcd.get_comic() on (number=random)) => notify;`],
 
-    [`( timer base = now , interval = 1 unit:hour ) => ( ( @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_1 param:low:Number = NUMBER_0 ) join ( @com.xkcd.get_comic ) on param:number:Number = param:random:Number ) => notify`,
+    [`( timer base = now , interval = 1 unit:h ) => ( ( @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_1 param:low:Number = NUMBER_0 ) join ( @com.xkcd.get_comic ) on param:number:Number = param:random:Number ) => notify`,
         `every hour get xkcd whose number is a random number between NUMBER_0 and NUMBER_1`, {'NUMBER_0': 55, 'NUMBER_1': 1024},
-        `(timer(base=makeDate(), interval=1hour) => (@org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55) join @com.xkcd.get_comic() on (number=random))) => notify;`],
+        `(timer(base=makeDate(), interval=1h) => (@org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55) join @com.xkcd.get_comic() on (number=random))) => notify;`],
 
     [`now => @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_1 param:low:Number = NUMBER_0 => notify`,
     `get a random number between NUMBER_0 and NUMBER_1`,{'NUMBER_0': 55, 'NUMBER_1': 1024},
@@ -317,6 +317,7 @@ function testCase(test, i) {
         });
     }).catch((e) => {
         console.error('Test Case #' + (i+1) + ' failed with exception');
+        console.error(sequence.join(' '));
         console.error(e.stack);
         if (process.env.TEST_MODE)
             throw e;

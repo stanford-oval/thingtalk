@@ -12,6 +12,9 @@
     }
   ],
   "main": "index.js",
+  "bin": {
+    "thingtalk-generate-parser": "./tools/generate-parser/index.js"
+  },
   "dependencies": {
     "adt": "~0.7.2",
     "byline": "^5.0.0",
@@ -30,17 +33,12 @@
     "seedrandom": "^2.4.4"
   },
   "scripts": {
-    "regen-grammar": "pegjs --allowed-start-rules input,program,type_ref,permission_rule ./lib/grammar.pegjs",
-    "regen-meta-grammar": "pegjs ./tools/meta-sentence-generator/grammar.pegjs",
-    "regen-nn-grammar": "node ./tools/generate_parser.js ./lib/nn_grammar.js '$input' > lib/nn_output_parser.js",
-    "compile-all-sentence-grammars": "make -C languages/",
     "update-pot": "xgettext -f po/POTFILES -x po/POTFILES.skip -o po/${npm_package_name}.pot --from-code UTF-8 --package-name ${npm_package_name} --package-version ${npm_package_version}",
     "update-po": "for i in po/*.po ; do msgmerge -U $i po/${npm_package_name}.pot ; done",
-    "compile-mo": "for i in po/*.po ; do msgfmt $i -o po/`basename $i .po`.mo ; done",
     "lint": "eslint ./lib",
     "test": "nyc node ./test/test_all",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
-    "prepare": "yarn compile-mo && yarn regen-grammar && yarn regen-nn-grammar && yarn regen-meta-grammar && yarn compile-all-sentence-grammars"
+    "prepare": "make"
   },
   "nyc": {
     "exclude": [

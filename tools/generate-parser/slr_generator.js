@@ -12,10 +12,6 @@
 // Generate and SLR parser, given a grammar
 // This is JavaScript version of almond-nnparser/grammar/slr.py
 
-const path = require('path');
-const fs = require('fs');
-
-const EOF_TOKEN = '<<EOF>>';
 const DEBUG = false;
 
 class ItemSetInfo {
@@ -185,19 +181,54 @@ function setEquals(one, two) {
     return true;
 }
 
-const ITEM_SET_MARKER = { toString() { return `[ItemSetSep]`; } };
+const ITEM_SET_MARKER = '[ItemSetSep]';
+
+class Terminal {
+    constructor(symbol) {
+        this.symbol = symbol;
+    }
+
+    equals(x) {
+        return x instanceof Terminal && x.symbol === this.symbol;
+    }
+
+    toString() {
+        return `T:${this.symbol}`;
+    }
+}
+Terminal.prototype.isTerminal = true;
+
+class NonTerminal {
+    constructor(symbol) {
+        this.symbol = symbol;
+    }
+
+    equals(x) {
+        return x instanceof NonTerminal && x.symbol === this.symbol;
+    }
+
+    toString() {
+        return `NT:${this.symbol}`;
+    }
+}
+NonTerminal.prototype.isTerminal = false;
+NonTerminal.prototype.isNonTerminal = true;
+
+const ROOT_NT = new NonTerminal('$ROOT');
+
+// special tokens start with a space
+// so they sort earlier than all other tokens
+const PAD_TOKEN = new Terminal(' 0PAD');
+const EOF_TOKEN = new Terminal(' 1EOF');
+const START_TOKEN = new Terminal(' 2START');
 
 class SLRParserGenerator {
-    /*
-    Construct a shift-reduce parser given an SLR grammar.
-
-    The grammar must be binarized beforehand.
-    */
+    // Construct a shift-reduce parser given an SLR grammar.
 
     constructor(grammar, startSymbol) {
         // optimizations first
         this._startSymbol = startSymbol;
-        grammar['$ROOT'] = [[[startSymbol, EOF_TOKEN], (x, _) => x]];
+        grammar[ROOT_NT.symbol] = [[[new NonTerminal(startSymbol), EOF_TOKEN], `async ($, $0) => $0`]];
         this._numberRules(grammar);
         this._extractTerminalsNonTerminals();
         this._buildFirstSets();
@@ -208,6 +239,10 @@ class SLRParserGenerator {
 
         this._checkFirstSets();
         this._checkFollowSets();
+    }
+
+    get startSymbolId() {
+        return this.terminals.indexOf(this._startSymbol);
     }
 
     _checkFirstSets() {
@@ -228,14 +263,17 @@ class SLRParserGenerator {
 
     _extractTerminalsNonTerminals() {
         let terminals = new Set();
+        terminals.add(PAD_TOKEN.symbol);
+        terminals.add(EOF_TOKEN.symbol);
+        terminals.add(START_TOKEN.symbol);
         let nonTerminals = new Set();
         for (let [lhs, rule,] of this.rules) {
             nonTerminals.add(lhs);
             for (let rhs of rule) {
-                if (rhs[0] !== '$')
-                    terminals.add(rhs);
+                if (rhs.isTerminal)
+                    terminals.add(rhs.symbol);
                 else
-                    nonTerminals.add(rhs);
+                    nonTerminals.add(rhs.symbol);
             }
         }
 
@@ -268,11 +306,9 @@ class SLRParserGenerator {
             for (let [rule, action] of rules) {
                 let ruleId = this.rules.length;
                 for (let rhs of rule) {
-                    if (!(rhs in grammar) && rhs[0] === '$')
+                    if (rhs.isNonTerminal && !(rhs.symbol in grammar))
                         throw new TypeError('Missing non-terminal ' + rhs);
                 }
-                if (action.length !== 0 && action.length !== rule.length)
-                    console.error(`WARNING: action rule ${lhs} -> ${rule.join(' ')} seems to have the wrong number of parameters`);
 
                 this.rules.push([lhs, rule, action]);
                 this.grammar.get(lhs).push(ruleId);
@@ -287,8 +323,8 @@ class SLRParserGenerator {
         for (let rule of itemSet.rules) {
             let rhs = rule.get(1);
             for (let i = 0; i < rhs.length-1; i++) {
-                if (rhs[i] === ITEM_SET_MARKER && rhs[i+1] !== EOF_TOKEN)
-                    set.add(rhs[i+1]);
+                if (rhs[i] === ITEM_SET_MARKER && rhs[i+1] !== EOF_TOKEN.toString())
+                    set.add(rhs[i+1].toString());
             }
         }
         yield* set;
@@ -309,23 +345,19 @@ class SLRParserGenerator {
     *_makeItemSet(lhs) {
         for (let ruleId of this.grammar.get(lhs)) {
             let [, rhs, ] = this.rules[ruleId];
-            yield new Tuple(ruleId, [ITEM_SET_MARKER].concat(rhs));
+            yield new Tuple(ruleId, [ITEM_SET_MARKER].concat(rhs.map((h) => h.toString())));
         }
     }
 
     _close(items) {
-        function _isNonterminal(symbol) {
-            return symbol[0] === '$';
-        }
-
         let itemSet = new EqualsSet(items);
         let stack = Array.from(itemSet);
         while (stack.length > 0) {
             let item = stack.pop();
             let rhs = item.get(1);
             for (let i = 0; i < rhs.length-1; i++) {
-                if (rhs[i] === ITEM_SET_MARKER && _isNonterminal(rhs[i+1])) {
-                    for (let newRule of this._makeItemSet(rhs[i+1])) {
+                if (rhs[i] === ITEM_SET_MARKER && rhs[i+1].startsWith('NT:')) {
+                    for (let newRule of this._makeItemSet(rhs[i+1].substring(3))) {
                         if (!itemSet.has(newRule)) {
                             itemSet.add(newRule);
                             stack.push(newRule);
@@ -343,7 +375,7 @@ class SLRParserGenerator {
     _generateAllItemSets() {
         const itemSets = new EqualsMap();
         let i = 0;
-        let itemSet0 = new ItemSet(this._close(this._makeItemSet('$ROOT')));
+        let itemSet0 = new ItemSet(this._close(this._makeItemSet(ROOT_NT.symbol)));
         let itemSet0Info = new ItemSetInfo();
         itemSets.set(itemSet0, itemSet0Info);
         i++;
@@ -411,10 +443,6 @@ class SLRParserGenerator {
     }
 
     _buildFirstSets() {
-        function _isTerminal(symbol) {
-            return symbol[0] !== '$';
-        }
-
         const firstSets = new Map;
         for (let nonterm of this.nonTerminals)
             firstSets.set(nonterm, new Set());
@@ -429,10 +457,10 @@ class SLRParserGenerator {
                     // Note: our grammar doesn't include rules of the form A -> epsilon
                     // because it's meant for an SLR parser not an LL parser, so this is
                     // simpler than what Wikipedia describes in the LL parser article
-                    if (_isTerminal(rule[0]))
-                        firstSetRule = new Set([rule[0]]);
+                    if (rule[0].isTerminal)
+                        firstSetRule = new Set([rule[0].symbol]);
                     else
-                        firstSetRule = firstSets.get(rule[0]) || new Set;
+                        firstSetRule = firstSets.get(rule[0].symbol) || new Set;
                     for (let elem of firstSetRule)
                         union.add(elem);
                 }
@@ -470,27 +498,24 @@ class SLRParserGenerator {
             }
             return progress;
         }
-        function _isNonterminal(symbol) {
-            return symbol[0] === '$';
-        }
 
         while (progress) {
             progress = false;
             for (let [lhs, rule,] of this.rules) {
                 for (let i = 0; i < rule.length-1; i++) {
-                    if (_isNonterminal(rule[i])) {
-                        if (_isNonterminal(rule[i+1])) {
-                            progress = _addAll(this._firstSets.get(rule[i+1]), followSets.get(rule[i])) || progress;
+                    if (rule[i].isNonTerminal) {
+                        if (rule[i+1].isNonTerminal) {
+                            progress = _addAll(this._firstSets.get(rule[i+1].symbol), followSets.get(rule[i].symbol)) || progress;
                         } else {
-                            if (!followSets.get(rule[i]).has(rule[i+1])) {
-                                followSets.get(rule[i]).add(rule[i+1]);
+                            if (!followSets.get(rule[i].symbol).has(rule[i+1].symbol)) {
+                                followSets.get(rule[i].symbol).add(rule[i+1].symbol);
                                 progress = true;
                             }
                         }
                     }
                 }
-                if (_isNonterminal(rule[rule.length-1]))
-                    progress = _addAll(followSets.get(lhs), followSets.get(rule[rule.length-1])) || progress;
+                if (rule[rule.length-1].isNonTerminal)
+                    progress = _addAll(followSets.get(lhs), followSets.get(rule[rule.length-1].symbol)) || progress;
             }
         }
 
@@ -513,14 +538,14 @@ class SLRParserGenerator {
 
         for (let nonterm of this.nonTerminals) {
             for (let i = 0; i < this._nStates; i++) {
-                if (this._stateTransitionMatrix[i].has(nonterm))
-                    this.gotoTable[i][nonterm] = this._stateTransitionMatrix[i].get(nonterm);
+                if (this._stateTransitionMatrix[i].has('NT:' + nonterm))
+                    this.gotoTable[i][nonterm] = this._stateTransitionMatrix[i].get('NT:' +nonterm);
             }
         }
         for (let term of this.terminals) {
             for (let i = 0; i < this._nStates; i++) {
-                if (this._stateTransitionMatrix[i].has(term))
-                    this.actionTable[i][term] = ['shift', this._stateTransitionMatrix[i].get(term)];
+                if (this._stateTransitionMatrix[i].has('T:' + term))
+                    this.actionTable[i][term] = ['shift', this._stateTransitionMatrix[i].get('T:' + term)];
             }
         }
 
@@ -528,8 +553,8 @@ class SLRParserGenerator {
             for (let item of itemSet.rules) {
                 let rhs = item.get(1);
                 for (let i = 0; i < rhs.length-1; i++) {
-                    if (rhs[i] === ITEM_SET_MARKER && rhs[i+1] === EOF_TOKEN)
-                        this.actionTable[itemSet.info.id][EOF_TOKEN] = ['accept'];
+                    if (rhs[i] === ITEM_SET_MARKER && rhs[i+1] === EOF_TOKEN.toString())
+                        this.actionTable[itemSet.info.id][EOF_TOKEN.symbol] = ['accept'];
                 }
             }
         }
@@ -559,60 +584,7 @@ class SLRParserGenerator {
         }
     }
 }
+SLRParserGenerator.Terminal = Terminal;
+SLRParserGenerator.NonTerminal = NonTerminal;
 
-function main() {
-    const grammar = require(path.resolve(process.argv[2]));
-    const startSymbol = process.argv[3];
-
-    let generator = new SLRParserGenerator(grammar, startSymbol);
-
-    const TERMINAL_IDS = {};
-    for (let i = 0; i < generator.terminals.length; i++)
-        TERMINAL_IDS[generator.terminals[i]] = i;
-
-    const NON_TERMINAL_IDS = {};
-    for (let i = 0; i < generator.nonTerminals.length; i++)
-        NON_TERMINAL_IDS[generator.nonTerminals[i]] = i;
-
-    const RULE_NON_TERMINALS = [];
-    for (let i = 0; i < generator.rules.length; i++) {
-        let [lhs,,] = generator.rules[i];
-        RULE_NON_TERMINALS[i] = NON_TERMINAL_IDS[lhs];
-    }
-
-    const GOTO_TABLE = [];
-    for (let i = 0; i < generator.gotoTable.length; i++) {
-        GOTO_TABLE[i] = {};
-        for (let nonterm in generator.gotoTable[i]) {
-            let nextState = generator.gotoTable[i][nonterm];
-            GOTO_TABLE[i][NON_TERMINAL_IDS[nonterm]] = nextState;
-        }
-    }
-
-    const ACTION_TABLE = [];
-    for (let i = 0; i < generator.actionTable.length; i++) {
-        ACTION_TABLE[i] = {};
-        for (let term in generator.actionTable[i]) {
-            let [action, param] = generator.actionTable[i][term];
-            if (action === 'accept')
-                ACTION_TABLE[i][TERMINAL_IDS[term]] = [0];
-            else if (action === 'shift')
-                ACTION_TABLE[i][TERMINAL_IDS[term]] = [1, param];
-            else if (action === 'reduce')
-                ACTION_TABLE[i][TERMINAL_IDS[term]] = [2, param];
-        }
-    }
-
-    console.log(fs.readFileSync(path.resolve(process.argv[2])).toString());
-    console.log(`const TERMINAL_IDS = ${JSON.stringify(TERMINAL_IDS)};`);
-    console.log(`const RULE_NON_TERMINALS = ${JSON.stringify(RULE_NON_TERMINALS)};`);
-    console.log(`const ARITY = ${JSON.stringify(generator.rules.map(([,rhs,]) => rhs.length))};`);
-    console.log(`const GOTO = ${JSON.stringify(GOTO_TABLE)};`);
-    console.log(`const PARSER_ACTION = ${JSON.stringify(ACTION_TABLE)};`);
-    console.log(`const SEMANTIC_ACTION = [`);
-    for (let [,,action] of generator.rules)
-        console.log(`(${action.toString()}),`);
-    console.log(`];`);
-    console.log(`module.exports = require('./sr_parser')(TERMINAL_IDS, RULE_NON_TERMINALS, ARITY, GOTO, PARSER_ACTION, SEMANTIC_ACTION);`);
-}
-main();
+module.exports = SLRParserGenerator;
