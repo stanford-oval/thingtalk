@@ -21,7 +21,6 @@ const Formatter = require('./lib/runtime/formatter');
 const PermissionChecker = require('./lib/permission_checker');
 const Units = require('./lib/units');
 const NNSyntax = require('./lib/nn-syntax');
-const SentenceGenerator = require('./lib/sentence-generator');
 
 let { typeCheckFilter, typeCheckProgram, typeCheckPermissionRule } = require('./lib/typecheck');
 Generate.typeCheckFilter = typeCheckFilter;
@@ -54,9 +53,6 @@ module.exports = {
     // Helper modules to manipulate ASTs
     Generate,
     Describe,
-
-    // synthetic sentence generation
-    SentenceGenerator,
 
     // Policy support
     PermissionChecker,
