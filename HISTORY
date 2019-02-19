@@ -1,3 +1,16 @@
+1.5.0
+=====
+
+* BREAKING CHANGE: the SentenceGenerator module, and the associated template files, have been moved
+  to [genie-toolkit](https://github.com/Stanford-Mobisocial-IoT-Lab/genie-toolkit),
+  and they are not in the library anymore.
+* The NN syntax definition was redone to make it easier to extend, with a custom
+  domain-specific language and the ability to generate a Python parser as well.
+* The formatter now supports missing or invalid parameters, and will automatically
+  display only the available information. In the future, this will allow for projections
+  on notifications.
+* Minor bug fixes and code style improvements [#68]
+
 1.4.2
 =====
 

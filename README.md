@@ -38,3 +38,20 @@ from Stanford University.  You can find more information at
 
 This package is covered by the GNU General Public License, version 3
 or any later version. See [LICENSE](LICENSE) for details.
+
+## Versioning
+
+This package **does not** follow semantic versioning. Instead, the version should
+be interpreted as:
+
+- Major version will be bumped for incompatible changes in the language, such that
+  existing valid programs are no longer valid
+- Minor version will be bumped for any change in the library, such as AST definitions,
+  interfaces to compilation/optimization passes, adding and removing additional processing
+  modules
+- Patch version will be bumped for compatible bug fixes
+
+**Minor version bumps can introduce incompatibility to library users**; it is
+recommended that library users use tilde version ranges on their ThingTalk dependency,
+or use a service such as [Greenkeeper](https://greenkeeper.io) to check for incompatibilities
+when a new version of the ThingTalk library is published.
