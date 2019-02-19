@@ -8,7 +8,7 @@ po/*.json
 .idea/
 
 lib/grammar.js
-lib/nn_output_parser.js
+lib/nn-syntax/parser.js
 
 tools/meta-sentence-generator/grammar.js
 tools/generate-parser/grammar.js
@@ -16,3 +16,4 @@ test/test_sr_parser_generator.js
 
 *.tgz
 *.tsv
+*.py
