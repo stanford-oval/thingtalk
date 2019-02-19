@@ -1,6 +1,6 @@
 {
   "name": "thingtalk",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "ThingTalk Just-In-Time Compiler, Library and Runtime",
   "license": "GPL-3.0+",
   "repository": "https://github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk",
