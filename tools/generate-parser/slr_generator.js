@@ -242,7 +242,7 @@ class SLRParserGenerator {
     }
 
     get startSymbolId() {
-        return this.terminals.indexOf(this._startSymbol);
+        return this.terminals.length + this.nonTerminals.indexOf(this._startSymbol);
     }
 
     _checkFirstSets() {
