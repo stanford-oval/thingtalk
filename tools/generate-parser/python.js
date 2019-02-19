@@ -23,7 +23,7 @@ function printRule(rhs) {
 
 module.exports = function writeout(preamble, generator, output, runtimePath, outputPath) {
     if (!runtimePath)
-        runtimePath = 'genie.grammar.np_parser';
+        runtimePath = 'genieparser.grammar.np_parser';
     function writeln(line) {
         output.write(line + '\n');
     }
