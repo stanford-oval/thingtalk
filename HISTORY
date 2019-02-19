@@ -1,3 +1,8 @@
+1.5.2
+=====
+
+* Fix a bug in the new nn-syntax grammar, caught by the almond-dialog-agent tests
+
 1.5.1
 =====
 
