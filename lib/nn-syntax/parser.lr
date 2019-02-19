@@ -247,12 +247,12 @@ value_filter = {
     '<=' v:comparable_constant => ['<=', v];
     '>' v:comparable_constant => ['>', v];
     '<' v:comparable_constant => ['<', v];
-    '=~' v:constant_String => ['=~', v];
-    '~=' v:constant_String => ['~=', v];
-    'starts_with' v:constant_String => ['starts_with', v];
-    'ends_with' v:constant_String => ['ends_with', v];
-    'prefix_of' v:constant_String => ['prefix_of', v];
-    'suffix_of' v:constant_String => ['suffix_of', v];
+    '=~' v:string_constant => ['=~', v];
+    '~=' v:string_constant => ['~=', v];
+    'starts_with' v:string_constant => ['starts_with', v];
+    'ends_with' v:string_constant => ['ends_with', v];
+    'prefix_of' v:string_constant => ['prefix_of', v];
+    'suffix_of' v:string_constant => ['suffix_of', v];
     'contains' v:constant => ['contains', v];
     'in_array' v:constant_Array => ['in_array', v];
 
@@ -306,6 +306,12 @@ comparable_constant = {
     constant_Currency;
     constant_Date;
     constant_Time;
+    slot:SLOT => (slot.value === undefined ? Ast.Value.Undefined(true) : slot.value);
+}
+
+string_constant = {
+    constant_String;
+    slot:SLOT => (slot.value === undefined ? Ast.Value.Undefined(true) : slot.value);
 }
 
 constant_Array = {

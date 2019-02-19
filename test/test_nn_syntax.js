@@ -9,8 +9,7 @@
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
-
+const Ast = require('../lib/ast');
 const NNSyntax = require('../lib/nn-syntax');
 //const NNOutputParser = require('../lib/nn_output_parser');
 const SchemaRetriever = require('../lib/schema');
@@ -269,22 +268,30 @@ const TEST_CASES = [
      `what 's the smallest file in my dropbox`, {},
      `now => aggregate argmin 1, 1 file_size of (@com.dropbox.list_folder()) => notify;`],
 
-    /*[`now => @com.xkcd.get_comic param:number:Number = SLOT_0 => notify`,
-     {'SLOT_0': Ast.Value.Number(1234)},
+    [`now => @com.xkcd.get_comic param:number:Number = SLOT_0 => notify`,
+     '', {'SLOT_0': Ast.Value.Number(1234) },
      `now => @com.xkcd.get_comic(number=1234) => notify;`],
 
     [`now => @com.xkcd.get_comic param:number:Number = SLOT_0 => notify`,
-     {'SLOT_0': undefined},
-     `now => @com.xkcd.get_comic(number=$undefined) => notify;`],*/
+     '', {'SLOT_0': undefined},
+     `now => @com.xkcd.get_comic(number=$undefined) => notify;`],
+
+    [`filter param:title:String =~ SLOT_0`,
+    '', {'SLOT_0': Ast.Value.String('foo') },
+    `title =~ "foo"`],
+
+    [`filter param:title:String == SLOT_0`,
+    '', {'SLOT_0': Ast.Value.String('foo') },
+    `title == "foo"`]
 ];
 
-function testCase(test, i) {
+async function testCase(test, i) {
     if (test.length !== 4)
         throw new Error('invalid test ' + test[0]);
     let [sequence, sentence, entities, expected] = test;
 
     console.log('Test Case #' + (i+1));
-    return Q.try(() => {
+    try {
         sequence = sequence.split(' ');
         let program = NNSyntax.fromNN(sequence, entities);
         let generated = program.prettyprint(true);
@@ -297,43 +304,38 @@ function testCase(test, i) {
                 throw new Error(`testNNSyntax ${i+1} FAILED`);
         }
 
-        return program.typecheck(schemaRetriever).then(() => {
-            let reconstructed = NNSyntax.toNN(program, sentence, entities).join(' ');
-            if (reconstructed !== test[0]) {
-                console.error('Test Case #' + (i+1) + ' failed (wrong NN syntax)');
-                console.error('Expected:', test[0]);
-                console.error('Generated:', reconstructed);
-                if (process.env.TEST_MODE)
-                    throw new Error(`testNNSyntax ${i+1} FAILED`);
-            }
+        if (!sentence)
+            return;
+        await program.typecheck(schemaRetriever);
 
-            /*let parser = new NNOutputParser();
-            let reduces = parser.getReduceSequence({
-                [Symbol.iterator]() {
-                    return new SimpleSequenceLexer(sequence);
-                }
-            });
-            console.log('Reduces:', reduces);*/
+        let reconstructed = NNSyntax.toNN(program, sentence, entities).join(' ');
+        if (reconstructed !== test[0]) {
+            console.error('Test Case #' + (i+1) + ' failed (wrong NN syntax)');
+            console.error('Expected:', test[0]);
+            console.error('Generated:', reconstructed);
+            if (process.env.TEST_MODE)
+                throw new Error(`testNNSyntax ${i+1} FAILED`);
+        }
+
+        /*let parser = new NNOutputParser();
+        let reduces = parser.getReduceSequence({
+            [Symbol.iterator]() {
+                return new SimpleSequenceLexer(sequence);
+            }
         });
-    }).catch((e) => {
+        console.log('Reduces:', reduces);*/
+    } catch (e) {
         console.error('Test Case #' + (i+1) + ' failed with exception');
         console.error(sequence.join(' '));
         console.error(e.stack);
         if (process.env.TEST_MODE)
             throw e;
-    });
+    }
 }
 
-function promiseLoop(array, fn) {
-    return (function loop(i) {
-        if (i === array.length)
-            return Q();
-        return Q(fn(array[i], i)).then(() => loop(i+1));
-    })(0);
-}
-
-function main() {
-    return promiseLoop(TEST_CASES, testCase);
+async function main() {
+    for (let i = 0; i < TEST_CASES.length; i++)
+        await testCase(TEST_CASES[i], i);
 }
 module.exports = main;
 if (!module.parent)
