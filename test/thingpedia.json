@@ -10310,6 +10310,7 @@
             "kind_type": "primary",
             "kind_canonical": "Radiation Data API",
             "module_type": "org.thingpedia.database",
+            "db_server": "mysql://almond@mai-hub.com",
             "owner": 99,
             "version": 1,
             "developer_version": 1,

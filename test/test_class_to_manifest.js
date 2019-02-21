@@ -305,13 +305,14 @@ const TEST_CASES = [
     },
 
     'class @com.mai-hub {\n' +
-    '  import loader from @org.thingpedia.database();\n' +
+    '  import loader from @org.thingpedia.database(db_server="mysql://almond@mai-hub.com");\n' +
     '  import config from @org.thingpedia.config.none();\n' +
     '}\n',
 
     {
       kind: 'com.mai-hub',
       module_type: 'org.thingpedia.database',
+      db_server: 'mysql://almond@mai-hub.com',
       types: [],
       child_types: [],
       category: 'data',

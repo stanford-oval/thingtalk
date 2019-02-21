@@ -41,10 +41,10 @@
     },
     {
       "kind": "org.thingpedia.database",
-      "args": [],
-      "types": [],
-      "required": [],
-      "is_input": [],
+      "args": [ "db_server" ],
+      "types": [ "String" ],
+      "required": [ false ],
+      "is_input": [ true ],
       "facets": [ "loader" ]
     },
     {
