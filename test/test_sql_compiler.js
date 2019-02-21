@@ -64,6 +64,7 @@ function test(i) {
 
     return AppGrammar.parseAndTypecheck(testCase, schemaRetriever).then((prog) => {
         let ast = prog.rules[0];
+        ast = ast.isRule? ast.stream : ast.table;
 
         let sqlCompiler = new SqlCompiler(ast, scope);
 
