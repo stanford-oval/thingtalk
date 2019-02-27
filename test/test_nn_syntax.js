@@ -282,7 +282,15 @@ const TEST_CASES = [
 
     [`filter param:title:String == SLOT_0`,
     '', {'SLOT_0': Ast.Value.String('foo') },
-    `title == "foo"`]
+    `title == "foo"`],
+
+    [`now => @com.xkcd.get_comic param:number:Number = undefined => notify`,
+     'get some specific xkcd comic', {},
+    `now => @com.xkcd.get_comic(number=$undefined) => notify;`],
+
+    [`now => ( @com.twitter.search ) filter param:author:Entity(tt:username) == undefined => notify`,
+     'search tweets by author', {},
+    `now => (@com.twitter.search()), author == $undefined => notify;`]
 ];
 
 async function testCase(test, i) {
