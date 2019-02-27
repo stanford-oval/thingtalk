@@ -274,6 +274,7 @@ value_filter = {
 // this non-terminal exists only for convenience
 // the almond nn-parser grammar does not have it
 constant = {
+    'undefined' => new Ast.Value.Undefined(true);
     constant_Array;
     constant_Boolean;
     constant_String;
@@ -299,6 +300,7 @@ constant = {
 }
 
 comparable_constant = {
+    'undefined' => new Ast.Value.Undefined(true);
     constant_String;
     constant_Measure;
     tok: DURATION => new Ast.Value.Measure(tok.value.value, tok.value.unit);
@@ -310,6 +312,7 @@ comparable_constant = {
 }
 
 string_constant = {
+    'undefined' => new Ast.Value.Undefined(true);
     constant_String;
     slot:SLOT => (slot.value === undefined ? Ast.Value.Undefined(true) : slot.value);
 }
