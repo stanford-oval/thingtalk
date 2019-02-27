@@ -3224,6 +3224,48 @@ const TEST_CASES = [
     }
   }`]],
 
+  [`now => @com.mai-hub.get() => notify;`,
+  [
+    `"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  try {
+    _t_1 = "mysql://almond@mai-hub.com";
+    _t_2 = "select * from \\"com.mai-hub.get\\" where 1";
+    _t_0 = await __env.invokeDBQuery(_t_1, _t_2);
+    _t_3 = _t_0[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_3.next();
+      while (!_iter_tmp.done) {
+        _t_4 = _iter_tmp.value;
+        _t_5 = _t_4[0];
+        _t_6 = _t_4[1];
+        _t_7 = _t_6.count;
+        _t_8 = _t_6.mtype;
+        _t_9 = _t_6.patient;
+        _t_10 = _t_6.link;
+        try {
+          await __env.output(String(_t_5), _t_6);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_3.next();
+      }
+    }
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke database query", _exc_);
+  }`
+  ]],
+
     // simple indexing
     [`{
     now => @com.google.drive.list_drive_files()[2:1] => notify;
@@ -4810,7 +4852,7 @@ async function test(i) {
 
             if (code === undefined || code.trim() !== expected[j].trim()) {
                 console.error('Test Case #' + (i+1) + ': compiled code does not match what expected');
-                //console.error('Expected: ' + expected[j]);
+                console.error('Expected: ' + expected[j]);
                 console.error('Compiled: ' + code);
                 if (process.env.TEST_MODE)
                     throw new Error(`testCompiler ${i+1} FAILED`);
