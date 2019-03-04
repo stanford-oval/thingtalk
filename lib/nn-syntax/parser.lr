@@ -78,7 +78,9 @@ program = {
 policy = {
     'true' ':' policy:policy_body => policy;
     user:filter ':' policy:policy_body => {
-        return policy.set({ principal: user });
+        const clone = policy.clone();
+        clone.principal = user;
+        return clone;
     };
 }
 

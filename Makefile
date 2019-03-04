@@ -18,4 +18,4 @@ all = \
 all: $(all)
 
 lib/grammar.js : lib/grammar.pegjs
-	node ./node_modules/.bin/pegjs --allowed-start-rules input,program,type_ref,permission_rule -o $@ $<
+	node ./node_modules/.bin/pegjs --allowed-start-rules input,type_ref,permission_rule -o $@ $<
