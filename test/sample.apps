@@ -902,3 +902,35 @@ abstract class @com.foo {
 ====
 
 timer(base=makeDate(), interval=30s) => @org.thingpedia.builtin.thingengine.builtin.get_random_between(low=2, high=20) => notify;
+
+====
+
+// multiple statements without { }
+now => @com.thecatapi.get() => notify;
+now => @uk.co.thedogapi.get() => notify;
+
+====
+
+// let hoisting
+now => cat() => notify;
+let query cat := @com.thecatapi.get();
+
+====
+
+// oninput
+now => @com.thecatapi.get() => notify;
+oninput => {
+  @uk.co.thedogapi.get() => @com.twitter.post();
+  @com.facebook.post();
+};
+
+====
+
+// ** typecheck: expect TypeError **
+// a bare notify under oninput will not typecheck
+// (same as "now => notify;")
+
+now => @com.thecatapi.get() => notify;
+oninput => {
+  notify;
+};
