@@ -295,20 +295,6 @@ now => aggregate count str1 of Q1 => @com.twitter.post(status=count);
 
 ====
 
-// LogQueryArgmTest
-{
-now => [field1, field2] of aggregate argmax 1,1 another_field of Q0 => notify;
-now => [field1, field2] of aggregate argmax 1,3 another_field of Q0 => notify;
-}
-
-====
-
-// ** typecheck: expect TypeError **
-// LogQueryInvalidArgmTest
-now => [field1, field2] of aggregate argmax 1,1 nonexisting_field of Q0 => notify;
-
-====
-
 // WithSave
 {
 let table steps    := @edu.stanford.rakeshr1.fitbit.getsteps();
@@ -335,11 +321,6 @@ monitor Q1 => Q2 => @com.twitter.post(status="hello");
 
 // LogTriggerAggregationTest
 monitor (aggregate max field of Q1) => notify;
-
-====
-
-// LogTriggerArgmTest
-monitor ([field1, field2] of aggregate argmax 1,1 another_field of Q0) => notify;
 
 ====
 
@@ -394,22 +375,6 @@ let table last_week := \(x : Table) -> history start_of(week), -1week of x;
 let table current := \(x : Table) -> sequence 1,1 of x;
 let table previous := \(x : Table) -> sequence 2,1 of x;
 let table latest_K := \(x : Table, k : Number) -> sequence 1, k of x;
-}
-
-====
-
-// ** typecheck: expect TypeError **
-// Table x doesn't have field score. Maybe fix this later.
-// Argmaxes
-{
-let table gold_medal := \(x : Table) -> aggregate argmax 1, 1 score of x ;
-let table silver_medal := \(x : Table) -> aggregate argmax 2,1 score of x ;
-
-let table top_K := \(x : Any, k : Number) -> aggregate argmax 1,k score of x ;
-
-let table bottom_K := \(x : Any, k : Number) -> aggregate argmin 1,k score of x ;
-now => gold_medal(x=Q4) => notify;
-
 }
 
 ====
