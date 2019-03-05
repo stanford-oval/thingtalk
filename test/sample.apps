@@ -981,3 +981,8 @@ now => cat => notify;
 // parameters to assignments
 let result cat := @com.thecatapi.get();
 now => cat(key=1) => notify;
+
+====
+
+// new-style undefined
+now => @com.twitter.post(status=$?);
