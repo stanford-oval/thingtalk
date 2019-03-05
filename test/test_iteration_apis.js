@@ -13,7 +13,6 @@ const assert = require('assert');
 
 const Q = require('q');
 Q.longStackSupport = true;
-const Generate = require('../lib/generate');
 const Grammar = require('../lib/grammar_api');
 const SchemaRetriever = require('../lib/schema');
 

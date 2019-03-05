@@ -934,3 +934,50 @@ now => @com.thecatapi.get() => notify;
 oninput => {
   notify;
 };
+
+====
+
+// assignment statements
+let result cat := @com.thecatapi.get();
+now => cat => notify;
+
+====
+
+// ** typecheck: expect TypeError **
+// assignment statements are NOT hoisted
+now => cat => notify;
+let result cat := @com.thecatapi.get();
+
+====
+
+// assignment statements used multiple times
+let result cat := @com.thecatapi.get();
+now => cat => notify;
+now => cat => @com.facebook.post();
+
+====
+
+// assignment statements used oninput
+let result cat := @com.thecatapi.get();
+now => cat => notify;
+oninput => {
+  cat => @com.facebook.post();
+};
+
+====
+
+// oninput is hoisted to the end of the program,
+// so this actually typechecks
+oninput => {
+  cat => @com.facebook.post();
+};
+let result cat := @com.thecatapi.get();
+now => cat => notify;
+
+
+====
+
+// ** typecheck: expect TypeError **
+// parameters to assignments
+let result cat := @com.thecatapi.get();
+now => cat(key=1) => notify;
