@@ -951,3 +951,79 @@ now => cat(key=1) => notify;
 
 // new-style undefined
 now => @com.twitter.post(status=$?);
+
+====
+
+// index expression
+now => @com.gmail.inbox()[1] => notify;
+now => @com.gmail.inbox()[-1] => notify;
+now => @com.gmail.inbox()[1, 2, 3] => notify;
+now => @com.gmail.inbox()[1, $undefined, 2] => notify;
+
+// a single array value is also allowed (primarily for parameter passing)
+// and then optimized away if it's a constant
+now => @com.gmail.inbox()[ [1, 2, $undefined] ] => notify;
+
+// param passing
+let query q1 := \(p_index : Number) -> @com.gmail.inbox()[p_index];
+let query q2 := \(p_index : Number, p_index2 : Number) -> @com.gmail.inbox()[p_index, p_index2];
+let query q3 := \(p_indices : Array(Number)) -> @com.gmail.inbox()[p_indices];
+
+====
+
+// ** typecheck: expect TypeError **
+// invalid index (not a number)
+now => @com.gmail.inbox()['foo'] => notify;
+
+====
+
+// ** typecheck: expect TypeError **
+// invalid index (array and number)
+now => @com.gmail.inbox()[ [1,2], 3 ] => notify;
+
+====
+
+// ** typecheck: expect TypeError **
+// invalid index (not a number)
+let query q := \(p_index : String) -> @com.gmail.inbox()[p_index];
+
+====
+
+// slice expression
+now => @com.gmail.inbox()[1:3] => notify;
+
+====
+
+// ** typecheck: expect TypeError **
+// invalid slice offset (not a number)
+let query q := \(p_index : String) -> @com.gmail.inbox()[p_index : 1];
+
+====
+
+// ** typecheck: expect TypeError **
+// also invalid slice offset (not a number)
+// (but this one is not optimized to an index)
+let query q := \(p_index : String) -> @com.gmail.inbox()[p_index : 5];
+
+====
+
+// ** typecheck: expect TypeError **
+// invalid slice limit (not a number)
+let query q := \(p_index : String) -> @com.gmail.inbox()[1 : p_index];
+
+====
+
+// sort
+
+// by measure
+now => sort file_size asc of @com.dropbox.list_folder() => notify;
+// by number
+now => sort width asc of @com.bing.image_search() => notify;
+// by string
+now => sort sender_name asc of @com.gmail.inbox() => notify;
+
+====
+
+// ** typecheck: expect TypeError **
+// cannot sort by entity
+now => sort sender_address asc of @com.gmail.inbox() => notify;
