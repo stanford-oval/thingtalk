@@ -130,8 +130,12 @@ table = {
 
     'aggregate' op:aggr_op field:out_param 'of' '(' table ')' => new Ast.Table.Aggregation(table, field.name, op, null, null);
     'aggregate' 'count' 'of' '(' table ')'                    => new Ast.Table.Aggregation(table, '*', 'count', null, null);
-    'aggregate' 'argmin' field:out_param base:constant_Number ',' limit:constant_Number 'of' '(' table ')' => new Ast.Table.ArgMinMax(table, field.name, 'argmin', base, limit, null);
-    'aggregate' 'argmax' field:out_param base:constant_Number ',' limit:constant_Number 'of' '(' table ')' => new Ast.Table.ArgMinMax(table, field.name, 'argmax', base, limit, null);
+
+    'sort' field:out_param 'asc' 'of' '(' table ')'           => new Ast.Table.Sort(table, field.name, 'asc', null);
+    'sort' field:out_param 'desc' 'of' '(' table ')'          => new Ast.Table.Sort(table, field.name, 'desc', null);
+    '(' table ')' '[' indices:constant_array_values ']'       => new Ast.Table.Index(table, indices, null);
+    '(' table ')' '[' base:constant ':' delta:constant ']'    => new Ast.Table.Slice(table, base, delta, null);
+
     'window' base:constant_Number ',' delta:constant_Number 'of' '(' stream ')'        => new Ast.Table.Window(base, delta, stream, null);
     'timeseries' base:constant_Date ',' delta:constant_Measure_ms 'of' '(' stream ')' => new Ast.Table.TimeSeries(base, delta, stream, null);
     'sequence' base:constant_Number ',' delta:constant_Number 'of' '(' table ')'       => new Ast.Table.Sequence(base, delta, table, null);
