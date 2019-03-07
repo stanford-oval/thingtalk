@@ -20,6 +20,7 @@ seq([
     ('./test_date_utils'),
     ('./test_utils'),
     ('./test_builtin_values'),
+    ('./test_builtin_sort_index'),
     ('./test_ast'),
     ('./test_generated_parser'),
     ('./test_grammar'),
