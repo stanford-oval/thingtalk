@@ -58,8 +58,7 @@ const TEST_CASES = [
      `}\n` +
      `  now => @com.instagram.get_pictures() => @__dyn_0.send(__principal="matrix-account:@rayx6:matrix.org"^^tt:contact, __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, media_id=media_id, picture_url=picture_url, caption=caption, link=link, filter=filter, hashtags=hashtags, location=location);\n` +
      `}`,
-     `{\n` +
-     `  class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {\n` +
+     `class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {\n` +
      `    action send(in req __principal: Entity(tt:contact),\n` +
      `                in req __program_id: Entity(tt:program_id),\n` +
      `                in req __flow: Number,\n` +
@@ -72,8 +71,7 @@ const TEST_CASES = [
      `                in req hashtags: Array(Entity(tt:hashtag)),\n` +
      `                in req location: Location);\n` +
      `  }\n` +
-     `  now => (@com.instagram.get_pictures()), caption =~ "trip" => @__dyn_0.send(__principal="matrix-account:@rayx6:matrix.org"^^tt:contact, __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, media_id=media_id, picture_url=picture_url, caption=caption, link=link, filter=filter, hashtags=hashtags, location=location);\n` +
-     `}`],
+     `  now => (@com.instagram.get_pictures()), caption =~ "trip" => @__dyn_0.send(__principal="matrix-account:@rayx6:matrix.org"^^tt:contact, __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, media_id=media_id, picture_url=picture_url, caption=caption, link=link, filter=filter, hashtags=hashtags, location=location);`],
 
     /*[`monitor @thermostat.get_temperature(), @com.xkcd.get_comic(number=10) { title =~ "lol" }  => notify;`,
     `@thermostat.temperature(), @xkcd.get_comic(number=10) { title =~ "lol" }  => notify;`],

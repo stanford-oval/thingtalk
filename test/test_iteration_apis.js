@@ -11,8 +11,6 @@
 
 const assert = require('assert');
 
-const Q = require('q');
-Q.longStackSupport = true;
 const Grammar = require('../lib/grammar_api');
 const SchemaRetriever = require('../lib/schema');
 
@@ -94,7 +92,23 @@ var TEST_CASES = [
      'Device(org.thingpedia.weather, , ) org.thingpedia.weather:current',
      'Builtin undefined:notify']],
 
-    [`now => aggregate argmax 1,1 temperature of (@com.instagram.get_pictures() join @org.thingpedia.weather.current() on (location=location)) => notify;`,
+    [`now => sort temperature asc of (@com.instagram.get_pictures() join @org.thingpedia.weather.current() on (location=location)) => notify;`,
+    ['query: Invocation(Device(com.instagram, , ), get_pictures, , )',
+     'query: Invocation(Device(org.thingpedia.weather, , ), current, , )',
+     'action: Invocation(Builtin, notify, , )'],
+    ['Device(com.instagram, , ) com.instagram:get_pictures',
+     'Device(org.thingpedia.weather, , ) org.thingpedia.weather:current',
+     'Builtin undefined:notify']],
+
+    [`now => (@com.instagram.get_pictures() join @org.thingpedia.weather.current() on (location=location))[1,2] => notify;`,
+    ['query: Invocation(Device(com.instagram, , ), get_pictures, , )',
+     'query: Invocation(Device(org.thingpedia.weather, , ), current, , )',
+     'action: Invocation(Builtin, notify, , )'],
+    ['Device(com.instagram, , ) com.instagram:get_pictures',
+     'Device(org.thingpedia.weather, , ) org.thingpedia.weather:current',
+     'Builtin undefined:notify']],
+
+    [`now => (@com.instagram.get_pictures() join @org.thingpedia.weather.current() on (location=location))[1:2] => notify;`,
     ['query: Invocation(Device(com.instagram, , ), get_pictures, , )',
      'query: Invocation(Device(org.thingpedia.weather, , ), current, , )',
      'action: Invocation(Builtin, notify, , )'],
@@ -243,15 +257,9 @@ function test(i) {
     });
 }
 
-function loop(i) {
-    if (i === TEST_CASES.length)
-        return Q();
-
-    return Q(test(i)).then(() => loop(i+1));
-}
-
-function main() {
-    return loop(0);
+async function main() {
+    for (let i = 0; i < TEST_CASES.length; i++)
+        await test(i);
 }
 module.exports = main;
 if (!module.parent)

@@ -39,8 +39,7 @@ const TEST_CASES = [
      `  }\n` +
      `  now => @security-camera.current_event() => @__dyn_0.send(__principal="mock-account:12345678"^^tt:contact("me"), __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, start_time=start_time, has_sound=has_sound, has_motion=has_motion, has_person=has_person, picture_url=picture_url);\n` +
     `}`,
-    [`{\n` +
-     `  class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {\n` +
+    [`class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {\n` +
      `    monitorable list query receive(in req __principal: Entity(tt:contact),\n` +
      `                                   in req __program_id: Entity(tt:program_id),\n` +
      `                                   in req __flow: Number,\n` +
@@ -51,8 +50,7 @@ const TEST_CASES = [
      `                                   out has_person: Boolean,\n` +
      `                                   out picture_url: Entity(tt:picture));\n` +
      `  }\n` +
-     `  monitor (@__dyn_0.receive(__principal="1234"^^tt:contact, __program_id=$event.program_id, __flow=0)) => notify;\n` +
-     `}`]],
+     `  monitor (@__dyn_0.receive(__principal="1234"^^tt:contact, __program_id=$event.program_id, __flow=0)) => notify;`]],
 
     [`executor = "1234"^^tt:contact : now => @com.bing.web_search(query="lol") => return;`,
      `executor = "1234"^^tt:contact : {\n` +
@@ -67,8 +65,7 @@ const TEST_CASES = [
      `  }\n` +
      `  now => @com.bing.web_search(query="lol") => @__dyn_0.send(__principal="mock-account:12345678"^^tt:contact("me"), __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, title=title, description=description, link=link);\n` +
      `}`,
-    [`{\n` +
-     `  class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {\n` + 
+    [`class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {\n` +
      `    monitorable list query receive(in req __principal: Entity(tt:contact),\n` +
      `                                   in req __program_id: Entity(tt:program_id),\n` +
      `                                   in req __flow: Number,\n` +
@@ -77,8 +74,7 @@ const TEST_CASES = [
      `                                   out description: String,\n` +
      `                                   out link: Entity(tt:url));\n` +
      `  }\n` +
-     `  monitor (@__dyn_0.receive(__principal="1234"^^tt:contact, __program_id=$event.program_id, __flow=0)) => notify;\n` +
-     `}`]],
+     `  monitor (@__dyn_0.receive(__principal="1234"^^tt:contact, __program_id=$event.program_id, __flow=0)) => notify;`]],
 
     [`executor = "1234"^^tt:contact : monitor @security-camera.current_event() => return;`,
      `executor = "1234"^^tt:contact : {\n` +
@@ -95,8 +91,7 @@ const TEST_CASES = [
      `  }\n` +
      `  monitor (@security-camera.current_event()) => @__dyn_0.send(__principal="mock-account:12345678"^^tt:contact("me"), __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, start_time=start_time, has_sound=has_sound, has_motion=has_motion, has_person=has_person, picture_url=picture_url);\n` +
      `}`,
-    [`{\n` +
-     `  class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {\n` +
+    [`class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {\n` +
      `    monitorable list query receive(in req __principal: Entity(tt:contact),\n` +
      `                                   in req __program_id: Entity(tt:program_id),\n` +
      `                                   in req __flow: Number,\n` +
@@ -107,8 +102,7 @@ const TEST_CASES = [
      `                                   out has_person: Boolean,\n` +
      `                                   out picture_url: Entity(tt:picture));\n` +
      `  }\n` +
-     `  monitor (@__dyn_0.receive(__principal="1234"^^tt:contact, __program_id=$event.program_id, __flow=0)) => notify;\n` +
-     `}`]],
+     `  monitor (@__dyn_0.receive(__principal="1234"^^tt:contact, __program_id=$event.program_id, __flow=0)) => notify;`]],
 
 ];
 

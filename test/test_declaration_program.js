@@ -20,12 +20,12 @@ const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 var TEST_CASES = [
     // manually written test cases
     ['let action x := @com.twitter.post();',
-     'now => @com.twitter.post(status=$undefined);'],
+     'now => @com.twitter.post(status=$?);'],
     [`let action x := \\(p_status : String) -> @com.twitter.post(status=p_status);`,
      'now => @com.twitter.post(status=__const_SLOT_0);'],
 
     ['let table x := @com.bing.web_search();',
-     'now => @com.bing.web_search(query=$undefined) => notify;'],
+     'now => @com.bing.web_search(query=$?) => notify;'],
     [`let table x := \\(p_query : String) -> @com.bing.web_search(query=p_query);`,
      'now => @com.bing.web_search(query=__const_SLOT_0) => notify;'],
     [`let table x := \\(p_query : String, p_width : Number) -> @com.bing.image_search(query=p_query), width >= p_width;`,
