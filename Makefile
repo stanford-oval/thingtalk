@@ -3,7 +3,7 @@
 	node -c $@
 
 %.js : %.pegjs
-	./node_modules/.bin/pegjs -o $@ $<
+	pegjs -o $@ $<
 
 %.mo : %.po
 	msgfmt $< -o $@
@@ -18,4 +18,4 @@ all = \
 all: $(all)
 
 lib/grammar.js : lib/grammar.pegjs
-	./node_modules/.bin/pegjs --allowed-start-rules input,type_ref,permission_rule -o $@ $<
+	pegjs --allowed-start-rules input,type_ref,permission_rule -o $@ $<
