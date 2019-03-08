@@ -1027,3 +1027,61 @@ now => sort sender_name asc of @com.gmail.inbox() => notify;
 // ** typecheck: expect TypeError **
 // cannot sort by entity
 now => sort sender_address asc of @com.gmail.inbox() => notify;
+
+====
+
+// program declarations of various sorts
+
+let procedure p1 := {
+  now => @com.thecatapi.get() => notify;
+  now => @uk.co.thedogapi.get() => notify;
+};
+let program p2 := {
+  attimer(time=makeTime(7, 0)) => @com.thecatapi.get() => notify;
+};
+let procedure p3 := \(p_query : String) -> {
+  now => @com.bing.web_search(query=p_query) => notify;
+};
+let procedure p4(p_query : String) := {
+  now => @com.bing.web_search(query=p_query) => notify;
+};
+
+now => p1();
+oninput => {
+  p2();
+  p3();
+  p4(p_query="foo");
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// procedure with a monitor
+
+let procedure p1 := {
+  attimer(time=makeTime(7,0)) => @com.thecatapi.get() => notify;
+};
+
+now => p1();
+
+====
+
+// ** typecheck: expect TypeError **
+// wrong parameter to the procedure
+
+let procedure p1 := \(p_query : String) -> {
+  now => @com.bing.web_search(query=p_query) => notify;
+};
+
+now => p1(p_query=43);
+
+====
+
+// ** typecheck: expect TypeError **
+// procedure as query
+
+let procedure p1 := \(p_query : String) -> {
+  now => @com.bing.web_search(query=p_query) => notify;
+};
+
+now => p1(p_query="foo") => notify;
