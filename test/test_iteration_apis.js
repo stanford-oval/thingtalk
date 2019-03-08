@@ -240,12 +240,8 @@ var TEST_CASES = [
         // this should have a query=$? added
         p1();
     }`,
-    ['query: Invocation(Device(com.bing, , ), web_search, InputParam(query, VarRef(p_query)), )',
-     'action: Invocation(Builtin, notify, , )',
-     'action: VarRef(p1, InputParam(p_query, Undefined(true)), )'],
-    ['Device(com.bing, , ) com.bing:web_search',
-     'InputParam(query, VarRef(p_query)) com.bing:web_search',
-     'Builtin undefined:notify']]
+    ['action: VarRef(p1, InputParam(p_query, Undefined(true)), )'],
+    ['InputParam(p_query, Undefined(true)) p1']]
 
 ];
 
@@ -255,7 +251,10 @@ function test(i) {
 
     return Grammar.parseAndTypecheck(code, schemaRetriever, true).then((prog) => {
         const generatedSlots = Array.from(prog.iterateSlots()).map(([schema, slot, prim, scope]) => {
-            return `${slot} ${prim.selector.kind}:${prim.channel}`;
+            if (prim.isVarRef)
+                return `${slot} ${prim.name}`;
+            else
+                return `${slot} ${prim.selector.kind}:${prim.channel}`;
         });
         const generatedPrims = Array.from(prog.iteratePrimitives(true)).map(([primType, prim]) => {
             prim.schema = null;
