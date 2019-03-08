@@ -1085,3 +1085,16 @@ let procedure p1 := \(p_query : String) -> {
 };
 
 now => p1(p_query="foo") => notify;
+
+====
+
+// annotations on declarations
+
+let stream s := monitor(@com.bing.web_search()) #_[canonical="bing updates"];
+let query q := @com.bing.web_search() #_[canonical="bing search"] #[foo=43];
+let action a := \(p_value : String) -> @com.twitter.post(status=p_value) #_[canonical="roast on twitter"];
+
+let procedure p1 := {
+  now => @com.thecatapi.get() => notify;
+  now => @uk.co.thedogapi.get() => notify;
+} #_[canonical="cats and dogs"];
