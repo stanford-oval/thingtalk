@@ -1,8 +1,5 @@
 "use strict";
 
-const Q = require('q');
-Q.longStackSupport = true;
-
 require('../lib/grammar_api');
 const Compiler = require('../lib/compiler');
 const SchemaRetriever = require('../lib/schema');
@@ -27,7 +24,47 @@ const TEST_CASES = [
   let _t_10;
   try {
     _t_0 = {};
-    _t_1 = await env.invokeQuery(0, _t_0);
+    _t_1 = await env.invokeQuery("com.xkcd", { }, "get_comic", _t_0);
+    _t_2 = _t_1[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.number;
+        _t_7 = _t_5.title;
+        _t_8 = _t_5.picture_url;
+        _t_9 = _t_5.link;
+        _t_10 = _t_5.alt_text;
+        try {
+          await env.output(String(_t_4), _t_5);
+        } catch(_exc_) {
+          env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_2.next();
+      }
+    }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke query", _exc_);
+  }`]],
+
+    [`now => @com.xkcd(id="com.xkcd-123").get_comic() => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  try {
+    _t_0 = {};
+    _t_1 = await env.invokeQuery("com.xkcd", { id: "com.xkcd-123", }, "get_comic", _t_0);
     _t_2 = _t_1[Symbol.iterator]();
     {
       let _iter_tmp = await _t_2.next();
@@ -68,7 +105,7 @@ const TEST_CASES = [
   let _t_11;
   try {
     _t_0 = {};
-    _t_1 = await env.invokeQuery(0, _t_0);
+    _t_1 = await env.invokeQuery("com.xkcd", { }, "get_comic", _t_0);
     _t_2 = _t_1[Symbol.iterator]();
     {
       let _iter_tmp = await _t_2.next();
@@ -89,7 +126,7 @@ const TEST_CASES = [
         try {
           _t_11 = {};
           _t_11.status = _t_7;
-          await env.invokeAction(1, _t_11);
+          await env.invokeAction("com.twitter", { }, "post", _t_11);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
@@ -118,7 +155,7 @@ const TEST_CASES = [
   let _t_13;
   try {
     _t_0 = {};
-    _t_1 = await env.invokeQuery(0, _t_0);
+    _t_1 = await env.invokeQuery("com.xkcd", { }, "get_comic", _t_0);
     _t_2 = _t_1[Symbol.iterator]();
     {
       let _iter_tmp = await _t_2.next();
@@ -142,7 +179,7 @@ const TEST_CASES = [
           try {
             _t_13 = {};
             _t_13.status = _t_7;
-            await env.invokeAction(1, _t_13);
+            await env.invokeAction("com.twitter", { }, "post", _t_13);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
@@ -174,7 +211,7 @@ const TEST_CASES = [
   _t_0 = await env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = await env.invokeMonitor(0, _t_1, false);
+    _t_2 = await env.invokeMonitor("thermostat", { }, "get_temperature", _t_1, false);
     {
       let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
@@ -194,7 +231,7 @@ const TEST_CASES = [
               _t_11 = {};
               _t_12 = "bla";
               _t_11.message = _t_12;
-              await env.invokeAction(1, _t_11);
+              await env.invokeAction("org.thingpedia.builtin.thingengine.builtin", { }, "say", _t_11);
             } catch(_exc_) {
               env.reportError("Failed to invoke action", _exc_);
             }
@@ -229,7 +266,7 @@ const TEST_CASES = [
   _t_0 = await env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = await env.invokeMonitor(0, _t_1, false);
+    _t_2 = await env.invokeMonitor("thermostat", { }, "get_temperature", _t_1, false);
     {
       let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
@@ -249,7 +286,7 @@ const TEST_CASES = [
               _t_11 = {};
               _t_12 = "bla";
               _t_11.message = _t_12;
-              await env.invokeAction(1, _t_11);
+              await env.invokeAction("org.thingpedia.builtin.thingengine.builtin", { }, "say", _t_11);
             } catch(_exc_) {
               env.reportError("Failed to invoke action", _exc_);
             }
@@ -273,7 +310,7 @@ const TEST_CASES = [
     _t_0 = {};
     _t_1 = "test";
     _t_0.message = _t_1;
-    await env.invokeAction(0, _t_0);
+    await env.invokeAction("org.thingpedia.builtin.thingengine.builtin", { }, "say", _t_0);
   } catch(_exc_) {
     env.reportError("Failed to invoke action", _exc_);
   }`]],
@@ -299,7 +336,7 @@ const TEST_CASES = [
   _t_0 = await env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = await env.invokeMonitor(0, _t_1, false);
+    _t_2 = await env.invokeMonitor("com.twitter", { id: "twitter-foo", }, "home_timeline", _t_1, false);
     {
       let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
@@ -361,7 +398,7 @@ const TEST_CASES = [
     _t_1 = {};
     _t_2 = new __builtin.Location(1, 3, "Somewhere");
     _t_1.location = _t_2;
-    _t_3 = await env.invokeMonitor(0, _t_1, false);
+    _t_3 = await env.invokeMonitor("org.thingpedia.weather", { }, "current", _t_1, false);
     {
       let _iter_tmp = await _t_3.next();
       while (!_iter_tmp.done) {
@@ -418,7 +455,7 @@ const TEST_CASES = [
     _t_1 = {};
     _t_2 = new __builtin.Location(1, 3, null);
     _t_1.location = _t_2;
-    _t_3 = await env.invokeMonitor(0, _t_1, false);
+    _t_3 = await env.invokeMonitor("org.thingpedia.weather", { }, "current", _t_1, false);
     {
       let _iter_tmp = await _t_3.next();
       while (!_iter_tmp.done) {
@@ -494,7 +531,7 @@ const TEST_CASES = [
           _t_3 = {};
           _t_4 = "lol";
           _t_3.status = _t_4;
-          await env.invokeAction(0, _t_3);
+          await env.invokeAction("com.twitter", { }, "post", _t_3);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
@@ -551,7 +588,7 @@ const TEST_CASES = [
           _t_4 = {};
           _t_5 = "lol";
           _t_4.status = _t_5;
-          await env.invokeAction(0, _t_4);
+          await env.invokeAction("com.twitter", { }, "post", _t_4);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
@@ -584,7 +621,7 @@ const TEST_CASES = [
     _t_0 = {};
     _t_1 = "lol";
     _t_0.query = _t_1;
-    _t_2 = await env.invokeQuery(0, _t_0);
+    _t_2 = await env.invokeQuery("com.youtube", { }, "search_videos", _t_0);
     _t_3 = _t_2[Symbol.iterator]();
     {
       let _iter_tmp = await _t_3.next();
@@ -637,7 +674,7 @@ const TEST_CASES = [
   _t_0 = await env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = await env.invokeMonitor(0, _t_1, false);
+    _t_2 = await env.invokeMonitor("com.xkcd", { id: "com.xkcd-6", }, "get_comic", _t_1, false);
     {
       let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
@@ -659,7 +696,7 @@ const TEST_CASES = [
             _t_13.caption = _t_7;
             _t_14 = String (_t_8);
             _t_13.picture_url = _t_14;
-            await env.invokeAction(1, _t_13);
+            await env.invokeAction("com.twitter", { id: "twitter-foo", }, "post_picture", _t_13);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
@@ -685,7 +722,7 @@ const TEST_CASES = [
     _t_0 = {};
     _t_1 = "foo";
     _t_0.foo = _t_1;
-    await env.invokeAction(0, _t_0);
+    await env.invokeAction("org.thingpedia.builtin.thingengine.remote", { }, "send", _t_0);
   } catch(_exc_) {
     env.reportError("Failed to invoke action", _exc_);
   }`]],
@@ -718,7 +755,7 @@ const TEST_CASES = [
   _t_0 = await env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = await env.invokeMonitor(0, _t_1, false);
+    _t_2 = await env.invokeMonitor("com.twitter", { }, "home_timeline", _t_1, false);
     {
       let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
@@ -789,7 +826,7 @@ const TEST_CASES = [
   _t_0 = await env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = await env.invokeMonitor(0, _t_1, false);
+    _t_2 = await env.invokeMonitor("com.twitter", { }, "home_timeline", _t_1, false);
     {
       let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
@@ -811,7 +848,7 @@ const TEST_CASES = [
             _t_14 = {};
             _t_15 = await env.formatEvent(_t_4, _t_5, "string");
             _t_14.message = _t_15;
-            await env.invokeAction(1, _t_14);
+            await env.invokeAction("org.thingpedia.builtin.thingengine.builtin", { }, "say", _t_14);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
@@ -846,7 +883,7 @@ const TEST_CASES = [
   _t_0 = await env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = await env.invokeMonitor(0, _t_1, false);
+    _t_2 = await env.invokeMonitor("com.twitter", { }, "home_timeline", _t_1, false);
     {
       let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
@@ -868,7 +905,7 @@ const TEST_CASES = [
             _t_14 = {};
             _t_15 = String (_t_4);
             _t_14.message = _t_15;
-            await env.invokeAction(1, _t_14);
+            await env.invokeAction("org.thingpedia.builtin.thingengine.builtin", { }, "say", _t_14);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
@@ -902,7 +939,7 @@ const TEST_CASES = [
   _t_0 = await env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = await env.invokeMonitor(0, _t_1, false);
+    _t_2 = await env.invokeMonitor("com.xkcd", { id: "com.xkcd-6", }, "get_comic", _t_1, false);
     {
       let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
@@ -923,7 +960,7 @@ const TEST_CASES = [
             _t_13 = {};
             _t_14 = String (_t_8);
             _t_13.status = _t_14;
-            await env.invokeAction(1, _t_13);
+            await env.invokeAction("com.twitter", { }, "post", _t_13);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
@@ -951,7 +988,7 @@ const TEST_CASES = [
   let _t_9;
   try {
     _t_0 = {};
-    _t_1 = await env.invokeQuery(0, _t_0);
+    _t_1 = await env.invokeQuery("org.thingpedia.builtin.thingengine.builtin", { }, "get_time", _t_0);
     _t_2 = _t_1[Symbol.iterator]();
     {
       let _iter_tmp = await _t_2.next();
@@ -1008,7 +1045,7 @@ const TEST_CASES = [
   _t_0 = await env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = await env.invokeMonitor(0, _t_1, false);
+    _t_2 = await env.invokeMonitor("com.twitter", { }, "home_timeline", _t_1, false);
     {
       let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
@@ -1035,7 +1072,7 @@ const TEST_CASES = [
             _t_17 = 0;
             _t_14.__flow = _t_17;
             _t_14.__kindChannel = _t_4;
-            await env.invokeAction(1, _t_14);
+            await env.invokeAction("org.thingpedia.builtin.thingengine.remote", { }, "send", _t_14);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
@@ -1092,7 +1129,7 @@ const TEST_CASES = [
   _t_0 = await env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = await env.invokeMonitor(0, _t_1, false);
+    _t_2 = await env.invokeMonitor("com.twitter", { }, "home_timeline", _t_1, false);
     {
       let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
@@ -1113,7 +1150,7 @@ const TEST_CASES = [
           _t_14 = false;
           try {
             _t_16 = {};
-            _t_15 = await env.invokeQuery(1, _t_16);
+            _t_15 = await env.invokeQuery("org.thingpedia.builtin.thingengine.builtin", { }, "get_time", _t_16);
             _t_17 = _t_15[Symbol.iterator]();
             {
               let _iter_tmp = await _t_17.next();
@@ -1196,7 +1233,7 @@ const TEST_CASES = [
   _t_0 = await env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = await env.invokeMonitor(0, _t_1, false);
+    _t_2 = await env.invokeMonitor("com.twitter", { }, "home_timeline", _t_1, false);
     {
       let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
@@ -1221,7 +1258,7 @@ const TEST_CASES = [
           _t_17 = false;
           try {
             _t_19 = {};
-            _t_18 = await env.invokeQuery(1, _t_19);
+            _t_18 = await env.invokeQuery("org.thingpedia.builtin.thingengine.builtin", { }, "get_time", _t_19);
             _t_20 = _t_18[Symbol.iterator]();
             {
               let _iter_tmp = await _t_20.next();
@@ -1307,7 +1344,7 @@ const TEST_CASES = [
           _t_4.__kindChannel = null;
           _t_8 = 10000;
           _t_4.interval = _t_8;
-          await env.invokeAction(0, _t_4);
+          await env.invokeAction("org.thingpedia.builtin.thingengine.remote", { }, "send", _t_4);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
@@ -1355,7 +1392,7 @@ const TEST_CASES = [
     _t_1.__program_id = _t_3;
     _t_4 = 0;
     _t_1.__flow = _t_4;
-    _t_5 = await env.invokeMonitor(0, _t_1, false);
+    _t_5 = await env.invokeMonitor("org.thingpedia.builtin.thingengine.remote", { }, "receive", _t_1, false);
     {
       let _iter_tmp = await _t_5.next();
       while (!_iter_tmp.done) {
@@ -1373,7 +1410,7 @@ const TEST_CASES = [
             _t_13 = {};
             _t_14 = "on";
             _t_13.power = _t_14;
-            await env.invokeAction(1, _t_13);
+            await env.invokeAction("security-camera", { }, "set_power", _t_13);
           } catch(_exc_) {
             env.reportError("Failed to invoke action", _exc_);
           }
@@ -1439,7 +1476,7 @@ const TEST_CASES = [
     _t_2 = await env.readState(1);
     try {
       _t_3 = {};
-      _t_4 = await env.invokeMonitor(0, _t_3, false);
+      _t_4 = await env.invokeMonitor("com.twitter", { }, "home_timeline", _t_3, false);
       {
         let _iter_tmp = await _t_4.next();
         while (!_iter_tmp.done) {
@@ -1474,7 +1511,7 @@ const TEST_CASES = [
       _t_18 = {};
       _t_19 = "foo";
       _t_18.query = _t_19;
-      _t_20 = await env.invokeMonitor(1, _t_18, false);
+      _t_20 = await env.invokeMonitor("com.bing", { }, "web_search", _t_18, false);
       {
         let _iter_tmp = await _t_20.next();
         while (!_iter_tmp.done) {
@@ -1588,7 +1625,7 @@ const TEST_CASES = [
     _t_2 = await env.readState(1);
     try {
       _t_3 = {};
-      _t_4 = await env.invokeMonitor(0, _t_3, false);
+      _t_4 = await env.invokeMonitor("com.twitter", { }, "home_timeline", _t_3, false);
       {
         let _iter_tmp = await _t_4.next();
         while (!_iter_tmp.done) {
@@ -1623,7 +1660,7 @@ const TEST_CASES = [
       _t_18 = {};
       _t_19 = "foo";
       _t_18.query = _t_19;
-      _t_20 = await env.invokeMonitor(1, _t_18, false);
+      _t_20 = await env.invokeMonitor("com.bing", { }, "web_search", _t_18, false);
       {
         let _iter_tmp = await _t_20.next();
         while (!_iter_tmp.done) {
@@ -1726,7 +1763,7 @@ const TEST_CASES = [
   let _t_32;
   try {
     _t_0 = {};
-    _t_1 = await env.invokeQuery(0, _t_0);
+    _t_1 = await env.invokeQuery("com.twitter", { }, "home_timeline", _t_0);
     _t_2 = _t_1[Symbol.iterator]();
     {
       let _iter_tmp = await _t_2.next();
@@ -1743,7 +1780,7 @@ const TEST_CASES = [
         try {
           _t_12 = {};
           _t_12.query = _t_6;
-          _t_13 = await env.invokeQuery(1, _t_12);
+          _t_13 = await env.invokeQuery("com.bing", { }, "web_search", _t_12);
           _t_14 = _t_13[Symbol.iterator]();
           {
             let _iter_tmp = await _t_14.next();
@@ -1837,7 +1874,7 @@ const TEST_CASES = [
   _t_0 = async function(emit) {
     try {
       _t_1 = {};
-      _t_2 = await env.invokeQuery(0, _t_1);
+      _t_2 = await env.invokeQuery("com.twitter", { }, "home_timeline", _t_1);
       _t_3 = _t_2[Symbol.iterator]();
       {
         let _iter_tmp = await _t_3.next();
@@ -1864,7 +1901,7 @@ const TEST_CASES = [
       _t_14 = {};
       _t_15 = "foo";
       _t_14.query = _t_15;
-      _t_16 = await env.invokeQuery(1, _t_14);
+      _t_16 = await env.invokeQuery("com.bing", { }, "web_search", _t_14);
       _t_17 = _t_16[Symbol.iterator]();
       {
         let _iter_tmp = await _t_17.next();
@@ -1943,7 +1980,7 @@ const TEST_CASES = [
         _t_2 = _iter_tmp.value;
         try {
           _t_3 = {};
-          _t_4 = await env.invokeQuery(0, _t_3);
+          _t_4 = await env.invokeQuery("com.thecatapi", { id: "com.thecatapi", }, "get", _t_3);
           _t_5 = _t_4[Symbol.iterator]();
           {
             let _iter_tmp = await _t_5.next();
@@ -1974,7 +2011,7 @@ const TEST_CASES = [
                 _t_18.message = _t_21;
                 _t_22 = String (_t_16);
                 _t_18.picture_url = _t_22;
-                await env.invokeAction(1, _t_18);
+                await env.invokeAction("com.gmail", { id: "xxxx", }, "send_picture", _t_18);
               } catch(_exc_) {
                 env.reportError("Failed to invoke action", _exc_);
               }
@@ -2018,7 +2055,7 @@ const TEST_CASES = [
     _t_0.size = _t_1;
     _t_2 = 1;
     _t_0.count = _t_2;
-    _t_3 = await env.invokeQuery(0, _t_0);
+    _t_3 = await env.invokeQuery("org.thingpedia.builtin.test", { id: "org.thingpedia.builtin.test", }, "get_data", _t_0);
     _t_4 = _t_3[Symbol.iterator]();
     {
       let _iter_tmp = await _t_4.next();
@@ -2037,7 +2074,7 @@ const TEST_CASES = [
           _t_9.__flow = _t_12;
           _t_9.__kindChannel = _t_6;
           _t_9.data = _t_8;
-          await env.invokeAction(1, _t_9);
+          await env.invokeAction("org.thingpedia.builtin.thingengine.remote", { id: "org.thingpedia.builtin.thingengine.remote", }, "send", _t_9);
         } catch(_exc_) {
           env.reportError("Failed to invoke action", _exc_);
         }
@@ -2094,7 +2131,7 @@ const TEST_CASES = [
         _t_3 = _iter_tmp.value;
         try {
           _t_4 = {};
-          _t_5 = await env.invokeQuery(0, _t_4);
+          _t_5 = await env.invokeQuery("com.twitter", { }, "search", _t_4);
           _t_6 = _t_5[Symbol.iterator]();
           {
             let _iter_tmp = await _t_6.next();
@@ -2163,7 +2200,7 @@ const TEST_CASES = [
     _t_0.picture_url = _t_2;
     _t_3 = "lol";
     _t_0.caption = _t_3;
-    await env.invokeAction(0, _t_0);
+    await env.invokeAction("com.twitter", { }, "post_picture", _t_0);
   } catch(_exc_) {
     env.reportError("Failed to invoke action", _exc_);
   }`]],
@@ -2192,7 +2229,7 @@ const TEST_CASES = [
     _t_1 = {};
     _t_2 = "dogs";
     _t_1.query = _t_2;
-    _t_3 = await env.invokeQuery(0, _t_1);
+    _t_3 = await env.invokeQuery("com.bing", { }, "web_search", _t_1);
     _t_4 = _t_3[Symbol.iterator]();
     {
       let _iter_tmp = await _t_4.next();
@@ -2259,7 +2296,7 @@ const TEST_CASES = [
           _t_5 = {};
           _t_6 = "dogs";
           _t_5.query = _t_6;
-          _t_7 = await env.invokeQuery(0, _t_5);
+          _t_7 = await env.invokeQuery("com.bing", { }, "web_search", _t_5);
           _t_8 = _t_7[Symbol.iterator]();
           {
             let _iter_tmp = await _t_8.next();
@@ -2338,7 +2375,7 @@ const TEST_CASES = [
         _t_4 = new __builtin.EqualitySet();
         try {
           _t_5 = {};
-          _t_6 = await env.invokeQuery(0, _t_5);
+          _t_6 = await env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_5);
           _t_7 = _t_6[Symbol.iterator]();
           {
             let _iter_tmp = await _t_7.next();
@@ -2426,7 +2463,7 @@ const TEST_CASES = [
         _t_4 = 0;
         try {
           _t_6 = {};
-          _t_7 = await env.invokeQuery(0, _t_6);
+          _t_7 = await env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_6);
           _t_8 = _t_7[Symbol.iterator]();
           {
             let _iter_tmp = await _t_8.next();
@@ -2512,7 +2549,7 @@ const TEST_CASES = [
         _t_4 = -Infinity;
         try {
           _t_5 = {};
-          _t_6 = await env.invokeQuery(0, _t_5);
+          _t_6 = await env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_5);
           _t_7 = _t_6[Symbol.iterator]();
           {
             let _iter_tmp = await _t_7.next();
@@ -2611,7 +2648,7 @@ const TEST_CASES = [
   _t_0 = async function(emit) {
     try {
       _t_1 = {};
-      _t_2 = await env.invokeQuery(0, _t_1);
+      _t_2 = await env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_1);
       _t_3 = _t_2[Symbol.iterator]();
       {
         let _iter_tmp = await _t_3.next();
@@ -2640,7 +2677,7 @@ const TEST_CASES = [
     _t_17 = -Infinity;
     try {
       _t_18 = {};
-      _t_19 = await env.invokeQuery(1, _t_18);
+      _t_19 = await env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_18);
       _t_20 = _t_19[Symbol.iterator]();
       {
         let _iter_tmp = await _t_20.next();
@@ -2747,7 +2784,7 @@ const TEST_CASES = [
   _t_2 = await env.readState(2);
   try {
     _t_3 = {};
-    _t_4 = await env.invokeMonitor(0, _t_3, false);
+    _t_4 = await env.invokeMonitor("com.google.drive", { }, "list_drive_files", _t_3, false);
     {
       let _iter_tmp = await _t_4.next();
       while (!_iter_tmp.done) {
@@ -2777,7 +2814,7 @@ const TEST_CASES = [
             _t_22 = -Infinity;
             try {
               _t_23 = {};
-              _t_24 = await env.invokeQuery(1, _t_23);
+              _t_24 = await env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_23);
               _t_25 = _t_24[Symbol.iterator]();
               {
                 let _iter_tmp = await _t_25.next();
@@ -2890,7 +2927,7 @@ const TEST_CASES = [
         _t_5 = -Infinity;
         try {
           _t_8 = {};
-          _t_9 = await env.invokeQuery(0, _t_8);
+          _t_9 = await env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_8);
           _t_10 = _t_9[Symbol.iterator]();
           {
             let _iter_tmp = await _t_10.next();
@@ -3025,7 +3062,7 @@ const TEST_CASES = [
         _t_5 = Infinity;
         try {
           _t_8 = {};
-          _t_9 = await env.invokeQuery(0, _t_8);
+          _t_9 = await env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_8);
           _t_10 = _t_9[Symbol.iterator]();
           {
             let _iter_tmp = await _t_10.next();
@@ -3144,7 +3181,7 @@ const TEST_CASES = [
   _t_4 = new __builtin.ArgMinMaxState(_t_2, _t_3, _t_0, _t_1);
   try {
     _t_5 = {};
-    _t_6 = await env.invokeQuery(0, _t_5);
+    _t_6 = await env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_5);
     _t_7 = _t_6[Symbol.iterator]();
     {
       let _iter_tmp = await _t_7.next();
@@ -3217,7 +3254,7 @@ const TEST_CASES = [
   _t_2 = 0;
   try {
     _t_3 = {};
-    _t_4 = await env.invokeQuery(0, _t_3);
+    _t_4 = await env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_3);
     _t_5 = _t_4[Symbol.iterator]();
     {
       let _iter_tmp = await _t_5.next();
@@ -3309,7 +3346,7 @@ const TEST_CASES = [
         _t_5 = 0;
         try {
           _t_6 = {};
-          _t_7 = await env.invokeQuery(0, _t_6);
+          _t_7 = await env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_6);
           _t_8 = _t_7[Symbol.iterator]();
           {
             let _iter_tmp = await _t_8.next();
@@ -3416,7 +3453,7 @@ const TEST_CASES = [
   _t_1 = new Array(0);
   try {
     _t_2 = {};
-    _t_3 = await env.invokeQuery(0, _t_2);
+    _t_3 = await env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_2);
     _t_4 = _t_3[Symbol.iterator]();
     {
       let _iter_tmp = await _t_4.next();
@@ -3505,7 +3542,7 @@ const TEST_CASES = [
   _t_2 = new Array(0);
   try {
     _t_3 = {};
-    _t_4 = await env.invokeQuery(0, _t_3);
+    _t_4 = await env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_3);
     _t_5 = _t_4[Symbol.iterator]();
     {
       let _iter_tmp = await _t_5.next();
@@ -3590,7 +3627,7 @@ const TEST_CASES = [
   _t_0 = new Array(0);
   try {
     _t_1 = {};
-    _t_2 = await env.invokeQuery(0, _t_1);
+    _t_2 = await env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_1);
     _t_3 = _t_2[Symbol.iterator]();
     {
       let _iter_tmp = await _t_3.next();
@@ -3640,50 +3677,45 @@ const TEST_CASES = [
 ];
 
 const GeneratorFunction = Object.getPrototypeOf(async function(){}).constructor;
-function test(i) {
+async function test(i) {
     console.log('Test Case #' + (i+1));
 
     let [code, expected] = TEST_CASES[i];
 
-    return Q.try(() => {
+    try {
         var compiler = new Compiler(true);
         compiler.setSchemaRetriever(schemaRetriever);
 
-        return compiler.compileCode(code).then(() => {
-            let rules = compiler.rules;
-            for (let j = 0; j < Math.max(expected.length, rules.length); j++) {
-                let { code } = rules[j] || [];
-                code = code.replace(/new Date\([0-9]+\)/g, 'new Date(XNOWX)');
+        await compiler.compileCode(code);
+        let rules = compiler.rules;
+        for (let j = 0; j < Math.max(expected.length, rules.length); j++) {
+            let { code } = rules[j] || [];
+            code = code.replace(/new Date\([0-9]+\)/g, 'new Date(XNOWX)');
 
-                if (code === undefined || code.trim() !== expected[j].trim()) {
-                    console.error('Test Case #' + (i+1) + ': compiled code does not match what expected');
-                    //console.error('Expected: ' + expected[j]);
-                    console.error('Compiled: ' + code);
-                    if (process.env.TEST_MODE)
-                        throw new Error(`testCompiler ${i+1} FAILED`);
-                } else {
-                    new GeneratorFunction('__builtin', 'env', code);
-                }
+            if (code === undefined || code.trim() !== expected[j].trim()) {
+                console.error('Test Case #' + (i+1) + ': compiled code does not match what expected');
+                //console.error('Expected: ' + expected[j]);
+                console.error('Compiled: ' + code);
+                if (process.env.TEST_MODE)
+                    throw new Error(`testCompiler ${i+1} FAILED`);
+            } else {
+                new GeneratorFunction('__builtin', 'env', code);
             }
-        });
-    }).catch((e) => {
+        }
+    } catch (e) {
         console.error('Test Case #' + (i+1) + ': failed with exception');
         console.error('Code: ' + code);
         console.error('Error: ' + e.message);
         console.error(e.stack);
         if (process.env.TEST_MODE)
             throw e;
-    });
+    }
 }
 
-function loop(i) {
-    if (i === TEST_CASES.length)
-        return Q();
-
-    return Q(test(i)).then(() => loop(i+1));
-}
-function main() {
-    return loop(0);
+async function main() {
+    const max = !module.parent && process.argv[2] ? parseInt(process.argv[2]) : Infinity;
+    for (let i = 0; i < Math.min(max, TEST_CASES.length); i++)
+        await test(i);
 }
 module.exports = main;
 if (!module.parent)

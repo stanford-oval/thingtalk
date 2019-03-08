@@ -42,15 +42,12 @@ class MockExecEnvironment extends ExecEnvironment {
         return 'uuid-XXXXXXXXXXXX';
     }
 
-    _getFn(fnid, type) {
-        const fn = this._compiled.functions[fnid];
-
-        assert.strictEqual(fn.type, type);
-        return `${fn.selector.kind}:${fn.channel}`;
+    _getFn(kind, attrs, fname) {
+        return `${kind}:${fname}`;
     }
 
-    invokeMonitor(fnid, params) {
-        const fn = this._getFn(fnid, 'trigger');
+    invokeMonitor(kind, attrs, fname, params) {
+        const fn = this._getFn(kind, attrs, fname);
         if (!this._trigger || this._trigger.fn !== fn)
             throw new Error('Unexpected trigger ' + fn);
 
@@ -68,8 +65,8 @@ class MockExecEnvironment extends ExecEnvironment {
         throw new Error('Must be overridden');
     }
 
-    invokeQuery(fnid, params) {
-        const fn = this._getFn(fnid, 'query');
+    invokeQuery(kind, attrs, fname, params) {
+        const fn = this._getFn(kind, attrs, fname);
 
         if (!(fn in this._query))
             throw new Error('Unexpected query ' + fn);
@@ -82,8 +79,8 @@ class MockExecEnvironment extends ExecEnvironment {
         });
         return result;
     }
-    invokeAction(fnid, params) {
-        const fn = this._getFn(fnid, 'action');
+    invokeAction(kind, attrs, fname, params) {
+        const fn = this._getFn(kind, attrs, fname);
 
         const nextaction = this._actions.shift();
         if (!nextaction || nextaction.type !== 'action' || nextaction.fn !== fn)
