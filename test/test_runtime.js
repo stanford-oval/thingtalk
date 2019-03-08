@@ -24,16 +24,15 @@ const _mockSchemaDelegate = require('./mock_schema_delegate');
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 class MockExecEnvironment extends ExecEnvironment {
-    constructor(compiledrule, triggerdata, querydata, outputdata) {
+    constructor(compiled, triggerdata, querydata, outputdata) {
         super('en-US', 'America/Los_Angeles', schemaRetriever);
 
-        this._compiled = compiledrule;
         this._trigger = triggerdata;
         this._query = querydata;
         this._actions = outputdata;
 
         this._states = [];
-        this._states.length = compiledrule.states;
+        this._states.length = compiled.states;
         for (let i = 0; i < this._states.length; i++)
             this._states[i] = null;
     }
@@ -2077,15 +2076,17 @@ async function test(i) {
     let [code, trigger, queries, actions] = TEST_CASES[i];
 
     try {
-        var compiler = new Compiler();
-        compiler.setSchemaRetriever(schemaRetriever);
+        const compiler = new Compiler(schemaRetriever);
+        const compiled = await compiler.compileCode(code);
 
-        await compiler.compileCode(code);
-        assert.strictEqual(compiler.rules.length, 1);
+        const generated = [];
+        if (compiled.command)
+            generated.push(compiled.command);
+        generated.push(...compiled.rules);
 
-        const env = new MockExecEnvironment(compiler.rules[0],
-            trigger, queries, actions);
-        await compiler.rules[0].code(env);
+        assert.strictEqual(generated.length, 1);
+        const env = new MockExecEnvironment(compiled, trigger, queries, actions);
+        await generated[0](env);
 
         if (actions.length !== 0)
             throw new Error(`Left-over actions in test ${i+1}`);

@@ -1230,7 +1230,7 @@ const TEST_CASES = [
   let _t_29;
   let _t_30;
   let _t_31;
-  _t_0 = await env.readState(0);
+  _t_0 = await env.readState(1);
   try {
     _t_1 = {};
     _t_2 = await env.invokeMonitor("com.twitter", { }, "home_timeline", _t_1, false);
@@ -1248,7 +1248,7 @@ const TEST_CASES = [
         _t_11 = _t_5.tweet_id;
         _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
         _t_13 = __builtin.addTuple(_t_0, _t_5);
-        await env.writeState(0, _t_13);
+        await env.writeState(1, _t_13);
         _t_0 = _t_13;
         if (_t_12) {
           _t_14 = true;
@@ -3674,6 +3674,160 @@ const TEST_CASES = [
       env.reportError("Failed to invoke action", _exc_);
     }
   }`]],
+
+    [`{
+    now => @com.thecatapi.get() => notify;
+    now => @com.twitter.post(status="foo");
+    }`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  try {
+    _t_0 = {};
+    _t_1 = await env.invokeQuery("com.thecatapi", { }, "get", _t_0);
+    _t_2 = _t_1[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.count;
+        _t_7 = _t_5.image_id;
+        _t_8 = _t_5.picture_url;
+        _t_9 = _t_5.link;
+        try {
+          await env.output(String(_t_4), _t_5);
+        } catch(_exc_) {
+          env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_2.next();
+      }
+    }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke query", _exc_);
+  }
+  env.clearGetCache();
+  try {
+    _t_10 = {};
+    _t_11 = "foo";
+    _t_10.status = _t_11;
+    await env.invokeAction("com.twitter", { }, "post", _t_10);
+  } catch(_exc_) {
+    env.reportError("Failed to invoke action", _exc_);
+  }`]],
+
+    [`{
+    monitor (@com.twitter.home_timeline()) => notify;
+    now => @com.thecatapi.get() => notify;
+    now => @com.twitter.post(status="foo");
+    }`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  try {
+    _t_0 = {};
+    _t_1 = await env.invokeQuery("com.thecatapi", { }, "get", _t_0);
+    _t_2 = _t_1[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.count;
+        _t_7 = _t_5.image_id;
+        _t_8 = _t_5.picture_url;
+        _t_9 = _t_5.link;
+        try {
+          await env.output(String(_t_4), _t_5);
+        } catch(_exc_) {
+          env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_2.next();
+      }
+    }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke query", _exc_);
+  }
+  env.clearGetCache();
+  try {
+    _t_10 = {};
+    _t_11 = "foo";
+    _t_10.status = _t_11;
+    await env.invokeAction("com.twitter", { }, "post", _t_10);
+  } catch(_exc_) {
+    env.reportError("Failed to invoke action", _exc_);
+  }`, `"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  _t_0 = await env.readState(0);
+  try {
+    _t_1 = {};
+    _t_2 = await env.invokeMonitor("com.twitter", { }, "home_timeline", _t_1, false);
+    {
+      let _iter_tmp = await _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.text;
+        _t_7 = _t_5.hashtags;
+        _t_8 = _t_5.urls;
+        _t_9 = _t_5.author;
+        _t_10 = _t_5.in_reply_to;
+        _t_11 = _t_5.tweet_id;
+        _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
+        _t_13 = __builtin.addTuple(_t_0, _t_5);
+        await env.writeState(0, _t_13);
+        _t_0 = _t_13;
+        if (_t_12) {
+          try {
+            await env.output(String(_t_4), _t_5);
+          } catch(_exc_) {
+            env.reportError("Failed to invoke action", _exc_);
+          }
+        } else {
+
+        }
+        _iter_tmp = await _t_2.next();
+      }
+    }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke trigger", _exc_);
+  }`]],
 ];
 
 const GeneratorFunction = Object.getPrototypeOf(async function(){}).constructor;
@@ -3683,13 +3837,16 @@ async function test(i) {
     let [code, expected] = TEST_CASES[i];
 
     try {
-        var compiler = new Compiler(true);
-        compiler.setSchemaRetriever(schemaRetriever);
+        const compiler = new Compiler(schemaRetriever, true);
 
-        await compiler.compileCode(code);
-        let rules = compiler.rules;
-        for (let j = 0; j < Math.max(expected.length, rules.length); j++) {
-            let { code } = rules[j] || [];
+        const compiled = await compiler.compileCode(code);
+
+        const generated = [];
+        if (compiled.command)
+            generated.push(compiled.command);
+        generated.push(...compiled.rules);
+        for (let j = 0; j < Math.max(expected.length, generated.length); j++) {
+            let code = generated[j] || [];
             code = code.replace(/new Date\([0-9]+\)/g, 'new Date(XNOWX)');
 
             if (code === undefined || code.trim() !== expected[j].trim()) {
