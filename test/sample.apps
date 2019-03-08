@@ -908,6 +908,27 @@ now => cat => notify;
 
 ====
 
+// assignment statements have output parameters
+let result cat := @com.thecatapi.get();
+now => cat => @com.twitter.post_picture(picture_url=picture_url, caption="cat");
+
+====
+
+// ** typecheck: expect TypeError **
+// assignment statements do not manufacture output parameters
+let result cat := @com.thecatapi.get();
+now => cat => @com.twitter.post_picture(picture_url=foo, caption="cat");
+
+====
+
+// assignment references can be used like normal tables
+let result cat := @com.thecatapi.get();
+now => cat[2] => @com.twitter.post_picture(picture_url=picture_url, caption="cat");
+now => cat, image_id == "1234"^^com.thecatapi:image_id =>
+  @com.twitter.post_picture(picture_url=picture_url, caption="special cat");
+
+====
+
 // ** typecheck: expect TypeError **
 // assignment statements are NOT hoisted
 now => cat => notify;
