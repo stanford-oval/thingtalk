@@ -23,18 +23,35 @@ const builtin = require('../lib/builtin/values');
 const _mockSchemaDelegate = require('./mock_schema_delegate');
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
+class MockState {
+    constructor(compiled) {
+        this._states = [];
+        this._states.length = compiled.states;
+        for (let i = 0; i < this._states.length; i++)
+            this._states[i] = null;
+    }
+
+    readState(stateId) {
+        return this._states[stateId];
+    }
+    writeState(stateId, value) {
+        assert(value.length >= 0);
+        assert(value.length <= 3);
+        assert(stateId >= 0);
+        assert(stateId <= this._states.length);
+        return this._states[stateId] = value;
+    }
+}
+
 class MockExecEnvironment extends ExecEnvironment {
-    constructor(compiled, triggerdata, querydata, outputdata) {
+    constructor(states, triggerdata, querydata, outputdata) {
         super('en-US', 'America/Los_Angeles', schemaRetriever);
 
         this._trigger = triggerdata;
         this._query = querydata;
         this._actions = outputdata;
 
-        this._states = [];
-        this._states.length = compiled.states;
-        for (let i = 0; i < this._states.length; i++)
-            this._states[i] = null;
+        this._states = states;
     }
 
     get program_id() {
@@ -106,12 +123,10 @@ class MockExecEnvironment extends ExecEnvironment {
     clearGetCache() {}
 
     readState(stateId) {
-        return this._states[stateId];
+        return this._states.readState(stateId);
     }
     writeState(stateId, value) {
-        assert(value.length >= 0);
-        assert(value.length <= 3);
-        return this._states[stateId] = value;
+        return this._states.writeState(stateId, value);
     }
 
     reportError(message, err) {
@@ -2099,6 +2114,146 @@ some alt text` }
 
      ],
 
+
+     [`let result cat := @com.thecatapi.get();
+      let action a(p_picture_url : Entity(tt:picture)) := @com.twitter.post_picture(caption="cat", picture_url=p_picture_url);
+
+      now => cat => notify;
+      now => cat => a(p_picture_url=picture_url);`,
+     {},
+     {
+        'com.thecatapi:get': [(() => {
+            let _callcount = 0;
+            return (params) => {
+                assert.strictEqual(_callcount, 0);
+                _callcount++;
+
+                return {
+                    link: new builtin.Entity('https://foo.com', null),
+                    image_id: '12345',
+                    picture_url: 'https://foo.com/cat.png'
+                };
+            };
+        })()]
+     },
+     [
+     {
+       type: 'output',
+       outputType: 'com.thecatapi:get',
+       value: {
+            link: new builtin.Entity('https://foo.com', null),
+            image_id: '12345',
+            picture_url: 'https://foo.com/cat.png'
+        }
+     },
+     {
+       type: 'action',
+       fn: 'com.twitter:post_picture',
+       params: { caption: 'cat', picture_url: 'https://foo.com/cat.png' }
+     }],
+
+     ],
+
+     [`let result cat := @com.thecatapi.get();
+      let action a(p_picture_url : Entity(tt:picture)) := @com.twitter.post_picture(caption="cat", picture_url=p_picture_url);
+
+      now => cat => notify;
+      timer(base=makeDate(), interval=1h) => cat => a(p_picture_url=picture_url);`,
+     {},
+     {
+        'com.thecatapi:get': [(() => {
+            let _callcount = 0;
+            return (params) => {
+                assert.strictEqual(_callcount, 0);
+                _callcount++;
+
+                return {
+                    link: new builtin.Entity('https://foo.com', null),
+                    image_id: '12345',
+                    picture_url: 'https://foo.com/cat.png'
+                };
+            };
+        })()]
+     },
+     [
+     {
+       type: 'output',
+       outputType: 'com.thecatapi:get',
+       value: {
+            link: new builtin.Entity('https://foo.com', null),
+            image_id: '12345',
+            picture_url: 'https://foo.com/cat.png'
+        }
+     },
+     {
+       type: 'action',
+       fn: 'com.twitter:post_picture',
+       params: { caption: 'cat', picture_url: 'https://foo.com/cat.png' }
+     },
+     {
+       type: 'action',
+       fn: 'com.twitter:post_picture',
+       params: { caption: 'cat', picture_url: 'https://foo.com/cat.png' }
+     },
+     {
+       type: 'action',
+       fn: 'com.twitter:post_picture',
+       params: { caption: 'cat', picture_url: 'https://foo.com/cat.png' }
+     }],
+
+     ],
+
+     [`let result cat := @com.thecatapi.get();
+      let action a(p_picture_url : Entity(tt:picture)) := @com.twitter.post_picture(caption="cat", picture_url=p_picture_url);
+
+      // reversed order in the program, but it won't matter, the output will be first because "now =>"
+      timer(base=makeDate(), interval=1h) => cat => a(p_picture_url=picture_url);
+      now => cat => notify;
+      `,
+     {},
+     {
+        'com.thecatapi:get': [(() => {
+            let _callcount = 0;
+            return (params) => {
+                assert.strictEqual(_callcount, 0);
+                _callcount++;
+
+                return {
+                    link: new builtin.Entity('https://foo.com', null),
+                    image_id: '12345',
+                    picture_url: 'https://foo.com/cat.png'
+                };
+            };
+        })()]
+     },
+     [
+     {
+       type: 'output',
+       outputType: 'com.thecatapi:get',
+       value: {
+            link: new builtin.Entity('https://foo.com', null),
+            image_id: '12345',
+            picture_url: 'https://foo.com/cat.png'
+        }
+     },
+     {
+       type: 'action',
+       fn: 'com.twitter:post_picture',
+       params: { caption: 'cat', picture_url: 'https://foo.com/cat.png' }
+     },
+     {
+       type: 'action',
+       fn: 'com.twitter:post_picture',
+       params: { caption: 'cat', picture_url: 'https://foo.com/cat.png' }
+     },
+     {
+       type: 'action',
+       fn: 'com.twitter:post_picture',
+       params: { caption: 'cat', picture_url: 'https://foo.com/cat.png' }
+     }],
+
+     ],
+
 ];
 
 async function test(i) {
@@ -2115,9 +2270,11 @@ async function test(i) {
             generated.push(compiled.command);
         generated.push(...compiled.rules);
 
-        assert.strictEqual(generated.length, 1);
-        const env = new MockExecEnvironment(compiled, trigger, queries, actions);
-        await generated[0](env);
+        let state = new MockState(compiled);
+        for (let gen of generated) {
+            const env = new MockExecEnvironment(state, trigger, queries, actions);
+            await gen(env);
+        }
 
         if (actions.length !== 0)
             throw new Error(`Left-over actions in test ${i+1}`);

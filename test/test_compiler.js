@@ -4006,6 +4006,247 @@ const TEST_CASES = [
     }
   } catch(_exc_) {
     env.reportError("Failed to invoke stream", _exc_);
+  }`]],
+
+    [`let result cat := @com.thecatapi.get();
+      now => cat => notify;
+      now => cat => @com.twitter.post_picture(caption="cat", picture_url=picture_url);
+    `,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  let _t_25;
+  let _t_26;
+  let _t_27;
+  let _t_28;
+  _t_0 = new Array(0);
+  try {
+    _t_1 = {};
+    _t_2 = await env.invokeQuery("com.thecatapi", { }, "get", _t_1);
+    _t_3 = _t_2[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_3.next();
+      while (!_iter_tmp.done) {
+        _t_4 = _iter_tmp.value;
+        _t_5 = _t_4[0];
+        _t_6 = _t_4[1];
+        _t_7 = _t_6.count;
+        _t_8 = _t_6.image_id;
+        _t_9 = _t_6.picture_url;
+        _t_10 = _t_6.link;
+        _t_11 = new Array(2);
+        _t_11[0] = _t_5;
+        _t_11[1] = _t_6;
+        _t_0.push(_t_11);
+        _iter_tmp = await _t_3.next();
+      }
+    }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke query", _exc_);
+  }
+  env.clearGetCache();
+  _t_12 = _t_0[Symbol.iterator]();
+  {
+    let _iter_tmp = await _t_12.next();
+    while (!_iter_tmp.done) {
+      _t_13 = _iter_tmp.value;
+      _t_14 = _t_13[0];
+      _t_15 = _t_13[1];
+      _t_16 = _t_15.image_id;
+      _t_17 = _t_15.picture_url;
+      _t_18 = _t_15.link;
+      try {
+        await env.output(String(_t_14), _t_15);
+      } catch(_exc_) {
+        env.reportError("Failed to invoke action", _exc_);
+      }
+      _iter_tmp = await _t_12.next();
+    }
+  }
+  env.clearGetCache();
+  _t_19 = _t_0[Symbol.iterator]();
+  {
+    let _iter_tmp = await _t_19.next();
+    while (!_iter_tmp.done) {
+      _t_20 = _iter_tmp.value;
+      _t_21 = _t_20[0];
+      _t_22 = _t_20[1];
+      _t_23 = _t_22.image_id;
+      _t_24 = _t_22.picture_url;
+      _t_25 = _t_22.link;
+      try {
+        _t_26 = {};
+        _t_27 = "cat";
+        _t_26.caption = _t_27;
+        _t_28 = String (_t_24);
+        _t_26.picture_url = _t_28;
+        await env.invokeAction("com.twitter", { }, "post_picture", _t_26);
+      } catch(_exc_) {
+        env.reportError("Failed to invoke action", _exc_);
+      }
+      _iter_tmp = await _t_19.next();
+    }
+  }`]],
+
+    [`let result cat := @com.thecatapi.get();
+      now => cat => notify;
+
+      // every hour post THE SAME cat picture
+      timer(base=makeDate(), interval=1h) => cat => @com.twitter.post_picture(caption="cat", picture_url=picture_url);
+    `,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  _t_0 = new Array(0);
+  try {
+    _t_1 = {};
+    _t_2 = await env.invokeQuery("com.thecatapi", { }, "get", _t_1);
+    _t_3 = _t_2[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_3.next();
+      while (!_iter_tmp.done) {
+        _t_4 = _iter_tmp.value;
+        _t_5 = _t_4[0];
+        _t_6 = _t_4[1];
+        _t_7 = _t_6.count;
+        _t_8 = _t_6.image_id;
+        _t_9 = _t_6.picture_url;
+        _t_10 = _t_6.link;
+        _t_11 = new Array(2);
+        _t_11[0] = _t_5;
+        _t_11[1] = _t_6;
+        _t_0.push(_t_11);
+        _iter_tmp = await _t_3.next();
+      }
+    }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke query", _exc_);
+  }
+  await env.writeState(0, _t_0);
+  env.clearGetCache();
+  _t_12 = await env.readState(0);
+  _t_13 = _t_12[Symbol.iterator]();
+  {
+    let _iter_tmp = await _t_13.next();
+    while (!_iter_tmp.done) {
+      _t_14 = _iter_tmp.value;
+      _t_15 = _t_14[0];
+      _t_16 = _t_14[1];
+      _t_17 = _t_16.image_id;
+      _t_18 = _t_16.picture_url;
+      _t_19 = _t_16.link;
+      try {
+        await env.output(String(_t_15), _t_16);
+      } catch(_exc_) {
+        env.reportError("Failed to invoke action", _exc_);
+      }
+      _iter_tmp = await _t_13.next();
+    }
+  }`, `"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  try {
+    _t_1 = new Date(XNOWX);
+    _t_2 = 3600000;
+    _t_0 = await env.invokeTimer(_t_1, _t_2);
+    {
+      let _iter_tmp = await _t_0.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = await env.readState(0);
+        _t_5 = _t_4[Symbol.iterator]();
+        {
+          let _iter_tmp = await _t_5.next();
+          while (!_iter_tmp.done) {
+            _t_6 = _iter_tmp.value;
+            _t_7 = _t_6[0];
+            _t_8 = _t_6[1];
+            _t_9 = _t_8.image_id;
+            _t_10 = _t_8.picture_url;
+            _t_11 = _t_8.link;
+            _t_12 = {};
+            _t_12.image_id = _t_9;
+            _t_12.picture_url = _t_10;
+            _t_12.link = _t_11;
+            _t_13 = _t_12.image_id;
+            _t_14 = _t_12.picture_url;
+            _t_15 = _t_12.link;
+            try {
+              _t_16 = {};
+              _t_17 = "cat";
+              _t_16.caption = _t_17;
+              _t_18 = String (_t_14);
+              _t_16.picture_url = _t_18;
+              await env.invokeAction("com.twitter", { }, "post_picture", _t_16);
+            } catch(_exc_) {
+              env.reportError("Failed to invoke action", _exc_);
+            }
+            _iter_tmp = await _t_5.next();
+          }
+        }
+        _iter_tmp = await _t_0.next();
+      }
+    }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke timer", _exc_);
   }`]]
 ];
 
