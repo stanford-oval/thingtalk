@@ -1098,3 +1098,10 @@ let procedure p1 := {
   now => @com.thecatapi.get() => notify;
   now => @uk.co.thedogapi.get() => notify;
 } #_[canonical="cats and dogs"];
+
+====
+
+// ** typecheck: expect TypeError **
+// invalid annotation type
+
+let stream s := monitor(@com.bing.web_search()) #_[canonical=42];
