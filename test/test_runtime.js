@@ -103,6 +103,7 @@ class MockExecEnvironment extends ExecEnvironment {
         assert.deepStrictEqual(outputType, nextaction.outputType);
         assert.deepStrictEqual(output, nextaction.value);
     }
+    clearGetCache() {}
 
     readState(stateId) {
         return this._states[stateId];
@@ -2067,6 +2068,36 @@ some alt text` }
     }],
 
     ],
+
+    [`let query q(p_query : String) := @com.bing.web_search(query=p_query);
+      let action a(p_status : String) := @com.twitter.post(status=p_status);
+
+      now => q(p_query="foo") => a(p_status=link);
+      now => a(p_status="no");`,
+     {},
+     {
+        'com.bing:web_search': [(params) => {
+            assert.strictEqual(params.query, 'foo');
+            return {
+                link: new builtin.Entity('https://foo.com', null),
+                title: 'Foo Website',
+                description: 'All The Foo You Could Ever Foo'
+            };
+        }]
+     },
+     [
+     {
+       type: 'action',
+       fn: 'com.twitter:post',
+       params: { status: 'https://foo.com' }
+     },
+     {
+       type: 'action',
+       fn: 'com.twitter:post',
+       params: { status: 'no' }
+     }],
+
+     ],
 
 ];
 
