@@ -11,9 +11,6 @@
 
 const assert = require('assert');
 
-const Q = require('q');
-Q.longStackSupport = true;
-const Generate = require('../lib/generate');
 const Grammar = require('../lib/grammar_api');
 const SchemaRetriever = require('../lib/schema');
 
@@ -95,7 +92,23 @@ var TEST_CASES = [
      'Device(org.thingpedia.weather, , ) org.thingpedia.weather:current',
      'Builtin undefined:notify']],
 
-    [`now => aggregate argmax 1,1 temperature of (@com.instagram.get_pictures() join @org.thingpedia.weather.current() on (location=location)) => notify;`,
+    [`now => sort temperature asc of (@com.instagram.get_pictures() join @org.thingpedia.weather.current() on (location=location)) => notify;`,
+    ['query: Invocation(Device(com.instagram, , ), get_pictures, , )',
+     'query: Invocation(Device(org.thingpedia.weather, , ), current, , )',
+     'action: Invocation(Builtin, notify, , )'],
+    ['Device(com.instagram, , ) com.instagram:get_pictures',
+     'Device(org.thingpedia.weather, , ) org.thingpedia.weather:current',
+     'Builtin undefined:notify']],
+
+    [`now => (@com.instagram.get_pictures() join @org.thingpedia.weather.current() on (location=location))[1,2] => notify;`,
+    ['query: Invocation(Device(com.instagram, , ), get_pictures, , )',
+     'query: Invocation(Device(org.thingpedia.weather, , ), current, , )',
+     'action: Invocation(Builtin, notify, , )'],
+    ['Device(com.instagram, , ) com.instagram:get_pictures',
+     'Device(org.thingpedia.weather, , ) org.thingpedia.weather:current',
+     'Builtin undefined:notify']],
+
+    [`now => (@com.instagram.get_pictures() join @org.thingpedia.weather.current() on (location=location))[1:2] => notify;`,
     ['query: Invocation(Device(com.instagram, , ), get_pictures, , )',
      'query: Invocation(Device(org.thingpedia.weather, , ), current, , )',
      'action: Invocation(Builtin, notify, , )'],
@@ -217,7 +230,19 @@ var TEST_CASES = [
      'Atom(author, ==, VarRef(p_author)) com.twitter:search',
      'Device(com.twitter, , ) com.twitter:search',
      'Builtin undefined:notify'
-    ]]
+    ]],
+
+    [`let program p1(p_query : String) := {
+        monitor (@com.bing.web_search(query=p_query)) => notify;
+    };
+
+    oninput => {
+        // this should have a query=$? added
+        p1();
+    }`,
+    ['action: VarRef(p1, InputParam(p_query, Undefined(true)), )'],
+    ['InputParam(p_query, Undefined(true)) p1']]
+
 ];
 
 function test(i) {
@@ -226,9 +251,12 @@ function test(i) {
 
     return Grammar.parseAndTypecheck(code, schemaRetriever, true).then((prog) => {
         const generatedSlots = Array.from(prog.iterateSlots()).map(([schema, slot, prim, scope]) => {
-            return `${slot} ${prim.selector.kind}:${prim.channel}`;
+            if (prim.isVarRef)
+                return `${slot} ${prim.name}`;
+            else
+                return `${slot} ${prim.selector.kind}:${prim.channel}`;
         });
-        const generatedPrims = Array.from(prog.iteratePrimitives()).map(([primType, prim]) => {
+        const generatedPrims = Array.from(prog.iteratePrimitives(true)).map(([primType, prim]) => {
             prim.schema = null;
             return `${primType}: ${prim}`;
         });
@@ -244,15 +272,9 @@ function test(i) {
     });
 }
 
-function loop(i) {
-    if (i === TEST_CASES.length)
-        return Q();
-
-    return Q(test(i)).then(() => loop(i+1));
-}
-
-function main() {
-    return loop(0);
+async function main() {
+    for (let i = 0; i < TEST_CASES.length; i++)
+        await test(i);
 }
 module.exports = main;
 if (!module.parent)

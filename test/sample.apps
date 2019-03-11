@@ -295,20 +295,6 @@ now => aggregate count str1 of Q1 => @com.twitter.post(status=count);
 
 ====
 
-// LogQueryArgmTest
-{
-now => [field1, field2] of aggregate argmax 1,1 another_field of Q0 => notify;
-now => [field1, field2] of aggregate argmax 1,3 another_field of Q0 => notify;
-}
-
-====
-
-// ** typecheck: expect TypeError **
-// LogQueryInvalidArgmTest
-now => [field1, field2] of aggregate argmax 1,1 nonexisting_field of Q0 => notify;
-
-====
-
 // WithSave
 {
 let table steps    := @edu.stanford.rakeshr1.fitbit.getsteps();
@@ -335,11 +321,6 @@ monitor Q1 => Q2 => @com.twitter.post(status="hello");
 
 // LogTriggerAggregationTest
 monitor (aggregate max field of Q1) => notify;
-
-====
-
-// LogTriggerArgmTest
-monitor ([field1, field2] of aggregate argmax 1,1 another_field of Q0) => notify;
 
 ====
 
@@ -394,22 +375,6 @@ let table last_week := \(x : Table) -> history start_of(week), -1week of x;
 let table current := \(x : Table) -> sequence 1,1 of x;
 let table previous := \(x : Table) -> sequence 2,1 of x;
 let table latest_K := \(x : Table, k : Number) -> sequence 1, k of x;
-}
-
-====
-
-// ** typecheck: expect TypeError **
-// Table x doesn't have field score. Maybe fix this later.
-// Argmaxes
-{
-let table gold_medal := \(x : Table) -> aggregate argmax 1, 1 score of x ;
-let table silver_medal := \(x : Table) -> aggregate argmax 2,1 score of x ;
-
-let table top_K := \(x : Any, k : Number) -> aggregate argmax 1,k score of x ;
-
-let table bottom_K := \(x : Any, k : Number) -> aggregate argmin 1,k score of x ;
-now => gold_medal(x=Q4) => notify;
-
 }
 
 ====
@@ -902,3 +867,262 @@ abstract class @com.foo {
 ====
 
 timer(base=makeDate(), interval=30s) => @org.thingpedia.builtin.thingengine.builtin.get_random_between(low=2, high=20) => notify;
+
+====
+
+// multiple statements without { }
+now => @com.thecatapi.get() => notify;
+now => @uk.co.thedogapi.get() => notify;
+
+====
+
+// let hoisting
+now => cat() => notify;
+let query cat := @com.thecatapi.get();
+
+====
+
+// oninput
+now => @com.thecatapi.get() => notify;
+oninput => {
+  @uk.co.thedogapi.get() => @com.twitter.post();
+  @com.facebook.post();
+};
+
+====
+
+// ** typecheck: expect TypeError **
+// a bare notify under oninput will not typecheck
+// (same as "now => notify;")
+
+now => @com.thecatapi.get() => notify;
+oninput => {
+  notify;
+};
+
+====
+
+// assignment statements
+let result cat := @com.thecatapi.get();
+now => cat => notify;
+
+====
+
+// assignment statements have output parameters
+let result cat := @com.thecatapi.get();
+now => cat => @com.twitter.post_picture(picture_url=picture_url, caption="cat");
+
+====
+
+// ** typecheck: expect TypeError **
+// assignment statements do not manufacture output parameters
+let result cat := @com.thecatapi.get();
+now => cat => @com.twitter.post_picture(picture_url=foo, caption="cat");
+
+====
+
+// assignment references can be used like normal tables
+let result cat := @com.thecatapi.get();
+now => cat[2] => @com.twitter.post_picture(picture_url=picture_url, caption="cat");
+now => cat, image_id == "1234"^^com.thecatapi:image_id =>
+  @com.twitter.post_picture(picture_url=picture_url, caption="special cat");
+
+====
+
+// ** typecheck: expect TypeError **
+// assignment statements are NOT hoisted
+now => cat => notify;
+let result cat := @com.thecatapi.get();
+
+====
+
+// assignment statements used multiple times
+let result cat := @com.thecatapi.get();
+now => cat => notify;
+now => cat => @com.facebook.post();
+
+====
+
+// assignment statements used oninput
+let result cat := @com.thecatapi.get();
+now => cat => notify;
+oninput => {
+  cat => @com.facebook.post();
+};
+
+====
+
+// oninput is hoisted to the end of the program,
+// so this actually typechecks
+oninput => {
+  cat => @com.facebook.post();
+};
+let result cat := @com.thecatapi.get();
+now => cat => notify;
+
+
+====
+
+// ** typecheck: expect TypeError **
+// parameters to assignments
+let result cat := @com.thecatapi.get();
+now => cat(key=1) => notify;
+
+====
+
+// new-style undefined
+now => @com.twitter.post(status=$?);
+
+====
+
+// index expression
+now => @com.gmail.inbox()[1] => notify;
+now => @com.gmail.inbox()[-1] => notify;
+now => @com.gmail.inbox()[1, 2, 3] => notify;
+now => @com.gmail.inbox()[1, $undefined, 2] => notify;
+
+// a single array value is also allowed (primarily for parameter passing)
+// and then optimized away if it's a constant
+now => @com.gmail.inbox()[ [1, 2, $undefined] ] => notify;
+
+// param passing
+let query q1 := \(p_index : Number) -> @com.gmail.inbox()[p_index];
+let query q2 := \(p_index : Number, p_index2 : Number) -> @com.gmail.inbox()[p_index, p_index2];
+let query q3 := \(p_indices : Array(Number)) -> @com.gmail.inbox()[p_indices];
+
+====
+
+// ** typecheck: expect TypeError **
+// invalid index (not a number)
+now => @com.gmail.inbox()['foo'] => notify;
+
+====
+
+// ** typecheck: expect TypeError **
+// invalid index (array and number)
+now => @com.gmail.inbox()[ [1,2], 3 ] => notify;
+
+====
+
+// ** typecheck: expect TypeError **
+// invalid index (not a number)
+let query q := \(p_index : String) -> @com.gmail.inbox()[p_index];
+
+====
+
+// slice expression
+now => @com.gmail.inbox()[1:3] => notify;
+
+====
+
+// ** typecheck: expect TypeError **
+// invalid slice offset (not a number)
+let query q := \(p_index : String) -> @com.gmail.inbox()[p_index : 1];
+
+====
+
+// ** typecheck: expect TypeError **
+// also invalid slice offset (not a number)
+// (but this one is not optimized to an index)
+let query q := \(p_index : String) -> @com.gmail.inbox()[p_index : 5];
+
+====
+
+// ** typecheck: expect TypeError **
+// invalid slice limit (not a number)
+let query q := \(p_index : String) -> @com.gmail.inbox()[1 : p_index];
+
+====
+
+// sort
+
+// by measure
+now => sort file_size asc of @com.dropbox.list_folder() => notify;
+// by number
+now => sort width asc of @com.bing.image_search() => notify;
+// by string
+now => sort sender_name asc of @com.gmail.inbox() => notify;
+
+====
+
+// ** typecheck: expect TypeError **
+// cannot sort by entity
+now => sort sender_address asc of @com.gmail.inbox() => notify;
+
+====
+
+// program declarations of various sorts
+
+let procedure p1 := {
+  now => @com.thecatapi.get() => notify;
+  now => @uk.co.thedogapi.get() => notify;
+};
+let program p2 := {
+  attimer(time=makeTime(7, 0)) => @com.thecatapi.get() => notify;
+};
+let procedure p3 := \(p_query : String) -> {
+  now => @com.bing.web_search(query=p_query) => notify;
+};
+let procedure p4(p_query : String) := {
+  now => @com.bing.web_search(query=p_query) => notify;
+};
+
+now => p1();
+oninput => {
+  p2();
+  p3();
+  p4(p_query="foo");
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// procedure with a monitor
+
+let procedure p1 := {
+  attimer(time=makeTime(7,0)) => @com.thecatapi.get() => notify;
+};
+
+now => p1();
+
+====
+
+// ** typecheck: expect TypeError **
+// wrong parameter to the procedure
+
+let procedure p1 := \(p_query : String) -> {
+  now => @com.bing.web_search(query=p_query) => notify;
+};
+
+now => p1(p_query=43);
+
+====
+
+// ** typecheck: expect TypeError **
+// procedure as query
+
+let procedure p1 := \(p_query : String) -> {
+  now => @com.bing.web_search(query=p_query) => notify;
+};
+
+now => p1(p_query="foo") => notify;
+
+====
+
+// annotations on declarations
+
+let stream s := monitor(@com.bing.web_search()) #_[canonical="bing updates"];
+let query q := @com.bing.web_search() #_[canonical="bing search"] #[foo=43];
+let action a := \(p_value : String) -> @com.twitter.post(status=p_value) #_[canonical="roast on twitter"];
+
+let procedure p1 := {
+  now => @com.thecatapi.get() => notify;
+  now => @uk.co.thedogapi.get() => notify;
+} #_[canonical="cats and dogs"];
+
+====
+
+// ** typecheck: expect TypeError **
+// invalid annotation type
+
+let stream s := monitor(@com.bing.web_search()) #_[canonical=42];

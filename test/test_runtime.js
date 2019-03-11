@@ -1003,7 +1003,7 @@ some alt text` }
     ],
 
     [
-    `now => (aggregate argmin 1,1 file_size of @com.google.drive.list_drive_files()) => notify;`,
+    `now => (sort file_size asc of @com.google.drive.list_drive_files())[1] => notify;`,
     {},
     {
         'com.google.drive:list_drive_files': [{
@@ -1057,7 +1057,7 @@ some alt text` }
     ],
 
     [
-    `now => (aggregate argmin 1,1 file_size of @com.google.drive.list_drive_files()) => notify;`,
+    `now => (sort file_size asc of @com.google.drive.list_drive_files())[1] => notify;`,
     {},
     {
         'com.google.drive:list_drive_files': [{
@@ -1111,7 +1111,7 @@ some alt text` }
     ],
 
     [
-    `now => (aggregate argmax 1,1 file_size of @com.google.drive.list_drive_files()) => notify;`,
+    `now => (sort file_size asc of @com.google.drive.list_drive_files())[-1] => notify;`,
     {},
     {
         'com.google.drive:list_drive_files': [{
@@ -1165,7 +1165,7 @@ some alt text` }
     ],
 
     [
-    `now => (aggregate argmin 2,1 file_size of @com.google.drive.list_drive_files()) => notify;`,
+    `now => (sort file_size asc of @com.google.drive.list_drive_files())[2] => notify;`,
     {},
     {
         'com.google.drive:list_drive_files': [{
@@ -1219,7 +1219,7 @@ some alt text` }
     ],
 
     [
-    `now => (aggregate argmin 2,1 file_size of @com.google.drive.list_drive_files()) => notify;`,
+    `now => (sort file_size asc of @com.google.drive.list_drive_files())[2] => notify;`,
     {},
     {
         'com.google.drive:list_drive_files': [{
@@ -1273,7 +1273,7 @@ some alt text` }
     ],
 
     [
-    `now => (aggregate argmin 2,1 file_size of @com.google.drive.list_drive_files()) => notify;`,
+    `now => (sort file_size asc of @com.google.drive.list_drive_files())[2] => notify;`,
     {},
     {
         'com.google.drive:list_drive_files': [{
@@ -1327,7 +1327,7 @@ some alt text` }
     ],
 
     [
-    `now => (aggregate argmin 1,2 file_size of @com.google.drive.list_drive_files()) => notify;`,
+    `now => (sort file_size asc of @com.google.drive.list_drive_files())[1:2] => notify;`,
     {},
     {
         'com.google.drive:list_drive_files': [{
@@ -1395,7 +1395,7 @@ some alt text` }
     ],
 
     [
-    `now => (aggregate argmin 2,2 file_size of @com.google.drive.list_drive_files()) => notify;`,
+    `now => (sort file_size asc of @com.google.drive.list_drive_files())[2:2] => notify;`,
     {},
     {
         'com.google.drive:list_drive_files': [{
@@ -1463,7 +1463,7 @@ some alt text` }
     ],
 
     [
-    `now => (aggregate argmin 2,3 file_size of @com.google.drive.list_drive_files()) => notify;`,
+    `now => (sort file_size asc of @com.google.drive.list_drive_files())[2:3] => notify;`,
     {},
     {
         'com.google.drive:list_drive_files': [{
@@ -1529,6 +1529,549 @@ some alt text` }
     }],
 
     ],
+
+    [
+    `now => (sort file_size asc of @com.google.drive.list_drive_files()) => notify;`,
+    {},
+    {
+        'com.google.drive:list_drive_files': [{
+            "order_by": 'name_increasing',
+            "file_id": 2,
+            "file_name": 'baz.png',
+            "mime_type": 'image/png',
+            "description": 'a baz meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1026
+        }, {
+            "order_by": 'name_increasing',
+            "file_id": 1,
+            "file_name": 'bar.png',
+            "mime_type": 'image/png',
+            "description": 'a bar meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1025
+        }, {
+            "order_by": 'name_increasing',
+            "file_id": 0,
+            "file_name": 'foo.png',
+            "mime_type": 'image/png',
+            "description": 'a foo meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1024
+        },
+        ],
+    },
+    [{
+      type: 'output',
+      outputType: 'com.google.drive:list_drive_files',
+      value: {
+            "order_by": 'name_increasing',
+            "file_id": 0,
+            "file_name": 'foo.png',
+            "mime_type": 'image/png',
+            "description": 'a foo meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1024
+      },
+    }, {
+      type: 'output',
+      outputType: 'com.google.drive:list_drive_files',
+      value: {
+            "order_by": 'name_increasing',
+            "file_id": 1,
+            "file_name": 'bar.png',
+            "mime_type": 'image/png',
+            "description": 'a bar meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1025
+        }
+    }, {
+      type: 'output',
+      outputType: 'com.google.drive:list_drive_files',
+      value: {
+            "order_by": 'name_increasing',
+            "file_id": 2,
+            "file_name": 'baz.png',
+            "mime_type": 'image/png',
+            "description": 'a baz meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1026
+        }
+    }],
+
+    ],
+
+    [
+    `now => (sort file_size desc of @com.google.drive.list_drive_files()) => notify;`,
+    {},
+    {
+        'com.google.drive:list_drive_files': [{
+            "order_by": 'name_increasing',
+            "file_id": 2,
+            "file_name": 'baz.png',
+            "mime_type": 'image/png',
+            "description": 'a baz meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1026
+        }, {
+            "order_by": 'name_increasing',
+            "file_id": 1,
+            "file_name": 'bar.png',
+            "mime_type": 'image/png',
+            "description": 'a bar meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1025
+        }, {
+            "order_by": 'name_increasing',
+            "file_id": 0,
+            "file_name": 'foo.png',
+            "mime_type": 'image/png',
+            "description": 'a foo meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1024
+        },
+        ],
+    },
+    [ {
+      type: 'output',
+      outputType: 'com.google.drive:list_drive_files',
+      value: {
+            "order_by": 'name_increasing',
+            "file_id": 2,
+            "file_name": 'baz.png',
+            "mime_type": 'image/png',
+            "description": 'a baz meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1026
+        }
+    }, {
+      type: 'output',
+      outputType: 'com.google.drive:list_drive_files',
+      value: {
+            "order_by": 'name_increasing',
+            "file_id": 1,
+            "file_name": 'bar.png',
+            "mime_type": 'image/png',
+            "description": 'a bar meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1025
+        }
+    }, {
+      type: 'output',
+      outputType: 'com.google.drive:list_drive_files',
+      value: {
+            "order_by": 'name_increasing',
+            "file_id": 0,
+            "file_name": 'foo.png',
+            "mime_type": 'image/png',
+            "description": 'a foo meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1024
+      },
+    }],
+
+    ],
+
+    [
+    `now => (@com.google.drive.list_drive_files())[1] => notify;`,
+    {},
+    {
+        'com.google.drive:list_drive_files': [{
+            "order_by": 'name_increasing',
+            "file_id": 2,
+            "file_name": 'baz.png',
+            "mime_type": 'image/png',
+            "description": 'a baz meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1026
+        }, {
+            "order_by": 'name_increasing',
+            "file_id": 1,
+            "file_name": 'bar.png',
+            "mime_type": 'image/png',
+            "description": 'a bar meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1025
+        }, {
+            "order_by": 'name_increasing',
+            "file_id": 0,
+            "file_name": 'foo.png',
+            "mime_type": 'image/png',
+            "description": 'a foo meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1024
+        },
+        ],
+    },
+    [ {
+      type: 'output',
+      outputType: 'com.google.drive:list_drive_files',
+      value: {
+            "order_by": 'name_increasing',
+            "file_id": 2,
+            "file_name": 'baz.png',
+            "mime_type": 'image/png',
+            "description": 'a baz meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1026
+        }
+    }],
+
+    ],
+
+    [
+    `now => (@com.google.drive.list_drive_files())[2] => notify;`,
+    {},
+    {
+        'com.google.drive:list_drive_files': [{
+            "order_by": 'name_increasing',
+            "file_id": 2,
+            "file_name": 'baz.png',
+            "mime_type": 'image/png',
+            "description": 'a baz meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1026
+        }, {
+            "order_by": 'name_increasing',
+            "file_id": 1,
+            "file_name": 'bar.png',
+            "mime_type": 'image/png',
+            "description": 'a bar meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1025
+        }, {
+            "order_by": 'name_increasing',
+            "file_id": 0,
+            "file_name": 'foo.png',
+            "mime_type": 'image/png',
+            "description": 'a foo meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1024
+        },
+        ],
+    },
+    [ {
+      type: 'output',
+      outputType: 'com.google.drive:list_drive_files',
+      value: {
+            "order_by": 'name_increasing',
+            "file_id": 1,
+            "file_name": 'bar.png',
+            "mime_type": 'image/png',
+            "description": 'a bar meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1025
+        }
+    }],
+
+    ],
+
+    // a negative index triggers the advanced indexing path
+    [
+    `now => (@com.google.drive.list_drive_files())[-2] => notify;`,
+    {},
+    {
+        'com.google.drive:list_drive_files': [{
+            "order_by": 'name_increasing',
+            "file_id": 2,
+            "file_name": 'baz.png',
+            "mime_type": 'image/png',
+            "description": 'a baz meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1026
+        }, {
+            "order_by": 'name_increasing',
+            "file_id": 1,
+            "file_name": 'bar.png',
+            "mime_type": 'image/png',
+            "description": 'a bar meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1025
+        }, {
+            "order_by": 'name_increasing',
+            "file_id": 0,
+            "file_name": 'foo.png',
+            "mime_type": 'image/png',
+            "description": 'a foo meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1024
+        },
+        ],
+    },
+    [ {
+      type: 'output',
+      outputType: 'com.google.drive:list_drive_files',
+      value: {
+            "order_by": 'name_increasing',
+            "file_id": 1,
+            "file_name": 'bar.png',
+            "mime_type": 'image/png',
+            "description": 'a bar meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1025
+        }
+    }],
+
+    ],
+
+    // multiple indices also trigger the advanced indexing path
+    [
+    `now => (@com.google.drive.list_drive_files())[1, 3] => notify;`,
+    {},
+    {
+        'com.google.drive:list_drive_files': [{
+            "order_by": 'name_increasing',
+            "file_id": 2,
+            "file_name": 'baz.png',
+            "mime_type": 'image/png',
+            "description": 'a baz meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1026
+        }, {
+            "order_by": 'name_increasing',
+            "file_id": 1,
+            "file_name": 'bar.png',
+            "mime_type": 'image/png',
+            "description": 'a bar meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1025
+        }, {
+            "order_by": 'name_increasing',
+            "file_id": 0,
+            "file_name": 'foo.png',
+            "mime_type": 'image/png',
+            "description": 'a foo meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1024
+        },
+        ],
+    },
+    [ {
+      type: 'output',
+      outputType: 'com.google.drive:list_drive_files',
+      value: {
+            "order_by": 'name_increasing',
+            "file_id": 2,
+            "file_name": 'baz.png',
+            "mime_type": 'image/png',
+            "description": 'a baz meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1026
+        }
+    }, {
+      type: 'output',
+      outputType: 'com.google.drive:list_drive_files',
+      value: {
+            "order_by": 'name_increasing',
+            "file_id": 0,
+            "file_name": 'foo.png',
+            "mime_type": 'image/png',
+            "description": 'a foo meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1024
+        }
+    }],
+
+    ],
+
+    // slices
+    [
+    `now => (@com.google.drive.list_drive_files())[2:2] => notify;`,
+    {},
+    {
+        'com.google.drive:list_drive_files': [{
+            "order_by": 'name_increasing',
+            "file_id": 2,
+            "file_name": 'baz.png',
+            "mime_type": 'image/png',
+            "description": 'a baz meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1026
+        }, {
+            "order_by": 'name_increasing',
+            "file_id": 1,
+            "file_name": 'bar.png',
+            "mime_type": 'image/png',
+            "description": 'a bar meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1025
+        }, {
+            "order_by": 'name_increasing',
+            "file_id": 0,
+            "file_name": 'foo.png',
+            "mime_type": 'image/png',
+            "description": 'a foo meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1024
+        },
+        ],
+    },
+    [ {
+      type: 'output',
+      outputType: 'com.google.drive:list_drive_files',
+      value: {
+            "order_by": 'name_increasing',
+            "file_id": 1,
+            "file_name": 'bar.png',
+            "mime_type": 'image/png',
+            "description": 'a bar meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1025
+        }
+    }, {
+      type: 'output',
+      outputType: 'com.google.drive:list_drive_files',
+      value: {
+            "order_by": 'name_increasing',
+            "file_id": 0,
+            "file_name": 'foo.png',
+            "mime_type": 'image/png',
+            "description": 'a foo meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1024
+        }
+    }],
+
+    ],
+
+    // sort + advanced indexing is not a special case
+    [
+    `now => (sort file_size asc of @com.google.drive.list_drive_files())[-1, 1] => notify;`,
+    {},
+    {
+        'com.google.drive:list_drive_files': [{
+            "order_by": 'name_increasing',
+            "file_id": 2,
+            "file_name": 'baz.png',
+            "mime_type": 'image/png',
+            "description": 'a baz meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1026
+        }, {
+            "order_by": 'name_increasing',
+            "file_id": 1,
+            "file_name": 'bar.png',
+            "mime_type": 'image/png',
+            "description": 'a bar meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1025
+        }, {
+            "order_by": 'name_increasing',
+            "file_id": 0,
+            "file_name": 'foo.png',
+            "mime_type": 'image/png',
+            "description": 'a foo meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1024
+        },
+        ],
+    },
+    [ {
+      type: 'output',
+      outputType: 'com.google.drive:list_drive_files',
+      value: {
+            "order_by": 'name_increasing',
+            "file_id": 2,
+            "file_name": 'baz.png',
+            "mime_type": 'image/png',
+            "description": 'a baz meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1026
+        }
+    }, {
+      type: 'output',
+      outputType: 'com.google.drive:list_drive_files',
+      value: {
+            "order_by": 'name_increasing',
+            "file_id": 0,
+            "file_name": 'foo.png',
+            "mime_type": 'image/png',
+            "description": 'a foo meme',
+            "starred": false,
+            "created_time": new Date(0),
+            "modified_time": new Date(1),
+            "file_size": 1024
+        }
+    }],
+
+    ],
+
 ];
 
 async function test(i) {

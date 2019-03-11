@@ -20,12 +20,12 @@ const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 var TEST_CASES = [
     // manually written test cases
     [`dataset foo { action := @com.twitter.post() #_[utterances=['post']]; }`,
-     'now => @com.twitter.post(status=$undefined);'],
+     'now => @com.twitter.post(status=$?);'],
     [`dataset foo { action (p_status : String) := @com.twitter.post(status=p_status) #_[utterances=['post $p_status']]; }`,
      'now => @com.twitter.post(status=__const_SLOT_0);'],
 
     [`dataset foo { query () := @com.bing.web_search() #_[utterances=['bing search']]; }`,
-     'now => @com.bing.web_search(query=$undefined) => notify;'],
+     'now => @com.bing.web_search(query=$?) => notify;'],
     [`dataset foo { query (p_query : String) := @com.bing.web_search(query=p_query) #_[utterances=['search $p_query']]; }`,
      'now => @com.bing.web_search(query=__const_SLOT_0) => notify;'],
     [`dataset foo { query (p_query : String, p_width : Number) := @com.bing.image_search(query=p_query), width >= p_width #_[utterances=['search $p_query pictures with width greater than $p_width']]; }`,
@@ -35,7 +35,7 @@ var TEST_CASES = [
      `monitor (@com.twitter.search()), author == __const_SLOT_0 => notify;`],
 
     [`dataset foo { program := { now => @com.twitter.post(); } #_[utterances=['post']]; }`,
-     'now => @com.twitter.post(status=$undefined);'],
+     'now => @com.twitter.post(status=$?);'],
 ];
 
 function test(i) {

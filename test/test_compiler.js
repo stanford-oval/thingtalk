@@ -2832,7 +2832,7 @@ const TEST_CASES = [
   }`]],
 
     [`{
-    timer(base=makeDate(),interval=1h) => aggregate argmax 1,1 file_size of @com.google.drive.list_drive_files() => notify;
+    timer(base=makeDate(),interval=1h) => (sort file_size desc of @com.google.drive.list_drive_files())[1] => notify;
 }`,
   [`"use strict";
   let _t_0;
@@ -2967,7 +2967,7 @@ const TEST_CASES = [
   }`]],
 
   [`{
-    timer(base=makeDate(),interval=1h) => aggregate argmin 1,1 file_size of @com.google.drive.list_drive_files() => notify;
+    timer(base=makeDate(),interval=1h) => (sort file_size asc of @com.google.drive.list_drive_files())[1] => notify;
 }`,
   [`"use strict";
   let _t_0;
@@ -3102,7 +3102,7 @@ const TEST_CASES = [
   }`]],
 
     [`{
-    now => aggregate argmax 2,1 file_size of @com.google.drive.list_drive_files() => notify;
+    now => (sort file_size desc of @com.google.drive.list_drive_files())[2:1] => notify;
 }`,
   [`"use strict";
   let _t_0;
@@ -3182,6 +3182,457 @@ const TEST_CASES = [
     _t_31 = _t_22.file_size;
     try {
       await env.output(String(_t_21), _t_22);
+    } catch(_exc_) {
+      env.reportError("Failed to invoke action", _exc_);
+    }
+  }`]],
+
+    // simple indexing
+    [`{
+    now => @com.google.drive.list_drive_files()[2:1] => notify;
+}`,
+  [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  _t_0 = 2;
+  _t_1 = false;
+  _t_2 = 0;
+  try {
+    _t_3 = {};
+    _t_4 = await env.invokeQuery(0, _t_3);
+    _t_5 = _t_4[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_5.next();
+      while (!_iter_tmp.done) {
+        _t_6 = _iter_tmp.value;
+        _t_7 = _t_6[0];
+        _t_8 = _t_6[1];
+        _t_9 = _t_8.order_by;
+        _t_10 = _t_8.file_id;
+        _t_11 = _t_8.file_name;
+        _t_12 = _t_8.mime_type;
+        _t_13 = _t_8.description;
+        _t_14 = _t_8.starred;
+        _t_15 = _t_8.created_time;
+        _t_16 = _t_8.modified_time;
+        _t_17 = _t_8.file_size;
+        _t_18 = 1;
+        _t_2 = _t_2 + _t_18;
+        _t_19 = _t_0 == _t_2;
+        if (_t_19) {
+          _t_1 = true;
+          break;
+        } else {
+
+        }
+        _iter_tmp = await _t_5.next();
+      }
+    }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke query", _exc_);
+  }
+  if (_t_1) {
+    try {
+      await env.output(String(_t_7), _t_8);
+    } catch(_exc_) {
+      env.reportError("Failed to invoke action", _exc_);
+    }
+  } else {
+
+  }`]],
+
+    // more simple indexing
+    [`{
+    attimer(time=makeTime(7, 30)) => @com.google.drive.list_drive_files()[2:1] => notify;
+}`,
+  [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  let _t_25;
+  let _t_26;
+  let _t_27;
+  let _t_28;
+  let _t_29;
+  let _t_30;
+  let _t_31;
+  let _t_32;
+  try {
+    _t_1 = new __builtin.Time(7, 30, 0);
+    _t_0 = await env.invokeAtTimer(_t_1);
+    {
+      let _iter_tmp = await _t_0.next();
+      while (!_iter_tmp.done) {
+        _t_2 = _iter_tmp.value;
+        _t_3 = 2;
+        _t_4 = false;
+        _t_5 = 0;
+        try {
+          _t_6 = {};
+          _t_7 = await env.invokeQuery(0, _t_6);
+          _t_8 = _t_7[Symbol.iterator]();
+          {
+            let _iter_tmp = await _t_8.next();
+            while (!_iter_tmp.done) {
+              _t_9 = _iter_tmp.value;
+              _t_10 = _t_9[0];
+              _t_11 = _t_9[1];
+              _t_12 = _t_11.order_by;
+              _t_13 = _t_11.file_id;
+              _t_14 = _t_11.file_name;
+              _t_15 = _t_11.mime_type;
+              _t_16 = _t_11.description;
+              _t_17 = _t_11.starred;
+              _t_18 = _t_11.created_time;
+              _t_19 = _t_11.modified_time;
+              _t_20 = _t_11.file_size;
+              _t_21 = 1;
+              _t_5 = _t_5 + _t_21;
+              _t_22 = _t_3 == _t_5;
+              if (_t_22) {
+                _t_4 = true;
+                break;
+              } else {
+
+              }
+              _iter_tmp = await _t_8.next();
+            }
+          }
+        } catch(_exc_) {
+          env.reportError("Failed to invoke query", _exc_);
+        }
+        if (_t_4) {
+          _t_23 = {};
+          _t_23.order_by = _t_12;
+          _t_23.file_id = _t_13;
+          _t_23.file_name = _t_14;
+          _t_23.mime_type = _t_15;
+          _t_23.description = _t_16;
+          _t_23.starred = _t_17;
+          _t_23.created_time = _t_18;
+          _t_23.modified_time = _t_19;
+          _t_23.file_size = _t_20;
+          _t_24 = _t_23.order_by;
+          _t_25 = _t_23.file_id;
+          _t_26 = _t_23.file_name;
+          _t_27 = _t_23.mime_type;
+          _t_28 = _t_23.description;
+          _t_29 = _t_23.starred;
+          _t_30 = _t_23.created_time;
+          _t_31 = _t_23.modified_time;
+          _t_32 = _t_23.file_size;
+          try {
+            await env.output(String(_t_10), _t_23);
+          } catch(_exc_) {
+            env.reportError("Failed to invoke action", _exc_);
+          }
+        } else {
+
+        }
+        _iter_tmp = await _t_0.next();
+      }
+    }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke at-timer", _exc_);
+  }`]],
+
+    // complex indexing
+    [`{
+    now => @com.google.drive.list_drive_files()[2, 3, 4] => notify;
+}`,
+  [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  let _t_25;
+  let _t_26;
+  let _t_27;
+  let _t_28;
+  let _t_29;
+  let _t_30;
+  _t_0 = [2, 3, 4];
+  _t_1 = new Array(0);
+  try {
+    _t_2 = {};
+    _t_3 = await env.invokeQuery(0, _t_2);
+    _t_4 = _t_3[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_4.next();
+      while (!_iter_tmp.done) {
+        _t_5 = _iter_tmp.value;
+        _t_6 = _t_5[0];
+        _t_7 = _t_5[1];
+        _t_8 = _t_7.order_by;
+        _t_9 = _t_7.file_id;
+        _t_10 = _t_7.file_name;
+        _t_11 = _t_7.mime_type;
+        _t_12 = _t_7.description;
+        _t_13 = _t_7.starred;
+        _t_14 = _t_7.created_time;
+        _t_15 = _t_7.modified_time;
+        _t_16 = _t_7.file_size;
+        _t_17 = new Array(2);
+        _t_17[0] = _t_7;
+        _t_17[1] = _t_6;
+        _t_1.push(_t_17);
+        _iter_tmp = await _t_4.next();
+      }
+    }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke query", _exc_);
+  }
+  _t_18 = __builtin.indexArray(_t_1, _t_0);
+  for (_t_19 of _t_18) {
+    _t_21 = _t_19[0];
+    _t_20 = _t_19[1];
+    _t_22 = _t_21.order_by;
+    _t_23 = _t_21.file_id;
+    _t_24 = _t_21.file_name;
+    _t_25 = _t_21.mime_type;
+    _t_26 = _t_21.description;
+    _t_27 = _t_21.starred;
+    _t_28 = _t_21.created_time;
+    _t_29 = _t_21.modified_time;
+    _t_30 = _t_21.file_size;
+    try {
+      await env.output(String(_t_20), _t_21);
+    } catch(_exc_) {
+      env.reportError("Failed to invoke action", _exc_);
+    }
+  }`]],
+
+    // complex slicing
+    [`{
+    now => @com.google.drive.list_drive_files()[2:4] => notify;
+}`,
+  [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  let _t_25;
+  let _t_26;
+  let _t_27;
+  let _t_28;
+  let _t_29;
+  let _t_30;
+  let _t_31;
+  _t_0 = 2;
+  _t_1 = 4;
+  _t_2 = new Array(0);
+  try {
+    _t_3 = {};
+    _t_4 = await env.invokeQuery(0, _t_3);
+    _t_5 = _t_4[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_5.next();
+      while (!_iter_tmp.done) {
+        _t_6 = _iter_tmp.value;
+        _t_7 = _t_6[0];
+        _t_8 = _t_6[1];
+        _t_9 = _t_8.order_by;
+        _t_10 = _t_8.file_id;
+        _t_11 = _t_8.file_name;
+        _t_12 = _t_8.mime_type;
+        _t_13 = _t_8.description;
+        _t_14 = _t_8.starred;
+        _t_15 = _t_8.created_time;
+        _t_16 = _t_8.modified_time;
+        _t_17 = _t_8.file_size;
+        _t_18 = new Array(2);
+        _t_18[0] = _t_8;
+        _t_18[1] = _t_7;
+        _t_2.push(_t_18);
+        _iter_tmp = await _t_5.next();
+      }
+    }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke query", _exc_);
+  }
+  _t_19 = __builtin.sliceArray(_t_2, _t_0, _t_1);
+  for (_t_20 of _t_19) {
+    _t_22 = _t_20[0];
+    _t_21 = _t_20[1];
+    _t_23 = _t_22.order_by;
+    _t_24 = _t_22.file_id;
+    _t_25 = _t_22.file_name;
+    _t_26 = _t_22.mime_type;
+    _t_27 = _t_22.description;
+    _t_28 = _t_22.starred;
+    _t_29 = _t_22.created_time;
+    _t_30 = _t_22.modified_time;
+    _t_31 = _t_22.file_size;
+    try {
+      await env.output(String(_t_21), _t_22);
+    } catch(_exc_) {
+      env.reportError("Failed to invoke action", _exc_);
+    }
+  }`]],
+
+    // sorting
+    [`{
+    now => sort file_size asc of @com.google.drive.list_drive_files() => notify;
+}`,
+  [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  let _t_25;
+  let _t_26;
+  let _t_27;
+  let _t_28;
+  let _t_29;
+  _t_0 = new Array(0);
+  try {
+    _t_1 = {};
+    _t_2 = await env.invokeQuery(0, _t_1);
+    _t_3 = _t_2[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_3.next();
+      while (!_iter_tmp.done) {
+        _t_4 = _iter_tmp.value;
+        _t_5 = _t_4[0];
+        _t_6 = _t_4[1];
+        _t_7 = _t_6.order_by;
+        _t_8 = _t_6.file_id;
+        _t_9 = _t_6.file_name;
+        _t_10 = _t_6.mime_type;
+        _t_11 = _t_6.description;
+        _t_12 = _t_6.starred;
+        _t_13 = _t_6.created_time;
+        _t_14 = _t_6.modified_time;
+        _t_15 = _t_6.file_size;
+        _t_16 = new Array(2);
+        _t_16[0] = _t_6;
+        _t_16[1] = _t_5;
+        _t_0.push(_t_16);
+        _iter_tmp = await _t_3.next();
+      }
+    }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke query", _exc_);
+  }
+  _t_17 = "file_size";
+  __builtin.sortasc(_t_0, _t_17);
+  for (_t_18 of _t_0) {
+    _t_20 = _t_18[0];
+    _t_19 = _t_18[1];
+    _t_21 = _t_20.order_by;
+    _t_22 = _t_20.file_id;
+    _t_23 = _t_20.file_name;
+    _t_24 = _t_20.mime_type;
+    _t_25 = _t_20.description;
+    _t_26 = _t_20.starred;
+    _t_27 = _t_20.created_time;
+    _t_28 = _t_20.modified_time;
+    _t_29 = _t_20.file_size;
+    try {
+      await env.output(String(_t_19), _t_20);
     } catch(_exc_) {
       env.reportError("Failed to invoke action", _exc_);
     }

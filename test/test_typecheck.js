@@ -1,6 +1,5 @@
 "use strict";
 
-const Q = require('q');
 const fs = require('fs');
 
 const AppGrammar = require('../lib/grammar_api');

@@ -158,15 +158,21 @@ const TEST_CASES = [
 
     [`executor = USERNAME_0 : now => @com.twitter.post`,
      `ask USERNAME_0 to post on twitter`, { USERNAME_0: 'bob' },
-     `executor = "bob"^^tt:username : now => @com.twitter.post();`],
+     `executor = "bob"^^tt:username : {
+  now => @com.twitter.post();
+}`],
 
     [`executor = USERNAME_0 : now => @com.xkcd.get_comic => notify`,
      `ask USERNAME_0 to get xkcd`, { USERNAME_0: 'bob' },
-     `executor = "bob"^^tt:username : now => @com.xkcd.get_comic() => notify;`],
+     `executor = "bob"^^tt:username : {
+  now => @com.xkcd.get_comic() => notify;
+}`],
 
     [`executor = USERNAME_0 : now => @com.xkcd.get_comic => return`,
      `ask USERNAME_0 to get xkcd`, { USERNAME_0: 'bob' },
-     `executor = "bob"^^tt:username : now => @com.xkcd.get_comic() => return;`],
+     `executor = "bob"^^tt:username : {
+  now => @com.xkcd.get_comic() => return;
+}`],
 
     [`now => ( @security-camera.current_event ) filter @org.thingpedia.builtin.thingengine.phone.get_gps { not param:location:Location == location:home } => notify`,
      `show me my security camera if i 'm not home`, {}, //'
@@ -210,7 +216,9 @@ const TEST_CASES = [
 
     [`executor = USERNAME_0 : now => @com.twitter.post_picture`,
      `USERNAME_0 can post pictures on twitter`, { USERNAME_0: 'mom' },
-     `executor = "mom"^^tt:username : now => @com.twitter.post_picture();`],
+     `executor = "mom"^^tt:username : {
+  now => @com.twitter.post_picture();
+}`],
 
     [`now => @org.thingpedia.weather.sunrise param:date:Date = DATE_0 => notify`,
      `get sunrise sunset on date DATE_0`, { DATE_0: { year: 2018, month: 5, day: 23, hour: -1, minute: -1, second: -1 } },
@@ -250,7 +258,9 @@ const TEST_CASES = [
 
     ['executor = " bob " ^^tt:username : now => @com.twitter.post',
     `ask bob to post on twitter`, {},
-    `executor = "bob"^^tt:username : now => @com.twitter.post();`],
+    `executor = "bob"^^tt:username : {
+  now => @com.twitter.post();
+}`],
 
     ['now => @com.twitter.follow param:user_name:Entity(tt:username) = " bob " ^^tt:username',
     `follow bob on twitter`, {},
@@ -260,21 +270,13 @@ const TEST_CASES = [
     'everybody has permission to discover new devices if the data of more data genning ... is exactly QUOTED_STRING_0', { QUOTED_STRING_0: 'foo' },
     'true : now => @org.thingpedia.builtin.thingengine.builtin.discover, @org.thingpedia.builtin.test.get_data() { data == "foo" };'],
 
-    ['now => aggregate argmax param:file_size:Measure(byte) 1 , 1 of ( @com.dropbox.list_folder ) => notify',
-     `what 's the largest file in my dropbox`, {},
-     `now => aggregate argmax 1, 1 file_size of (@com.dropbox.list_folder()) => notify;`],
-
-    ['now => aggregate argmin param:file_size:Measure(byte) 1 , 1 of ( @com.dropbox.list_folder ) => notify',
-     `what 's the smallest file in my dropbox`, {},
-     `now => aggregate argmin 1, 1 file_size of (@com.dropbox.list_folder()) => notify;`],
-
     [`now => @com.xkcd.get_comic param:number:Number = SLOT_0 => notify`,
      '', {'SLOT_0': Ast.Value.Number(1234) },
      `now => @com.xkcd.get_comic(number=1234) => notify;`],
 
     [`now => @com.xkcd.get_comic param:number:Number = SLOT_0 => notify`,
      '', {'SLOT_0': undefined},
-     `now => @com.xkcd.get_comic(number=$undefined) => notify;`],
+     `now => @com.xkcd.get_comic(number=$?) => notify;`],
 
     [`filter param:title:String =~ SLOT_0`,
     '', {'SLOT_0': Ast.Value.String('foo') },
@@ -286,11 +288,35 @@ const TEST_CASES = [
 
     [`now => @com.xkcd.get_comic param:number:Number = undefined => notify`,
      'get some specific xkcd comic', {},
-    `now => @com.xkcd.get_comic(number=$undefined) => notify;`],
+    `now => @com.xkcd.get_comic(number=$?) => notify;`],
 
     [`now => ( @com.twitter.search ) filter param:author:Entity(tt:username) == undefined => notify`,
      'search tweets by author', {},
-    `now => (@com.twitter.search()), author == $undefined => notify;`]
+    `now => (@com.twitter.search()), author == $? => notify;`],
+
+    ['now => sort param:sender_name:String asc of ( @com.gmail.inbox ) => notify',
+    'show my emails sorted by sender name', {},
+    `now => sort sender_name asc of (@com.gmail.inbox()) => notify;`],
+
+    ['now => sort param:sender_name:String desc of ( @com.gmail.inbox ) => notify',
+    'show my emails sorted by sender name -lrb- in reverse order -rrb-', {},
+    `now => sort sender_name desc of (@com.gmail.inbox()) => notify;`],
+
+    ['now => ( @com.gmail.inbox ) [ 1 ] => notify',
+    'show me exactly one email', {},
+    `now => (@com.gmail.inbox())[1] => notify;`],
+
+    ['now => ( @com.gmail.inbox ) [ 1 : NUMBER_0 ] => notify',
+    'show me exactly NUMBER_0 emails', { NUMBER_0: 3 },
+    `now => (@com.gmail.inbox())[1 : 3] => notify;`],
+
+    ['now => ( @com.gmail.inbox ) [ NUMBER_1 : NUMBER_0 ] => notify',
+    'show me exactly NUMBER_0 emails , starting from the NUMBER_1', { NUMBER_0: 3, NUMBER_1: 2 },
+    `now => (@com.gmail.inbox())[2 : 3] => notify;`],
+
+    ['now => ( @com.gmail.inbox ) [ NUMBER_0 , NUMBER_1 , NUMBER_2 ] => notify',
+    'show me exactly the emails number NUMBER_0 , NUMBER_1 and NUMBER_2', { NUMBER_0: 3, NUMBER_1: 7, NUMBER_2: 22 },
+    `now => (@com.gmail.inbox())[3, 7, 22] => notify;`],
 ];
 
 async function testCase(test, i) {
