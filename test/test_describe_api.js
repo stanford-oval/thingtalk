@@ -17,11 +17,6 @@ const Q = require('q');
 Q.longStackSupport = true;
 const Ast = require('../lib/ast');
 const Describe = require('../lib/describe');
-const Grammar = require('../lib/grammar_api');
-const SchemaRetriever = require('../lib/schema');
-
-const _mockSchemaDelegate = require('./mock_schema_delegate');
-const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 const gettext = {
     locale: 'en-US',
@@ -60,12 +55,12 @@ async function testDescribeArg() {
         [new Ast.Value.Number(1e+23), `100,000,000,000,000,000,000,000`],
 
         // U+OOAO NO-BREAK SPACE
-        [new Ast.Value.Currency(1000, 'usd'), 'US$\u00a01,000.00'],
-        [new Ast.Value.Currency(1000.001, 'usd'), 'US$\u00a01,000.00'],
-        [new Ast.Value.Currency(1000.005, 'usd'), 'US$\u00a01,000.01'],
-        [new Ast.Value.Currency(1000.99, 'usd'), 'US$\u00a01,000.99'],
-        [new Ast.Value.Currency(1000.995, 'usd'), 'US$\u00a01,001.00'],
-        [new Ast.Value.Currency(1000, 'eur'), '€\u00a01,000.00'],
+        [new Ast.Value.Currency(1000, 'usd'), '$1,000.00'],
+        [new Ast.Value.Currency(1000.001, 'usd'), '$1,000.00'],
+        [new Ast.Value.Currency(1000.005, 'usd'), '$1,000.01'],
+        [new Ast.Value.Currency(1000.99, 'usd'), '$1,000.99'],
+        [new Ast.Value.Currency(1000.995, 'usd'), '$1,001.00'],
+        [new Ast.Value.Currency(1000, 'eur'), '€1,000.00'],
 
         [new Ast.Value.Location(new Ast.Location.Relative('home')), `at home`],
         [new Ast.Value.Location(new Ast.Location.Relative('work')), `at work`],

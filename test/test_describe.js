@@ -157,7 +157,7 @@ var TEST_CASES = [
     'Bing ⇒ Yandex Translate ⇒ Notification'],
 
     [`monitor @com.yahoo.finance.get_stock_quote(stock_id="goog"^^tt:stock_id("Alphabet, Inc.")), ask_price >= makeCurrency(100, usd) => notify;`,
-    'notify you when the stock price of Alphabet, Inc. change if the ask price is greater than or equal to US$ 100.00',
+    'notify you when the stock price of Alphabet, Inc. change if the ask price is greater than or equal to $100.00',
     'Yahoo Finance ⇒ Notification'],
 
     [`now => [ask_price] of @com.yahoo.finance.get_stock_quote(stock_id="goog"^^tt:stock_id("Alphabet, Inc.")) => notify;`,
