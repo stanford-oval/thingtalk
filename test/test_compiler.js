@@ -4283,46 +4283,56 @@ const TEST_CASES = [
   let _t_8;
   let _t_9;
   let _t_10;
+  await __env.enterProcedure(0, "p1");
   try {
-    _t_1 = {};
-    _t_1.query = _t_0;
-    _t_2 = await __env.invokeQuery("com.bing", { }, "web_search", _t_1);
-    _t_3 = _t_2[Symbol.iterator]();
-    {
-      let _iter_tmp = await _t_3.next();
-      while (!_iter_tmp.done) {
-        _t_4 = _iter_tmp.value;
-        _t_5 = _t_4[0];
-        _t_6 = _t_4[1];
-        _t_7 = _t_6.title;
-        _t_8 = _t_6.description;
-        _t_9 = _t_6.link;
-        try {
-          await __env.output(String(_t_5), _t_6);
-        } catch(_exc_) {
-          __env.reportError("Failed to invoke action", _exc_);
+    try {
+      _t_1 = {};
+      _t_1.query = _t_0;
+      _t_2 = await __env.invokeQuery("com.bing", { }, "web_search", _t_1);
+      _t_3 = _t_2[Symbol.iterator]();
+      {
+        let _iter_tmp = await _t_3.next();
+        while (!_iter_tmp.done) {
+          _t_4 = _iter_tmp.value;
+          _t_5 = _t_4[0];
+          _t_6 = _t_4[1];
+          _t_7 = _t_6.title;
+          _t_8 = _t_6.description;
+          _t_9 = _t_6.link;
+          try {
+            await __env.output(String(_t_5), _t_6);
+          } catch(_exc_) {
+            __env.reportError("Failed to invoke action", _exc_);
+          }
+          _iter_tmp = await _t_3.next();
         }
-        _iter_tmp = await _t_3.next();
       }
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke query", _exc_);
     }
-  } catch(_exc_) {
-    __env.reportError("Failed to invoke query", _exc_);
-  }
-  __env.clearGetCache();
-  try {
-    _t_10 = {};
-    _t_10.status = _t_0;
-    await __env.invokeAction("com.twitter", { }, "post", _t_10);
-  } catch(_exc_) {
-    __env.reportError("Failed to invoke action", _exc_);
+    __env.clearGetCache();
+    try {
+      _t_10 = {};
+      _t_10.status = _t_0;
+      await __env.invokeAction("com.twitter", { }, "post", _t_10);
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke action", _exc_);
+    }
+  } finally {
+    await __env.exitProcedure(0, "p1");
   }`, `"use strict";
   let _t_1;
+  await __env.enterProcedure(1, "p2");
   try {
-    _t_1 = {};
-    _t_1.status = _t_0;
-    await __env.invokeAction("com.facebook", { }, "post", _t_1);
-  } catch(_exc_) {
-    __env.reportError("Failed to invoke action", _exc_);
+    try {
+      _t_1 = {};
+      _t_1.status = _t_0;
+      await __env.invokeAction("com.facebook", { }, "post", _t_1);
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke action", _exc_);
+    }
+  } finally {
+    await __env.exitProcedure(1, "p2");
   }`, `"use strict";
   let _t_0;
   let _t_1;
@@ -4399,70 +4409,75 @@ const TEST_CASES = [
   let _t_24;
   let _t_25;
   let _t_26;
-  _t_1 = new Array(0);
+  await __env.enterProcedure(0, "p1");
   try {
-    _t_2 = {};
-    _t_2.query = _t_0;
-    _t_3 = await __env.invokeQuery("com.bing", { }, "web_search", _t_2);
-    _t_4 = _t_3[Symbol.iterator]();
+    _t_1 = new Array(0);
+    try {
+      _t_2 = {};
+      _t_2.query = _t_0;
+      _t_3 = await __env.invokeQuery("com.bing", { }, "web_search", _t_2);
+      _t_4 = _t_3[Symbol.iterator]();
+      {
+        let _iter_tmp = await _t_4.next();
+        while (!_iter_tmp.done) {
+          _t_5 = _iter_tmp.value;
+          _t_6 = _t_5[0];
+          _t_7 = _t_5[1];
+          _t_8 = _t_7.title;
+          _t_9 = _t_7.description;
+          _t_10 = _t_7.link;
+          _t_11 = new Array(2);
+          _t_11[0] = _t_6;
+          _t_11[1] = _t_7;
+          _t_1.push(_t_11);
+          _iter_tmp = await _t_4.next();
+        }
+      }
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke query", _exc_);
+    }
+    __env.clearGetCache();
+    _t_12 = _t_1[Symbol.iterator]();
     {
-      let _iter_tmp = await _t_4.next();
+      let _iter_tmp = await _t_12.next();
       while (!_iter_tmp.done) {
-        _t_5 = _iter_tmp.value;
-        _t_6 = _t_5[0];
-        _t_7 = _t_5[1];
-        _t_8 = _t_7.title;
-        _t_9 = _t_7.description;
-        _t_10 = _t_7.link;
-        _t_11 = new Array(2);
-        _t_11[0] = _t_6;
-        _t_11[1] = _t_7;
-        _t_1.push(_t_11);
-        _iter_tmp = await _t_4.next();
+        _t_13 = _iter_tmp.value;
+        _t_14 = _t_13[0];
+        _t_15 = _t_13[1];
+        _t_16 = _t_15.title;
+        _t_17 = _t_15.description;
+        _t_18 = _t_15.link;
+        try {
+          await __env.output(String(_t_14), _t_15);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_12.next();
       }
     }
-  } catch(_exc_) {
-    __env.reportError("Failed to invoke query", _exc_);
-  }
-  __env.clearGetCache();
-  _t_12 = _t_1[Symbol.iterator]();
-  {
-    let _iter_tmp = await _t_12.next();
-    while (!_iter_tmp.done) {
-      _t_13 = _iter_tmp.value;
-      _t_14 = _t_13[0];
-      _t_15 = _t_13[1];
-      _t_16 = _t_15.title;
-      _t_17 = _t_15.description;
-      _t_18 = _t_15.link;
-      try {
-        await __env.output(String(_t_14), _t_15);
-      } catch(_exc_) {
-        __env.reportError("Failed to invoke action", _exc_);
+    __env.clearGetCache();
+    _t_19 = _t_1[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_19.next();
+      while (!_iter_tmp.done) {
+        _t_20 = _iter_tmp.value;
+        _t_21 = _t_20[0];
+        _t_22 = _t_20[1];
+        _t_23 = _t_22.title;
+        _t_24 = _t_22.description;
+        _t_25 = _t_22.link;
+        try {
+          _t_26 = {};
+          _t_26.status = _t_23;
+          await __env.invokeAction("com.twitter", { }, "post", _t_26);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_19.next();
       }
-      _iter_tmp = await _t_12.next();
     }
-  }
-  __env.clearGetCache();
-  _t_19 = _t_1[Symbol.iterator]();
-  {
-    let _iter_tmp = await _t_19.next();
-    while (!_iter_tmp.done) {
-      _t_20 = _iter_tmp.value;
-      _t_21 = _t_20[0];
-      _t_22 = _t_20[1];
-      _t_23 = _t_22.title;
-      _t_24 = _t_22.description;
-      _t_25 = _t_22.link;
-      try {
-        _t_26 = {};
-        _t_26.status = _t_23;
-        await __env.invokeAction("com.twitter", { }, "post", _t_26);
-      } catch(_exc_) {
-        __env.reportError("Failed to invoke action", _exc_);
-      }
-      _iter_tmp = await _t_19.next();
-    }
+  } finally {
+    await __env.exitProcedure(0, "p1");
   }`, `"use strict";
   let _t_0;
   let _t_1;
@@ -4510,85 +4525,90 @@ const TEST_CASES = [
   let _t_23;
   let _t_24;
   let _t_25;
-  _t_10 = async function(__env, emit) {
-    "use strict";
-    let _t_1;
-    let _t_2;
-    let _t_3;
-    let _t_4;
-    let _t_5;
-    let _t_6;
-    let _t_7;
-    let _t_8;
-    let _t_9;
+  await __env.enterProcedure(0, "p1");
+  try {
+    _t_10 = async function(__env, emit) {
+      "use strict";
+      let _t_1;
+      let _t_2;
+      let _t_3;
+      let _t_4;
+      let _t_5;
+      let _t_6;
+      let _t_7;
+      let _t_8;
+      let _t_9;
+      try {
+        _t_1 = {};
+        _t_1.query = _t_0;
+        _t_2 = await __env.invokeQuery("com.bing", { }, "web_search", _t_1);
+        _t_3 = _t_2[Symbol.iterator]();
+        {
+          let _iter_tmp = await _t_3.next();
+          while (!_iter_tmp.done) {
+            _t_4 = _iter_tmp.value;
+            _t_5 = _t_4[0];
+            _t_6 = _t_4[1];
+            _t_7 = _t_6.title;
+            _t_8 = _t_6.description;
+            _t_9 = _t_6.link;
+            emit(_t_5, _t_6);
+            _iter_tmp = await _t_3.next();
+          }
+        }
+      } catch(_exc_) {
+        __env.reportError("Failed to invoke query", _exc_);
+      }
+    };
     try {
-      _t_1 = {};
-      _t_1.query = _t_0;
-      _t_2 = await __env.invokeQuery("com.bing", { }, "web_search", _t_1);
-      _t_3 = _t_2[Symbol.iterator]();
+      _t_11 = await __builtin.invokeStreamVarRef(__env, _t_10);
       {
-        let _iter_tmp = await _t_3.next();
+        let _iter_tmp = await _t_11.next();
         while (!_iter_tmp.done) {
-          _t_4 = _iter_tmp.value;
-          _t_5 = _t_4[0];
-          _t_6 = _t_4[1];
-          _t_7 = _t_6.title;
-          _t_8 = _t_6.description;
-          _t_9 = _t_6.link;
-          emit(_t_5, _t_6);
-          _iter_tmp = await _t_3.next();
+          _t_12 = _iter_tmp.value;
+          _t_13 = _t_12[0];
+          _t_14 = _t_12[1];
+          _t_15 = _t_14.title;
+          _t_16 = _t_14.description;
+          _t_17 = _t_14.link;
+          try {
+            await __env.output(String(_t_13), _t_14);
+          } catch(_exc_) {
+            __env.reportError("Failed to invoke action", _exc_);
+          }
+          _iter_tmp = await _t_11.next();
         }
       }
     } catch(_exc_) {
       __env.reportError("Failed to invoke query", _exc_);
     }
-  };
-  try {
-    _t_11 = await __builtin.invokeStreamVarRef(__env, _t_10);
-    {
-      let _iter_tmp = await _t_11.next();
-      while (!_iter_tmp.done) {
-        _t_12 = _iter_tmp.value;
-        _t_13 = _t_12[0];
-        _t_14 = _t_12[1];
-        _t_15 = _t_14.title;
-        _t_16 = _t_14.description;
-        _t_17 = _t_14.link;
-        try {
-          await __env.output(String(_t_13), _t_14);
-        } catch(_exc_) {
-          __env.reportError("Failed to invoke action", _exc_);
+    __env.clearGetCache();
+    try {
+      _t_18 = await __builtin.invokeStreamVarRef(__env, _t_10);
+      {
+        let _iter_tmp = await _t_18.next();
+        while (!_iter_tmp.done) {
+          _t_19 = _iter_tmp.value;
+          _t_20 = _t_19[0];
+          _t_21 = _t_19[1];
+          _t_22 = _t_21.title;
+          _t_23 = _t_21.description;
+          _t_24 = _t_21.link;
+          try {
+            _t_25 = {};
+            _t_25.status = _t_22;
+            await __env.invokeAction("com.twitter", { }, "post", _t_25);
+          } catch(_exc_) {
+            __env.reportError("Failed to invoke action", _exc_);
+          }
+          _iter_tmp = await _t_18.next();
         }
-        _iter_tmp = await _t_11.next();
       }
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke query", _exc_);
     }
-  } catch(_exc_) {
-    __env.reportError("Failed to invoke query", _exc_);
-  }
-  __env.clearGetCache();
-  try {
-    _t_18 = await __builtin.invokeStreamVarRef(__env, _t_10);
-    {
-      let _iter_tmp = await _t_18.next();
-      while (!_iter_tmp.done) {
-        _t_19 = _iter_tmp.value;
-        _t_20 = _t_19[0];
-        _t_21 = _t_19[1];
-        _t_22 = _t_21.title;
-        _t_23 = _t_21.description;
-        _t_24 = _t_21.link;
-        try {
-          _t_25 = {};
-          _t_25.status = _t_22;
-          await __env.invokeAction("com.twitter", { }, "post", _t_25);
-        } catch(_exc_) {
-          __env.reportError("Failed to invoke action", _exc_);
-        }
-        _iter_tmp = await _t_18.next();
-      }
-    }
-  } catch(_exc_) {
-    __env.reportError("Failed to invoke query", _exc_);
+  } finally {
+    await __env.exitProcedure(0, "p1");
   }`, `"use strict";
   let _t_0;
   let _t_1;
@@ -4625,30 +4645,40 @@ const TEST_CASES = [
   let _t_3;
   let _t_4;
   let _t_5;
-  _t_3 = async function(__env, _t_1) {
-    "use strict";
-    let _t_2;
+  await __env.enterProcedure(0, "p1");
+  try {
+    _t_3 = async function(__env, _t_1) {
+      "use strict";
+      let _t_2;
+      await __env.enterProcedure(1, "p2");
+      try {
+        try {
+          _t_2 = {};
+          _t_2.title = _t_0;
+          _t_2.body = _t_1;
+          await __env.invokeAction("tumblr-blog", { }, "post_text", _t_2);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+      } finally {
+        await __env.exitProcedure(1, "p2");
+      }
+    };
     try {
-      _t_2 = {};
-      _t_2.title = _t_0;
-      _t_2.body = _t_1;
-      await __env.invokeAction("tumblr-blog", { }, "post_text", _t_2);
+      _t_4 = "body one";
+      await _t_3(__env, _t_4);
     } catch(_exc_) {
       __env.reportError("Failed to invoke action", _exc_);
     }
-  };
-  try {
-    _t_4 = "body one";
-    await _t_3(__env, _t_4);
-  } catch(_exc_) {
-    __env.reportError("Failed to invoke action", _exc_);
-  }
-  __env.clearGetCache();
-  try {
-    _t_5 = "body two";
-    await _t_3(__env, _t_5);
-  } catch(_exc_) {
-    __env.reportError("Failed to invoke action", _exc_);
+    __env.clearGetCache();
+    try {
+      _t_5 = "body two";
+      await _t_3(__env, _t_5);
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke action", _exc_);
+    }
+  } finally {
+    await __env.exitProcedure(0, "p1");
   }`, `"use strict";
   let _t_0;
   let _t_1;
@@ -4684,30 +4714,40 @@ const TEST_CASES = [
   let _t_3;
   let _t_4;
   let _t_5;
-  _t_3 = async function(__env, _t_1) {
-    "use strict";
-    let _t_2;
+  await __env.enterProcedure(0, "p1");
+  try {
+    _t_3 = async function(__env, _t_1) {
+      "use strict";
+      let _t_2;
+      await __env.enterProcedure(1, "p2");
+      try {
+        try {
+          _t_2 = {};
+          _t_2.title = _t_0;
+          _t_2.body = _t_1;
+          await __env.invokeAction("tumblr-blog", { }, "post_text", _t_2);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+      } finally {
+        await __env.exitProcedure(1, "p2");
+      }
+    };
     try {
-      _t_2 = {};
-      _t_2.title = _t_0;
-      _t_2.body = _t_1;
-      await __env.invokeAction("tumblr-blog", { }, "post_text", _t_2);
+      _t_4 = "body one";
+      await _t_3(__env, _t_4);
     } catch(_exc_) {
       __env.reportError("Failed to invoke action", _exc_);
     }
-  };
-  try {
-    _t_4 = "body one";
-    await _t_3(__env, _t_4);
-  } catch(_exc_) {
-    __env.reportError("Failed to invoke action", _exc_);
-  }
-  __env.clearGetCache();
-  try {
-    _t_5 = "body two";
-    await _t_3(__env, _t_5);
-  } catch(_exc_) {
-    __env.reportError("Failed to invoke action", _exc_);
+    __env.clearGetCache();
+    try {
+      _t_5 = "body two";
+      await _t_3(__env, _t_5);
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke action", _exc_);
+    }
+  } finally {
+    await __env.exitProcedure(0, "p1");
   }`, `"use strict";
   let _t_0;
   let _t_1;
