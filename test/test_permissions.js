@@ -166,8 +166,7 @@ function main() {
                     }
 
                     if (typeof prog !== 'boolean') {
-                        let compiler = new Compiler();
-                        compiler.setSchemaRetriever(schemaRetriever);
+                        let compiler = new Compiler(schemaRetriever);
                         return compiler.compileProgram(prog);
                     }
                 } else if (expected !== null) {

@@ -23,34 +23,47 @@ const builtin = require('../lib/builtin/values');
 const _mockSchemaDelegate = require('./mock_schema_delegate');
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
+class MockState {
+    constructor(compiled) {
+        this._states = [];
+        this._states.length = compiled.states;
+        for (let i = 0; i < this._states.length; i++)
+            this._states[i] = null;
+    }
+
+    readState(stateId) {
+        return this._states[stateId];
+    }
+    writeState(stateId, value) {
+        assert(value.length >= 0);
+        assert(value.length <= 3);
+        assert(stateId >= 0);
+        assert(stateId <= this._states.length);
+        return this._states[stateId] = value;
+    }
+}
+
 class MockExecEnvironment extends ExecEnvironment {
-    constructor(compiledrule, triggerdata, querydata, outputdata) {
+    constructor(states, triggerdata, querydata, outputdata) {
         super('en-US', 'America/Los_Angeles', schemaRetriever);
 
-        this._compiled = compiledrule;
         this._trigger = triggerdata;
         this._query = querydata;
         this._actions = outputdata;
 
-        this._states = [];
-        this._states.length = compiledrule.states;
-        for (let i = 0; i < this._states.length; i++)
-            this._states[i] = null;
+        this._states = states;
     }
 
     get program_id() {
         return 'uuid-XXXXXXXXXXXX';
     }
 
-    _getFn(fnid, type) {
-        const fn = this._compiled.functions[fnid];
-
-        assert.strictEqual(fn.type, type);
-        return `${fn.selector.kind}:${fn.channel}`;
+    _getFn(kind, attrs, fname) {
+        return `${kind}:${fname}`;
     }
 
-    invokeMonitor(fnid, params) {
-        const fn = this._getFn(fnid, 'trigger');
+    invokeMonitor(kind, attrs, fname, params) {
+        const fn = this._getFn(kind, attrs, fname);
         if (!this._trigger || this._trigger.fn !== fn)
             throw new Error('Unexpected trigger ' + fn);
 
@@ -68,8 +81,8 @@ class MockExecEnvironment extends ExecEnvironment {
         throw new Error('Must be overridden');
     }
 
-    invokeQuery(fnid, params) {
-        const fn = this._getFn(fnid, 'query');
+    invokeQuery(kind, attrs, fname, params) {
+        const fn = this._getFn(kind, attrs, fname);
 
         if (!(fn in this._query))
             throw new Error('Unexpected query ' + fn);
@@ -82,8 +95,8 @@ class MockExecEnvironment extends ExecEnvironment {
         });
         return result;
     }
-    invokeAction(fnid, params) {
-        const fn = this._getFn(fnid, 'action');
+    invokeAction(kind, attrs, fname, params) {
+        const fn = this._getFn(kind, attrs, fname);
 
         const nextaction = this._actions.shift();
         if (!nextaction || nextaction.type !== 'action' || nextaction.fn !== fn)
@@ -107,14 +120,13 @@ class MockExecEnvironment extends ExecEnvironment {
         assert.deepStrictEqual(outputType, nextaction.outputType);
         assert.deepStrictEqual(output, nextaction.value);
     }
+    clearGetCache() {}
 
     readState(stateId) {
-        return this._states[stateId];
+        return this._states.readState(stateId);
     }
     writeState(stateId, value) {
-        assert(value.length >= 0);
-        assert(value.length <= 3);
-        return this._states[stateId] = value;
+        return this._states.writeState(stateId, value);
     }
 
     reportError(message, err) {
@@ -2072,6 +2084,260 @@ some alt text` }
 
     ],
 
+    [`let query q(p_query : String) := @com.bing.web_search(query=p_query);
+      let action a(p_status : String) := @com.twitter.post(status=p_status);
+
+      now => q(p_query="foo") => a(p_status=link);
+      now => a(p_status="no");`,
+     {},
+     {
+        'com.bing:web_search': [(params) => {
+            assert.strictEqual(params.query, 'foo');
+            return {
+                link: new builtin.Entity('https://foo.com', null),
+                title: 'Foo Website',
+                description: 'All The Foo You Could Ever Foo'
+            };
+        }]
+     },
+     [
+     {
+       type: 'action',
+       fn: 'com.twitter:post',
+       params: { status: 'https://foo.com' }
+     },
+     {
+       type: 'action',
+       fn: 'com.twitter:post',
+       params: { status: 'no' }
+     }],
+
+     ],
+
+
+     [`let result cat := @com.thecatapi.get();
+      let action a(p_picture_url : Entity(tt:picture)) := @com.twitter.post_picture(caption="cat", picture_url=p_picture_url);
+
+      now => cat => notify;
+      now => cat => a(p_picture_url=picture_url);`,
+     {},
+     {
+        'com.thecatapi:get': [(() => {
+            let _callcount = 0;
+            return (params) => {
+                assert.strictEqual(_callcount, 0);
+                _callcount++;
+
+                return {
+                    link: new builtin.Entity('https://foo.com', null),
+                    image_id: '12345',
+                    picture_url: 'https://foo.com/cat.png'
+                };
+            };
+        })()]
+     },
+     [
+     {
+       type: 'output',
+       outputType: 'com.thecatapi:get',
+       value: {
+            link: new builtin.Entity('https://foo.com', null),
+            image_id: '12345',
+            picture_url: 'https://foo.com/cat.png'
+        }
+     },
+     {
+       type: 'action',
+       fn: 'com.twitter:post_picture',
+       params: { caption: 'cat', picture_url: 'https://foo.com/cat.png' }
+     }],
+
+     ],
+
+     [`let result cat := @com.thecatapi.get();
+      let action a(p_picture_url : Entity(tt:picture)) := @com.twitter.post_picture(caption="cat", picture_url=p_picture_url);
+
+      now => cat => notify;
+      timer(base=makeDate(), interval=1h) => cat => a(p_picture_url=picture_url);`,
+     {},
+     {
+        'com.thecatapi:get': [(() => {
+            let _callcount = 0;
+            return (params) => {
+                assert.strictEqual(_callcount, 0);
+                _callcount++;
+
+                return {
+                    link: new builtin.Entity('https://foo.com', null),
+                    image_id: '12345',
+                    picture_url: 'https://foo.com/cat.png'
+                };
+            };
+        })()]
+     },
+     [
+     {
+       type: 'output',
+       outputType: 'com.thecatapi:get',
+       value: {
+            link: new builtin.Entity('https://foo.com', null),
+            image_id: '12345',
+            picture_url: 'https://foo.com/cat.png'
+        }
+     },
+     {
+       type: 'action',
+       fn: 'com.twitter:post_picture',
+       params: { caption: 'cat', picture_url: 'https://foo.com/cat.png' }
+     },
+     {
+       type: 'action',
+       fn: 'com.twitter:post_picture',
+       params: { caption: 'cat', picture_url: 'https://foo.com/cat.png' }
+     },
+     {
+       type: 'action',
+       fn: 'com.twitter:post_picture',
+       params: { caption: 'cat', picture_url: 'https://foo.com/cat.png' }
+     }],
+
+     ],
+
+     [`let result cat := @com.thecatapi.get();
+      let action a(p_picture_url : Entity(tt:picture)) := @com.twitter.post_picture(caption="cat", picture_url=p_picture_url);
+
+      // reversed order in the program, but it won't matter, the output will be first because "now =>"
+      timer(base=makeDate(), interval=1h) => cat => a(p_picture_url=picture_url);
+      now => cat => notify;
+      `,
+     {},
+     {
+        'com.thecatapi:get': [(() => {
+            let _callcount = 0;
+            return (params) => {
+                assert.strictEqual(_callcount, 0);
+                _callcount++;
+
+                return {
+                    link: new builtin.Entity('https://foo.com', null),
+                    image_id: '12345',
+                    picture_url: 'https://foo.com/cat.png'
+                };
+            };
+        })()]
+     },
+     [
+     {
+       type: 'output',
+       outputType: 'com.thecatapi:get',
+       value: {
+            link: new builtin.Entity('https://foo.com', null),
+            image_id: '12345',
+            picture_url: 'https://foo.com/cat.png'
+        }
+     },
+     {
+       type: 'action',
+       fn: 'com.twitter:post_picture',
+       params: { caption: 'cat', picture_url: 'https://foo.com/cat.png' }
+     },
+     {
+       type: 'action',
+       fn: 'com.twitter:post_picture',
+       params: { caption: 'cat', picture_url: 'https://foo.com/cat.png' }
+     },
+     {
+       type: 'action',
+       fn: 'com.twitter:post_picture',
+       params: { caption: 'cat', picture_url: 'https://foo.com/cat.png' }
+     }],
+
+     ],
+
+    [`let procedure p1(p_foo : String) := {
+        let procedure p2(p_bar : String) := {
+            now => @tumblr-blog.post_text(title = p_foo, body = p_bar);
+        };
+        now => p2(p_bar = "body one");
+        now => p2(p_bar = "body two");
+    };
+    now => p1(p_foo = "title one");
+    now => p1(p_foo = "title two");`,
+    {},
+    {},
+    [
+    {
+       type: 'action',
+       fn: 'tumblr-blog:post_text',
+       params: { title: 'title one', body: 'body one' },
+     },
+    {
+       type: 'action',
+       fn: 'tumblr-blog:post_text',
+       params: { title: 'title one', body: 'body two' },
+     },
+    {
+       type: 'action',
+       fn: 'tumblr-blog:post_text',
+       params: { title: 'title two', body: 'body one' },
+     },
+    {
+       type: 'action',
+       fn: 'tumblr-blog:post_text',
+       params: { title: 'title two', body: 'body two' },
+     },
+
+    ]
+
+    ],
+
+    [`let procedure p1(p_foo : String) := {
+        let procedure p2(p_bar : String) := {
+            now => @tumblr-blog.post_text(title = p_foo, body = p_bar);
+        };
+        now => p2(p_bar = "body one");
+        now => p2(p_bar = "body two");
+    };
+    timer(base=makeDate(), interval=1h) => p1(p_foo = "title one");
+    `,
+    {},
+    {},
+    [
+    {
+       type: 'action',
+       fn: 'tumblr-blog:post_text',
+       params: { title: 'title one', body: 'body one' },
+     },
+    {
+       type: 'action',
+       fn: 'tumblr-blog:post_text',
+       params: { title: 'title one', body: 'body two' },
+     },
+    {
+       type: 'action',
+       fn: 'tumblr-blog:post_text',
+       params: { title: 'title one', body: 'body one' },
+     },
+    {
+       type: 'action',
+       fn: 'tumblr-blog:post_text',
+       params: { title: 'title one', body: 'body two' },
+     },
+    {
+       type: 'action',
+       fn: 'tumblr-blog:post_text',
+       params: { title: 'title one', body: 'body one' },
+     },
+    {
+       type: 'action',
+       fn: 'tumblr-blog:post_text',
+       params: { title: 'title one', body: 'body two' },
+     },
+
+    ]
+
+    ],
+
 ];
 
 async function test(i) {
@@ -2080,15 +2346,19 @@ async function test(i) {
     let [code, trigger, queries, actions] = TEST_CASES[i];
 
     try {
-        var compiler = new Compiler();
-        compiler.setSchemaRetriever(schemaRetriever);
+        const compiler = new Compiler(schemaRetriever);
+        const compiled = await compiler.compileCode(code);
 
-        await compiler.compileCode(code);
-        assert.strictEqual(compiler.rules.length, 1);
+        const generated = [];
+        if (compiled.command)
+            generated.push(compiled.command);
+        generated.push(...compiled.rules);
 
-        const env = new MockExecEnvironment(compiler.rules[0],
-            trigger, queries, actions);
-        await compiler.rules[0].code(env);
+        let state = new MockState(compiled);
+        for (let gen of generated) {
+            const env = new MockExecEnvironment(state, trigger, queries, actions);
+            await gen(env);
+        }
 
         if (actions.length !== 0)
             throw new Error(`Left-over actions in test ${i+1}`);

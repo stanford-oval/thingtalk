@@ -1126,3 +1126,14 @@ let procedure p1 := {
 // invalid annotation type
 
 let stream s := monitor(@com.bing.web_search()) #_[canonical=42];
+
+====
+
+// procedure with nested declarations
+let procedure p1(p_foo : String) := {
+    let query q1 := @com.bing.web_search(query = p_foo);
+    now => q1 => notify;
+    now => q1 => @com.twitter.post(status = title);
+};
+now => p1(p_foo = "one");
+now => p1(p_foo = "two");
