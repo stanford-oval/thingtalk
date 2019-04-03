@@ -1587,10 +1587,10 @@ safe-buffer@^5.0.1, safe-buffer@^5.1.2, safe-buffer@~5.1.1:
   resolved "https://registry.yarnpkg.com/safer-buffer/-/safer-buffer-2.1.2.tgz#44fa161b0187b9549dd84bb91802f9bd8385cd6a"
   integrity sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==
 
-seedrandom@^2.4.4:
-  version "2.4.4"
-  resolved "https://registry.yarnpkg.com/seedrandom/-/seedrandom-2.4.4.tgz#b25ea98632c73e45f58b77cfaa931678df01f9ba"
-  integrity sha512-9A+PDmgm+2du77B5i0Ip2cxOqqHjgNxnBgglxLcX78A2D6c2rTo61z4jnVABpF4cKeDMDG+cmXXvdnqse2VqMA==
+seedrandom@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/seedrandom/-/seedrandom-3.0.0.tgz#3b5e740429a85517d7b5718472093a2a08452ca0"
+  integrity sha512-+PS8kPqxEhdx0ALu9m7/nSF7M5rNmeCBMCFc+xLh9tRdM4WAeTEl/qGqoMlU9MU8azfOh/asYAgrhphLbpobFQ==
 
 "semver@2 || 3 || 4 || 5", semver@^5.5.0, semver@^5.5.1, semver@^5.6.0:
   version "5.6.0"
