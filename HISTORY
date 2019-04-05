@@ -1,3 +1,30 @@
+1.6.0
+=====
+
+* The language was extended to support multiple connected statements. This involved
+  a significant change in the compiler and runtime interface.
+* New language feature: assignments. This is a new kind of statement that
+  invokes a query eagerly and makes the result available to later statements.
+* New language feature: procedures. These are a new kind of declaration that
+  opens a nested scope when invoked. They can be invoked as actions.
+* New language feature: `oninput`. This is a statement that declares, but does not invoke,
+  actions that are related to the current program. It is expected that the frontend
+  will represent `oninput` statements as buttons or suggestions.
+* `iterateSlots` and `iteratePrimitives` API were adapted to reflect their use in slot-filling,
+  and will not recurse into new statements that should not be slot-filled eagerly.
+* More of the Ast API were converted away from adt types to ES6 classes. This includes
+  the Ast.Input types and the Ast.Statement types.
+* New syntax: `$?` is now a syntactic sugar for `$undefined`. Note the new syntax is
+  used by default, which can cause compatibility issues with the old library.
+* New language operators: `sort`, indexing and slicing. These operate on queries
+  and can be used to sort or select an index or range of the result. These operators
+  are fully supported (including compiler, describe, NN syntax support)
+* The `argmin` and `argmax` operators are now redundant and have been removed.
+* It is now possible to build the library on windows (provided that the dependencies
+  are available)
+* New API: `Example`s can be typechecked individually.
+* Misc bug fixes
+
 1.5.2
 =====
 
