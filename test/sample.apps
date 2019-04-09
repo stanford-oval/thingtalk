@@ -650,6 +650,16 @@ now => @com.twitter.follow(user_name=null^^tt:username("donald trump"));
 
 ====
 
+// basic auth
+{
+  class @com.foo {
+    import config from @org.thingpedia.config.basic_auth();
+  }
+}
+
+
+====
+
 // Dataset language
 dataset @com.twitter language 'en' {
     stream (p_author : Entity(tt:username)) := monitor (@com.twitter.search()), author == p_author
