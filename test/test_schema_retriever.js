@@ -79,8 +79,20 @@ async function testInjectManifest() {
     assert.deepStrictEqual((await schemaRetriever.getSchemaAndNames('com.twitter', 'query', 'fake_query')).prettyprint(), `monitorable list query fake_query(in req fake_argument: String)\n#[poll_interval=1min]\n#[formatted=["foo"]];`);
 }
 
+async function testInvalid() {
+    const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate,
+                                                _mockMemoryClient);
+
+    await assert.rejects(async () => {
+        await schemaRetriever.getSchemaAndNames('org.thingpedia.nonexistent', 'query', 'foo');
+    }, (e) => {
+        return e.message === 'Invalid kind org.thingpedia.nonexistent';
+    });
+}
+
 async function main()   {
     await testInjectManifest();
+    await testInvalid();
 }
 module.exports = main;
 if (!module.parent)
