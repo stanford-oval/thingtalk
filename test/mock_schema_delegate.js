@@ -87,7 +87,7 @@ module.exports = {
             // emulate Thingpedia's behavior of creating an empty class
             // for invalid/unknown/invisible devices
             if (!source[kind])
-                source[kind] = { queries: {}, actions: {} };
+                continue;
             classes.push(makeSchemaClassDef(kind, source[kind], useMeta));
         }
         const input = new Ast.Input.Meta(classes, []);
