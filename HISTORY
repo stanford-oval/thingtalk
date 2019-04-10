@@ -39,7 +39,7 @@
 =====
 
 * BREAKING CHANGE: the SentenceGenerator module, and the associated template files, have been moved
-  to [genie-toolkit](https://github.com/Stanford-Mobisocial-IoT-Lab/genie-toolkit),
+  to [genie-toolkit](https://github.com/stanford-oval/genie-toolkit),
   and they are not in the library anymore.
 * The NN syntax definition was redone to make it easier to extend, with a custom
   domain-specific language and the ability to generate a Python parser as well.
