@@ -51,6 +51,11 @@ const TEST_CASES = [
 
     'class @com.foo {\n' +
     '  import loader from @org.thingpedia.v2();\n' +
+    '  import config from @org.thingpedia.config.basic_auth();\n' +
+    '}\n',
+
+    'class @com.foo {\n' +
+    '  import loader from @org.thingpedia.v2();\n' +
     '  import config from @org.thingpedia.config.basic_auth(extra_params=makeArgMap(serial_number:String));\n' +
     '}\n',
 
@@ -165,6 +170,38 @@ const TEST_CASES = [
       queries: {},
       actions: {},
       version: 0
+    },
+
+    {
+        kind: 'com.foo',
+        module_type: 'org.thingpedia.v2',
+        types: [],
+        child_types: [],
+        category: 'online',
+        params: {},
+        auth: {
+            type: 'basic'
+        },
+        queries: {},
+        actions: {},
+        version: 0
+    },
+
+    {
+        kind: 'com.foo',
+        module_type: 'org.thingpedia.v2',
+        types: [],
+        child_types: [],
+        category: 'online',
+        params: {
+            'serial_number': ['serial number', 'text']
+        },
+        auth: {
+            type: 'basic'
+        },
+        queries: {},
+        actions: {},
+        version: 0
     },
 
     {

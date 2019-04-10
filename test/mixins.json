@@ -91,8 +91,8 @@
       "kind": "org.thingpedia.config.basic_auth",
       "args": [ "extra_params" ],
       "types": [ "ArgMap" ],
-      "required": [ true, true ],
-      "is_input": [ true, true ],
+      "required": [ false ],
+      "is_input": [ true ],
       "facets": [ "config" ]
     },
     {
