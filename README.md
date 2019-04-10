@@ -1,6 +1,6 @@
 # ThingTalk
 
-[![Build Status](https://travis-ci.org/Stanford-Mobisocial-IoT-Lab/thingtalk.svg?branch=master)](https://travis-ci.org/Stanford-Mobisocial-IoT-Lab/thingtalk) [![Coverage Status](https://coveralls.io/repos/github/Stanford-Mobisocial-IoT-Lab/thingtalk/badge.svg?branch=master)](https://coveralls.io/github/Stanford-Mobisocial-IoT-Lab/thingtalk?branch=master) [![Dependency Status](https://david-dm.org/Stanford-Mobisocial-IoT-Lab/thingtalk/status.svg)](https://david-dm.org/Stanford-Mobisocial-IoT-Lab/thingtalk) [![Greenkeeper badge](https://badges.greenkeeper.io/Stanford-Mobisocial-IoT-Lab/thingtalk.svg)](https://greenkeeper.io/) [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/Stanford-Mobisocial-IoT-Lab/thingtalk.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/Stanford-Mobisocial-IoT-Lab/thingtalk/context:javascript)
+[![Build Status](https://travis-ci.org/stanford-oval/thingtalk.svg?branch=master)](https://travis-ci.org/stanford-oval/thingtalk) [![Coverage Status](https://coveralls.io/repos/github/stanford-oval/thingtalk/badge.svg?branch=master)](https://coveralls.io/github/stanford-oval/thingtalk?branch=master) [![Dependency Status](https://david-dm.org/stanford-oval/thingtalk/status.svg)](https://david-dm.org/stanford-oval/thingtalk) [![Greenkeeper badge](https://badges.greenkeeper.io/stanford-oval/thingtalk.svg)](https://greenkeeper.io/) [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/stanford-oval/thingtalk.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/stanford-oval/thingtalk/context:javascript)
 
 ## The Programming Language of Virtual Assistants
 
@@ -27,8 +27,8 @@ and various libraries to manipulate ThingTalk ASTs.
 
 While this library is useful on its own for specific purposes, to
 run ThingTalk programs you will need a full Almond runtime, such
-as one provided by [almond-cloud](https://github.com/Stanford-Mobisocial-IoT-Lab/almond-cloud)
-or [almond-cmdline](https://github.com/Stanford-Mobisocial-IoT-Lab/almond-cmdline).
+as one provided by [almond-cloud](https://github.com/stanford-oval/almond-cloud)
+or [almond-cmdline](https://github.com/stanford-oval/almond-cmdline).
 
 Almond is a research project led by prof. Monica Lam,
 from Stanford University.  You can find more information at
