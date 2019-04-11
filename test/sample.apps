@@ -1147,3 +1147,10 @@ let procedure p1(p_foo : String) := {
 };
 now => p1(p_foo = "one");
 now => p1(p_foo = "two");
+
+====
+
+// ** typecheck: expect TypeError **
+// monitor of non-monitorable query
+
+monitor (@com.thecatapi.get()) => notify;
