@@ -1364,7 +1364,7 @@ const TEST_CASES = [
 
   [`executor = "1234"^^tt:contact : {
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-        query receive (in req __principal : Entity(tt:contact), in req __program_id : Entity(tt:program_id), in req __flow : Number, out __kindChannel : Entity(tt:function), out interval : Measure(ms));
+        monitorable list query receive (in req __principal : Entity(tt:contact), in req __program_id : Entity(tt:program_id), in req __flow : Number, out __kindChannel : Entity(tt:function), out interval : Measure(ms));
     }
     monitor @__dyn_0.receive(__principal="mock-account:12345678"^^tt:contact("me"), __program_id=$event.program_id, __flow=0)  => @security-camera.set_power(power=enum(on)) ;
 }`, [`"use strict";

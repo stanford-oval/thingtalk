@@ -1861,7 +1861,7 @@
                         false
                     ],
                     "is_list": true,
-                    "is_monitorable": true,
+                    "is_monitorable": false,
                     "confirmation": "cat pictures",
                     "confirmation_remote": "cat pictures",
                     "doc": "get `count` many cat pictures",

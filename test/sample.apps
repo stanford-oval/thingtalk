@@ -1147,3 +1147,23 @@ let procedure p1(p_foo : String) := {
 };
 now => p1(p_foo = "one");
 now => p1(p_foo = "two");
+
+====
+
+// ** typecheck: expect TypeError **
+// monitor of non-monitorable query
+
+monitor (@com.thecatapi.get()) => notify;
+
+====
+
+// ** typecheck: expect TypeError **
+// propagating monitorable bit from table joins
+
+monitor (@com.bing.web_search() join @com.thecatapi.get()) => notify;
+
+====
+
+// propagating monitorable bit from table joins, part 2
+
+monitor (@com.bing.web_search() join @com.twitter.search()) => notify;
