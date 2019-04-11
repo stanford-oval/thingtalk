@@ -1,5 +1,6 @@
 "use strict";
 
+const assert = require('assert');
 const fs = require('fs');
 
 const AppGrammar = require('../lib/grammar_api');
@@ -14,8 +15,9 @@ function main() {
         console.log('# Test Case ' + (i+1));
 
         code = code.trim();
+        let ast;
         try {
-            var ast = AppGrammar.parse(code);
+            ast = AppGrammar.parse(code);
             //console.log(String(ast.statements));
         } catch(e) {
             console.error('Parsing failed');
@@ -24,8 +26,9 @@ function main() {
             return;
         }
 
+        let codegenned;
         try {
-            var codegenned = prettyprint(ast, true);
+            codegenned = prettyprint(ast, true);
             AppGrammar.parse(codegenned);
 
             if (debug) {
@@ -36,10 +39,15 @@ function main() {
                 console.log('====');
                 console.log();
             }
+
+            const ast2 = ast.clone();
+            const codegenned2 = prettyprint(ast2, true);
+            assert(ast !== ast2);
+            assert.strictEqual(codegenned2, codegenned);
         } catch(e) {
             console.error('Codegen failed');
             console.error('AST:');
-            console.error(String(ast));
+            console.error(ast);
             console.error('Codegenned:');
             console.error(codegenned);
             console.error('====\nCode:');
