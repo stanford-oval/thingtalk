@@ -63,9 +63,33 @@ const { parseDate } = require('../date_utils');
 
 input = {
     program;
-    'answer' c:constant => c;
-    'filter' f:filter => f;
+    'bookkeeping' 'special' s:SPECIAL => new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.Special(s.value));
+    'bookkeeping' 'answer' c:constant => new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.Answer(c));
+    'bookkeeping' 'filter' f:filter => new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.Predicate(f));
+    'bookkeeping' 'category' c:command_category => new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.CommandList(new Ast.Value.Undefined(true), c));
+    'bookkeeping' 'commands' c:command_category d:constant_Entity__tt__device => new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.CommandList(d, c));
+    'bookkeeping' 'choice' n:literal_integer => new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.Choice(n));
+
     'policy' p:policy => p;
+}
+
+literal_integer = {
+    '0' => 0;
+    '1' => 1;
+    n:LITERAL_INTEGER => n.value;
+}
+
+command_category = {
+    'online' => 'online';
+    'physical' => 'physical';
+    'data' => 'data';
+    'media' => 'media';
+    'home' => 'home';
+    'social-network' => 'social-network';
+    'communication' => 'communication';
+    'data-management' => 'data-management';
+    'health' => 'health';
+    'service' => 'service';
 }
 
 program = {
