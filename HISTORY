@@ -1,3 +1,15 @@
+1.6.1
+=====
+
+This is a bug fix release. Notable fixes:
+
+* Fixed basic authentication mixins and manifest conversion [#83]
+* Fixed retrieving invalid devices in SchemaRetriever [#82, #85]
+* Monitor of non-monitorable queries is now correctly rejected by the typechecker [#66, #86]
+* Fixed cloning of classes [#63, #87]
+* Fixed monitoring of RSS feeds [#90]
+* Updated dependencies
+
 1.6.0
 =====
 

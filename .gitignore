@@ -6,6 +6,7 @@ po/thingtalk.pot
 po/*.mo
 po/*.json
 .idea/
+smt/
 
 lib/grammar.js
 lib/nn-syntax/parser.js
