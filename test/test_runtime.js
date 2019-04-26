@@ -36,7 +36,7 @@ class MockState {
     }
     writeState(stateId, value) {
         assert(value.length >= 0);
-        assert(value.length <= 3);
+        assert(value.length <= 4);
         assert(stateId >= 0);
         assert(stateId <= this._states.length);
         return this._states[stateId] = value;
@@ -327,6 +327,43 @@ some alt text` }
         { __timestamp: 1, number: 1235, title: 'Settled',
           link: 'https://xkcd.com/1235/',
           picture_url: 'https://imgs.xkcd.com/comics/settled.png' }
+      ]
+    },
+    {},
+    [
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'Douglas Engelbart (1925-2013)' }
+    },
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'Settled' }
+    }
+    ]],
+
+    [`monitor @com.xkcd.get_comic() => @com.twitter.post(status=title);`,
+    { fn: 'com.xkcd:get_comic',
+      value: [
+        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+          link: 'https://xkcd.com/1234/',
+          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
+        { __timestamp: 0, number: 1235, title: 'Settled',
+          link: 'https://xkcd.com/1235/',
+          picture_url: 'https://imgs.xkcd.com/comics/settled.png' },
+        { __timestamp: 1, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+          link: 'https://xkcd.com/1234/',
+          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
+        { __timestamp: 1, number: 1235, title: 'Settled',
+          link: 'https://xkcd.com/1235/',
+          picture_url: 'https://imgs.xkcd.com/comics/settled.png' },
+        { __timestamp: 2, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+          link: 'https://xkcd.com/1234/',
+          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
+        { __timestamp: 2, number: 1235, title: 'Settled',
+          link: 'https://xkcd.com/1235/',
+          picture_url: 'https://imgs.xkcd.com/comics/settled.png' },
       ]
     },
     {},

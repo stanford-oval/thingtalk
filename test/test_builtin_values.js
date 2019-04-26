@@ -75,12 +75,45 @@ function main() {
     testEval(new __builtin.Entity('xyz', ''));
     testEval(new __builtin.Entity('xyz', "Display"));
 
+    assert(equality(null, null));
+    assert(!equality(null, undefined));
+
+    assert(equality('', ''));
+    assert(equality('a', 'a'));
+    assert(!equality('a', 'b'));
+    assert(equality(1, 1));
+    assert(!equality(1, 0));
+    assert(!equality(1, NaN));
+    assert(!equality(1, '1'));
+    assert(!equality('a', NaN));
+    assert(!equality('', 0));
+    assert(equality(+0.0, -0.0));
+    assert(equality(NaN, NaN));
+
     assert(equality(new __builtin.Currency(42, 'USD'), new __builtin.Currency(42, 'usd')));
     assert(!equality(new __builtin.Currency(42, 'USD'), new __builtin.Currency(44, 'usd')));
     assert(!equality(new __builtin.Currency(42, 'USD'), new __builtin.Currency(42, 'eur')));
     assert(equality(new __builtin.Currency(42, 'USD'), 42));
     assert(equality(new __builtin.Currency(42, 'EUR'), 42));
     assert(equality(42, new __builtin.Currency(42, 'usd')));
+
+    assert(equality(new __builtin.Entity('foo', null), new __builtin.Entity('foo', null)));
+    assert(equality(new __builtin.Entity('foo', 'Foo'), new __builtin.Entity('foo', 'Foo')));
+    assert(equality(new __builtin.Entity('foo', 'Foo'), new __builtin.Entity('foo', 'Bar')));
+    assert(!equality(new __builtin.Entity('foo', null), new __builtin.Entity('bar', null)));
+    assert(equality(new __builtin.Entity('foo', null), 'foo'));
+
+    assert(equality(new Date('2019-04-30T15:00:00.000Z'), '2019-04-30T15:00:00.000Z'));
+    assert(equality('2019-04-30T15:00:00.000Z', new Date('2019-04-30T15:00:00.000Z')));
+    assert(equality(new Date('2019-04-30T15:00:00.000Z'), new Date('2019-04-30T15:00:00.000Z')));
+    assert(equality(new Date('2019-04-30T15:00:00.000Z'), 1556636400000));
+    assert(equality(1556636400000, new Date('2019-04-30T15:00:00.000Z')));
+
+    assert(equality([1, 2], [1, 2]));
+    assert(equality([], []));
+    assert(!equality([1, 2], [1]));
+    assert(!equality([1], [1, 2]));
+    assert(!equality([1, 2], [1, 3]));
 }
 module.exports = main;
 if (!module.parent)
