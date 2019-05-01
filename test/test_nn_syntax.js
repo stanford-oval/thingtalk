@@ -278,13 +278,13 @@ const TEST_CASES = [
      '', {'SLOT_0': undefined},
      `now => @com.xkcd.get_comic(number=$?) => notify;`],
 
-    [`filter param:title:String =~ SLOT_0`,
+    [`bookkeeping filter param:title:String =~ SLOT_0`,
     '', {'SLOT_0': Ast.Value.String('foo') },
-    `title =~ "foo"`],
+    `bookkeeping(predicate(title =~ "foo"));`],
 
-    [`filter param:title:String == SLOT_0`,
+    [`bookkeeping filter param:title:String == SLOT_0`,
     '', {'SLOT_0': Ast.Value.String('foo') },
-    `title == "foo"`],
+    `bookkeeping(predicate(title == "foo"));`],
 
     [`now => @com.xkcd.get_comic param:number:Number = undefined => notify`,
      'get some specific xkcd comic', {},
@@ -317,6 +317,42 @@ const TEST_CASES = [
     ['now => ( @com.gmail.inbox ) [ NUMBER_0 , NUMBER_1 , NUMBER_2 ] => notify',
     'show me exactly the emails number NUMBER_0 , NUMBER_1 and NUMBER_2', { NUMBER_0: 3, NUMBER_1: 7, NUMBER_2: 22 },
     `now => (@com.gmail.inbox())[3, 7, 22] => notify;`],
+
+    ['bookkeeping special special:yes',
+    'yes', {},
+    'bookkeeping(yes);'],
+
+    ['bookkeeping special special:no',
+    'no', {},
+    'bookkeeping(no);'],
+
+    ['bookkeeping commands social-network device:com.twitter',
+    'twitter', {},
+    `bookkeeping(commands(category="social-network", device="com.twitter"^^tt:device));`],
+
+    ['bookkeeping category social-network',
+    'social networks', {},
+    `bookkeeping(commands(category="social-network", device=$?));`],
+
+    ['bookkeeping choice 0',
+    'the first choice', {},
+    `bookkeeping(choice(0));`],
+
+    ['bookkeeping choice 1',
+    'the second choice', {},
+    `bookkeeping(choice(1));`],
+
+    ['bookkeeping choice 2',
+    'the third choice', {},
+    `bookkeeping(choice(2));`],
+
+    ['bookkeeping answer NUMBER_0',
+    'NUMBER_0', { NUMBER_0: 42 },
+    `bookkeeping(answer(42));`],
+
+    ['bookkeeping answer 0',
+    'zero', {},
+    `bookkeeping(answer(0));`],
 ];
 
 async function testCase(test, i) {

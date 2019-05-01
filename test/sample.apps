@@ -1167,3 +1167,40 @@ monitor (@com.bing.web_search() join @com.thecatapi.get()) => notify;
 // propagating monitorable bit from table joins, part 2
 
 monitor (@com.bing.web_search() join @com.twitter.search()) => notify;
+
+====
+// bookkeeping statements: special
+bookkeeping(yes);
+
+====
+// bookkeeping statements: special
+bookkeeping(no);
+
+====
+// bookkeeping statements: special
+// ** typecheck: expect TypeError **
+bookkeeping(foo);
+
+====
+// bookkeeping statements: commands
+bookkeeping(commands(device="com.twitter"^^tt:device, category="social-network"));
+
+====
+// bookkeeping statements: commands
+bookkeeping(commands(device=$?, category="social-network"));
+
+====
+// bookkeeping statements: commands
+bookkeeping(commands(category="social-network"));
+
+====
+// bookkeeping statements: choice
+bookkeeping(choice(0));
+
+====
+// bookkeeping statements: answer
+bookkeeping(answer(42));
+
+====
+// bookkeeping statements: predicate
+bookkeeping(predicate(foo == 42));

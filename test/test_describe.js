@@ -11,8 +11,6 @@
 
 require('./polyfill');
 
-const Q = require('q');
-Q.longStackSupport = true;
 const Describe = require('../lib/describe');
 const Grammar = require('../lib/grammar_api');
 const SchemaRetriever = require('../lib/schema');
@@ -247,6 +245,30 @@ var TEST_CASES = [
     [`now => [file_name] of sort file_size asc of @com.google.drive.list_drive_files() => notify;`,
     'get the file name of the files in your Google Drive sorted by increasing file size and then notify you',
     'Google Drive ⇒ Notification'],
+
+    [`bookkeeping(yes);`,
+    'yes', ''],
+
+    [`bookkeeping(no);`,
+    'no', ''],
+
+    [`bookkeeping(nevermind);`,
+    'cancel', ''],
+
+    [`bookkeeping(commands(category="online-account"));`,
+    'list the commands of ____, in category online-account', ''],
+
+    [`bookkeeping(commands(device="com.twitter"^^tt:device, category="social-network"));`,
+    'list the commands of com.twitter, in category social-network', ''],
+
+    [`bookkeeping(commands(device="com.twitter"^^tt:device("Twitter"), category="social-network"));`,
+    'list the commands of Twitter, in category social-network', ''],
+
+    [`bookkeeping(answer(42));`,
+    '42', ''],
+
+    [`bookkeeping(choice(0));`,
+    'choice number 1', ''],
 ];
 
 const gettext = {
@@ -259,7 +281,8 @@ function test(i) {
     var [code, expected, expectedname] = TEST_CASES[i];
 
     return Grammar.parseAndTypecheck(code, schemaRetriever, true).then((prog) => {
-        let reconstructed = Describe.describeProgram(gettext, prog);
+        const describer = new Describe.Describer(gettext, 'en-US', 'America/Los_Angeles');
+        let reconstructed = describer.describe(prog);
         if (expected !== reconstructed) {
             console.error('Test Case #' + (i+1) + ': does not match what expected');
             console.error('Expected: ' + expected);
@@ -267,13 +290,15 @@ function test(i) {
             if (process.env.TEST_MODE)
                 throw new Error(`testDescribe ${i+1} FAILED`);
         }
-        let name = Describe.getProgramName(gettext, prog);
-        if (name !== expectedname) {
-            console.error('Test Case #' + (i+1) + ': does not match what expected');
-            console.error('Expected: ' + expectedname);
-            console.error('Generated: ' + name);
-            if (process.env.TEST_MODE)
-                throw new Error(`testDescribe ${i+1} FAILED`);
+        if (prog.isProgram) {
+            let name = Describe.getProgramName(gettext, prog);
+            if (name !== expectedname) {
+                console.error('Test Case #' + (i+1) + ': does not match what expected');
+                console.error('Expected: ' + expectedname);
+                console.error('Generated: ' + name);
+                if (process.env.TEST_MODE)
+                    throw new Error(`testDescribe ${i+1} FAILED`);
+            }
         }
     }).catch((e) => {
         console.error('Test Case #' + (i+1) + ': failed with exception');
@@ -284,15 +309,9 @@ function test(i) {
     });
 }
 
-function loop(i) {
-    if (i === TEST_CASES.length)
-        return Q();
-
-    return Q(test(i)).then(() => loop(i+1));
-}
-
-function main() {
-    return loop(0);
+async function main() {
+    for (let i = 0; i < TEST_CASES.length; i++)
+        await test(i);
 }
 module.exports = main;
 if (!module.parent)
