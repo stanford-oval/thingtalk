@@ -1204,3 +1204,13 @@ bookkeeping(answer(42));
 ====
 // bookkeeping statements: predicate
 bookkeeping(predicate(foo == 42));
+
+====
+
+// example program with parameters
+
+dataset @foo {
+  program (p_hashtag : Entity(tt:hashtag)) := monitor(@com.twitter.home_timeline()), contains(hashtags, p_hashtag) => @com.twitter.retweet(tweet_id=tweet_id)
+  #[id=-1]
+  #_[preprocessed=["autoretweet tweets with $p_hashtag", "autoretweet $p_hashtag"]];
+}
