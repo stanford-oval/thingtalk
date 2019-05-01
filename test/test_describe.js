@@ -281,7 +281,7 @@ function test(i) {
     var [code, expected, expectedname] = TEST_CASES[i];
 
     return Grammar.parseAndTypecheck(code, schemaRetriever, true).then((prog) => {
-        const describer = new Describe.Describer(gettext);
+        const describer = new Describe.Describer(gettext, 'en-US', 'America/Los_Angeles');
         let reconstructed = describer.describe(prog);
         if (expected !== reconstructed) {
             console.error('Test Case #' + (i+1) + ': does not match what expected');
