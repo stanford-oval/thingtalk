@@ -62,7 +62,7 @@ function test(i) {
     console.log('Test Case #' + (i+1));
     let [testCase, scope, expectedSql, expectedBinders] = TEST_CASES[i];
 
-    return AppGrammar.parseAndTypecheck(testCase, schemaRetriever, true).then((prog) => {
+    return AppGrammar.parseAndTypecheck(testCase, schemaRetriever).then((prog) => {
         let ast = prog.rules[0];
         ast = ast.isRule? ast.stream : ast.table;
 

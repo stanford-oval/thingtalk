@@ -41,12 +41,12 @@ function makeSchemaFunctionDef(functionType, functionName, schema, useMeta) {
     });
 
     const metadata = {};
-    const annotations = {};
     if (useMeta) {
         metadata.canonical = schema.canonical || '';
         metadata.confirmation = schema.confirmation || '';
-        annotations.table = schema.table ? Ast.Value.String(schema.table) : undefined;
     }
+    const annotations = {};
+    annotations.table = schema.table ? Ast.Value.String(schema.table) : undefined;
 
     return new Ast.FunctionDef(functionType,
                                functionName,

@@ -3240,7 +3240,7 @@ const TEST_CASES = [
   let _t_10;
   try {
     _t_1 = "self-hosted";
-    _t_2 = "select * from \\"com.mai-hub.get\\" where 1";
+    _t_2 = "select * from \\"patient_data\\" where 1";
     _t_0 = await __env.invokeDBQuery(_t_1, _t_2);
     _t_3 = _t_0[Symbol.iterator]();
     {
