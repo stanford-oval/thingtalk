@@ -10310,7 +10310,7 @@
             "kind_type": "primary",
             "kind_canonical": "Radiation Data API",
             "module_type": "org.thingpedia.database",
-            "db_server": "mysql://almond@mai-hub.com",
+            "db_server": "self-hosted",
             "owner": 99,
             "version": 1,
             "developer_version": 1,
@@ -10354,7 +10354,8 @@
                         "What type of cancer do you want?",
                         "",
                         ""
-                    ]
+                    ],
+                    "table": "patient_data"
                 }
             },
             "actions": {}

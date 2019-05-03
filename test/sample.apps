@@ -1237,3 +1237,18 @@ now => @com.spotify.play_songs(toPlay=[1, 2]);
 
 // typechecking arrays
 now => @com.spotify.play_songs(toPlay=["foo", "bar"]);
+
+====
+
+
+class @com.foo {
+   import loader from @org.thingpedia.database(db_server="local");
+   import config from @org.thingpedia.config.none();
+
+   monitorable list query get(out name: String, out date: Date)
+   #_[canonical='get visitor history']
+   #_[confirmation='visitor history']
+   #[poll_interval=10min]
+   #[table="visitors"] ; // by default the same as function name
+
+}

@@ -305,14 +305,14 @@ const TEST_CASES = [
     },
 
     'class @com.mai-hub {\n' +
-    '  import loader from @org.thingpedia.database(db_server="mysql://almond@mai-hub.com");\n' +
+    '  import loader from @org.thingpedia.database(db_server="local");\n' +
     '  import config from @org.thingpedia.config.none();\n' +
     '}\n',
 
     {
       kind: 'com.mai-hub',
       module_type: 'org.thingpedia.database',
-      db_server: 'mysql://almond@mai-hub.com',
+      db_server: 'local',
       types: [],
       child_types: [],
       category: 'data',
@@ -324,6 +324,51 @@ const TEST_CASES = [
       queries: {},
       actions: {},
       version: 0
+    },
+
+    'class @foo {\n' +
+    '  import loader from @org.thingpedia.database(db_server="local");\n' +
+    '  import config from @org.thingpedia.config.none();\n' +
+    '\n' +
+    '  monitorable list query bar(out output: String)\n' +
+    '  #_[canonical="foo"]\n' +
+    '  #_[confirmation="foo"]\n' +
+    '  #[poll_interval=3600000ms]\n' +
+    '  #[table="foobar"];\n' +
+    '}\n',
+
+    {
+        kind: 'foo',
+        module_type: 'org.thingpedia.database',
+        db_server: 'local',
+        types: [],
+        child_types: [],
+        category: 'data',
+        params: {
+        },
+        auth: {
+            type: 'none'
+        },
+        queries: {
+            foo: {
+                args: [{
+                    name: 'output',
+                    type: 'String',
+                    is_input: false,
+                    required: false,
+                    question: ''
+                }],
+                canonical: 'foo',
+                confirmation: 'foo',
+                doc: 'foo',
+                formatted: [],
+                is_list: false,
+                poll_interval: 3600000,
+                table: 'foobar'
+            }
+        },
+        actions: {},
+        version: 0
     },
 ];
 

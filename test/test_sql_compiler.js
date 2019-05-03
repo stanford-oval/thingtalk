@@ -25,36 +25,36 @@ const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, _mockMemoryClie
 const TEST_CASES = [
     // selection
     [`now => @com.mai-hub.get(), count >= 42 => notify;`, {},
-     `select * from "com.mai-hub.get" where 1 and count >= ?1`,
+     `select * from "patient_data" where 1 and count >= ?1`,
      { 1: 42 }
     ],
 
     // selection with more complicated predicates
     [`now => @com.mai-hub.get(), (count >= 42 || count <= 10) && starts_with(patient, "John") => notify;`, {},
-     `select * from "com.mai-hub.get" where 1 and ((count >= ?1 or count <= ?2) and instr(lower(patient), lower(?3)) = 1)`,
+     `select * from "patient_data" where 1 and ((count >= ?1 or count <= ?2) and instr(lower(patient), lower(?3)) = 1)`,
      { 1: 42, 2: 10, 3: "John"}
     ],
     [`now => @com.mai-hub.get(), count >= 42 || (count <= 10 && starts_with(patient, "John")) => notify;`, {},
-     `select * from "com.mai-hub.get" where 1 and (count >= ?1 or (count <= ?2 and instr(lower(patient), lower(?3)) = 1))`,
+     `select * from "patient_data" where 1 and (count >= ?1 or (count <= ?2 and instr(lower(patient), lower(?3)) = 1))`,
      { 1: 42, 2: 10, 3: "John"}
     ],
 
     // param passing
     [`now => @com.mai-hub.get() join @com.mai-hub.get() on (mtype = patient) => notify;`, {},
-     `select * from ((select * from "com.mai-hub.get" where 1 as _t0) join (select * from "com.mai-hub.get" where 1 as _t1) on (_t0.mtype = _t1.patient)) where 1`, {}
+     `select * from ((select * from "patient_data" where 1 as _t0) join (select * from "patient_data" where 1 as _t1) on (_t0.mtype = _t1.patient)) where 1`, {}
     ],
     [`now => @com.mai-hub.get() join (@com.mai-hub.get(), patient == patient) => notify;`, {},
-     `select * from ((select * from "com.mai-hub.get" where 1) join (select * from "com.mai-hub.get" where 1)) where 1`, {}
+     `select * from ((select * from "patient_data" where 1) join (select * from "patient_data" where 1)) where 1`, {}
     ],
 
     // projection
     [`now => [patient, link] of @com.mai-hub.get() => notify;`, {},
-     `select patient,link from "com.mai-hub.get" where 1`, {}
+     `select patient,link from "patient_data" where 1`, {}
     ],
 
     // join
     [`now => @com.mai-hub.get() join @com.mai-hub.get() => notify;`, {},
-     `select * from ((select * from "com.mai-hub.get" where 1) join (select * from "com.mai-hub.get" where 1)) where 1`, {}
+     `select * from ((select * from "patient_data" where 1) join (select * from "patient_data" where 1)) where 1`, {}
     ]
 ];
 
@@ -62,7 +62,7 @@ function test(i) {
     console.log('Test Case #' + (i+1));
     let [testCase, scope, expectedSql, expectedBinders] = TEST_CASES[i];
 
-    return AppGrammar.parseAndTypecheck(testCase, schemaRetriever).then((prog) => {
+    return AppGrammar.parseAndTypecheck(testCase, schemaRetriever, true).then((prog) => {
         let ast = prog.rules[0];
         ast = ast.isRule? ast.stream : ast.table;
 
