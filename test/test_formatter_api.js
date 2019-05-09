@@ -184,8 +184,7 @@ function main() {
 
     assert.deepStrictEqual(formatter.format([
         { type: 'picture', url: '${v4}'},
-        { type: 'rdl', webCallback: '${v4}', displayTitle: '${v2}' },
-        { type: 'rdl', webCallback: '${v1}', displayTitle: '${v4}' },
+        { type: 'rdl', webCallback: '${v4}', displayTitle: '${v2}' }
     ], {
         v1: 'one',
         v2: 'two',

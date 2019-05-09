@@ -30,7 +30,7 @@ const TEST_CASES = [
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png',
           alt_text: 'some alt text' }, null,
     [ { type: 'rdl',
-        callback: undefined,
+        callback: 'https://xkcd.com/1234/',
         webCallback: 'https://xkcd.com/1234/',
         displayTitle: 'Douglas Engelbart (1925-2013)',
         displayText: undefined },
@@ -215,7 +215,7 @@ Picture: http://example.com/security-camera.jpg`
         city: 'North Pole'
     }, null,
     [ { type: 'rdl',
-        callback: undefined,
+        callback: 'http://www.abc.com',
         webCallback: 'http://www.abc.com',
         displayTitle: 'Some Computer Conference (SCC)',
         displayText: 'Where: North Pole,\nWhen: N/A - N/A,\nDeadline: Monday, March 4, 2019.' } ]
@@ -258,7 +258,7 @@ Picture: http://example.com/security-camera.jpg`
         city: undefined
     }, null,
     [ { type: 'rdl',
-        callback: undefined,
+        callback: 'http://www.abc.com',
         webCallback: 'http://www.abc.com',
         displayTitle: 'http://www.abc.com',
         displayText: null } ]
@@ -280,7 +280,7 @@ function test(i) {
     return Q.try(() => {
         return formatter.formatForType(outputType, outputValues, hint).then((generated) => {
             try {
-                assert.deepStrictEqual(generated, expected);
+                assert.strictEqual(JSON.stringify(generated), JSON.stringify(expected));
             } catch(e) {
                 console.log(generated);
                 throw e;
