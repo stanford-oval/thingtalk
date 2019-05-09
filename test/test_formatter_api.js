@@ -25,6 +25,14 @@ const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 const formatter = new Formatter('en-US', 'America/Los_Angeles', schemaRetriever);
 
+function simpleFormatFunction(argMap, hint, formatter) {
+    return argMap.v1 + ' ' + argMap.v2;
+}
+
+function complexFormatFunction(argMap, hint, formatter) {
+    return [argMap.v1 + ' ' + argMap.v2, argMap.v3];
+}
+
 function main() {
     let date = new Date(2018, 4, 23, 21, 18, 0);
     let date2 = new Date(2018, 12, 7, 10, 30, 0);
@@ -111,6 +119,98 @@ function main() {
         v3: [date, date2],
         v4: [0.42, 0.84],
     }), [ 'lol, cat 69.8, 107.6 5/23/2018, 9:18:00 PM, 1/7/2019, 10:30:00 AM 2018-05-24T04:18:00.000Z, 2019-01-07T18:30:00.000Z 42, 84' ]);
+
+    assert.deepStrictEqual(formatter.format([simpleFormatFunction], {
+        v1: 'one',
+        v2: 'two'
+    }), [ 'one two' ]);
+
+    assert.deepStrictEqual(formatter.format([{ type: 'code', code: simpleFormatFunction.toString() }], {
+        v1: 'one',
+        v2: 'two'
+    }), [ 'one two' ]);
+
+    assert.deepStrictEqual(formatter.format([complexFormatFunction, '${v3} ${v1}'], {
+        v1: 'one',
+        v2: 'two',
+        v3: 'three'
+    }), [ 'one two', 'three', 'three one' ]);
+
+    assert.deepStrictEqual(formatter.format([{ type: 'code', code: complexFormatFunction.toString() }, '${v3} ${v1}'], {
+        v1: 'one',
+        v2: 'two',
+        v3: 'three'
+    }), [ 'one two', 'three', 'three one'  ]);
+
+    const [pic, rdl, bad] = formatter.format([
+        { type: 'picture', url: '${v1}'},
+        { type: 'rdl', webCallback: '${v1}', displayTitle: '${v2}' },
+        { type: 'bad' }
+    ], {
+        v1: 'one',
+        v2: 'two',
+        v3: 'three'
+    });
+    assert.strictEqual(bad, undefined);
+    assert.strictEqual(JSON.stringify(pic), '{"type":"picture","url":"one"}');
+    assert.strictEqual(JSON.stringify(rdl), '{"type":"rdl","webCallback":"one","displayTitle":"two"}');
+
+    const [rdl2] = formatter.format([
+        { type: 'rdl', webCallback: '${v1}', displayTitle: '${v4}', displayText: '${v3}' }
+    ], {
+        v1: 'one',
+        v2: 'two',
+        v3: 'three'
+    });
+    assert.strictEqual(JSON.stringify(rdl2), '{"type":"rdl","webCallback":"one","displayTitle":"three"}');
+
+    const [rdl3] = formatter.format([
+        { type: 'rdl', callback: '${v1}', displayTitle: '${v4}', displayText: '${v3}' }
+    ], {
+        v1: 'one',
+        v2: 'two',
+        v3: 'three'
+    });
+    assert.strictEqual(JSON.stringify(rdl3), '{"type":"rdl","webCallback":"one","displayTitle":"three"}');
+
+    assert.deepStrictEqual(formatter.format([
+        { type: 'picture', url: '${v4}'},
+        { type: 'rdl', webCallback: '${v4}', displayTitle: '${v2}' },
+        { type: 'rdl', webCallback: '${v1}', displayTitle: '${v4}' },
+    ], {
+        v1: 'one',
+        v2: 'two',
+        v3: 'three'
+    }), []);
+
+    assert.strictEqual(formatter.format([
+        { type: 'picture', url: '${v1}'},
+        { type: 'rdl', webCallback: '${v1}', displayTitle: '${v2}' },
+        { type: 'bad' }
+    ], {
+        v1: 'one',
+        v2: 'two',
+        v3: 'three'
+    }, 'string'), 'Picture: one\nLink: two <one>');
+
+    const fakeGettext = {
+        dgettext(domain, x) {
+            if (x === 'Picture: %s')
+                return 'Pacture: %s';
+            else
+                return x;
+        }
+    };
+    const formatter2 = new Formatter('en-US', 'America/Los_Angeles', schemaRetriever, fakeGettext);
+
+    assert.strictEqual(formatter2.format([
+        { type: 'picture', url: '${v1}'},
+        { type: 'rdl', webCallback: '${v1}', displayTitle: '${v2}' },
+    ], {
+        v1: 'one',
+        v2: 'two',
+        v3: 'three'
+    }, 'string'), 'Pacture: one\nLink: two <one>');
 }
 module.exports = main;
 if (!module.parent)
