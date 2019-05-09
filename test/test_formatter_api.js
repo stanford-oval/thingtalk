@@ -153,7 +153,7 @@ function main() {
     });
     assert.strictEqual(bad, undefined);
     assert.strictEqual(JSON.stringify(pic), '{"type":"picture","url":"one"}');
-    assert.strictEqual(JSON.stringify(rdl), '{"type":"rdl","webCallback":"one","displayTitle":"two"}');
+    assert.strictEqual(JSON.stringify(rdl), '{"type":"rdl","callback":"one","webCallback":"one","displayTitle":"two"}');
 
     const [rdl2] = formatter.format([
         { type: 'rdl', webCallback: '${v1}', displayTitle: '${v4}', displayText: '${v3}' }
@@ -162,7 +162,7 @@ function main() {
         v2: 'two',
         v3: 'three'
     });
-    assert.strictEqual(JSON.stringify(rdl2), '{"type":"rdl","webCallback":"one","displayTitle":"three"}');
+    assert.strictEqual(JSON.stringify(rdl2), '{"type":"rdl","callback":"one","webCallback":"one","displayTitle":"three"}');
 
     const [rdl3] = formatter.format([
         { type: 'rdl', callback: '${v1}', displayTitle: '${v4}', displayText: '${v3}' }
@@ -171,7 +171,16 @@ function main() {
         v2: 'two',
         v3: 'three'
     });
-    assert.strictEqual(JSON.stringify(rdl3), '{"type":"rdl","webCallback":"one","displayTitle":"three"}');
+    assert.strictEqual(JSON.stringify(rdl3), '{"type":"rdl","callback":"one","webCallback":"one","displayTitle":"three"}');
+
+    const [rdl4] = formatter.format([
+        { type: 'rdl', callback: '${v1}?foo', webCallback: '${v1}', displayTitle: '${v4}', displayText: '${v3}' }
+    ], {
+        v1: 'one',
+        v2: 'two',
+        v3: 'three'
+    });
+    assert.strictEqual(JSON.stringify(rdl4), '{"type":"rdl","callback":"one?foo","webCallback":"one","displayTitle":"three"}');
 
     assert.deepStrictEqual(formatter.format([
         { type: 'picture', url: '${v4}'},
@@ -211,6 +220,40 @@ function main() {
         v2: 'two',
         v3: 'three'
     }, 'string'), 'Pacture: one\nLink: two <one>');
+
+    const [map, sound, media] = formatter.format([
+        { type: 'map', lat: '${v1}', lon: '${v2}' },
+        { type: 'sound', name: 'message-new-instant' },
+        { type: 'media', url: '${v3}?y=${v1}&x=${v2}' }
+    ], {
+        v1: '1.0',
+        v2: '2.0',
+        v3: 'three'
+    });
+
+    assert.strictEqual(JSON.stringify(map), '{"type":"map","lat":1,"lon":2}');
+    assert.strictEqual(JSON.stringify(sound), '{"type":"sound","name":"message-new-instant"}');
+    assert.strictEqual(JSON.stringify(media), '{"type":"media","url":"three?y=1.0&x=2.0"}');
+
+    assert.strictEqual(formatter.format([
+        { type: 'map', lat: '${v1}', lon: '${v2}' },
+        { type: 'sound', name: 'message-new-instant' },
+        { type: 'media', url: '${v3}?y=${v1}&x=${v2}' }
+    ], {
+        v1: '1.0',
+        v2: '2.0',
+        v3: 'three'
+    }, 'string'), 'Location: [Latitude: 1.000 deg, Longitude: 2.000 deg]\nSound effect: message-new-instant\nMedia: three?y=1.0&x=2.0');
+
+    assert.strictEqual(formatter.format([
+        { type: 'map', lat: '${v1}', lon: '${v2}', display: 'foo' },
+        { type: 'sound', name: 'message-new-instant' },
+        { type: 'media', url: '${v3}?y=${v1}&x=${v2}' }
+    ], {
+        v1: '1.0',
+        v2: '2.0',
+        v3: 'three'
+    }, 'string'), 'Location: foo\nSound effect: message-new-instant\nMedia: three?y=1.0&x=2.0');
 }
 module.exports = main;
 if (!module.parent)
