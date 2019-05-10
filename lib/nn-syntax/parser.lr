@@ -378,6 +378,7 @@ word_list = {
 // almond-nnparser autogenerates this part
 constant_Measure = {
     num:constant_Number unit:UNIT => new Ast.Value.Measure(num.value, unit.value);
+    tok:MEASURE => new Ast.Value.Measure(tok.value.value, tok.value.unit);
     v1:constant_Measure num:constant_Number unit:UNIT => {
       if (v1.isCompoundMeasure) {
           v1.value.push(new Ast.Value.Measure(num.value, unit.value));
