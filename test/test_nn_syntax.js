@@ -350,6 +350,10 @@ const TEST_CASES = [
     'NUMBER_0', { NUMBER_0: 42 },
     `bookkeeping(answer(42));`],
 
+    ['bookkeeping answer LOCATION_0',
+    'LOCATION_0', { LOCATION_0: { latitude: 0, longitude: 0, display: "North Pole" } },
+    `bookkeeping(answer(makeLocation(0, 0, "North Pole")));`],
+
     ['bookkeeping answer 0',
     'zero', {},
     `bookkeeping(answer(0));`],

@@ -26,6 +26,7 @@ seq([
     ('./test_grammar'),
     ('./test_typecheck'),
     ('./test_nn_syntax'),
+    ('./test_nn_syntax_allocator'),
     ('./test_compiler'),
     ('./test_builtin'),
     ('./test_describe'),
