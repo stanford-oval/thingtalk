@@ -1,3 +1,13 @@
+1.7.0
+=====
+
+* New feature: bookkeeping language. This new language allows to express commands that are
+  not programs but are necessary for the correct operation of the dialog agent, such as yes,
+  no, stop, etc. [#89].
+* New feature: map, sound effect, media output types are now available for formatted query output [#92].
+* New feature: `program` examples can have parameters now [#91].
+* New feature: entities can be allocated sequentially when converting to neural network (NN) syntax [#93].
+
 1.6.1
 =====
 
