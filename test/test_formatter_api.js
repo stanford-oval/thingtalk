@@ -220,17 +220,23 @@ function main() {
         v3: 'three'
     }, 'string'), 'Pacture: one\nLink: two <one>');
 
-    const [map, sound, media] = formatter.format([
+    const [map1, map2, map3, sound, media] = formatter.format([
         { type: 'map', lat: '${v1}', lon: '${v2}' },
+        { type: 'map', lat: '${v4:lat}', lon: '${v4:lon}' },
+        { type: 'map', lat: '${v5:lat}', lon: '${v5:lon}' },
         { type: 'sound', name: 'message-new-instant' },
         { type: 'media', url: '${v3}?y=${v1}&x=${v2}' }
     ], {
         v1: '1.0',
         v2: '2.0',
-        v3: 'three'
+        v3: 'three',
+        v4: { x: 11, y: 47 },
+        v5: { x: 11, y: 47, display:"Somewhere" }
     });
 
-    assert.strictEqual(JSON.stringify(map), '{"type":"map","lat":1,"lon":2}');
+    assert.strictEqual(JSON.stringify(map1), '{"type":"map","lat":1,"lon":2}');
+    assert.strictEqual(JSON.stringify(map2), '{"type":"map","lat":47,"lon":11}');
+    assert.strictEqual(JSON.stringify(map3), '{"type":"map","lat":47,"lon":11}');
     assert.strictEqual(JSON.stringify(sound), '{"type":"sound","name":"message-new-instant"}');
     assert.strictEqual(JSON.stringify(media), '{"type":"media","url":"three?y=1.0&x=2.0"}');
 
