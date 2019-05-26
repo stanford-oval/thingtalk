@@ -1214,3 +1214,14 @@ dataset @foo {
   #[id=-1]
   #_[preprocessed=["autoretweet tweets with $p_hashtag", "autoretweet $p_hashtag"]];
 }
+
+====
+
+// genie annotations
+class @foo {
+    query bar(out title : String, out description: String, out url : URL #[unique=true])
+    #_[canonical='foo']
+    #_[confirmation='bar']
+    #[filter_required=true]
+    #[default_projection=["title", "description"]];
+}
