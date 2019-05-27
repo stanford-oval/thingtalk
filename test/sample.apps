@@ -484,7 +484,7 @@ now => @security-camera.set_power(power=enum(on));
 ====
 
 // ** typecheck: expect TypeError **
-now => notify; 
+now => notify;
 
 ====
 
@@ -1224,4 +1224,36 @@ class @foo {
     #_[confirmation='bar']
     #[filter_required=true]
     #[default_projection=["title", "description"]];
+}
+
+
+====
+// ** typecheck: expect TypeError **
+// require filter
+
+now => [person, image] of @org.wikidata.person() => notify;
+
+
+====
+// ** typecheck: expect TypeError **
+// missing default projection
+
+now => @org.wikidata.person(), P735 ~= 'Bob' => notify;
+
+====
+
+now => [person, P18] of (@org.wikidata.person(), P735 ~= 'Bob') => notify;
+
+====
+
+dataset @org.wikidata language "en" {
+    query (x :Entity(org.wikidata:human))  := (@org.wikidata.person()), person == x
+    #_[utterances=["${x}"]]
+    #_[preprocessed=["${x}"]]
+    #[id=35472892];
+
+    query  := @org.wikidata.person()
+    #_[utterances=["people","the guys","persons","human","individuals"]]
+    #_[preprocessed=["people","the guys","persons","human","individuals"]]
+    #[id=35472893];
 }

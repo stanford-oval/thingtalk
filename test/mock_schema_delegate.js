@@ -44,7 +44,7 @@ function makeSchemaFunctionDef(functionType, functionName, schema, isMeta) {
         metadata.canonical = schema.canonical || '';
         metadata.confirmation = schema.confirmation || '';
     }
-    const annotations = {};
+    const annotations = schema.annotations;
 
     return new Ast.FunctionDef(functionType,
                                functionName,
@@ -146,13 +146,19 @@ for (let dev of Thingpedia.data) {
     for (let what of ['queries', 'actions']) {
         for (let name in dev[what]) {
             let from = dev[what][name];
+            let annotations = {};
+            if ('require_filter' in from)
+                annotations.require_filter = Ast.Value.Boolean(from.require_filter);
+            if ('default_projection' in from)
+                annotations.default_projection = Ast.Value.Array(from.default_projection.map((v) => Ast.Value.String(v)));
             module.exports._schema[dev.kind][what][name] = {
                 types: from.schema,
                 args: from.args,
                 required: from.required,
                 is_input: from.is_input,
                 is_list: from.is_list,
-                is_monitorable: from.is_monitorable
+                is_monitorable: from.is_monitorable,
+                annotations: annotations
             };
         }
     }
