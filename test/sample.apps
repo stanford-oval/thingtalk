@@ -1245,15 +1245,19 @@ now => @org.wikidata.person(), P735 ~= 'Bob' => notify;
 now => [person, P18] of (@org.wikidata.person(), P735 ~= 'Bob') => notify;
 
 ====
+// ** typecheck: expect TypeError **
+// unique output param
 
-dataset @org.wikidata language "en" {
-    query (x :Entity(org.wikidata:human))  := (@org.wikidata.person()), person == x
-    #_[utterances=["${x}"]]
-    #_[preprocessed=["${x}"]]
-    #[id=35472892];
+now => [person, P18] of (@org.wikidata.person(), (P735 ~= 'Bob' || person ~= "Bob"^^org.wikidata:human)) => notify;
 
-    query  := @org.wikidata.person()
-    #_[utterances=["people","the guys","persons","human","individuals"]]
-    #_[preprocessed=["people","the guys","persons","human","individuals"]]
-    #[id=35472893];
-}
+====
+
+// ** typecheck: expect TypeError **
+// unique output param
+
+now => [person, P18] of ((@org.wikidata.person(), person ~= "Bob"^^org.wikidata:human), P735 ~= 'Bob') => notify;
+
+
+====
+
+now => [person, P18] of (@org.wikidata.person(), (P735 ~= 'Bob' || P27 ~= "China")) => notify;
