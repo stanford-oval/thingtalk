@@ -8644,9 +8644,9 @@
                         "What would you like to play?"
                     ]
                 },
-                "play_song": {
+                "play_songs": {
                     "schema": [
-                        "String"
+                        "Array(String)"
                     ],
                     "args": [
                         "toPlay"
