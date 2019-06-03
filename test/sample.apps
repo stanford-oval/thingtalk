@@ -1217,6 +1217,28 @@ dataset @foo {
 
 ====
 
+// typechecking arrays
+// ** typecheck: expect TypeError **
+now => @com.spotify.play_songs(toPlay=[foo]);
+
+====
+
+// typechecking arrays
+// ** typecheck: expect TypeError **
+now => @com.spotify.play_songs(toPlay=["1", 2]);
+
+====
+
+// typechecking arrays
+// ** typecheck: expect TypeError **
+now => @com.spotify.play_songs(toPlay=[1, 2]);
+
+====
+
+// typechecking arrays
+now => @com.spotify.play_songs(toPlay=["foo", "bar"]);
+
+==== 
 // genie annotations
 class @foo {
     query bar(out title : String, out description: String, out url : URL #[unique=true])
@@ -1225,7 +1247,6 @@ class @foo {
     #[filter_required=true]
     #[default_projection=["title", "description"]];
 }
-
 
 ====
 // ** typecheck: expect TypeError **
