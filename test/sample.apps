@@ -1214,3 +1214,26 @@ dataset @foo {
   #[id=-1]
   #_[preprocessed=["autoretweet tweets with $p_hashtag", "autoretweet $p_hashtag"]];
 }
+
+====
+
+// typechecking arrays
+// ** typecheck: expect TypeError **
+now => @com.spotify.play_songs(toPlay=[foo]);
+
+====
+
+// typechecking arrays
+// ** typecheck: expect TypeError **
+now => @com.spotify.play_songs(toPlay=["1", 2]);
+
+====
+
+// typechecking arrays
+// ** typecheck: expect TypeError **
+now => @com.spotify.play_songs(toPlay=[1, 2]);
+
+====
+
+// typechecking arrays
+now => @com.spotify.play_songs(toPlay=["foo", "bar"]);
