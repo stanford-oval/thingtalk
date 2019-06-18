@@ -357,6 +357,10 @@ const TEST_CASES = [
     ['bookkeeping answer 0',
     'zero', {},
     `bookkeeping(answer(0));`],
+
+    ['now => @org.thingpedia.weather.current param:location:Location = location: " stanford california " => notify',
+    'get weather for stanford california', {},
+    `now => @org.thingpedia.weather.current(location=makeLocation("stanford california")) => notify;`]
 ];
 
 async function testCase(test, i) {

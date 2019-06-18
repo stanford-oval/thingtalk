@@ -1237,3 +1237,8 @@ now => @com.spotify.play_songs(toPlay=[1, 2]);
 
 // typechecking arrays
 now => @com.spotify.play_songs(toPlay=["foo", "bar"]);
+
+====
+
+// unresolved locations
+now => @org.thingpedia.weather.current(location=makeLocation("stanford california")) => notify;
