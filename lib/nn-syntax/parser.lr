@@ -409,6 +409,7 @@ constant_Location = {
     'location:home' => new Ast.Value.Location(new Ast.Location.Relative('home'));
     'location:work' => new Ast.Value.Location(new Ast.Location.Relative('work'));
     loc:LOCATION => new Ast.Value.Location(new Ast.Location.Absolute(loc.value.latitude, loc.value.longitude, loc.value.display||null));
+    'location:' '"' str:word_list '"' => new Ast.Value.Location(new Ast.Location.Unresolved(str));
 }
 
 // start_of/end_of with less than 1h are not supported
