@@ -179,7 +179,7 @@ table_join = {
 
 stream = {
     'timer' 'base' '=' base:constant_Date ',' 'interval' '=' interval:constant_Measure_ms => new Ast.Stream.Timer(base, interval, null);
-    'attimer' 'time' '=' time:constant_Time => new Ast.Stream.AtTimer(time, null);
+    'attimer' 'time' '=' time:constant_Time => new Ast.Stream.AtTimer([time], null);
 
     'monitor' '(' table ')' => new Ast.Stream.Monitor(table, null, null);
     'monitor' '(' table ')' 'on' 'new' pname:out_param => {

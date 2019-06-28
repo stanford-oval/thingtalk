@@ -78,7 +78,7 @@ class MockExecEnvironment extends ExecEnvironment {
             {__timestamp: base+interval},
             {__timestamp: base+2*interval}][Symbol.iterator]();
     }
-    invokeAtTimer(time) {
+    invokeAtTimer(timeArray) {
         throw new Error('Must be overridden');
     }
 
@@ -321,7 +321,7 @@ some alt text` }
 
     [`monitor @com.xkcd.get_comic(), number >= 1234 => @com.twitter.post(status=title);`,
     { fn: 'com.xkcd:get_comic',
-      value: [  
+      value: [
         { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
           link: 'https://xkcd.com/1234/',
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },

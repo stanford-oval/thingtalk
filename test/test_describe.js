@@ -246,6 +246,14 @@ var TEST_CASES = [
     'get the file name of the files in your Google Drive sorted by increasing file size and then notify you',
     'Google Drive ⇒ Notification'],
 
+    [`attimer(time=[makeTime(9,0), makeTime(15,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");`,
+    `send me a message “it's 9am or 3pm” every day at 9:00 AM and 3:00 PM`,//'
+    'Say'],
+
+    [`attimer(time=[makeTime(9,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");`,
+    `send me a message “it's 9am or 3pm” every day at 9:00 AM`,//'
+    'Say'],
+
     [`bookkeeping(yes);`,
     'yes', ''],
 

@@ -494,15 +494,18 @@ const TEST_CASES = [
   let _t_0;
   let _t_1;
   let _t_2;
+  let _t_3;
   try {
-    _t_1 = new __builtin.Time(12, 30, 0);
+    _t_1 = new Array(1);
+    _t_2 = new __builtin.Time(12, 30, 0);
+    _t_1[0] = _t_2;
     _t_0 = await __env.invokeAtTimer(_t_1);
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
-        _t_2 = _iter_tmp.value;
+        _t_3 = _iter_tmp.value;
         try {
-          await __env.output(null, _t_2);
+          await __env.output(null, _t_3);
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -520,18 +523,21 @@ const TEST_CASES = [
   let _t_2;
   let _t_3;
   let _t_4;
+  let _t_5;
   try {
-    _t_1 = new __builtin.Time(12, 30, 0);
+    _t_1 = new Array(1);
+    _t_2 = new __builtin.Time(12, 30, 0);
+    _t_1[0] = _t_2;
     _t_0 = await __env.invokeAtTimer(_t_1);
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
-        _t_2 = _iter_tmp.value;
+        _t_3 = _iter_tmp.value;
         try {
-          _t_3 = {};
-          _t_4 = "lol";
-          _t_3.status = _t_4;
-          await __env.invokeAction("com.twitter", { }, "post", _t_3);
+          _t_4 = {};
+          _t_5 = "lol";
+          _t_4.status = _t_5;
+          await __env.invokeAction("com.twitter", { }, "post", _t_4);
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -1016,7 +1022,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke query", _exc_);
   }`]],
 
-  //Changes start here  
+  //Changes start here
   [`now => @com.uber.price_estimate(start=makeLocation(1, 3, "Somewhere"), end=makeLocation(1, 3, "Somewhere")), low_estimate >= 7 => notify;`,
   [`"use strict";
   let _t_0;
@@ -2031,51 +2037,54 @@ const TEST_CASES = [
   let _t_20;
   let _t_21;
   let _t_22;
+  let _t_23;
   try {
-    _t_1 = new __builtin.Time(20, 10, 0);
+    _t_1 = new Array(1);
+    _t_2 = new __builtin.Time(20, 10, 0);
+    _t_1[0] = _t_2;
     _t_0 = await __env.invokeAtTimer(_t_1);
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
-        _t_2 = _iter_tmp.value;
+        _t_3 = _iter_tmp.value;
         try {
-          _t_3 = {};
-          _t_4 = await __env.invokeQuery("com.thecatapi", { id: "com.thecatapi", }, "get", _t_3);
-          _t_5 = _t_4[Symbol.iterator]();
+          _t_4 = {};
+          _t_5 = await __env.invokeQuery("com.thecatapi", { id: "com.thecatapi", }, "get", _t_4);
+          _t_6 = _t_5[Symbol.iterator]();
           {
-            let _iter_tmp = await _t_5.next();
+            let _iter_tmp = await _t_6.next();
             while (!_iter_tmp.done) {
-              _t_6 = _iter_tmp.value;
-              _t_7 = _t_6[0];
-              _t_8 = _t_6[1];
-              _t_9 = _t_8.count;
-              _t_10 = _t_8.image_id;
-              _t_11 = _t_8.picture_url;
-              _t_12 = _t_8.link;
-              _t_13 = {};
-              _t_13.count = _t_9;
-              _t_13.image_id = _t_10;
-              _t_13.picture_url = _t_11;
-              _t_13.link = _t_12;
-              _t_14 = _t_13.count;
-              _t_15 = _t_13.image_id;
-              _t_16 = _t_13.picture_url;
-              _t_17 = _t_13.link;
+              _t_7 = _iter_tmp.value;
+              _t_8 = _t_7[0];
+              _t_9 = _t_7[1];
+              _t_10 = _t_9.count;
+              _t_11 = _t_9.image_id;
+              _t_12 = _t_9.picture_url;
+              _t_13 = _t_9.link;
+              _t_14 = {};
+              _t_14.count = _t_10;
+              _t_14.image_id = _t_11;
+              _t_14.picture_url = _t_12;
+              _t_14.link = _t_13;
+              _t_15 = _t_14.count;
+              _t_16 = _t_14.image_id;
+              _t_17 = _t_14.picture_url;
+              _t_18 = _t_14.link;
               try {
-                _t_18 = {};
-                _t_19 = new __builtin.Entity("xxxx", null);
-                _t_18.to = _t_19;
-                _t_20 = "xxx";
-                _t_18.subject = _t_20;
+                _t_19 = {};
+                _t_20 = new __builtin.Entity("xxxx", null);
+                _t_19.to = _t_20;
                 _t_21 = "xxx";
-                _t_18.message = _t_21;
-                _t_22 = String (_t_16);
-                _t_18.picture_url = _t_22;
-                await __env.invokeAction("com.gmail", { id: "xxxx", }, "send_picture", _t_18);
+                _t_19.subject = _t_21;
+                _t_22 = "xxx";
+                _t_19.message = _t_22;
+                _t_23 = String (_t_17);
+                _t_19.picture_url = _t_23;
+                await __env.invokeAction("com.gmail", { id: "xxxx", }, "send_picture", _t_19);
               } catch(_exc_) {
                 __env.reportError("Failed to invoke action", _exc_);
               }
-              _iter_tmp = await _t_5.next();
+              _iter_tmp = await _t_6.next();
             }
           }
         } catch(_exc_) {
@@ -4835,6 +4844,41 @@ const TEST_CASES = [
     }
   } catch(_exc_) {
     __env.reportError("Failed to invoke timer", _exc_);
+  }`]],
+
+  [`attimer(time=[makeTime(9,0), makeTime(15,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");`,
+  [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  try {
+    _t_1 = new Array(2);
+    _t_2 = new __builtin.Time(9, 0, 0);
+    _t_1[0] = _t_2;
+    _t_3 = new __builtin.Time(15, 0, 0);
+    _t_1[1] = _t_3;
+    _t_0 = await env.invokeAtTimer(_t_1);
+    {
+      let _iter_tmp = await _t_0.next();
+      while (!_iter_tmp.done) {
+        _t_4 = _iter_tmp.value;
+        try {
+          _t_5 = {};
+          _t_6 = "it's 9am or 3pm";
+          _t_5.message = _t_6;
+          await env.invokeAction(0, _t_5);
+        } catch(_exc_) {
+          env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_0.next();
+      }
+    }
+  } catch(_exc_) {
+    env.reportError("Failed to invoke at-timer", _exc_);
   }`]],
 ];
 

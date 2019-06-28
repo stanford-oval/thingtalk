@@ -484,7 +484,7 @@ now => @security-camera.set_power(power=enum(on));
 ====
 
 // ** typecheck: expect TypeError **
-now => notify; 
+now => notify;
 
 ====
 
@@ -1083,6 +1083,16 @@ oninput => {
   p3();
   p4(p_query="foo");
 }
+
+====
+
+// attimer with List
+attimer(time=[makeTime(9,0), makeTime(15,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");
+
+====
+
+// list syntax with single attimer
+attimer(time=[makeTime(9,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");
 
 ====
 
