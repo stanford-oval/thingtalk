@@ -1244,8 +1244,52 @@ class @foo {
     query bar(out title : String, out description: String, out url : URL #[unique=true])
     #_[canonical='foo']
     #_[confirmation='bar']
-    #[filter_required=true]
+    #[require_filter=true]
     #[default_projection=["title", "description"]];
+}
+
+====
+// ** typecheck: expect TypeError **
+// invalid type for require_filter
+class @foo {
+    query bar(out title : String, out description: String, out url : URL #[unique=true])
+    #_[canonical='foo']
+    #_[confirmation='bar']
+    #[require_filter='true']
+    #[default_projection=["title", "description"]];
+}
+
+====
+// ** typecheck: expect TypeError **
+// invalid type for default_projection
+class @foo {
+    query bar(out title : String, out description: String, out url : URL #[unique=true])
+    #_[canonical='foo']
+    #_[confirmation='bar']
+    #[require_filter=true]
+    #[default_projection='foobar'];
+}
+
+====
+// ** typecheck: expect TypeError **
+// invalid type for default_projection
+class @foo {
+    query bar(out title : String, out description: String, out url : URL #[unique=true])
+    #_[canonical='foo']
+    #_[confirmation='bar']
+    #[require_filter=true]
+    #[default_projection=[123]];
+}
+
+====
+// ** typecheck: expect TypeError **
+// invalid parameter for default_projection
+class @foo {
+    query bar(out title : String, out description: String, out url : URL #[unique=true])
+    #_[canonical='foo']
+    #_[confirmation='bar']
+    #[require_filter=true]
+    #[default_projection=['foobar']];
 }
 
 ====

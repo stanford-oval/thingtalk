@@ -313,7 +313,7 @@ const TEST_CASES = [
     '            out url: Entity(tt:url) #[unique=true])\n' +
     '  #_[canonical="foo"]\n' +
     '  #_[confirmation="bar"]\n' +
-    '  #[filter_required=true]\n' +
+    '  #[require_filter=true]\n' +
     '  #[default_projection=["title", "description"]];\n' +
     '}\n'
 ];
