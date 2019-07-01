@@ -1326,3 +1326,8 @@ now => [person, P18] of ((@org.wikidata.person(), person ~= "Bob"^^org.wikidata:
 ====
 
 now => [person, P18] of (@org.wikidata.person(), (P735 ~= 'Bob' || P27 ~= "China")) => notify;
+
+====
+
+// unresolved locations
+now => @org.thingpedia.weather.current(location=makeLocation("stanford california")) => notify;

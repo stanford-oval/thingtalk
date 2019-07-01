@@ -19,7 +19,7 @@ function testEval(obj) {
     const newobj = eval(jsSource);
     assert(equality(newobj, obj));
     assert.strictEqual(String(newobj), String(obj));
-}
+}   
 
 function main() {
     assert.throws(() => new __builtin.Time());
