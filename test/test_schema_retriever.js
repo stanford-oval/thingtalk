@@ -76,7 +76,7 @@ async function testInjectManifest() {
     const fakeTwitter = (await Grammar.parseAndTypecheck(FAKE_TWITTER, schemaRetriever)).classes[0];
     schemaRetriever.injectClass(fakeTwitter);
 
-    assert.deepStrictEqual((await schemaRetriever.getSchemaAndNames('com.twitter', 'query', 'fake_query')).prettyprint(), `monitorable list query fake_query(in req fake_argument: String)\n#[poll_interval=1min]\n#[formatted=["foo"]];`);
+    assert.deepStrictEqual((await schemaRetriever.getSchemaAndNames('com.twitter', 'query', 'fake_query')).prettyprint(), `monitorable list query fake_query(in req fake_argument: String)\n  #[poll_interval=1min]\n  #[formatted=["foo"]];`);
 }
 
 async function testInvalid() {
