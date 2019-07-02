@@ -26,6 +26,7 @@ var TEST_CASES = [
     ['monitor @com.twitter.home_timeline() => @com.twitter.post(status=text);',
     'tweet the text when tweets from anyone you follow change',
     'Twitter ⇒ Twitter'],
+
     ['attimer(time=makeTime(8,30)) => @org.thingpedia.builtin.thingengine.builtin.say(message=$undefined);',
     'send me a message ____ every day at 08:30 AM',
     'Say'],
@@ -37,6 +38,12 @@ var TEST_CASES = [
     'Say'],
     ['attimer(time=makeTime(12,0)) => @org.thingpedia.builtin.thingengine.builtin.say(message=$undefined);',
     'send me a message ____ every day at 12:00 PM',
+    'Say'],
+    [`attimer(time=[makeTime(9,0), makeTime(15,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");`,
+    `send me a message “it's 9am or 3pm” every day at 09:00 AM and 03:00 PM`,//'
+    'Say'],
+    [`attimer(time=[makeTime(9,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am");`,
+    `send me a message “it's 9am” every day at 09:00 AM`,//'
     'Say'],
 
     [`now => @com.xkcd.get_comic() => notify;`,
@@ -245,14 +252,6 @@ var TEST_CASES = [
     [`now => [file_name] of sort file_size asc of @com.google.drive.list_drive_files() => notify;`,
     'get the file name of the files in your Google Drive sorted by increasing file size and then notify you',
     'Google Drive ⇒ Notification'],
-
-    [`attimer(time=[makeTime(9,0), makeTime(15,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");`,
-    `send me a message “it's 9am or 3pm” every day at 09:00 AM and 03:00 PM`,//'
-    'Say'],
-
-    [`attimer(time=[makeTime(9,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");`,
-    `send me a message “it's 9am or 3pm” every day at 09:00 AM`,//'
-    'Say'],
 
     [`bookkeeping(yes);`,
     'yes', ''],
