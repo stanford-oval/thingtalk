@@ -27,10 +27,10 @@ var TEST_CASES = [
     'tweet the text when tweets from anyone you follow change',
     'Twitter ⇒ Twitter'],
     ['attimer(time=makeTime(8,30)) => @org.thingpedia.builtin.thingengine.builtin.say(message=$undefined);',
-    'send me a message ____ every day at 8:30 AM',
+    'send me a message ____ every day at 08:30 AM',
     'Say'],
     ['attimer(time=makeTime(20,30)) => @org.thingpedia.builtin.thingengine.builtin.say(message=$undefined);',
-    'send me a message ____ every day at 8:30 PM',
+    'send me a message ____ every day at 08:30 PM',
     'Say'],
     ['attimer(time=makeTime(0,0)) => @org.thingpedia.builtin.thingengine.builtin.say(message=$undefined);',
     'send me a message ____ every day at 12:00 AM',
@@ -247,11 +247,11 @@ var TEST_CASES = [
     'Google Drive ⇒ Notification'],
 
     [`attimer(time=[makeTime(9,0), makeTime(15,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");`,
-    `send me a message “it's 9am or 3pm” every day at 9:00 AM and 3:00 PM`,//'
+    `send me a message “it's 9am or 3pm” every day at 09:00 AM and 03:00 PM`,//'
     'Say'],
 
     [`attimer(time=[makeTime(9,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");`,
-    `send me a message “it's 9am or 3pm” every day at 9:00 AM`,//'
+    `send me a message “it's 9am or 3pm” every day at 09:00 AM`,//'
     'Say'],
 
     [`bookkeeping(yes);`,
