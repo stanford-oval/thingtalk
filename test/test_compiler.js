@@ -3403,72 +3403,75 @@ const TEST_CASES = [
   let _t_30;
   let _t_31;
   let _t_32;
+  let _t_33;
   try {
-    _t_1 = new __builtin.Time(7, 30, 0);
+    _t_1 = new Array(1);
+    _t_2 = new __builtin.Time(7, 30, 0);
+    _t_1[0] = _t_2;
     _t_0 = await __env.invokeAtTimer(_t_1);
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
-        _t_2 = _iter_tmp.value;
-        _t_3 = 2;
-        _t_4 = false;
-        _t_5 = 0;
+        _t_3 = _iter_tmp.value;
+        _t_4 = 2;
+        _t_5 = false;
+        _t_6 = 0;
         try {
-          _t_6 = {};
-          _t_7 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_6);
-          _t_8 = _t_7[Symbol.iterator]();
+          _t_7 = {};
+          _t_8 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_7);
+          _t_9 = _t_8[Symbol.iterator]();
           {
-            let _iter_tmp = await _t_8.next();
+            let _iter_tmp = await _t_9.next();
             while (!_iter_tmp.done) {
-              _t_9 = _iter_tmp.value;
-              _t_10 = _t_9[0];
-              _t_11 = _t_9[1];
-              _t_12 = _t_11.order_by;
-              _t_13 = _t_11.file_id;
-              _t_14 = _t_11.file_name;
-              _t_15 = _t_11.mime_type;
-              _t_16 = _t_11.description;
-              _t_17 = _t_11.starred;
-              _t_18 = _t_11.created_time;
-              _t_19 = _t_11.modified_time;
-              _t_20 = _t_11.file_size;
-              _t_21 = 1;
-              _t_5 = _t_5 + _t_21;
-              _t_22 = _t_3 == _t_5;
-              if (_t_22) {
-                _t_4 = true;
+              _t_10 = _iter_tmp.value;
+              _t_11 = _t_10[0];
+              _t_12 = _t_10[1];
+              _t_13 = _t_12.order_by;
+              _t_14 = _t_12.file_id;
+              _t_15 = _t_12.file_name;
+              _t_16 = _t_12.mime_type;
+              _t_17 = _t_12.description;
+              _t_18 = _t_12.starred;
+              _t_19 = _t_12.created_time;
+              _t_20 = _t_12.modified_time;
+              _t_21 = _t_12.file_size;
+              _t_22 = 1;
+              _t_6 = _t_6 + _t_22;
+              _t_23 = _t_4 == _t_6;
+              if (_t_23) {
+                _t_5 = true;
                 break;
               } else {
 
               }
-              _iter_tmp = await _t_8.next();
+              _iter_tmp = await _t_9.next();
             }
           }
         } catch(_exc_) {
           __env.reportError("Failed to invoke query", _exc_);
         }
-        if (_t_4) {
-          _t_23 = {};
-          _t_23.order_by = _t_12;
-          _t_23.file_id = _t_13;
-          _t_23.file_name = _t_14;
-          _t_23.mime_type = _t_15;
-          _t_23.description = _t_16;
-          _t_23.starred = _t_17;
-          _t_23.created_time = _t_18;
-          _t_23.modified_time = _t_19;
-          _t_23.file_size = _t_20;
-          _t_24 = _t_23.order_by;
-          _t_25 = _t_23.file_id;
-          _t_26 = _t_23.file_name;
-          _t_27 = _t_23.mime_type;
-          _t_28 = _t_23.description;
-          _t_29 = _t_23.starred;
-          _t_30 = _t_23.created_time;
-          _t_31 = _t_23.modified_time;
-          _t_32 = _t_23.file_size;
+        if (_t_5) {
+          _t_24 = {};
+          _t_24.order_by = _t_13;
+          _t_24.file_id = _t_14;
+          _t_24.file_name = _t_15;
+          _t_24.mime_type = _t_16;
+          _t_24.description = _t_17;
+          _t_24.starred = _t_18;
+          _t_24.created_time = _t_19;
+          _t_24.modified_time = _t_20;
+          _t_24.file_size = _t_21;
+          _t_25 = _t_24.order_by;
+          _t_26 = _t_24.file_id;
+          _t_27 = _t_24.file_name;
+          _t_28 = _t_24.mime_type;
+          _t_29 = _t_24.description;
+          _t_30 = _t_24.starred;
+          _t_31 = _t_24.created_time;
+          _t_32 = _t_24.modified_time;
+          _t_33 = _t_24.file_size;
           try {
-            await __env.output(String(_t_10), _t_23);
+            await __env.output(String(_t_11), _t_24);
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
@@ -4861,7 +4864,7 @@ const TEST_CASES = [
     _t_1[0] = _t_2;
     _t_3 = new __builtin.Time(15, 0, 0);
     _t_1[1] = _t_3;
-    _t_0 = await env.invokeAtTimer(_t_1);
+    _t_0 = await __env.invokeAtTimer(_t_1);
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
@@ -4870,15 +4873,15 @@ const TEST_CASES = [
           _t_5 = {};
           _t_6 = "it's 9am or 3pm";
           _t_5.message = _t_6;
-          await env.invokeAction(0, _t_5);
+          await __env.invokeAction("org.thingpedia.builtin.thingengine.builtin", { }, "say", _t_5);
         } catch(_exc_) {
-          env.reportError("Failed to invoke action", _exc_);
+          __env.reportError("Failed to invoke action", _exc_);
         }
         _iter_tmp = await _t_0.next();
       }
     }
   } catch(_exc_) {
-    env.reportError("Failed to invoke at-timer", _exc_);
+    __env.reportError("Failed to invoke at-timer", _exc_);
   }`]],
 ];
 
