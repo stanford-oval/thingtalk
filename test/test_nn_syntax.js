@@ -174,9 +174,9 @@ const TEST_CASES = [
   now => @com.xkcd.get_comic() => return;
 }`],
 
-    [`now => ( @security-camera.current_event ) filter @org.thingpedia.builtin.thingengine.phone.get_gps { not param:location:Location == location:home } => notify`,
+    [`now => ( @security-camera.current_event ) filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:home } => notify`,
      `show me my security camera if i 'm not home`, {}, //'
-     `now => (@security-camera.current_event()), @org.thingpedia.builtin.thingengine.phone.get_gps() { !(location == $context.location.home) } => notify;`],
+     `now => (@security-camera.current_event()), @org.thingpedia.builtin.thingengine.builtin.get_gps() { !(location == $context.location.home) } => notify;`],
 
     [`policy true : now => @com.twitter.post`,
     `anyone can post on twitter`, {},
@@ -210,9 +210,9 @@ const TEST_CASES = [
     `anyone can search on bing if the description contains QUOTED_STRING_0 and then post on twitter if the status contains the same thing`, { QUOTED_STRING_0: 'foo' },
     `true : @com.bing.web_search, description =~ "foo" => @com.twitter.post, status =~ "foo";`],
 
-    [`policy true : @com.bing.web_search filter @org.thingpedia.builtin.thingengine.phone.get_gps { not param:location:Location == location:home } and param:description:String =~ QUOTED_STRING_0 => notify`,
+    [`policy true : @com.bing.web_search filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:home } and param:description:String =~ QUOTED_STRING_0 => notify`,
     `anyone can search on bing if i am not at home and the description contains QUOTED_STRING_0`, { QUOTED_STRING_0: 'foo' },
-    `true : @com.bing.web_search, (@org.thingpedia.builtin.thingengine.phone.get_gps() { !(location == $context.location.home) } && description =~ "foo") => notify;`],
+    `true : @com.bing.web_search, (@org.thingpedia.builtin.thingengine.builtin.get_gps() { !(location == $context.location.home) } && description =~ "foo") => notify;`],
 
     [`executor = USERNAME_0 : now => @com.twitter.post_picture`,
      `USERNAME_0 can post pictures on twitter`, { USERNAME_0: 'mom' },

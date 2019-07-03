@@ -36,13 +36,13 @@ const TEST_CASES = [
      `now => (@com.bing.web_search(query="cats")), ((description =~ "funny" && description =~ "lol") || description =~ "https://www.wsj.com" || description =~ "https://www.washingtonpost.com" || description =~ "cat") => @com.facebook.post(status=description);`],
 
     [`monitor @security-camera.current_event(), has_person == true => notify;`,
-    `monitor ((@security-camera.current_event()), (@org.thingpedia.builtin.thingengine.phone.get_gps() { location == makeLocation(1, 2) } && has_person == true)) => notify;`],
+    `monitor ((@security-camera.current_event()), (@org.thingpedia.builtin.thingengine.builtin.get_gps() { location == makeLocation(1, 2) } && has_person == true)) => notify;`],
 
-    // the program should be rejected because there is no rule that allows phone.get_gps()
-    [`monitor @security-camera.current_event(), (has_person == true && @org.thingpedia.builtin.thingengine.phone.get_gps() { location == makeLocation(1, 2) })  => notify;`,
+    // the program should be rejected because there is no rule that allows builtin.get_gps()
+    [`monitor @security-camera.current_event(), (has_person == true && @org.thingpedia.builtin.thingengine.builtin.get_gps() { location == makeLocation(1, 2) })  => notify;`,
      null],
 
-    [`now => @org.thingpedia.builtin.thingengine.phone.get_gps() => notify;`, null],
+    [`now => @org.thingpedia.builtin.thingengine.builtin.get_gps() => notify;`, null],
 
     [`now => @thermostat.get_temperature() => notify;`,
      `now => (@thermostat.get_temperature()), @com.xkcd.get_comic(number=10) { title =~ "lol" } => notify;`],
@@ -114,7 +114,7 @@ const PERMISSION_DATABASE = [
     `source == "mom@stanford.edu"^^tt:contact : * => @com.lg.tv.webos2.set_power, power == enum(on)`,
     `true : @com.xkcd.get_comic => *`,
 
-    `true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.phone.get_gps() { location == makeLocation(1,2) } => notify`,
+    `true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_gps() { location == makeLocation(1,2) } => notify`,
     `true : @thermostat.get_temperature, @com.xkcd.get_comic(number=10) { title =~ "lol" } => notify`,
     `true : @thermostat.get_humidity, @com.xkcd.get_comic() { title =~ "lol" } => notify`,
 
