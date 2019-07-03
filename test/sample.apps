@@ -381,8 +381,8 @@ let table latest_K := \(x : Table, k : Number) -> sequence 1, k of x;
 
 // Computation
 {
-let table x := compute distance(location, makeLocation(1,2)) of @org.thingpedia.builtin.thingengine.phone.get_gps();
-let table y := compute distance(location, $context.location.home) of @org.thingpedia.builtin.thingengine.phone.get_gps();
+let table x := compute distance(location, makeLocation(1,2)) of @org.thingpedia.builtin.thingengine.builtin.get_gps();
+let table y := compute distance(location, $context.location.home) of @org.thingpedia.builtin.thingengine.builtin.get_gps();
 let table z := compute (col1 + col2) of Q1;
 let table xx := compute (1 + col1) of aggregate sum col1 of Q1;
 let table xy := compute (1 + colsum) of aggregate sum col1 as colsum of Q1;
