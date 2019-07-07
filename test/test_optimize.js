@@ -22,8 +22,7 @@ const TEST_CASES = [
     [
         `now => ([text] of @com.twitter.home_timeline()), text =~ "lol" => notify;`,
         `now => [text] of ((@com.twitter.home_timeline()), text =~ "lol") => notify;`
-    ]
-    ,
+    ],
     [
         `now => ([text] of @com.twitter.home_timeline()), text =~ "lol" => @com.twitter.post(status=text);`,
         `now => (@com.twitter.home_timeline()), text =~ "lol" => @com.twitter.post(status=text);`
@@ -35,11 +34,14 @@ const TEST_CASES = [
     [
         `monitor (([text] of @com.twitter.home_timeline()), text =~ "lol") => notify;`,
         `monitor ([text] of ((@com.twitter.home_timeline()), text =~ "lol")) => notify;`
-    ]
-    ,
+    ],
     [
         `monitor (([text] of @com.twitter.home_timeline()), text =~ "lol") => @com.twitter.post(status=text);`,
         `monitor ((@com.twitter.home_timeline()), text =~ "lol") => @com.twitter.post(status=text);`
+    ],
+    [
+        `now => [count] of aggregate count of (@com.twitter.home_timeline()) => notify;`,
+        `now => aggregate count of (@com.twitter.home_timeline()) => notify;`
     ]
 
 ];
