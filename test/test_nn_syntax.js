@@ -360,7 +360,11 @@ const TEST_CASES = [
 
     ['now => @org.thingpedia.weather.current param:location:Location = location: " stanford california " => notify',
     'get weather for stanford california', {},
-    `now => @org.thingpedia.weather.current(location=makeLocation("stanford california")) => notify;`]
+    `now => @org.thingpedia.weather.current(location=makeLocation("stanford california")) => notify;`],
+
+    ['now => [ param:title:String , param:description:String ] of ( @com.bing.web_search ) => notify',
+    'get title and description from bing', {},
+    'now => [title, description] of (@com.bing.web_search()) => notify;'],
 ];
 
 async function testCase(test, i) {

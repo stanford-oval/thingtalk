@@ -160,6 +160,8 @@ table = {
     '(' table ')' '[' indices:constant_array_values ']'       => new Ast.Table.Index(table, indices, null);
     '(' table ')' '[' base:constant ':' delta:constant ']'    => new Ast.Table.Slice(table, base, delta, null);
 
+    '[' pnames:out_param_list ']' 'of' '(' table ')'          => new Ast.Table.Projection(table, pnames.map((p) => p.name), null);
+
     'window' base:constant_Number ',' delta:constant_Number 'of' '(' stream ')'        => new Ast.Table.Window(base, delta, stream, null);
     'timeseries' base:constant_Date ',' delta:constant_Measure_ms 'of' '(' stream ')' => new Ast.Table.TimeSeries(base, delta, stream, null);
     'sequence' base:constant_Number ',' delta:constant_Number 'of' '(' table ')'       => new Ast.Table.Sequence(base, delta, table, null);
