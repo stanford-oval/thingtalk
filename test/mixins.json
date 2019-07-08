@@ -40,6 +40,14 @@
       "facets": [ "loader" ]
     },
     {
+      "kind": "org.thingpedia.database",
+      "args": [ "type" ],
+      "types": [ "Enum(thingtalk,sql,sparql)" ],
+      "required": [ false ],
+      "is_input": [ true ],
+      "facets": [ "loader" ]
+    },
+    {
       "kind": "org.thingpedia.config.none",
       "args": [ "api_key", "subscription_key" ],
       "types": [ "String", "String" ],
