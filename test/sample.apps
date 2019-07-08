@@ -1331,3 +1331,10 @@ now => [person, P18] of (@org.wikidata.person(), (P735 ~= 'Bob' || P27 ~= "China
 
 // unresolved locations
 now => @org.thingpedia.weather.current(location=makeLocation("stanford california")) => notify;
+
+====
+
+// ** typecheck: expect TypeError **
+// projection on table with single output param
+
+now => [date] of @org.thingpedia.builtin.thingengine.builtin.get_date() => notify;
