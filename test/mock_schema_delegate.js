@@ -11,7 +11,7 @@ const path = require('path');
 
 // Parse the semi-obsolete JSON format for schemas used
 // by Thingpedia into a FunctionDef
-function makeSchemaFunctionDef(functionType, functionName, schema, useMeta) {
+function makeSchemaFunctionDef(functionType, functionName, schema, useMeta, parent) {
     const args = [];
     // compat with Thingpedia API quirks
     const types = schema.types || schema.schema;
@@ -55,20 +55,26 @@ function makeSchemaFunctionDef(functionType, functionName, schema, useMeta) {
                                schema.is_list,
                                schema.is_monitorable,
                                metadata,
-                               annotations);
+                               annotations,
+                               parent);
 }
 
 function makeSchemaClassDef(kind, schema, useMeta) {
-    const queries = {};
-    for (let name in schema.queries)
-        queries[name] = makeSchemaFunctionDef('query', name, schema.queries[name], useMeta);
-    const actions = {};
-    for (let name in schema.actions)
-        actions[name] = makeSchemaFunctionDef('action', name, schema.actions[name], useMeta);
-
     const imports = extractImports(schema);
     const metadata = {};
     const annotations = {};
+    const parent = new Ast.ClassDef(kind, null, {}, {}, imports, metadata, annotations);
+
+    const queries = {};
+    for (let name in schema.queries)
+        queries[name] = makeSchemaFunctionDef('query', name, schema.queries[name], useMeta, parent);
+    const actions = {};
+    for (let name in schema.actions)
+        actions[name] = makeSchemaFunctionDef('action', name, schema.actions[name], useMeta, parent);
+
+    if (parent && parent.loader)
+        console.log(parent.loader.module);
+
     return new Ast.ClassDef(kind, null, queries, actions,
                             imports, metadata, annotations);
 }
