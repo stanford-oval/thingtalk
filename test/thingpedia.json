@@ -11146,6 +11146,48 @@
             "actions":{
 
             }
+        },
+        {
+            "id": 745,
+            "kind": "org.thingpedia.database-test",
+            "kind_type": "primary",
+            "kind_canonical": "database test",
+            "module_type": "org.thingpedia.database",
+            "query_type": "sql",
+            "owner": 1,
+            "version": 46,
+            "developer_version": 46,
+            "approved_version": 46,
+            "triggers": {},
+            "queries": {
+                "query": {
+                    "schema": [
+                        "String",
+                        "String"
+                    ],
+                    "args": [
+                        "foo",
+                        "bar"
+                    ],
+                    "required": [
+                        false,
+                        false
+                    ],
+                    "is_input": [
+                        true,
+                        false
+                    ],
+                    "is_list": true,
+                    "is_monitorable": true,
+                    "confirmation": "test",
+                    "confirmation_remote": "test remotely",
+                    "doc": "test",
+                    "canonical": "db test",
+                    "argcanonicals": [],
+                    "questions": []
+                }
+            },
+            "actions": {}
         }
     ]
 }
