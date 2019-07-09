@@ -1338,3 +1338,34 @@ now => @org.thingpedia.weather.current(location=makeLocation("stanford californi
 // projection on table with single output param
 
 now => [date] of @org.thingpedia.builtin.thingengine.builtin.get_date() => notify;
+
+====
+
+// result references
+
+// latest
+now => result(@com.thecatapi.get) => notify;
+now => result(@com.thecatapi.get[-1]) => notify;
+
+// first ever
+now => result(@com.thecatapi.get[1]) => notify;
+
+// second latest
+now => result(@com.thecatapi.get[-2]) => notify;
+
+// w/ param passing
+now => result(@com.thecatapi.get) => @com.twitter.post_picture(picture_url=picture_url);
+
+====
+
+// ** typecheck: expect TypeError **
+// invalid index
+
+now => result(@com.thecatapi.get['foo']) => notify;
+
+====
+
+// ** typecheck: expect TypeError **
+// not a query
+
+now => result(@com.twitter.post) => notify;
