@@ -89,7 +89,7 @@ module.exports = {
     // We convert our JSON datafiles into ThingTalk code here
 
     async getSchemas(kinds, useMeta) {
-        const source = this._meta;
+        const source = useMeta ? this._meta : this._schema;
 
         const classes = [];
         for (let kind of kinds) {
