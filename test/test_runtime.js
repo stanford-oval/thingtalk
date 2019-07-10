@@ -24,12 +24,56 @@ const builtin = require('../lib/builtin/values');
 const _mockSchemaDelegate = require('./mock_schema_delegate');
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
+class MockAssistant {
+    constructor() {
+        this._outputHistory = [];
+    }
+
+    output(outputType, output) {
+        this._outputHistory.push([outputType, output]);
+    }
+
+    _outputTypeMatches(type, _function) {
+        const split = type.split('+');
+        return split[split.length-1] === _function;
+    }
+    readResult(_function, index) {
+        // index is 1 based!
+        assert(index !== 0);
+        if (index > 0) {
+            // iterate up
+            for (let i = 0; i < this._outputHistory.length; i++) {
+                const [type, value] = this._outputHistory[i];
+                if (this._outputTypeMatches(type, _function)) {
+                    index--;
+                    if (index === 0)
+                        return [[_function, value]];
+                }
+            }
+        } else {
+            // iterate down
+            for (let i = this._outputHistory.length-1; i >= 0; i--) {
+                const [type, value] = this._outputHistory[i];
+                if (this._outputTypeMatches(type, _function)) {
+                    index++;
+                    if (index === 0)
+                        return [[_function, value]];
+                }
+            }
+        }
+
+        // no match
+        return [];
+    }
+}
+
 class MockState {
     constructor(compiled) {
         this._states = [];
         this._states.length = compiled.states;
         for (let i = 0; i < this._states.length; i++)
             this._states[i] = null;
+
     }
 
     readState(stateId) {
@@ -45,7 +89,7 @@ class MockState {
 }
 
 class MockExecEnvironment extends ExecEnvironment {
-    constructor(states, triggerdata, querydata, outputdata) {
+    constructor(assistant, states, triggerdata, querydata, outputdata) {
         super('en-US', 'America/Los_Angeles', schemaRetriever);
 
         this._trigger = triggerdata;
@@ -53,6 +97,7 @@ class MockExecEnvironment extends ExecEnvironment {
         this._actions = outputdata;
 
         this._states = states;
+        this._assistant = assistant;
     }
 
     get program_id() {
@@ -120,7 +165,14 @@ class MockExecEnvironment extends ExecEnvironment {
 
         assert.deepStrictEqual(outputType, nextaction.outputType);
         assert.deepStrictEqual(output, nextaction.value);
+
+        this._assistant.output(outputType, output);
     }
+
+    readResult(_function, index) {
+        return this._assistant.readResult(_function, index);
+    }
+
     clearGetCache() {}
 
     readState(stateId) {
@@ -2376,26 +2428,296 @@ some alt text` }
 
     ],
 
+    // first result
+    [
+    [
+    `now => @com.thecatapi.get() => notify;`,
+    `now => result(@com.thecatapi.get[1]) => notify;`
+    ],
+    {},
+    {
+        'com.thecatapi:get': [(() => {
+            let _callcount = 0;
+            return (params) => {
+                assert.strictEqual(_callcount, 0);
+                _callcount++;
+
+                return {
+                    link: new builtin.Entity('https://foo.com', null),
+                    image_id: '12345',
+                    picture_url: 'https://foo.com/cat.png'
+                };
+            };
+        })()]
+     },
+    [{ type: 'output',
+      outputType: 'com.thecatapi:get',
+      value: {
+        link: new builtin.Entity('https://foo.com', null),
+        image_id: '12345',
+        picture_url: 'https://foo.com/cat.png'
+      }
+    }, { type: 'output',
+      outputType: 'com.thecatapi:get',
+      value: {
+        link: new builtin.Entity('https://foo.com', null),
+        image_id: '12345',
+        picture_url: 'https://foo.com/cat.png'
+      }
+    }]],
+
+    // first result, again
+    [
+    [
+    `now => @com.thecatapi.get() => notify;`,
+    `now => @com.thecatapi.get() => notify;`,
+    `now => result(@com.thecatapi.get[1]) => notify;`
+    ],
+    {},
+    {
+        'com.thecatapi:get': [(() => {
+            let _callcount = 0;
+            return (params) => {
+                assert(_callcount === 0 || _callcount === 1);
+                _callcount++;
+
+                if (_callcount === 1) {
+                    return {
+                        link: new builtin.Entity('https://foo.com', null),
+                        image_id: '12345',
+                        picture_url: 'https://foo.com/cat.png'
+                    };
+                } else {
+                    return {
+                        link: new builtin.Entity('https://bar.com', null),
+                        image_id: '54321',
+                        picture_url: 'https://bar.com/cat.png'
+                    };
+                }
+            };
+        })()]
+     },
+    [
+    { type: 'output',
+      outputType: 'com.thecatapi:get',
+      value: {
+        link: new builtin.Entity('https://foo.com', null),
+        image_id: '12345',
+        picture_url: 'https://foo.com/cat.png'
+      }
+    },
+    { type: 'output',
+      outputType: 'com.thecatapi:get',
+      value: {
+        link: new builtin.Entity('https://bar.com', null),
+        image_id: '54321',
+        picture_url: 'https://bar.com/cat.png'
+      }
+    },
+    { type: 'output',
+      outputType: 'com.thecatapi:get',
+      value: {
+        link: new builtin.Entity('https://foo.com', null),
+        image_id: '12345',
+        picture_url: 'https://foo.com/cat.png'
+      }
+    }]],
+
+    // second result
+    [
+    [
+    `now => @com.thecatapi.get() => notify;`,
+    `now => @com.thecatapi.get() => notify;`,
+    `now => result(@com.thecatapi.get[2]) => notify;`
+    ],
+    {},
+    {
+        'com.thecatapi:get': [(() => {
+            let _callcount = 0;
+            return (params) => {
+                assert(_callcount === 0 || _callcount === 1);
+                _callcount++;
+
+                if (_callcount === 1) {
+                    return {
+                        link: new builtin.Entity('https://foo.com', null),
+                        image_id: '12345',
+                        picture_url: 'https://foo.com/cat.png'
+                    };
+                } else {
+                    return {
+                        link: new builtin.Entity('https://bar.com', null),
+                        image_id: '54321',
+                        picture_url: 'https://bar.com/cat.png'
+                    };
+                }
+            };
+        })()]
+     },
+    [
+    { type: 'output',
+      outputType: 'com.thecatapi:get',
+      value: {
+        link: new builtin.Entity('https://foo.com', null),
+        image_id: '12345',
+        picture_url: 'https://foo.com/cat.png'
+      }
+    },
+    { type: 'output',
+      outputType: 'com.thecatapi:get',
+      value: {
+        link: new builtin.Entity('https://bar.com', null),
+        image_id: '54321',
+        picture_url: 'https://bar.com/cat.png'
+      }
+    },
+    { type: 'output',
+      outputType: 'com.thecatapi:get',
+      value: {
+        link: new builtin.Entity('https://bar.com', null),
+        image_id: '54321',
+        picture_url: 'https://bar.com/cat.png'
+      }
+    }]],
+
+    // last result
+    [
+    [
+    `now => @com.thecatapi.get() => notify;`,
+    `now => @com.thecatapi.get() => notify;`,
+    `now => result(@com.thecatapi.get[-1]) => notify;`
+    ],
+    {},
+    {
+        'com.thecatapi:get': [(() => {
+            let _callcount = 0;
+            return (params) => {
+                assert(_callcount === 0 || _callcount === 1);
+                _callcount++;
+
+                if (_callcount === 1) {
+                    return {
+                        link: new builtin.Entity('https://foo.com', null),
+                        image_id: '12345',
+                        picture_url: 'https://foo.com/cat.png'
+                    };
+                } else {
+                    return {
+                        link: new builtin.Entity('https://bar.com', null),
+                        image_id: '54321',
+                        picture_url: 'https://bar.com/cat.png'
+                    };
+                }
+            };
+        })()]
+     },
+    [
+    { type: 'output',
+      outputType: 'com.thecatapi:get',
+      value: {
+        link: new builtin.Entity('https://foo.com', null),
+        image_id: '12345',
+        picture_url: 'https://foo.com/cat.png'
+      }
+    },
+    { type: 'output',
+      outputType: 'com.thecatapi:get',
+      value: {
+        link: new builtin.Entity('https://bar.com', null),
+        image_id: '54321',
+        picture_url: 'https://bar.com/cat.png'
+      }
+    },
+    { type: 'output',
+      outputType: 'com.thecatapi:get',
+      value: {
+        link: new builtin.Entity('https://bar.com', null),
+        image_id: '54321',
+        picture_url: 'https://bar.com/cat.png'
+      }
+    }]],
+
+    // penultimate result
+    [
+    [
+    `now => @com.thecatapi.get() => notify;`,
+    `now => @com.thecatapi.get() => notify;`,
+    `now => result(@com.thecatapi.get[-2]) => notify;`
+    ],
+    {},
+    {
+        'com.thecatapi:get': [(() => {
+            let _callcount = 0;
+            return (params) => {
+                assert(_callcount === 0 || _callcount === 1);
+                _callcount++;
+
+                if (_callcount === 1) {
+                    return {
+                        link: new builtin.Entity('https://foo.com', null),
+                        image_id: '12345',
+                        picture_url: 'https://foo.com/cat.png'
+                    };
+                } else {
+                    return {
+                        link: new builtin.Entity('https://bar.com', null),
+                        image_id: '54321',
+                        picture_url: 'https://bar.com/cat.png'
+                    };
+                }
+            };
+        })()]
+     },
+    [
+    { type: 'output',
+      outputType: 'com.thecatapi:get',
+      value: {
+        link: new builtin.Entity('https://foo.com', null),
+        image_id: '12345',
+        picture_url: 'https://foo.com/cat.png'
+      }
+    },
+    { type: 'output',
+      outputType: 'com.thecatapi:get',
+      value: {
+        link: new builtin.Entity('https://bar.com', null),
+        image_id: '54321',
+        picture_url: 'https://bar.com/cat.png'
+      }
+    },
+    { type: 'output',
+      outputType: 'com.thecatapi:get',
+      value: {
+        link: new builtin.Entity('https://foo.com', null),
+        image_id: '12345',
+        picture_url: 'https://foo.com/cat.png'
+      }
+    }]]
 ];
 
 async function test(i) {
     console.log('Test Case #' + (i+1));
 
     let [code, trigger, queries, actions] = TEST_CASES[i];
+    if (!Array.isArray(code))
+        code = [code];
 
+    const assistant = new MockAssistant();
     try {
-        const compiler = new Compiler(schemaRetriever);
-        const compiled = await compiler.compileCode(code);
+        for (let prog of code) {
+            const compiler = new Compiler(schemaRetriever);
+            const compiled = await compiler.compileCode(prog);
+            const state = new MockState(compiled);
 
-        const generated = [];
-        if (compiled.command)
-            generated.push(compiled.command);
-        generated.push(...compiled.rules);
+            const generated = [];
+            if (compiled.command)
+                generated.push(compiled.command);
+            generated.push(...compiled.rules);
 
-        let state = new MockState(compiled);
-        for (let gen of generated) {
-            const env = new MockExecEnvironment(state, trigger, queries, actions);
-            await gen(env);
+            for (let gen of generated) {
+                const env = new MockExecEnvironment(assistant, state, trigger, queries, actions);
+                await gen(env);
+            }
         }
 
         if (actions.length !== 0)
