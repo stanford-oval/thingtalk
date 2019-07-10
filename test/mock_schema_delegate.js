@@ -72,9 +72,6 @@ function makeSchemaClassDef(kind, schema, useMeta) {
     for (let name in schema.actions)
         actions[name] = makeSchemaFunctionDef('action', name, schema.actions[name], useMeta, parent);
 
-    if (parent && parent.loader)
-        console.log(parent.loader.module);
-
     return new Ast.ClassDef(kind, null, queries, actions,
                             imports, metadata, annotations);
 }
@@ -149,9 +146,12 @@ module.exports = {
 for (let dev of Thingpedia.data) {
     module.exports._meta[dev.kind] = dev;
     module.exports._schema[dev.kind] = {
+        module_type: dev.module_type,
+        query_language: dev.query_language,
         queries: {},
         actions: {}
     };
+
     for (let what of ['queries', 'actions']) {
         for (let name in dev[what]) {
             let from = dev[what][name];

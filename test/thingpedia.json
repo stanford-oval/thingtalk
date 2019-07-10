@@ -11153,7 +11153,7 @@
             "kind_type": "primary",
             "kind_canonical": "database test",
             "module_type": "org.thingpedia.database",
-            "query_type": "sql",
+            "query_language": "thingtalk",
             "owner": 1,
             "version": 46,
             "developer_version": 46,
