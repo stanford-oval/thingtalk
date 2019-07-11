@@ -20,7 +20,7 @@ function makeSchemaFunctionDef(functionType, functionName, schema, isMeta) {
         const argname = schema.args[i];
         const argrequired = !!schema.required[i];
         const arginput = !!schema.is_input[i];
-        const argunique = schema.is_unique ? !!schema.is_unique[i] : false;
+        const argunique = schema.unique ? !!schema.unique[i] : false;
 
         let direction;
         if (argrequired)
@@ -160,7 +160,7 @@ for (let dev of Thingpedia.data) {
                 is_input: from.is_input,
                 is_list: from.is_list,
                 is_monitorable: from.is_monitorable,
-                is_unique: from.is_unique,
+                unique: from.unique,
                 annotations: annotations
             };
         }
