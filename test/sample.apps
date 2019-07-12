@@ -381,8 +381,8 @@ let table latest_K := \(x : Table, k : Number) -> sequence 1, k of x;
 
 // Computation
 {
-let table x := compute distance(location, makeLocation(1,2)) of @org.thingpedia.builtin.thingengine.phone.get_gps();
-let table y := compute distance(location, $context.location.home) of @org.thingpedia.builtin.thingengine.phone.get_gps();
+let table x := compute distance(location, makeLocation(1,2)) of @org.thingpedia.builtin.thingengine.builtin.get_gps();
+let table y := compute distance(location, $context.location.home) of @org.thingpedia.builtin.thingengine.builtin.get_gps();
 let table z := compute (col1 + col2) of Q1;
 let table xx := compute (1 + col1) of aggregate sum col1 of Q1;
 let table xy := compute (1 + colsum) of aggregate sum col1 as colsum of Q1;
@@ -1248,7 +1248,103 @@ now => @com.spotify.play_songs(toPlay=[1, 2]);
 // typechecking arrays
 now => @com.spotify.play_songs(toPlay=["foo", "bar"]);
 
+==== 
+// genie annotations
+class @foo {
+    query bar(out title : String, out description: String, out url : URL #[unique=true])
+    #_[canonical='foo']
+    #_[confirmation='bar']
+    #[require_filter=true]
+    #[default_projection=["title", "description"]];
+}
+
+====
+// ** typecheck: expect TypeError **
+// invalid type for require_filter
+class @foo {
+    query bar(out title : String, out description: String, out url : URL #[unique=true])
+    #_[canonical='foo']
+    #_[confirmation='bar']
+    #[require_filter='true']
+    #[default_projection=["title", "description"]];
+}
+
+====
+// ** typecheck: expect TypeError **
+// invalid type for default_projection
+class @foo {
+    query bar(out title : String, out description: String, out url : URL #[unique=true])
+    #_[canonical='foo']
+    #_[confirmation='bar']
+    #[require_filter=true]
+    #[default_projection='foobar'];
+}
+
+====
+// ** typecheck: expect TypeError **
+// invalid type for default_projection
+class @foo {
+    query bar(out title : String, out description: String, out url : URL #[unique=true])
+    #_[canonical='foo']
+    #_[confirmation='bar']
+    #[require_filter=true]
+    #[default_projection=[123]];
+}
+
+====
+// ** typecheck: expect TypeError **
+// invalid parameter for default_projection
+class @foo {
+    query bar(out title : String, out description: String, out url : URL #[unique=true])
+    #_[canonical='foo']
+    #_[confirmation='bar']
+    #[require_filter=true]
+    #[default_projection=['foobar']];
+}
+
+====
+// ** typecheck: expect TypeError **
+// require filter
+
+now => [person, image] of @org.wikidata.person() => notify;
+
+
+====
+// ** typecheck: expect TypeError **
+// missing default projection
+
+now => @org.wikidata.person(), P735 ~= 'Bob' => notify;
+
+====
+
+now => [person, P18] of (@org.wikidata.person(), P735 ~= 'Bob') => notify;
+
+====
+// ** typecheck: expect TypeError **
+// unique output param
+
+now => [person, P18] of (@org.wikidata.person(), (P735 ~= 'Bob' || person ~= "Bob"^^org.wikidata:human)) => notify;
+
+====
+
+// ** typecheck: expect TypeError **
+// unique output param
+
+now => [person, P18] of ((@org.wikidata.person(), person ~= "Bob"^^org.wikidata:human), P735 ~= 'Bob') => notify;
+
+
+====
+
+now => [person, P18] of (@org.wikidata.person(), (P735 ~= 'Bob' || P27 ~= "China")) => notify;
+
 ====
 
 // unresolved locations
 now => @org.thingpedia.weather.current(location=makeLocation("stanford california")) => notify;
+
+====
+
+// ** typecheck: expect TypeError **
+// projection on table with single output param
+
+now => [date] of @org.thingpedia.builtin.thingengine.builtin.get_date() => notify;

@@ -303,6 +303,19 @@ const TEST_CASES = [
       actions: {},
       version: 0
     },
+
+    'class @foo {\n' +
+    '  import loader from @org.thingpedia.v2();\n' +
+    '  import config from @org.thingpedia.config.none();\n' +
+    '\n' +
+    '  query bar(out title: String,\n' +
+    '            out description: String,\n' +
+    '            out url: Entity(tt:url) #[unique=true])\n' +
+    '  #_[canonical="foo"]\n' +
+    '  #_[confirmation="bar"]\n' +
+    '  #[require_filter=true]\n' +
+    '  #[default_projection=["title", "description"]];\n' +
+    '}\n'
 ];
 
 async function test(i) {

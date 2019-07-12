@@ -152,13 +152,13 @@ var TEST_CASES = [
     ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= makeTime(17,00) && time <= makeTime(19,00) } => notify',
      'anyone is allowed to read the current event detected on your security camera if the current time is after 05:00 PM and the current time is before 07:00 PM'],
 
-    ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.phone.get_gps() { location == $context.location.home } => notify',
+    ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_gps() { location == $context.location.home } => notify',
      'anyone is allowed to read the current event detected on your security camera if the my location is equal to at home'],
 
-    ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.phone.get_gps() { !(location == $context.location.home) } => notify',
+    ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_gps() { !(location == $context.location.home) } => notify',
      'anyone is allowed to read the current event detected on your security camera if the my location is not equal to at home'],
 
-    ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.phone.get_gps() { !(location == $context.location.home) && !(location == $context.location.work) } => notify',
+    ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_gps() { !(location == $context.location.home) && !(location == $context.location.work) } => notify',
      'anyone is allowed to read the current event detected on your security camera if the my location is not equal to at home and the my location is not equal to at work'],
 
     ['true : @security-camera.current_event, @org.thingpedia.weather.current(location=$context.location.current_location) { temperature >= 21C } => notify',

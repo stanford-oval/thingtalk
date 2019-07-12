@@ -1,3 +1,15 @@
+1.7.3
+=====
+
+* Numbers can now be casted to Currencies implicitly; this allows
+  comparing a currency value to a number without specifying the currency
+  code [Aydan Pirani, #17, #95]
+* Locations can now be "unresolved"; this is similar to entities
+  with null value and marks a span of an input sentence corresponding
+  to a location that has not been linked to a specific place on Earth [#98]
+* Misc bug fixes [#100, #101]
+* Updated dependencies [#99]
+
 1.7.2
 =====
 
