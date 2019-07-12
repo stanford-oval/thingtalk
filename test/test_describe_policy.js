@@ -132,7 +132,7 @@ var TEST_CASES = [
      'anyone is allowed to read the current event detected on your security camera if the has person is equal to true'],
 
     ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= makeTime(19,0) } => notify',
-     'anyone is allowed to read the current event detected on your security camera if the current time is after 07:00 PM'],
+     'anyone is allowed to read the current event detected on your security camera if the current time is after 7:00 PM'],
 
     ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= makeTime(12,0) } => notify',
      'anyone is allowed to read the current event detected on your security camera if the current time is after 12:00 PM'],
@@ -141,16 +141,16 @@ var TEST_CASES = [
      'anyone is allowed to read the current event detected on your security camera if the current time is after 12:00 AM'],
 
     ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= makeTime(7,30) } => notify',
-     'anyone is allowed to read the current event detected on your security camera if the current time is after 07:30 AM'],
+     'anyone is allowed to read the current event detected on your security camera if the current time is after 7:30 AM'],
 
     ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= makeTime(7,30,15) } => notify',
-     'anyone is allowed to read the current event detected on your security camera if the current time is after 07:30:15 AM'],
+     'anyone is allowed to read the current event detected on your security camera if the current time is after 7:30:15 AM'],
 
     ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= makeTime(19,30,15) } => notify',
-     'anyone is allowed to read the current event detected on your security camera if the current time is after 07:30:15 PM'],
+     'anyone is allowed to read the current event detected on your security camera if the current time is after 7:30:15 PM'],
 
     ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= makeTime(17,00) && time <= makeTime(19,00) } => notify',
-     'anyone is allowed to read the current event detected on your security camera if the current time is after 05:00 PM and the current time is before 07:00 PM'],
+     'anyone is allowed to read the current event detected on your security camera if the current time is after 5:00 PM and the current time is before 7:00 PM'],
 
     ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_gps() { location == $context.location.home } => notify',
      'anyone is allowed to read the current event detected on your security camera if the my location is equal to at home'],
