@@ -181,7 +181,7 @@ monitor @com.twitter.home_timeline() => notify;
 
 // TimeTest
 {
-    attimer(time=makeTime(12, 30), null) => notify;
+    attimer(time=makeTime(12, 30), expiration_date=null) => notify;
 }
 
 ====
@@ -1068,7 +1068,7 @@ let procedure p1 := {
   now => @uk.co.thedogapi.get() => notify;
 };
 let program p2 := {
-  attimer(time=makeTime(7, 0), null) => @com.thecatapi.get() => notify;
+  attimer(time=makeTime(7, 0), expiration_date=null) => @com.thecatapi.get() => notify;
 };
 let procedure p3 := \(p_query : String) -> {
   now => @com.bing.web_search(query=p_query) => notify;
@@ -1087,12 +1087,12 @@ oninput => {
 ====
 
 // attimer with List
-attimer(time=[makeTime(9,0), makeTime(15,0)], null) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");
+attimer(time=[makeTime(9,0), makeTime(15,0)], expiration_date=null) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");
 
 ====
 
 // list syntax with single attimer
-attimer(time=[makeTime(9,0)], null) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");
+attimer(time=[makeTime(9,0)], expiration_date=null) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");
 
 ====
 
@@ -1100,7 +1100,7 @@ attimer(time=[makeTime(9,0)], null) => @org.thingpedia.builtin.thingengine.built
 // procedure with a monitor
 
 let procedure p1 := {
-  attimer(time=makeTime(7,0), null) => @com.thecatapi.get() => notify;
+  attimer(time=makeTime(7,0), expiration_date=null) => @com.thecatapi.get() => notify;
 };
 
 now => p1();
