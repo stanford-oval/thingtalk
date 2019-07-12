@@ -269,6 +269,9 @@ var TEST_CASES = [
 
     [`bookkeeping(choice(0));`,
     'choice number 1', ''],
+
+    [`now => @org.wikidata.person(), contains(P1449, 'boogie') => notify;`,
+    'get wikidata human if the nickname contain “boogie” and then notify you', 'Wikidata ⇒ Notification']
 ];
 
 const gettext = {

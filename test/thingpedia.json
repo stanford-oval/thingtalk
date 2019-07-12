@@ -10840,7 +10840,7 @@
                         "given name",
                         "family name",
                         "birth name",
-                        "nickname",
+                        { "default": "npp", "npp": ["nickname"], "pvp": ["nicknamed", "called"] },
                         "sex or gender",
                         "country of citizenship",
                         "date of birth",

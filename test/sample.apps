@@ -1338,3 +1338,94 @@ now => @org.thingpedia.weather.current(location=makeLocation("stanford californi
 // projection on table with single output param
 
 now => [date] of @org.thingpedia.builtin.thingengine.builtin.get_date() => notify;
+
+
+====
+
+// categories for canonical:
+// npp: noun phrase for property
+// npi: noun phrase for identity
+// pvp: passive verb phrase
+// acp: active verb phrase
+// apv: adjective phrase value
+// npv: noun phrase value
+class @foo {
+    query bar(
+        out nickname: String #_[canonical={ default='npp', npp=['nickname'], pvp=['nicknamed', 'called']}],
+        out owner_of: String #_[canonical={ default='npi', npi=['owner of'], avp=['own']}],
+        out gender: Enum(male,female) #_[canonical={ default='apv', apv=true, npv=true, npp=['gender', 'sex'] }]
+    )
+    #_[canonical='foo']
+    #_[confirmation='bar'];
+}
+
+====
+// ** typecheck: expect TypeError **
+// missing default field
+
+class @foo {
+    query bar(
+        out nickname: String #_[canonical={ npp=['nickname'], pvp=['nicknamed', 'called']}],
+        out owner_of: String #_[canonical={ default='npi', npi=['owner of'], avp=['own']}],
+        out gender: Enum(male,female) #_[canonical={ default='apv', apv=true, npv=true, npp=['gender', 'sex'] }]
+    )
+    #_[canonical='foo']
+    #_[confirmation='bar'];
+}
+
+====
+// ** typecheck: expect TypeError **
+// missing default canonical
+
+class @foo {
+    query bar(
+        out nickname: String #_[canonical={ default='npp', pvp=['nicknamed', 'called']}],
+        out owner_of: String #_[canonical={ default='npi', npi=['owner of'], avp=['own']}],
+        out gender: Enum(male,female) #_[canonical={ default='apv', apv=true, npv=true, npp=['gender', 'sex'] }]
+    )
+    #_[canonical='foo']
+    #_[confirmation='bar'];
+}
+
+====
+// ** typecheck: expect TypeError **
+// wrong type in canonical
+
+class @foo {
+    query bar(
+        out nickname: String #_[canonical={ default='npp', npp='nickname', pvp=['nicknamed', 'called']}],
+        out owner_of: String #_[canonical={ default='npi', npi=['owner of'], avp=['own']}],
+        out gender: Enum(male,female) #_[canonical={ default='apv', apv=true, npv=true, npp=['gender', 'sex'] }]
+    )
+    #_[canonical='foo']
+    #_[confirmation='bar'];
+}
+
+====
+// ** typecheck: expect TypeError **
+// wrong type in canonical
+
+class @foo {
+    query bar(
+        out nickname: String #_[canonical={ default='npp', npp=['nickname'], pvp=['nicknamed', 123]}],
+        out owner_of: String #_[canonical={ default='npi', npi=['owner of'], avp=['own']}],
+        out gender: Enum(male,female) #_[canonical={ default='apv', apv=true, npv=true, npp=['gender', 'sex'] }]
+    )
+    #_[canonical='foo']
+    #_[confirmation='bar'];
+}
+
+
+====
+// ** typecheck: expect TypeError **
+// wrong type in canonical
+
+class @foo {
+    query bar(
+        out nickname: String #_[canonical={ default='npp', npp=['nickname'], pvp=['nicknamed', 'called']}],
+        out owner_of: String #_[canonical={ default='npi', npi=['owner of'], avp=['own']}],
+        out gender: Enum(male,female) #_[canonical={ default='apv', apv=['male', 'female'], npv=true, npp=['gender', 'sex'] }]
+    )
+    #_[canonical='foo']
+    #_[confirmation='bar'];
+}
