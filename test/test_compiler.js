@@ -499,7 +499,7 @@ const TEST_CASES = [
     _t_1 = new Array(1);
     _t_2 = new __builtin.Time(12, 30, 0);
     _t_1[0] = _t_2;
-    _t_0 = await __env.invokeAtTimer(_t_1, _t_null);
+    _t_0 = await __env.invokeAtTimer(_t_1, null);
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
@@ -528,7 +528,7 @@ const TEST_CASES = [
     _t_1 = new Array(1);
     _t_2 = new __builtin.Time(12, 30, 0);
     _t_1[0] = _t_2;
-    _t_0 = await __env.invokeAtTimer(_t_1, _t_null);
+    _t_0 = await __env.invokeAtTimer(_t_1, null);
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
@@ -2042,7 +2042,7 @@ const TEST_CASES = [
     _t_1 = new Array(1);
     _t_2 = new __builtin.Time(20, 10, 0);
     _t_1[0] = _t_2;
-    _t_0 = await __env.invokeAtTimer(_t_1, _t_null);
+    _t_0 = await __env.invokeAtTimer(_t_1, null);
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
@@ -3408,7 +3408,7 @@ const TEST_CASES = [
     _t_1 = new Array(1);
     _t_2 = new __builtin.Time(7, 30, 0);
     _t_1[0] = _t_2;
-    _t_0 = await __env.invokeAtTimer(_t_1, _t_null);
+    _t_0 = await __env.invokeAtTimer(_t_1, null);
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
@@ -4864,7 +4864,7 @@ const TEST_CASES = [
     _t_1[0] = _t_2;
     _t_3 = new __builtin.Time(15, 0, 0);
     _t_1[1] = _t_3;
-    _t_0 = await __env.invokeAtTimer(_t_1, _t_null);
+    _t_0 = await __env.invokeAtTimer(_t_1, null);
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {

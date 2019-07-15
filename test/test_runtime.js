@@ -2292,6 +2292,57 @@ some alt text` }
 
      ],
 
+
+     [`let result cat := @com.thecatapi.get();
+      let action a(p_picture_url : Entity(tt:picture)) := @com.twitter.post_picture(caption="cat", picture_url=p_picture_url);
+
+      now => cat => notify;
+      attimer(time=[makeTime(9, 0), makeTime(15, 0)]) => cat => a(p_picture_url=picture_url);
+      `,
+     {},
+     {
+        'com.thecatapi:get': [(() => {
+            let _callcount = 0;
+            return (params) => {
+                assert.strictEqual(_callcount, 0);
+                _callcount++;
+
+                return {
+                    link: new builtin.Entity('https://foo.com', null),
+                    image_id: '12345',
+                    picture_url: 'https://foo.com/cat.png'
+                };
+            };
+        })()]
+     },
+     [
+     {
+       type: 'output',
+       outputType: 'com.thecatapi:get',
+       value: {
+            link: new builtin.Entity('https://foo.com', null),
+            image_id: '12345',
+            picture_url: 'https://foo.com/cat.png'
+        }
+     },
+     {
+       type: 'action',
+       fn: 'com.twitter:post_picture',
+       params: { caption: 'cat', picture_url: 'https://foo.com/cat.png' }
+     },
+     {
+       type: 'action',
+       fn: 'com.twitter:post_picture',
+       params: { caption: 'cat', picture_url: 'https://foo.com/cat.png' }
+     },
+     {
+       type: 'action',
+       fn: 'com.twitter:post_picture',
+       params: { caption: 'cat', picture_url: 'https://foo.com/cat.png' }
+     }],
+
+     ],
+
     [`let procedure p1(p_foo : String) := {
         let procedure p2(p_bar : String) := {
             now => @tumblr-blog.post_text(title = p_foo, body = p_bar);
