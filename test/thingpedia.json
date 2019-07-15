@@ -1865,7 +1865,7 @@
                     "confirmation": "cat pictures",
                     "confirmation_remote": "cat pictures",
                     "doc": "get `count` many cat pictures",
-                    "canonical": "get cat on thecatapi",
+                    "canonical": "cat picture",
                     "argcanonicals": [
                         "image id",
                         "count",
