@@ -123,8 +123,13 @@ class MockExecEnvironment extends ExecEnvironment {
             {__timestamp: base+interval},
             {__timestamp: base+2*interval}][Symbol.iterator]();
     }
-    invokeAtTimer(timeArray) {
-        throw new Error('Must be overridden');
+    /* Expiration dates ignored because no way to easily test for expiration dates */
+    invokeAtTimer(time, expiration_date) {
+        let times = []
+        for (let i = 0; i < time.length; i++) {
+          times.push({__timestamp: time[i]})
+        }
+        return times[Symbol.iterator]();
     }
 
     invokeQuery(kind, attrs, fname, params) {
@@ -2376,11 +2381,6 @@ some alt text` }
             image_id: '12345',
             picture_url: 'https://foo.com/cat.png'
         }
-     },
-     {
-       type: 'action',
-       fn: 'com.twitter:post_picture',
-       params: { caption: 'cat', picture_url: 'https://foo.com/cat.png' }
      },
      {
        type: 'action',
