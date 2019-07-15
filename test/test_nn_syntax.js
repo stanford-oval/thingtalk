@@ -374,7 +374,24 @@ const TEST_CASES = [
 
     ['now => [ param:title:String , param:description:String ] of ( @com.bing.web_search ) => notify',
     'get title and description from bing', {},
-    'now => [title, description] of (@com.bing.web_search()) => notify;']
+
+    'now => [title, description] of (@com.bing.web_search()) => notify;'],
+
+    [`now => result ( @com.thecatapi.get ) => notify`,
+    `show me the same cat again`, {},
+    `now => result(@com.thecatapi.get) => notify;`],
+
+    [`now => result ( @com.thecatapi.get [ - NUMBER_0 ] ) => notify`,
+    `show me the NUMBER_0 to last cat again`, { NUMBER_0: 2 },
+    `now => result(@com.thecatapi.get[-2]) => notify;`],
+
+    [`now => result ( @com.thecatapi.get [ 1 ] ) => notify`,
+    `show me the first cat again`, {},
+    `now => result(@com.thecatapi.get[1]) => notify;`],
+
+    [`now => result ( @com.thecatapi.get [ NUMBER_0 ] ) => notify`,
+    `show me the NUMBER_0 cat again`, { NUMBER_0: 2 },
+    `now => result(@com.thecatapi.get[2]) => notify;`]
 ];
 
 async function testCase(test, i) {

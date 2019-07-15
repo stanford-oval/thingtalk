@@ -152,6 +152,13 @@ table = {
         return new Ast.Table.Filter(table, filter, table.schema);
     };
 
+    'result' '(' fn:FUNCTION ')' => {
+        return new Ast.Table.ResultRef(fn.value.kind, fn.value.channel, new Ast.Value.Number(-1), null);
+    };
+    'result' '(' fn:FUNCTION '[' index:constant ']' ')' => {
+        return new Ast.Table.ResultRef(fn.value.kind, fn.value.channel, index, null);
+    };
+
     'aggregate' op:aggr_op field:out_param 'of' '(' table ')' => new Ast.Table.Aggregation(table, field.name, op, null, null);
     'aggregate' 'count' 'of' '(' table ')'                    => new Ast.Table.Aggregation(table, '*', 'count', null, null);
 
@@ -378,18 +385,27 @@ word_list = {
     list:word_list word:WORD => list + ' ' + word.value;
 }
 
-// play fast and loose with units here, because I don't want to write
-// everything by hand
-// almond-nnparser autogenerates this part
-constant_Measure = {
-    num:constant_Number unit:UNIT => new Ast.Value.Measure(num.value, unit.value);
+literal_number = {
+    num:NUMBER => num.value;
+    num:LITERAL_INTEGER => num;
+    '1' => 1;
+    '0' => 0;
+}
+
+constant_one_measure = {
+    num:literal_number unit:UNIT => new Ast.Value.Measure(num, unit.value);
     tok:MEASURE => new Ast.Value.Measure(tok.value.value, tok.value.unit);
-    v1:constant_Measure num:constant_Number unit:UNIT => {
+}
+
+constant_Measure = {
+    constant_one_measure;
+
+    v1:constant_Measure v2:constant_one_measure => {
       if (v1.isCompoundMeasure) {
-          v1.value.push(new Ast.Value.Measure(num.value, unit.value));
+          v1.value.push(v2);
           return v1;
       } else {
-          return new Ast.Value.CompoundMeasure([v1, new Ast.Value.Measure(num.value, unit.value)]);
+          return new Ast.Value.CompoundMeasure([v1, v2]);
       }
     };
 }
@@ -403,9 +419,8 @@ constant_Measure_ms = {
 }
 
 constant_Number = {
-    num:NUMBER => new Ast.Value.Number(num.value);
-    '1' => new Ast.Value.Number(1);
-    '0' => new Ast.Value.Number(0);
+    num:literal_number => new Ast.Value.Number(num);
+    '-' num:literal_number => new Ast.Value.Number(-num);
 }
 
 constant_Currency = tok:CURRENCY => new Ast.Value.Currency(tok.value.value, tok.value.unit);

@@ -276,6 +276,18 @@ var TEST_CASES = [
 
     [`bookkeeping(choice(0));`,
     'choice number 1', ''],
+
+    [`now => result(@com.thecatapi.get) => notify;`,
+    'get the last cat picture and then notify you', 'Thecatapi ⇒ Notification'],
+
+    [`now => result(@com.thecatapi.get[1]) => notify;`,
+    'get the first cat picture and then notify you', 'Thecatapi ⇒ Notification'],
+
+    [`now => result(@com.thecatapi.get[2]) => notify;`,
+    'get the 2-th cat picture and then notify you', 'Thecatapi ⇒ Notification'],
+
+    [`now => result(@com.thecatapi.get[-2]) => notify;`,
+    'get the 2-th last cat picture and then notify you', 'Thecatapi ⇒ Notification'],
 ];
 
 const gettext = {
