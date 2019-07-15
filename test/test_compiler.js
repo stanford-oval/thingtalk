@@ -4883,7 +4883,6 @@ const TEST_CASES = [
   } catch(_exc_) {
     __env.reportError("Failed to invoke at-timer", _exc_);
   }`]],
-];
 
     [`now => result(@com.thecatapi.get) => notify;`,
     [`"use strict";
@@ -4999,7 +4998,7 @@ const TEST_CASES = [
     }
   } catch(_exc_) {
     __env.reportError("Failed to invoke readResult", _exc_);
-  }`]],
+  }`]]
 ];
 
 // eslint-disable-next-line prefer-arrow-callback
