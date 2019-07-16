@@ -297,7 +297,7 @@ now => aggregate count str1 of Q1 => @com.twitter.post(status=count);
 
 // WithSave
 {
-let table steps    := @edu.stanford.rakeshr1.fitbit.getsteps();
+let table steps    := @com.fitbit.getsteps();
 let table my_table := aggregate max steps of Q1;
 now => my_table => notify;
 }
