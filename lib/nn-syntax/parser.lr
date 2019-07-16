@@ -188,7 +188,10 @@ table_join = {
 
 stream = {
     'timer' 'base' '=' base:constant_Date ',' 'interval' '=' interval:constant_Measure_ms => new Ast.Stream.Timer(base, interval, null);
-    'attimer' 'time' '=' time:constant_Time => new Ast.Stream.AtTimer(time, null);
+    'attimer' 'time' '=' time:constant_Time => new Ast.Stream.AtTimer([time], null, null);
+    'attimer' 'time' '=' '[' times:constant_array_values ']' => new Ast.Stream.AtTimer(times, null, null);
+    'attimer' 'time' '=' time:constant_Time ',' 'expiration_date' '=' expiration_date:constant_Date => new Ast.Stream.AtTimer([time], expiration_date, null);
+    'attimer' 'time' '=' '[' times:constant_array_values ']' ',' 'expiration_date' '=' expiration_date:constant_Date => new Ast.Stream.AtTimer(times, expiration_date, null);
 
     'monitor' '(' table ')' => new Ast.Stream.Monitor(table, null, null);
     'monitor' '(' table ')' 'on' 'new' pname:out_param => {

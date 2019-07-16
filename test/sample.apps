@@ -1086,6 +1086,16 @@ oninput => {
 
 ====
 
+// attimer with List
+attimer(time=[makeTime(9,0), makeTime(15,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");
+
+====
+
+// list syntax with single attimer
+attimer(time=[makeTime(9,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");
+
+====
+
 // ** typecheck: expect TypeError **
 // procedure with a monitor
 
@@ -1238,7 +1248,7 @@ now => @com.spotify.play_songs(toPlay=[1, 2]);
 // typechecking arrays
 now => @com.spotify.play_songs(toPlay=["foo", "bar"]);
 
-==== 
+====
 // genie annotations
 class @foo {
     query bar(out title : String, out description: String, out url : URL #[unique=true])
