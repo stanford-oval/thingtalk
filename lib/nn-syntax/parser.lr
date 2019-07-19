@@ -295,20 +295,6 @@ value_filter = {
     'suffix_of' v:string_constant => ['suffix_of', v];
     'contains' v:constant => ['contains', v];
     'in_array' v:constant_Array => ['in_array', v];
-
-    '==' v:out_param => ['==', v];
-    '>=' v:out_param => ['>=', v];
-    '<=' v:out_param => ['<=', v];
-    '>' v:out_param => ['>', v];
-    '<' v:out_param => ['<', v];
-    '=~' v:out_param => ['=~', v];
-    '~=' v:out_param => ['~=', v];
-    'starts_with' v:out_param => ['starts_with', v];
-    'ends_with' v:out_param => ['ends_with', v];
-    'prefix_of' v:out_param => ['prefix_of', v];
-    'suffix_of' v:out_param => ['suffix_of', v];
-    'contains' v:out_param => ['contains', v];
-    'in_array' v:out_param => ['in_array', v];
 }
 
 // this non-terminal exists only for convenience
@@ -336,6 +322,7 @@ constant = {
     constant_Entity__tt__function;
     constant_Entity__tt__picture;
     constant_Enum;
+    out_param;
     slot:SLOT => (slot.value === undefined ? Ast.Value.Undefined(true) : slot.value);
 }
 
@@ -348,12 +335,14 @@ comparable_constant = {
     constant_Currency;
     constant_Date;
     constant_Time;
+    out_param;
     slot:SLOT => (slot.value === undefined ? Ast.Value.Undefined(true) : slot.value);
 }
 
 string_constant = {
     'undefined' => new Ast.Value.Undefined(true);
     constant_String;
+    out_param;
     slot:SLOT => (slot.value === undefined ? Ast.Value.Undefined(true) : slot.value);
 }
 
