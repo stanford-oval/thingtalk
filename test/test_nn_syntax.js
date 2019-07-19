@@ -362,8 +362,19 @@ const TEST_CASES = [
     'get weather for stanford california', {},
     `now => @org.thingpedia.weather.current(location=makeLocation("stanford california")) => notify;`],
 
+    ['attimer time = TIME_0 => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = QUOTED_STRING_0',
+    `say "it's 9am" every day at 9am`,
+    { TIME_0: { hour: 9, minute: 0 }, QUOTED_STRING_0: "it's 9am" },
+    `attimer(time=makeTime(9, 0)) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am");`],
+
+    ['attimer time = [ TIME_0 , TIME_1 ] => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = QUOTED_STRING_0',
+    `say "it's 9am or 3pm" every day at 9am and 3pm`,
+    { TIME_0: { hour: 9, minute: 0 }, TIME_1: { hour: 15, minute: 0 }, QUOTED_STRING_0: "it's 9am or 3pm" },
+    `attimer(time=[makeTime(9, 0), makeTime(15, 0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");`],
+
     ['now => [ param:title:String , param:description:String ] of ( @com.bing.web_search ) => notify',
     'get title and description from bing', {},
+
     'now => [title, description] of (@com.bing.web_search()) => notify;'],
 
     [`now => result ( @com.thecatapi.get ) => notify`,
@@ -380,7 +391,7 @@ const TEST_CASES = [
 
     [`now => result ( @com.thecatapi.get [ NUMBER_0 ] ) => notify`,
     `show me the NUMBER_0 cat again`, { NUMBER_0: 2 },
-    `now => result(@com.thecatapi.get[2]) => notify;`],
+    `now => result(@com.thecatapi.get[2]) => notify;`]
 ];
 
 async function testCase(test, i) {

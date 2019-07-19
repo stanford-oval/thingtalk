@@ -123,8 +123,13 @@ class MockExecEnvironment extends ExecEnvironment {
             {__timestamp: base+interval},
             {__timestamp: base+2*interval}][Symbol.iterator]();
     }
-    invokeAtTimer(time) {
-        throw new Error('Must be overridden');
+    /* Expiration dates ignored because no way to easily test for expiration dates */
+    invokeAtTimer(time, expiration_date) {
+        let times = []
+        for (let i = 0; i < time.length; i++) {
+          times.push({__timestamp: time[i]})
+        }
+        return times[Symbol.iterator]();
     }
 
     invokeQuery(kind, attrs, fname, params) {
@@ -373,7 +378,7 @@ some alt text` }
 
     [`monitor @com.xkcd.get_comic(), number >= 1234 => @com.twitter.post(status=title);`,
     { fn: 'com.xkcd:get_comic',
-      value: [  
+      value: [
         { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
           link: 'https://xkcd.com/1234/',
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
@@ -2330,6 +2335,52 @@ some alt text` }
        type: 'action',
        fn: 'com.twitter:post_picture',
        params: { caption: 'cat', picture_url: 'https://foo.com/cat.png' }
+     },
+     {
+       type: 'action',
+       fn: 'com.twitter:post_picture',
+       params: { caption: 'cat', picture_url: 'https://foo.com/cat.png' }
+     },
+     {
+       type: 'action',
+       fn: 'com.twitter:post_picture',
+       params: { caption: 'cat', picture_url: 'https://foo.com/cat.png' }
+     }],
+
+     ],
+
+
+     [`let result cat := @com.thecatapi.get();
+      let action a(p_picture_url : Entity(tt:picture)) := @com.twitter.post_picture(caption="cat", picture_url=p_picture_url);
+
+      now => cat => notify;
+      attimer(time=[makeTime(9, 0), makeTime(15, 0)]) => cat => a(p_picture_url=picture_url);
+      `,
+     {},
+     {
+        'com.thecatapi:get': [(() => {
+            let _callcount = 0;
+            return (params) => {
+                assert.strictEqual(_callcount, 0);
+                _callcount++;
+
+                return {
+                    link: new builtin.Entity('https://foo.com', null),
+                    image_id: '12345',
+                    picture_url: 'https://foo.com/cat.png'
+                };
+            };
+        })()]
+     },
+     [
+     {
+       type: 'output',
+       outputType: 'com.thecatapi:get',
+       value: {
+            link: new builtin.Entity('https://foo.com', null),
+            image_id: '12345',
+            picture_url: 'https://foo.com/cat.png'
+        }
      },
      {
        type: 'action',
