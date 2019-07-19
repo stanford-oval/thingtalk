@@ -8471,18 +8471,30 @@
             "triggers": {},
             "queries": {
                 "get_currently_playing": {
-                    "schema": [],
-                    "args": [],
-                    "required": [],
-                    "is_input": [],
+                    "schema": [
+                        "String"
+                    ],
+                    "args": [
+                        "song"
+                    ],
+                    "required": [
+                        false
+                    ],
+                    "is_input": [
+                        false
+                    ],
                     "is_list": false,
                     "is_monitorable": true,
                     "confirmation": "the currently playing track name",
                     "confirmation_remote": "$_person's currently playing track name",
                     "doc": "retrieve the currently playing track name",
                     "canonical": "get currently playing track name",
-                    "argcanonicals": [],
-                    "questions": []
+                    "argcanonicals": [
+                        "song"
+                    ],
+                    "questions": [
+                        ""
+                    ]
                 },
                 "get_user_id": {
                     "schema": [],
@@ -8776,6 +8788,36 @@
                     ],
                     "questions": [
                         "Should we set the shuffle state to 'true' or 'false'?"
+                    ]
+                },
+                "add_songs_to_playlist": {
+                    "schema": [
+                        "Array(String)",
+                        "String"
+                    ],
+                    "args": [
+                        "songs",
+                        "playlist"
+                    ],
+                    "required": [
+                        true,
+                        true
+                    ],
+                    "is_input": [
+                        true,
+                        true
+                    ],
+                    "is_list": false,
+                    "is_monitorable": false,
+                    "confirmation": "add ${songs} to the playlist ${playlist}",
+                    "canonical": "add to playlist",
+                    "argcanonicals": [
+                        "songs",
+                        "playlist"
+                    ],
+                    "questions": [
+                        "What songs do you want to add?",
+                        "What playlist do you want to add to?"
                     ]
                 }
             }

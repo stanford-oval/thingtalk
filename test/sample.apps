@@ -1379,3 +1379,18 @@ now => result(@com.thecatapi.get['foo']) => notify;
 // not a query
 
 now => result(@com.twitter.post) => notify;
+
+====
+
+now => @com.twitter.post(status=__const_QUOTED__STRING_0);
+// note the escaping: tt:iso_lang_code becomes tt_3aiso__lang__code
+// because ':' is escaped to '_3a' and '_' is escaped to __
+now => @com.yandex.translate.translate(target_language=__const_GENERIC__ENTITY__tt_3aiso__lang__code_0) => notify;
+now => @thermostat.get_temperature(), value >= __const_NUMBER_0__C => notify;
+now => @thermostat.get_temperature(), value >= __const_MEASURE__C_0 => notify;
+
+====
+
+// ** typecheck: expect TypeError **
+// wrong type
+now => @com.twitter.post(status=__const_NUMBER_0);

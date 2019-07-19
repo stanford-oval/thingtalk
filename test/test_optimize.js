@@ -29,15 +29,15 @@ const TEST_CASES = [
     ],
     [
         `monitor ([text] of (@com.twitter.home_timeline())) => @com.twitter.post(status=text);`,
-        `monitor (@com.twitter.home_timeline()) => @com.twitter.post(status=text);`
+        `monitor (@com.twitter.home_timeline()) on new [text] => @com.twitter.post(status=text);`
     ],
     [
         `monitor (([text] of @com.twitter.home_timeline()), text =~ "lol") => notify;`,
-        `monitor ([text] of ((@com.twitter.home_timeline()), text =~ "lol")) => notify;`
+        `[text] of (monitor ((@com.twitter.home_timeline()), text =~ "lol") on new [text]) => notify;`
     ],
     [
         `monitor (([text] of @com.twitter.home_timeline()), text =~ "lol") => @com.twitter.post(status=text);`,
-        `monitor ((@com.twitter.home_timeline()), text =~ "lol") => @com.twitter.post(status=text);`
+        `monitor ((@com.twitter.home_timeline()), text =~ "lol") on new [text] => @com.twitter.post(status=text);`
     ],
     [
         `now => [count] of aggregate count of (@com.twitter.home_timeline()) => notify;`,
@@ -47,8 +47,32 @@ const TEST_CASES = [
     [
         `now => result(@com.thecatapi.get[-1]) => notify;`,
         `now => result(@com.thecatapi.get) => notify;`
-    ]
+    ],
 
+    [
+        `now => [text] of [text, author] of @com.twitter.home_timeline() => notify;`,
+        `now => [text] of (@com.twitter.home_timeline()) => notify;`,
+    ],
+
+    [
+        `now => [text] of (([text, author] of @com.twitter.home_timeline()), text =~ "lol") => notify;`,
+        `now => [text] of ((@com.twitter.home_timeline()), text =~ "lol") => notify;`
+    ],
+
+    [
+        `monitor ([text, author] of @com.twitter.home_timeline()) => notify;`,
+        `[text, author] of (monitor (@com.twitter.home_timeline()) on new [text, author]) => notify;`
+    ],
+
+    [
+        `monitor ([text, author] of @com.twitter.home_timeline()) on new [text] => notify;`,
+        `[text, author] of (monitor (@com.twitter.home_timeline()) on new [text]) => notify;`
+    ],
+
+    [
+        `monitor ([text, author] of @com.twitter.home_timeline()) => @com.twitter.post(status=text);`,
+        `monitor (@com.twitter.home_timeline()) on new [text, author] => @com.twitter.post(status=text);`
+    ],
 ];
 
 
