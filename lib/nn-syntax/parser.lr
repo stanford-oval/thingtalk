@@ -169,10 +169,10 @@ table = {
 
     '[' pnames:out_param_list ']' 'of' '(' table ')'          => new Ast.Table.Projection(table, pnames.map((p) => p.name), null);
 
-    'window' base:constant_Number ',' delta:constant_Number 'of' '(' stream ')'        => new Ast.Table.Window(base, delta, stream, null);
-    'timeseries' base:constant_Date ',' delta:constant_Measure_ms 'of' '(' stream ')' => new Ast.Table.TimeSeries(base, delta, stream, null);
-    'sequence' base:constant_Number ',' delta:constant_Number 'of' '(' table ')'       => new Ast.Table.Sequence(base, delta, table, null);
-    'history' base:constant_Date ',' delta:constant_Measure_ms 'of' '(' table ')'     => new Ast.Table.History(base, delta, table, null);
+    'window' base:constant ',' delta:constant 'of' '(' stream ')'        => new Ast.Table.Window(base, delta, stream, null);
+    'timeseries' base:constant ',' delta:constant 'of' '(' stream ')' => new Ast.Table.TimeSeries(base, delta, stream, null);
+    'sequence' base:constant ',' delta:constant 'of' '(' table ')'       => new Ast.Table.Sequence(base, delta, table, null);
+    'history' base:constant ',' delta:constant 'of' '(' table ')'     => new Ast.Table.History(base, delta, table, null);
 
     table_join;
 }
@@ -187,8 +187,8 @@ table_join = {
 }
 
 stream = {
-    'timer' 'base' '=' base:constant_Date ',' 'interval' '=' interval:constant_Measure_ms => new Ast.Stream.Timer(base, interval, null);
-    'attimer' 'time' '=' time:constant_Time => new Ast.Stream.AtTimer(time, null);
+    'timer' 'base' '=' base:constant ',' 'interval' '=' interval:constant => new Ast.Stream.Timer(base, interval, null);
+    'attimer' 'time' '=' time:constant => new Ast.Stream.AtTimer(time, null);
 
     'monitor' '(' table ')' => new Ast.Stream.Monitor(table, null, null);
     'monitor' '(' table ')' 'on' 'new' pname:out_param => {
