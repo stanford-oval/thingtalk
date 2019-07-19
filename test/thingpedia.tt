@@ -435,7 +435,8 @@ class @com.xkcd
                               out link: Entity(tt:url) #_[canonical="link"],
                               out alt_text: String #_[canonical="alt text"])
   #_[canonical="xkcd comic"]
-  #_[confirmation="an Xkcd comic"];
+  #_[confirmation="an Xkcd comic"]
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${title}"}, {type="picture",url="${picture_url}"}, {type="text",text="${alt_text}"}]];
 
   query random_comic(out number: Number #_[canonical="number"],
                      out title: String #_[canonical="title"],
@@ -443,13 +444,15 @@ class @com.xkcd
                      out link: Entity(tt:url) #_[canonical="link"],
                      out alt_text: String #_[canonical="alt text"])
   #_[canonical="random xkcd comic"]
-  #_[confirmation="a random Xkcd comic"];
+  #_[confirmation="a random Xkcd comic"]
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${title}"}, {type="picture",url="${picture_url}"}, {type="text",text="${alt_text}"}]];
 
   monitorable list query what_if(out title: String #_[canonical="title"],
                                  out link: Entity(tt:url) #_[canonical="link"],
                                  out updated_time: Date #_[canonical="updated time"])
   #_[canonical="xkcd what if blog posts"]
-  #_[confirmation="Xkcd's What If blog posts"];
+  #_[confirmation="Xkcd's What If blog posts"]
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${title}"}]];
 }
 class @com.uber
 #_[canonical="uber"] {
@@ -490,12 +493,12 @@ class @com.uber
 }
 class @com.yandex.translate
 #_[canonical="yandex translate"] {
-  monitorable query detect_language(in req text: String #_[prompt="What text do you want to analyze?"] #_[canonical="text"],
+  query detect_language(in req text: String #_[prompt="What text do you want to analyze?"] #_[canonical="text"],
                         out value: Entity(tt:iso_lang_code) #_[canonical="value"])
   #_[canonical="detect language on ytranslate"]
   #_[confirmation="the language of $text "];
 
-  monitorable query translate(in opt source_language: Entity(tt:iso_lang_code) #_[prompt="What's the source language? Use an ISO language code like it, en or zh."] #_[canonical="source language"],
+  query translate(in opt source_language: Entity(tt:iso_lang_code) #_[prompt="What's the source language? Use an ISO language code like it, en or zh."] #_[canonical="source language"],
                   in req target_language: Entity(tt:iso_lang_code) #_[prompt="What's the target language? Use an ISO language code like it, en or zh."] #_[canonical="target language"],
                   in req text: String #_[prompt="What do you want to translate?"] #_[canonical="text"],
                   out translated_text: String #_[canonical="translated text"])
@@ -584,20 +587,23 @@ class @org.thingpedia.weather
                             out status: Enum(raining,cloudy,sunny,snowy,sleety,drizzling,windy) #_[canonical="status"],
                             out icon: Entity(tt:picture) #_[canonical="icon"])
   #_[canonical="get current weather on weatherapi"]
-  #_[confirmation="the current weather for $location"];
+  #_[confirmation="the current weather for $location"]
+  #_[formatted=[{type="text",text="Current weather for ${location}: ${status}, temperature ${temperature:C} C, wind speed ${wind_speed:mps} m/s, humidity ${humidity}%, cloudiness ${cloudiness}%, fog ${fog}%."}]];
 
   monitorable query moon(in req location: Location #_[prompt="What location do you want moon time info for?"] #_[canonical="location"],
                          in opt date: Date #_[prompt="What day are you interested in?"] #_[canonical="date"],
                          out phase: Enum(new_moon,waxing_crescent,first_quarter,waxing_gibbous,full_moon,waning_gibbous,third_quarter,waning_crescent) #_[canonical="phase"])
   #_[canonical="get moon phase on weatherapi"]
-  #_[confirmation="the moon phase for $location"];
+  #_[confirmation="the moon phase for $location"]
+  #_[formatted=[{type="text",text="Moon phase on ${date:date} for ${location}: ${phase}."}]];
 
   monitorable query sunrise(in req location: Location #_[prompt="What location do you want sun time info for?"] #_[canonical="location"],
                             in opt date: Date #_[prompt="What day are you interested in?"] #_[canonical="date"],
                             out sunrise_time: Time #_[canonical="sunrise time"],
                             out sunset_time: Time #_[canonical="sunset time"])
   #_[canonical="get sunrise on weatherapi"]
-  #_[confirmation="the sunrise and sunset time for location $location"];
+  #_[confirmation="the sunrise and sunset time for location $location"]
+  #_[formatted=[{type="text",text="Sun times on ${date:date} for ${location}: rises at ${sunrise_time}, sets at ${sunset_time}"}]];
 }
 class @com.instagram
 #_[canonical="instagram"] {
@@ -1173,7 +1179,8 @@ class @com.nest.security_camera
                                   out has_person: Boolean #_[prompt="Do you want events with people in front of the camera?"] #_[canonical="has person"],
                                   out picture_url: Entity(tt:picture) #_[canonical="picture url"])
   #_[canonical="current event on nest security camera"]
-  #_[confirmation="the current event detected on your Nest security camera"];
+  #_[confirmation="the current event detected on your Nest security camera"]
+  #_[formatted=[{type="code",code="function(argMap, hint, formatter) {\n    var timeString = formatter.dateAndTimeToString(argMap.start_time);\n\n    var title;\n    if (argMap.has_person)\n        title = `Person detected on your camera at ${timeString}`;\n    else if (argMap.has_sound && argMap.has_motion)\n        title = `Sound and motion detected on your camera at ${timeString}`;\n    else if (argMap.has_sound)\n        title = `Sound detected on your camera at ${timeString}`;\n    else if (argMap.has_motion)\n        title = `Motion detected on your camera at ${timeString}`;\n    else\n        title = `Something detected on your camera at ${timeString}`;\n    return title;\n}"}, {type="picture",url="${picture_url}"}]];
 
   action set_power(in req power: Enum(on,off) #_[prompt="Do you want to turn your camera on or off?"] #_[canonical="power"])
   #_[canonical="set power on nest security camera"]
@@ -1433,6 +1440,27 @@ class @org.wikidata
   #_[confirmation="wikidata human"]
   #[default_projection=['person']];
 }
+class @com.wikicfp
+#_[name="WikiCFP"]
+#_[description="Keep updated with paper submission deadlines"]
+#[version=15]
+#[package_version=15] {
+  import loader from @org.thingpedia.v2();
+  import config from @org.thingpedia.config.none();
+
+  monitorable list query search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
+                                out abbr: String #_[canonical="abbreviation"],
+                                out name: String #_[canonical="name"],
+                                out start: Date #_[canonical="start date"],
+                                out end: Date #_[canonical="end date"],
+                                out city: String #_[canonical="city"],
+                                out deadline: Date #_[canonical="deadline"],
+                                out link: Entity(tt:url) #_[canonical="link"])
+  #_[canonical="get events from wikicfp"]
+  #_[confirmation="information of $query on wikicfp"]
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${name} (${abbr})",displayText="Where: ${city},\nWhen: ${start:date} - ${end:date},\nDeadline: ${deadline:date}."}]]
+  #_[confirmation_remote="information of $query on wikicfp"];
+}
 class @com.spotify
 #_[canonical="spotify"] {
   monitorable query get_acousticness(in opt song: String #_[canonical="song"] #[string_values="tt:song_name"],
@@ -1596,80 +1624,81 @@ class @com.spotify
 }
 class @org.wikidatasportsskill
 #_[canonical="wikidata sports"] {
-  list query athletes(out P18: Array(Entity(tt:picture)) #_[canonical="image"],
-                      out P19: String #_[canonical="place of birth"] #[string_values="org.wikidata:place_of_birth"],
-                      out P20: String #_[canonical="place of death"] #[string_values="org.wikidata:place_of_death"],
-                      out P21: Enum(male,female,transgender_female,intersex,transgender_male) #_[canonical="sex or gender"],
-                      out P27: Array(Entity(org.wikidatasportsskill:country)) #_[canonical="country of citizenship"],
-                      out P69: Array(Entity(org.wikidatasportsskill:educated_at)) #_[canonical="educated at"],
-                      out P119: String #_[canonical="place of burial"] #[string_values="org.wikidata:place_of_burial"],
-                      out P166: Array(Entity(org.wikidatasportsskill:award_received)) #_[canonical="award received"],
-                      out P213: Entity(org.wikidatasportsskill:isni) #_[canonical="isni"],
-                      out P214: Entity(org.wikidatasportsskill:viaf_id) #_[canonical="viaf id"],
-                      out P227: Entity(org.wikidatasportsskill:gnd_id) #_[canonical="gnd id"],
-                      out P244: Entity(org.wikidatasportsskill:library_of_congress_authority_id) #_[canonical="library of congress authority id"],
-                      out P349: Entity(org.wikidatasportsskill:ndl_auth_id) #_[canonical="ndl auth id"],
-                      out P509: String #_[canonical="cause of death"] #[string_values="org.wikidata:cause_of_death"],
-                      out P569: Date #_[canonical="date of birth"],
-                      out P570: Date #_[canonical="date of death"],
-                      out P641: Array(Entity(org.wikidatasportsskill:sports)) #_[canonical="sport"],
-                      out P646: Entity(org.wikidatasportsskill:freebase_id) #_[canonical="freebase id"],
-                      out P734: String #_[canonical="family name"] #[string_values="org.wikidata:family_name"],
-                      out P735: String #_[canonical="given name"] #[string_values="org.wikidata:given_name"],
-                      out P1006: Entity(org.wikidatasportsskill:national_thesaurus_for_author_names_id) #_[canonical="national thesaurus for author names id"],
-                      out P1263: Entity(org.wikidatasportsskill:nndb_people_id) #_[canonical="nndb people id"],
-                      out P1532: Array(Entity(org.wikidatasportsskill:country)) #_[canonical="country for sport"],
-                      out P1741: Entity(org.wikidatasportsskill:gtaa_id) #_[canonical="gtaa id"],
-                      out P2048: Measure(m) #_[canonical="height"],
-                      out P2067: Measure(kg) #_[canonical="mass"],
-                      out P2094: Entity(org.wikidatasportsskill:competition_class) #_[canonical="competition class"],
-                      out P26: Entity(org.wikidata:human) #_[canonical="spouse"],
-                      out P40: Entity(org.wikidata:human) #_[canonical="child"],
-                      out P2949: Entity(org.wikidatasportsskill:wikitree_person_id) #_[canonical="wikitree person id"],
-                      out P3417: String #_[canonical="quora topic id"] #[string_values="org.wikidata:Quora_topic_ID"],
-                      out P691: Entity(org.wikidatasportsskill:nkcr_aut_id) #_[canonical="nkcr aut id"],
-                      out P1315: Entity(org.wikidatasportsskill:nla_persistent_identifier) #_[canonical="nla persistent identifier"],
-                      out P1411: Array(Entity(org.wikidatasportsskill:award_received)) #_[canonical="nominated for"],
-                      out P1412: Array(String) #_[canonical="languages spoken, written or signed"] #[string_values="org.wikidata:native_language"],
-                      out P1477: String #_[canonical="birth name"] #[string_values="org.wikidata:birth_name"],
-                      out P1146: Entity(org.wikidatasportsskill:iaaf_athlete_id) #_[canonical="iaaf athlete id"],
-                      out P1449: Array(String) #_[canonical="nickname"] #[string_values="org.wikidata:nickname"],
-                      out P2416: Array(Entity(org.wikidatasportsskill:sports_discipline_competed_in)) #_[canonical="sports discipline competed in"],
-                      out P856: Entity(tt:url) #_[canonical="official website"] #[string_values="org.wikidata:official_website"],
-                      out P3373: Array(Entity(org.wikidata:human)) #_[canonical="sibling"],
-                      out P54: Array(Entity(org.wikidatasportsskill:sports_teams)) #_[canonical="member of sports team"],
-                      out P413: Array(Entity(org.wikidatasportsskill:position_played_on_team)) #_[canonical="position played on team / speciality"],
-                      out P3574: Entity(org.wikidatasportsskill:fangraphs_player_id) #_[canonical="fangraphs player id"],
-                      out P4731: Entity(org.wikidatasportsskill:the_baseball_cube_player_id) #_[canonical="the baseball cube player id"],
-                      out P172: Array(String) #_[canonical="ethnic group"] #[string_values="org.wikidata:ethnic_group"],
-                      out P22: Entity(org.wikidata:human) #_[canonical="father"],
-                      out P3542: Array(Entity(org.wikidatasportsskill:fiba_player_id)) #_[canonical="fiba player id"],
-                      out P647: Entity(org.wikidatasportsskill:sports_teams) #_[canonical="drafted by"],
-                      out P4548: Entity(org.wikidatasportsskill:commonwealth_games_federation_athlete_id) #_[canonical="commonwealth games federation athlete id"],
-                      out P2002: String #_[canonical="twitter username"] #[string_values="org.wikidata:Twitter_username"],
-                      out P2446: Entity(org.wikidatasportsskill:transfermarkt_player_id) #_[canonical="transfermarkt player id"],
-                      out P2091: Entity(org.wikidatasportsskill:fisa_rower_id) #_[canonical="fisa rower id"],
-                      out P118: Entity(org.wikidatasportsskill:league) #_[canonical="league"],
-                      out P423: Enum(left_handed_shot,right_handed_shot) #_[canonical="shooting handedness"],
-                      out P1350: Number #_[canonical="number of matches played/races/starts"],
-                      out P2481: Entity(org.wikidatasportsskill:elite_prospects_player_id) #_[canonical="elite prospects player id"],
-                      out P6509: Number #_[canonical="total goals in career"],
-                      out P6544: Number #_[canonical="total points in career"],
-                      out P6545: Number #_[canonical="total assists in career"],
-                      out P6546: Number #_[canonical="penalty minutes in career"],
-                      out P2698: Entity(org.wikidatasportsskill:cricketarchive_player_id) #_[canonical="cricketarchive player id"],
-                      out P1469: Entity(org.wikidatasportsskill:fifa_player_id) #_[canonical="fifa player id"],
-                      out P599: Entity(org.wikidatasportsskill:itf_player_id) #_[canonical="itf player id"],
-                      out P3547: Entity(org.wikidatasportsskill:afl_tables_player_id) #_[canonical="afl tables player id"],
-                      out P1087: Number #_[canonical="elo rating"],
-                      out P2962: Array(Entity(org.wikidatasportsskill:title_of_chess_person)) #_[canonical="title of chess person"],
-                      out P741: Enum(left_handed_shot,right_handed_shot,two_handed_backhand,one_handed_backhand,one_handed_forhand,two_handed_forhand) #_[canonical="playing hand"],
-                      out P6543: Number #_[canonical="total shots in career"],
-                      out P6547: Number #_[canonical="career plus-minus rating"],
-                      out P3957: Entity(org.wikidatasportsskill:realgm_basketball_player_id) #_[canonical="realgm basketball player id"],
-                      out athletes: Entity(org.wikidatasportsskill:athletes) #_[canonical="athletes"])
-  #_[canonical="wikidata athletes"]
-  #_[confirmation="wikidata athletes"];
+  list query athlete(out P18: Array(Entity(tt:picture)) #_[canonical="image"],
+                     out P19: String #_[canonical="place of birth"] #[string_values="org.wikidata:place_of_birth"],
+                     out P20: String #_[canonical="place of death"] #[string_values="org.wikidata:place_of_death"],
+                     out P21: Enum(male,female,transgender_female,intersex,transgender_male) #_[canonical="sex or gender"],
+                     out P27: Array(Entity(org.wikidatasportsskill:country)) #_[canonical="country of citizenship"],
+                     out P69: Array(Entity(org.wikidatasportsskill:educated_at)) #_[canonical="educated at"],
+                     out P119: String #_[canonical="place of burial"] #[string_values="org.wikidata:place_of_burial"],
+                     out P166: Array(Entity(org.wikidatasportsskill:award_received)) #_[canonical="award received"],
+                     out P213: Entity(org.wikidatasportsskill:isni) #_[canonical="isni"],
+                     out P214: Entity(org.wikidatasportsskill:viaf_id) #_[canonical="viaf id"],
+                     out P227: Entity(org.wikidatasportsskill:gnd_id) #_[canonical="gnd id"],
+                     out P244: Entity(org.wikidatasportsskill:library_of_congress_authority_id) #_[canonical="library of congress authority id"],
+                     out P349: Entity(org.wikidatasportsskill:ndl_auth_id) #_[canonical="ndl auth id"],
+                     out P509: String #_[canonical="cause of death"] #[string_values="org.wikidata:cause_of_death"],
+                     out P569: Date #_[canonical="date of birth"],
+                     out P570: Date #_[canonical="date of death"],
+                     out P641: Array(Entity(org.wikidatasportsskill:sports)) #_[canonical="sport"],
+                     out P646: Entity(org.wikidatasportsskill:freebase_id) #_[canonical="freebase id"],
+                     out P734: String #_[canonical="family name"] #[string_values="org.wikidata:family_name"],
+                     out P735: String #_[canonical="given name"] #[string_values="org.wikidata:given_name"],
+                     out P1006: Entity(org.wikidatasportsskill:national_thesaurus_for_author_names_id) #_[canonical="national thesaurus for author names id"],
+                     out P1263: Entity(org.wikidatasportsskill:nndb_people_id) #_[canonical="nndb people id"],
+                     out P1532: Array(Entity(org.wikidatasportsskill:country)) #_[canonical="country for sport"],
+                     out P1741: Entity(org.wikidatasportsskill:gtaa_id) #_[canonical="gtaa id"],
+                     out P2048: Measure(m) #_[canonical="height"],
+                     out P2067: Measure(kg) #_[canonical="mass"],
+                     out P2094: Entity(org.wikidatasportsskill:competition_class) #_[canonical="competition class"],
+                     out P26: Entity(org.wikidata:human) #_[canonical="spouse"],
+                     out P40: Entity(org.wikidata:human) #_[canonical="child"],
+                     out P2949: Entity(org.wikidatasportsskill:wikitree_person_id) #_[canonical="wikitree person id"],
+                     out P3417: String #_[canonical="quora topic id"] #[string_values="org.wikidata:Quora_topic_ID"],
+                     out P691: Entity(org.wikidatasportsskill:nkcr_aut_id) #_[canonical="nkcr aut id"],
+                     out P1315: Entity(org.wikidatasportsskill:nla_persistent_identifier) #_[canonical="nla persistent identifier"],
+                     out P1411: Array(Entity(org.wikidatasportsskill:award_received)) #_[canonical="nominated for"],
+                     out P1412: Array(String) #_[canonical="languages spoken, written or signed"] #[string_values="org.wikidata:native_language"],
+                     out P1477: String #_[canonical="birth name"] #[string_values="org.wikidata:birth_name"],
+                     out P1146: Entity(org.wikidatasportsskill:iaaf_athlete_id) #_[canonical="iaaf athlete id"],
+                     out P1449: Array(String) #_[canonical="nickname"] #[string_values="org.wikidata:nickname"],
+                     out P2416: Array(Entity(org.wikidatasportsskill:sports_discipline_competed_in)) #_[canonical="sports discipline competed in"],
+                     out P856: Entity(tt:url) #_[canonical="official website"] #[string_values="org.wikidata:official_website"],
+                     out P3373: Array(Entity(org.wikidata:human)) #_[canonical="sibling"],
+                     out P54: Array(Entity(org.wikidatasportsskill:sports_teams)) #_[canonical="member of sports team"],
+                     out P413: Array(Entity(org.wikidatasportsskill:position_played_on_team)) #_[canonical="position played on team / speciality"],
+                     out P3574: Entity(org.wikidatasportsskill:fangraphs_player_id) #_[canonical="fangraphs player id"],
+                     out P4731: Entity(org.wikidatasportsskill:the_baseball_cube_player_id) #_[canonical="the baseball cube player id"],
+                     out P172: Array(String) #_[canonical="ethnic group"] #[string_values="org.wikidata:ethnic_group"],
+                     out P22: Entity(org.wikidata:human) #_[canonical="father"],
+                     out P3542: Array(Entity(org.wikidatasportsskill:fiba_player_id)) #_[canonical="fiba player id"],
+                     out P647: Entity(org.wikidatasportsskill:sports_teams) #_[canonical="drafted by"],
+                     out P4548: Entity(org.wikidatasportsskill:commonwealth_games_federation_athlete_id) #_[canonical="commonwealth games federation athlete id"],
+                     out P2002: String #_[canonical="twitter username"] #[string_values="org.wikidata:Twitter_username"],
+                     out P2446: Entity(org.wikidatasportsskill:transfermarkt_player_id) #_[canonical="transfermarkt player id"],
+                     out P2091: Entity(org.wikidatasportsskill:fisa_rower_id) #_[canonical="fisa rower id"],
+                     out P118: Entity(org.wikidatasportsskill:league) #_[canonical="league"],
+                     out P423: Enum(left_handed_shot,right_handed_shot) #_[canonical="shooting handedness"],
+                     out P1350: Number #_[canonical="number of matches played/races/starts"],
+                     out P2481: Entity(org.wikidatasportsskill:elite_prospects_player_id) #_[canonical="elite prospects player id"],
+                     out P6509: Number #_[canonical="total goals in career"],
+                     out P6544: Number #_[canonical="total points in career"],
+                     out P6545: Number #_[canonical="total assists in career"],
+                     out P6546: Number #_[canonical="penalty minutes in career"],
+                     out P2698: Entity(org.wikidatasportsskill:cricketarchive_player_id) #_[canonical="cricketarchive player id"],
+                     out P1469: Entity(org.wikidatasportsskill:fifa_player_id) #_[canonical="fifa player id"],
+                     out P599: Entity(org.wikidatasportsskill:itf_player_id) #_[canonical="itf player id"],
+                     out P3547: Entity(org.wikidatasportsskill:afl_tables_player_id) #_[canonical="afl tables player id"],
+                     out P1087: Number #_[canonical="elo rating"],
+                     out P2962: Array(Entity(org.wikidatasportsskill:title_of_chess_person)) #_[canonical="title of chess person"],
+                     out P741: Enum(left_handed_shot,right_handed_shot,two_handed_backhand,one_handed_backhand,one_handed_forhand,two_handed_forhand) #_[canonical="playing hand"],
+                     out P6543: Number #_[canonical="total shots in career"],
+                     out P6547: Number #_[canonical="career plus-minus rating"],
+                     out P3957: Entity(org.wikidatasportsskill:realgm_basketball_player_id) #_[canonical="realgm basketball player id"],
+                     out date: Date #_[canonical="point in time"],
+                     out athlete: Entity(org.wikidatasportsskill:athletes) #_[canonical="athlete"])
+  #_[canonical="wikidata athlete"]
+  #_[confirmation="wikidata athlete"];
 
   list query sports(out P18: Array(Entity(tt:picture)) #_[canonical="image"],
                     out P227: Entity(org.wikidatasportsskill:gnd_id) #_[canonical="gnd id"],
@@ -1691,20 +1720,20 @@ class @org.wikidatasportsskill
   #_[canonical="wikidata sports data"]
   #_[confirmation="wikidata sports"];
 
-  list query sports_teams(out P17: Array(Entity(org.wikidatasportsskill:country)) #_[canonical="country"],
-                          out P571: Date #_[canonical="inception"],
-                          out P2002: Array(String) #_[canonical="twitter username"] #[string_values="org.wikidata:Twitter_username"],
-                          out P641: Array(Entity(org.wikidatasportsskill:sports)) #_[canonical="sport"],
-                          out P2416: Array(Entity(org.wikidatasportsskill:sports_discipline_competed_in)) #_[canonical="sports discipline competed in"],
-                          out P856: Array(Entity(tt:picture)) #_[canonical="official website"],
-                          out P2013: Array(String) #_[canonical="facebook id"] #[string_values="org.wikidata:Facebook_ID"],
-                          out P646: String #_[canonical="freebase id"] #[string_values="org.wikidata:Freebase_ID"],
-                          out P18: Array(Entity(tt:picture)) #_[canonical="image"],
-                          out P118: Array(Entity(org.wikidatasportsskill:league)) #_[canonical="league"],
-                          out P2094: Array(Entity(org.wikidatasportsskill:competition_class)) #_[canonical="competition class"],
-                          out P115: Array(Entity(org.wikidatasportsskill:home_venue)) #_[canonical="home venue"],
-                          out P3022: Array(Entity(org.wikidata:human)) #_[canonical="flag bearer"],
-                          out sports_teams: Entity(org.wikidatasportsskill:sports_teams) #_[canonical="sports teams"])
-  #_[canonical="wikidata sports teams"]
-  #_[confirmation="wikidata sports teams"];
+  list query sports_team(out P17: Array(Entity(org.wikidatasportsskill:country)) #_[canonical="country"],
+                         out P571: Date #_[canonical="inception"],
+                         out P2002: Array(String) #_[canonical="twitter username"] #[string_values="org.wikidata:Twitter_username"],
+                         out P641: Array(Entity(org.wikidatasportsskill:sports)) #_[canonical="sport"],
+                         out P2416: Array(Entity(org.wikidatasportsskill:sports_discipline_competed_in)) #_[canonical="sports discipline competed in"],
+                         out P856: Array(Entity(tt:picture)) #_[canonical="official website"],
+                         out P2013: Array(String) #_[canonical="facebook id"] #[string_values="org.wikidata:Facebook_ID"],
+                         out P646: String #_[canonical="freebase id"] #[string_values="org.wikidata:Freebase_ID"],
+                         out P18: Array(Entity(tt:picture)) #_[canonical="image"],
+                         out P118: Array(Entity(org.wikidatasportsskill:league)) #_[canonical="league"],
+                         out P2094: Array(Entity(org.wikidatasportsskill:competition_class)) #_[canonical="competition class"],
+                         out P115: Array(Entity(org.wikidatasportsskill:home_venue)) #_[canonical="home venue"],
+                         out P3022: Array(Entity(org.wikidata:human)) #_[canonical="flag bearer"],
+                         out sports_team: Entity(org.wikidatasportsskill:sports_teams) #_[canonical="sports team"])
+  #_[canonical="wikidata sports team"]
+  #_[confirmation="wikidata sports team"];
 }
