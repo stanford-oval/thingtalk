@@ -17,7 +17,6 @@ const _schemaRetriever = new SchemaRetriever(
 );
 
 async function main() {
-
   //thingtalk code
   const code = [
     `
@@ -47,6 +46,11 @@ async function main() {
     now => (([sports_team, P286] of @org.wikidatasportsskill.sports_team(),
     P286 == "Q523630"^^org.wikidata:human('Steve Kerr'))
     join ([athlete, P647] of @org.wikidatasportsskill.athlete())), P647 == sports_team => notify;
+    `,
+    `
+    // Filter for person who has last name Curry, and plays Basketball
+    now => [athlete] of @org.wikidatasportsskill.athlete()[1:2], P734 == "Curry"
+    && P641 == ["Q5372"^^org.wikidatasportsskill:sports] => notify;
     `
   ];
   const answers = [
@@ -54,7 +58,8 @@ async function main() {
     "Tom Brady",
     "LeBron James",
     "Wilt Chamberlain",
-    "Klay Thompson"
+    "Klay Thompson",
+    "Michael Curry"
   ];
 
   Promise.all(
@@ -64,32 +69,34 @@ async function main() {
         AppGrammar.parseAndTypecheck(code, _schemaRetriever).then((program) => {
           //convert from ast to sparql
           const sparqlQuery = SparqlConverter.program_to_sparql(program);
-          //if there is a join
-          if (sparqlQuery[1]) {
-            SparqlQuery.query(sparqlQuery[0]).then((response) => {
-              let query_output = [];
-              let result = response["results"]["bindings"];
-              for (var i = 0; i < result.length; i++) {
-                let output = result[i]["v2Label"]["value"];
-                if (!query_output.includes(output)) query_output.push(output);
-              }
 
-              resolve(query_output);
-            });
+          SparqlQuery.query(sparqlQuery[0]).then((response) => {
+            let query_output = [];
+            let result = response["results"]["bindings"];
+            let start = 0;
+            let end = result.length;
+
+            if (sparqlQuery[1][0] !== 0 || sparqlQuery[1][1] !== 0) {
+              start = sparqlQuery[1][0];
+              end = sparqlQuery[1][1];
+            }
+
+            for (var i = start; i < end; i++) {
+              //if there is not a join
+              if (result[i]["vLabel"] !== undefined) {
+                let output = result[i]["vLabel"]["value"];
+                query_output.push(output);
+                //if there is a join
+              } else {
+                let output = result[i]["v2Label"]["value"];
+                query_output.push(output);
+              }
+            }
+
+            resolve(query_output);
+          });
 
           //if there is no join
-          } else {
-            SparqlQuery.query(sparqlQuery[0]).then((response) => {
-              let query_output = [];
-              let result = response["results"]["bindings"];
-              for (var i = 0; i < result.length; i++) {
-                let output = result[i]["vLabel"]["value"];
-                if (!query_output.includes(output)) query_output.push(output);
-              }
-
-              resolve(query_output);
-            });
-          }
         });
       });
       return promise;
