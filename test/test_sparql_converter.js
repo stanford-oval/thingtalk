@@ -17,10 +17,18 @@ const _schemaRetriever = new SchemaRetriever(
 );
 
 async function main() {
+
+  //thingtalk code
   const code = [
     `
-    // Filter for person whose first name is Stephen and last name Curry
-    now => [athlete] of @org.wikidatasportsskill.athlete(), P735 == "Stephen" && P734 == "Curry" => notify;
+    // Filter for person who has last name Curry, and plays Basketball
+    now => [athlete] of @org.wikidatasportsskill.athlete(), P734 == "Curry"
+    && P641 == ["Q5372"^^org.wikidatasportsskill:sports] => notify;
+    `,
+    `
+    // Filter for person who was born on September 29, 1988, and plays Football
+    now => [athlete] of @org.wikidatasportsskill.athlete(), P569 == makeDate(1977, 8, 4)
+    && P641 == ["Q41323"^^org.wikidatasportsskill:sports] => notify;
     `,
     `
     // Filter for person who was drafted by the cavs and won the MVP award
@@ -29,12 +37,13 @@ async function main() {
     && P166 == ["Q222047"^^org.wikidatasportsskill:award_received("NBA Most Valuable Player Award")] => notify;
     `,
     `
-    // Filter for person who has played for the Lakers and Warriors
+    // Filter for person who played for the Lakers and Warriors
     now => [athlete] of @org.wikidatasportsskill.athlete(),
     P54 == ["Q121783"^^org.wikidatasportsskill:sports_teams("Los Angeles Lakers"),
     "Q157376"^^org.wikidatasportsskill:sports_teams("Golden State Warriors")] => notify;
     `,
     `
+    // Join for team Steve Kerr coaches (Warriors) and players who were drafted by that team
     now => (([sports_team, P286] of @org.wikidatasportsskill.sports_team(),
     P286 == "Q523630"^^org.wikidata:human('Steve Kerr'))
     join ([athlete, P647] of @org.wikidatasportsskill.athlete())), P647 == sports_team => notify;
@@ -42,6 +51,7 @@ async function main() {
   ];
   const answers = [
     "Stephen Curry",
+    "Tom Brady",
     "LeBron James",
     "Wilt Chamberlain",
     "Klay Thompson"
@@ -52,21 +62,30 @@ async function main() {
       let promise = new Promise((resolve, reject) => {
         code = code.trim();
         AppGrammar.parseAndTypecheck(code, _schemaRetriever).then((program) => {
+          //convert from ast to sparql
           const sparqlQuery = SparqlConverter.program_to_sparql(program);
           //if there is a join
           if (sparqlQuery[1]) {
             SparqlQuery.query(sparqlQuery[0]).then((response) => {
-              let query_output =
-                response["results"]["bindings"][0]["v2Label"]["value"];
+              let query_output = [];
+              let result = response["results"]["bindings"];
+              for (var i = 0; i < result.length; i++) {
+                let output = result[i]["v2Label"]["value"];
+                if (!query_output.includes(output)) query_output.push(output);
+              }
 
               resolve(query_output);
             });
 
-            //there is no join
+          //if there is no join
           } else {
             SparqlQuery.query(sparqlQuery[0]).then((response) => {
-              let query_output =
-                response["results"]["bindings"][0]["vLabel"]["value"];
+              let query_output = [];
+              let result = response["results"]["bindings"];
+              for (var i = 0; i < result.length; i++) {
+                let output = result[i]["vLabel"]["value"];
+                if (!query_output.includes(output)) query_output.push(output);
+              }
 
               resolve(query_output);
             });
@@ -77,7 +96,7 @@ async function main() {
     })
   ).then((values) => {
     for (var i = 0; i < values.length; i++)
-      assert.strictEqual(answers[i], values[i]);
+      assert.strictEqual(answers[i], values[i][0]);
   });
 }
 
