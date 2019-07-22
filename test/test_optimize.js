@@ -12,6 +12,7 @@
 const AppGrammar = require('../lib/grammar_api');
 const SchemaRetriever = require('../lib/schema');
 const _mockSchemaDelegate = require('./mock_schema_delegate');
+const { postProcessProgram } = require('../lib/optimize');
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 const TEST_CASES = [
@@ -73,6 +74,34 @@ const TEST_CASES = [
         `monitor ([text, author] of @com.twitter.home_timeline()) => @com.twitter.post(status=text);`,
         `monitor (@com.twitter.home_timeline()) on new [text, author] => @com.twitter.post(status=text);`
     ],
+
+    [
+        `now => [person, P18] of (@org.wikidata.person(), P735 ~= 'Bob') => @com.twitter.post(status=P18);`,
+        `now => [P18] of ((@org.wikidata.person()), P735 ~= "Bob") => @com.twitter.post(status=P18);`
+    ],
+
+    [
+        `now => @org.wikidata.person(), P735 ~= 'Bob' => @com.twitter.post(status=P18);`,
+        `now => [P18] of ((@org.wikidata.person()), P735 ~= "Bob") => @com.twitter.post(status=P18);`
+    ],
+
+    [
+        `now => [person] of @org.wikidata.person(), P735 ~= 'Bob' => @com.twitter.post(status=P18);`,
+        `now => [P18] of ((@org.wikidata.person()), P735 ~= "Bob") => @com.twitter.post(status=P18);`
+    ],
+
+    [
+        `now => @org.wikidata.person(), P735 ~= 'Bob' => notify;`,
+        `now => [person, P18] of ((@org.wikidata.person()), P735 ~= "Bob") => notify;`
+    ],
+
+    [
+        `now => @org.wikidata.person(), P735 ~= 'Bob' => { notify; @com.twitter.post(status=P18); };`,
+        `now => [person, P18] of ((@org.wikidata.person()), P735 ~= "Bob") => {\n` +
+        `    notify;\n` +
+        `    @com.twitter.post(status=P18);\n` +
+        ` };`
+    ]
 ];
 
 
