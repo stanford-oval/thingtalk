@@ -2397,7 +2397,7 @@ some alt text` }
 
     [`let procedure p1(p_foo : String) := {
         let procedure p2(p_bar : String) := {
-            now => @tumblr-blog.post_text(title = p_foo, body = p_bar);
+            now => @com.tumblr.blog.post_text(title = p_foo, body = p_bar);
         };
         now => p2(p_bar = "body one");
         now => p2(p_bar = "body two");
@@ -2409,22 +2409,22 @@ some alt text` }
     [
     {
        type: 'action',
-       fn: 'tumblr-blog:post_text',
+       fn: 'com.tumblr.blog:post_text',
        params: { title: 'title one', body: 'body one' },
      },
     {
        type: 'action',
-       fn: 'tumblr-blog:post_text',
+       fn: 'com.tumblr.blog:post_text',
        params: { title: 'title one', body: 'body two' },
      },
     {
        type: 'action',
-       fn: 'tumblr-blog:post_text',
+       fn: 'com.tumblr.blog:post_text',
        params: { title: 'title two', body: 'body one' },
      },
     {
        type: 'action',
-       fn: 'tumblr-blog:post_text',
+       fn: 'com.tumblr.blog:post_text',
        params: { title: 'title two', body: 'body two' },
      },
 
@@ -2434,7 +2434,7 @@ some alt text` }
 
     [`let procedure p1(p_foo : String) := {
         let procedure p2(p_bar : String) := {
-            now => @tumblr-blog.post_text(title = p_foo, body = p_bar);
+            now => @com.tumblr.blog.post_text(title = p_foo, body = p_bar);
         };
         now => p2(p_bar = "body one");
         now => p2(p_bar = "body two");
@@ -2446,32 +2446,32 @@ some alt text` }
     [
     {
        type: 'action',
-       fn: 'tumblr-blog:post_text',
+       fn: 'com.tumblr.blog:post_text',
        params: { title: 'title one', body: 'body one' },
      },
     {
        type: 'action',
-       fn: 'tumblr-blog:post_text',
+       fn: 'com.tumblr.blog:post_text',
        params: { title: 'title one', body: 'body two' },
      },
     {
        type: 'action',
-       fn: 'tumblr-blog:post_text',
+       fn: 'com.tumblr.blog:post_text',
        params: { title: 'title one', body: 'body one' },
      },
     {
        type: 'action',
-       fn: 'tumblr-blog:post_text',
+       fn: 'com.tumblr.blog:post_text',
        params: { title: 'title one', body: 'body two' },
      },
     {
        type: 'action',
-       fn: 'tumblr-blog:post_text',
+       fn: 'com.tumblr.blog:post_text',
        params: { title: 'title one', body: 'body one' },
      },
     {
        type: 'action',
-       fn: 'tumblr-blog:post_text',
+       fn: 'com.tumblr.blog:post_text',
        params: { title: 'title one', body: 'body two' },
      },
 
