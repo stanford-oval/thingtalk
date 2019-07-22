@@ -3607,56 +3607,65 @@ const TEST_CASES = [
   let _t_32;
   let _t_33;
   let _t_34;
-  _t_0 = [2, 3, 4];
-  _t_1 = new Array(0);
+  let _t_35;
+  let _t_36;
+  let _t_37;
+  _t_0 = new Array(3);
+  _t_1 = 2;
+  _t_0[0] = _t_1;
+  _t_2 = 3;
+  _t_0[1] = _t_2;
+  _t_3 = 4;
+  _t_0[2] = _t_3;
+  _t_4 = new Array(0);
   try {
-    _t_2 = {};
-    _t_3 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_2);
-    _t_4 = _t_3[Symbol.iterator]();
+    _t_5 = {};
+    _t_6 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_5);
+    _t_7 = _t_6[Symbol.iterator]();
     {
-      let _iter_tmp = await _t_4.next();
+      let _iter_tmp = await _t_7.next();
       while (!_iter_tmp.done) {
-        _t_5 = _iter_tmp.value;
-        _t_6 = _t_5[0];
-        _t_7 = _t_5[1];
-        _t_8 = _t_7.order_by;
-        _t_9 = _t_7.file_id;
-        _t_10 = _t_7.file_name;
-        _t_11 = _t_7.mime_type;
-        _t_12 = _t_7.description;
-        _t_13 = _t_7.starred;
-        _t_14 = _t_7.created_time;
-        _t_15 = _t_7.modified_time;
-        _t_16 = _t_7.file_size;
-        _t_17 = _t_7.last_modified_by;
-        _t_18 = _t_7.link;
-        _t_19 = new Array(2);
-        _t_19[0] = _t_7;
-        _t_19[1] = _t_6;
-        _t_1.push(_t_19);
-        _iter_tmp = await _t_4.next();
+        _t_8 = _iter_tmp.value;
+        _t_9 = _t_8[0];
+        _t_10 = _t_8[1];
+        _t_11 = _t_10.order_by;
+        _t_12 = _t_10.file_id;
+        _t_13 = _t_10.file_name;
+        _t_14 = _t_10.mime_type;
+        _t_15 = _t_10.description;
+        _t_16 = _t_10.starred;
+        _t_17 = _t_10.created_time;
+        _t_18 = _t_10.modified_time;
+        _t_19 = _t_10.file_size;
+        _t_20 = _t_10.last_modified_by;
+        _t_21 = _t_10.link;
+        _t_22 = new Array(2);
+        _t_22[0] = _t_10;
+        _t_22[1] = _t_9;
+        _t_4.push(_t_22);
+        _iter_tmp = await _t_7.next();
       }
     }
   } catch(_exc_) {
     __env.reportError("Failed to invoke query", _exc_);
   }
-  _t_20 = __builtin.indexArray(_t_1, _t_0);
-  for (_t_21 of _t_20) {
-    _t_23 = _t_21[0];
-    _t_22 = _t_21[1];
-    _t_24 = _t_23.order_by;
-    _t_25 = _t_23.file_id;
-    _t_26 = _t_23.file_name;
-    _t_27 = _t_23.mime_type;
-    _t_28 = _t_23.description;
-    _t_29 = _t_23.starred;
-    _t_30 = _t_23.created_time;
-    _t_31 = _t_23.modified_time;
-    _t_32 = _t_23.file_size;
-    _t_33 = _t_23.last_modified_by;
-    _t_34 = _t_23.link;
+  _t_23 = __builtin.indexArray(_t_4, _t_0);
+  for (_t_24 of _t_23) {
+    _t_26 = _t_24[0];
+    _t_25 = _t_24[1];
+    _t_27 = _t_26.order_by;
+    _t_28 = _t_26.file_id;
+    _t_29 = _t_26.file_name;
+    _t_30 = _t_26.mime_type;
+    _t_31 = _t_26.description;
+    _t_32 = _t_26.starred;
+    _t_33 = _t_26.created_time;
+    _t_34 = _t_26.modified_time;
+    _t_35 = _t_26.file_size;
+    _t_36 = _t_26.last_modified_by;
+    _t_37 = _t_26.link;
     try {
-      await __env.output(String(_t_22), _t_23);
+      await __env.output(String(_t_25), _t_26);
     } catch(_exc_) {
       __env.reportError("Failed to invoke action", _exc_);
     }
@@ -5104,7 +5113,48 @@ const TEST_CASES = [
     }
   } catch(_exc_) {
     __env.reportError("Failed to invoke readResult", _exc_);
-  }`]]
+  }`]],
+
+  [`now => @com.spotify.get_currently_playing() => @com.spotify.add_songs_to_playlist(songs=[song], playlist="my favorite");`,
+  [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  try {
+    _t_0 = {};
+    _t_1 = await __env.invokeQuery("com.spotify", { }, "get_currently_playing", _t_0);
+    _t_2 = _t_1[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.song;
+        try {
+          _t_7 = {};
+          _t_8 = new Array(1);
+          _t_8[0] = _t_6;
+          _t_7.songs = _t_8;
+          _t_9 = "my favorite";
+          _t_7.playlist = _t_9;
+          await __env.invokeAction("com.spotify", { }, "add_songs_to_playlist", _t_7);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_2.next();
+      }
+    }
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke query", _exc_);
+  }`]],
 ];
 
 // eslint-disable-next-line prefer-arrow-callback

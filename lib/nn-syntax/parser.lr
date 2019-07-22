@@ -169,10 +169,10 @@ table = {
 
     '[' pnames:out_param_list ']' 'of' '(' table ')'          => new Ast.Table.Projection(table, pnames.map((p) => p.name), null);
 
-    'window' base:constant_Number ',' delta:constant_Number 'of' '(' stream ')'        => new Ast.Table.Window(base, delta, stream, null);
-    'timeseries' base:constant_Date ',' delta:constant_Measure_ms 'of' '(' stream ')' => new Ast.Table.TimeSeries(base, delta, stream, null);
-    'sequence' base:constant_Number ',' delta:constant_Number 'of' '(' table ')'       => new Ast.Table.Sequence(base, delta, table, null);
-    'history' base:constant_Date ',' delta:constant_Measure_ms 'of' '(' table ')'     => new Ast.Table.History(base, delta, table, null);
+    'window' base:constant ',' delta:constant 'of' '(' stream ')'        => new Ast.Table.Window(base, delta, stream, null);
+    'timeseries' base:constant ',' delta:constant 'of' '(' stream ')' => new Ast.Table.TimeSeries(base, delta, stream, null);
+    'sequence' base:constant ',' delta:constant 'of' '(' table ')'       => new Ast.Table.Sequence(base, delta, table, null);
+    'history' base:constant ',' delta:constant 'of' '(' table ')'     => new Ast.Table.History(base, delta, table, null);
 
     table_join;
 }
@@ -187,11 +187,9 @@ table_join = {
 }
 
 stream = {
-    'timer' 'base' '=' base:constant_Date ',' 'interval' '=' interval:constant_Measure_ms => new Ast.Stream.Timer(base, interval, null);
-    'attimer' 'time' '=' time:constant_Time => new Ast.Stream.AtTimer([time], null, null);
-    'attimer' 'time' '=' '[' times:constant_array_values ']' => new Ast.Stream.AtTimer(times, null, null);
-    'attimer' 'time' '=' time:constant_Time ',' 'expiration_date' '=' expiration_date:constant_Date => new Ast.Stream.AtTimer([time], expiration_date, null);
-    'attimer' 'time' '=' '[' times:constant_array_values ']' ',' 'expiration_date' '=' expiration_date:constant_Date => new Ast.Stream.AtTimer(times, expiration_date, null);
+    'timer' 'base' '=' base:constant ',' 'interval' '=' interval:constant => new Ast.Stream.Timer(base, interval, null);
+    'attimer' 'time' '=' time:constant => new Ast.Stream.AtTimer(time.isArray ? time.value : [time], null, null);
+    'attimer' 'time' '=' time:constant ',' 'expiration_date' '=' expiration_date:constant => new Ast.Stream.AtTimer(time.isArray ? time.value : [time], expiration_date, null);
 
     'monitor' '(' table ')' => new Ast.Stream.Monitor(table, null, null);
     'monitor' '(' table ')' 'on' 'new' pname:out_param => {
@@ -297,20 +295,6 @@ value_filter = {
     'suffix_of' v:string_constant => ['suffix_of', v];
     'contains' v:constant => ['contains', v];
     'in_array' v:constant_Array => ['in_array', v];
-
-    '==' v:out_param => ['==', v];
-    '>=' v:out_param => ['>=', v];
-    '<=' v:out_param => ['<=', v];
-    '>' v:out_param => ['>', v];
-    '<' v:out_param => ['<', v];
-    '=~' v:out_param => ['=~', v];
-    '~=' v:out_param => ['~=', v];
-    'starts_with' v:out_param => ['starts_with', v];
-    'ends_with' v:out_param => ['ends_with', v];
-    'prefix_of' v:out_param => ['prefix_of', v];
-    'suffix_of' v:out_param => ['suffix_of', v];
-    'contains' v:out_param => ['contains', v];
-    'in_array' v:out_param => ['in_array', v];
 }
 
 // this non-terminal exists only for convenience
@@ -338,6 +322,7 @@ constant = {
     constant_Entity__tt__function;
     constant_Entity__tt__picture;
     constant_Enum;
+    out_param;
     slot:SLOT => (slot.value === undefined ? Ast.Value.Undefined(true) : slot.value);
 }
 
@@ -350,12 +335,14 @@ comparable_constant = {
     constant_Currency;
     constant_Date;
     constant_Time;
+    out_param;
     slot:SLOT => (slot.value === undefined ? Ast.Value.Undefined(true) : slot.value);
 }
 
 string_constant = {
     'undefined' => new Ast.Value.Undefined(true);
     constant_String;
+    out_param;
     slot:SLOT => (slot.value === undefined ? Ast.Value.Undefined(true) : slot.value);
 }
 

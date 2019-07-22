@@ -391,7 +391,11 @@ const TEST_CASES = [
 
     [`now => result ( @com.thecatapi.get [ NUMBER_0 ] ) => notify`,
     `show me the NUMBER_0 cat again`, { NUMBER_0: 2 },
-    `now => result(@com.thecatapi.get[2]) => notify;`]
+    `now => result(@com.thecatapi.get[2]) => notify;`],
+
+    [`now => @com.spotify.get_currently_playing => @com.spotify.add_songs_to_playlist param:songs:Array(String) = [ param:song:String ]`,
+    `add the currently playing song to my playlist`, {},
+    `now => @com.spotify.get_currently_playing() => @com.spotify.add_songs_to_playlist(songs=[song]);`]
 ];
 
 async function testCase(test, i) {
