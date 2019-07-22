@@ -42,6 +42,11 @@ const TEST_CASES = [
     [
         `now => [count] of aggregate count of (@com.twitter.home_timeline()) => notify;`,
         `now => aggregate count of (@com.twitter.home_timeline()) => notify;`
+    ],
+
+    [
+        `now => result(@com.thecatapi.get[-1]) => notify;`,
+        `now => result(@com.thecatapi.get) => notify;`
     ]
 
 ];

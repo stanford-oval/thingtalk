@@ -241,7 +241,13 @@ var TEST_CASES = [
         p1();
     }`,
     ['action: VarRef(p1, InputParam(p_query, Undefined(true)), )'],
-    ['InputParam(p_query, Undefined(true)) p1']]
+    ['InputParam(p_query, Undefined(true)) p1']],
+
+    [`now => result(@com.thecatapi.get) => notify;`,
+    ['query: ResultRef(com.thecatapi, get, Number(-1), )',
+     'action: Invocation(Builtin, notify, , )'],
+     ['Builtin undefined:notify']
+    ]
 
 ];
 

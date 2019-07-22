@@ -209,7 +209,7 @@ class @com.thecatapi
             in opt count: Number #_[prompt="How many cats do you want?"] #_[canonical="count"],
             out picture_url: Entity(tt:picture) #_[canonical="picture url"],
             out link: Entity(tt:url) #_[canonical="link"])
-  #_[canonical="get cat on thecatapi"]
+  #_[canonical="cat picture"]
   #_[confirmation="cat pictures"];
 }
 class @data-source

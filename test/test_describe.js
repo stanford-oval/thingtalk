@@ -26,6 +26,7 @@ var TEST_CASES = [
     ['monitor @com.twitter.home_timeline() => @com.twitter.post(status=text);',
     'tweet the text when tweets from anyone you follow change',
     'Twitter ⇒ Twitter'],
+
     ['attimer(time=makeTime(8,30)) => @org.thingpedia.builtin.thingengine.builtin.say(message=$undefined);',
     'send me a message ____ every day at 8:30 AM',
     'Say'],
@@ -37,6 +38,12 @@ var TEST_CASES = [
     'Say'],
     ['attimer(time=makeTime(12,0)) => @org.thingpedia.builtin.thingengine.builtin.say(message=$undefined);',
     'send me a message ____ every day at 12:00 PM',
+    'Say'],
+    [`attimer(time=[makeTime(9,0), makeTime(15,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");`,
+    `send me a message “it's 9am or 3pm” every day at 9:00 AM and 3:00 PM`,//'
+    'Say'],
+    [`attimer(time=[makeTime(9,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am");`,
+    `send me a message “it's 9am” every day at 9:00 AM`,//'
     'Say'],
 
     [`now => @com.xkcd.get_comic() => notify;`,
@@ -268,7 +275,19 @@ var TEST_CASES = [
     '42', ''],
 
     [`bookkeeping(choice(0));`,
-    'choice number 1', '']
+    'choice number 1', ''],
+
+    [`now => result(@com.thecatapi.get) => notify;`,
+    'get the last cat picture and then notify you', 'Thecatapi ⇒ Notification'],
+
+    [`now => result(@com.thecatapi.get[1]) => notify;`,
+    'get the first cat picture and then notify you', 'Thecatapi ⇒ Notification'],
+
+    [`now => result(@com.thecatapi.get[2]) => notify;`,
+    'get the 2-th cat picture and then notify you', 'Thecatapi ⇒ Notification'],
+
+    [`now => result(@com.thecatapi.get[-2]) => notify;`,
+    'get the 2-th last cat picture and then notify you', 'Thecatapi ⇒ Notification'],
 ];
 
 const gettext = {

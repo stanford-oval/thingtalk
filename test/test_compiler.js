@@ -494,15 +494,18 @@ const TEST_CASES = [
   let _t_0;
   let _t_1;
   let _t_2;
+  let _t_3;
   try {
-    _t_1 = new __builtin.Time(12, 30, 0);
-    _t_0 = await __env.invokeAtTimer(_t_1);
+    _t_1 = new Array(1);
+    _t_2 = new __builtin.Time(12, 30, 0);
+    _t_1[0] = _t_2;
+    _t_0 = await __env.invokeAtTimer(_t_1, null);
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
-        _t_2 = _iter_tmp.value;
+        _t_3 = _iter_tmp.value;
         try {
-          await __env.output(null, _t_2);
+          await __env.output(null, _t_3);
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -520,18 +523,21 @@ const TEST_CASES = [
   let _t_2;
   let _t_3;
   let _t_4;
+  let _t_5;
   try {
-    _t_1 = new __builtin.Time(12, 30, 0);
-    _t_0 = await __env.invokeAtTimer(_t_1);
+    _t_1 = new Array(1);
+    _t_2 = new __builtin.Time(12, 30, 0);
+    _t_1[0] = _t_2;
+    _t_0 = await __env.invokeAtTimer(_t_1, null);
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
-        _t_2 = _iter_tmp.value;
+        _t_3 = _iter_tmp.value;
         try {
-          _t_3 = {};
-          _t_4 = "lol";
-          _t_3.status = _t_4;
-          await __env.invokeAction("com.twitter", { }, "post", _t_3);
+          _t_4 = {};
+          _t_5 = "lol";
+          _t_4.status = _t_5;
+          await __env.invokeAction("com.twitter", { }, "post", _t_4);
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -1016,7 +1022,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke query", _exc_);
   }`]],
 
-  //Changes start here  
+  //Changes start here
   [`now => @com.uber.price_estimate(start=makeLocation(1, 3, "Somewhere"), end=makeLocation(1, 3, "Somewhere")), low_estimate >= 7 => notify;`,
   [`"use strict";
   let _t_0;
@@ -2031,51 +2037,54 @@ const TEST_CASES = [
   let _t_20;
   let _t_21;
   let _t_22;
+  let _t_23;
   try {
-    _t_1 = new __builtin.Time(20, 10, 0);
-    _t_0 = await __env.invokeAtTimer(_t_1);
+    _t_1 = new Array(1);
+    _t_2 = new __builtin.Time(20, 10, 0);
+    _t_1[0] = _t_2;
+    _t_0 = await __env.invokeAtTimer(_t_1, null);
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
-        _t_2 = _iter_tmp.value;
+        _t_3 = _iter_tmp.value;
         try {
-          _t_3 = {};
-          _t_4 = await __env.invokeQuery("com.thecatapi", { id: "com.thecatapi", }, "get", _t_3);
-          _t_5 = _t_4[Symbol.iterator]();
+          _t_4 = {};
+          _t_5 = await __env.invokeQuery("com.thecatapi", { id: "com.thecatapi", }, "get", _t_4);
+          _t_6 = _t_5[Symbol.iterator]();
           {
-            let _iter_tmp = await _t_5.next();
+            let _iter_tmp = await _t_6.next();
             while (!_iter_tmp.done) {
-              _t_6 = _iter_tmp.value;
-              _t_7 = _t_6[0];
-              _t_8 = _t_6[1];
-              _t_9 = _t_8.count;
-              _t_10 = _t_8.image_id;
-              _t_11 = _t_8.picture_url;
-              _t_12 = _t_8.link;
-              _t_13 = {};
-              _t_13.count = _t_9;
-              _t_13.image_id = _t_10;
-              _t_13.picture_url = _t_11;
-              _t_13.link = _t_12;
-              _t_14 = _t_13.count;
-              _t_15 = _t_13.image_id;
-              _t_16 = _t_13.picture_url;
-              _t_17 = _t_13.link;
+              _t_7 = _iter_tmp.value;
+              _t_8 = _t_7[0];
+              _t_9 = _t_7[1];
+              _t_10 = _t_9.count;
+              _t_11 = _t_9.image_id;
+              _t_12 = _t_9.picture_url;
+              _t_13 = _t_9.link;
+              _t_14 = {};
+              _t_14.count = _t_10;
+              _t_14.image_id = _t_11;
+              _t_14.picture_url = _t_12;
+              _t_14.link = _t_13;
+              _t_15 = _t_14.count;
+              _t_16 = _t_14.image_id;
+              _t_17 = _t_14.picture_url;
+              _t_18 = _t_14.link;
               try {
-                _t_18 = {};
-                _t_19 = new __builtin.Entity("xxxx", null);
-                _t_18.to = _t_19;
-                _t_20 = "xxx";
-                _t_18.subject = _t_20;
+                _t_19 = {};
+                _t_20 = new __builtin.Entity("xxxx", null);
+                _t_19.to = _t_20;
                 _t_21 = "xxx";
-                _t_18.message = _t_21;
-                _t_22 = String (_t_16);
-                _t_18.picture_url = _t_22;
-                await __env.invokeAction("com.gmail", { id: "xxxx", }, "send_picture", _t_18);
+                _t_19.subject = _t_21;
+                _t_22 = "xxx";
+                _t_19.message = _t_22;
+                _t_23 = String (_t_17);
+                _t_19.picture_url = _t_23;
+                await __env.invokeAction("com.gmail", { id: "xxxx", }, "send_picture", _t_19);
               } catch(_exc_) {
                 __env.reportError("Failed to invoke action", _exc_);
               }
-              _iter_tmp = await _t_5.next();
+              _iter_tmp = await _t_6.next();
             }
           }
         } catch(_exc_) {
@@ -3470,78 +3479,81 @@ const TEST_CASES = [
   let _t_34;
   let _t_35;
   let _t_36;
+  let _t_37;
   try {
-    _t_1 = new __builtin.Time(7, 30, 0);
-    _t_0 = await __env.invokeAtTimer(_t_1);
+    _t_1 = new Array(1);
+    _t_2 = new __builtin.Time(7, 30, 0);
+    _t_1[0] = _t_2;
+    _t_0 = await __env.invokeAtTimer(_t_1, null);
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
-        _t_2 = _iter_tmp.value;
-        _t_3 = 2;
-        _t_4 = false;
-        _t_5 = 0;
+        _t_3 = _iter_tmp.value;
+        _t_4 = 2;
+        _t_5 = false;
+        _t_6 = 0;
         try {
-          _t_6 = {};
-          _t_7 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_6);
-          _t_8 = _t_7[Symbol.iterator]();
+          _t_7 = {};
+          _t_8 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_7);
+          _t_9 = _t_8[Symbol.iterator]();
           {
-            let _iter_tmp = await _t_8.next();
+            let _iter_tmp = await _t_9.next();
             while (!_iter_tmp.done) {
-              _t_9 = _iter_tmp.value;
-              _t_10 = _t_9[0];
-              _t_11 = _t_9[1];
-              _t_12 = _t_11.order_by;
-              _t_13 = _t_11.file_id;
-              _t_14 = _t_11.file_name;
-              _t_15 = _t_11.mime_type;
-              _t_16 = _t_11.description;
-              _t_17 = _t_11.starred;
-              _t_18 = _t_11.created_time;
-              _t_19 = _t_11.modified_time;
-              _t_20 = _t_11.file_size;
-              _t_21 = _t_11.last_modified_by;
-              _t_22 = _t_11.link;
-              _t_23 = 1;
-              _t_5 = _t_5 + _t_23;
-              _t_24 = _t_3 == _t_5;
-              if (_t_24) {
-                _t_4 = true;
+              _t_10 = _iter_tmp.value;
+              _t_11 = _t_10[0];
+              _t_12 = _t_10[1];
+              _t_13 = _t_12.order_by;
+              _t_14 = _t_12.file_id;
+              _t_15 = _t_12.file_name;
+              _t_16 = _t_12.mime_type;
+              _t_17 = _t_12.description;
+              _t_18 = _t_12.starred;
+              _t_19 = _t_12.created_time;
+              _t_20 = _t_12.modified_time;
+              _t_21 = _t_12.file_size;
+              _t_22 = _t_12.last_modified_by;
+              _t_23 = _t_12.link;
+              _t_24 = 1;
+              _t_6 = _t_6 + _t_24;
+              _t_25 = _t_4 == _t_6;
+              if (_t_25) {
+                _t_5 = true;
                 break;
               } else {
 
               }
-              _iter_tmp = await _t_8.next();
+              _iter_tmp = await _t_9.next();
             }
           }
         } catch(_exc_) {
           __env.reportError("Failed to invoke query", _exc_);
         }
-        if (_t_4) {
-          _t_25 = {};
-          _t_25.order_by = _t_12;
-          _t_25.file_id = _t_13;
-          _t_25.file_name = _t_14;
-          _t_25.mime_type = _t_15;
-          _t_25.description = _t_16;
-          _t_25.starred = _t_17;
-          _t_25.created_time = _t_18;
-          _t_25.modified_time = _t_19;
-          _t_25.file_size = _t_20;
-          _t_25.last_modified_by = _t_21;
-          _t_25.link = _t_22;
-          _t_26 = _t_25.order_by;
-          _t_27 = _t_25.file_id;
-          _t_28 = _t_25.file_name;
-          _t_29 = _t_25.mime_type;
-          _t_30 = _t_25.description;
-          _t_31 = _t_25.starred;
-          _t_32 = _t_25.created_time;
-          _t_33 = _t_25.modified_time;
-          _t_34 = _t_25.file_size;
-          _t_35 = _t_25.last_modified_by;
-          _t_36 = _t_25.link;
+        if (_t_5) {
+          _t_26 = {};
+          _t_26.order_by = _t_13;
+          _t_26.file_id = _t_14;
+          _t_26.file_name = _t_15;
+          _t_26.mime_type = _t_16;
+          _t_26.description = _t_17;
+          _t_26.starred = _t_18;
+          _t_26.created_time = _t_19;
+          _t_26.modified_time = _t_20;
+          _t_26.file_size = _t_21;
+          _t_26.last_modified_by = _t_22;
+          _t_26.link = _t_23;
+          _t_27 = _t_26.order_by;
+          _t_28 = _t_26.file_id;
+          _t_29 = _t_26.file_name;
+          _t_30 = _t_26.mime_type;
+          _t_31 = _t_26.description;
+          _t_32 = _t_26.starred;
+          _t_33 = _t_26.created_time;
+          _t_34 = _t_26.modified_time;
+          _t_35 = _t_26.file_size;
+          _t_36 = _t_26.last_modified_by;
+          _t_37 = _t_26.link;
           try {
-            await __env.output(String(_t_10), _t_25);
+            await __env.output(String(_t_11), _t_26);
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
@@ -4942,6 +4954,157 @@ const TEST_CASES = [
   } catch(_exc_) {
     __env.reportError("Failed to invoke timer", _exc_);
   }`]],
+
+  [`attimer(time=[makeTime(9,0), makeTime(15,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");`,
+  [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  try {
+    _t_1 = new Array(2);
+    _t_2 = new __builtin.Time(9, 0, 0);
+    _t_1[0] = _t_2;
+    _t_3 = new __builtin.Time(15, 0, 0);
+    _t_1[1] = _t_3;
+    _t_0 = await __env.invokeAtTimer(_t_1, null);
+    {
+      let _iter_tmp = await _t_0.next();
+      while (!_iter_tmp.done) {
+        _t_4 = _iter_tmp.value;
+        try {
+          _t_5 = {};
+          _t_6 = "it's 9am or 3pm";
+          _t_5.message = _t_6;
+          await __env.invokeAction("org.thingpedia.builtin.thingengine.builtin", { }, "say", _t_5);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_0.next();
+      }
+    }
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke at-timer", _exc_);
+  }`]],
+
+    [`now => result(@com.thecatapi.get) => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  try {
+    _t_0 = -1;
+    _t_1 = await __env.readResult("com.thecatapi:get", _t_0);
+    _t_2 = _t_1[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.image_id;
+        _t_7 = _t_5.picture_url;
+        _t_8 = _t_5.link;
+        try {
+          await __env.output(String(_t_4), _t_5);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_2.next();
+      }
+    }
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke readResult", _exc_);
+  }`]],
+
+    [`now => result(@com.thecatapi.get[-2]) => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  try {
+    _t_0 = -2;
+    _t_1 = await __env.readResult("com.thecatapi:get", _t_0);
+    _t_2 = _t_1[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.image_id;
+        _t_7 = _t_5.picture_url;
+        _t_8 = _t_5.link;
+        try {
+          await __env.output(String(_t_4), _t_5);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_2.next();
+      }
+    }
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke readResult", _exc_);
+  }`]],
+
+    [`now => result(@com.thecatapi.get) => @com.twitter.post_picture(picture_url=picture_url, caption="cat");`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  try {
+    _t_0 = -1;
+    _t_1 = await __env.readResult("com.thecatapi:get", _t_0);
+    _t_2 = _t_1[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.image_id;
+        _t_7 = _t_5.picture_url;
+        _t_8 = _t_5.link;
+        try {
+          _t_9 = {};
+          _t_10 = String (_t_7);
+          _t_9.picture_url = _t_10;
+          _t_11 = "cat";
+          _t_9.caption = _t_11;
+          await __env.invokeAction("com.twitter", { }, "post_picture", _t_9);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_2.next();
+      }
+    }
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke readResult", _exc_);
+  }`]]
 ];
 
 // eslint-disable-next-line prefer-arrow-callback
