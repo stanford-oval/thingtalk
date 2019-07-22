@@ -290,7 +290,7 @@ var TEST_CASES = [
     'get the 2-th last cat picture and then notify you', 'Thecatapi ⇒ Notification'],
 
     [`now => @com.spotify.get_currently_playing() => @com.spotify.add_songs_to_playlist(songs=[song]);`,
-    'get the currently playing track name and then add the song to the playlist ____', 'Spotify ⇒ Spotify'],
+    'get the currently playing track and then add the songs the song to the playlist ____', 'Spotify ⇒ Spotify'],
 ];
 
 const gettext = {

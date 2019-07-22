@@ -34,8 +34,8 @@ var TEST_CASES = [
     [`let stream x := \\(p_author : Entity(tt:username)) -> monitor (@com.twitter.search()), author == p_author;`,
      `monitor (@com.twitter.search()), author == __const_SLOT_0 => notify;`],
 
-    ['let action x := \\(p_song1 : String, p_song2 : String) -> @com.spotify.play_songs(toPlay=[p_song1, p_song2]);',
-    'now => @com.spotify.play_songs(toPlay=[__const_SLOT_0, __const_SLOT_1]);'],
+    ['let action x := \\(p_song1 : String, p_song2 : String) -> @com.spotify.play_songs(songs=[p_song1, p_song2]);',
+    'now => @com.spotify.play_songs(songs=[__const_SLOT_0, __const_SLOT_1]);'],
 ];
 
 function test(i) {

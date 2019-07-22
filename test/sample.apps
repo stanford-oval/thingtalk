@@ -1229,24 +1229,24 @@ dataset @foo {
 
 // typechecking arrays
 // ** typecheck: expect TypeError **
-now => @com.spotify.play_songs(toPlay=[foo]);
+now => @com.spotify.play_songs(songs=[foo]);
 
 ====
 
 // typechecking arrays
 // ** typecheck: expect TypeError **
-now => @com.spotify.play_songs(toPlay=["1", 2]);
+now => @com.spotify.play_songs(songs=["1", 2]);
 
 ====
 
 // typechecking arrays
 // ** typecheck: expect TypeError **
-now => @com.spotify.play_songs(toPlay=[1, 2]);
+now => @com.spotify.play_songs(songs=[1, 2]);
 
 ====
 
 // typechecking arrays
-now => @com.spotify.play_songs(toPlay=["foo", "bar"]);
+now => @com.spotify.play_songs(songs=["foo", "bar"]);
 
 ====
 // genie annotations

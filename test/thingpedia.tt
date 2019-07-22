@@ -1463,106 +1463,66 @@ class @com.wikicfp
 }
 class @com.spotify
 #_[canonical="spotify"] {
-  monitorable query get_acousticness(in opt song: String #_[canonical="song"] #[string_values="tt:song_name"],
-                                     out acousticness: Number #_[canonical="acousticness"])
-  #_[canonical="acousticness of this track"]
-  #_[confirmation="acousticness of this track"]
-  #_[formatted=[{type="text",text="'On a scale from 0 to 1, the acousticness of this track is ${acousticness}."}]];
-
   monitorable query get_currently_playing(out song: String #_[canonical="song"] #[string_values="tt:song_name"])
-  #_[canonical="get currently playing track name"]
-  #_[confirmation="the currently playing track name"]
+  #_[canonical="currently playing track"]
+  #_[confirmation="the currently playing track"]
   #_[formatted=[{type="text",text="The current playing song is ${song}."}]];
 
-  monitorable query get_danceability(in opt song: String #_[canonical="song"] #[string_values="tt:song_name"],
-                                     out danceability: Number #_[canonical="danceability"])
-  #_[canonical="danceability of this track"]
-  #_[confirmation="danceability of this track"]
-  #_[formatted=[{type="text",text="On a scale from 0 to 1, the danceability of this track is ${danceability}."}]];
+  monitorable query get_song_info(in req song: String #_[prompt="What song are you looking for?"] #_[canonical="song"] #[string_values="tt:song_name"],
+                                  out acousticness: Number #_[canonical="acousticness"],
+                                  out danceability: Number #_[canonical="danceability"],
+                                  out energy: Number #_[canonical="energy"],
+                                  out instrumentalness: Number #_[canonical="instrumentalness"],
+                                  out key: Enum(C,C_sharp,D,D_sharp,E,F,F_sharp,G,G_sharp,A,A_sharp,B) #_[canonical="key"],
+                                  out modality: Enum(Major,minor) #_[canonical="modality"],
+                                  out liveness: Number #_[canonical="liveness"],
+                                  out loudness: Number #_[canonical="loudness"],
+                                  out speechness: Number #_[canonical="speechness"],
+                                  out tempo: Number #_[canonical="tempo"],
+                                  out beats: Number #_[canonical="beats"],
+                                  out valence: Number #_[canonical="valence"])
+  #_[formatted=[
+    "The tempo of this track is ${tempo} beats per minute",
+    "On a scale from 0 to 1, the danceability of this track is ${danceability}",
+    "On a scale from 0 to 1, the acousticness of this track is ${acousticness}.",
+    "On a scale from 0 to 1, the energy of this track is ${energy}",
+    "On a scale from 0 to 1, the speechiness of this track is ${speechiness}",
+    "On a scale from 0 to 1, the valence of this track is ${valence}",
+    "On a scale from 0 to 1, the liveness of this track is ${liveness}",
+    "On a scale from 0 to 1, the instrumentalness of this track is ${instrumentalness}",
+    "On a scale from -60 to 0 dB, the loudness of this track is ${loudness} dB",
+    "On a scale from 0 to 1, the valence of this track is ${valence}",
+    "The key of this track is ${key} ${modality}",
+    "This track has ${beats} beats per measure"
+  ]]
+  #_[canonical="spotify song info"]
+  #_[confirmation="info about ${song}"];
 
-  monitorable query get_energy(in opt song: String #_[canonical="song"] #[string_values="tt:song_name"],
-                               out energy: Number #_[canonical="energy"])
-  #_[canonical="energy of this track"]
-  #_[confirmation="energy of this track"]
-  #_[formatted=[{type="text",text="On a scale from 0 to 1, the energy of this track is ${energy}."}]];
-
-  monitorable query get_instrumentalness(in opt song: String #_[canonical="song"] #[string_values="tt:song_name"],
-                                         out instrumentalness: Number #_[canonical="instrumentalness"])
-  #_[canonical="instrumentalness of this track"]
-  #_[confirmation="instrumentalness of this track"]
-  #_[formatted=[{type="text",text="On a scale from 0 to 1, the instrumentalness of this track is ${instrumentalness}."}]];
-
-  monitorable query get_key(in opt song: String #_[canonical="song"] #[string_values="tt:song_name"],
-                            out key: String #_[canonical="key"],
-                            out modality: String #_[canonical="modality"])
-  #_[canonical="key of this track"]
-  #_[confirmation="key of this track"]
-  #_[formatted=[{type="text",text="The key of this track is ${key} ${modality}."}]];
-
-  monitorable query get_liveness(in opt song: String #_[canonical="song"] #[string_values="tt:song_name"],
-                                 out liveness: Number #_[canonical="liveness"])
-  #_[canonical="liveness of this track"]
-  #_[confirmation="liveness of this track"]
-  #_[formatted=[{type="text",text="On a scale from 0 to 1, the liveness of this track is ${liveness}."}]];
-
-  monitorable query get_loudness(in opt song: String #_[canonical="song"] #[string_values="tt:song_name"],
-                                 out loudness: Number #_[canonical="loudness"])
-  #_[canonical="loudness of this track"]
-  #_[confirmation="loudness of this track"]
-  #_[formatted=[{type="text",text="On a scale from -60 to 0 dB, the loudness of this track is ${loudness} dB."}]];
-
-  monitorable query get_speechiness(in opt song: String #_[canonical="song"] #[string_values="tt:song_name"],
-                                    out speechness: Number #_[canonical="speechness"])
-  #_[canonical="speechiness of this track"]
-  #_[confirmation="speechiness of this track"]
-  #_[formatted=[{type="text",text="On a scale from 0 to 1, the speechiness of this track is ${speechiness}."}]];
-
-  monitorable query get_tempo(in opt song: String #_[canonical="song"] #[string_values="tt:song_name"],
-                              out tempo: Number #_[canonical="tempo"])
-  #_[canonical="retrieve the tempo"]
-  #_[confirmation="retrieve the tempo"]
-  #_[formatted=[{type="text",text="The tempo of this track is ${tempo} beats per minute."}]];
-
-  monitorable query get_time_signature(in opt song: String #_[canonical="song"] #[string_values="tt:song_name"],
-                                       out beats: Number #_[canonical="beats"])
-  #_[canonical="time signature of this track"]
-  #_[confirmation="time signature of this track"]
-  #_[formatted=[{type="text",text="This track has ${beats} beats per measure."}]];
-
-  monitorable list query get_user_playlist(out playlist: String #_[canonical="playlist"])
-  #_[canonical="get my spotify playlist"]
-  #_[confirmation="your Spotify playlist"];
+  monitorable list query get_user_playlist(out playlist: String)
+  #_[canonical="my spotify playlists"]
+  #_[confirmation="your Spotify playlists"]
+  #[doc="retrieve all your Spotify playlists"];
 
   monitorable list query get_user_playlist_track(in req playlist: String #_[prompt="Which playlist do you want?"] #_[canonical="playlist"],
                                                  out song: String #_[canonical="song"] #[string_values="tt:song_name"])
-  #_[canonical="get songs in my spotify playlist"]
+  #_[canonical="songs in playlist"]
   #_[confirmation="songs in your Spotify playlist ${playlist}"]
   #_[formatted=[{type="text",text="${song}"}]];
 
   monitorable list query get_user_top_tracks(out song: String #_[canonical="song"] #[string_values="tt:song_name"])
-  #_[canonical="sportify top tracks"]
-  #_[confirmation="my top tracks in Spotify"]
+  #_[canonical="spotify top tracks"]
+  #_[confirmation="your top tracks in Spotify"]
   #_[formatted=[{type="text",text="${song}"}]];
 
-  monitorable query get_valence(in opt song: String #_[canonical="song"] #[string_values="tt:song_name"],
-                                out valence: Number #_[canonical="valence"])
-  #_[canonical="valence (positivity) of this track"]
-  #_[confirmation="valence (positivity) of this track"]
-  #_[formatted=[{type="text",text="On a scale from 0 to 1, the valence of this track is ${valence}"}]];
-
-  action add_album_to_playlist(in req toAdd: String #_[prompt="What album would you like to add to your playlist?"] #_[canonical="to add"] #[string_values="tt:song_name"],
+  action add_album_to_playlist(in req album: String #_[prompt="What album would you like to add to your playlist?"] #_[canonical="to add"] #[string_values="tt:song_name"],
                                in req playlist: String #_[prompt="What play list would you like to add to?"] #_[canonical="playlist"] #[string_values="com.spotify:playlist"])
   #_[canonical="add an album to a playlist"]
-  #_[confirmation="add the album $toAdd to the playlist $playlist"];
+  #_[confirmation="add the album $album to the playlist $playlist"];
 
-  action add_songs_to_playlist(in req toAdd: String #_[prompt="What songs would you like to add? List them separated by comma."] #_[canonical="to add"] #[string_values="tt:song_name"],
+  action add_songs_to_playlist(in req songs: Array(String) #_[prompt="What songs would you like to add?"] #_[canonical="to add"] #[string_values="tt:song_name"],
                                in req playlist: String #_[prompt="What playlist would you like to add to?"] #_[canonical="playlist"] #[string_values="com.spotify:playlist"])
   #_[canonical="add songs to a playlist"]
-  #_[confirmation="add the songs $toAdd to the playlist $playlist"];
-
-  action add_this_song_to_playlist(in req playlist: String #_[prompt="What playlist would you like to add to?"] #_[canonical="playlist"] #[string_values="com.spotify:playlist"])
-  #_[canonical="add this song to playlist"]
-  #_[confirmation="add this song to the playlist $playlist"];
+  #_[confirmation="add the songs $songs to the playlist $playlist"];
 
   action create_new_playlist(in req title: String #_[prompt="What would you like to name your playlist?"] #_[canonical="title"] #[string_values="com.spotify:playlist"],
                              in opt description: String #_[prompt="What description would you like to give your playlist?"] #_[canonical="description"] #[string_values="tt:long_free_text"],
@@ -1570,29 +1530,29 @@ class @com.spotify
   #_[canonical="create a new playlist"]
   #_[confirmation="create a new playlist named $title"];
 
-  action play_album(in req toPlay: String #_[prompt="What album would you like to play?"] #_[canonical="to play"] #[string_values="tt:song_album"])
+  action play_album(in req album: String #_[prompt="What album would you like to play?"] #_[canonical="to play"] #[string_values="tt:song_album"])
   #_[canonical="play an album"]
-  #_[confirmation="play the album $toPlay"];
+  #_[confirmation="play the album $album"];
 
-  action play_artist(in req toPlay: String #_[prompt="What artist would you like to play?"] #_[canonical="to play"] #[string_values="tt:song_artist"])
+  action play_artist(in req artist: String #_[prompt="What artist would you like to play?"] #_[canonical="to play"] #[string_values="tt:song_artist"])
   #_[canonical="play an artist"]
-  #_[confirmation="play the artist $toPlay"];
+  #_[confirmation="play the artist $artist"];
 
-  action play_my_playlist(in req toPlay: String #_[prompt="Which one of your playlists do you want to play?"] #_[canonical="to play"] #[string_values="com.spotify:playlist"])
+  action play_my_playlist(in req playlist: String #_[prompt="Which one of your playlists do you want to play?"] #_[canonical="to play"] #[string_values="com.spotify:playlist"])
   #_[canonical="play your playlist"]
-  #_[confirmation="play your playlist $toPlay"];
+  #_[confirmation="play your playlist $playlist"];
 
-  action play_playlist(in req toPlay: String #_[prompt="What playlist do you want to play?"] #_[canonical="to play"] #[string_values="com.spotify:playlist"])
+  action play_playlist(in req playlist: String #_[prompt="What playlist do you want to play?"] #_[canonical="to play"] #[string_values="com.spotify:playlist"])
   #_[canonical="play the playlist"]
-  #_[confirmation="play the playlist $toPlay"];
+  #_[confirmation="play the playlist $playlist"];
 
   action play_seek_seconds(in req seconds: Measure(ms) #_[prompt="What timestamp (in seconds) should we seek to?"] #_[canonical="seconds"])
   #_[canonical="seek the track in seconds"]
-  #_[confirmation="seek the track to $seconds seconds"];
+  #_[confirmation="seek the track to $seconds"];
 
-  action play_songs(in req toPlay: Array(String) #_[prompt="What song do you want to play?"] #_[canonical="to play"] #[string_values="tt:song_name"])
-  #_[canonical="play song"]
-  #_[confirmation="play the song(s) $toPlay"];
+  action play_songs(in req songs: Array(String) #_[prompt="List the songs you want to play, separated by comma."] #_[canonical="to play"] #[string_values="tt:song_name"])
+  #_[canonical="play the song(s)"]
+  #_[confirmation="play the song(s) $songs"];
 
   action player_next()
   #_[canonical="go to the next song"]
@@ -1612,11 +1572,11 @@ class @com.spotify
 
   action player_repeat(in req repeat: Enum(track,context,off) #_[prompt="Should we set the repeat state to 'track', 'context', or 'off'?"] #_[canonical="repeat"])
   #_[canonical="set the repeat state"]
-  #_[confirmation="set the repeat state"];
+  #_[confirmation="set repeat mode to ${repeat}"];
 
   action player_shuffle(in req shuffle: Enum(on,off) #_[prompt="Should we set the shuffle state to 'on' or 'off'?"] #_[canonical="shuffle"])
   #_[canonical="set the shuffle state"]
-  #_[confirmation="set the shuffle state"];
+  #_[confirmation="turn shuffle ${shuffle}"];
 
   action save_current_track()
   #_[canonical="save the currently playing track"]
