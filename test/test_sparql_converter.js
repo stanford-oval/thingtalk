@@ -30,6 +30,11 @@ async function main() {
     && P641 == ["Q41323"^^org.wikidatasportsskill:sports] => notify;
     `,
     `
+    // Filter for person who was 231 cm and plays Basketball
+    now => @org.wikidatasportsskill.athlete(), P2048 == 231cm
+    && P641 == ["Q5372"^^org.wikidatasportsskill:sports] => notify;
+    `,
+    `
     // Filter for person who was drafted by the cavs and won the MVP award
     now => @org.wikidatasportsskill.athlete(),
     P647 == "Q162990"^^org.wikidatasportsskill:sports_teams("Cleveland Cavaliers")
@@ -47,6 +52,7 @@ async function main() {
     P286 == "Q523630"^^org.wikidata:human('Steve Kerr'))
     join ([P647] of @org.wikidatasportsskill.athlete())), P647 == sports_team => notify;
     `,
+
     `
     // Filter for person who has last name Curry, plays Basketball, and get the second result
     now => @org.wikidatasportsskill.athlete()[1:2], P734 == "Curry"
@@ -56,6 +62,7 @@ async function main() {
   const answers = [
     "Dell Curry",
     "Tom Brady",
+    "Gheorghe Mureșan",
     "LeBron James",
     "Wilt Chamberlain",
     "Klay Thompson",
@@ -70,28 +77,32 @@ async function main() {
           async (program) => {
             //convert from ast to sparql
             const sparqlQuery = await SparqlConverter.toSparql(program);
+            SparqlQuery.query(sparqlQuery[0])
+              .then((response) => {
+                let query_output = [];
+                let result = response["results"]["bindings"];
+                let start = 0;
+                let end = result.length;
 
-            SparqlQuery.query(sparqlQuery[0]).then((response) => {
-              let query_output = [];
-              let result = response["results"]["bindings"];
-              let start = 0;
-              let end = result.length;
+                if (sparqlQuery[1][0] !== 0 || sparqlQuery[1][1] !== 0) {
+                  start = sparqlQuery[1][0];
+                  end = sparqlQuery[1][1];
+                }
 
-              if (sparqlQuery[1][0] !== 0 || sparqlQuery[1][1] !== 0) {
-                start = sparqlQuery[1][0];
-                end = sparqlQuery[1][1];
-              }
+                for (var i = start; i < end; i++) {
+                  //if there is not a join
+                  let output_var = "v%sLabel".format(sparqlQuery[2]);
 
-              for (var i = start; i < end; i++) {
-                //if there is not a join
-                let output_var = "v%sLabel".format(sparqlQuery[2]);
+                  let output = result[i][output_var]["value"];
+                  query_output.push(output);
+                }
 
-                let output = result[i][output_var]["value"];
-                query_output.push(output);
-              }
-
-              resolve(query_output);
-            });
+                resolve(query_output);
+              })
+              .catch((error) => {
+                console.log(error);
+                resolve(undefined);
+              });
           }
         );
       });
@@ -103,4 +114,5 @@ async function main() {
   });
 }
 
-main();
+module.exports = main;
+if (!module.parent) main();
