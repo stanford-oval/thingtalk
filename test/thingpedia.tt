@@ -1655,7 +1655,6 @@ class @org.wikidatasportsskill
                      out P6543: Number #_[canonical="total shots in career"],
                      out P6547: Number #_[canonical="career plus-minus rating"],
                      out P3957: Entity(org.wikidatasportsskill:realgm_basketball_player_id) #_[canonical="realgm basketball player id"],
-                     out date: Date #_[canonical="point in time"],
                      out athlete: Entity(org.wikidatasportsskill:athletes) #_[canonical="athlete"])
   #_[canonical="wikidata athlete"]
   #_[confirmation="wikidata athlete"];
