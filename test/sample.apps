@@ -1308,13 +1308,6 @@ class @foo {
 
 now => [person, image] of @org.wikidata.person() => notify;
 
-
-====
-// ** typecheck: expect TypeError **
-// missing default projection
-
-now => @org.wikidata.person(), P735 ~= 'Bob' => notify;
-
 ====
 
 now => [person, P18] of (@org.wikidata.person(), P735 ~= 'Bob') => notify;
