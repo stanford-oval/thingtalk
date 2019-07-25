@@ -395,6 +395,29 @@ var TEST_CASES = [
      'Selector(@com.twitter)',
      'InputParamSlot(status : String) in_param.status What do you want to tweet?']
     ],
+
+    [`source == $? : now => @com.twitter.post;`,
+
+    [],
+    ['Atom(source, ==, Undefined(true))'],
+    ['FilterSlot(source == : Entity(tt:contact)) filter.==.$source Who is allowed to ask you for this command?']
+    ],
+
+    [`in_array(source, $?) : now => @com.twitter.post;`,
+
+    [],
+    ['Atom(source, in_array, Undefined(true))'],
+    ['FilterSlot(source in_array : Array(Entity(tt:contact))) filter.in_array.$source Who is allowed to ask you for this command?']
+    ],
+
+    [`in_array(source, [$?, $?]) : now => @com.twitter.post;`,
+
+    [],
+    ['Atom(source, in_array, Array(Undefined(true),Undefined(true)))'],
+    ['FilterSlot(source in_array : Array(Entity(tt:contact))) filter.in_array.$source Who is allowed to ask you for this command?',
+    'ArrayIndexSlot([0] : Entity(tt:contact)) filter.in_array.$source[0] Who is the first friend who is allowed to ask you for this command?',
+    'ArrayIndexSlot([1] : Entity(tt:contact)) filter.in_array.$source[1] Who is the second friend who is allowed to ask you for this command?']
+    ],
 ];
 
 async function test(i) {
@@ -404,7 +427,9 @@ async function test(i) {
     try {
         const prog = await Grammar.parseAndTypecheck(code, schemaRetriever, true);
         const generatedSlots = Array.from(prog.iterateSlots()).map(([schema, slot, prim, scope]) => {
-            if (prim.isVarRef)
+            if (!prim)
+                return String(slot);
+            else if (prim.isVarRef)
                 return `${slot} ${prim.name}`;
             else
                 return `${slot} ${prim.selector.kind}:${prim.channel}`;
