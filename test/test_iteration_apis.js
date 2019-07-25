@@ -141,7 +141,9 @@ var TEST_CASES = [
      'Device(org.thingpedia.weather, , ) org.thingpedia.weather:current',
      'Builtin undefined:notify'],
     ['Selector(@com.instagram)',
-     'Selector(@org.thingpedia.weather)'],
+     'Selector(@org.thingpedia.weather)',
+     'ArrayIndexSlot([0] : Number)',
+     'ArrayIndexSlot([1] : Number)'],
     ],
 
     [`now => (@com.instagram.get_pictures() join @org.thingpedia.weather.current() on (location=location))[1:2] => notify;`,
@@ -152,7 +154,9 @@ var TEST_CASES = [
      'Device(org.thingpedia.weather, , ) org.thingpedia.weather:current',
      'Builtin undefined:notify'],
     ['Selector(@com.instagram)',
-     'Selector(@org.thingpedia.weather)'],
+     'Selector(@org.thingpedia.weather)',
+     'FieldSlot(base : Number)',
+     'FieldSlot(limit : Number)'],
     ],
 
     [`monitor (@com.instagram.get_pictures() join @org.thingpedia.weather.current() on (location=location)) => notify;`,
@@ -345,9 +349,51 @@ var TEST_CASES = [
     ['query: ResultRef(com.thecatapi, get, Number(-1), )',
      'action: Invocation(Builtin, notify, , )'],
      ['Builtin undefined:notify'],
-    []
-    ]
+    ['FieldSlot(index : Number)']
+    ],
 
+    [`executor = $? : now => @com.twitter.post();`,
+
+    [`action: Invocation(Device(com.twitter, , ), post, InputParam(status, Undefined(true)), )`],
+    ['Device(com.twitter, , ) com.twitter:post',
+     'InputParam(status, Undefined(true)) com.twitter:post'],
+    ['FieldSlot(principal : Entity(tt:contact))',
+     'Selector(@com.twitter)',
+     'InputParamSlot(status : String)']
+    ],
+
+    [`attimer(time=$?) => @com.twitter.post();`,
+
+    [`action: Invocation(Device(com.twitter, , ), post, InputParam(status, Undefined(true)), )`],
+    ['Device(com.twitter, , ) com.twitter:post',
+     'InputParam(status, Undefined(true)) com.twitter:post'],
+    ['ArrayIndexSlot([0] : Time)',
+     'Selector(@com.twitter)',
+     'InputParamSlot(status : String)']
+    ],
+
+    [`attimer(time=[$?, $?]) => @com.twitter.post();`,
+
+    [`action: Invocation(Device(com.twitter, , ), post, InputParam(status, Undefined(true)), )`],
+    ['Device(com.twitter, , ) com.twitter:post',
+     'InputParam(status, Undefined(true)) com.twitter:post'],
+    ['ArrayIndexSlot([0] : Time)',
+     'ArrayIndexSlot([1] : Time)',
+     'Selector(@com.twitter)',
+     'InputParamSlot(status : String)']
+    ],
+
+    [`attimer(time=[$?, $?], expiration_date=$?) => @com.twitter.post();`,
+
+    [`action: Invocation(Device(com.twitter, , ), post, InputParam(status, Undefined(true)), )`],
+    ['Device(com.twitter, , ) com.twitter:post',
+     'InputParam(status, Undefined(true)) com.twitter:post'],
+    ['ArrayIndexSlot([0] : Time)',
+     'ArrayIndexSlot([1] : Time)',
+     'FieldSlot(expiration_date : Date)',
+     'Selector(@com.twitter)',
+     'InputParamSlot(status : String)']
+    ],
 ];
 
 function test(i) {
