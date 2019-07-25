@@ -381,7 +381,7 @@ var TEST_CASES = [
     ['ArrayIndexSlot([0] : Time) attimer.time[0] What is the first time you would like your command to run?',
      'ArrayIndexSlot([1] : Time) attimer.time[1] What is the second time you would like your command to run?',
      'Selector(@com.twitter)',
-     'InputParamSlot(status : String)']
+     'InputParamSlot(status : String) in_param.status What do you want to tweet?']
     ],
 
     [`attimer(time=[$?, $?], expiration_date=$?) => @com.twitter.post();`,
