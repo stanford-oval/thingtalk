@@ -1309,6 +1309,11 @@ class @foo {
 now => [id, image] of @org.wikidata.person() => notify;
 
 ====
+// ** typecheck: expect TypeError **
+// invalid output parameter
+now => [id, P18] of (@org.wikidata.person(), XXX ~= 'Bob') => notify;
+
+====
 
 now => [id, P18] of (@org.wikidata.person(), P735 ~= 'Bob') => notify;
 
