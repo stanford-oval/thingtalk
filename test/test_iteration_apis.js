@@ -440,6 +440,7 @@ async function test(i) {
 
             assert(slot.type instanceof Type);
             assert(slot.get() instanceof Ast.Value);
+            assert(Array.isArray(slot.options));
             return slot.toString() + ' ' + slot.tag + ' ' + slot.getPrompt('en-US');
         });
         const generatedPrims = Array.from(prog.iteratePrimitives(true)).map(([primType, prim]) => {
