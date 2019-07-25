@@ -10,6 +10,7 @@
 "use strict";
 
 const assert = require('assert');
+require('./polyfill');
 
 const Grammar = require('../lib/grammar_api');
 const Ast = require('../lib/ast');
@@ -25,7 +26,7 @@ function assertArrayEquals(testCase, array, expected) {
     let failed = false;
     for (let i = 0; i < array.length; i++) {
         if (array[i] !== expected[i]) {
-            console.error('Test Case #' + (i+1) + ': does not match what expected');
+            console.error(`Test Case #${testCase+1}/${i+1}: does not match what expected`);
             console.error('Expected: ' + expected[i]);
             console.error('Generated: ' + array[i]);
             failed = true;
@@ -59,7 +60,7 @@ var TEST_CASES = [
      'InputParam(number, Undefined(true)) com.xkcd:get_comic',
      'Builtin undefined:notify'],
     ['Selector(@com.xkcd)',
-     'InputParamSlot(number : Number)'],
+     'InputParamSlot(number : Number) in_param.number What Xkcd comic do you want?'],
      ],
 
     [`monitor (@com.xkcd.get_comic(number=1234)) => notify;`,
@@ -69,7 +70,7 @@ var TEST_CASES = [
      'InputParam(number, Number(1234)) com.xkcd:get_comic',
      'Builtin undefined:notify'],
     ['Selector(@com.xkcd)',
-     'InputParamSlot(number : Number)'],
+     'InputParamSlot(number : Number) in_param.number What Xkcd comic do you want?'],
     ],
 
     [`monitor (@com.xkcd.get_comic(number=1234)) => @com.facebook.post(status=title);`,
@@ -80,9 +81,9 @@ var TEST_CASES = [
      'Device(com.facebook, , ) com.facebook:post',
      'InputParam(status, VarRef(title)) com.facebook:post'],
     ['Selector(@com.xkcd)',
-     'InputParamSlot(number : Number)',
+     'InputParamSlot(number : Number) in_param.number What Xkcd comic do you want?',
      'Selector(@com.facebook)',
-     'InputParamSlot(status : String)'],
+     'InputParamSlot(status : String) in_param.status What do you want to post?'],
      ],
 
     [`monitor (@com.xkcd.get_comic(number=1234)) => @com.facebook.post(status=$event);`,
@@ -93,9 +94,9 @@ var TEST_CASES = [
      'Device(com.facebook, , ) com.facebook:post',
      'InputParam(status, Event()) com.facebook:post'],
     ['Selector(@com.xkcd)',
-     'InputParamSlot(number : Number)',
+     'InputParamSlot(number : Number) in_param.number What Xkcd comic do you want?',
      'Selector(@com.facebook)',
-     'InputParamSlot(status : String)'],
+     'InputParamSlot(status : String) in_param.status What do you want to post?'],
     ],
 
     [`now => aggregate count of @com.xkcd.get_comic(number=1234) => @com.facebook.post(status=$event);`,
@@ -106,9 +107,9 @@ var TEST_CASES = [
      'Device(com.facebook, , ) com.facebook:post',
      'InputParam(status, Event()) com.facebook:post'],
     ['Selector(@com.xkcd)',
-     'InputParamSlot(number : Number)',
+     'InputParamSlot(number : Number) in_param.number What Xkcd comic do you want?',
      'Selector(@com.facebook)',
-     'InputParamSlot(status : String)'],
+     'InputParamSlot(status : String) in_param.status What do you want to post?'],
     ],
 
     [`now => aggregate avg temperature of (@com.instagram.get_pictures() join @org.thingpedia.weather.current() on (location=location)) => notify;`,
@@ -142,8 +143,8 @@ var TEST_CASES = [
      'Builtin undefined:notify'],
     ['Selector(@com.instagram)',
      'Selector(@org.thingpedia.weather)',
-     'ArrayIndexSlot([0] : Number)',
-     'ArrayIndexSlot([1] : Number)'],
+     'ArrayIndexSlot([0] : Number) table.index[0] What is the index of the first result you would like?',
+     'ArrayIndexSlot([1] : Number) table.index[1] What is the index of the second result you would like?'],
     ],
 
     [`now => (@com.instagram.get_pictures() join @org.thingpedia.weather.current() on (location=location))[1:2] => notify;`,
@@ -155,8 +156,8 @@ var TEST_CASES = [
      'Builtin undefined:notify'],
     ['Selector(@com.instagram)',
      'Selector(@org.thingpedia.weather)',
-     'FieldSlot(base : Number)',
-     'FieldSlot(limit : Number)'],
+     'FieldSlot(base : Number) slice.base What is the first result you would like?',
+     'FieldSlot(limit : Number) slice.limit How many results would you like?'],
     ],
 
     [`monitor (@com.instagram.get_pictures() join @org.thingpedia.weather.current() on (location=location)) => notify;`,
@@ -180,9 +181,9 @@ var TEST_CASES = [
      'InputParam(target_language, Entity(zh, tt:iso_lang_code, )) com.yandex.translate:translate',
      'Builtin undefined:notify'],
     ['Selector(@com.washingtonpost)',
-     'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle))',
+     'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle)) in_param.section What section do you want to read?',
      'Selector(@com.yandex.translate)',
-     'InputParamSlot(target_language : Entity(tt:iso_lang_code))'],
+     'InputParamSlot(target_language : Entity(tt:iso_lang_code)) in_param.target_language What\'s the target language? Use an ISO language code like it, en or zh.'],
     ],
 
     [`monitor @com.washingtonpost.get_article() join @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code) on (text=title) => notify;`,
@@ -195,9 +196,9 @@ var TEST_CASES = [
      'InputParam(target_language, Entity(zh, tt:iso_lang_code, )) com.yandex.translate:translate',
      'Builtin undefined:notify'],
     ['Selector(@com.washingtonpost)',
-     'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle))',
+     'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle)) in_param.section What section do you want to read?',
      'Selector(@com.yandex.translate)',
-     'InputParamSlot(target_language : Entity(tt:iso_lang_code))'],
+     'InputParamSlot(target_language : Entity(tt:iso_lang_code)) in_param.target_language What\'s the target language? Use an ISO language code like it, en or zh.'],
     ],
 
     [`monitor @com.washingtonpost.get_article(section=enum(world)) join @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code) on (text=title) => notify;`,
@@ -210,9 +211,9 @@ var TEST_CASES = [
      'InputParam(target_language, Entity(zh, tt:iso_lang_code, )) com.yandex.translate:translate',
      'Builtin undefined:notify'],
     ['Selector(@com.washingtonpost)',
-     'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle))',
+     'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle)) in_param.section What section do you want to read?',
      'Selector(@com.yandex.translate)',
-     'InputParamSlot(target_language : Entity(tt:iso_lang_code))'],
+     'InputParamSlot(target_language : Entity(tt:iso_lang_code)) in_param.target_language What\'s the target language? Use an ISO language code like it, en or zh.'],
     ],
 
     [`monitor @com.washingtonpost.get_article(section=enum(world)) => notify;`,
@@ -222,7 +223,7 @@ var TEST_CASES = [
      'InputParam(section, Enum(world)) com.washingtonpost:get_article',
      'Builtin undefined:notify'],
     ['Selector(@com.washingtonpost)',
-     'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle))'],
+     'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle)) in_param.section What section do you want to read?'],
     ],
 
     [`monitor @com.washingtonpost.get_article(section=enum(world)), title =~ "lol" => notify;`,
@@ -233,8 +234,8 @@ var TEST_CASES = [
      'Atom(title, =~, String(lol)) com.washingtonpost:get_article',
      'Builtin undefined:notify'],
     ['Selector(@com.washingtonpost)',
-     'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle))',
-     'FilterSlot(title =~ : String)'],
+     'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle)) in_param.section What section do you want to read?',
+     'FilterSlot(title =~ : String) filter.=~.title What should the title contain?'],
     ],
 
     [`monitor @com.washingtonpost.get_article(section=enum(world)), title =~ "lol" || title =~ "bar" => notify;`,
@@ -246,9 +247,9 @@ var TEST_CASES = [
      'Atom(title, =~, String(bar)) com.washingtonpost:get_article',
      'Builtin undefined:notify'],
     ['Selector(@com.washingtonpost)',
-     'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle))',
-     'FilterSlot(title =~ : String)',
-     'FilterSlot(title =~ : String)'],
+     'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle)) in_param.section What section do you want to read?',
+     'FilterSlot(title =~ : String) filter.=~.title What should the title contain?',
+     'FilterSlot(title =~ : String) filter.=~.title What should the title contain?'],
     ],
 
     [`now => @com.washingtonpost.get_article(section=enum(world)), title =~ "lol" => notify;`,
@@ -259,8 +260,8 @@ var TEST_CASES = [
      'Atom(title, =~, String(lol)) com.washingtonpost:get_article',
      'Builtin undefined:notify'],
     ['Selector(@com.washingtonpost)',
-     'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle))',
-     'FilterSlot(title =~ : String)'],
+     'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle)) in_param.section What section do you want to read?',
+     'FilterSlot(title =~ : String) filter.=~.title What should the title contain?'],
     ],
 
     [`now => @com.washingtonpost.get_article(section=enum(world)), title =~ "lol" || title =~ "bar" => notify;`,
@@ -272,9 +273,9 @@ var TEST_CASES = [
      'Atom(title, =~, String(bar)) com.washingtonpost:get_article',
      'Builtin undefined:notify'],
     ['Selector(@com.washingtonpost)',
-     'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle))',
-     'FilterSlot(title =~ : String)',
-     'FilterSlot(title =~ : String)'],
+     'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle)) in_param.section What section do you want to read?',
+     'FilterSlot(title =~ : String) filter.=~.title What should the title contain?',
+     'FilterSlot(title =~ : String) filter.=~.title What should the title contain?'],
     ],
 
     ['now => (@com.bing.web_search() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code("Italian")) on (text=$event)) => notify;',
@@ -287,9 +288,9 @@ var TEST_CASES = [
      'InputParam(target_language, Entity(it, tt:iso_lang_code, Italian)) com.yandex.translate:translate',
      'Builtin undefined:notify'],
     ['Selector(@com.bing)',
-     'InputParamSlot(query : String)',
+     'InputParamSlot(query : String) in_param.query What do you want to search?',
      'Selector(@com.yandex.translate)',
-     'InputParamSlot(target_language : Entity(tt:iso_lang_code))'],
+     'InputParamSlot(target_language : Entity(tt:iso_lang_code)) in_param.target_language What\'s the target language? Use an ISO language code like it, en or zh.'],
     ],
 
     ['monitor @com.bing.web_search() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code("Italian")) on (text=$event) => notify;',
@@ -302,9 +303,9 @@ var TEST_CASES = [
      'InputParam(target_language, Entity(it, tt:iso_lang_code, Italian)) com.yandex.translate:translate',
      'Builtin undefined:notify'],
     ['Selector(@com.bing)',
-     'InputParamSlot(query : String)',
+     'InputParamSlot(query : String) in_param.query What do you want to search?',
      'Selector(@com.yandex.translate)',
-     'InputParamSlot(target_language : Entity(tt:iso_lang_code))'],
+     'InputParamSlot(target_language : Entity(tt:iso_lang_code)) in_param.target_language What\'s the target language? Use an ISO language code like it, en or zh.'],
     ],
 
     ['dataset @com.twitter language \'en\' {\n' +
@@ -325,7 +326,7 @@ var TEST_CASES = [
      'Builtin undefined:notify'
     ],
     ['Selector(@com.twitter)',
-     'FilterSlot(author == : Entity(tt:username))',
+     'FilterSlot(author == : Entity(tt:username)) filter.==.author From which user do you want tweets?',
      'Selector(@com.twitter)'],
     ],
 
@@ -342,14 +343,14 @@ var TEST_CASES = [
 
     // FIXME typechecking of VarRef calls messes with the .schema in a way that
     // prevents us from knowing the correct slot type
-    ['InputParamSlot(p_query : Any)']
+    ['InputParamSlot(p_query : Any) in_param.p_query Please tell me the query.']
     ],
 
     [`now => result(@com.thecatapi.get) => notify;`,
     ['query: ResultRef(com.thecatapi, get, Number(-1), )',
      'action: Invocation(Builtin, notify, , )'],
      ['Builtin undefined:notify'],
-    ['FieldSlot(index : Number)']
+    ['FieldSlot(index : Number) result_ref.index Which result do you want?']
     ],
 
     [`executor = $? : now => @com.twitter.post();`,
@@ -357,9 +358,9 @@ var TEST_CASES = [
     [`action: Invocation(Device(com.twitter, , ), post, InputParam(status, Undefined(true)), )`],
     ['Device(com.twitter, , ) com.twitter:post',
      'InputParam(status, Undefined(true)) com.twitter:post'],
-    ['FieldSlot(principal : Entity(tt:contact))',
+    ['FieldSlot(principal : Entity(tt:contact)) program.principal Who should run this command?',
      'Selector(@com.twitter)',
-     'InputParamSlot(status : String)']
+     'InputParamSlot(status : String) in_param.status What do you want to tweet?']
     ],
 
     [`attimer(time=$?) => @com.twitter.post();`,
@@ -367,9 +368,9 @@ var TEST_CASES = [
     [`action: Invocation(Device(com.twitter, , ), post, InputParam(status, Undefined(true)), )`],
     ['Device(com.twitter, , ) com.twitter:post',
      'InputParam(status, Undefined(true)) com.twitter:post'],
-    ['ArrayIndexSlot([0] : Time)',
+    ['ArrayIndexSlot([0] : Time) attimer.time[0] When do you want your command to run?',
      'Selector(@com.twitter)',
-     'InputParamSlot(status : String)']
+     'InputParamSlot(status : String) in_param.status What do you want to tweet?']
     ],
 
     [`attimer(time=[$?, $?]) => @com.twitter.post();`,
@@ -377,8 +378,8 @@ var TEST_CASES = [
     [`action: Invocation(Device(com.twitter, , ), post, InputParam(status, Undefined(true)), )`],
     ['Device(com.twitter, , ) com.twitter:post',
      'InputParam(status, Undefined(true)) com.twitter:post'],
-    ['ArrayIndexSlot([0] : Time)',
-     'ArrayIndexSlot([1] : Time)',
+    ['ArrayIndexSlot([0] : Time) attimer.time[0] What is the first time you would like your command to run?',
+     'ArrayIndexSlot([1] : Time) attimer.time[1] What is the second time you would like your command to run?',
      'Selector(@com.twitter)',
      'InputParamSlot(status : String)']
     ],
@@ -388,19 +389,20 @@ var TEST_CASES = [
     [`action: Invocation(Device(com.twitter, , ), post, InputParam(status, Undefined(true)), )`],
     ['Device(com.twitter, , ) com.twitter:post',
      'InputParam(status, Undefined(true)) com.twitter:post'],
-    ['ArrayIndexSlot([0] : Time)',
-     'ArrayIndexSlot([1] : Time)',
-     'FieldSlot(expiration_date : Date)',
+    ['ArrayIndexSlot([0] : Time) attimer.time[0] What is the first time you would like your command to run?',
+     'ArrayIndexSlot([1] : Time) attimer.time[1] What is the second time you would like your command to run?',
+     'FieldSlot(expiration_date : Date) attimer.expiration_date When should your command stop?',
      'Selector(@com.twitter)',
-     'InputParamSlot(status : String)']
+     'InputParamSlot(status : String) in_param.status What do you want to tweet?']
     ],
 ];
 
-function test(i) {
+async function test(i) {
     console.log('Test Case #' + (i+1));
     var [code, expectedPrim, expectedSlots, expectedSlots2] = TEST_CASES[i];
 
-    return Grammar.parseAndTypecheck(code, schemaRetriever, true).then((prog) => {
+    try {
+        const prog = await Grammar.parseAndTypecheck(code, schemaRetriever, true);
         const generatedSlots = Array.from(prog.iterateSlots()).map(([schema, slot, prim, scope]) => {
             if (prim.isVarRef)
                 return `${slot} ${prim.name}`;
@@ -413,7 +415,7 @@ function test(i) {
 
             assert(slot.type instanceof Type);
             assert(slot.get() instanceof Ast.Value);
-            return slot.toString();
+            return slot.toString() + ' ' + slot.tag + ' ' + slot.getPrompt('en-US');
         });
         const generatedPrims = Array.from(prog.iteratePrimitives(true)).map(([primType, prim]) => {
             prim.schema = null;
@@ -423,13 +425,13 @@ function test(i) {
         assertArrayEquals(i, generatedPrims, expectedPrim);
         assertArrayEquals(i, generatedSlots, expectedSlots);
         assertArrayEquals(i, generatedSlots2, expectedSlots2);
-    }).catch((e) => {
+    } catch(e) {
         console.error('Test Case #' + (i+1) + ': failed with exception');
         console.error('Error: ' + e.message);
         console.error(e.stack);
         if (process.env.TEST_MODE)
             throw e;
-    });
+    }
 }
 
 async function main() {
