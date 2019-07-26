@@ -152,6 +152,13 @@ table = {
         return new Ast.Table.Filter(table, filter, table.schema);
     };
 
+    'result' '(' fn:FUNCTION ')' => {
+        return new Ast.Table.ResultRef(fn.value.kind, fn.value.channel, new Ast.Value.Number(-1), null);
+    };
+    'result' '(' fn:FUNCTION '[' index:constant ']' ')' => {
+        return new Ast.Table.ResultRef(fn.value.kind, fn.value.channel, index, null);
+    };
+
     'aggregate' op:aggr_op field:out_param 'of' '(' table ')' => new Ast.Table.Aggregation(table, field.name, op, null, null);
     'aggregate' 'count' 'of' '(' table ')'                    => new Ast.Table.Aggregation(table, '*', 'count', null, null);
 
@@ -162,10 +169,10 @@ table = {
 
     '[' pnames:out_param_list ']' 'of' '(' table ')'          => new Ast.Table.Projection(table, pnames.map((p) => p.name), null);
 
-    'window' base:constant_Number ',' delta:constant_Number 'of' '(' stream ')'        => new Ast.Table.Window(base, delta, stream, null);
-    'timeseries' base:constant_Date ',' delta:constant_Measure_ms 'of' '(' stream ')' => new Ast.Table.TimeSeries(base, delta, stream, null);
-    'sequence' base:constant_Number ',' delta:constant_Number 'of' '(' table ')'       => new Ast.Table.Sequence(base, delta, table, null);
-    'history' base:constant_Date ',' delta:constant_Measure_ms 'of' '(' table ')'     => new Ast.Table.History(base, delta, table, null);
+    'window' base:constant ',' delta:constant 'of' '(' stream ')'        => new Ast.Table.Window(base, delta, stream, null);
+    'timeseries' base:constant ',' delta:constant 'of' '(' stream ')' => new Ast.Table.TimeSeries(base, delta, stream, null);
+    'sequence' base:constant ',' delta:constant 'of' '(' table ')'       => new Ast.Table.Sequence(base, delta, table, null);
+    'history' base:constant ',' delta:constant 'of' '(' table ')'     => new Ast.Table.History(base, delta, table, null);
 
     table_join;
 }
@@ -180,8 +187,9 @@ table_join = {
 }
 
 stream = {
-    'timer' 'base' '=' base:constant_Date ',' 'interval' '=' interval:constant_Measure_ms => new Ast.Stream.Timer(base, interval, null);
-    'attimer' 'time' '=' time:constant_Time => new Ast.Stream.AtTimer(time, null);
+    'timer' 'base' '=' base:constant ',' 'interval' '=' interval:constant => new Ast.Stream.Timer(base, interval, null);
+    'attimer' 'time' '=' time:constant => new Ast.Stream.AtTimer(time.isArray ? time.value : [time], null, null);
+    'attimer' 'time' '=' time:constant ',' 'expiration_date' '=' expiration_date:constant => new Ast.Stream.AtTimer(time.isArray ? time.value : [time], expiration_date, null);
 
     'monitor' '(' table ')' => new Ast.Stream.Monitor(table, null, null);
     'monitor' '(' table ')' 'on' 'new' pname:out_param => {
@@ -287,20 +295,6 @@ value_filter = {
     'suffix_of' v:string_constant => ['suffix_of', v];
     'contains' v:constant => ['contains', v];
     'in_array' v:constant_Array => ['in_array', v];
-
-    '==' v:out_param => ['==', v];
-    '>=' v:out_param => ['>=', v];
-    '<=' v:out_param => ['<=', v];
-    '>' v:out_param => ['>', v];
-    '<' v:out_param => ['<', v];
-    '=~' v:out_param => ['=~', v];
-    '~=' v:out_param => ['~=', v];
-    'starts_with' v:out_param => ['starts_with', v];
-    'ends_with' v:out_param => ['ends_with', v];
-    'prefix_of' v:out_param => ['prefix_of', v];
-    'suffix_of' v:out_param => ['suffix_of', v];
-    'contains' v:out_param => ['contains', v];
-    'in_array' v:out_param => ['in_array', v];
 }
 
 // this non-terminal exists only for convenience
@@ -328,6 +322,7 @@ constant = {
     constant_Entity__tt__function;
     constant_Entity__tt__picture;
     constant_Enum;
+    out_param;
     slot:SLOT => (slot.value === undefined ? Ast.Value.Undefined(true) : slot.value);
 }
 
@@ -340,12 +335,14 @@ comparable_constant = {
     constant_Currency;
     constant_Date;
     constant_Time;
+    out_param;
     slot:SLOT => (slot.value === undefined ? Ast.Value.Undefined(true) : slot.value);
 }
 
 string_constant = {
     'undefined' => new Ast.Value.Undefined(true);
     constant_String;
+    out_param;
     slot:SLOT => (slot.value === undefined ? Ast.Value.Undefined(true) : slot.value);
 }
 
@@ -375,18 +372,27 @@ word_list = {
     list:word_list word:WORD => list + ' ' + word.value;
 }
 
-// play fast and loose with units here, because I don't want to write
-// everything by hand
-// almond-nnparser autogenerates this part
-constant_Measure = {
-    num:constant_Number unit:UNIT => new Ast.Value.Measure(num.value, unit.value);
+literal_number = {
+    num:NUMBER => num.value;
+    num:LITERAL_INTEGER => num;
+    '1' => 1;
+    '0' => 0;
+}
+
+constant_one_measure = {
+    num:literal_number unit:UNIT => new Ast.Value.Measure(num, unit.value);
     tok:MEASURE => new Ast.Value.Measure(tok.value.value, tok.value.unit);
-    v1:constant_Measure num:constant_Number unit:UNIT => {
+}
+
+constant_Measure = {
+    constant_one_measure;
+
+    v1:constant_Measure v2:constant_one_measure => {
       if (v1.isCompoundMeasure) {
-          v1.value.push(new Ast.Value.Measure(num.value, unit.value));
+          v1.value.push(v2);
           return v1;
       } else {
-          return new Ast.Value.CompoundMeasure([v1, new Ast.Value.Measure(num.value, unit.value)]);
+          return new Ast.Value.CompoundMeasure([v1, v2]);
       }
     };
 }
@@ -400,9 +406,8 @@ constant_Measure_ms = {
 }
 
 constant_Number = {
-    num:NUMBER => new Ast.Value.Number(num.value);
-    '1' => new Ast.Value.Number(1);
-    '0' => new Ast.Value.Number(0);
+    num:literal_number => new Ast.Value.Number(num);
+    '-' num:literal_number => new Ast.Value.Number(-num);
 }
 
 constant_Currency = tok:CURRENCY => new Ast.Value.Currency(tok.value.value, tok.value.unit);

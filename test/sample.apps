@@ -297,7 +297,7 @@ now => aggregate count str1 of Q1 => @com.twitter.post(status=count);
 
 // WithSave
 {
-let table steps    := @edu.stanford.rakeshr1.fitbit.getsteps();
+let table steps    := @com.fitbit.getsteps();
 let table my_table := aggregate max steps of Q1;
 now => my_table => notify;
 }
@@ -1086,6 +1086,16 @@ oninput => {
 
 ====
 
+// attimer with List
+attimer(time=[makeTime(9,0), makeTime(15,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");
+
+====
+
+// list syntax with single attimer
+attimer(time=[makeTime(9,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");
+
+====
+
 // ** typecheck: expect TypeError **
 // procedure with a monitor
 
@@ -1219,26 +1229,26 @@ dataset @foo {
 
 // typechecking arrays
 // ** typecheck: expect TypeError **
-now => @com.spotify.play_songs(toPlay=[foo]);
+now => @com.spotify.play_songs(songs=[foo]);
 
 ====
 
 // typechecking arrays
 // ** typecheck: expect TypeError **
-now => @com.spotify.play_songs(toPlay=["1", 2]);
+now => @com.spotify.play_songs(songs=["1", 2]);
 
 ====
 
 // typechecking arrays
 // ** typecheck: expect TypeError **
-now => @com.spotify.play_songs(toPlay=[1, 2]);
+now => @com.spotify.play_songs(songs=[1, 2]);
 
 ====
 
 // typechecking arrays
-now => @com.spotify.play_songs(toPlay=["foo", "bar"]);
+now => @com.spotify.play_songs(songs=["foo", "bar"]);
 
-==== 
+====
 // genie annotations
 class @foo {
     query bar(out title : String, out description: String, out url : URL #[unique=true])
@@ -1296,36 +1306,34 @@ class @foo {
 // ** typecheck: expect TypeError **
 // require filter
 
-now => [person, image] of @org.wikidata.person() => notify;
-
+now => [id, image] of @org.wikidata.person() => notify;
 
 ====
 // ** typecheck: expect TypeError **
-// missing default projection
-
-now => @org.wikidata.person(), P735 ~= 'Bob' => notify;
+// invalid output parameter
+now => [id, P18] of (@org.wikidata.person(), XXX ~= 'Bob') => notify;
 
 ====
 
-now => [person, P18] of (@org.wikidata.person(), P735 ~= 'Bob') => notify;
+now => [id, P18] of (@org.wikidata.person(), P735 ~= 'Bob') => notify;
 
 ====
 // ** typecheck: expect TypeError **
 // unique output param
 
-now => [person, P18] of (@org.wikidata.person(), (P735 ~= 'Bob' || person ~= "Bob"^^org.wikidata:human)) => notify;
+now => [id, P18] of (@org.wikidata.person(), (P735 ~= 'Bob' || person ~= "Bob"^^org.wikidata:human)) => notify;
 
 ====
 
 // ** typecheck: expect TypeError **
 // unique output param
 
-now => [person, P18] of ((@org.wikidata.person(), person ~= "Bob"^^org.wikidata:human), P735 ~= 'Bob') => notify;
+now => [id, P18] of ((@org.wikidata.person(), person ~= "Bob"^^org.wikidata:human), P735 ~= 'Bob') => notify;
 
 
 ====
 
-now => [person, P18] of (@org.wikidata.person(), (P735 ~= 'Bob' || P27 ~= "China")) => notify;
+now => [id, P18] of (@org.wikidata.person(), (P735 ~= 'Bob' || P27 ~= "China")) => notify;
 
 ====
 
@@ -1338,7 +1346,6 @@ now => @org.thingpedia.weather.current(location=makeLocation("stanford californi
 // projection on table with single output param
 
 now => [date] of @org.thingpedia.builtin.thingengine.builtin.get_date() => notify;
-
 
 ====
 
@@ -1429,3 +1436,49 @@ class @foo {
     #_[canonical='foo']
     #_[confirmation='bar'];
 }
+
+====
+
+// result references
+
+// latest
+now => result(@com.thecatapi.get) => notify;
+now => result(@com.thecatapi.get[-1]) => notify;
+
+// first ever
+now => result(@com.thecatapi.get[1]) => notify;
+
+// second latest
+now => result(@com.thecatapi.get[-2]) => notify;
+
+// w/ param passing
+now => result(@com.thecatapi.get) => @com.twitter.post_picture(picture_url=picture_url);
+
+====
+
+// ** typecheck: expect TypeError **
+// invalid index
+
+now => result(@com.thecatapi.get['foo']) => notify;
+
+====
+
+// ** typecheck: expect TypeError **
+// not a query
+
+now => result(@com.twitter.post) => notify;
+
+====
+
+now => @com.twitter.post(status=__const_QUOTED__STRING_0);
+// note the escaping: tt:iso_lang_code becomes tt_3aiso__lang__code
+// because ':' is escaped to '_3a' and '_' is escaped to __
+now => @com.yandex.translate.translate(target_language=__const_GENERIC__ENTITY__tt_3aiso__lang__code_0) => notify;
+now => @thermostat.get_temperature(), value >= __const_NUMBER_0__C => notify;
+now => @thermostat.get_temperature(), value >= __const_MEASURE__C_0 => notify;
+
+====
+
+// ** typecheck: expect TypeError **
+// wrong type
+now => @com.twitter.post(status=__const_NUMBER_0);

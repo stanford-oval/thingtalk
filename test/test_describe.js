@@ -26,6 +26,7 @@ var TEST_CASES = [
     ['monitor @com.twitter.home_timeline() => @com.twitter.post(status=text);',
     'tweet the text when tweets from anyone you follow change',
     'Twitter ⇒ Twitter'],
+
     ['attimer(time=makeTime(8,30)) => @org.thingpedia.builtin.thingengine.builtin.say(message=$undefined);',
     'send me a message ____ every day at 8:30 AM',
     'Say'],
@@ -37,6 +38,12 @@ var TEST_CASES = [
     'Say'],
     ['attimer(time=makeTime(12,0)) => @org.thingpedia.builtin.thingengine.builtin.say(message=$undefined);',
     'send me a message ____ every day at 12:00 PM',
+    'Say'],
+    [`attimer(time=[makeTime(9,0), makeTime(15,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");`,
+    `send me a message “it's 9am or 3pm” every day at 9:00 AM and 3:00 PM`,//'
+    'Say'],
+    [`attimer(time=[makeTime(9,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am");`,
+    `send me a message “it's 9am” every day at 9:00 AM`,//'
     'Say'],
 
     [`now => @com.xkcd.get_comic() => notify;`,
@@ -140,7 +147,7 @@ var TEST_CASES = [
     'Twitter ⇒ Twitter'],
 
     ['now => @uk.co.thedogapi.get() => notify;',
-    'get get dog pictures and then notify you', 'Thedogapi ⇒ Notification'],
+    'get dog pictures and then notify you', 'Thedogapi ⇒ Notification'],
 
     ['now => @org.thingpedia.builtin.thingengine.phone.sms() => notify;',
     'get your SMS and then notify you', 'Phone ⇒ Notification'],
@@ -155,7 +162,7 @@ var TEST_CASES = [
     'Bing ⇒ Yandex Translate ⇒ Notification'],
 
     [`monitor @com.yahoo.finance.get_stock_quote(stock_id="goog"^^tt:stock_id("Alphabet, Inc.")), ask_price >= makeCurrency(100, usd) => notify;`,
-    'notify you when the stock price of Alphabet, Inc. change if the ask price is greater than or equal to $100.00',
+    'notify you when the stock price of Alphabet, Inc. changes if the ask price is greater than or equal to $100.00',
     'Yahoo Finance ⇒ Notification'],
 
     [`now => [ask_price] of @com.yahoo.finance.get_stock_quote(stock_id="goog"^^tt:stock_id("Alphabet, Inc.")) => notify;`,
@@ -271,7 +278,17 @@ var TEST_CASES = [
     'choice number 1', ''],
 
     [`now => @org.wikidata.person(), contains(P1449, 'boogie') => notify;`,
-    'get wikidata human if the nickname contain “boogie” and then notify you', 'Wikidata ⇒ Notification']
+    'get wikidata human if the nickname contain “boogie” and then notify you', 'Wikidata ⇒ Notification'],
+    [`now => result(@com.thecatapi.get) => notify;`,
+    'get the last cat picture and then notify you', 'Thecatapi ⇒ Notification'],
+    [`now => result(@com.thecatapi.get[1]) => notify;`,
+    'get the first cat picture and then notify you', 'Thecatapi ⇒ Notification'],
+    [`now => result(@com.thecatapi.get[2]) => notify;`,
+    'get the 2-th cat picture and then notify you', 'Thecatapi ⇒ Notification'],
+    [`now => result(@com.thecatapi.get[-2]) => notify;`,
+    'get the 2-th last cat picture and then notify you', 'Thecatapi ⇒ Notification'],
+    [`now => @com.spotify.get_currently_playing() => @com.spotify.add_songs_to_playlist(songs=[song]);`,
+    'get the currently playing track and then add the songs the song to the playlist ____', 'Spotify ⇒ Spotify']
 ];
 
 const gettext = {

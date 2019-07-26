@@ -134,7 +134,7 @@ var TEST_CASES = [
      'InputParam(target_language, Entity(zh, tt:iso_lang_code, )) com.yandex.translate:translate',
      'Builtin undefined:notify']],
 
-    [`monitor (@com.washingtonpost.get_article() join @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code) on (text=title)) => notify;`,
+    [`monitor @com.washingtonpost.get_article() join @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code) on (text=title) => notify;`,
     ['query: Invocation(Device(com.washingtonpost, , ), get_article, InputParam(section, Undefined(true)), )',
      'query: Invocation(Device(com.yandex.translate, , ), translate, InputParam(target_language, Entity(zh, tt:iso_lang_code, )), )',
      'action: Invocation(Builtin, notify, , )'],
@@ -144,7 +144,7 @@ var TEST_CASES = [
      'InputParam(target_language, Entity(zh, tt:iso_lang_code, )) com.yandex.translate:translate',
      'Builtin undefined:notify']],
 
-    [`monitor (@com.washingtonpost.get_article(section=enum(world)) join @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code) on (text=title)) => notify;`,
+    [`monitor @com.washingtonpost.get_article(section=enum(world)) join @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code) on (text=title) => notify;`,
     ['query: Invocation(Device(com.washingtonpost, , ), get_article, InputParam(section, Enum(world)), )',
      'query: Invocation(Device(com.yandex.translate, , ), translate, InputParam(target_language, Entity(zh, tt:iso_lang_code, )), )',
      'action: Invocation(Builtin, notify, , )'],
@@ -241,7 +241,13 @@ var TEST_CASES = [
         p1();
     }`,
     ['action: VarRef(p1, InputParam(p_query, Undefined(true)), )'],
-    ['InputParam(p_query, Undefined(true)) p1']]
+    ['InputParam(p_query, Undefined(true)) p1']],
+
+    [`now => result(@com.thecatapi.get) => notify;`,
+    ['query: ResultRef(com.thecatapi, get, Number(-1), )',
+     'action: Invocation(Builtin, notify, , )'],
+     ['Builtin undefined:notify']
+    ]
 
 ];
 

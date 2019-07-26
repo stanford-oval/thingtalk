@@ -24,12 +24,56 @@ const builtin = require('../lib/builtin/values');
 const _mockSchemaDelegate = require('./mock_schema_delegate');
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
+class MockAssistant {
+    constructor() {
+        this._outputHistory = [];
+    }
+
+    output(outputType, output) {
+        this._outputHistory.push([outputType, output]);
+    }
+
+    _outputTypeMatches(type, _function) {
+        const split = type.split('+');
+        return split[split.length-1] === _function;
+    }
+    readResult(_function, index) {
+        // index is 1 based!
+        assert(index !== 0);
+        if (index > 0) {
+            // iterate up
+            for (let i = 0; i < this._outputHistory.length; i++) {
+                const [type, value] = this._outputHistory[i];
+                if (this._outputTypeMatches(type, _function)) {
+                    index--;
+                    if (index === 0)
+                        return [[_function, value]];
+                }
+            }
+        } else {
+            // iterate down
+            for (let i = this._outputHistory.length-1; i >= 0; i--) {
+                const [type, value] = this._outputHistory[i];
+                if (this._outputTypeMatches(type, _function)) {
+                    index++;
+                    if (index === 0)
+                        return [[_function, value]];
+                }
+            }
+        }
+
+        // no match
+        return [];
+    }
+}
+
 class MockState {
     constructor(compiled) {
         this._states = [];
         this._states.length = compiled.states;
         for (let i = 0; i < this._states.length; i++)
             this._states[i] = null;
+
     }
 
     readState(stateId) {
@@ -45,7 +89,7 @@ class MockState {
 }
 
 class MockExecEnvironment extends ExecEnvironment {
-    constructor(states, triggerdata, querydata, outputdata) {
+    constructor(assistant, states, triggerdata, querydata, outputdata) {
         super('en-US', 'America/Los_Angeles', schemaRetriever);
 
         this._trigger = triggerdata;
@@ -53,6 +97,7 @@ class MockExecEnvironment extends ExecEnvironment {
         this._actions = outputdata;
 
         this._states = states;
+        this._assistant = assistant;
     }
 
     get program_id() {
@@ -78,8 +123,13 @@ class MockExecEnvironment extends ExecEnvironment {
             {__timestamp: base+interval},
             {__timestamp: base+2*interval}][Symbol.iterator]();
     }
-    invokeAtTimer(time) {
-        throw new Error('Must be overridden');
+    /* Expiration dates ignored because no way to easily test for expiration dates */
+    invokeAtTimer(time, expiration_date) {
+        let times = []
+        for (let i = 0; i < time.length; i++) {
+          times.push({__timestamp: time[i]})
+        }
+        return times[Symbol.iterator]();
     }
 
     invokeQuery(kind, attrs, fname, params) {
@@ -120,7 +170,14 @@ class MockExecEnvironment extends ExecEnvironment {
 
         assert.deepStrictEqual(outputType, nextaction.outputType);
         assert.deepStrictEqual(output, nextaction.value);
+
+        this._assistant.output(outputType, output);
     }
+
+    readResult(_function, index) {
+        return this._assistant.readResult(_function, index);
+    }
+
     clearGetCache() {}
 
     readState(stateId) {
@@ -321,7 +378,7 @@ some alt text` }
 
     [`monitor @com.xkcd.get_comic(), number >= 1234 => @com.twitter.post(status=title);`,
     { fn: 'com.xkcd:get_comic',
-      value: [  
+      value: [
         { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
           link: 'https://xkcd.com/1234/',
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
@@ -2292,9 +2349,55 @@ some alt text` }
 
      ],
 
+
+     [`let result cat := @com.thecatapi.get();
+      let action a(p_picture_url : Entity(tt:picture)) := @com.twitter.post_picture(caption="cat", picture_url=p_picture_url);
+
+      now => cat => notify;
+      attimer(time=[makeTime(9, 0), makeTime(15, 0)]) => cat => a(p_picture_url=picture_url);
+      `,
+     {},
+     {
+        'com.thecatapi:get': [(() => {
+            let _callcount = 0;
+            return (params) => {
+                assert.strictEqual(_callcount, 0);
+                _callcount++;
+
+                return {
+                    link: new builtin.Entity('https://foo.com', null),
+                    image_id: '12345',
+                    picture_url: 'https://foo.com/cat.png'
+                };
+            };
+        })()]
+     },
+     [
+     {
+       type: 'output',
+       outputType: 'com.thecatapi:get',
+       value: {
+            link: new builtin.Entity('https://foo.com', null),
+            image_id: '12345',
+            picture_url: 'https://foo.com/cat.png'
+        }
+     },
+     {
+       type: 'action',
+       fn: 'com.twitter:post_picture',
+       params: { caption: 'cat', picture_url: 'https://foo.com/cat.png' }
+     },
+     {
+       type: 'action',
+       fn: 'com.twitter:post_picture',
+       params: { caption: 'cat', picture_url: 'https://foo.com/cat.png' }
+     }],
+
+     ],
+
     [`let procedure p1(p_foo : String) := {
         let procedure p2(p_bar : String) := {
-            now => @tumblr-blog.post_text(title = p_foo, body = p_bar);
+            now => @com.tumblr.blog.post_text(title = p_foo, body = p_bar);
         };
         now => p2(p_bar = "body one");
         now => p2(p_bar = "body two");
@@ -2306,22 +2409,22 @@ some alt text` }
     [
     {
        type: 'action',
-       fn: 'tumblr-blog:post_text',
+       fn: 'com.tumblr.blog:post_text',
        params: { title: 'title one', body: 'body one' },
      },
     {
        type: 'action',
-       fn: 'tumblr-blog:post_text',
+       fn: 'com.tumblr.blog:post_text',
        params: { title: 'title one', body: 'body two' },
      },
     {
        type: 'action',
-       fn: 'tumblr-blog:post_text',
+       fn: 'com.tumblr.blog:post_text',
        params: { title: 'title two', body: 'body one' },
      },
     {
        type: 'action',
-       fn: 'tumblr-blog:post_text',
+       fn: 'com.tumblr.blog:post_text',
        params: { title: 'title two', body: 'body two' },
      },
 
@@ -2331,7 +2434,7 @@ some alt text` }
 
     [`let procedure p1(p_foo : String) := {
         let procedure p2(p_bar : String) := {
-            now => @tumblr-blog.post_text(title = p_foo, body = p_bar);
+            now => @com.tumblr.blog.post_text(title = p_foo, body = p_bar);
         };
         now => p2(p_bar = "body one");
         now => p2(p_bar = "body two");
@@ -2343,32 +2446,32 @@ some alt text` }
     [
     {
        type: 'action',
-       fn: 'tumblr-blog:post_text',
+       fn: 'com.tumblr.blog:post_text',
        params: { title: 'title one', body: 'body one' },
      },
     {
        type: 'action',
-       fn: 'tumblr-blog:post_text',
+       fn: 'com.tumblr.blog:post_text',
        params: { title: 'title one', body: 'body two' },
      },
     {
        type: 'action',
-       fn: 'tumblr-blog:post_text',
+       fn: 'com.tumblr.blog:post_text',
        params: { title: 'title one', body: 'body one' },
      },
     {
        type: 'action',
-       fn: 'tumblr-blog:post_text',
+       fn: 'com.tumblr.blog:post_text',
        params: { title: 'title one', body: 'body two' },
      },
     {
        type: 'action',
-       fn: 'tumblr-blog:post_text',
+       fn: 'com.tumblr.blog:post_text',
        params: { title: 'title one', body: 'body one' },
      },
     {
        type: 'action',
-       fn: 'tumblr-blog:post_text',
+       fn: 'com.tumblr.blog:post_text',
        params: { title: 'title one', body: 'body two' },
      },
 
@@ -2376,26 +2479,296 @@ some alt text` }
 
     ],
 
+    // first result
+    [
+    [
+    `now => @com.thecatapi.get() => notify;`,
+    `now => result(@com.thecatapi.get[1]) => notify;`
+    ],
+    {},
+    {
+        'com.thecatapi:get': [(() => {
+            let _callcount = 0;
+            return (params) => {
+                assert.strictEqual(_callcount, 0);
+                _callcount++;
+
+                return {
+                    link: new builtin.Entity('https://foo.com', null),
+                    image_id: '12345',
+                    picture_url: 'https://foo.com/cat.png'
+                };
+            };
+        })()]
+     },
+    [{ type: 'output',
+      outputType: 'com.thecatapi:get',
+      value: {
+        link: new builtin.Entity('https://foo.com', null),
+        image_id: '12345',
+        picture_url: 'https://foo.com/cat.png'
+      }
+    }, { type: 'output',
+      outputType: 'com.thecatapi:get',
+      value: {
+        link: new builtin.Entity('https://foo.com', null),
+        image_id: '12345',
+        picture_url: 'https://foo.com/cat.png'
+      }
+    }]],
+
+    // first result, again
+    [
+    [
+    `now => @com.thecatapi.get() => notify;`,
+    `now => @com.thecatapi.get() => notify;`,
+    `now => result(@com.thecatapi.get[1]) => notify;`
+    ],
+    {},
+    {
+        'com.thecatapi:get': [(() => {
+            let _callcount = 0;
+            return (params) => {
+                assert(_callcount === 0 || _callcount === 1);
+                _callcount++;
+
+                if (_callcount === 1) {
+                    return {
+                        link: new builtin.Entity('https://foo.com', null),
+                        image_id: '12345',
+                        picture_url: 'https://foo.com/cat.png'
+                    };
+                } else {
+                    return {
+                        link: new builtin.Entity('https://bar.com', null),
+                        image_id: '54321',
+                        picture_url: 'https://bar.com/cat.png'
+                    };
+                }
+            };
+        })()]
+     },
+    [
+    { type: 'output',
+      outputType: 'com.thecatapi:get',
+      value: {
+        link: new builtin.Entity('https://foo.com', null),
+        image_id: '12345',
+        picture_url: 'https://foo.com/cat.png'
+      }
+    },
+    { type: 'output',
+      outputType: 'com.thecatapi:get',
+      value: {
+        link: new builtin.Entity('https://bar.com', null),
+        image_id: '54321',
+        picture_url: 'https://bar.com/cat.png'
+      }
+    },
+    { type: 'output',
+      outputType: 'com.thecatapi:get',
+      value: {
+        link: new builtin.Entity('https://foo.com', null),
+        image_id: '12345',
+        picture_url: 'https://foo.com/cat.png'
+      }
+    }]],
+
+    // second result
+    [
+    [
+    `now => @com.thecatapi.get() => notify;`,
+    `now => @com.thecatapi.get() => notify;`,
+    `now => result(@com.thecatapi.get[2]) => notify;`
+    ],
+    {},
+    {
+        'com.thecatapi:get': [(() => {
+            let _callcount = 0;
+            return (params) => {
+                assert(_callcount === 0 || _callcount === 1);
+                _callcount++;
+
+                if (_callcount === 1) {
+                    return {
+                        link: new builtin.Entity('https://foo.com', null),
+                        image_id: '12345',
+                        picture_url: 'https://foo.com/cat.png'
+                    };
+                } else {
+                    return {
+                        link: new builtin.Entity('https://bar.com', null),
+                        image_id: '54321',
+                        picture_url: 'https://bar.com/cat.png'
+                    };
+                }
+            };
+        })()]
+     },
+    [
+    { type: 'output',
+      outputType: 'com.thecatapi:get',
+      value: {
+        link: new builtin.Entity('https://foo.com', null),
+        image_id: '12345',
+        picture_url: 'https://foo.com/cat.png'
+      }
+    },
+    { type: 'output',
+      outputType: 'com.thecatapi:get',
+      value: {
+        link: new builtin.Entity('https://bar.com', null),
+        image_id: '54321',
+        picture_url: 'https://bar.com/cat.png'
+      }
+    },
+    { type: 'output',
+      outputType: 'com.thecatapi:get',
+      value: {
+        link: new builtin.Entity('https://bar.com', null),
+        image_id: '54321',
+        picture_url: 'https://bar.com/cat.png'
+      }
+    }]],
+
+    // last result
+    [
+    [
+    `now => @com.thecatapi.get() => notify;`,
+    `now => @com.thecatapi.get() => notify;`,
+    `now => result(@com.thecatapi.get[-1]) => notify;`
+    ],
+    {},
+    {
+        'com.thecatapi:get': [(() => {
+            let _callcount = 0;
+            return (params) => {
+                assert(_callcount === 0 || _callcount === 1);
+                _callcount++;
+
+                if (_callcount === 1) {
+                    return {
+                        link: new builtin.Entity('https://foo.com', null),
+                        image_id: '12345',
+                        picture_url: 'https://foo.com/cat.png'
+                    };
+                } else {
+                    return {
+                        link: new builtin.Entity('https://bar.com', null),
+                        image_id: '54321',
+                        picture_url: 'https://bar.com/cat.png'
+                    };
+                }
+            };
+        })()]
+     },
+    [
+    { type: 'output',
+      outputType: 'com.thecatapi:get',
+      value: {
+        link: new builtin.Entity('https://foo.com', null),
+        image_id: '12345',
+        picture_url: 'https://foo.com/cat.png'
+      }
+    },
+    { type: 'output',
+      outputType: 'com.thecatapi:get',
+      value: {
+        link: new builtin.Entity('https://bar.com', null),
+        image_id: '54321',
+        picture_url: 'https://bar.com/cat.png'
+      }
+    },
+    { type: 'output',
+      outputType: 'com.thecatapi:get',
+      value: {
+        link: new builtin.Entity('https://bar.com', null),
+        image_id: '54321',
+        picture_url: 'https://bar.com/cat.png'
+      }
+    }]],
+
+    // penultimate result
+    [
+    [
+    `now => @com.thecatapi.get() => notify;`,
+    `now => @com.thecatapi.get() => notify;`,
+    `now => result(@com.thecatapi.get[-2]) => notify;`
+    ],
+    {},
+    {
+        'com.thecatapi:get': [(() => {
+            let _callcount = 0;
+            return (params) => {
+                assert(_callcount === 0 || _callcount === 1);
+                _callcount++;
+
+                if (_callcount === 1) {
+                    return {
+                        link: new builtin.Entity('https://foo.com', null),
+                        image_id: '12345',
+                        picture_url: 'https://foo.com/cat.png'
+                    };
+                } else {
+                    return {
+                        link: new builtin.Entity('https://bar.com', null),
+                        image_id: '54321',
+                        picture_url: 'https://bar.com/cat.png'
+                    };
+                }
+            };
+        })()]
+     },
+    [
+    { type: 'output',
+      outputType: 'com.thecatapi:get',
+      value: {
+        link: new builtin.Entity('https://foo.com', null),
+        image_id: '12345',
+        picture_url: 'https://foo.com/cat.png'
+      }
+    },
+    { type: 'output',
+      outputType: 'com.thecatapi:get',
+      value: {
+        link: new builtin.Entity('https://bar.com', null),
+        image_id: '54321',
+        picture_url: 'https://bar.com/cat.png'
+      }
+    },
+    { type: 'output',
+      outputType: 'com.thecatapi:get',
+      value: {
+        link: new builtin.Entity('https://foo.com', null),
+        image_id: '12345',
+        picture_url: 'https://foo.com/cat.png'
+      }
+    }]]
 ];
 
 async function test(i) {
     console.log('Test Case #' + (i+1));
 
     let [code, trigger, queries, actions] = TEST_CASES[i];
+    if (!Array.isArray(code))
+        code = [code];
 
+    const assistant = new MockAssistant();
     try {
-        const compiler = new Compiler(schemaRetriever);
-        const compiled = await compiler.compileCode(code);
+        for (let prog of code) {
+            const compiler = new Compiler(schemaRetriever);
+            const compiled = await compiler.compileCode(prog);
+            const state = new MockState(compiled);
 
-        const generated = [];
-        if (compiled.command)
-            generated.push(compiled.command);
-        generated.push(...compiled.rules);
+            const generated = [];
+            if (compiled.command)
+                generated.push(compiled.command);
+            generated.push(...compiled.rules);
 
-        let state = new MockState(compiled);
-        for (let gen of generated) {
-            const env = new MockExecEnvironment(state, trigger, queries, actions);
-            await gen(env);
+            for (let gen of generated) {
+                const env = new MockExecEnvironment(assistant, state, trigger, queries, actions);
+                await gen(env);
+            }
         }
 
         if (actions.length !== 0)
