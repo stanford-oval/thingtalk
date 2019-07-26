@@ -22,6 +22,8 @@ const PermissionChecker = require('./lib/permission_checker');
 const Units = require('./lib/units');
 const NNSyntax = require('./lib/nn-syntax');
 const Helper = require('./lib/helper');
+const I18n = require('./lib/i18n');
+
 
 let { typeCheckFilter, typeCheckProgram, typeCheckPermissionRule } = require('./lib/typecheck');
 Generate.typeCheckFilter = typeCheckFilter;
@@ -63,6 +65,7 @@ module.exports = {
 
     // Misc
     Units,
+    I18n,
 
     // Value Types, exposed so that Thingpedia can reexpose them to device impls
     // (to create values of the appropriate types)
