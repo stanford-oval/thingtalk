@@ -32,6 +32,18 @@ function main() {
                 if (process.env.TEST_MODE)
                     throw e;
             }
+
+            try {
+                Array.from(program.iterateSlots2());
+            } catch(e) {
+                console.error('Iterate slots failed');
+                console.log('Code:');
+                console.log(code);
+                console.error('====');
+                console.error(e.stack);
+                if (process.env.TEST_MODE)
+                    throw e;
+            }
         }, (e) => {
             if (code.indexOf(`** typecheck: expect ${e.name} **`) >= 0)
                 return;

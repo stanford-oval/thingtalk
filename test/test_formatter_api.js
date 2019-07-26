@@ -19,6 +19,7 @@ const assert = require('assert');
 
 const Formatter = require('../lib/runtime/formatter');
 const builtin = require('../lib/builtin/values');
+const I18n = require('../lib/i18n');
 
 const _mockSchemaDelegate = require('./mock_schema_delegate');
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
@@ -209,7 +210,8 @@ function main() {
                 return x;
         }
     };
-    const formatter2 = new Formatter('en-US', 'America/Los_Angeles', schemaRetriever, fakeGettext);
+    I18n.init('en-Fake', fakeGettext);
+    const formatter2 = new Formatter('en-Fake', 'America/Los_Angeles', schemaRetriever, fakeGettext);
 
     assert.strictEqual(formatter2.format([
         { type: 'picture', url: '${v1}'},
