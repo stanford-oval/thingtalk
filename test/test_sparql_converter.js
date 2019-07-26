@@ -186,10 +186,10 @@ function compare_sparqls(sqarqlQuery1, sqarqlQuery2) {
     assert.strictEqual(lines1, lines2);
 }
 
-function main() {
+async function main() {
     for (var i = 0; i < TEST_CASES.length; i++) {
         console.log("TEST CASE #" + (i + 1));
-        test(i);
+        await test(i);
     }
 }
 
