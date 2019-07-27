@@ -395,7 +395,11 @@ const TEST_CASES = [
 
     [`now => @com.spotify.get_currently_playing => @com.spotify.add_songs_to_playlist param:songs:Array(String) = [ param:song:String ]`,
     `add the currently playing song to my playlist`, {},
-    `now => @com.spotify.get_currently_playing() => @com.spotify.add_songs_to_playlist(songs=[song]);`]
+    `now => @com.spotify.get_currently_playing() => @com.spotify.add_songs_to_playlist(songs=[song]);`],
+
+    [`[ param:text:String , param:author:Entity(tt:username) ] of ( monitor ( @com.twitter.home_timeline ) on new param:text:String ) => notify`,
+    `monitor new text of tweets and show me the text and author`, {},
+    `[text, author] of (monitor (@com.twitter.home_timeline()) on new [text]) => notify;`]
 ];
 
 async function testCase(test, i) {
