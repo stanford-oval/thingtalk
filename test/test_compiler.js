@@ -5211,6 +5211,39 @@ const TEST_CASES = [
   } catch(_exc_) {
     __env.reportError("Failed to invoke query", _exc_);
   }`]],
+
+    //67
+    [`now => [id] of @org.wikidata.person(), P735 ~= 'Bob' => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  try {
+    _t_1 = "now => [id] of ((@org.wikidata.person()), P735 ~= \\"Bob\\") => notify;";
+    _t_0 = await __env.invokeDBQuery("org.wikidata", { }, _t_1);
+    _t_2 = _t_0[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.id;
+        try {
+          await __env.output(String(_t_4), _t_5);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_2.next();
+      }
+    }
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke query", _exc_);
+  }`]]
 ];
 
 // eslint-disable-next-line prefer-arrow-callback
