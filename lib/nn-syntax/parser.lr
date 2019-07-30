@@ -435,7 +435,10 @@ constant_Date = {
 // here, it is enforced in tonn_converter, rendering it unnecessary to do so here
 constant_Time = {
     time:TIME => new Ast.Value.Time(time.value.hour, time.value.minute, time.value.second||0);
-    'TIME:' hour:LITERAL_INTEGER ':' minute:LITERAL_INTEGER ':' second:LITERAL_INTEGER => new Ast.Value.Time(hour, minute, second);
+    time:LITERAL_TIME => {
+        let tokens = time.value.split(':');
+        return new Ast.Value.Time(parseInt(tokens[0]), parseInt(tokens[1]), parseInt(tokens[2]));
+    };
 }
 
 // luinet expands this into the various enums in the right
