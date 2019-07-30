@@ -431,7 +431,12 @@ constant_Date = {
     date:constant_Date '-' offset:constant_Measure_ms => new Ast.Value.Date(date.value, '-', offset);
 }
 
-constant_Time = time:TIME => new Ast.Value.Time(time.value.hour, time.value.minute, time.value.second||0);
+// Note that while keeping digits in ranges [0-23],[0-59],[0-59] is not enforced
+// here, it is enforced in tonn_converter, rendering it unnecessary to do so here
+constant_Time = {
+    time:TIME => new Ast.Value.Time(time.value.hour, time.value.minute, time.value.second||0);
+    'TIME:' hour:LITERAL_INTEGER ':' minute:LITERAL_INTEGER ':' second:LITERAL_INTEGER => new Ast.Value.Time(hour, minute, second);
+}
 
 // luinet expands this into the various enums in the right
 // place for a parameter (as the meaning of an enum changes according
