@@ -5212,7 +5212,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke query", _exc_);
   }`]],
 
-    //67
+    //67 Database query
     [`now => [id] of @org.wikidata.person(), P735 ~= 'Bob' => notify;`,
     [`"use strict";
   let _t_0;
@@ -5235,6 +5235,75 @@ const TEST_CASES = [
         _t_6 = _t_5.id;
         try {
           await __env.output(String(_t_4), _t_5);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_2.next();
+      }
+    }
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke query", _exc_);
+  }`]],
+
+    //68 Auto apply projections to database query
+    [`now => @org.wikidata.person(), P735 ~= 'Bob' => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  try {
+    _t_1 = "now => [id] of ((@org.wikidata.person()), P735 ~= \\"Bob\\") => notify;";
+    _t_0 = await __env.invokeDBQuery("org.wikidata", { }, _t_1);
+    _t_2 = _t_0[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.id;
+        try {
+          await __env.output(String(_t_4), _t_5);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_2.next();
+      }
+    }
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke query", _exc_);
+  }`]],
+
+    //69 Auto apply projections to database query
+    [`now => @org.wikidata.person(), P735 ~= 'Bob' => @com.twitter.post(status=P1477);`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  try {
+    _t_1 = "now => [P1477] of ((@org.wikidata.person()), P735 ~= \\"Bob\\") => notify;";
+    _t_0 = await __env.invokeDBQuery("org.wikidata", { }, _t_1);
+    _t_2 = _t_0[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.P1477;
+        try {
+          _t_7 = {};
+          _t_7.status = _t_6;
+          await __env.invokeAction("com.twitter", { }, "post", _t_7);
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
