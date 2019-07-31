@@ -149,6 +149,12 @@ var TEST_CASES = [
     ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= makeTime(19,30,15) } => notify',
      'anyone is allowed to read the current event detected on your security camera if the current time is after 7:30:15 PM'],
 
+    ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= $context.time.morning } => notify',
+     'anyone is allowed to read the current event detected on your security camera if the current time is after the morning'],
+
+    ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_time() { time <= $context.time.evening } => notify',
+     'anyone is allowed to read the current event detected on your security camera if the current time is before the evening'],
+
     ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= makeTime(17,00) && time <= makeTime(19,00) } => notify',
      'anyone is allowed to read the current event detected on your security camera if the current time is after 5:00 PM and the current time is before 7:00 PM'],
 

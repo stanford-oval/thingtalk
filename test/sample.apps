@@ -186,6 +186,13 @@ monitor @com.twitter.home_timeline() => notify;
 
 ====
 
+// RelativeTime
+{
+    attimer(time=$context.time.morning) => notify;
+}
+
+====
+
 // PhoneNumberTest
 {
     now => @org.thingpedia.builtin.thingengine.phone.send_sms(to="+15555555555", message="");
