@@ -434,11 +434,13 @@ constant_Date = {
 // Note that while keeping digits in ranges [0-23],[0-59],[0-59] is not enforced
 // here, it is enforced in tonn_converter, rendering it unnecessary to do so here
 constant_Time = {
-    time:TIME => new Ast.Value.Time(time.value.hour, time.value.minute, time.value.second||0);
+    time:TIME => new Ast.Value.Time(new Ast.Time.Absolute(time.value.hour, time.value.minute, time.value.second||0));
     time:LITERAL_TIME => {
         let tokens = time.value.split(':');
-        return new Ast.Value.Time(parseInt(tokens[0]), parseInt(tokens[1]), parseInt(tokens[2]));
+        return new Ast.Value.Time(new Ast.Time.Absolute(parseInt(tokens[0]), parseInt(tokens[1]), parseInt(tokens[2])));
     };
+    'time:morning' => new Ast.Value.Time(new Ast.Time.Relative('morning'));
+    'time:evening' => new Ast.Value.Time(new Ast.Time.Relative('evening'));
 }
 
 // luinet expands this into the various enums in the right

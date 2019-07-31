@@ -68,6 +68,9 @@ async function testDescribeArg() {
         [new Ast.Value.Location(new Ast.Location.Absolute(0, 0, 'North Pole')), `North Pole`],
         [new Ast.Value.Location(new Ast.Location.Absolute(0, 0, null)), `[Latitude: 0.000 deg, Longitude: 0.000 deg]`],
 
+        [new Ast.Value.Time(new Ast.Time.Relative('morning')), 'the morning'],
+        [new Ast.Value.Time(new Ast.Time.Relative('evening')), 'the evening'],
+
         [new Ast.Value.Entity('foo', 'tt:foo', 'Some Entity'), 'Some Entity'],
 
     ];
