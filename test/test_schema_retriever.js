@@ -15,6 +15,7 @@ const assert = require('assert');
 
 const SchemaRetriever = require('../lib/schema');
 const Grammar = require('../lib/grammar_api');
+const { ClassDef } = require('../lib/ast/class_def');
 
 const _mockSchemaDelegate = require('./mock_schema_delegate');
 const _mockMemoryClient = require('./mock_memory_client');
@@ -33,7 +34,7 @@ async function testInjectManifest() {
     let schemaRetriever = new SchemaRetriever(_mockSchemaDelegate,
                                               _mockMemoryClient);
 
-    schemaRetriever.injectManifest('com.xkcd', manifest);
+    schemaRetriever.injectClass(ClassDef.fromManifest('com.xkcd', manifest));
 
     assert.deepStrictEqual((await schemaRetriever.getFullSchema('com.xkcd')).prettyprint(), `class @com.xkcd
 #[version=91] {
