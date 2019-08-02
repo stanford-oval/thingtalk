@@ -45,6 +45,12 @@ var TEST_CASES = [
     [`attimer(time=[makeTime(9,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am");`,
     `send me a message “it's 9am” every day at 9:00 AM`,//'
     'Say'],
+    [`attimer(time=[$context.time.morning]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's the morning");`,
+    `send me a message “it's the morning” every day in the morning`,//'
+    'Say'],
+    [`attimer(time=[$context.time.evening]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's the evening");`,
+    `send me a message “it's the evening” every day in the evening`,//'
+    'Say'],
 
     [`now => @com.xkcd.get_comic() => notify;`,
     'get an Xkcd comic and then notify you',
