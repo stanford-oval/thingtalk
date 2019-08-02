@@ -1435,7 +1435,7 @@ class @org.wikidata
                     out P4411: String #_[canonical="quora username"] #[string_values="org.wikidata:Quora_username"] #[unique=true],
                     out P4013: String #_[canonical="giphy username"] #[string_values="org.wikidata:Giphy_username"] #[unique=true],
                     out P3984: String #_[canonical="subreddit"] #[string_values="org.wikidata:subreddit"] #[unique=true],
-                    out id: Entity(org.wikidata:human) #_[canonical="person"] #[unique=true])
+                    out id: Entity(org.wikidata:human) #_[canonical="person"] #[unique=true] #[sparql_subject='Q5'])
 
   #_[canonical="wikidata human data"]
   #_[confirmation="wikidata human"]
@@ -1656,9 +1656,11 @@ class @org.wikidatasportsskill
                      out P6543: Number #_[canonical="total shots in career"],
                      out P6547: Number #_[canonical="career plus-minus rating"],
                      out P3957: Entity(org.wikidatasportsskill:realgm_basketball_player_id) #_[canonical="realgm basketball player id"],
-                     out athlete: Entity(org.wikidatasportsskill:athletes) #_[canonical="athlete"])
+                     out id: Entity(org.wikidatasportsskill:athletes) #_[canonical="athlete"])
   #_[canonical="wikidata athlete"]
-  #_[confirmation="wikidata athlete"];
+  #_[confirmation="wikidata athlete"]
+  #[default_projection=['id']]
+  #[sparql_subject='Q2066131'];
 
   list query sports(out P18: Array(Entity(tt:picture)) #_[canonical="image"],
                     out P227: Entity(org.wikidatasportsskill:gnd_id) #_[canonical="gnd id"],
@@ -1676,9 +1678,11 @@ class @org.wikidatasportsskill
                     out P1051: Entity(org.wikidatasportsskill:psh_id) #_[canonical="psh id"],
                     out P2910: Entity(tt:picture) #_[canonical="icon"],
                     out P5250: Entity(org.wikidatasportsskill:iab_code) #_[canonical="iab code"],
-                    out sport: Entity(org.wikidatasportsskill:sports) #_[canonical="sports"])
+                    out id: Entity(org.wikidatasportsskill:sports) #_[canonical="sports"])
   #_[canonical="wikidata sports data"]
-  #_[confirmation="wikidata sports"];
+  #_[confirmation="wikidata sports"]
+  #[default_projection=['id']]
+  #[sparql_subject='Q349'];
 
   list query sports_team(out P17: Entity(org.wikidatasportsskill:country) #_[canonical="country"],
                          out P571: Date #_[canonical="inception"],
@@ -1695,7 +1699,9 @@ class @org.wikidatasportsskill
                          out P3022: Array(Entity(org.wikidata:human)) #_[canonical="flag bearer"],
                          out P166: Array(Entity(org.wikidatasportsskill:award_received)) #_[canonical="award received"],
                          out P286: Entity(org.wikidatasportsskill:athletes) #_[canonical="head coach"],
-                         out sports_team: Entity(org.wikidatasportsskill:sports_teams) #_[canonical="sports team"])
+                         out id: Entity(org.wikidatasportsskill:sports_teams) #_[canonical="sports team"])
   #_[canonical="wikidata sports team"]
-  #_[confirmation="wikidata sports team"];
+  #_[confirmation="wikidata sports team"]
+  #[default_projection=['id']]
+  #[sparql_subject='Q12973014'];
 }

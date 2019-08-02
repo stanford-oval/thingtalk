@@ -24,6 +24,7 @@ const NNSyntax = require('./lib/nn-syntax');
 const Helper = require('./lib/helper');
 const I18n = require('./lib/i18n');
 
+
 let { typeCheckFilter, typeCheckProgram, typeCheckPermissionRule } = require('./lib/typecheck');
 Generate.typeCheckFilter = typeCheckFilter;
 Generate.typeCheckProgram = typeCheckProgram;

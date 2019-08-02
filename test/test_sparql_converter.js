@@ -24,11 +24,11 @@ const TEST_CASES = [
     && P641 == ["Q5372"^^org.wikidatasportsskill:sports] => notify;
         `,
         `
-    SELECT distinct ?v1Label ?v2Label ?v3Label WHERE{
+    SELECT distinct ?v1Label WHERE{
     ?item1 ?label 'Curry'@en.
-    ?v1 wdt:P734 ?item1.
-    ?v1 wdt:P641 wd:Q5372.
-    ?v1 wdt:P22 ?v3.
+    ?v2 wdt:P734 ?item1.
+    ?v2 wdt:P641 wd:Q5372.
+    ?v2 wdt:P22 ?v1.
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
     }
     limit 10`,
@@ -40,7 +40,7 @@ const TEST_CASES = [
     && P641 == ["Q41323"^^org.wikidatasportsskill:sports] => notify;
         `,
         `
-    SELECT distinct ?v1Label ?v2Label ?v3Label WHERE{
+    SELECT distinct ?v1Label WHERE{
     ?v1 wdt:P569 "1977-08-04"^^xsd:dateTime.
     ?v1 wdt:P641 wd:Q41323.
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
@@ -55,7 +55,7 @@ const TEST_CASES = [
     && P641 == ["Q5372"^^org.wikidatasportsskill:sports] => notify;
         `,
         `
-    SELECT distinct ?v1Label ?v2Label ?v3Label WHERE{
+    SELECT distinct ?v1Label WHERE{
     ?v1 wdt:P2048 ?compValue.
     FILTER(?compValue >= "231"^^xsd:decimal).
     ?v1 wdt:P641 wd:Q5372.
@@ -72,7 +72,7 @@ const TEST_CASES = [
     && P166 == ["Q222047"^^org.wikidatasportsskill:award_received("NBA Most Valuable Player Award")] => notify;
     `,
         `
-    SELECT distinct ?v1Label ?v2Label ?v3Label WHERE{
+    SELECT distinct ?v1Label WHERE{
     ?v1 wdt:P647 wd:Q162990.
     ?v1 wdt:P166 wd:Q222047.
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
@@ -88,7 +88,7 @@ const TEST_CASES = [
     "Q157376"^^org.wikidatasportsskill:sports_teams("Golden State Warriors")] => notify;
         `,
         `
-    SELECT distinct ?v1Label ?v2Label ?v3Label WHERE{
+    SELECT distinct ?v1Label WHERE{
     ?v1 wdt:P54 wd:Q121783.
     ?v1 wdt:P54 wd:Q157376.
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
@@ -99,14 +99,15 @@ const TEST_CASES = [
     [
         `
     // Join for team Steve Kerr coaches (Warriors) and players who were drafted by that team
-    now => (([sports_team] of @org.wikidatasportsskill.sports_team(),
+    now => ((([id] of @org.wikidatasportsskill.sports_team() as lhs),
     P286 == "Q523630"^^org.wikidatasportsskill:athletes('Steve Kerr'))
-    join ([P647] of @org.wikidatasportsskill.athlete())), P647 == sports_team => notify;
+    join (@org.wikidatasportsskill.athlete())), P647 == lhs.id => notify;
         `,
         `
-    SELECT distinct ?v1Label ?v2Label ?v3Label WHERE{
-    ?v1 wdt:P286 wd:Q523630.
-    ?v2 wdt:P647 ?v1.
+    SELECT distinct ?v1Label WHERE{
+    ?v2 wdt:P286 wd:Q523630.
+    ?v2 wdt:P31 wd:Q12973014.
+    ?v1 wdt:P647 ?v2.
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
     }
     limit 10
@@ -118,9 +119,9 @@ const TEST_CASES = [
     now => sort P569 desc of @org.wikidatasportsskill.athlete(), P647 == "Q157376"^^org.wikidatasportsskill:sports_teams("Golden State Warriors") => notify;
         `,
         `
-    SELECT distinct ?v1Label ?v2Label ?v3Label WHERE{
-    ?v1 wdt:P647 wd:Q157376.
+    SELECT distinct ?v1Label WHERE{
     ?v1 wdt:P569 ?counter.
+    ?v1 wdt:P647 wd:Q157376.
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
     }
     ORDER BY desc(?counter)
@@ -130,16 +131,19 @@ const TEST_CASES = [
     [
         `
     // Join for basketball team the players who were drafted by that team and the players which are head coaches
-    now => ((([sports_team, P641] of @org.wikidatasportsskill.sports_team(),
-    P641 == "Q5372"^^org.wikidatasportsskill:sports('Basketball'))
-    join ([athlete, P647] of @org.wikidatasportsskill.athlete()))
-    join ([P286] of @org.wikidatasportsskill.sports_team())), P647 == sports_team && P286 == athlete => notify;
+    now => ((((@org.wikidatasportsskill.sports_team(),
+    P641 == "Q5372"^^org.wikidatasportsskill:sports('Basketball')) as lhs)
+    join (([id, P647] of @org.wikidatasportsskill.athlete()) as rhs))
+    join ([id] of @org.wikidatasportsskill.sports_team())), P647 == lhs.id && P286 == rhs.id => notify;
         `,
         `
-    SELECT distinct ?v1Label ?v2Label ?v3Label WHERE{
-    ?v1 wdt:P641 wd:Q5372.
-    ?v2 wdt:P647 ?v1.
-    ?v3 wdt:P286 ?v2.
+    SELECT distinct ?v1Label WHERE{
+    ?v4 wdt:P641 wd:Q5372.
+    ?v3 wdt:P647 ?v4.
+    ?v3 wdt:P647 ?v2.
+    ?v2 wdt:P31 wd:Q2066131.
+    ?v1 wdt:P286 ?v2.
+    ?v1 wdt:P31 wd:Q12973014.
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
     }
     limit 10
@@ -147,20 +151,38 @@ const TEST_CASES = [
     ],
     [
         `
-    now => @org.wikidatasportsskill.athlete(), P413 == ["Q25113"^^org.wikidatasportsskill:position_played_on_team('Guard')]
+    now => @org.wikidatasportsskill.athlete(), P413 == ["Q212413"^^org.wikidatasportsskill:position_played_on_team('Guard')]
     && P166 == ["Q31391"^^org.wikidatasportsskill:award_received("NBA All-Star Game Most Valuable Player Award")]
     || P166 == ["Q222047"^^org.wikidatasportsskill:award_received("NBA Most Valuable Player Award")] => notify;
         `,
         `
-    SELECT distinct ?v1Label ?v2Label ?v3Label WHERE{
+    SELECT distinct ?v1Label WHERE{
     {?v1 wdt:P166 wd:Q222047.}
     UNION
-    {?v1 wdt:P413 wd:Q25113.
+    {?v1 wdt:P413 wd:Q212413.
     ?v1 wdt:P166 wd:Q31391.}
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
     }
     limit 10
     `,
+    ],
+    [
+        `
+    now => (((@org.wikidata.person(), contains(P1830, 'Microsoft')) as lhs)
+    join ([P735, P19] of @org.wikidata.person())), id==lhs.P22 => notify;
+        `,
+        `
+    SELECT distinct ?v1Label WHERE{
+    ?v3 wdt:P1830 ?compValue.
+    ?compValue rdfs:label ?label .
+    FILTER CONTAINS(?label, 'Microsoft').
+    ?v3 wdt:P22 ?v2.
+    ?v2 wdt:P31 wd:Q5.
+    ?v2 wdt:P735|wdt:P19 ?v1.
+    SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+    }
+    limit 10
+        `,
     ],
 ];
 
@@ -170,9 +192,7 @@ async function test(index) {
     await AppGrammar.parseAndTypecheck(thingtalk, _schemaRetriever).then(
         (program) => {
             //convert from ast to sparql
-            let translationResult = SparqlConverter.toSparql(program);
-            let sparqlQuery = translationResult[0];
-
+            let sparqlQuery = SparqlConverter.toSparql(program);
             compare_sparqls(sparql, sparqlQuery);
         }
     );
@@ -187,7 +207,7 @@ function compare_sparqls(sqarqlQuery1, sqarqlQuery2) {
 }
 
 async function main() {
-    for (var i = 0; i < TEST_CASES.length; i++) {
+    for (var i = 0; i < 10; i++) {
         console.log("TEST CASE #" + (i + 1));
         await test(i);
     }
