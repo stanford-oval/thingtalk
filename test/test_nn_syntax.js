@@ -409,7 +409,11 @@ const TEST_CASES = [
 
     [`[ param:text:String , param:author:Entity(tt:username) ] of ( monitor ( @com.twitter.home_timeline ) on new param:text:String ) => notify`,
     `monitor new text of tweets and show me the text and author`, {},
-    `[text, author] of (monitor (@com.twitter.home_timeline()) on new [text]) => notify;`]
+    `[text, author] of (monitor (@com.twitter.home_timeline()) on new [text]) => notify;`],
+
+    ['now => @com.twitter.post param:status:String = context:selection:String',
+    'post this on twitter', {},
+    `now => @com.twitter.post(status=$context.selection : String);`]
 ];
 
 async function testCase(test, i) {

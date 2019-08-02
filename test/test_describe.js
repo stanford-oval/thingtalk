@@ -297,6 +297,9 @@ var TEST_CASES = [
 
     [`now => @com.spotify.get_currently_playing() => @com.spotify.add_songs_to_playlist(songs=[song]);`,
     'get the currently playing track and then add the songs the song to the playlist ____', 'Spotify ⇒ Spotify'],
+
+    [`now => @com.twitter.post(status = $context.selection : String);`,
+    `tweet the selection on the screen`, `Twitter`],
 ];
 
 const gettext = {
