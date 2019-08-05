@@ -317,24 +317,6 @@ const TEST_CASES = [
     '  #[default_projection=["title", "description"]];\n' +
     '}\n',
 
-    'class @foo {\n' +
-    '  import loader from @org.thingpedia.database(type=enum(sql));\n' +
-    '  import config from @org.thingpedia.config.none();\n' +
-    '}\n',
-
-    {
-      module_type: 'org.thingpedia.database',
-      kind: 'foo',
-      params: {},
-      auth: { type: 'none' },
-      queries: {},
-      actions: {},
-      version: 0,
-      types: [],
-      child_types: [],
-      category: 'data',
-      query_type: 'sql' }
-
 ];
 
 async function test(i) {
