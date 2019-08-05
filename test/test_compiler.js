@@ -5223,7 +5223,7 @@ const TEST_CASES = [
   let _t_5;
   let _t_6;
   try {
-    _t_1 = "now => [id] of ((@org.wikidata.person()), P735 ~= \\"Bob\\") => notify;";
+    _t_1 = __ast[0];
     _t_0 = await __env.invokeDBQuery("org.wikidata", { }, _t_1);
     _t_2 = _t_0[Symbol.iterator]();
     {
@@ -5256,7 +5256,7 @@ const TEST_CASES = [
   let _t_5;
   let _t_6;
   try {
-    _t_1 = "now => [id] of ((@org.wikidata.person()), P735 ~= \\"Bob\\") => notify;";
+    _t_1 = __ast[0];
     _t_0 = await __env.invokeDBQuery("org.wikidata", { }, _t_1);
     _t_2 = _t_0[Symbol.iterator]();
     {
@@ -5290,7 +5290,7 @@ const TEST_CASES = [
   let _t_6;
   let _t_7;
   try {
-    _t_1 = "now => [P1477] of ((@org.wikidata.person()), P735 ~= \\"Bob\\") => notify;";
+    _t_1 = __ast[0];
     _t_0 = await __env.invokeDBQuery("org.wikidata", { }, _t_1);
     _t_2 = _t_0[Symbol.iterator]();
     {
@@ -5352,7 +5352,7 @@ async function test(i) {
                 if (process.env.TEST_MODE)
                     throw new Error(`testCompiler ${i+1} FAILED`);
             } else {
-                new AsyncFunction('__builtin', '__env', '__scope', code);
+                new AsyncFunction('__builtin', '__scope', '__ast', '__env', code);
             }
         }
     } catch (e) {
