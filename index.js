@@ -21,7 +21,9 @@ const Formatter = require('./lib/runtime/formatter');
 const PermissionChecker = require('./lib/permission_checker');
 const Units = require('./lib/units');
 const NNSyntax = require('./lib/nn-syntax');
+const Helper = require('./lib/helper');
 const I18n = require('./lib/i18n');
+
 
 let { typeCheckFilter, typeCheckProgram, typeCheckPermissionRule } = require('./lib/typecheck');
 Generate.typeCheckFilter = typeCheckFilter;
@@ -57,6 +59,9 @@ module.exports = {
 
     // Policy support
     PermissionChecker,
+
+    // Helper
+    Helper,
 
     // Misc
     Units,

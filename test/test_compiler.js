@@ -1454,8 +1454,9 @@ const TEST_CASES = [
     __env.reportError("Failed to signal end-of-flow", _exc_);
   }`]],
 
+
     //27
-    [`executor = "1234"^^tt:contact : {
+    [`{
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
         monitorable list query receive (in req __principal : Entity(tt:contact), in req __program_id : Entity(tt:program_id), in req __flow : Number, out __kindChannel : Entity(tt:function), out interval : Measure(ms));
     }
