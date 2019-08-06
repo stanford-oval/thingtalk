@@ -125,10 +125,9 @@ class MockExecEnvironment extends ExecEnvironment {
     }
     /* Expiration dates ignored because no way to easily test for expiration dates */
     invokeAtTimer(time, expiration_date) {
-        let times = []
-        for (let i = 0; i < time.length; i++) {
-          times.push({__timestamp: time[i]})
-        }
+        let times = [];
+        for (let i = 0; i < time.length; i++)
+          times.push({__timestamp: time[i]});
         return times[Symbol.iterator]();
     }
 
@@ -146,6 +145,11 @@ class MockExecEnvironment extends ExecEnvironment {
         });
         return result;
     }
+
+    invokeDBQuery(kind, attrs, query) {
+        return this.invokeQuery(kind, attrs, 'query', { query });
+    }
+
     invokeAction(kind, attrs, fname, params) {
         const fn = this._getFn(kind, attrs, fname);
 
@@ -2743,7 +2747,38 @@ some alt text` }
         image_id: '12345',
         picture_url: 'https://foo.com/cat.png'
       }
-    }]]
+    }]],
+
+    [
+    `now => @org.wikidata.person(), P735 ~= 'Bob' => notify;`,
+    {},
+    {
+        'org.wikidata:query': [({ query }) => {
+            return { query: query.prettyprint() };
+        }]
+    },
+    [
+    { type: 'output',
+      outputType: 'org.wikidata:query',
+      value: {
+        query: 'now => [id] of ((@org.wikidata.person()), P735 ~= "Bob") => notify;'
+      }
+    }]],
+
+    [
+    `now => @org.wikidata.person(), P735 ~= 'Bob' => @com.twitter.post(status=P1477);`,
+    {},
+    {
+        'org.wikidata:query': [({ query }) => {
+            return { P1477: query.prettyprint() };
+        }]
+    },
+    [
+    {
+        type: 'action',
+        fn: 'com.twitter:post',
+        params: { status: 'now => [P1477] of ((@org.wikidata.person()), P735 ~= "Bob") => notify;' }
+    }]],
 ];
 
 async function test(i) {

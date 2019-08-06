@@ -9,6 +9,7 @@ const _mockMemoryClient = require('./mock_memory_client');
 var schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, _mockMemoryClient, true);
 
 const TEST_CASES = [
+    //1
     [`now => @com.xkcd.get_comic() => notify;`,
     [`"use strict";
   let _t_0;
@@ -49,6 +50,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke query", _exc_);
   }`]],
 
+    //2
     [`now => @com.xkcd(id="com.xkcd-123").get_comic() => notify;`,
     [`"use strict";
   let _t_0;
@@ -89,6 +91,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke query", _exc_);
   }`]],
 
+    //3
     [`now => @com.xkcd.get_comic() => { notify; @com.twitter.post(status=title); };`,
     [`"use strict";
   let _t_0;
@@ -137,6 +140,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke query", _exc_);
   }`]],
 
+    //4
     [`now => @com.xkcd.get_comic(), number <= 1000 => { notify; @com.twitter.post(status=title); };`,
     [`"use strict";
   let _t_0;
@@ -193,6 +197,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke query", _exc_);
   }`]],
 
+    //5
     [`monitor @thermostat.get_temperature(), value >= 21C => @org.thingpedia.builtin.thingengine.builtin.say(message="bla");`,
      [`"use strict";
   let _t_0;
@@ -248,6 +253,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke trigger", _exc_);
   }`]],
 
+    //6
     [`monitor (@thermostat.get_temperature(), value >= 21C) => @org.thingpedia.builtin.thingengine.builtin.say(message="bla");`,
      [`"use strict";
   let _t_0;
@@ -303,6 +309,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke trigger", _exc_);
   }`]],
 
+    //7
     [`now => @org.thingpedia.builtin.thingengine.builtin.say(message="test");`, [`"use strict";
   let _t_0;
   let _t_1;
@@ -315,6 +322,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke action", _exc_);
   }`]],
 
+    //8
     [`monitor @com.twitter(id="twitter-foo").home_timeline(), author=="HillaryClinton"^^tt:username => notify;`,
      [`"use strict";
   let _t_0;
@@ -375,6 +383,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke trigger", _exc_);
   }`]],
 
+    //9
     [`monitor @org.thingpedia.weather.current(location=makeLocation(1, 3, "Somewhere")) => notify;`,
      [`"use strict";
   let _t_0;
@@ -432,6 +441,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke trigger", _exc_);
   }`]],
 
+    //10
     [`monitor @org.thingpedia.weather.current(location=makeLocation(1, 3)) => notify;`,
      [`"use strict";
   let _t_0;
@@ -489,6 +499,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke trigger", _exc_);
   }`]],
 
+    //11
     [`attimer(time=makeTime(12, 30)) => notify;`,
      [`"use strict";
   let _t_0;
@@ -516,6 +527,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke at-timer", _exc_);
   }`]],
 
+    //12
     [`attimer(time=makeTime(12, 30)) => @com.twitter.post(status="lol");`,
      [`"use strict";
   let _t_0;
@@ -548,6 +560,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke at-timer", _exc_);
   }`]],
 
+    //13
     [`timer(base=makeDate(), interval=1h) => notify;`,
      [`"use strict";
   let _t_0;
@@ -574,6 +587,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke timer", _exc_);
   }`]],
 
+    //14
     [`timer(base=makeDate(), interval=1h) => @com.twitter.post(status="lol");`,
      [`"use strict";
   let _t_0;
@@ -605,6 +619,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke timer", _exc_);
   }`]],
 
+    //15
     [`now => @com.youtube.search_videos(query="lol"), video_url == "http://www.youtube.com"^^tt:url =>  notify;`,
      [`"use strict";
   let _t_0;
@@ -660,6 +675,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke query", _exc_);
   }`]],
 
+    //16
     [`monitor @com.xkcd(id="com.xkcd-6").get_comic() => @com.twitter(id="twitter-foo").post_picture(caption=title, picture_url=picture_url);`,
      [`"use strict";
   let _t_0;
@@ -716,6 +732,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke trigger", _exc_);
   }`]],
 
+    //17
     [`{
     class @dyn_0 extends @remote {
         action send(in req foo : String);
@@ -733,6 +750,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke action", _exc_);
   }`]],
 
+    //18
     [`monitor @com.twitter.home_timeline(), text =~ "foo" || (text =~"bar" && !(text =~ "lol")) => notify;`,
      [`"use strict";
   let _t_0;
@@ -811,6 +829,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke trigger", _exc_);
   }`]],
 
+    //19
     [`monitor @com.twitter.home_timeline() => @org.thingpedia.builtin.thingengine.builtin.say(message=$event);`,
      [`"use strict";
   let _t_0;
@@ -868,6 +887,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke trigger", _exc_);
   }`]],
 
+    //20
     [`monitor @com.twitter.home_timeline() => @org.thingpedia.builtin.thingengine.builtin.say(message=$event.type);`,
      [`"use strict";
   let _t_0;
@@ -925,6 +945,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke trigger", _exc_);
   }`]],
 
+    //21
     [`monitor @com.xkcd(id="com.xkcd-6").get_comic() => @com.twitter.post(status=picture_url);`,
      [`"use strict";
   let _t_0;
@@ -980,6 +1001,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke trigger", _exc_);
   }`]],
 
+    //22
     [`now => @org.thingpedia.builtin.thingengine.builtin.get_time(), time >= makeTime(10,0) => notify;`,
      [`"use strict";
   let _t_0;
@@ -1022,8 +1044,9 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke query", _exc_);
   }`]],
 
-  //Changes start here
-  [`now => @com.uber.price_estimate(start=makeLocation(1, 3, "Somewhere"), end=makeLocation(1, 3, "Somewhere")), low_estimate >= 7 => notify;`,
+    //23
+    //Changes start here
+    [`now => @com.uber.price_estimate(start=makeLocation(1, 3, "Somewhere"), end=makeLocation(1, 3, "Somewhere")), low_estimate >= 7 => notify;`,
   [`"use strict";
   let _t_0;
   let _t_1;
@@ -1080,8 +1103,9 @@ const TEST_CASES = [
   } catch(_exc_) {
     __env.reportError("Failed to invoke query", _exc_);
   }`]],
-//Changes end here
+    //Changes end here
 
+    //24
     [`{
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
         action send (in req __principal : Entity(tt:contact), in req __program_id : Entity(tt:program_id), in req __flow : Number, in req __kindChannel : Entity(tt:function));
@@ -1159,6 +1183,7 @@ const TEST_CASES = [
     __env.reportError("Failed to signal end-of-flow", _exc_);
   }`]],
 
+    //25
     [`{
     monitor @com.twitter.home_timeline(), @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= makeTime(9,0) && time <= makeTime(10, 0) } => notify;
     monitor @com.twitter.home_timeline(), text =~ "lol" && @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= makeTime(9,0) && time <= makeTime(10, 0) } => notify;
@@ -1374,6 +1399,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke trigger", _exc_);
   }`]],
 
+    //26
     [`{
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
         action send (in req __principal : Entity(tt:contact), in req __program_id : Entity(tt:program_id), in req __flow : Number, in req __kindChannel : Entity(tt:function), in opt interval : Measure(ms));
@@ -1428,7 +1454,9 @@ const TEST_CASES = [
     __env.reportError("Failed to signal end-of-flow", _exc_);
   }`]],
 
-  [`{
+
+    //27
+    [`{
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
         monitorable list query receive (in req __principal : Entity(tt:contact), in req __program_id : Entity(tt:program_id), in req __flow : Number, out __kindChannel : Entity(tt:function), out interval : Measure(ms));
     }
@@ -1490,6 +1518,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke trigger", _exc_);
   }`]],
 
+    //28
     [`monitor (@com.twitter.home_timeline() join @com.bing.web_search(query="foo")) => notify;`,
     [`"use strict";
   let _t_0;
@@ -1637,6 +1666,7 @@ const TEST_CASES = [
     }
   }`]],
 
+    //29
     [`monitor (@com.twitter.home_timeline() join @com.bing.web_search(query="foo")), text =~ "lol" => notify;`,
     [`"use strict";
   let _t_0;
@@ -1792,6 +1822,7 @@ const TEST_CASES = [
     }
   }`]],
 
+    //30
     [`now => @com.twitter.home_timeline() join @com.bing.web_search() on (query=text) => notify;`,
     [`"use strict";
   let _t_0;
@@ -1897,6 +1928,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke query", _exc_);
   }`]],
 
+    //31
     [`now => @com.twitter.home_timeline() join @com.bing.web_search(query="foo") => notify;`,
     [`"use strict";
   let _t_0;
@@ -2012,7 +2044,8 @@ const TEST_CASES = [
     }
   }`]],
 
-  [`(attimer(time=makeTime(20, 10)) join @com.thecatapi(id="com.thecatapi").get()) => @com.gmail(id="xxxx").send_picture(to="xxxx"^^tt:email_address, subject="xxx", message="xxx", picture_url=picture_url);`,
+    //32
+    [`(attimer(time=makeTime(20, 10)) join @com.thecatapi(id="com.thecatapi").get()) => @com.gmail(id="xxxx").send_picture(to="xxxx"^^tt:email_address, subject="xxx", message="xxx", picture_url=picture_url);`,
   [`"use strict";
   let _t_0;
   let _t_1;
@@ -2097,6 +2130,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke at-timer", _exc_);
   }`]],
 
+    //33
     [`{
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
         action send (in req __principal : Entity(tt:contact), in req __program_id : Entity(tt:program_id), in req __flow : Number, in req __kindChannel : Entity(tt:function), in req data : String);
@@ -2161,6 +2195,7 @@ const TEST_CASES = [
     __env.reportError("Failed to signal end-of-flow", _exc_);
   }`]],
 
+    //34
     [`timer(base=makeDate(), interval=1h) join @com.twitter.search(), text =~ "lol" => notify;`,
     [`"use strict";
   let _t_0;
@@ -2254,7 +2289,8 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke timer", _exc_);
   }`]],
 
-  [`{
+    //35
+    [`{
     now => @com.twitter.post_picture(picture_url="file:///home/gcampagn/Pictures/Me/me%202016.jpg"^^tt:picture, caption="lol");
 }`,
   [`"use strict";
@@ -2274,7 +2310,8 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke action", _exc_);
   }`]],
 
-  [`{
+    //36
+    [`{
     now => aggregate count of @com.bing.web_search(query="dogs") => notify;
 }`,
   [`"use strict";
@@ -2327,7 +2364,8 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke action", _exc_);
   }`]],
 
-  [`{
+    //37
+    [`{
     timer(base=makeDate(),interval=1h) => aggregate count of @com.bing.web_search(query="dogs") => notify;
 }`,
   [`"use strict";
@@ -2403,7 +2441,8 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke timer", _exc_);
   }`]],
 
-  [`{
+    //38
+    [`{
     timer(base=makeDate(),interval=1h) => aggregate count mime_type of @com.google.drive.list_drive_files() => notify;
 }`,
   [`"use strict";
@@ -2492,7 +2531,8 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke timer", _exc_);
   }`]],
 
-  [`{
+    //39
+    [`{
     timer(base=makeDate(),interval=1h) => aggregate avg file_size of @com.google.drive.list_drive_files() => notify;
 }`,
   [`"use strict";
@@ -2586,7 +2626,8 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke timer", _exc_);
   }`]],
 
-  [`{
+    //40
+    [`{
     timer(base=makeDate(),interval=1h) => aggregate max file_size of @com.google.drive.list_drive_files() => notify;
 }`,
   [`"use strict";
@@ -2673,7 +2714,8 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke timer", _exc_);
   }`]],
 
-  [`{
+    //41
+    [`{
     now => @com.google.drive.list_drive_files() join aggregate max file_size of @com.google.drive.list_drive_files() => notify;
 }` ,
     [`"use strict";
@@ -2825,6 +2867,7 @@ const TEST_CASES = [
     }
   }`]],
 
+    //42
     [`{
     monitor (aggregate max file_size of @com.google.drive.list_drive_files()) => notify;
 }`,
@@ -2969,6 +3012,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke trigger", _exc_);
   }`]],
 
+    //43
     [`{
     timer(base=makeDate(),interval=1h) => (sort file_size desc of @com.google.drive.list_drive_files())[1] => notify;
 }`,
@@ -3118,7 +3162,8 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke timer", _exc_);
   }`]],
 
-  [`{
+    //44
+    [`{
     timer(base=makeDate(),interval=1h) => (sort file_size asc of @com.google.drive.list_drive_files())[1] => notify;
 }`,
   [`"use strict";
@@ -3267,6 +3312,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke timer", _exc_);
   }`]],
 
+    //45
     [`{
     now => (sort file_size desc of @com.google.drive.list_drive_files())[2:1] => notify;
 }`,
@@ -3361,7 +3407,7 @@ const TEST_CASES = [
     }
   }`]],
 
-    // simple indexing
+    //46 simple indexing
     [`{
     now => @com.google.drive.list_drive_files()[2:1] => notify;
 }`,
@@ -3437,7 +3483,7 @@ const TEST_CASES = [
 
   }`]],
 
-    // more simple indexing
+    //47 more simple indexing
     [`{
     attimer(time=makeTime(7, 30)) => @com.google.drive.list_drive_files()[2:1] => notify;
 }`,
@@ -3567,7 +3613,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke at-timer", _exc_);
   }`]],
 
-    // complex indexing
+    //48 complex indexing
     [`{
     now => @com.google.drive.list_drive_files()[2, 3, 4] => notify;
 }`,
@@ -3671,7 +3717,7 @@ const TEST_CASES = [
     }
   }`]],
 
-    // complex slicing
+    //49 complex slicing
     [`{
     now => @com.google.drive.list_drive_files()[2:4] => notify;
 }`,
@@ -3768,7 +3814,7 @@ const TEST_CASES = [
     }
   }`]],
 
-    // sorting
+    //50 sorting
     [`{
     now => sort file_size asc of @com.google.drive.list_drive_files() => notify;
 }`,
@@ -3862,6 +3908,7 @@ const TEST_CASES = [
     }
   }`]],
 
+    //51
     [`{
     now => @com.thecatapi.get() => notify;
     now => @com.twitter.post(status="foo");
@@ -3914,6 +3961,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke action", _exc_);
   }`]],
 
+    //52
     [`{
     monitor (@com.twitter.home_timeline()) => notify;
     now => @com.thecatapi.get() => notify;
@@ -4016,6 +4064,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke trigger", _exc_);
   }`]],
 
+    //53
     [`let query q(p_query : String) := @com.bing.web_search(query=p_query);
       let action a(p_status : String) := @com.twitter.post(status=p_status);
 
@@ -4109,7 +4158,8 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke action", _exc_);
   }`]],
 
-  [`let stream s1 := monitor(@org.thingpedia.weather.current(location=makeLocation(1,2,"foo")));
+    //54
+    [`let stream s1 := monitor(@org.thingpedia.weather.current(location=makeLocation(1,2,"foo")));
     s1 => notify;`
   ,
   [`"use strict";
@@ -4203,6 +4253,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke stream", _exc_);
   }`]],
 
+    //55
     [`let result cat := @com.thecatapi.get();
       now => cat => notify;
       now => cat => @com.twitter.post_picture(caption="cat", picture_url=picture_url);
@@ -4306,6 +4357,7 @@ const TEST_CASES = [
     }
   }`]],
 
+    //56
     [`let result cat := @com.thecatapi.get();
       now => cat => notify;
 
@@ -4444,7 +4496,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke timer", _exc_);
   }`]],
 
-    // simple procedure declarations
+    //57 simple procedure declarations
     [`let procedure p1(p_foo : String) := {
         now => @com.bing.web_search(query = p_foo) => notify;
         now => @com.twitter.post(status = p_foo);
@@ -4560,7 +4612,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke action", _exc_);
   }`]],
 
-    // procedure with results
+    //58 procedure with results
     [`let procedure p1(p_foo : String) := {
         let result r1 := @com.bing.web_search(query = p_foo);
         now => r1 => notify;
@@ -4686,7 +4738,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke action", _exc_);
   }`]],
 
-    // procedure with nested declarations
+    //59 procedure with nested declarations
     [`let procedure p1(p_foo : String) := {
         let query q1 := @com.bing.web_search(query = p_foo);
         now => q1 => notify;
@@ -4817,7 +4869,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke action", _exc_);
   }`]],
 
-    // nested procedures
+    //60 nested procedures
     [`let procedure p1(p_foo : String) := {
         let procedure p2(p_bar : String) := {
             now => @com.tumblr.blog.post_text(title = p_foo, body = p_bar);
@@ -4887,7 +4939,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke action", _exc_);
   }`]],
 
-    // nested procedures, called from a rule
+    //61 nested procedures, called from a rule
     [`let procedure p1(p_foo : String) := {
         let procedure p2(p_bar : String) := {
             now => @com.tumblr.blog.post_text(title = p_foo, body = p_bar);
@@ -4964,7 +5016,8 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke timer", _exc_);
   }`]],
 
-  [`attimer(time=[makeTime(9,0), makeTime(15,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");`,
+    //62
+    [`attimer(time=[makeTime(9,0), makeTime(15,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");`,
   [`"use strict";
   let _t_0;
   let _t_1;
@@ -4999,6 +5052,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke at-timer", _exc_);
   }`]],
 
+    //63
     [`now => result(@com.thecatapi.get) => notify;`,
     [`"use strict";
   let _t_0;
@@ -5035,6 +5089,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke readResult", _exc_);
   }`]],
 
+    //64
     [`now => result(@com.thecatapi.get[-2]) => notify;`,
     [`"use strict";
   let _t_0;
@@ -5071,6 +5126,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke readResult", _exc_);
   }`]],
 
+    //65
     [`now => result(@com.thecatapi.get) => @com.twitter.post_picture(picture_url=picture_url, caption="cat");`,
     [`"use strict";
   let _t_0;
@@ -5115,7 +5171,8 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke readResult", _exc_);
   }`]],
 
-  [`now => @com.spotify.get_currently_playing() => @com.spotify.add_songs_to_playlist(songs=[song], playlist="my favorite");`,
+    //66
+    [`now => @com.spotify.get_currently_playing() => @com.spotify.add_songs_to_playlist(songs=[song], playlist="my favorite");`,
   [`"use strict";
   let _t_0;
   let _t_1;
@@ -5155,6 +5212,108 @@ const TEST_CASES = [
   } catch(_exc_) {
     __env.reportError("Failed to invoke query", _exc_);
   }`]],
+
+    //67 Database query
+    [`now => [id] of @org.wikidata.person(), P735 ~= 'Bob' => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  try {
+    _t_1 = __ast[0];
+    _t_0 = await __env.invokeDBQuery("org.wikidata", { }, _t_1);
+    _t_2 = _t_0[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.id;
+        try {
+          await __env.output(String(_t_4), _t_5);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_2.next();
+      }
+    }
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke query", _exc_);
+  }`]],
+
+    //68 Auto apply projections to database query
+    [`now => @org.wikidata.person(), P735 ~= 'Bob' => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  try {
+    _t_1 = __ast[0];
+    _t_0 = await __env.invokeDBQuery("org.wikidata", { }, _t_1);
+    _t_2 = _t_0[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.id;
+        try {
+          await __env.output(String(_t_4), _t_5);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_2.next();
+      }
+    }
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke query", _exc_);
+  }`]],
+
+    //69 Auto apply projections to database query
+    [`now => @org.wikidata.person(), P735 ~= 'Bob' => @com.twitter.post(status=P1477);`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  try {
+    _t_1 = __ast[0];
+    _t_0 = await __env.invokeDBQuery("org.wikidata", { }, _t_1);
+    _t_2 = _t_0[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.P1477;
+        try {
+          _t_7 = {};
+          _t_7.status = _t_6;
+          await __env.invokeAction("com.twitter", { }, "post", _t_7);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_2.next();
+      }
+    }
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke query", _exc_);
+  }`]]
 ];
 
 // eslint-disable-next-line prefer-arrow-callback
@@ -5194,7 +5353,7 @@ async function test(i) {
                 if (process.env.TEST_MODE)
                     throw new Error(`testCompiler ${i+1} FAILED`);
             } else {
-                new AsyncFunction('__builtin', '__env', '__scope', code);
+                new AsyncFunction('__builtin', '__scope', '__ast', '__env', code);
             }
         }
     } catch (e) {
