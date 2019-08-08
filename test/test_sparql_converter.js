@@ -4,7 +4,7 @@
 
 const AppGrammar = require("../lib/grammar_api");
 const SchemaRetriever = require("../lib/schema");
-const SparqlConverter = require("../lib/wikidata_sparql");
+const Helper = require("../lib/helper");
 
 const _mockSchemaDelegate = require("./mock_schema_delegate");
 const _mockMemoryClient = require("./mock_memory_client");
@@ -192,7 +192,7 @@ async function test(index) {
     await AppGrammar.parseAndTypecheck(thingtalk, _schemaRetriever).then(
         (program) => {
             //convert from ast to sparql
-            let sparqlQuery = SparqlConverter.toSparql(program);
+            let sparqlQuery = Helper.toSparql(program);
             compare_sparqls(sparql, sparqlQuery);
         }
     );
@@ -207,7 +207,7 @@ function compare_sparqls(sqarqlQuery1, sqarqlQuery2) {
 }
 
 async function main() {
-    for (var i = 0; i < 10; i++) {
+    for (var i = 0; i < TEST_CASES.length; i++) {
         console.log("TEST CASE #" + (i + 1));
         await test(i);
     }
