@@ -139,6 +139,7 @@ const TEST_CASES = [
         `
     SELECT distinct ?v1Label WHERE{
     ?v4 wdt:P641 wd:Q5372.
+    ?v4 wdt:P31 wd:Q12973014.
     ?v3 wdt:P647 ?v4.
     ?v3 wdt:P647 ?v2.
     ?v2 wdt:P31 wd:Q2066131.
