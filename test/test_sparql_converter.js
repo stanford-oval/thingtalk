@@ -24,14 +24,15 @@ const TEST_CASES = [
     && P641 == ["Q5372"^^org.wikidatasportsskill:sports] => notify;
         `,
         `
-    SELECT distinct ?v1Label WHERE{
+    SELECT distinct ?fatherLabel WHERE{
     ?item1 ?label 'Curry'@en.
     ?v2 wdt:P734 ?item1.
     ?v2 wdt:P641 wd:Q5372.
-    ?v2 wdt:P22 ?v1.
+    ?v2 wdt:P22 ?father.
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
     }
-    limit 10`,
+    limit 10
+    `,
     ],
     [
         `
@@ -137,14 +138,14 @@ const TEST_CASES = [
     join ([id] of @org.wikidatasportsskill.sports_team())), P647 == lhs.id && P286 == rhs.id => notify;
         `,
         `
-    SELECT distinct ?v1Label WHERE{
+    SELECT distinct ?sports_teamLabel WHERE{
     ?v4 wdt:P641 wd:Q5372.
     ?v4 wdt:P31 wd:Q12973014.
     ?v3 wdt:P647 ?v4.
     ?v3 wdt:P647 ?v2.
     ?v2 wdt:P31 wd:Q2066131.
-    ?v1 wdt:P286 ?v2.
-    ?v1 wdt:P31 wd:Q12973014.
+    ?sports_team wdt:P286 ?v2.
+    ?sports_team wdt:P31 wd:Q12973014.
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
     }
     limit 10
@@ -173,13 +174,14 @@ const TEST_CASES = [
     join ([P735, P19] of @org.wikidata.person())), id==lhs.P22 => notify;
         `,
         `
-    SELECT distinct ?v1Label WHERE{
+    SELECT distinct ?given_nameLabel ?born_inLabel WHERE{
     ?v3 wdt:P1830 ?compValue.
     ?compValue rdfs:label ?label .
     FILTER CONTAINS(?label, 'Microsoft').
     ?v3 wdt:P22 ?v2.
     ?v2 wdt:P31 wd:Q5.
-    ?v2 wdt:P735|wdt:P19 ?v1.
+    ?v2 wdt:P735 ?given_name.
+    ?v2 wdt:P19 ?born_in.
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
     }
     limit 10
