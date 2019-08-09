@@ -1662,7 +1662,7 @@ class @org.wikidatasportsskill
   #_[canonical="wikidata athlete"]
   #_[confirmation="wikidata athlete"]
   #[default_projection=['id']]
-  #[sparql_subject='Q2066131'];
+  #[wikidata_subject='Q2066131'];
 
   list query sports(out P18: Array(Entity(tt:picture)) #_[canonical="image"],
                     out P227: Entity(org.wikidatasportsskill:gnd_id) #_[canonical="gnd id"],
@@ -1684,7 +1684,7 @@ class @org.wikidatasportsskill
   #_[canonical="wikidata sports data"]
   #_[confirmation="wikidata sports"]
   #[default_projection=['id']]
-  #[sparql_subject='Q349'];
+  #[wikidata_subject='Q349'];
 
   list query sports_team(out P17: Entity(org.wikidatasportsskill:country) #_[canonical="country"],
                          out P571: Date #_[canonical="inception"],
@@ -1705,5 +1705,5 @@ class @org.wikidatasportsskill
   #_[canonical="wikidata sports team"]
   #_[confirmation="wikidata sports team"]
   #[default_projection=['id']]
-  #[sparql_subject='Q12973014'];
+  #[wikidata_subject='Q12973014'];
 }

@@ -24,14 +24,15 @@ const TEST_CASES = [
     && P641 == ["Q5372"^^org.wikidatasportsskill:sports] => notify;
         `,
         `
-    SELECT distinct ?v1Label WHERE{
+    SELECT distinct ?P22 ?P22Label WHERE{
     ?item1 ?label 'Curry'@en.
     ?v2 wdt:P734 ?item1.
     ?v2 wdt:P641 wd:Q5372.
-    ?v2 wdt:P22 ?v1.
+    ?v2 wdt:P22 ?P22.
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
     }
-    limit 10`,
+    limit 10
+    `,
     ],
     [
         `
@@ -40,9 +41,9 @@ const TEST_CASES = [
     && P641 == ["Q41323"^^org.wikidatasportsskill:sports] => notify;
         `,
         `
-    SELECT distinct ?v1Label WHERE{
-    ?v1 wdt:P569 "1977-08-04"^^xsd:dateTime.
-    ?v1 wdt:P641 wd:Q41323.
+    SELECT distinct ?id ?idLabel WHERE{
+    ?id wdt:P569 "1977-08-04"^^xsd:dateTime.
+    ?id wdt:P641 wd:Q41323.
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
     }
     limit 10
@@ -55,10 +56,10 @@ const TEST_CASES = [
     && P641 == ["Q5372"^^org.wikidatasportsskill:sports] => notify;
         `,
         `
-    SELECT distinct ?v1Label WHERE{
-    ?v1 wdt:P2048 ?compValue.
+    SELECT distinct ?id ?idLabel WHERE{
+    ?id wdt:P2048 ?compValue.
     FILTER(?compValue >= "231"^^xsd:decimal).
-    ?v1 wdt:P641 wd:Q5372.
+    ?id wdt:P641 wd:Q5372.
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
     }
     limit 10
@@ -72,9 +73,9 @@ const TEST_CASES = [
     && P166 == ["Q222047"^^org.wikidatasportsskill:award_received("NBA Most Valuable Player Award")] => notify;
     `,
         `
-    SELECT distinct ?v1Label WHERE{
-    ?v1 wdt:P647 wd:Q162990.
-    ?v1 wdt:P166 wd:Q222047.
+    SELECT distinct ?id ?idLabel WHERE{
+    ?id wdt:P647 wd:Q162990.
+    ?id wdt:P166 wd:Q222047.
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
     }
     limit 10
@@ -88,9 +89,9 @@ const TEST_CASES = [
     "Q157376"^^org.wikidatasportsskill:sports_teams("Golden State Warriors")] => notify;
         `,
         `
-    SELECT distinct ?v1Label WHERE{
-    ?v1 wdt:P54 wd:Q121783.
-    ?v1 wdt:P54 wd:Q157376.
+    SELECT distinct ?id ?idLabel WHERE{
+    ?id wdt:P54 wd:Q121783.
+    ?id wdt:P54 wd:Q157376.
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
     }
     limit 10
@@ -104,10 +105,10 @@ const TEST_CASES = [
     join (@org.wikidatasportsskill.athlete())), P647 == lhs.id => notify;
         `,
         `
-    SELECT distinct ?v1Label WHERE{
+    SELECT distinct ?id ?idLabel WHERE{
     ?v2 wdt:P286 wd:Q523630.
     ?v2 wdt:P31 wd:Q12973014.
-    ?v1 wdt:P647 ?v2.
+    ?id wdt:P647 ?v2.
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
     }
     limit 10
@@ -119,9 +120,9 @@ const TEST_CASES = [
     now => sort P569 desc of @org.wikidatasportsskill.athlete(), P647 == "Q157376"^^org.wikidatasportsskill:sports_teams("Golden State Warriors") => notify;
         `,
         `
-    SELECT distinct ?v1Label WHERE{
-    ?v1 wdt:P569 ?counter.
-    ?v1 wdt:P647 wd:Q157376.
+    SELECT distinct ?id ?idLabel WHERE{
+    ?id wdt:P569 ?counter.
+    ?id wdt:P647 wd:Q157376.
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
     }
     ORDER BY desc(?counter)
@@ -137,14 +138,14 @@ const TEST_CASES = [
     join ([id] of @org.wikidatasportsskill.sports_team())), P647 == lhs.id && P286 == rhs.id => notify;
         `,
         `
-    SELECT distinct ?v1Label WHERE{
+    SELECT distinct ?id ?idLabel WHERE{
     ?v4 wdt:P641 wd:Q5372.
     ?v4 wdt:P31 wd:Q12973014.
     ?v3 wdt:P647 ?v4.
     ?v3 wdt:P647 ?v2.
     ?v2 wdt:P31 wd:Q2066131.
-    ?v1 wdt:P286 ?v2.
-    ?v1 wdt:P31 wd:Q12973014.
+    ?id wdt:P286 ?v2.
+    ?id wdt:P31 wd:Q12973014.
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
     }
     limit 10
@@ -157,11 +158,11 @@ const TEST_CASES = [
     || P166 == ["Q222047"^^org.wikidatasportsskill:award_received("NBA Most Valuable Player Award")] => notify;
         `,
         `
-    SELECT distinct ?v1Label WHERE{
-    {?v1 wdt:P166 wd:Q222047.}
+    SELECT distinct ?id ?idLabel WHERE{
+    {?id wdt:P166 wd:Q222047.}
     UNION
-    {?v1 wdt:P413 wd:Q212413.
-    ?v1 wdt:P166 wd:Q31391.}
+    {?id wdt:P413 wd:Q212413.
+    ?id wdt:P166 wd:Q31391.}
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
     }
     limit 10
@@ -173,13 +174,14 @@ const TEST_CASES = [
     join ([P735, P19] of @org.wikidata.person())), id==lhs.P22 => notify;
         `,
         `
-    SELECT distinct ?v1Label WHERE{
+    SELECT distinct ?P735 ?P735Label ?P19 ?P19Label WHERE{
     ?v3 wdt:P1830 ?compValue.
     ?compValue rdfs:label ?label .
     FILTER CONTAINS(?label, 'Microsoft').
     ?v3 wdt:P22 ?v2.
     ?v2 wdt:P31 wd:Q5.
-    ?v2 wdt:P735|wdt:P19 ?v1.
+    ?v2 wdt:P735 ?P735.
+    ?v2 wdt:P19 ?P19.
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
     }
     limit 10
