@@ -25,7 +25,7 @@ const TEST_CASES = [
         `,
         `
     SELECT distinct ?P22 ?P22Label WHERE{
-    ?item1 ?label 'Curry'@en.
+    ?item1 ?label1 'Curry'@en.
     ?v2 wdt:P734 ?item1.
     ?v2 wdt:P641 wd:Q5372.
     ?v2 wdt:P22 ?P22.
@@ -175,9 +175,8 @@ const TEST_CASES = [
         `,
         `
     SELECT distinct ?P735 ?P735Label ?P19 ?P19Label WHERE{
-    ?v3 wdt:P1830 ?compValue.
-    ?compValue rdfs:label ?label .
-    FILTER CONTAINS(?label, 'Microsoft').
+    ?item1 ?label1 'Microsoft'@en.
+    ?v3 wdt:P1830 ?item1.
     ?v3 wdt:P22 ?v2.
     ?v2 wdt:P31 wd:Q5.
     ?v2 wdt:P735 ?P735.
@@ -185,6 +184,26 @@ const TEST_CASES = [
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
     }
     limit 10
+        `,
+    ],
+    [
+        `
+        now => [id, P18] of (@org.wikidata.person(), P734 == "Obama" && P735 =~ 'Bar') => notify;
+        `,
+
+        `
+        SELECT distinct ?id ?idLabel ?P18 ?P18Label  WHERE{
+        ?item2 ?label2 'Obama'@en.
+        ?id wdt:P734 ?item2.
+        ?id wdt:P735 ?compValue.
+        ?compValue rdfs:label ?label1 .
+        FILTER CONTAINS(?label1, 'Bar').
+        ?id wdt:P18 ?P18.
+        ?id wdt:P31 wd:Q5.
+        SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+        }
+
+        limit 10
         `,
     ],
 ];
