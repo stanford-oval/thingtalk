@@ -37,7 +37,6 @@ const { parseDate } = require('../date_utils');
  * - no complex selectors
  * - no remote primitives (yet)
  * - no declarations
- * - no multi-field projection
  * - no alias (in aggregate and as a table/stream operator)
  * - no compute
  *
@@ -206,6 +205,8 @@ stream = {
 
     // edge on true is the equivalent of "only once"
     'edge' '(' stream ')' 'on' 'true' => new Ast.Stream.EdgeFilter(stream, Ast.BooleanExpression.True, null);
+
+    '[' pnames:out_param_list ']' 'of' '(' stream ')'          => new Ast.Stream.Projection(stream, pnames.map((p) => p.name), null);
 
     stream_join;
 }
@@ -430,7 +431,17 @@ constant_Date = {
     date:constant_Date '-' offset:constant_Measure_ms => new Ast.Value.Date(date.value, '-', offset);
 }
 
-constant_Time = time:TIME => new Ast.Value.Time(time.value.hour, time.value.minute, time.value.second||0);
+// Note that while keeping digits in ranges [0-23],[0-59],[0-59] is not enforced
+// here, it is enforced in tonn_converter, rendering it unnecessary to do so here
+constant_Time = {
+    time:TIME => new Ast.Value.Time(new Ast.Time.Absolute(time.value.hour, time.value.minute, time.value.second||0));
+    time:LITERAL_TIME => {
+        let tokens = time.value.split(':');
+        return new Ast.Value.Time(new Ast.Time.Absolute(parseInt(tokens[0]), parseInt(tokens[1]), parseInt(tokens[2])));
+    };
+    'time:morning' => new Ast.Value.Time(new Ast.Time.Relative('morning'));
+    'time:evening' => new Ast.Value.Time(new Ast.Time.Relative('evening'));
+}
 
 // luinet expands this into the various enums in the right
 // place for a parameter (as the meaning of an enum changes according

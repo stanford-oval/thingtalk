@@ -1440,6 +1440,7 @@ class @org.wikidata
   #_[canonical="wikidata human data"]
   #_[confirmation="wikidata human"]
   #[default_projection=['id']]
+  #[handle_thingtalk=true]
   #[wikidata_subject='Q5'];
 }
 class @com.wikicfp

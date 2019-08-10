@@ -1,3 +1,46 @@
+1.8.0-beta.1
+============
+
+* New operator `result()` retrieves the latest result of a given type from the assistant
+  history [#74, #104]
+* `attimer()` now supports firing at multiple times, and supports and `expiration_date`
+  parameter [Richard Grannis-Vu; #107]
+* The `Time` has been extended to support relative times, such as "morning" and "evening";
+  relative time values must be slot-filled before execution [Richard Grannis-Vu; #121, #123]
+* New annotations [#97, #106]:
+  - #[require_filter] indicates a that a function must be filtered in some way
+    (and will not typecheck otherwise)
+  - #[default_projection] contains a limited set of parameter that will be returned
+    if no other projection is applied
+  - #[unique] indicates that a parameter is a "unique key" for the results of
+    the function; multiple equality filters with unique parameters are disallowed
+  - #[handle_thingtalk] indicates that a query function is able to understanding
+    whole ThingTalk subtrees instead of simple invocations [#120]
+* The #_[canonical] annotation on parameters has been extended and can now include multiple
+  grammatical forms (e.g. noun, verb) [#114, #117]
+* New API for iterating slots: `node.iterateSlots2()`; the new API yields `Slot`
+  object instead of tuples, and is generally more usable [#115]
+* New API to convert ThingTalk query programs to SPARQL queries suitable to query WikiData
+  [Ryan Cheng; #113, #125, #126]
+* New API provides global support for internationalization, even in place where a `platform`
+  object is not accessible [#115]
+* Projections can now be synthesized and expressed in neural network syntax [#97, #119]
+* Normalization has been extended to handle projections correctly [#97, #112]
+* Both neural network and surface syntax now allow variables and `$undefined` in more
+  places [#108]
+* Neural network entity assignment now lowercases entity names, to match the tokenization
+  of the sentence [#102]
+* __const variables are now typechecked correctly, based on their name [#108]
+* The obsolete JSON manifest format is no longer used by SchemaRetriever; manifest
+  conversion code is now fully deprecated [#122]
+* The compiler now correctly verifies and refuses to execute programs that are not fully
+  slot-filled [#124]
+* The formatter now correctly uses the canonical form of parameters when displaying
+  aggregations or constructing fallback display forms [#127]
+* Misc bug fixes [#116]
+* Misc build system and test fixes [#111, #118]
+* Updated dependencies [#109, #110]
+
 1.7.3
 =====
 

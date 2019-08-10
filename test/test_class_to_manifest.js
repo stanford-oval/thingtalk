@@ -315,7 +315,8 @@ const TEST_CASES = [
     '  #_[confirmation="bar"]\n' +
     '  #[require_filter=true]\n' +
     '  #[default_projection=["title", "description"]];\n' +
-    '}\n'
+    '}\n',
+
 ];
 
 async function test(i) {

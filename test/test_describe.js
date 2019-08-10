@@ -45,6 +45,12 @@ var TEST_CASES = [
     [`attimer(time=[makeTime(9,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am");`,
     `send me a message “it's 9am” every day at 9:00 AM`,//'
     'Say'],
+    [`attimer(time=[$context.time.morning]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's the morning");`,
+    `send me a message “it's the morning” every day at the morning`,//'
+    'Say'],
+    [`attimer(time=[$context.time.evening]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's the evening");`,
+    `send me a message “it's the evening” every day at the evening`,//'
+    'Say'],
 
     [`now => @com.xkcd.get_comic() => notify;`,
     'get an Xkcd comic and then notify you',
@@ -277,20 +283,21 @@ var TEST_CASES = [
     [`bookkeeping(choice(0));`,
     'choice number 1', ''],
 
+    [`now => @org.wikidata.person(), contains(P1449, 'boogie') => notify;`,
+    'get wikidata human if the nickname contain “boogie” and then notify you', 'Wikidata ⇒ Notification'],
     [`now => result(@com.thecatapi.get) => notify;`,
     'get the last cat picture and then notify you', 'Thecatapi ⇒ Notification'],
-
     [`now => result(@com.thecatapi.get[1]) => notify;`,
     'get the first cat picture and then notify you', 'Thecatapi ⇒ Notification'],
-
     [`now => result(@com.thecatapi.get[2]) => notify;`,
     'get the 2-th cat picture and then notify you', 'Thecatapi ⇒ Notification'],
-
     [`now => result(@com.thecatapi.get[-2]) => notify;`,
     'get the 2-th last cat picture and then notify you', 'Thecatapi ⇒ Notification'],
-
     [`now => @com.spotify.get_currently_playing() => @com.spotify.add_songs_to_playlist(songs=[song]);`,
     'get the currently playing track and then add the songs the song to the playlist ____', 'Spotify ⇒ Spotify'],
+
+    [`attimer(time=$?) => @com.twitter.post();`,
+    `tweet ____ every day at ____`, 'Twitter']
 ];
 
 const gettext = {
