@@ -28,7 +28,6 @@
   "devDependencies": {
     "argparse": "^1.0.10",
     "coveralls": "^3.0.0",
-    "csv": "^5.0.0",
     "deep-equal": "^1.0.1",
     "eslint": "^6.0.0",
     "nyc": "^14.0.0",
