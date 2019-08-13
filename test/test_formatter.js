@@ -279,6 +279,12 @@ Picture: http://example.com/security-camera.jpg`
     }, null,
     ['The total number of children is 10.']
     ],
+
+    ['org.wikidata:person', {
+        text: 'lol'
+    }, null,
+    ['text: lol']
+    ],
 ];
 
 const gettext = {
