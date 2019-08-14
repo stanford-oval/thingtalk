@@ -1,3 +1,9 @@
+1.8.0-beta.2
+============
+
+* Misc bug fixes [#131, #128]
+* Removed csv devDependency
+
 1.8.0-beta.1
 ============
 
