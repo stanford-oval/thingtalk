@@ -241,7 +241,7 @@ function compare_sparqls(sqarqlQuery1, sqarqlQuery2) {
 }
 
 async function main() {
-    for (var i = 0; i < 11; i++) {
+    for (var i = 0; i < TEST_CASES.length; i++) {
         console.log("TEST CASE #" + (i + 1));
         await test(i);
     }
