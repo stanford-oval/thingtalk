@@ -24,47 +24,49 @@ const TEST_CASES = [
     && P641 == ["Q5372"^^org.wikidatasportsskill:sports] => notify;
         `,
         `
-    SELECT distinct ?P22 ?P22Label WHERE{
-    ?item1 ?label1 'Curry'@en.
-    ?v1 wdt:P734 ?item1.
-    ?v1 wdt:P641 wd:Q5372.
-    ?v1 wdt:P22 ?P22.
-    SERVICE wikibase:label { bd:serviceParam wikibase:language "en".
-                             ?P22 rdfs:label ?P22Label. }
-    }
+    SELECT (?table0 as ?id) (?table0Label as ?idLabel) (?p46 as ?P22) (?p46Label as ?P22Label) WHERE {
+    ?string18 ?label18 'Curry'@en.
+    ?table0 wdt:P734 ?p18.
+    ?table0 wdt:P641 ?p71.
+    FILTER (?p18 = ?string18).
+    FILTER (?p71 = wd:Q5372).
+    ?table0 wdt:P22 ?p46
+    SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. ?p46 rdfs:label ?p46Label. }}
+
     limit 10
     `,
     ],
     [
         `
-    // monitor for person who was born on August 3, 1977, and plays Football
+    // filter for person who was born on August 3, 1977, and plays Football
     now => @org.wikidatasportsskill.athlete(), P569 == makeDate(1977, 8, 3)
     && P641 == ["Q41323"^^org.wikidatasportsskill:sports] => notify;
         `,
         `
-    SELECT distinct (?v1 as ?id) (?v1Label as ?idLabel) WHERE{
-    ?v1 wdt:P569 "1977-08-03"^^xsd:dateTime.
-    ?v1 wdt:P641 wd:Q41323.
-    SERVICE wikibase:label { bd:serviceParam wikibase:language "en".
-                             ?v1 rdfs:label ?v1Label. }
-    }
+    SELECT (?table0 as ?id) (?table0Label as ?idLabel) WHERE {
+
+    ?table0 wdt:P569 ?p14.
+    ?table0 wdt:P641 ?p71.
+    FILTER (?p14 = "1977-08-03"^^xsd:dateTime).
+    FILTER (?p71 = wd:Q41323)
+    SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. }}
+
     limit 10
         `,
     ],
     [
         `
-    // Filter for persons who are over 230 cm and play Basketball
+    // Filter for persons who are over 231 cm and play Basketball
     now => @org.wikidatasportsskill.athlete(), (P2048 >= 231cm)
     && P641 == ["Q5372"^^org.wikidatasportsskill:sports] => notify;
         `,
         `
-    SELECT distinct (?v1 as ?id) (?v1Label as ?idLabel) WHERE{
-    ?v1 wdt:P2048 ?compValue.
-    FILTER(?compValue >= "231"^^xsd:decimal).
-    ?v1 wdt:P641 wd:Q5372.
-    SERVICE wikibase:label { bd:serviceParam wikibase:language "en".
-                             ?v1 rdfs:label ?v1Label. }
-    }
+    SELECT (?table0 as ?id) (?table0Label as ?idLabel) WHERE {
+    ?table0 wdt:P2048 ?p24.
+    ?table0 wdt:P641 ?p71.
+    FILTER (?p24 >= "231"^^xsd:decimal).
+    FILTER (?p71 = wd:Q5372)
+    SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. }}
     limit 10
         `,
     ],
@@ -76,29 +78,29 @@ const TEST_CASES = [
     && P166 == ["Q222047"^^org.wikidatasportsskill:award_received("NBA Most Valuable Player Award")] => notify;
     `,
         `
-    SELECT distinct (?v1 as ?id) (?v1Label as ?idLabel) WHERE{
-    ?v1 wdt:P647 wd:Q162990.
-    ?v1 wdt:P166 wd:Q222047.
-    SERVICE wikibase:label { bd:serviceParam wikibase:language "en".
-                             ?v1 rdfs:label ?v1Label. }
-    }
+    SELECT (?table0 as ?id) (?table0Label as ?idLabel) WHERE {
+    ?table0 wdt:P647 ?p48.
+    ?table0 wdt:P166 ?p71.
+    FILTER (?p48 = wd:Q162990).
+    FILTER (?p71 = wd:Q222047)
+    SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. }}
     limit 10
         `,
     ],
     [
         `
-    // Filter for person who played for the Lakers and Warriors
+    // Filter for persons who have played for the Lakers and Warriors
     now => @org.wikidatasportsskill.athlete(),
     P54 == ["Q121783"^^org.wikidatasportsskill:sports_teams("Los Angeles Lakers"),
     "Q157376"^^org.wikidatasportsskill:sports_teams("Golden State Warriors")] => notify;
         `,
         `
-    SELECT distinct (?v1 as ?id) (?v1Label as ?idLabel) WHERE{
-    ?v1 wdt:P54 wd:Q121783.
-    ?v1 wdt:P54 wd:Q157376.
-    SERVICE wikibase:label { bd:serviceParam wikibase:language "en".
-                             ?v1 rdfs:label ?v1Label. }
-    }
+    SELECT (?table0 as ?id) (?table0Label as ?idLabel) WHERE {
+    ?table0 wdt:P54 ?p71.
+    ?table0 wdt:P54 ?p72.
+    FILTER (?p71 = wd:Q121783).
+    FILTER (?p72 = wd:Q157376)
+    SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. }}
     limit 10
         `,
     ],
@@ -110,13 +112,12 @@ const TEST_CASES = [
     join (@org.wikidatasportsskill.athlete())), P647 == lhs.id => notify;
         `,
         `
-    SELECT distinct (?v2 as ?lhs_id) (?v2Label as ?lhs_idLabel) WHERE{
-    ?v2 wdt:P286 wd:Q523630.
-    ?v2 wdt:P31/wdt:P279 wd:Q12973014.
-    ?v1 wdt:P647 ?v2.
-    SERVICE wikibase:label { bd:serviceParam wikibase:language "en".
-                             ?v2 rdfs:label ?v2Label. }
-    }
+    SELECT (?table1 as ?id) (?table1Label as ?idLabel) (?table0 as ?lhs__id) (?table0Label as ?lhs__idLabel) WHERE {
+    ?table0 wdt:P286 ?p14.
+    FILTER (?p14 = wd:Q523630).
+    ?table1 wdt:P647 ?p63.
+    FILTER (?p63 = ?table0)
+    SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table1 rdfs:label ?table1Label. ?table0 rdfs:label ?table0Label. }}
     limit 10
         `,
     ],
@@ -126,13 +127,12 @@ const TEST_CASES = [
     now => sort P569 desc of @org.wikidatasportsskill.athlete(), P647 == "Q157376"^^org.wikidatasportsskill:sports_teams("Golden State Warriors") => notify;
         `,
         `
-    SELECT distinct (?v1 as ?id) (?v1Label as ?idLabel) WHERE{
-    ?v1 wdt:P569 ?counter.
-    ?v1 wdt:P647 wd:Q157376.
-    SERVICE wikibase:label { bd:serviceParam wikibase:language "en".
-                             ?v1 rdfs:label ?v1Label. }
-    }
-    ORDER BY desc(?counter)
+    SELECT (?table0 as ?id) (?table0Label as ?idLabel) WHERE {
+    ?table0 wdt:P569 ?p14.
+    ?table0 wdt:P647 ?p48.
+    FILTER (?p48 = wd:Q157376)
+    SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. }}
+    ORDER BY desc(?p14)
     limit 10
         `,
     ],
@@ -145,76 +145,76 @@ const TEST_CASES = [
     join ([id] of @org.wikidatasportsskill.sports_team())), P647 == lhs.id && P286 == rhs.id => notify;
         `,
         `
-    SELECT distinct (?v3 as ?lhs_id) (?v3Label as ?lhs_idLabel) (?v2 as ?rhs_id) (?v2Label as ?rhs_idLabel) ?P647 ?P647Label (?v1 as ?id) (?v1Label as ?idLabel) WHERE{
-    ?v3 wdt:P641 wd:Q5372.
-    ?v3 wdt:P31/wdt:P279 wd:Q12973014.
-    ?v2 wdt:P647 ?v3.
-    ?v2 wdt:P647 ?P647.
-    ?v2 wdt:P31/wdt:P279 wd:Q2066131.
-    ?v1 wdt:P286 ?v2.
-    ?v1 wdt:P31/wdt:P279 wd:Q12973014.
-    SERVICE wikibase:label { bd:serviceParam wikibase:language "en".
-                             ?v3 rdfs:label ?v3Label. ?v2 rdfs:label ?v2Label. ?P647 rdfs:label ?P647Label. ?v1 rdfs:label ?v1Label.}
-    }
+    SELECT (?table2 as ?id) (?table2Label as ?idLabel) (?p63 as ?P647) (?p63Label as ?P647Label) (?table1 as ?rhs__id) (?table1Label as ?rhs__idLabel) (?p63 as ?rhs__P647) (?p63Label as ?rhs__P647Label) (?table0 as ?lhs__id) (?table0Label as ?lhs__idLabel) WHERE {
+
+    ?table0 wdt:P641 ?p3.
+    FILTER (?p3 = wd:Q5372).
+    ?table1 wdt:P647 ?p63.
+    ?table2 wdt:P286 ?p100.
+    FILTER (?p63 = ?table0).
+    FILTER (?p100 = ?table1)
+    SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table2 rdfs:label ?table2Label. ?p63 rdfs:label ?p63Label. ?table1 rdfs:label ?table1Label. ?p63 rdfs:label ?p63Label. ?table0 rdfs:label ?table0Label. }}
+
     limit 10
+
         `,
     ],
     [
         `
+    // Union between Guards who have won All Star Game MVP and players who have won MVP
     now => @org.wikidatasportsskill.athlete(), P413 == ["Q212413"^^org.wikidatasportsskill:position_played_on_team('Guard')]
     && P166 == ["Q31391"^^org.wikidatasportsskill:award_received("NBA All-Star Game Most Valuable Player Award")]
     || P166 == ["Q222047"^^org.wikidatasportsskill:award_received("NBA Most Valuable Player Award")] => notify;
         `,
         `
-    SELECT distinct (?v1 as ?id) (?v1Label as ?idLabel) WHERE{
-    {?v1 wdt:P166 wd:Q222047.}
+    SELECT (?table0 as ?id) (?table0Label as ?idLabel) WHERE {
+    {?table0 wdt:P166 ?p74
+    FILTER (?p74 = wd:Q222047)}
     UNION
-    {?v1 wdt:P413 wd:Q212413.
-    ?v1 wdt:P166 wd:Q31391.}
-    SERVICE wikibase:label { bd:serviceParam wikibase:language "en".
-                             ?v1 rdfs:label ?v1Label. }
-    }
+    {?table0 wdt:P413 ?p71.
+    ?table0 wdt:P166 ?p72}.
+    FILTER (?p71 = wd:Q212413).
+    FILTER (?p72 = wd:Q31391)
+    SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. }}
     limit 10
     `,
     ],
     [
         `
+    //Join between the owner of Microsoft and the father of that person
     now => (((@org.wikidata.person(), contains(P1830, 'Microsoft')) as lhs)
     join ([P735, P19] of @org.wikidata.person())), id==lhs.P22 => notify;
         `,
         `
-    SELECT distinct ?lhs_P22 ?lhs_P22Label ?P735 ?P735Label ?P19 ?P19Label WHERE{
-    ?item1 ?label1 'Microsoft'@en.
-    ?v1 wdt:P1830 ?item1.
-    ?v1 wdt:P22 ?lhs_P22.
-    ?v1 wdt:P31/wdt:P279 wd:Q5.
-    ?v1 wdt:P735 ?P735.
-    ?v1 wdt:P19 ?P19.
-    SERVICE wikibase:label { bd:serviceParam wikibase:language "en".
-                             ?lhs_P22 rdfs:label ?lhs_P22Label. ?P735 rdfs:label
-                             ?P735Label. ?P19 rdfs:label ?P19Label. }
-    }
+    SELECT (?p67 as ?P735) (?p75 as ?P19) (?table1 as ?id) (?table1Label as ?idLabel) (?table0 as ?lhs__id) (?table0Label as ?lhs__idLabel) WHERE {
+    ?string50 ?label50 'Microsoft'@en.
+    ?table0 wdt:P1830 ?p50.
+    FILTER (?p50 = ?string50).
+    ?table0 wdt:P22 ?p15.
+    FILTER (?p15 = ?table1).
+    ?table1 wdt:P735 ?p67.
+    ?table1 wdt:P19 ?p75
+    SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?p67 rdfs:label ?p67Label. ?p75 rdfs:label ?p75Label. ?table1 rdfs:label ?table1Label. ?table0 rdfs:label ?table0Label. }}
     limit 10
         `,
     ],
     [
         `
+    //filter for person who has last name Obama and first name containing "Bar"
     now => [id, P18] of (@org.wikidata.person(), P734 == "Obama" && P735 =~ 'Bar') => notify;
     `,
 
         `
-    SELECT distinct (?v1 as ?id) (?v1Label as ?idLabel) ?P18 ?P18Label  WHERE{
-    ?item2 ?label2 'Obama'@en.
-    ?v1 wdt:P734 ?item2.
-    ?v1 wdt:P735 ?compValue.
-    ?compValue rdfs:label ?label1 .
-    FILTER CONTAINS(?label1, 'Bar').
-    ?v1 wdt:P18 ?P18.
-    ?v1 wdt:P31/wdt:P279 wd:Q5.
-    SERVICE wikibase:label { bd:serviceParam wikibase:language "en".
-                            ?v1 rdfs:label ?v1Label. ?P18 rdfs:label ?P18Label.}
-    }
-
+    SELECT (?table0 as ?id) (?table0Label as ?idLabel) (?p13 as ?P18) (?p13Label as ?P18Label) WHERE {
+    ?string1 ?label1 'Obama'@en.
+    ?string0 ?label0 'Bar'@en.
+    ?table0 wdt:P734 ?p1.
+    ?table0 wdt:P735 ?p0.
+    FILTER (?p1 = ?string1).
+    ?p0 rdfs:label ?p67
+    FILTER CONTAINS(?p67, 'Bar').
+    ?table0 wdt:P18 ?p13
+    SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. ?p13 rdfs:label ?p13Label. }}
     limit 10
         `,
     ],
@@ -241,7 +241,7 @@ function compare_sparqls(sqarqlQuery1, sqarqlQuery2) {
 }
 
 async function main() {
-    for (var i = 0; i < TEST_CASES.length; i++) {
+    for (var i = 0; i < 11; i++) {
         console.log("TEST CASE #" + (i + 1));
         await test(i);
     }
