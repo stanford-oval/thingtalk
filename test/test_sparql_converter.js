@@ -31,7 +31,7 @@ const TEST_CASES = [
     ?table0 wdt:P641 ?p71.
     FILTER (?p18 = ?string18).
     FILTER (?p71 = wd:Q5372).
-    ?table0 wdt:P22 ?p46
+    ?table0 wdt:P22 ?p46.
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. ?p46 rdfs:label ?p46Label. }}
 
     limit 10
@@ -50,7 +50,7 @@ const TEST_CASES = [
     ?table0 wdt:P569 ?p14.
     ?table0 wdt:P641 ?p71.
     FILTER (?p14 = "1977-08-03"^^xsd:dateTime).
-    FILTER (?p71 = wd:Q41323)
+    FILTER (?p71 = wd:Q41323).
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. }}
 
     limit 10
@@ -68,7 +68,7 @@ const TEST_CASES = [
     ?table0 wdt:P2048 ?p24.
     ?table0 wdt:P641 ?p71.
     FILTER (?p24 >= "231"^^xsd:decimal).
-    FILTER (?p71 = wd:Q5372)
+    FILTER (?p71 = wd:Q5372).
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. }}
     limit 10
         `,
@@ -86,7 +86,7 @@ const TEST_CASES = [
     ?table0 wdt:P647 ?p48.
     ?table0 wdt:P166 ?p71.
     FILTER (?p48 = wd:Q162990).
-    FILTER (?p71 = wd:Q222047)
+    FILTER (?p71 = wd:Q222047).
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. }}
     limit 10
         `,
@@ -104,7 +104,7 @@ const TEST_CASES = [
     ?table0 wdt:P54 ?p71.
     ?table0 wdt:P54 ?p72.
     FILTER (?p71 = wd:Q121783).
-    FILTER (?p72 = wd:Q157376)
+    FILTER (?p72 = wd:Q157376).
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. }}
     limit 10
         `,
@@ -122,7 +122,8 @@ const TEST_CASES = [
     ?table0 wdt:P286 ?p14.
     FILTER (?p14 = wd:Q523630).
     ?table1 wdt:P647 ?p63.
-    FILTER (?p63 = ?table0)
+    FILTER (?p63 = ?table0).
+    ?table0 wdt:P31/wdt:P279 wd:Q12973014
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table1 rdfs:label ?table1Label. ?table0 rdfs:label ?table0Label. }}
     limit 10
         `,
@@ -137,7 +138,7 @@ const TEST_CASES = [
     SELECT (?table0 as ?id) (?table0Label as ?idLabel) WHERE {
     ?table0 wdt:P569 ?p14.
     ?table0 wdt:P647 ?p48.
-    FILTER (?p48 = wd:Q157376)
+    FILTER (?p48 = wd:Q157376).
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. }}
     ORDER BY desc(?p14)
     limit 10
@@ -154,13 +155,14 @@ const TEST_CASES = [
         `,
         `
     SELECT (?table2 as ?id) (?table2Label as ?idLabel) (?p63 as ?P647) (?p63Label as ?P647Label) (?table1 as ?rhs__id) (?table1Label as ?rhs__idLabel) (?p63 as ?rhs__P647) (?p63Label as ?rhs__P647Label) (?table0 as ?lhs__id) (?table0Label as ?lhs__idLabel) WHERE {
-
     ?table0 wdt:P641 ?p3.
     FILTER (?p3 = wd:Q5372).
     ?table1 wdt:P647 ?p63.
     ?table2 wdt:P286 ?p100.
     FILTER (?p63 = ?table0).
-    FILTER (?p100 = ?table1)
+    FILTER (?p100 = ?table1).
+    ?table0 wdt:P31/wdt:P279 wd:Q12973014.
+    ?table2 wdt:P31/wdt:P279 wd:Q12973014
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table2 rdfs:label ?table2Label. ?p63 rdfs:label ?p63Label. ?table1 rdfs:label ?table1Label. ?p63 rdfs:label ?p63Label. ?table0 rdfs:label ?table0Label. }}
 
     limit 10
@@ -183,7 +185,7 @@ const TEST_CASES = [
     {?table0 wdt:P413 ?p71.
     ?table0 wdt:P166 ?p72}.
     FILTER (?p71 = wd:Q212413).
-    FILTER (?p72 = wd:Q31391)
+    FILTER (?p72 = wd:Q31391).
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. }}
     limit 10
     `,
@@ -203,7 +205,9 @@ const TEST_CASES = [
     ?table0 wdt:P22 ?p15.
     FILTER (?p15 = ?table1).
     ?table1 wdt:P735 ?p67.
-    ?table1 wdt:P19 ?p75
+    ?table1 wdt:P19 ?p75.
+    ?table0 wdt:P31/wdt:P279 wd:Q5.
+    ?table1 wdt:P31/wdt:P279 wd:Q5
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?p67 rdfs:label ?p67Label. ?p75 rdfs:label ?p75Label. ?table1 rdfs:label ?table1Label. ?table0 rdfs:label ?table0Label. }}
     limit 10
         `,
@@ -222,9 +226,10 @@ const TEST_CASES = [
     ?table0 wdt:P734 ?p1.
     ?table0 wdt:P735 ?p0.
     FILTER (?p1 = ?string1).
-    ?p0 rdfs:label ?p67
+    ?p0 rdfs:label ?p67.
     FILTER CONTAINS(?p67, 'Bar').
-    ?table0 wdt:P18 ?p13
+    ?table0 wdt:P18 ?p13.
+    ?table0 wdt:P31/wdt:P279 wd:Q5
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. ?p13 rdfs:label ?p13Label. }}
     limit 10
         `,

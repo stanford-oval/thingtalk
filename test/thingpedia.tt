@@ -1439,6 +1439,8 @@ class @org.wikidata
 
   #_[canonical="wikidata human data"]
   #_[confirmation="wikidata human"]
+  #[handle_thingtalk=true]
+  #[wikidata_subject='Q5']
   #[default_projection=['id']];
 
 }
@@ -1660,6 +1662,7 @@ class @org.wikidatasportsskill
                      out id: Entity(org.wikidatasportsskill:athletes) #_[canonical="athlete"])
   #_[canonical="wikidata athlete"]
   #_[confirmation="wikidata athlete"]
+  #[handle_thingtalk=true]
   #[default_projection=['id']];
 
 
@@ -1682,6 +1685,8 @@ class @org.wikidatasportsskill
                     out id: Entity(org.wikidatasportsskill:sports) #_[canonical="sports"])
   #_[canonical="wikidata sports data"]
   #_[confirmation="wikidata sports"]
+  #[handle_thingtalk=true]
+  #[wikidata_subject='Q349']
   #[default_projection=['id']];
 
 
@@ -1703,6 +1708,8 @@ class @org.wikidatasportsskill
                          out id: Entity(org.wikidatasportsskill:sports_teams) #_[canonical="sports team"])
   #_[canonical="wikidata sports team"]
   #_[confirmation="wikidata sports team"]
+  #[handle_thingtalk=true]
+  #[wikidata_subject='Q12973014']
   #[default_projection=['id']];
 
 }
