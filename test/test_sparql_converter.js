@@ -19,6 +19,7 @@ const _schemaRetriever = new SchemaRetriever(
 const TEST_CASES = [
     [
         `
+    // Test for handling filters, retrieving wikidata representations of strings and projections
     // Filter for person who has last name Curry, plays Basketball, and project for Father
     now => [P22] of @org.wikidatasportsskill.athlete(), P734 == "Curry"
     && P641 == ["Q5372"^^org.wikidatasportsskill:sports] => notify;
@@ -38,6 +39,7 @@ const TEST_CASES = [
     ],
     [
         `
+    // Test for handling dates within filters
     // filter for person who was born on August 3, 1977, and plays Football
     now => @org.wikidatasportsskill.athlete(), P569 == makeDate(1977, 8, 3)
     && P641 == ["Q41323"^^org.wikidatasportsskill:sports] => notify;
@@ -56,6 +58,7 @@ const TEST_CASES = [
     ],
     [
         `
+    // Test for handling measurements within filters
     // Filter for persons who are over 231 cm and play Basketball
     now => @org.wikidatasportsskill.athlete(), (P2048 >= 231cm)
     && P641 == ["Q5372"^^org.wikidatasportsskill:sports] => notify;
@@ -72,6 +75,7 @@ const TEST_CASES = [
     ],
     [
         `
+    // Test for handling entities within filters
     // Filter for person who was drafted by the cavs and won the MVP award
     now => @org.wikidatasportsskill.athlete(),
     P647 == "Q162990"^^org.wikidatasportsskill:sports_teams("Cleveland Cavaliers")
@@ -89,6 +93,7 @@ const TEST_CASES = [
     ],
     [
         `
+    // Test for handling arrays within filters
     // Filter for persons who have played for the Lakers and Warriors
     now => @org.wikidatasportsskill.athlete(),
     P54 == ["Q121783"^^org.wikidatasportsskill:sports_teams("Los Angeles Lakers"),
@@ -106,6 +111,7 @@ const TEST_CASES = [
     ],
     [
         `
+    // Test for handling joins and aliases
     // Join for team Steve Kerr coaches (Warriors) and players who were drafted by that team
     now => ((([id] of @org.wikidatasportsskill.sports_team() as lhs),
     P286 == "Q523630"^^org.wikidatasportsskill:athletes('Steve Kerr'))
@@ -123,6 +129,7 @@ const TEST_CASES = [
     ],
     [
         `
+    // Test for sorts
     // Filter for persons who were drafted by the warriors and sort for the youngest players
     now => sort P569 desc of @org.wikidatasportsskill.athlete(), P647 == "Q157376"^^org.wikidatasportsskill:sports_teams("Golden State Warriors") => notify;
         `,
@@ -138,6 +145,7 @@ const TEST_CASES = [
     ],
     [
         `
+    // Test for nested joins and repetitive projections
     // Join for basketball team the players who were drafted by that team and the players which are head coaches
     now => ((((@org.wikidatasportsskill.sports_team(),
     P641 == "Q5372"^^org.wikidatasportsskill:sports('Basketball')) as lhs)
@@ -161,6 +169,7 @@ const TEST_CASES = [
     ],
     [
         `
+    // Test for handling nested or/and statements
     // Union between Guards who have won All Star Game MVP and players who have won MVP
     now => @org.wikidatasportsskill.athlete(), P413 == ["Q212413"^^org.wikidatasportsskill:position_played_on_team('Guard')]
     && P166 == ["Q31391"^^org.wikidatasportsskill:award_received("NBA All-Star Game Most Valuable Player Award")]
@@ -181,6 +190,7 @@ const TEST_CASES = [
     ],
     [
         `
+    //Test for filtering id
     //Join between the owner of Microsoft and the father of that person
     now => (((@org.wikidata.person(), contains(P1830, 'Microsoft')) as lhs)
     join ([P735, P19] of @org.wikidata.person())), id==lhs.P22 => notify;
@@ -200,6 +210,7 @@ const TEST_CASES = [
     ],
     [
         `
+    //Test for substrings
     //filter for person who has last name Obama and first name containing "Bar"
     now => [id, P18] of (@org.wikidata.person(), P734 == "Obama" && P735 =~ 'Bar') => notify;
     `,
@@ -236,7 +247,6 @@ function compare_sparqls(sqarqlQuery1, sqarqlQuery2) {
     //remove all whitespaces
     let lines1 = sqarqlQuery1.replace(/\s+/g, "");
     let lines2 = sqarqlQuery2.replace(/\s+/g, "");
-
     assert.strictEqual(lines1, lines2);
 }
 
