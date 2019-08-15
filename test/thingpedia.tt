@@ -1435,13 +1435,12 @@ class @org.wikidata
                     out P4411: String #_[canonical="quora username"] #[string_values="org.wikidata:Quora_username"] #[unique=true],
                     out P4013: String #_[canonical="giphy username"] #[string_values="org.wikidata:Giphy_username"] #[unique=true],
                     out P3984: String #_[canonical="subreddit"] #[string_values="org.wikidata:subreddit"] #[unique=true],
-                    out id: Entity(org.wikidata:human) #_[canonical="person"] #[unique=true] #[sparql_subject='Q5'])
+                    out id: Entity(org.wikidata:human) #_[canonical="person"] #[unique=true])
 
   #_[canonical="wikidata human data"]
   #_[confirmation="wikidata human"]
-  #[default_projection=['id']]
-  #[handle_thingtalk=true]
-  #[wikidata_subject='Q5'];
+  #[default_projection=['id']];
+
 }
 class @com.wikicfp
 #_[name="WikiCFP"]
@@ -1661,8 +1660,8 @@ class @org.wikidatasportsskill
                      out id: Entity(org.wikidatasportsskill:athletes) #_[canonical="athlete"])
   #_[canonical="wikidata athlete"]
   #_[confirmation="wikidata athlete"]
-  #[default_projection=['id']]
-  #[wikidata_subject='Q2066131'];
+  #[default_projection=['id']];
+
 
   list query sports(out P18: Array(Entity(tt:picture)) #_[canonical="image"],
                     out P227: Entity(org.wikidatasportsskill:gnd_id) #_[canonical="gnd id"],
@@ -1683,8 +1682,8 @@ class @org.wikidatasportsskill
                     out id: Entity(org.wikidatasportsskill:sports) #_[canonical="sports"])
   #_[canonical="wikidata sports data"]
   #_[confirmation="wikidata sports"]
-  #[default_projection=['id']]
-  #[wikidata_subject='Q349'];
+  #[default_projection=['id']];
+
 
   list query sports_team(out P17: Entity(org.wikidatasportsskill:country) #_[canonical="country"],
                          out P571: Date #_[canonical="inception"],
@@ -1704,6 +1703,6 @@ class @org.wikidatasportsskill
                          out id: Entity(org.wikidatasportsskill:sports_teams) #_[canonical="sports team"])
   #_[canonical="wikidata sports team"]
   #_[confirmation="wikidata sports team"]
-  #[default_projection=['id']]
-  #[wikidata_subject='Q12973014'];
+  #[default_projection=['id']];
+
 }
