@@ -60,9 +60,9 @@ const TEST_CASES = [
     ],
     [
         `
-    // Test for handling measurements within filters
+    // Test for handling measurements within filters and negating operators
     // Filter for persons who are over 231 cm and play Basketball
-    now => @org.wikidatasportsskill.athlete(), (P2048 >= 231cm)
+    now => @org.wikidatasportsskill.athlete(), !(P2048 <= 231cm)
     && P641 == ["Q5372"^^org.wikidatasportsskill:sports] => notify;
         `,
         `
