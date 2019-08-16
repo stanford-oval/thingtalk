@@ -32,6 +32,7 @@ const TEST_CASES = [
     FILTER (?p18 = ?string18).
     FILTER (?p71 = wd:Q5372).
     ?table0 wdt:P22 ?p46.
+    ?table0 wdt:P31 wd:Q5
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. ?p46 rdfs:label ?p46Label. }}
 
     limit 10
@@ -51,6 +52,7 @@ const TEST_CASES = [
     ?table0 wdt:P641 ?p71.
     FILTER (?p14 = "1977-08-03"^^xsd:dateTime).
     FILTER (?p71 = wd:Q41323).
+    ?table0 wdt:P31 wd:Q5
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. }}
 
     limit 10
@@ -69,6 +71,7 @@ const TEST_CASES = [
     ?table0 wdt:P641 ?p71.
     FILTER (?p24 >= "231"^^xsd:decimal).
     FILTER (?p71 = wd:Q5372).
+    ?table0 wdt:P31 wd:Q5
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. }}
     limit 10
         `,
@@ -87,6 +90,7 @@ const TEST_CASES = [
     ?table0 wdt:P166 ?p71.
     FILTER (?p48 = wd:Q162990).
     FILTER (?p71 = wd:Q222047).
+    ?table0 wdt:P31 wd:Q5
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. }}
     limit 10
         `,
@@ -105,6 +109,7 @@ const TEST_CASES = [
     ?table0 wdt:P54 ?p72.
     FILTER (?p71 = wd:Q121783).
     FILTER (?p72 = wd:Q157376).
+    ?table0 wdt:P31 wd:Q5
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. }}
     limit 10
         `,
@@ -123,7 +128,7 @@ const TEST_CASES = [
     FILTER (?p14 = wd:Q523630).
     ?table1 wdt:P647 ?p63.
     FILTER (?p63 = ?table0).
-    ?table0 wdt:P31/wdt:P279 wd:Q12973014
+    ?table1 wdt:P31 wd:Q5
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table1 rdfs:label ?table1Label. ?table0 rdfs:label ?table0Label. }}
     limit 10
         `,
@@ -139,6 +144,7 @@ const TEST_CASES = [
     ?table0 wdt:P569 ?p14.
     ?table0 wdt:P647 ?p48.
     FILTER (?p48 = wd:Q157376).
+    ?table0 wdt:P31 wd:Q5
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. }}
     ORDER BY desc(?p14)
     limit 10
@@ -161,8 +167,7 @@ const TEST_CASES = [
     ?table2 wdt:P286 ?p100.
     FILTER (?p63 = ?table0).
     FILTER (?p100 = ?table1).
-    ?table0 wdt:P31/wdt:P279 wd:Q12973014.
-    ?table2 wdt:P31/wdt:P279 wd:Q12973014
+    ?table1 wdt:P31 wd:Q5
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table2 rdfs:label ?table2Label. ?p63 rdfs:label ?p63Label. ?table1 rdfs:label ?table1Label. ?p63 rdfs:label ?p63Label. ?table0 rdfs:label ?table0Label. }}
 
     limit 10
@@ -186,6 +191,7 @@ const TEST_CASES = [
     ?table0 wdt:P166 ?p72}.
     FILTER (?p71 = wd:Q212413).
     FILTER (?p72 = wd:Q31391).
+    ?table0 wdt:P31 wd:Q5
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. }}
     limit 10
     `,
@@ -206,8 +212,8 @@ const TEST_CASES = [
     FILTER (?p15 = ?table1).
     ?table1 wdt:P735 ?p67.
     ?table1 wdt:P19 ?p75.
-    ?table0 wdt:P31/wdt:P279 wd:Q5.
-    ?table1 wdt:P31/wdt:P279 wd:Q5
+    ?table0 wdt:P31 wd:Q5.
+    ?table1 wdt:P31 wd:Q5
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?p67 rdfs:label ?p67Label. ?p75 rdfs:label ?p75Label. ?table1 rdfs:label ?table1Label. ?table0 rdfs:label ?table0Label. }}
     limit 10
         `,
@@ -229,7 +235,7 @@ const TEST_CASES = [
     ?p0 rdfs:label ?p67.
     FILTER CONTAINS(?p67, 'Bar').
     ?table0 wdt:P18 ?p13.
-    ?table0 wdt:P31/wdt:P279 wd:Q5
+    ?table0 wdt:P31 wd:Q5
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. ?p13 rdfs:label ?p13Label. }}
     limit 10
         `,

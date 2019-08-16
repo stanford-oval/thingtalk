@@ -1663,6 +1663,7 @@ class @org.wikidatasportsskill
   #_[canonical="wikidata athlete"]
   #_[confirmation="wikidata athlete"]
   #[handle_thingtalk=true]
+  #[wikidata_subject='Q5']
   #[default_projection=['id']];
 
 
@@ -1686,7 +1687,7 @@ class @org.wikidatasportsskill
   #_[canonical="wikidata sports data"]
   #_[confirmation="wikidata sports"]
   #[handle_thingtalk=true]
-  #[wikidata_subject='Q349']
+  #[wikidata_subject='Q31629']
   #[default_projection=['id']];
 
 
@@ -1709,7 +1710,6 @@ class @org.wikidatasportsskill
   #_[canonical="wikidata sports team"]
   #_[confirmation="wikidata sports team"]
   #[handle_thingtalk=true]
-  #[wikidata_subject='Q12973014']
   #[default_projection=['id']];
 
 }
