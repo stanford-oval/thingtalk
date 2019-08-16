@@ -35,7 +35,7 @@ const TEST_CASES = [
     ?table0 wdt:P31 wd:Q5
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. ?p46 rdfs:label ?p46Label. }}
 
-    limit 10
+    limit 1 offset 0
     `,
     ],
     [
@@ -55,7 +55,7 @@ const TEST_CASES = [
     ?table0 wdt:P31 wd:Q5
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. }}
 
-    limit 10
+    limit 1 offset 0
         `,
     ],
     [
@@ -73,7 +73,7 @@ const TEST_CASES = [
     FILTER (?p71 = wd:Q5372).
     ?table0 wdt:P31 wd:Q5
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. }}
-    limit 10
+    limit 1 offset 0
         `,
     ],
     [
@@ -92,7 +92,7 @@ const TEST_CASES = [
     FILTER (?p71 = wd:Q222047).
     ?table0 wdt:P31 wd:Q5
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. }}
-    limit 10
+    limit 1 offset 0
         `,
     ],
     [
@@ -111,7 +111,7 @@ const TEST_CASES = [
     FILTER (?p72 = wd:Q157376).
     ?table0 wdt:P31 wd:Q5
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. }}
-    limit 10
+    limit 1 offset 0
         `,
     ],
     [
@@ -130,14 +130,14 @@ const TEST_CASES = [
     FILTER (?p63 = ?table0).
     ?table1 wdt:P31 wd:Q5
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table1 rdfs:label ?table1Label. ?table0 rdfs:label ?table0Label. }}
-    limit 10
+    limit 1 offset 0
         `,
     ],
     [
         `
-    // Test for sorts
-    // Filter for persons who were drafted by the warriors and sort for the youngest players
-    now => sort P569 desc of @org.wikidatasportsskill.athlete(), P647 == "Q157376"^^org.wikidatasportsskill:sports_teams("Golden State Warriors") => notify;
+    // Test for sorts and indexing
+    // Filter for persons who were drafted by the warriors, sort for the youngest players, and get the second result
+    now => sort P569 desc of @org.wikidatasportsskill.athlete()[1], P647 == "Q157376"^^org.wikidatasportsskill:sports_teams("Golden State Warriors") => notify;
         `,
         `
     SELECT (?table0 as ?id) (?table0Label as ?idLabel) WHERE {
@@ -147,7 +147,7 @@ const TEST_CASES = [
     ?table0 wdt:P31 wd:Q5
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. }}
     ORDER BY desc(?p14)
-    limit 10
+    limit 1 offset 1
         `,
     ],
     [
@@ -170,7 +170,7 @@ const TEST_CASES = [
     ?table1 wdt:P31 wd:Q5
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table2 rdfs:label ?table2Label. ?p63 rdfs:label ?p63Label. ?table1 rdfs:label ?table1Label. ?p63 rdfs:label ?p63Label. ?table0 rdfs:label ?table0Label. }}
 
-    limit 10
+    limit 1 offset 0
 
         `,
     ],
@@ -193,7 +193,7 @@ const TEST_CASES = [
     FILTER (?p72 = wd:Q31391).
     ?table0 wdt:P31 wd:Q5
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. }}
-    limit 10
+    limit 1 offset 0
     `,
     ],
     [
@@ -215,7 +215,7 @@ const TEST_CASES = [
     ?table0 wdt:P31 wd:Q5.
     ?table1 wdt:P31 wd:Q5
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?p67 rdfs:label ?p67Label. ?p75 rdfs:label ?p75Label. ?table1 rdfs:label ?table1Label. ?table0 rdfs:label ?table0Label. }}
-    limit 10
+    limit 1 offset 0
         `,
     ],
     [
@@ -237,7 +237,7 @@ const TEST_CASES = [
     ?table0 wdt:P18 ?p13.
     ?table0 wdt:P31 wd:Q5
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. ?p13 rdfs:label ?p13Label. }}
-    limit 10
+    limit 1 offset 0
         `,
     ],
 ];
