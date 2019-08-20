@@ -23,6 +23,7 @@ const TEST_CASES = [
   let _t_8;
   let _t_9;
   let _t_10;
+  let _t_11;
   try {
     _t_0 = {};
     _t_1 = await __env.invokeQuery("com.xkcd", { }, "get_comic", _t_0);
@@ -34,10 +35,11 @@ const TEST_CASES = [
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
         _t_6 = _t_5.number;
-        _t_7 = _t_5.title;
-        _t_8 = _t_5.picture_url;
-        _t_9 = _t_5.link;
-        _t_10 = _t_5.alt_text;
+        _t_7 = _t_5.__response;
+        _t_8 = _t_5.title;
+        _t_9 = _t_5.picture_url;
+        _t_10 = _t_5.link;
+        _t_11 = _t_5.alt_text;
         try {
           await __env.output(String(_t_4), _t_5);
         } catch(_exc_) {
@@ -64,6 +66,7 @@ const TEST_CASES = [
   let _t_8;
   let _t_9;
   let _t_10;
+  let _t_11;
   try {
     _t_0 = {};
     _t_1 = await __env.invokeQuery("com.xkcd", { id: "com.xkcd-123", }, "get_comic", _t_0);
@@ -75,10 +78,11 @@ const TEST_CASES = [
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
         _t_6 = _t_5.number;
-        _t_7 = _t_5.title;
-        _t_8 = _t_5.picture_url;
-        _t_9 = _t_5.link;
-        _t_10 = _t_5.alt_text;
+        _t_7 = _t_5.__response;
+        _t_8 = _t_5.title;
+        _t_9 = _t_5.picture_url;
+        _t_10 = _t_5.link;
+        _t_11 = _t_5.alt_text;
         try {
           await __env.output(String(_t_4), _t_5);
         } catch(_exc_) {
@@ -106,6 +110,7 @@ const TEST_CASES = [
   let _t_9;
   let _t_10;
   let _t_11;
+  let _t_12;
   try {
     _t_0 = {};
     _t_1 = await __env.invokeQuery("com.xkcd", { }, "get_comic", _t_0);
@@ -117,19 +122,20 @@ const TEST_CASES = [
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
         _t_6 = _t_5.number;
-        _t_7 = _t_5.title;
-        _t_8 = _t_5.picture_url;
-        _t_9 = _t_5.link;
-        _t_10 = _t_5.alt_text;
+        _t_7 = _t_5.__response;
+        _t_8 = _t_5.title;
+        _t_9 = _t_5.picture_url;
+        _t_10 = _t_5.link;
+        _t_11 = _t_5.alt_text;
         try {
           await __env.output(String(_t_4), _t_5);
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
         try {
-          _t_11 = {};
-          _t_11.status = _t_7;
-          await __env.invokeAction("com.twitter", { }, "post", _t_11);
+          _t_12 = {};
+          _t_12.status = _t_8;
+          await __env.invokeAction("com.twitter", { }, "post", _t_12);
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -157,6 +163,7 @@ const TEST_CASES = [
   let _t_11;
   let _t_12;
   let _t_13;
+  let _t_14;
   try {
     _t_0 = {};
     _t_1 = await __env.invokeQuery("com.xkcd", { }, "get_comic", _t_0);
@@ -168,22 +175,23 @@ const TEST_CASES = [
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
         _t_6 = _t_5.number;
-        _t_7 = _t_5.title;
-        _t_8 = _t_5.picture_url;
-        _t_9 = _t_5.link;
-        _t_10 = _t_5.alt_text;
-        _t_12 = 1000;
-        _t_11 = _t_6 <= _t_12;
-        if (_t_11) {
+        _t_7 = _t_5.__response;
+        _t_8 = _t_5.title;
+        _t_9 = _t_5.picture_url;
+        _t_10 = _t_5.link;
+        _t_11 = _t_5.alt_text;
+        _t_13 = 1000;
+        _t_12 = _t_6 <= _t_13;
+        if (_t_12) {
           try {
             await __env.output(String(_t_4), _t_5);
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
           try {
-            _t_13 = {};
-            _t_13.status = _t_7;
-            await __env.invokeAction("com.twitter", { }, "post", _t_13);
+            _t_14 = {};
+            _t_14.status = _t_8;
+            await __env.invokeAction("com.twitter", { }, "post", _t_14);
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
@@ -213,6 +221,7 @@ const TEST_CASES = [
   let _t_10;
   let _t_11;
   let _t_12;
+  let _t_13;
   _t_0 = await __env.readState(0);
   try {
     _t_1 = {};
@@ -223,20 +232,21 @@ const TEST_CASES = [
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
-        _t_6 = _t_5.value;
-        _t_7 = __builtin.isNewTuple(_t_0, _t_5, ["value"]);
-        _t_8 = __builtin.addTuple(_t_0, _t_5);
-        await __env.writeState(0, _t_8);
-        _t_0 = _t_8;
-        if (_t_7) {
-          _t_10 = 21;
-          _t_9 = _t_6 >= _t_10;
-          if (_t_9) {
+        _t_6 = _t_5.__response;
+        _t_7 = _t_5.value;
+        _t_8 = __builtin.isNewTuple(_t_0, _t_5, ["__response", "value"]);
+        _t_9 = __builtin.addTuple(_t_0, _t_5);
+        await __env.writeState(0, _t_9);
+        _t_0 = _t_9;
+        if (_t_8) {
+          _t_11 = 21;
+          _t_10 = _t_7 >= _t_11;
+          if (_t_10) {
             try {
-              _t_11 = {};
-              _t_12 = "bla";
-              _t_11.message = _t_12;
-              await __env.invokeAction("org.thingpedia.builtin.thingengine.builtin", { }, "say", _t_11);
+              _t_12 = {};
+              _t_13 = "bla";
+              _t_12.message = _t_13;
+              await __env.invokeAction("org.thingpedia.builtin.thingengine.builtin", { }, "say", _t_12);
             } catch(_exc_) {
               __env.reportError("Failed to invoke action", _exc_);
             }
@@ -269,6 +279,7 @@ const TEST_CASES = [
   let _t_10;
   let _t_11;
   let _t_12;
+  let _t_13;
   _t_0 = await __env.readState(0);
   try {
     _t_1 = {};
@@ -279,20 +290,21 @@ const TEST_CASES = [
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
-        _t_6 = _t_5.value;
-        _t_7 = __builtin.isNewTuple(_t_0, _t_5, ["value"]);
-        _t_8 = __builtin.addTuple(_t_0, _t_5);
-        await __env.writeState(0, _t_8);
-        _t_0 = _t_8;
-        if (_t_7) {
-          _t_10 = 21;
-          _t_9 = _t_6 >= _t_10;
-          if (_t_9) {
+        _t_6 = _t_5.__response;
+        _t_7 = _t_5.value;
+        _t_8 = __builtin.isNewTuple(_t_0, _t_5, ["__response", "value"]);
+        _t_9 = __builtin.addTuple(_t_0, _t_5);
+        await __env.writeState(0, _t_9);
+        _t_0 = _t_9;
+        if (_t_8) {
+          _t_11 = 21;
+          _t_10 = _t_7 >= _t_11;
+          if (_t_10) {
             try {
-              _t_11 = {};
-              _t_12 = "bla";
-              _t_11.message = _t_12;
-              await __env.invokeAction("org.thingpedia.builtin.thingengine.builtin", { }, "say", _t_11);
+              _t_12 = {};
+              _t_13 = "bla";
+              _t_12.message = _t_13;
+              await __env.invokeAction("org.thingpedia.builtin.thingengine.builtin", { }, "say", _t_12);
             } catch(_exc_) {
               __env.reportError("Failed to invoke action", _exc_);
             }
@@ -341,6 +353,7 @@ const TEST_CASES = [
   let _t_13;
   let _t_14;
   let _t_15;
+  let _t_16;
   _t_0 = await __env.readState(0);
   try {
     _t_1 = {};
@@ -351,20 +364,21 @@ const TEST_CASES = [
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
-        _t_6 = _t_5.text;
-        _t_7 = _t_5.hashtags;
-        _t_8 = _t_5.urls;
-        _t_9 = _t_5.author;
-        _t_10 = _t_5.in_reply_to;
-        _t_11 = _t_5.tweet_id;
-        _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
-        _t_13 = __builtin.addTuple(_t_0, _t_5);
-        await __env.writeState(0, _t_13);
-        _t_0 = _t_13;
-        if (_t_12) {
-          _t_15 = new __builtin.Entity("HillaryClinton", null);
-          _t_14 = __builtin.equality(_t_9, _t_15);
-          if (_t_14) {
+        _t_6 = _t_5.__response;
+        _t_7 = _t_5.text;
+        _t_8 = _t_5.hashtags;
+        _t_9 = _t_5.urls;
+        _t_10 = _t_5.author;
+        _t_11 = _t_5.in_reply_to;
+        _t_12 = _t_5.tweet_id;
+        _t_13 = __builtin.isNewTuple(_t_0, _t_5, ["__response", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
+        _t_14 = __builtin.addTuple(_t_0, _t_5);
+        await __env.writeState(0, _t_14);
+        _t_0 = _t_14;
+        if (_t_13) {
+          _t_16 = new __builtin.Entity("HillaryClinton", null);
+          _t_15 = __builtin.equality(_t_10, _t_16);
+          if (_t_15) {
             try {
               await __env.output(String(_t_4), _t_5);
             } catch(_exc_) {
@@ -402,6 +416,7 @@ const TEST_CASES = [
   let _t_13;
   let _t_14;
   let _t_15;
+  let _t_16;
   _t_0 = await __env.readState(0);
   try {
     _t_1 = {};
@@ -414,18 +429,19 @@ const TEST_CASES = [
         _t_4 = _iter_tmp.value;
         _t_5 = _t_4[0];
         _t_6 = _t_4[1];
-        _t_7 = _t_6.temperature;
-        _t_8 = _t_6.wind_speed;
-        _t_9 = _t_6.humidity;
-        _t_10 = _t_6.cloudiness;
-        _t_11 = _t_6.fog;
-        _t_12 = _t_6.status;
-        _t_13 = _t_6.icon;
-        _t_14 = __builtin.isNewTuple(_t_0, _t_6, ["location", "temperature", "wind_speed", "humidity", "cloudiness", "fog", "status", "icon"]);
-        _t_15 = __builtin.addTuple(_t_0, _t_6);
-        await __env.writeState(0, _t_15);
-        _t_0 = _t_15;
-        if (_t_14) {
+        _t_7 = _t_6.__response;
+        _t_8 = _t_6.temperature;
+        _t_9 = _t_6.wind_speed;
+        _t_10 = _t_6.humidity;
+        _t_11 = _t_6.cloudiness;
+        _t_12 = _t_6.fog;
+        _t_13 = _t_6.status;
+        _t_14 = _t_6.icon;
+        _t_15 = __builtin.isNewTuple(_t_0, _t_6, ["location", "__response", "temperature", "wind_speed", "humidity", "cloudiness", "fog", "status", "icon"]);
+        _t_16 = __builtin.addTuple(_t_0, _t_6);
+        await __env.writeState(0, _t_16);
+        _t_0 = _t_16;
+        if (_t_15) {
           try {
             await __env.output(String(_t_5), _t_6);
           } catch(_exc_) {
@@ -460,6 +476,7 @@ const TEST_CASES = [
   let _t_13;
   let _t_14;
   let _t_15;
+  let _t_16;
   _t_0 = await __env.readState(0);
   try {
     _t_1 = {};
@@ -472,18 +489,19 @@ const TEST_CASES = [
         _t_4 = _iter_tmp.value;
         _t_5 = _t_4[0];
         _t_6 = _t_4[1];
-        _t_7 = _t_6.temperature;
-        _t_8 = _t_6.wind_speed;
-        _t_9 = _t_6.humidity;
-        _t_10 = _t_6.cloudiness;
-        _t_11 = _t_6.fog;
-        _t_12 = _t_6.status;
-        _t_13 = _t_6.icon;
-        _t_14 = __builtin.isNewTuple(_t_0, _t_6, ["location", "temperature", "wind_speed", "humidity", "cloudiness", "fog", "status", "icon"]);
-        _t_15 = __builtin.addTuple(_t_0, _t_6);
-        await __env.writeState(0, _t_15);
-        _t_0 = _t_15;
-        if (_t_14) {
+        _t_7 = _t_6.__response;
+        _t_8 = _t_6.temperature;
+        _t_9 = _t_6.wind_speed;
+        _t_10 = _t_6.humidity;
+        _t_11 = _t_6.cloudiness;
+        _t_12 = _t_6.fog;
+        _t_13 = _t_6.status;
+        _t_14 = _t_6.icon;
+        _t_15 = __builtin.isNewTuple(_t_0, _t_6, ["location", "__response", "temperature", "wind_speed", "humidity", "cloudiness", "fog", "status", "icon"]);
+        _t_16 = __builtin.addTuple(_t_0, _t_6);
+        await __env.writeState(0, _t_16);
+        _t_0 = _t_16;
+        if (_t_15) {
           try {
             await __env.output(String(_t_5), _t_6);
           } catch(_exc_) {
@@ -638,6 +656,7 @@ const TEST_CASES = [
   let _t_13;
   let _t_14;
   let _t_15;
+  let _t_16;
   try {
     _t_0 = {};
     _t_1 = "lol";
@@ -652,14 +671,15 @@ const TEST_CASES = [
         _t_6 = _t_4[1];
         _t_7 = _t_6.channel_id;
         _t_8 = _t_6.count;
-        _t_9 = _t_6.video_id;
-        _t_10 = _t_6.title;
-        _t_11 = _t_6.description;
-        _t_12 = _t_6.thumbnail;
-        _t_13 = _t_6.video_url;
-        _t_15 = new __builtin.Entity("http://www.youtube.com", null);
-        _t_14 = __builtin.equality(_t_13, _t_15);
-        if (_t_14) {
+        _t_9 = _t_6.__response;
+        _t_10 = _t_6.video_id;
+        _t_11 = _t_6.title;
+        _t_12 = _t_6.description;
+        _t_13 = _t_6.thumbnail;
+        _t_14 = _t_6.video_url;
+        _t_16 = new __builtin.Entity("http://www.youtube.com", null);
+        _t_15 = __builtin.equality(_t_14, _t_16);
+        if (_t_15) {
           try {
             await __env.output(String(_t_5), _t_6);
           } catch(_exc_) {
@@ -693,6 +713,7 @@ const TEST_CASES = [
   let _t_12;
   let _t_13;
   let _t_14;
+  let _t_15;
   _t_0 = await __env.readState(0);
   try {
     _t_1 = {};
@@ -704,21 +725,22 @@ const TEST_CASES = [
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
         _t_6 = _t_5.number;
-        _t_7 = _t_5.title;
-        _t_8 = _t_5.picture_url;
-        _t_9 = _t_5.link;
-        _t_10 = _t_5.alt_text;
-        _t_11 = __builtin.isNewTuple(_t_0, _t_5, ["number", "title", "picture_url", "link", "alt_text"]);
-        _t_12 = __builtin.addTuple(_t_0, _t_5);
-        await __env.writeState(0, _t_12);
-        _t_0 = _t_12;
-        if (_t_11) {
+        _t_7 = _t_5.__response;
+        _t_8 = _t_5.title;
+        _t_9 = _t_5.picture_url;
+        _t_10 = _t_5.link;
+        _t_11 = _t_5.alt_text;
+        _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["number", "__response", "title", "picture_url", "link", "alt_text"]);
+        _t_13 = __builtin.addTuple(_t_0, _t_5);
+        await __env.writeState(0, _t_13);
+        _t_0 = _t_13;
+        if (_t_12) {
           try {
-            _t_13 = {};
-            _t_13.caption = _t_7;
-            _t_14 = String (_t_8);
-            _t_13.picture_url = _t_14;
-            await __env.invokeAction("com.twitter", { id: "twitter-foo", }, "post_picture", _t_13);
+            _t_14 = {};
+            _t_14.caption = _t_8;
+            _t_15 = String (_t_9);
+            _t_14.picture_url = _t_15;
+            await __env.invokeAction("com.twitter", { id: "twitter-foo", }, "post_picture", _t_14);
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
@@ -776,6 +798,7 @@ const TEST_CASES = [
   let _t_20;
   let _t_21;
   let _t_22;
+  let _t_23;
   _t_0 = await __env.readState(0);
   try {
     _t_1 = {};
@@ -786,31 +809,32 @@ const TEST_CASES = [
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
-        _t_6 = _t_5.text;
-        _t_7 = _t_5.hashtags;
-        _t_8 = _t_5.urls;
-        _t_9 = _t_5.author;
-        _t_10 = _t_5.in_reply_to;
-        _t_11 = _t_5.tweet_id;
-        _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
-        _t_13 = __builtin.addTuple(_t_0, _t_5);
-        await __env.writeState(0, _t_13);
-        _t_0 = _t_13;
-        if (_t_12) {
-          _t_14 = false;
-          _t_16 = "foo";
-          _t_15 = __builtin.like(_t_6, _t_16);
-          _t_14 = _t_14 || _t_15;
-          _t_17 = true;
-          _t_19 = "bar";
-          _t_18 = __builtin.like(_t_6, _t_19);
-          _t_17 = _t_17 && _t_18;
-          _t_22 = "lol";
-          _t_21 = __builtin.like(_t_6, _t_22);
-          _t_20 = ! (_t_21);
-          _t_17 = _t_17 && _t_20;
-          _t_14 = _t_14 || _t_17;
-          if (_t_14) {
+        _t_6 = _t_5.__response;
+        _t_7 = _t_5.text;
+        _t_8 = _t_5.hashtags;
+        _t_9 = _t_5.urls;
+        _t_10 = _t_5.author;
+        _t_11 = _t_5.in_reply_to;
+        _t_12 = _t_5.tweet_id;
+        _t_13 = __builtin.isNewTuple(_t_0, _t_5, ["__response", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
+        _t_14 = __builtin.addTuple(_t_0, _t_5);
+        await __env.writeState(0, _t_14);
+        _t_0 = _t_14;
+        if (_t_13) {
+          _t_15 = false;
+          _t_17 = "foo";
+          _t_16 = __builtin.like(_t_7, _t_17);
+          _t_15 = _t_15 || _t_16;
+          _t_18 = true;
+          _t_20 = "bar";
+          _t_19 = __builtin.like(_t_7, _t_20);
+          _t_18 = _t_18 && _t_19;
+          _t_23 = "lol";
+          _t_22 = __builtin.like(_t_7, _t_23);
+          _t_21 = ! (_t_22);
+          _t_18 = _t_18 && _t_21;
+          _t_15 = _t_15 || _t_18;
+          if (_t_15) {
             try {
               await __env.output(String(_t_4), _t_5);
             } catch(_exc_) {
@@ -848,6 +872,7 @@ const TEST_CASES = [
   let _t_13;
   let _t_14;
   let _t_15;
+  let _t_16;
   _t_0 = await __env.readState(0);
   try {
     _t_1 = {};
@@ -858,22 +883,23 @@ const TEST_CASES = [
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
-        _t_6 = _t_5.text;
-        _t_7 = _t_5.hashtags;
-        _t_8 = _t_5.urls;
-        _t_9 = _t_5.author;
-        _t_10 = _t_5.in_reply_to;
-        _t_11 = _t_5.tweet_id;
-        _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
-        _t_13 = __builtin.addTuple(_t_0, _t_5);
-        await __env.writeState(0, _t_13);
-        _t_0 = _t_13;
-        if (_t_12) {
+        _t_6 = _t_5.__response;
+        _t_7 = _t_5.text;
+        _t_8 = _t_5.hashtags;
+        _t_9 = _t_5.urls;
+        _t_10 = _t_5.author;
+        _t_11 = _t_5.in_reply_to;
+        _t_12 = _t_5.tweet_id;
+        _t_13 = __builtin.isNewTuple(_t_0, _t_5, ["__response", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
+        _t_14 = __builtin.addTuple(_t_0, _t_5);
+        await __env.writeState(0, _t_14);
+        _t_0 = _t_14;
+        if (_t_13) {
           try {
-            _t_14 = {};
-            _t_15 = await __env.formatEvent(_t_4, _t_5, "string");
-            _t_14.message = _t_15;
-            await __env.invokeAction("org.thingpedia.builtin.thingengine.builtin", { }, "say", _t_14);
+            _t_15 = {};
+            _t_16 = await __env.formatEvent(_t_4, _t_5, "string");
+            _t_15.message = _t_16;
+            await __env.invokeAction("org.thingpedia.builtin.thingengine.builtin", { }, "say", _t_15);
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
@@ -906,6 +932,7 @@ const TEST_CASES = [
   let _t_13;
   let _t_14;
   let _t_15;
+  let _t_16;
   _t_0 = await __env.readState(0);
   try {
     _t_1 = {};
@@ -916,22 +943,23 @@ const TEST_CASES = [
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
-        _t_6 = _t_5.text;
-        _t_7 = _t_5.hashtags;
-        _t_8 = _t_5.urls;
-        _t_9 = _t_5.author;
-        _t_10 = _t_5.in_reply_to;
-        _t_11 = _t_5.tweet_id;
-        _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
-        _t_13 = __builtin.addTuple(_t_0, _t_5);
-        await __env.writeState(0, _t_13);
-        _t_0 = _t_13;
-        if (_t_12) {
+        _t_6 = _t_5.__response;
+        _t_7 = _t_5.text;
+        _t_8 = _t_5.hashtags;
+        _t_9 = _t_5.urls;
+        _t_10 = _t_5.author;
+        _t_11 = _t_5.in_reply_to;
+        _t_12 = _t_5.tweet_id;
+        _t_13 = __builtin.isNewTuple(_t_0, _t_5, ["__response", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
+        _t_14 = __builtin.addTuple(_t_0, _t_5);
+        await __env.writeState(0, _t_14);
+        _t_0 = _t_14;
+        if (_t_13) {
           try {
-            _t_14 = {};
-            _t_15 = String (_t_4);
-            _t_14.message = _t_15;
-            await __env.invokeAction("org.thingpedia.builtin.thingengine.builtin", { }, "say", _t_14);
+            _t_15 = {};
+            _t_16 = String (_t_4);
+            _t_15.message = _t_16;
+            await __env.invokeAction("org.thingpedia.builtin.thingengine.builtin", { }, "say", _t_15);
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
@@ -963,6 +991,7 @@ const TEST_CASES = [
   let _t_12;
   let _t_13;
   let _t_14;
+  let _t_15;
   _t_0 = await __env.readState(0);
   try {
     _t_1 = {};
@@ -974,20 +1003,21 @@ const TEST_CASES = [
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
         _t_6 = _t_5.number;
-        _t_7 = _t_5.title;
-        _t_8 = _t_5.picture_url;
-        _t_9 = _t_5.link;
-        _t_10 = _t_5.alt_text;
-        _t_11 = __builtin.isNewTuple(_t_0, _t_5, ["number", "title", "picture_url", "link", "alt_text"]);
-        _t_12 = __builtin.addTuple(_t_0, _t_5);
-        await __env.writeState(0, _t_12);
-        _t_0 = _t_12;
-        if (_t_11) {
+        _t_7 = _t_5.__response;
+        _t_8 = _t_5.title;
+        _t_9 = _t_5.picture_url;
+        _t_10 = _t_5.link;
+        _t_11 = _t_5.alt_text;
+        _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["number", "__response", "title", "picture_url", "link", "alt_text"]);
+        _t_13 = __builtin.addTuple(_t_0, _t_5);
+        await __env.writeState(0, _t_13);
+        _t_0 = _t_13;
+        if (_t_12) {
           try {
-            _t_13 = {};
-            _t_14 = String (_t_8);
-            _t_13.status = _t_14;
-            await __env.invokeAction("com.twitter", { }, "post", _t_13);
+            _t_14 = {};
+            _t_15 = String (_t_9);
+            _t_14.status = _t_15;
+            await __env.invokeAction("com.twitter", { }, "post", _t_14);
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
@@ -1014,6 +1044,7 @@ const TEST_CASES = [
   let _t_7;
   let _t_8;
   let _t_9;
+  let _t_10;
   try {
     _t_0 = {};
     _t_1 = await __env.invokeQuery("org.thingpedia.builtin.thingengine.builtin", { }, "get_time", _t_0);
@@ -1024,11 +1055,12 @@ const TEST_CASES = [
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
-        _t_6 = _t_5.time;
-        _t_8 = __builtin.getTime (_t_6);
-        _t_9 = new __builtin.Time(10, 0, 0);
-        _t_7 = _t_8 >= _t_9;
-        if (_t_7) {
+        _t_6 = _t_5.__response;
+        _t_7 = _t_5.time;
+        _t_9 = __builtin.getTime (_t_7);
+        _t_10 = new __builtin.Time(10, 0, 0);
+        _t_8 = _t_9 >= _t_10;
+        if (_t_8) {
           try {
             await __env.output(String(_t_4), _t_5);
           } catch(_exc_) {
@@ -1065,6 +1097,7 @@ const TEST_CASES = [
   let _t_14;
   let _t_15;
   let _t_16;
+  let _t_17;
   try {
     _t_0 = {};
     _t_1 = new __builtin.Location(1, 3, "Somewhere");
@@ -1079,16 +1112,17 @@ const TEST_CASES = [
         _t_5 = _iter_tmp.value;
         _t_6 = _t_5[0];
         _t_7 = _t_5[1];
-        _t_8 = _t_7.uber_type;
-        _t_9 = _t_7.low_estimate;
-        _t_10 = _t_7.high_estimate;
-        _t_11 = _t_7.surge;
-        _t_12 = _t_7.duration;
-        _t_13 = _t_7.distance;
-        _t_15 = 7;
-        _t_16 = __builtin.getCurrency (_t_15);
-        _t_14 = _t_9 >= _t_16;
-        if (_t_14) {
+        _t_8 = _t_7.__response;
+        _t_9 = _t_7.uber_type;
+        _t_10 = _t_7.low_estimate;
+        _t_11 = _t_7.high_estimate;
+        _t_12 = _t_7.surge;
+        _t_13 = _t_7.duration;
+        _t_14 = _t_7.distance;
+        _t_16 = 7;
+        _t_17 = __builtin.getCurrency (_t_16);
+        _t_15 = _t_10 >= _t_17;
+        if (_t_15) {
           try {
             await __env.output(String(_t_6), _t_7);
           } catch(_exc_) {
@@ -1132,6 +1166,7 @@ const TEST_CASES = [
   let _t_17;
   let _t_18;
   let _t_19;
+  let _t_20;
   _t_0 = await __env.readState(0);
   try {
     _t_1 = {};
@@ -1142,27 +1177,28 @@ const TEST_CASES = [
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
-        _t_6 = _t_5.text;
-        _t_7 = _t_5.hashtags;
-        _t_8 = _t_5.urls;
-        _t_9 = _t_5.author;
-        _t_10 = _t_5.in_reply_to;
-        _t_11 = _t_5.tweet_id;
-        _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
-        _t_13 = __builtin.addTuple(_t_0, _t_5);
-        await __env.writeState(0, _t_13);
-        _t_0 = _t_13;
-        if (_t_12) {
+        _t_6 = _t_5.__response;
+        _t_7 = _t_5.text;
+        _t_8 = _t_5.hashtags;
+        _t_9 = _t_5.urls;
+        _t_10 = _t_5.author;
+        _t_11 = _t_5.in_reply_to;
+        _t_12 = _t_5.tweet_id;
+        _t_13 = __builtin.isNewTuple(_t_0, _t_5, ["__response", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
+        _t_14 = __builtin.addTuple(_t_0, _t_5);
+        await __env.writeState(0, _t_14);
+        _t_0 = _t_14;
+        if (_t_13) {
           try {
-            _t_14 = {};
-            _t_15 = new __builtin.Entity("mock-account:12345678", "me");
-            _t_14.__principal = _t_15;
-            _t_16 = __env.program_id;
-            _t_14.__program_id = _t_16;
-            _t_17 = 0;
-            _t_14.__flow = _t_17;
-            _t_14.__kindChannel = _t_4;
-            await __env.invokeAction("org.thingpedia.builtin.thingengine.remote", { }, "send", _t_14);
+            _t_15 = {};
+            _t_16 = new __builtin.Entity("mock-account:12345678", "me");
+            _t_15.__principal = _t_16;
+            _t_17 = __env.program_id;
+            _t_15.__program_id = _t_17;
+            _t_18 = 0;
+            _t_15.__flow = _t_18;
+            _t_15.__kindChannel = _t_4;
+            await __env.invokeAction("org.thingpedia.builtin.thingengine.remote", { }, "send", _t_15);
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
@@ -1176,9 +1212,9 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke trigger", _exc_);
   }
   try {
-    _t_18 = new __builtin.Entity("mock-account:12345678", "me");
-    _t_19 = 0;
-    await __env.sendEndOfFlow(_t_18, _t_19);
+    _t_19 = new __builtin.Entity("mock-account:12345678", "me");
+    _t_20 = 0;
+    await __env.sendEndOfFlow(_t_19, _t_20);
   } catch(_exc_) {
     __env.reportError("Failed to signal end-of-flow", _exc_);
   }`]],
@@ -1217,6 +1253,7 @@ const TEST_CASES = [
   let _t_26;
   let _t_27;
   let _t_28;
+  let _t_29;
   _t_0 = await __env.readState(0);
   try {
     _t_1 = {};
@@ -1227,51 +1264,52 @@ const TEST_CASES = [
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
-        _t_6 = _t_5.text;
-        _t_7 = _t_5.hashtags;
-        _t_8 = _t_5.urls;
-        _t_9 = _t_5.author;
-        _t_10 = _t_5.in_reply_to;
-        _t_11 = _t_5.tweet_id;
-        _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
-        _t_13 = __builtin.addTuple(_t_0, _t_5);
-        await __env.writeState(0, _t_13);
-        _t_0 = _t_13;
-        if (_t_12) {
-          _t_14 = false;
+        _t_6 = _t_5.__response;
+        _t_7 = _t_5.text;
+        _t_8 = _t_5.hashtags;
+        _t_9 = _t_5.urls;
+        _t_10 = _t_5.author;
+        _t_11 = _t_5.in_reply_to;
+        _t_12 = _t_5.tweet_id;
+        _t_13 = __builtin.isNewTuple(_t_0, _t_5, ["__response", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
+        _t_14 = __builtin.addTuple(_t_0, _t_5);
+        await __env.writeState(0, _t_14);
+        _t_0 = _t_14;
+        if (_t_13) {
+          _t_15 = false;
           try {
-            _t_16 = {};
-            _t_15 = await __env.invokeQuery("org.thingpedia.builtin.thingengine.builtin", { }, "get_time", _t_16);
-            _t_17 = _t_15[Symbol.iterator]();
+            _t_17 = {};
+            _t_16 = await __env.invokeQuery("org.thingpedia.builtin.thingengine.builtin", { }, "get_time", _t_17);
+            _t_18 = _t_16[Symbol.iterator]();
             {
-              let _iter_tmp = await _t_17.next();
+              let _iter_tmp = await _t_18.next();
               while (!_iter_tmp.done) {
-                _t_18 = _iter_tmp.value;
-                _t_19 = _t_18[0];
-                _t_20 = _t_18[1];
-                _t_21 = _t_20.time;
-                _t_22 = true;
-                _t_24 = __builtin.getTime (_t_21);
-                _t_25 = new __builtin.Time(9, 0, 0);
-                _t_23 = _t_24 >= _t_25;
-                _t_22 = _t_22 && _t_23;
-                _t_27 = __builtin.getTime (_t_21);
-                _t_28 = new __builtin.Time(10, 0, 0);
-                _t_26 = _t_27 <= _t_28;
-                _t_22 = _t_22 && _t_26;
-                if (_t_22) {
-                  _t_14 = true;
+                _t_19 = _iter_tmp.value;
+                _t_20 = _t_19[0];
+                _t_21 = _t_19[1];
+                _t_22 = _t_21.time;
+                _t_23 = true;
+                _t_25 = __builtin.getTime (_t_22);
+                _t_26 = new __builtin.Time(9, 0, 0);
+                _t_24 = _t_25 >= _t_26;
+                _t_23 = _t_23 && _t_24;
+                _t_28 = __builtin.getTime (_t_22);
+                _t_29 = new __builtin.Time(10, 0, 0);
+                _t_27 = _t_28 <= _t_29;
+                _t_23 = _t_23 && _t_27;
+                if (_t_23) {
+                  _t_15 = true;
                   break;
                 } else {
 
                 }
-                _iter_tmp = await _t_17.next();
+                _iter_tmp = await _t_18.next();
               }
             }
           } catch(_exc_) {
             __env.reportError("Failed to invoke get-predicate query", _exc_);
           }
-          if (_t_14) {
+          if (_t_15) {
             try {
               await __env.output(String(_t_4), _t_5);
             } catch(_exc_) {
@@ -1321,6 +1359,7 @@ const TEST_CASES = [
   let _t_29;
   let _t_30;
   let _t_31;
+  let _t_32;
   _t_0 = await __env.readState(1);
   try {
     _t_1 = {};
@@ -1331,56 +1370,57 @@ const TEST_CASES = [
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
-        _t_6 = _t_5.text;
-        _t_7 = _t_5.hashtags;
-        _t_8 = _t_5.urls;
-        _t_9 = _t_5.author;
-        _t_10 = _t_5.in_reply_to;
-        _t_11 = _t_5.tweet_id;
-        _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
-        _t_13 = __builtin.addTuple(_t_0, _t_5);
-        await __env.writeState(1, _t_13);
-        _t_0 = _t_13;
-        if (_t_12) {
-          _t_14 = true;
-          _t_16 = "lol";
-          _t_15 = __builtin.like(_t_6, _t_16);
-          _t_14 = _t_14 && _t_15;
-          _t_17 = false;
+        _t_6 = _t_5.__response;
+        _t_7 = _t_5.text;
+        _t_8 = _t_5.hashtags;
+        _t_9 = _t_5.urls;
+        _t_10 = _t_5.author;
+        _t_11 = _t_5.in_reply_to;
+        _t_12 = _t_5.tweet_id;
+        _t_13 = __builtin.isNewTuple(_t_0, _t_5, ["__response", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
+        _t_14 = __builtin.addTuple(_t_0, _t_5);
+        await __env.writeState(1, _t_14);
+        _t_0 = _t_14;
+        if (_t_13) {
+          _t_15 = true;
+          _t_17 = "lol";
+          _t_16 = __builtin.like(_t_7, _t_17);
+          _t_15 = _t_15 && _t_16;
+          _t_18 = false;
           try {
-            _t_19 = {};
-            _t_18 = await __env.invokeQuery("org.thingpedia.builtin.thingengine.builtin", { }, "get_time", _t_19);
-            _t_20 = _t_18[Symbol.iterator]();
+            _t_20 = {};
+            _t_19 = await __env.invokeQuery("org.thingpedia.builtin.thingengine.builtin", { }, "get_time", _t_20);
+            _t_21 = _t_19[Symbol.iterator]();
             {
-              let _iter_tmp = await _t_20.next();
+              let _iter_tmp = await _t_21.next();
               while (!_iter_tmp.done) {
-                _t_21 = _iter_tmp.value;
-                _t_22 = _t_21[0];
-                _t_23 = _t_21[1];
-                _t_24 = _t_23.time;
-                _t_25 = true;
-                _t_27 = __builtin.getTime (_t_24);
-                _t_28 = new __builtin.Time(9, 0, 0);
-                _t_26 = _t_27 >= _t_28;
-                _t_25 = _t_25 && _t_26;
-                _t_30 = __builtin.getTime (_t_24);
-                _t_31 = new __builtin.Time(10, 0, 0);
-                _t_29 = _t_30 <= _t_31;
-                _t_25 = _t_25 && _t_29;
-                if (_t_25) {
-                  _t_17 = true;
+                _t_22 = _iter_tmp.value;
+                _t_23 = _t_22[0];
+                _t_24 = _t_22[1];
+                _t_25 = _t_24.time;
+                _t_26 = true;
+                _t_28 = __builtin.getTime (_t_25);
+                _t_29 = new __builtin.Time(9, 0, 0);
+                _t_27 = _t_28 >= _t_29;
+                _t_26 = _t_26 && _t_27;
+                _t_31 = __builtin.getTime (_t_25);
+                _t_32 = new __builtin.Time(10, 0, 0);
+                _t_30 = _t_31 <= _t_32;
+                _t_26 = _t_26 && _t_30;
+                if (_t_26) {
+                  _t_18 = true;
                   break;
                 } else {
 
                 }
-                _iter_tmp = await _t_20.next();
+                _iter_tmp = await _t_21.next();
               }
             }
           } catch(_exc_) {
             __env.reportError("Failed to invoke get-predicate query", _exc_);
           }
-          _t_14 = _t_14 && _t_17;
-          if (_t_14) {
+          _t_15 = _t_15 && _t_18;
+          if (_t_15) {
             try {
               await __env.output(String(_t_4), _t_5);
             } catch(_exc_) {
@@ -1477,6 +1517,7 @@ const TEST_CASES = [
   let _t_12;
   let _t_13;
   let _t_14;
+  let _t_15;
   _t_0 = await __env.readState(0);
   try {
     _t_1 = {};
@@ -1493,18 +1534,19 @@ const TEST_CASES = [
         _t_6 = _iter_tmp.value;
         _t_7 = _t_6[0];
         _t_8 = _t_6[1];
-        _t_9 = _t_8.__kindChannel;
-        _t_10 = _t_8.interval;
-        _t_11 = __builtin.isNewTuple(_t_0, _t_8, ["__principal", "__program_id", "__flow", "__kindChannel", "interval"]);
-        _t_12 = __builtin.addTuple(_t_0, _t_8);
-        await __env.writeState(0, _t_12);
-        _t_0 = _t_12;
-        if (_t_11) {
+        _t_9 = _t_8.__response;
+        _t_10 = _t_8.__kindChannel;
+        _t_11 = _t_8.interval;
+        _t_12 = __builtin.isNewTuple(_t_0, _t_8, ["__principal", "__program_id", "__flow", "__response", "__kindChannel", "interval"]);
+        _t_13 = __builtin.addTuple(_t_0, _t_8);
+        await __env.writeState(0, _t_13);
+        _t_0 = _t_13;
+        if (_t_12) {
           try {
-            _t_13 = {};
-            _t_14 = "on";
-            _t_13.power = _t_14;
-            await __env.invokeAction("security-camera", { }, "set_power", _t_13);
+            _t_14 = {};
+            _t_15 = "on";
+            _t_14.power = _t_15;
+            await __env.invokeAction("security-camera", { }, "set_power", _t_14);
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
@@ -1566,6 +1608,9 @@ const TEST_CASES = [
   let _t_42;
   let _t_43;
   let _t_44;
+  let _t_45;
+  let _t_46;
+  let _t_47;
   _t_0 = await __env.readState(0);
   _t_1 = async function(emit) {
     _t_2 = await __env.readState(1);
@@ -1578,17 +1623,18 @@ const TEST_CASES = [
           _t_5 = _iter_tmp.value;
           _t_6 = _t_5[0];
           _t_7 = _t_5[1];
-          _t_8 = _t_7.text;
-          _t_9 = _t_7.hashtags;
-          _t_10 = _t_7.urls;
-          _t_11 = _t_7.author;
-          _t_12 = _t_7.in_reply_to;
-          _t_13 = _t_7.tweet_id;
-          _t_14 = __builtin.isNewTuple(_t_2, _t_7, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
-          _t_15 = __builtin.addTuple(_t_2, _t_7);
-          await __env.writeState(1, _t_15);
-          _t_2 = _t_15;
-          if (_t_14) {
+          _t_8 = _t_7.__response;
+          _t_9 = _t_7.text;
+          _t_10 = _t_7.hashtags;
+          _t_11 = _t_7.urls;
+          _t_12 = _t_7.author;
+          _t_13 = _t_7.in_reply_to;
+          _t_14 = _t_7.tweet_id;
+          _t_15 = __builtin.isNewTuple(_t_2, _t_7, ["__response", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
+          _t_16 = __builtin.addTuple(_t_2, _t_7);
+          await __env.writeState(1, _t_16);
+          _t_2 = _t_16;
+          if (_t_15) {
             emit(_t_6, _t_7);
           } else {
 
@@ -1600,69 +1646,71 @@ const TEST_CASES = [
       __env.reportError("Failed to invoke trigger", _exc_);
     }
   }
-  _t_16 = async function(emit) {
-    _t_17 = await __env.readState(2);
+  _t_17 = async function(emit) {
+    _t_18 = await __env.readState(2);
     try {
-      _t_18 = {};
-      _t_19 = "foo";
-      _t_18.query = _t_19;
-      _t_20 = await __env.invokeMonitor("com.bing", { }, "web_search", _t_18, false);
+      _t_19 = {};
+      _t_20 = "foo";
+      _t_19.query = _t_20;
+      _t_21 = await __env.invokeMonitor("com.bing", { }, "web_search", _t_19, false);
       {
-        let _iter_tmp = await _t_20.next();
+        let _iter_tmp = await _t_21.next();
         while (!_iter_tmp.done) {
-          _t_21 = _iter_tmp.value;
-          _t_22 = _t_21[0];
-          _t_23 = _t_21[1];
-          _t_24 = _t_23.title;
-          _t_25 = _t_23.description;
-          _t_26 = _t_23.link;
-          _t_27 = __builtin.isNewTuple(_t_17, _t_23, ["query", "title", "description", "link"]);
-          _t_28 = __builtin.addTuple(_t_17, _t_23);
-          await __env.writeState(2, _t_28);
-          _t_17 = _t_28;
-          if (_t_27) {
-            emit(_t_22, _t_23);
+          _t_22 = _iter_tmp.value;
+          _t_23 = _t_22[0];
+          _t_24 = _t_22[1];
+          _t_25 = _t_24.__response;
+          _t_26 = _t_24.title;
+          _t_27 = _t_24.description;
+          _t_28 = _t_24.link;
+          _t_29 = __builtin.isNewTuple(_t_18, _t_24, ["query", "__response", "title", "description", "link"]);
+          _t_30 = __builtin.addTuple(_t_18, _t_24);
+          await __env.writeState(2, _t_30);
+          _t_18 = _t_30;
+          if (_t_29) {
+            emit(_t_23, _t_24);
           } else {
 
           }
-          _iter_tmp = await _t_20.next();
+          _iter_tmp = await _t_21.next();
         }
       }
     } catch(_exc_) {
       __env.reportError("Failed to invoke trigger", _exc_);
     }
   }
-  _t_29 = __builtin.streamUnion(_t_1, _t_16);
+  _t_31 = __builtin.streamUnion(_t_1, _t_17);
   {
-    let _iter_tmp = await _t_29.next();
+    let _iter_tmp = await _t_31.next();
     while (!_iter_tmp.done) {
-      _t_30 = _iter_tmp.value;
-      _t_31 = _t_30[0];
-      _t_32 = _t_30[1];
-      _t_33 = _t_32.query;
-      _t_34 = _t_32.title;
-      _t_35 = _t_32.description;
-      _t_36 = _t_32.link;
-      _t_37 = _t_32.text;
-      _t_38 = _t_32.hashtags;
-      _t_39 = _t_32.urls;
-      _t_40 = _t_32.author;
-      _t_41 = _t_32.in_reply_to;
-      _t_42 = _t_32.tweet_id;
-      _t_43 = __builtin.isNewTuple(_t_0, _t_32, ["query", "title", "description", "link", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
-      _t_44 = __builtin.addTuple(_t_0, _t_32);
-      await __env.writeState(0, _t_44);
-      _t_0 = _t_44;
-      if (_t_43) {
+      _t_32 = _iter_tmp.value;
+      _t_33 = _t_32[0];
+      _t_34 = _t_32[1];
+      _t_35 = _t_34.query;
+      _t_36 = _t_34.__response;
+      _t_37 = _t_34.title;
+      _t_38 = _t_34.description;
+      _t_39 = _t_34.link;
+      _t_40 = _t_34.text;
+      _t_41 = _t_34.hashtags;
+      _t_42 = _t_34.urls;
+      _t_43 = _t_34.author;
+      _t_44 = _t_34.in_reply_to;
+      _t_45 = _t_34.tweet_id;
+      _t_46 = __builtin.isNewTuple(_t_0, _t_34, ["query", "__response", "title", "description", "link", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
+      _t_47 = __builtin.addTuple(_t_0, _t_34);
+      await __env.writeState(0, _t_47);
+      _t_0 = _t_47;
+      if (_t_46) {
         try {
-          await __env.output(String(_t_31), _t_32);
+          await __env.output(String(_t_33), _t_34);
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
       } else {
 
       }
-      _iter_tmp = await _t_29.next();
+      _iter_tmp = await _t_31.next();
     }
   }`]],
 
@@ -1716,6 +1764,9 @@ const TEST_CASES = [
   let _t_44;
   let _t_45;
   let _t_46;
+  let _t_47;
+  let _t_48;
+  let _t_49;
   _t_0 = await __env.readState(0);
   _t_1 = async function(emit) {
     _t_2 = await __env.readState(1);
@@ -1728,17 +1779,18 @@ const TEST_CASES = [
           _t_5 = _iter_tmp.value;
           _t_6 = _t_5[0];
           _t_7 = _t_5[1];
-          _t_8 = _t_7.text;
-          _t_9 = _t_7.hashtags;
-          _t_10 = _t_7.urls;
-          _t_11 = _t_7.author;
-          _t_12 = _t_7.in_reply_to;
-          _t_13 = _t_7.tweet_id;
-          _t_14 = __builtin.isNewTuple(_t_2, _t_7, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
-          _t_15 = __builtin.addTuple(_t_2, _t_7);
-          await __env.writeState(1, _t_15);
-          _t_2 = _t_15;
-          if (_t_14) {
+          _t_8 = _t_7.__response;
+          _t_9 = _t_7.text;
+          _t_10 = _t_7.hashtags;
+          _t_11 = _t_7.urls;
+          _t_12 = _t_7.author;
+          _t_13 = _t_7.in_reply_to;
+          _t_14 = _t_7.tweet_id;
+          _t_15 = __builtin.isNewTuple(_t_2, _t_7, ["__response", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
+          _t_16 = __builtin.addTuple(_t_2, _t_7);
+          await __env.writeState(1, _t_16);
+          _t_2 = _t_16;
+          if (_t_15) {
             emit(_t_6, _t_7);
           } else {
 
@@ -1750,65 +1802,67 @@ const TEST_CASES = [
       __env.reportError("Failed to invoke trigger", _exc_);
     }
   }
-  _t_16 = async function(emit) {
-    _t_17 = await __env.readState(2);
+  _t_17 = async function(emit) {
+    _t_18 = await __env.readState(2);
     try {
-      _t_18 = {};
-      _t_19 = "foo";
-      _t_18.query = _t_19;
-      _t_20 = await __env.invokeMonitor("com.bing", { }, "web_search", _t_18, false);
+      _t_19 = {};
+      _t_20 = "foo";
+      _t_19.query = _t_20;
+      _t_21 = await __env.invokeMonitor("com.bing", { }, "web_search", _t_19, false);
       {
-        let _iter_tmp = await _t_20.next();
+        let _iter_tmp = await _t_21.next();
         while (!_iter_tmp.done) {
-          _t_21 = _iter_tmp.value;
-          _t_22 = _t_21[0];
-          _t_23 = _t_21[1];
-          _t_24 = _t_23.title;
-          _t_25 = _t_23.description;
-          _t_26 = _t_23.link;
-          _t_27 = __builtin.isNewTuple(_t_17, _t_23, ["query", "title", "description", "link"]);
-          _t_28 = __builtin.addTuple(_t_17, _t_23);
-          await __env.writeState(2, _t_28);
-          _t_17 = _t_28;
-          if (_t_27) {
-            emit(_t_22, _t_23);
+          _t_22 = _iter_tmp.value;
+          _t_23 = _t_22[0];
+          _t_24 = _t_22[1];
+          _t_25 = _t_24.__response;
+          _t_26 = _t_24.title;
+          _t_27 = _t_24.description;
+          _t_28 = _t_24.link;
+          _t_29 = __builtin.isNewTuple(_t_18, _t_24, ["query", "__response", "title", "description", "link"]);
+          _t_30 = __builtin.addTuple(_t_18, _t_24);
+          await __env.writeState(2, _t_30);
+          _t_18 = _t_30;
+          if (_t_29) {
+            emit(_t_23, _t_24);
           } else {
 
           }
-          _iter_tmp = await _t_20.next();
+          _iter_tmp = await _t_21.next();
         }
       }
     } catch(_exc_) {
       __env.reportError("Failed to invoke trigger", _exc_);
     }
   }
-  _t_29 = __builtin.streamUnion(_t_1, _t_16);
+  _t_31 = __builtin.streamUnion(_t_1, _t_17);
   {
-    let _iter_tmp = await _t_29.next();
+    let _iter_tmp = await _t_31.next();
     while (!_iter_tmp.done) {
-      _t_30 = _iter_tmp.value;
-      _t_31 = _t_30[0];
-      _t_32 = _t_30[1];
-      _t_33 = _t_32.query;
-      _t_34 = _t_32.title;
-      _t_35 = _t_32.description;
-      _t_36 = _t_32.link;
-      _t_37 = _t_32.text;
-      _t_38 = _t_32.hashtags;
-      _t_39 = _t_32.urls;
-      _t_40 = _t_32.author;
-      _t_41 = _t_32.in_reply_to;
-      _t_42 = _t_32.tweet_id;
-      _t_43 = __builtin.isNewTuple(_t_0, _t_32, ["query", "title", "description", "link", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
-      _t_44 = __builtin.addTuple(_t_0, _t_32);
-      await __env.writeState(0, _t_44);
-      _t_0 = _t_44;
-      if (_t_43) {
-        _t_46 = "lol";
-        _t_45 = __builtin.like(_t_37, _t_46);
-        if (_t_45) {
+      _t_32 = _iter_tmp.value;
+      _t_33 = _t_32[0];
+      _t_34 = _t_32[1];
+      _t_35 = _t_34.query;
+      _t_36 = _t_34.__response;
+      _t_37 = _t_34.title;
+      _t_38 = _t_34.description;
+      _t_39 = _t_34.link;
+      _t_40 = _t_34.text;
+      _t_41 = _t_34.hashtags;
+      _t_42 = _t_34.urls;
+      _t_43 = _t_34.author;
+      _t_44 = _t_34.in_reply_to;
+      _t_45 = _t_34.tweet_id;
+      _t_46 = __builtin.isNewTuple(_t_0, _t_34, ["query", "__response", "title", "description", "link", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
+      _t_47 = __builtin.addTuple(_t_0, _t_34);
+      await __env.writeState(0, _t_47);
+      _t_0 = _t_47;
+      if (_t_46) {
+        _t_49 = "lol";
+        _t_48 = __builtin.like(_t_40, _t_49);
+        if (_t_48) {
           try {
-            await __env.output(String(_t_31), _t_32);
+            await __env.output(String(_t_33), _t_34);
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
@@ -1818,9 +1872,10 @@ const TEST_CASES = [
       } else {
 
       }
-      _iter_tmp = await _t_29.next();
+      _iter_tmp = await _t_31.next();
     }
-  }`]],
+  }
+`]],
 
     //30
     [`now => @com.twitter.home_timeline() join @com.bing.web_search() on (query=text) => notify;`,
@@ -1858,6 +1913,9 @@ const TEST_CASES = [
   let _t_30;
   let _t_31;
   let _t_32;
+  let _t_33;
+  let _t_34;
+  let _t_35;
   try {
     _t_0 = {};
     _t_1 = await __env.invokeQuery("com.twitter", { }, "home_timeline", _t_0);
@@ -1868,54 +1926,58 @@ const TEST_CASES = [
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
-        _t_6 = _t_5.text;
-        _t_7 = _t_5.hashtags;
-        _t_8 = _t_5.urls;
-        _t_9 = _t_5.author;
-        _t_10 = _t_5.in_reply_to;
-        _t_11 = _t_5.tweet_id;
+        _t_6 = _t_5.__response;
+        _t_7 = _t_5.text;
+        _t_8 = _t_5.hashtags;
+        _t_9 = _t_5.urls;
+        _t_10 = _t_5.author;
+        _t_11 = _t_5.in_reply_to;
+        _t_12 = _t_5.tweet_id;
         try {
-          _t_12 = {};
-          _t_12.query = _t_6;
-          _t_13 = await __env.invokeQuery("com.bing", { }, "web_search", _t_12);
-          _t_14 = _t_13[Symbol.iterator]();
+          _t_13 = {};
+          _t_13.query = _t_7;
+          _t_14 = await __env.invokeQuery("com.bing", { }, "web_search", _t_13);
+          _t_15 = _t_14[Symbol.iterator]();
           {
-            let _iter_tmp = await _t_14.next();
+            let _iter_tmp = await _t_15.next();
             while (!_iter_tmp.done) {
-              _t_15 = _iter_tmp.value;
-              _t_16 = _t_15[0];
-              _t_17 = _t_15[1];
-              _t_18 = _t_17.title;
-              _t_19 = _t_17.description;
-              _t_20 = _t_17.link;
-              _t_21 = __builtin.combineOutputTypes(_t_4, _t_16);
-              _t_22 = {};
-              _t_22.query = _t_6;
-              _t_22.title = _t_18;
-              _t_22.description = _t_19;
-              _t_22.link = _t_20;
-              _t_22.text = _t_6;
-              _t_22.hashtags = _t_7;
-              _t_22.urls = _t_8;
-              _t_22.author = _t_9;
-              _t_22.in_reply_to = _t_10;
-              _t_22.tweet_id = _t_11;
-              _t_23 = _t_22.query;
-              _t_24 = _t_22.title;
-              _t_25 = _t_22.description;
-              _t_26 = _t_22.link;
-              _t_27 = _t_22.text;
-              _t_28 = _t_22.hashtags;
-              _t_29 = _t_22.urls;
-              _t_30 = _t_22.author;
-              _t_31 = _t_22.in_reply_to;
-              _t_32 = _t_22.tweet_id;
+              _t_16 = _iter_tmp.value;
+              _t_17 = _t_16[0];
+              _t_18 = _t_16[1];
+              _t_19 = _t_18.__response;
+              _t_20 = _t_18.title;
+              _t_21 = _t_18.description;
+              _t_22 = _t_18.link;
+              _t_23 = __builtin.combineOutputTypes(_t_4, _t_17);
+              _t_24 = {};
+              _t_24.query = _t_7;
+              _t_24.__response = _t_19;
+              _t_24.title = _t_20;
+              _t_24.description = _t_21;
+              _t_24.link = _t_22;
+              _t_24.text = _t_7;
+              _t_24.hashtags = _t_8;
+              _t_24.urls = _t_9;
+              _t_24.author = _t_10;
+              _t_24.in_reply_to = _t_11;
+              _t_24.tweet_id = _t_12;
+              _t_25 = _t_24.query;
+              _t_26 = _t_24.__response;
+              _t_27 = _t_24.title;
+              _t_28 = _t_24.description;
+              _t_29 = _t_24.link;
+              _t_30 = _t_24.text;
+              _t_31 = _t_24.hashtags;
+              _t_32 = _t_24.urls;
+              _t_33 = _t_24.author;
+              _t_34 = _t_24.in_reply_to;
+              _t_35 = _t_24.tweet_id;
               try {
-                await __env.output(String(_t_21), _t_22);
+                await __env.output(String(_t_23), _t_24);
               } catch(_exc_) {
                 __env.reportError("Failed to invoke action", _exc_);
               }
-              _iter_tmp = await _t_14.next();
+              _iter_tmp = await _t_15.next();
             }
           }
         } catch(_exc_) {
@@ -1969,6 +2031,9 @@ const TEST_CASES = [
   let _t_35;
   let _t_36;
   let _t_37;
+  let _t_38;
+  let _t_39;
+  let _t_40;
   _t_0 = async function(emit) {
     try {
       _t_1 = {};
@@ -1980,12 +2045,13 @@ const TEST_CASES = [
           _t_4 = _iter_tmp.value;
           _t_5 = _t_4[0];
           _t_6 = _t_4[1];
-          _t_7 = _t_6.text;
-          _t_8 = _t_6.hashtags;
-          _t_9 = _t_6.urls;
-          _t_10 = _t_6.author;
-          _t_11 = _t_6.in_reply_to;
-          _t_12 = _t_6.tweet_id;
+          _t_7 = _t_6.__response;
+          _t_8 = _t_6.text;
+          _t_9 = _t_6.hashtags;
+          _t_10 = _t_6.urls;
+          _t_11 = _t_6.author;
+          _t_12 = _t_6.in_reply_to;
+          _t_13 = _t_6.tweet_id;
           emit(_t_5, _t_6);
           _iter_tmp = await _t_3.next();
         }
@@ -1994,53 +2060,55 @@ const TEST_CASES = [
       __env.reportError("Failed to invoke query", _exc_);
     }
   }
-  _t_13 = async function(emit) {
+  _t_14 = async function(emit) {
     try {
-      _t_14 = {};
-      _t_15 = "foo";
-      _t_14.query = _t_15;
-      _t_16 = await __env.invokeQuery("com.bing", { }, "web_search", _t_14);
-      _t_17 = _t_16[Symbol.iterator]();
+      _t_15 = {};
+      _t_16 = "foo";
+      _t_15.query = _t_16;
+      _t_17 = await __env.invokeQuery("com.bing", { }, "web_search", _t_15);
+      _t_18 = _t_17[Symbol.iterator]();
       {
-        let _iter_tmp = await _t_17.next();
+        let _iter_tmp = await _t_18.next();
         while (!_iter_tmp.done) {
-          _t_18 = _iter_tmp.value;
-          _t_19 = _t_18[0];
-          _t_20 = _t_18[1];
-          _t_21 = _t_20.title;
-          _t_22 = _t_20.description;
-          _t_23 = _t_20.link;
-          emit(_t_19, _t_20);
-          _iter_tmp = await _t_17.next();
+          _t_19 = _iter_tmp.value;
+          _t_20 = _t_19[0];
+          _t_21 = _t_19[1];
+          _t_22 = _t_21.__response;
+          _t_23 = _t_21.title;
+          _t_24 = _t_21.description;
+          _t_25 = _t_21.link;
+          emit(_t_20, _t_21);
+          _iter_tmp = await _t_18.next();
         }
       }
     } catch(_exc_) {
       __env.reportError("Failed to invoke query", _exc_);
     }
   }
-  _t_24 = __builtin.tableCrossJoin(_t_0, _t_13);
+  _t_26 = __builtin.tableCrossJoin(_t_0, _t_14);
   {
-    let _iter_tmp = await _t_24.next();
+    let _iter_tmp = await _t_26.next();
     while (!_iter_tmp.done) {
-      _t_25 = _iter_tmp.value;
-      _t_26 = _t_25[0];
-      _t_27 = _t_25[1];
-      _t_28 = _t_27.query;
-      _t_29 = _t_27.title;
-      _t_30 = _t_27.description;
-      _t_31 = _t_27.link;
-      _t_32 = _t_27.text;
-      _t_33 = _t_27.hashtags;
-      _t_34 = _t_27.urls;
-      _t_35 = _t_27.author;
-      _t_36 = _t_27.in_reply_to;
-      _t_37 = _t_27.tweet_id;
+      _t_27 = _iter_tmp.value;
+      _t_28 = _t_27[0];
+      _t_29 = _t_27[1];
+      _t_30 = _t_29.query;
+      _t_31 = _t_29.__response;
+      _t_32 = _t_29.title;
+      _t_33 = _t_29.description;
+      _t_34 = _t_29.link;
+      _t_35 = _t_29.text;
+      _t_36 = _t_29.hashtags;
+      _t_37 = _t_29.urls;
+      _t_38 = _t_29.author;
+      _t_39 = _t_29.in_reply_to;
+      _t_40 = _t_29.tweet_id;
       try {
-        await __env.output(String(_t_26), _t_27);
+        await __env.output(String(_t_28), _t_29);
       } catch(_exc_) {
         __env.reportError("Failed to invoke action", _exc_);
       }
-      _iter_tmp = await _t_24.next();
+      _iter_tmp = await _t_26.next();
     }
   }`]],
 
@@ -2071,6 +2139,8 @@ const TEST_CASES = [
   let _t_21;
   let _t_22;
   let _t_23;
+  let _t_24;
+  let _t_25;
   try {
     _t_1 = new Array(1);
     _t_2 = new __builtin.Time(20, 10, 0);
@@ -2091,29 +2161,32 @@ const TEST_CASES = [
               _t_8 = _t_7[0];
               _t_9 = _t_7[1];
               _t_10 = _t_9.count;
-              _t_11 = _t_9.image_id;
-              _t_12 = _t_9.picture_url;
-              _t_13 = _t_9.link;
-              _t_14 = {};
-              _t_14.count = _t_10;
-              _t_14.image_id = _t_11;
-              _t_14.picture_url = _t_12;
-              _t_14.link = _t_13;
-              _t_15 = _t_14.count;
-              _t_16 = _t_14.image_id;
-              _t_17 = _t_14.picture_url;
-              _t_18 = _t_14.link;
+              _t_11 = _t_9.__response;
+              _t_12 = _t_9.image_id;
+              _t_13 = _t_9.picture_url;
+              _t_14 = _t_9.link;
+              _t_15 = {};
+              _t_15.count = _t_10;
+              _t_15.__response = _t_11;
+              _t_15.image_id = _t_12;
+              _t_15.picture_url = _t_13;
+              _t_15.link = _t_14;
+              _t_16 = _t_15.count;
+              _t_17 = _t_15.__response;
+              _t_18 = _t_15.image_id;
+              _t_19 = _t_15.picture_url;
+              _t_20 = _t_15.link;
               try {
-                _t_19 = {};
-                _t_20 = new __builtin.Entity("xxxx", null);
-                _t_19.to = _t_20;
-                _t_21 = "xxx";
-                _t_19.subject = _t_21;
-                _t_22 = "xxx";
-                _t_19.message = _t_22;
-                _t_23 = String (_t_17);
-                _t_19.picture_url = _t_23;
-                await __env.invokeAction("com.gmail", { id: "xxxx", }, "send_picture", _t_19);
+                _t_21 = {};
+                _t_22 = new __builtin.Entity("xxxx", null);
+                _t_21.to = _t_22;
+                _t_23 = "xxx";
+                _t_21.subject = _t_23;
+                _t_24 = "xxx";
+                _t_21.message = _t_24;
+                _t_25 = String (_t_19);
+                _t_21.picture_url = _t_25;
+                await __env.invokeAction("com.gmail", { id: "xxxx", }, "send_picture", _t_21);
               } catch(_exc_) {
                 __env.reportError("Failed to invoke action", _exc_);
               }
@@ -2152,6 +2225,7 @@ const TEST_CASES = [
   let _t_12;
   let _t_13;
   let _t_14;
+  let _t_15;
   try {
     _t_0 = {};
     _t_1 = 10;
@@ -2166,18 +2240,19 @@ const TEST_CASES = [
         _t_5 = _iter_tmp.value;
         _t_6 = _t_5[0];
         _t_7 = _t_5[1];
-        _t_8 = _t_7.data;
+        _t_8 = _t_7.__response;
+        _t_9 = _t_7.data;
         try {
-          _t_9 = {};
-          _t_10 = new __builtin.Entity("matrix-account:@gcampax2:matrix.org", null);
-          _t_9.__principal = _t_10;
-          _t_11 = __env.program_id;
-          _t_9.__program_id = _t_11;
-          _t_12 = 0;
-          _t_9.__flow = _t_12;
-          _t_9.__kindChannel = _t_6;
-          _t_9.data = _t_8;
-          await __env.invokeAction("org.thingpedia.builtin.thingengine.remote", { id: "org.thingpedia.builtin.thingengine.remote", }, "send", _t_9);
+          _t_10 = {};
+          _t_11 = new __builtin.Entity("matrix-account:@gcampax2:matrix.org", null);
+          _t_10.__principal = _t_11;
+          _t_12 = __env.program_id;
+          _t_10.__program_id = _t_12;
+          _t_13 = 0;
+          _t_10.__flow = _t_13;
+          _t_10.__kindChannel = _t_6;
+          _t_10.data = _t_9;
+          await __env.invokeAction("org.thingpedia.builtin.thingengine.remote", { id: "org.thingpedia.builtin.thingengine.remote", }, "send", _t_10);
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -2188,9 +2263,9 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke query", _exc_);
   }
   try {
-    _t_13 = new __builtin.Entity("matrix-account:@gcampax2:matrix.org", null);
-    _t_14 = 0;
-    await __env.sendEndOfFlow(_t_13, _t_14);
+    _t_14 = new __builtin.Entity("matrix-account:@gcampax2:matrix.org", null);
+    _t_15 = 0;
+    await __env.sendEndOfFlow(_t_14, _t_15);
   } catch(_exc_) {
     __env.reportError("Failed to signal end-of-flow", _exc_);
   }`]],
@@ -2225,6 +2300,8 @@ const TEST_CASES = [
   let _t_24;
   let _t_25;
   let _t_26;
+  let _t_27;
+  let _t_28;
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
@@ -2244,32 +2321,35 @@ const TEST_CASES = [
               _t_8 = _t_7[0];
               _t_9 = _t_7[1];
               _t_10 = _t_9.count;
-              _t_11 = _t_9.text;
-              _t_12 = _t_9.hashtags;
-              _t_13 = _t_9.urls;
-              _t_14 = _t_9.author;
-              _t_15 = _t_9.in_reply_to;
-              _t_16 = _t_9.tweet_id;
-              _t_18 = "lol";
-              _t_17 = __builtin.like(_t_11, _t_18);
-              if (_t_17) {
-                _t_19 = {};
-                _t_19.count = _t_10;
-                _t_19.text = _t_11;
-                _t_19.hashtags = _t_12;
-                _t_19.urls = _t_13;
-                _t_19.author = _t_14;
-                _t_19.in_reply_to = _t_15;
-                _t_19.tweet_id = _t_16;
-                _t_20 = _t_19.count;
-                _t_21 = _t_19.text;
-                _t_22 = _t_19.hashtags;
-                _t_23 = _t_19.urls;
-                _t_24 = _t_19.author;
-                _t_25 = _t_19.in_reply_to;
-                _t_26 = _t_19.tweet_id;
+              _t_11 = _t_9.__response;
+              _t_12 = _t_9.text;
+              _t_13 = _t_9.hashtags;
+              _t_14 = _t_9.urls;
+              _t_15 = _t_9.author;
+              _t_16 = _t_9.in_reply_to;
+              _t_17 = _t_9.tweet_id;
+              _t_19 = "lol";
+              _t_18 = __builtin.like(_t_12, _t_19);
+              if (_t_18) {
+                _t_20 = {};
+                _t_20.count = _t_10;
+                _t_20.__response = _t_11;
+                _t_20.text = _t_12;
+                _t_20.hashtags = _t_13;
+                _t_20.urls = _t_14;
+                _t_20.author = _t_15;
+                _t_20.in_reply_to = _t_16;
+                _t_20.tweet_id = _t_17;
+                _t_21 = _t_20.count;
+                _t_22 = _t_20.__response;
+                _t_23 = _t_20.text;
+                _t_24 = _t_20.hashtags;
+                _t_25 = _t_20.urls;
+                _t_26 = _t_20.author;
+                _t_27 = _t_20.in_reply_to;
+                _t_28 = _t_20.tweet_id;
                 try {
-                  await __env.output(String(_t_8), _t_19);
+                  await __env.output(String(_t_8), _t_20);
                 } catch(_exc_) {
                   __env.reportError("Failed to invoke action", _exc_);
                 }
@@ -2330,6 +2410,7 @@ const TEST_CASES = [
   let _t_12;
   let _t_13;
   let _t_14;
+  let _t_15;
   _t_0 = 0;
   try {
     _t_1 = {};
@@ -2343,23 +2424,24 @@ const TEST_CASES = [
         _t_5 = _iter_tmp.value;
         _t_6 = _t_5[0];
         _t_7 = _t_5[1];
-        _t_8 = _t_7.title;
-        _t_9 = _t_7.description;
-        _t_10 = _t_7.link;
-        _t_11 = 1;
-        _t_0 = _t_0 + _t_11;
+        _t_8 = _t_7.__response;
+        _t_9 = _t_7.title;
+        _t_10 = _t_7.description;
+        _t_11 = _t_7.link;
+        _t_12 = 1;
+        _t_0 = _t_0 + _t_12;
         _iter_tmp = await _t_4.next();
       }
     }
   } catch(_exc_) {
     __env.reportError("Failed to invoke query", _exc_);
   }
-  _t_13 = "count";
-  _t_12 = __builtin.aggregateOutputType(_t_13, _t_6);
-  _t_14 = {};
-  _t_14.count = _t_0;
+  _t_14 = "count";
+  _t_13 = __builtin.aggregateOutputType(_t_14, _t_6);
+  _t_15 = {};
+  _t_15.count = _t_0;
   try {
-    await __env.output(String(_t_12), _t_14);
+    await __env.output(String(_t_13), _t_15);
   } catch(_exc_) {
     __env.reportError("Failed to invoke action", _exc_);
   }`]],
@@ -2390,6 +2472,7 @@ const TEST_CASES = [
   let _t_18;
   let _t_19;
   let _t_20;
+  let _t_21;
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
@@ -2411,26 +2494,27 @@ const TEST_CASES = [
               _t_9 = _iter_tmp.value;
               _t_10 = _t_9[0];
               _t_11 = _t_9[1];
-              _t_12 = _t_11.title;
-              _t_13 = _t_11.description;
-              _t_14 = _t_11.link;
-              _t_15 = 1;
-              _t_4 = _t_4 + _t_15;
+              _t_12 = _t_11.__response;
+              _t_13 = _t_11.title;
+              _t_14 = _t_11.description;
+              _t_15 = _t_11.link;
+              _t_16 = 1;
+              _t_4 = _t_4 + _t_16;
               _iter_tmp = await _t_8.next();
             }
           }
         } catch(_exc_) {
           __env.reportError("Failed to invoke query", _exc_);
         }
-        _t_17 = "count";
-        _t_16 = __builtin.aggregateOutputType(_t_17, _t_10);
-        _t_18 = {};
-        _t_18.count = _t_4;
+        _t_18 = "count";
+        _t_17 = __builtin.aggregateOutputType(_t_18, _t_10);
         _t_19 = {};
         _t_19.count = _t_4;
-        _t_20 = _t_19.count;
+        _t_20 = {};
+        _t_20.count = _t_4;
+        _t_21 = _t_20.count;
         try {
-          await __env.output(String(_t_16), _t_19);
+          await __env.output(String(_t_17), _t_20);
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -2474,6 +2558,7 @@ const TEST_CASES = [
   let _t_25;
   let _t_26;
   let _t_27;
+  let _t_28;
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
@@ -2494,16 +2579,17 @@ const TEST_CASES = [
               _t_9 = _t_8[0];
               _t_10 = _t_8[1];
               _t_11 = _t_10.order_by;
-              _t_12 = _t_10.file_id;
-              _t_13 = _t_10.file_name;
-              _t_14 = _t_10.mime_type;
-              _t_15 = _t_10.description;
-              _t_16 = _t_10.starred;
-              _t_17 = _t_10.created_time;
-              _t_18 = _t_10.modified_time;
-              _t_19 = _t_10.file_size;
-              _t_20 = _t_10.last_modified_by;
-              _t_21 = _t_10.link;
+              _t_12 = _t_10.__response;
+              _t_13 = _t_10.file_id;
+              _t_14 = _t_10.file_name;
+              _t_15 = _t_10.mime_type;
+              _t_16 = _t_10.description;
+              _t_17 = _t_10.starred;
+              _t_18 = _t_10.created_time;
+              _t_19 = _t_10.modified_time;
+              _t_20 = _t_10.file_size;
+              _t_21 = _t_10.last_modified_by;
+              _t_22 = _t_10.link;
               _t_4.add(_t_10);
               _iter_tmp = await _t_7.next();
             }
@@ -2511,16 +2597,16 @@ const TEST_CASES = [
         } catch(_exc_) {
           __env.reportError("Failed to invoke query", _exc_);
         }
-        _t_23 = "count";
-        _t_22 = __builtin.aggregateOutputType(_t_23, _t_9);
-        _t_24 = {};
-        _t_25 = _t_4.size;
-        _t_24.mime_type = _t_25;
-        _t_26 = {};
-        _t_26.mime_type = _t_25;
-        _t_27 = _t_26.mime_type;
+        _t_24 = "count";
+        _t_23 = __builtin.aggregateOutputType(_t_24, _t_9);
+        _t_25 = {};
+        _t_26 = _t_4.size;
+        _t_25.mime_type = _t_26;
+        _t_27 = {};
+        _t_27.mime_type = _t_26;
+        _t_28 = _t_27.mime_type;
         try {
-          await __env.output(String(_t_22), _t_26);
+          await __env.output(String(_t_23), _t_27);
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -2566,6 +2652,7 @@ const TEST_CASES = [
   let _t_27;
   let _t_28;
   let _t_29;
+  let _t_30;
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
@@ -2587,35 +2674,36 @@ const TEST_CASES = [
               _t_10 = _t_9[0];
               _t_11 = _t_9[1];
               _t_12 = _t_11.order_by;
-              _t_13 = _t_11.file_id;
-              _t_14 = _t_11.file_name;
-              _t_15 = _t_11.mime_type;
-              _t_16 = _t_11.description;
-              _t_17 = _t_11.starred;
-              _t_18 = _t_11.created_time;
-              _t_19 = _t_11.modified_time;
-              _t_20 = _t_11.file_size;
-              _t_21 = _t_11.last_modified_by;
-              _t_22 = _t_11.link;
-              _t_23 = 1;
-              _t_4 = _t_4 + _t_23;
-              _t_5 = _t_5 + _t_20;
+              _t_13 = _t_11.__response;
+              _t_14 = _t_11.file_id;
+              _t_15 = _t_11.file_name;
+              _t_16 = _t_11.mime_type;
+              _t_17 = _t_11.description;
+              _t_18 = _t_11.starred;
+              _t_19 = _t_11.created_time;
+              _t_20 = _t_11.modified_time;
+              _t_21 = _t_11.file_size;
+              _t_22 = _t_11.last_modified_by;
+              _t_23 = _t_11.link;
+              _t_24 = 1;
+              _t_4 = _t_4 + _t_24;
+              _t_5 = _t_5 + _t_21;
               _iter_tmp = await _t_8.next();
             }
           }
         } catch(_exc_) {
           __env.reportError("Failed to invoke query", _exc_);
         }
-        _t_25 = "avg";
-        _t_24 = __builtin.aggregateOutputType(_t_25, _t_10);
-        _t_26 = {};
-        _t_27 = _t_5 / _t_4;
-        _t_26.file_size = _t_27;
-        _t_28 = {};
-        _t_28.file_size = _t_27;
-        _t_29 = _t_28.file_size;
+        _t_26 = "avg";
+        _t_25 = __builtin.aggregateOutputType(_t_26, _t_10);
+        _t_27 = {};
+        _t_28 = _t_5 / _t_4;
+        _t_27.file_size = _t_28;
+        _t_29 = {};
+        _t_29.file_size = _t_28;
+        _t_30 = _t_29.file_size;
         try {
-          await __env.output(String(_t_24), _t_28);
+          await __env.output(String(_t_25), _t_29);
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -2658,6 +2746,7 @@ const TEST_CASES = [
   let _t_24;
   let _t_25;
   let _t_26;
+  let _t_27;
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
@@ -2678,32 +2767,33 @@ const TEST_CASES = [
               _t_9 = _t_8[0];
               _t_10 = _t_8[1];
               _t_11 = _t_10.order_by;
-              _t_12 = _t_10.file_id;
-              _t_13 = _t_10.file_name;
-              _t_14 = _t_10.mime_type;
-              _t_15 = _t_10.description;
-              _t_16 = _t_10.starred;
-              _t_17 = _t_10.created_time;
-              _t_18 = _t_10.modified_time;
-              _t_19 = _t_10.file_size;
-              _t_20 = _t_10.last_modified_by;
-              _t_21 = _t_10.link;
-              _t_4 = __builtin.max(_t_4, _t_19);
+              _t_12 = _t_10.__response;
+              _t_13 = _t_10.file_id;
+              _t_14 = _t_10.file_name;
+              _t_15 = _t_10.mime_type;
+              _t_16 = _t_10.description;
+              _t_17 = _t_10.starred;
+              _t_18 = _t_10.created_time;
+              _t_19 = _t_10.modified_time;
+              _t_20 = _t_10.file_size;
+              _t_21 = _t_10.last_modified_by;
+              _t_22 = _t_10.link;
+              _t_4 = __builtin.max(_t_4, _t_20);
               _iter_tmp = await _t_7.next();
             }
           }
         } catch(_exc_) {
           __env.reportError("Failed to invoke query", _exc_);
         }
-        _t_23 = "max";
-        _t_22 = __builtin.aggregateOutputType(_t_23, _t_9);
-        _t_24 = {};
-        _t_24.file_size = _t_4;
+        _t_24 = "max";
+        _t_23 = __builtin.aggregateOutputType(_t_24, _t_9);
         _t_25 = {};
         _t_25.file_size = _t_4;
-        _t_26 = _t_25.file_size;
+        _t_26 = {};
+        _t_26.file_size = _t_4;
+        _t_27 = _t_26.file_size;
         try {
-          await __env.output(String(_t_22), _t_25);
+          await __env.output(String(_t_23), _t_26);
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -2774,6 +2864,9 @@ const TEST_CASES = [
   let _t_52;
   let _t_53;
   let _t_54;
+  let _t_55;
+  let _t_56;
+  let _t_57;
   _t_0 = async function(emit) {
     try {
       _t_1 = {};
@@ -2786,16 +2879,17 @@ const TEST_CASES = [
           _t_5 = _t_4[0];
           _t_6 = _t_4[1];
           _t_7 = _t_6.order_by;
-          _t_8 = _t_6.file_id;
-          _t_9 = _t_6.file_name;
-          _t_10 = _t_6.mime_type;
-          _t_11 = _t_6.description;
-          _t_12 = _t_6.starred;
-          _t_13 = _t_6.created_time;
-          _t_14 = _t_6.modified_time;
-          _t_15 = _t_6.file_size;
-          _t_16 = _t_6.last_modified_by;
-          _t_17 = _t_6.link;
+          _t_8 = _t_6.__response;
+          _t_9 = _t_6.file_id;
+          _t_10 = _t_6.file_name;
+          _t_11 = _t_6.mime_type;
+          _t_12 = _t_6.description;
+          _t_13 = _t_6.starred;
+          _t_14 = _t_6.created_time;
+          _t_15 = _t_6.modified_time;
+          _t_16 = _t_6.file_size;
+          _t_17 = _t_6.last_modified_by;
+          _t_18 = _t_6.link;
           emit(_t_5, _t_6);
           _iter_tmp = await _t_3.next();
         }
@@ -2804,66 +2898,68 @@ const TEST_CASES = [
       __env.reportError("Failed to invoke query", _exc_);
     }
   }
-  _t_18 = async function(emit) {
-    _t_19 = -Infinity;
+  _t_19 = async function(emit) {
+    _t_20 = -Infinity;
     try {
-      _t_20 = {};
-      _t_21 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_20);
-      _t_22 = _t_21[Symbol.iterator]();
+      _t_21 = {};
+      _t_22 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_21);
+      _t_23 = _t_22[Symbol.iterator]();
       {
-        let _iter_tmp = await _t_22.next();
+        let _iter_tmp = await _t_23.next();
         while (!_iter_tmp.done) {
-          _t_23 = _iter_tmp.value;
-          _t_24 = _t_23[0];
-          _t_25 = _t_23[1];
-          _t_26 = _t_25.order_by;
-          _t_27 = _t_25.file_id;
-          _t_28 = _t_25.file_name;
-          _t_29 = _t_25.mime_type;
-          _t_30 = _t_25.description;
-          _t_31 = _t_25.starred;
-          _t_32 = _t_25.created_time;
-          _t_33 = _t_25.modified_time;
-          _t_34 = _t_25.file_size;
-          _t_35 = _t_25.last_modified_by;
-          _t_36 = _t_25.link;
-          _t_19 = __builtin.max(_t_19, _t_34);
-          _iter_tmp = await _t_22.next();
+          _t_24 = _iter_tmp.value;
+          _t_25 = _t_24[0];
+          _t_26 = _t_24[1];
+          _t_27 = _t_26.order_by;
+          _t_28 = _t_26.__response;
+          _t_29 = _t_26.file_id;
+          _t_30 = _t_26.file_name;
+          _t_31 = _t_26.mime_type;
+          _t_32 = _t_26.description;
+          _t_33 = _t_26.starred;
+          _t_34 = _t_26.created_time;
+          _t_35 = _t_26.modified_time;
+          _t_36 = _t_26.file_size;
+          _t_37 = _t_26.last_modified_by;
+          _t_38 = _t_26.link;
+          _t_20 = __builtin.max(_t_20, _t_36);
+          _iter_tmp = await _t_23.next();
         }
       }
     } catch(_exc_) {
       __env.reportError("Failed to invoke query", _exc_);
     }
-    _t_38 = "max";
-    _t_37 = __builtin.aggregateOutputType(_t_38, _t_24);
-    _t_39 = {};
-    _t_39.file_size = _t_19;
-    emit(_t_37, _t_39);
+    _t_40 = "max";
+    _t_39 = __builtin.aggregateOutputType(_t_40, _t_25);
+    _t_41 = {};
+    _t_41.file_size = _t_20;
+    emit(_t_39, _t_41);
   }
-  _t_40 = __builtin.tableCrossJoin(_t_0, _t_18);
+  _t_42 = __builtin.tableCrossJoin(_t_0, _t_19);
   {
-    let _iter_tmp = await _t_40.next();
+    let _iter_tmp = await _t_42.next();
     while (!_iter_tmp.done) {
-      _t_41 = _iter_tmp.value;
-      _t_42 = _t_41[0];
-      _t_43 = _t_41[1];
-      _t_44 = _t_43.file_size;
-      _t_45 = _t_43.order_by;
-      _t_46 = _t_43.file_id;
-      _t_47 = _t_43.file_name;
-      _t_48 = _t_43.mime_type;
-      _t_49 = _t_43.description;
-      _t_50 = _t_43.starred;
-      _t_51 = _t_43.created_time;
-      _t_52 = _t_43.modified_time;
-      _t_53 = _t_43.last_modified_by;
-      _t_54 = _t_43.link;
+      _t_43 = _iter_tmp.value;
+      _t_44 = _t_43[0];
+      _t_45 = _t_43[1];
+      _t_46 = _t_45.file_size;
+      _t_47 = _t_45.order_by;
+      _t_48 = _t_45.__response;
+      _t_49 = _t_45.file_id;
+      _t_50 = _t_45.file_name;
+      _t_51 = _t_45.mime_type;
+      _t_52 = _t_45.description;
+      _t_53 = _t_45.starred;
+      _t_54 = _t_45.created_time;
+      _t_55 = _t_45.modified_time;
+      _t_56 = _t_45.last_modified_by;
+      _t_57 = _t_45.link;
       try {
-        await __env.output(String(_t_42), _t_43);
+        await __env.output(String(_t_44), _t_45);
       } catch(_exc_) {
         __env.reportError("Failed to invoke action", _exc_);
       }
-      _iter_tmp = await _t_40.next();
+      _iter_tmp = await _t_42.next();
     }
   }`]],
 
@@ -2919,6 +3015,8 @@ const TEST_CASES = [
   let _t_44;
   let _t_45;
   let _t_46;
+  let _t_47;
+  let _t_48;
   _t_0 = await __env.readState(0);
   _t_1 = await __env.readState(1);
   _t_2 = await __env.readState(2);
@@ -2932,67 +3030,69 @@ const TEST_CASES = [
         _t_6 = _t_5[0];
         _t_7 = _t_5[1];
         _t_8 = _t_7.order_by;
-        _t_9 = _t_7.file_id;
-        _t_10 = _t_7.file_name;
-        _t_11 = _t_7.mime_type;
-        _t_12 = _t_7.description;
-        _t_13 = _t_7.starred;
-        _t_14 = _t_7.created_time;
-        _t_15 = _t_7.modified_time;
-        _t_16 = _t_7.file_size;
-        _t_17 = _t_7.last_modified_by;
-        _t_18 = _t_7.link;
-        _t_19 = __builtin.isNewTuple(_t_2, _t_7, ["order_by", "file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "file_size", "last_modified_by", "link"]);
-        _t_20 = __builtin.addTuple(_t_2, _t_7);
-        await __env.writeState(2, _t_20);
-        _t_2 = _t_20;
-        if (_t_19) {
-          _t_21 = _t_7.__timestamp;
-          _t_22 = _t_21 <= _t_1;
-          _t_23 = ! (_t_22);
-          if (_t_23) {
-            await __env.writeState(1, _t_21);
-            _t_1 = _t_21;
-            _t_24 = -Infinity;
+        _t_9 = _t_7.__response;
+        _t_10 = _t_7.file_id;
+        _t_11 = _t_7.file_name;
+        _t_12 = _t_7.mime_type;
+        _t_13 = _t_7.description;
+        _t_14 = _t_7.starred;
+        _t_15 = _t_7.created_time;
+        _t_16 = _t_7.modified_time;
+        _t_17 = _t_7.file_size;
+        _t_18 = _t_7.last_modified_by;
+        _t_19 = _t_7.link;
+        _t_20 = __builtin.isNewTuple(_t_2, _t_7, ["order_by", "__response", "file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "file_size", "last_modified_by", "link"]);
+        _t_21 = __builtin.addTuple(_t_2, _t_7);
+        await __env.writeState(2, _t_21);
+        _t_2 = _t_21;
+        if (_t_20) {
+          _t_22 = _t_7.__timestamp;
+          _t_23 = _t_22 <= _t_1;
+          _t_24 = ! (_t_23);
+          if (_t_24) {
+            await __env.writeState(1, _t_22);
+            _t_1 = _t_22;
+            _t_25 = -Infinity;
             try {
-              _t_25 = {};
-              _t_26 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_25);
-              _t_27 = _t_26[Symbol.iterator]();
+              _t_26 = {};
+              _t_27 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_26);
+              _t_28 = _t_27[Symbol.iterator]();
               {
-                let _iter_tmp = await _t_27.next();
+                let _iter_tmp = await _t_28.next();
                 while (!_iter_tmp.done) {
-                  _t_28 = _iter_tmp.value;
-                  _t_29 = _t_28[0];
-                  _t_30 = _t_28[1];
-                  _t_31 = _t_30.order_by;
-                  _t_32 = _t_30.file_id;
-                  _t_33 = _t_30.file_name;
-                  _t_34 = _t_30.mime_type;
-                  _t_35 = _t_30.description;
-                  _t_36 = _t_30.starred;
-                  _t_37 = _t_30.created_time;
-                  _t_38 = _t_30.modified_time;
-                  _t_39 = _t_30.file_size;
-                  _t_40 = _t_30.last_modified_by;
-                  _t_41 = _t_30.link;
-                  _t_24 = __builtin.max(_t_24, _t_39);
-                  _iter_tmp = await _t_27.next();
+                  _t_29 = _iter_tmp.value;
+                  _t_30 = _t_29[0];
+                  _t_31 = _t_29[1];
+                  _t_32 = _t_31.order_by;
+                  _t_33 = _t_31.__response;
+                  _t_34 = _t_31.file_id;
+                  _t_35 = _t_31.file_name;
+                  _t_36 = _t_31.mime_type;
+                  _t_37 = _t_31.description;
+                  _t_38 = _t_31.starred;
+                  _t_39 = _t_31.created_time;
+                  _t_40 = _t_31.modified_time;
+                  _t_41 = _t_31.file_size;
+                  _t_42 = _t_31.last_modified_by;
+                  _t_43 = _t_31.link;
+                  _t_25 = __builtin.max(_t_25, _t_41);
+                  _iter_tmp = await _t_28.next();
                 }
               }
             } catch(_exc_) {
               __env.reportError("Failed to invoke query", _exc_);
             }
-            _t_43 = "max";
-            _t_42 = __builtin.aggregateOutputType(_t_43, _t_29);
-            _t_44 = {};
-            _t_44.file_size = _t_24;
-            _t_45 = __builtin.isNewTuple(_t_0, _t_44, ["file_size"]);
-            _t_46 = __builtin.addTuple(_t_0, _t_44);
-            await __env.writeState(0, _t_46);
-            _t_0 = _t_46;
-            if (_t_45) {
+            _t_45 = "max";
+            _t_44 = __builtin.aggregateOutputType(_t_45, _t_30);
+            _t_46 = {};
+            _t_46.file_size = _t_25;
+            _t_47 = __builtin.isNewTuple(_t_0, _t_46, ["file_size"]);
+            _t_48 = __builtin.addTuple(_t_0, _t_46);
+            await __env.writeState(0, _t_48);
+            _t_0 = _t_48;
+            if (_t_47) {
               try {
-                await __env.output(String(_t_42), _t_44);
+                await __env.output(String(_t_44), _t_46);
               } catch(_exc_) {
                 __env.reportError("Failed to invoke action", _exc_);
               }
@@ -3066,6 +3166,9 @@ const TEST_CASES = [
   let _t_46;
   let _t_47;
   let _t_48;
+  let _t_49;
+  let _t_50;
+  let _t_51;
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
@@ -3087,19 +3190,20 @@ const TEST_CASES = [
               _t_12 = _t_11[0];
               _t_13 = _t_11[1];
               _t_14 = _t_13.order_by;
-              _t_15 = _t_13.file_id;
-              _t_16 = _t_13.file_name;
-              _t_17 = _t_13.mime_type;
-              _t_18 = _t_13.description;
-              _t_19 = _t_13.starred;
-              _t_20 = _t_13.created_time;
-              _t_21 = _t_13.modified_time;
-              _t_22 = _t_13.file_size;
-              _t_23 = _t_13.last_modified_by;
-              _t_24 = _t_13.link;
-              _t_25 = _t_5 < _t_22;
-              if (_t_25) {
-                _t_5 = _t_22;
+              _t_15 = _t_13.__response;
+              _t_16 = _t_13.file_id;
+              _t_17 = _t_13.file_name;
+              _t_18 = _t_13.mime_type;
+              _t_19 = _t_13.description;
+              _t_20 = _t_13.starred;
+              _t_21 = _t_13.created_time;
+              _t_22 = _t_13.modified_time;
+              _t_23 = _t_13.file_size;
+              _t_24 = _t_13.last_modified_by;
+              _t_25 = _t_13.link;
+              _t_26 = _t_5 < _t_23;
+              if (_t_26) {
+                _t_5 = _t_23;
                 _t_6 = _t_13;
                 _t_7 = _t_12;
                 _t_4 = true;
@@ -3113,42 +3217,45 @@ const TEST_CASES = [
           __env.reportError("Failed to invoke query", _exc_);
         }
         if (_t_4) {
-          _t_26 = _t_6.order_by;
-          _t_27 = _t_6.file_id;
-          _t_28 = _t_6.file_name;
-          _t_29 = _t_6.mime_type;
-          _t_30 = _t_6.description;
-          _t_31 = _t_6.starred;
-          _t_32 = _t_6.created_time;
-          _t_33 = _t_6.modified_time;
-          _t_34 = _t_6.file_size;
-          _t_35 = _t_6.last_modified_by;
-          _t_36 = _t_6.link;
-          _t_37 = {};
-          _t_37.order_by = _t_26;
-          _t_37.file_id = _t_27;
-          _t_37.file_name = _t_28;
-          _t_37.mime_type = _t_29;
-          _t_37.description = _t_30;
-          _t_37.starred = _t_31;
-          _t_37.created_time = _t_32;
-          _t_37.modified_time = _t_33;
-          _t_37.file_size = _t_34;
-          _t_37.last_modified_by = _t_35;
-          _t_37.link = _t_36;
-          _t_38 = _t_37.order_by;
-          _t_39 = _t_37.file_id;
-          _t_40 = _t_37.file_name;
-          _t_41 = _t_37.mime_type;
-          _t_42 = _t_37.description;
-          _t_43 = _t_37.starred;
-          _t_44 = _t_37.created_time;
-          _t_45 = _t_37.modified_time;
-          _t_46 = _t_37.file_size;
-          _t_47 = _t_37.last_modified_by;
-          _t_48 = _t_37.link;
+          _t_27 = _t_6.order_by;
+          _t_28 = _t_6.__response;
+          _t_29 = _t_6.file_id;
+          _t_30 = _t_6.file_name;
+          _t_31 = _t_6.mime_type;
+          _t_32 = _t_6.description;
+          _t_33 = _t_6.starred;
+          _t_34 = _t_6.created_time;
+          _t_35 = _t_6.modified_time;
+          _t_36 = _t_6.file_size;
+          _t_37 = _t_6.last_modified_by;
+          _t_38 = _t_6.link;
+          _t_39 = {};
+          _t_39.order_by = _t_27;
+          _t_39.__response = _t_28;
+          _t_39.file_id = _t_29;
+          _t_39.file_name = _t_30;
+          _t_39.mime_type = _t_31;
+          _t_39.description = _t_32;
+          _t_39.starred = _t_33;
+          _t_39.created_time = _t_34;
+          _t_39.modified_time = _t_35;
+          _t_39.file_size = _t_36;
+          _t_39.last_modified_by = _t_37;
+          _t_39.link = _t_38;
+          _t_40 = _t_39.order_by;
+          _t_41 = _t_39.__response;
+          _t_42 = _t_39.file_id;
+          _t_43 = _t_39.file_name;
+          _t_44 = _t_39.mime_type;
+          _t_45 = _t_39.description;
+          _t_46 = _t_39.starred;
+          _t_47 = _t_39.created_time;
+          _t_48 = _t_39.modified_time;
+          _t_49 = _t_39.file_size;
+          _t_50 = _t_39.last_modified_by;
+          _t_51 = _t_39.link;
           try {
-            await __env.output(String(_t_7), _t_37);
+            await __env.output(String(_t_7), _t_39);
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
@@ -3216,6 +3323,9 @@ const TEST_CASES = [
   let _t_46;
   let _t_47;
   let _t_48;
+  let _t_49;
+  let _t_50;
+  let _t_51;
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
@@ -3237,19 +3347,20 @@ const TEST_CASES = [
               _t_12 = _t_11[0];
               _t_13 = _t_11[1];
               _t_14 = _t_13.order_by;
-              _t_15 = _t_13.file_id;
-              _t_16 = _t_13.file_name;
-              _t_17 = _t_13.mime_type;
-              _t_18 = _t_13.description;
-              _t_19 = _t_13.starred;
-              _t_20 = _t_13.created_time;
-              _t_21 = _t_13.modified_time;
-              _t_22 = _t_13.file_size;
-              _t_23 = _t_13.last_modified_by;
-              _t_24 = _t_13.link;
-              _t_25 = _t_5 > _t_22;
-              if (_t_25) {
-                _t_5 = _t_22;
+              _t_15 = _t_13.__response;
+              _t_16 = _t_13.file_id;
+              _t_17 = _t_13.file_name;
+              _t_18 = _t_13.mime_type;
+              _t_19 = _t_13.description;
+              _t_20 = _t_13.starred;
+              _t_21 = _t_13.created_time;
+              _t_22 = _t_13.modified_time;
+              _t_23 = _t_13.file_size;
+              _t_24 = _t_13.last_modified_by;
+              _t_25 = _t_13.link;
+              _t_26 = _t_5 > _t_23;
+              if (_t_26) {
+                _t_5 = _t_23;
                 _t_6 = _t_13;
                 _t_7 = _t_12;
                 _t_4 = true;
@@ -3263,42 +3374,45 @@ const TEST_CASES = [
           __env.reportError("Failed to invoke query", _exc_);
         }
         if (_t_4) {
-          _t_26 = _t_6.order_by;
-          _t_27 = _t_6.file_id;
-          _t_28 = _t_6.file_name;
-          _t_29 = _t_6.mime_type;
-          _t_30 = _t_6.description;
-          _t_31 = _t_6.starred;
-          _t_32 = _t_6.created_time;
-          _t_33 = _t_6.modified_time;
-          _t_34 = _t_6.file_size;
-          _t_35 = _t_6.last_modified_by;
-          _t_36 = _t_6.link;
-          _t_37 = {};
-          _t_37.order_by = _t_26;
-          _t_37.file_id = _t_27;
-          _t_37.file_name = _t_28;
-          _t_37.mime_type = _t_29;
-          _t_37.description = _t_30;
-          _t_37.starred = _t_31;
-          _t_37.created_time = _t_32;
-          _t_37.modified_time = _t_33;
-          _t_37.file_size = _t_34;
-          _t_37.last_modified_by = _t_35;
-          _t_37.link = _t_36;
-          _t_38 = _t_37.order_by;
-          _t_39 = _t_37.file_id;
-          _t_40 = _t_37.file_name;
-          _t_41 = _t_37.mime_type;
-          _t_42 = _t_37.description;
-          _t_43 = _t_37.starred;
-          _t_44 = _t_37.created_time;
-          _t_45 = _t_37.modified_time;
-          _t_46 = _t_37.file_size;
-          _t_47 = _t_37.last_modified_by;
-          _t_48 = _t_37.link;
+          _t_27 = _t_6.order_by;
+          _t_28 = _t_6.__response;
+          _t_29 = _t_6.file_id;
+          _t_30 = _t_6.file_name;
+          _t_31 = _t_6.mime_type;
+          _t_32 = _t_6.description;
+          _t_33 = _t_6.starred;
+          _t_34 = _t_6.created_time;
+          _t_35 = _t_6.modified_time;
+          _t_36 = _t_6.file_size;
+          _t_37 = _t_6.last_modified_by;
+          _t_38 = _t_6.link;
+          _t_39 = {};
+          _t_39.order_by = _t_27;
+          _t_39.__response = _t_28;
+          _t_39.file_id = _t_29;
+          _t_39.file_name = _t_30;
+          _t_39.mime_type = _t_31;
+          _t_39.description = _t_32;
+          _t_39.starred = _t_33;
+          _t_39.created_time = _t_34;
+          _t_39.modified_time = _t_35;
+          _t_39.file_size = _t_36;
+          _t_39.last_modified_by = _t_37;
+          _t_39.link = _t_38;
+          _t_40 = _t_39.order_by;
+          _t_41 = _t_39.__response;
+          _t_42 = _t_39.file_id;
+          _t_43 = _t_39.file_name;
+          _t_44 = _t_39.mime_type;
+          _t_45 = _t_39.description;
+          _t_46 = _t_39.starred;
+          _t_47 = _t_39.created_time;
+          _t_48 = _t_39.modified_time;
+          _t_49 = _t_39.file_size;
+          _t_50 = _t_39.last_modified_by;
+          _t_51 = _t_39.link;
           try {
-            await __env.output(String(_t_7), _t_37);
+            await __env.output(String(_t_7), _t_39);
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
@@ -3353,6 +3467,8 @@ const TEST_CASES = [
   let _t_33;
   let _t_34;
   let _t_35;
+  let _t_36;
+  let _t_37;
   _t_0 = 2;
   _t_1 = 1;
   _t_2 = __builtin.argmax;
@@ -3369,16 +3485,17 @@ const TEST_CASES = [
         _t_9 = _t_8[0];
         _t_10 = _t_8[1];
         _t_11 = _t_10.order_by;
-        _t_12 = _t_10.file_id;
-        _t_13 = _t_10.file_name;
-        _t_14 = _t_10.mime_type;
-        _t_15 = _t_10.description;
-        _t_16 = _t_10.starred;
-        _t_17 = _t_10.created_time;
-        _t_18 = _t_10.modified_time;
-        _t_19 = _t_10.file_size;
-        _t_20 = _t_10.last_modified_by;
-        _t_21 = _t_10.link;
+        _t_12 = _t_10.__response;
+        _t_13 = _t_10.file_id;
+        _t_14 = _t_10.file_name;
+        _t_15 = _t_10.mime_type;
+        _t_16 = _t_10.description;
+        _t_17 = _t_10.starred;
+        _t_18 = _t_10.created_time;
+        _t_19 = _t_10.modified_time;
+        _t_20 = _t_10.file_size;
+        _t_21 = _t_10.last_modified_by;
+        _t_22 = _t_10.link;
         _t_4.update(_t_10, _t_9);
         _iter_tmp = await _t_7.next();
       }
@@ -3386,22 +3503,23 @@ const TEST_CASES = [
   } catch(_exc_) {
     __env.reportError("Failed to invoke query", _exc_);
   }
-  for (_t_22 of _t_4) {
-    _t_23 = _t_22[0];
-    _t_24 = _t_22[1];
-    _t_25 = _t_24.order_by;
-    _t_26 = _t_24.file_id;
-    _t_27 = _t_24.file_name;
-    _t_28 = _t_24.mime_type;
-    _t_29 = _t_24.description;
-    _t_30 = _t_24.starred;
-    _t_31 = _t_24.created_time;
-    _t_32 = _t_24.modified_time;
-    _t_33 = _t_24.file_size;
-    _t_34 = _t_24.last_modified_by;
-    _t_35 = _t_24.link;
+  for (_t_23 of _t_4) {
+    _t_24 = _t_23[0];
+    _t_25 = _t_23[1];
+    _t_26 = _t_25.order_by;
+    _t_27 = _t_25.__response;
+    _t_28 = _t_25.file_id;
+    _t_29 = _t_25.file_name;
+    _t_30 = _t_25.mime_type;
+    _t_31 = _t_25.description;
+    _t_32 = _t_25.starred;
+    _t_33 = _t_25.created_time;
+    _t_34 = _t_25.modified_time;
+    _t_35 = _t_25.file_size;
+    _t_36 = _t_25.last_modified_by;
+    _t_37 = _t_25.link;
     try {
-      await __env.output(String(_t_23), _t_24);
+      await __env.output(String(_t_24), _t_25);
     } catch(_exc_) {
       __env.reportError("Failed to invoke action", _exc_);
     }
@@ -3434,6 +3552,7 @@ const TEST_CASES = [
   let _t_19;
   let _t_20;
   let _t_21;
+  let _t_22;
   _t_0 = 2;
   _t_1 = false;
   _t_2 = 0;
@@ -3448,20 +3567,21 @@ const TEST_CASES = [
         _t_7 = _t_6[0];
         _t_8 = _t_6[1];
         _t_9 = _t_8.order_by;
-        _t_10 = _t_8.file_id;
-        _t_11 = _t_8.file_name;
-        _t_12 = _t_8.mime_type;
-        _t_13 = _t_8.description;
-        _t_14 = _t_8.starred;
-        _t_15 = _t_8.created_time;
-        _t_16 = _t_8.modified_time;
-        _t_17 = _t_8.file_size;
-        _t_18 = _t_8.last_modified_by;
-        _t_19 = _t_8.link;
-        _t_20 = 1;
-        _t_2 = _t_2 + _t_20;
-        _t_21 = _t_0 == _t_2;
-        if (_t_21) {
+        _t_10 = _t_8.__response;
+        _t_11 = _t_8.file_id;
+        _t_12 = _t_8.file_name;
+        _t_13 = _t_8.mime_type;
+        _t_14 = _t_8.description;
+        _t_15 = _t_8.starred;
+        _t_16 = _t_8.created_time;
+        _t_17 = _t_8.modified_time;
+        _t_18 = _t_8.file_size;
+        _t_19 = _t_8.last_modified_by;
+        _t_20 = _t_8.link;
+        _t_21 = 1;
+        _t_2 = _t_2 + _t_21;
+        _t_22 = _t_0 == _t_2;
+        if (_t_22) {
           _t_1 = true;
           break;
         } else {
@@ -3526,6 +3646,8 @@ const TEST_CASES = [
   let _t_35;
   let _t_36;
   let _t_37;
+  let _t_38;
+  let _t_39;
   try {
     _t_1 = new Array(1);
     _t_2 = new __builtin.Time(7, 30, 0);
@@ -3549,20 +3671,21 @@ const TEST_CASES = [
               _t_11 = _t_10[0];
               _t_12 = _t_10[1];
               _t_13 = _t_12.order_by;
-              _t_14 = _t_12.file_id;
-              _t_15 = _t_12.file_name;
-              _t_16 = _t_12.mime_type;
-              _t_17 = _t_12.description;
-              _t_18 = _t_12.starred;
-              _t_19 = _t_12.created_time;
-              _t_20 = _t_12.modified_time;
-              _t_21 = _t_12.file_size;
-              _t_22 = _t_12.last_modified_by;
-              _t_23 = _t_12.link;
-              _t_24 = 1;
-              _t_6 = _t_6 + _t_24;
-              _t_25 = _t_4 == _t_6;
-              if (_t_25) {
+              _t_14 = _t_12.__response;
+              _t_15 = _t_12.file_id;
+              _t_16 = _t_12.file_name;
+              _t_17 = _t_12.mime_type;
+              _t_18 = _t_12.description;
+              _t_19 = _t_12.starred;
+              _t_20 = _t_12.created_time;
+              _t_21 = _t_12.modified_time;
+              _t_22 = _t_12.file_size;
+              _t_23 = _t_12.last_modified_by;
+              _t_24 = _t_12.link;
+              _t_25 = 1;
+              _t_6 = _t_6 + _t_25;
+              _t_26 = _t_4 == _t_6;
+              if (_t_26) {
                 _t_5 = true;
                 break;
               } else {
@@ -3575,31 +3698,33 @@ const TEST_CASES = [
           __env.reportError("Failed to invoke query", _exc_);
         }
         if (_t_5) {
-          _t_26 = {};
-          _t_26.order_by = _t_13;
-          _t_26.file_id = _t_14;
-          _t_26.file_name = _t_15;
-          _t_26.mime_type = _t_16;
-          _t_26.description = _t_17;
-          _t_26.starred = _t_18;
-          _t_26.created_time = _t_19;
-          _t_26.modified_time = _t_20;
-          _t_26.file_size = _t_21;
-          _t_26.last_modified_by = _t_22;
-          _t_26.link = _t_23;
-          _t_27 = _t_26.order_by;
-          _t_28 = _t_26.file_id;
-          _t_29 = _t_26.file_name;
-          _t_30 = _t_26.mime_type;
-          _t_31 = _t_26.description;
-          _t_32 = _t_26.starred;
-          _t_33 = _t_26.created_time;
-          _t_34 = _t_26.modified_time;
-          _t_35 = _t_26.file_size;
-          _t_36 = _t_26.last_modified_by;
-          _t_37 = _t_26.link;
+          _t_27 = {};
+          _t_27.order_by = _t_13;
+          _t_27.__response = _t_14;
+          _t_27.file_id = _t_15;
+          _t_27.file_name = _t_16;
+          _t_27.mime_type = _t_17;
+          _t_27.description = _t_18;
+          _t_27.starred = _t_19;
+          _t_27.created_time = _t_20;
+          _t_27.modified_time = _t_21;
+          _t_27.file_size = _t_22;
+          _t_27.last_modified_by = _t_23;
+          _t_27.link = _t_24;
+          _t_28 = _t_27.order_by;
+          _t_29 = _t_27.__response;
+          _t_30 = _t_27.file_id;
+          _t_31 = _t_27.file_name;
+          _t_32 = _t_27.mime_type;
+          _t_33 = _t_27.description;
+          _t_34 = _t_27.starred;
+          _t_35 = _t_27.created_time;
+          _t_36 = _t_27.modified_time;
+          _t_37 = _t_27.file_size;
+          _t_38 = _t_27.last_modified_by;
+          _t_39 = _t_27.link;
           try {
-            await __env.output(String(_t_11), _t_26);
+            await __env.output(String(_t_11), _t_27);
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
@@ -3656,6 +3781,8 @@ const TEST_CASES = [
   let _t_35;
   let _t_36;
   let _t_37;
+  let _t_38;
+  let _t_39;
   _t_0 = new Array(3);
   _t_1 = 2;
   _t_0[0] = _t_1;
@@ -3675,43 +3802,45 @@ const TEST_CASES = [
         _t_9 = _t_8[0];
         _t_10 = _t_8[1];
         _t_11 = _t_10.order_by;
-        _t_12 = _t_10.file_id;
-        _t_13 = _t_10.file_name;
-        _t_14 = _t_10.mime_type;
-        _t_15 = _t_10.description;
-        _t_16 = _t_10.starred;
-        _t_17 = _t_10.created_time;
-        _t_18 = _t_10.modified_time;
-        _t_19 = _t_10.file_size;
-        _t_20 = _t_10.last_modified_by;
-        _t_21 = _t_10.link;
-        _t_22 = new Array(2);
-        _t_22[0] = _t_10;
-        _t_22[1] = _t_9;
-        _t_4.push(_t_22);
+        _t_12 = _t_10.__response;
+        _t_13 = _t_10.file_id;
+        _t_14 = _t_10.file_name;
+        _t_15 = _t_10.mime_type;
+        _t_16 = _t_10.description;
+        _t_17 = _t_10.starred;
+        _t_18 = _t_10.created_time;
+        _t_19 = _t_10.modified_time;
+        _t_20 = _t_10.file_size;
+        _t_21 = _t_10.last_modified_by;
+        _t_22 = _t_10.link;
+        _t_23 = new Array(2);
+        _t_23[0] = _t_10;
+        _t_23[1] = _t_9;
+        _t_4.push(_t_23);
         _iter_tmp = await _t_7.next();
       }
     }
   } catch(_exc_) {
     __env.reportError("Failed to invoke query", _exc_);
   }
-  _t_23 = __builtin.indexArray(_t_4, _t_0);
-  for (_t_24 of _t_23) {
-    _t_26 = _t_24[0];
-    _t_25 = _t_24[1];
-    _t_27 = _t_26.order_by;
-    _t_28 = _t_26.file_id;
-    _t_29 = _t_26.file_name;
-    _t_30 = _t_26.mime_type;
-    _t_31 = _t_26.description;
-    _t_32 = _t_26.starred;
-    _t_33 = _t_26.created_time;
-    _t_34 = _t_26.modified_time;
-    _t_35 = _t_26.file_size;
-    _t_36 = _t_26.last_modified_by;
-    _t_37 = _t_26.link;
+  _t_24 = __builtin.indexArray(_t_4, _t_0);
+  for (_t_25 of _t_24) {
+    _t_27 = _t_25[0];
+    _t_26 = _t_25[1];
+    _t_28 = _t_27.order_by;
+    _t_29 = _t_27.__response;
+    _t_30 = _t_27.file_id;
+    _t_31 = _t_27.file_name;
+    _t_32 = _t_27.mime_type;
+    _t_33 = _t_27.description;
+    _t_34 = _t_27.starred;
+    _t_35 = _t_27.created_time;
+    _t_36 = _t_27.modified_time;
+    _t_37 = _t_27.file_size;
+    _t_38 = _t_27.last_modified_by;
+    _t_39 = _t_27.link;
     try {
-      await __env.output(String(_t_25), _t_26);
+      await __env.output(String(_t_26), _t_27);
     } catch(_exc_) {
       __env.reportError("Failed to invoke action", _exc_);
     }
@@ -3758,6 +3887,8 @@ const TEST_CASES = [
   let _t_33;
   let _t_34;
   let _t_35;
+  let _t_36;
+  let _t_37;
   _t_0 = 2;
   _t_1 = 4;
   _t_2 = new Array(0);
@@ -3772,43 +3903,45 @@ const TEST_CASES = [
         _t_7 = _t_6[0];
         _t_8 = _t_6[1];
         _t_9 = _t_8.order_by;
-        _t_10 = _t_8.file_id;
-        _t_11 = _t_8.file_name;
-        _t_12 = _t_8.mime_type;
-        _t_13 = _t_8.description;
-        _t_14 = _t_8.starred;
-        _t_15 = _t_8.created_time;
-        _t_16 = _t_8.modified_time;
-        _t_17 = _t_8.file_size;
-        _t_18 = _t_8.last_modified_by;
-        _t_19 = _t_8.link;
-        _t_20 = new Array(2);
-        _t_20[0] = _t_8;
-        _t_20[1] = _t_7;
-        _t_2.push(_t_20);
+        _t_10 = _t_8.__response;
+        _t_11 = _t_8.file_id;
+        _t_12 = _t_8.file_name;
+        _t_13 = _t_8.mime_type;
+        _t_14 = _t_8.description;
+        _t_15 = _t_8.starred;
+        _t_16 = _t_8.created_time;
+        _t_17 = _t_8.modified_time;
+        _t_18 = _t_8.file_size;
+        _t_19 = _t_8.last_modified_by;
+        _t_20 = _t_8.link;
+        _t_21 = new Array(2);
+        _t_21[0] = _t_8;
+        _t_21[1] = _t_7;
+        _t_2.push(_t_21);
         _iter_tmp = await _t_5.next();
       }
     }
   } catch(_exc_) {
     __env.reportError("Failed to invoke query", _exc_);
   }
-  _t_21 = __builtin.sliceArray(_t_2, _t_0, _t_1);
-  for (_t_22 of _t_21) {
-    _t_24 = _t_22[0];
-    _t_23 = _t_22[1];
-    _t_25 = _t_24.order_by;
-    _t_26 = _t_24.file_id;
-    _t_27 = _t_24.file_name;
-    _t_28 = _t_24.mime_type;
-    _t_29 = _t_24.description;
-    _t_30 = _t_24.starred;
-    _t_31 = _t_24.created_time;
-    _t_32 = _t_24.modified_time;
-    _t_33 = _t_24.file_size;
-    _t_34 = _t_24.last_modified_by;
-    _t_35 = _t_24.link;
+  _t_22 = __builtin.sliceArray(_t_2, _t_0, _t_1);
+  for (_t_23 of _t_22) {
+    _t_25 = _t_23[0];
+    _t_24 = _t_23[1];
+    _t_26 = _t_25.order_by;
+    _t_27 = _t_25.__response;
+    _t_28 = _t_25.file_id;
+    _t_29 = _t_25.file_name;
+    _t_30 = _t_25.mime_type;
+    _t_31 = _t_25.description;
+    _t_32 = _t_25.starred;
+    _t_33 = _t_25.created_time;
+    _t_34 = _t_25.modified_time;
+    _t_35 = _t_25.file_size;
+    _t_36 = _t_25.last_modified_by;
+    _t_37 = _t_25.link;
     try {
-      await __env.output(String(_t_23), _t_24);
+      await __env.output(String(_t_24), _t_25);
     } catch(_exc_) {
       __env.reportError("Failed to invoke action", _exc_);
     }
@@ -3853,6 +3986,8 @@ const TEST_CASES = [
   let _t_31;
   let _t_32;
   let _t_33;
+  let _t_34;
+  let _t_35;
   _t_0 = new Array(0);
   try {
     _t_1 = {};
@@ -3865,44 +4000,46 @@ const TEST_CASES = [
         _t_5 = _t_4[0];
         _t_6 = _t_4[1];
         _t_7 = _t_6.order_by;
-        _t_8 = _t_6.file_id;
-        _t_9 = _t_6.file_name;
-        _t_10 = _t_6.mime_type;
-        _t_11 = _t_6.description;
-        _t_12 = _t_6.starred;
-        _t_13 = _t_6.created_time;
-        _t_14 = _t_6.modified_time;
-        _t_15 = _t_6.file_size;
-        _t_16 = _t_6.last_modified_by;
-        _t_17 = _t_6.link;
-        _t_18 = new Array(2);
-        _t_18[0] = _t_6;
-        _t_18[1] = _t_5;
-        _t_0.push(_t_18);
+        _t_8 = _t_6.__response;
+        _t_9 = _t_6.file_id;
+        _t_10 = _t_6.file_name;
+        _t_11 = _t_6.mime_type;
+        _t_12 = _t_6.description;
+        _t_13 = _t_6.starred;
+        _t_14 = _t_6.created_time;
+        _t_15 = _t_6.modified_time;
+        _t_16 = _t_6.file_size;
+        _t_17 = _t_6.last_modified_by;
+        _t_18 = _t_6.link;
+        _t_19 = new Array(2);
+        _t_19[0] = _t_6;
+        _t_19[1] = _t_5;
+        _t_0.push(_t_19);
         _iter_tmp = await _t_3.next();
       }
     }
   } catch(_exc_) {
     __env.reportError("Failed to invoke query", _exc_);
   }
-  _t_19 = "file_size";
-  __builtin.sortasc(_t_0, _t_19);
-  for (_t_20 of _t_0) {
-    _t_22 = _t_20[0];
-    _t_21 = _t_20[1];
-    _t_23 = _t_22.order_by;
-    _t_24 = _t_22.file_id;
-    _t_25 = _t_22.file_name;
-    _t_26 = _t_22.mime_type;
-    _t_27 = _t_22.description;
-    _t_28 = _t_22.starred;
-    _t_29 = _t_22.created_time;
-    _t_30 = _t_22.modified_time;
-    _t_31 = _t_22.file_size;
-    _t_32 = _t_22.last_modified_by;
-    _t_33 = _t_22.link;
+  _t_20 = "file_size";
+  __builtin.sortasc(_t_0, _t_20);
+  for (_t_21 of _t_0) {
+    _t_23 = _t_21[0];
+    _t_22 = _t_21[1];
+    _t_24 = _t_23.order_by;
+    _t_25 = _t_23.__response;
+    _t_26 = _t_23.file_id;
+    _t_27 = _t_23.file_name;
+    _t_28 = _t_23.mime_type;
+    _t_29 = _t_23.description;
+    _t_30 = _t_23.starred;
+    _t_31 = _t_23.created_time;
+    _t_32 = _t_23.modified_time;
+    _t_33 = _t_23.file_size;
+    _t_34 = _t_23.last_modified_by;
+    _t_35 = _t_23.link;
     try {
-      await __env.output(String(_t_21), _t_22);
+      await __env.output(String(_t_22), _t_23);
     } catch(_exc_) {
       __env.reportError("Failed to invoke action", _exc_);
     }
@@ -3926,6 +4063,7 @@ const TEST_CASES = [
   let _t_9;
   let _t_10;
   let _t_11;
+  let _t_12;
   try {
     _t_0 = {};
     _t_1 = await __env.invokeQuery("com.thecatapi", { }, "get", _t_0);
@@ -3937,9 +4075,10 @@ const TEST_CASES = [
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
         _t_6 = _t_5.count;
-        _t_7 = _t_5.image_id;
-        _t_8 = _t_5.picture_url;
-        _t_9 = _t_5.link;
+        _t_7 = _t_5.__response;
+        _t_8 = _t_5.image_id;
+        _t_9 = _t_5.picture_url;
+        _t_10 = _t_5.link;
         try {
           await __env.output(String(_t_4), _t_5);
         } catch(_exc_) {
@@ -3953,10 +4092,10 @@ const TEST_CASES = [
   }
   __env.clearGetCache();
   try {
-    _t_10 = {};
-    _t_11 = "foo";
-    _t_10.status = _t_11;
-    await __env.invokeAction("com.twitter", { }, "post", _t_10);
+    _t_11 = {};
+    _t_12 = "foo";
+    _t_11.status = _t_12;
+    await __env.invokeAction("com.twitter", { }, "post", _t_11);
   } catch(_exc_) {
     __env.reportError("Failed to invoke action", _exc_);
   }`]],
@@ -3980,6 +4119,7 @@ const TEST_CASES = [
   let _t_9;
   let _t_10;
   let _t_11;
+  let _t_12;
   try {
     _t_0 = {};
     _t_1 = await __env.invokeQuery("com.thecatapi", { }, "get", _t_0);
@@ -3991,9 +4131,10 @@ const TEST_CASES = [
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
         _t_6 = _t_5.count;
-        _t_7 = _t_5.image_id;
-        _t_8 = _t_5.picture_url;
-        _t_9 = _t_5.link;
+        _t_7 = _t_5.__response;
+        _t_8 = _t_5.image_id;
+        _t_9 = _t_5.picture_url;
+        _t_10 = _t_5.link;
         try {
           await __env.output(String(_t_4), _t_5);
         } catch(_exc_) {
@@ -4007,10 +4148,10 @@ const TEST_CASES = [
   }
   __env.clearGetCache();
   try {
-    _t_10 = {};
-    _t_11 = "foo";
-    _t_10.status = _t_11;
-    await __env.invokeAction("com.twitter", { }, "post", _t_10);
+    _t_11 = {};
+    _t_12 = "foo";
+    _t_11.status = _t_12;
+    await __env.invokeAction("com.twitter", { }, "post", _t_11);
   } catch(_exc_) {
     __env.reportError("Failed to invoke action", _exc_);
   }`, `"use strict";
@@ -4028,6 +4169,7 @@ const TEST_CASES = [
   let _t_11;
   let _t_12;
   let _t_13;
+  let _t_14;
   _t_0 = await __env.readState(0);
   try {
     _t_1 = {};
@@ -4038,17 +4180,18 @@ const TEST_CASES = [
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
-        _t_6 = _t_5.text;
-        _t_7 = _t_5.hashtags;
-        _t_8 = _t_5.urls;
-        _t_9 = _t_5.author;
-        _t_10 = _t_5.in_reply_to;
-        _t_11 = _t_5.tweet_id;
-        _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
-        _t_13 = __builtin.addTuple(_t_0, _t_5);
-        await __env.writeState(0, _t_13);
-        _t_0 = _t_13;
-        if (_t_12) {
+        _t_6 = _t_5.__response;
+        _t_7 = _t_5.text;
+        _t_8 = _t_5.hashtags;
+        _t_9 = _t_5.urls;
+        _t_10 = _t_5.author;
+        _t_11 = _t_5.in_reply_to;
+        _t_12 = _t_5.tweet_id;
+        _t_13 = __builtin.isNewTuple(_t_0, _t_5, ["__response", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
+        _t_14 = __builtin.addTuple(_t_0, _t_5);
+        await __env.writeState(0, _t_14);
+        _t_0 = _t_14;
+        if (_t_13) {
           try {
             await __env.output(String(_t_4), _t_5);
           } catch(_exc_) {
@@ -4081,6 +4224,7 @@ const TEST_CASES = [
   let _t_7;
   let _t_8;
   let _t_9;
+  let _t_10;
   try {
     _t_1 = {};
     _t_1.query = _t_0;
@@ -4092,9 +4236,10 @@ const TEST_CASES = [
         _t_4 = _iter_tmp.value;
         _t_5 = _t_4[0];
         _t_6 = _t_4[1];
-        _t_7 = _t_6.title;
-        _t_8 = _t_6.description;
-        _t_9 = _t_6.link;
+        _t_7 = _t_6.__response;
+        _t_8 = _t_6.title;
+        _t_9 = _t_6.description;
+        _t_10 = _t_6.link;
         emit(_t_5, _t_6);
         _iter_tmp = await _t_3.next();
       }
@@ -4123,6 +4268,7 @@ const TEST_CASES = [
   let _t_10;
   let _t_11;
   let _t_12;
+  let _t_13;
   try {
     _t_0 = __scope.q;
     _t_1 = "foo";
@@ -4133,13 +4279,14 @@ const TEST_CASES = [
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
-        _t_6 = _t_5.title;
-        _t_7 = _t_5.description;
-        _t_8 = _t_5.link;
+        _t_6 = _t_5.__response;
+        _t_7 = _t_5.title;
+        _t_8 = _t_5.description;
+        _t_9 = _t_5.link;
         try {
-          _t_9 = __scope.a;
-          _t_10 = String (_t_8);
-          await _t_9(__env, _t_10);
+          _t_10 = __scope.a;
+          _t_11 = String (_t_9);
+          await _t_10(__env, _t_11);
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -4151,9 +4298,9 @@ const TEST_CASES = [
   }
   __env.clearGetCache();
   try {
-    _t_11 = __scope.a;
-    _t_12 = "no";
-    await _t_11(__env, _t_12);
+    _t_12 = __scope.a;
+    _t_13 = "no";
+    await _t_12(__env, _t_13);
   } catch(_exc_) {
     __env.reportError("Failed to invoke action", _exc_);
   }`]],
@@ -4179,6 +4326,7 @@ const TEST_CASES = [
   let _t_13;
   let _t_14;
   let _t_15;
+  let _t_16;
   _t_0 = await __env.readState(0);
   try {
     _t_1 = {};
@@ -4191,18 +4339,19 @@ const TEST_CASES = [
         _t_4 = _iter_tmp.value;
         _t_5 = _t_4[0];
         _t_6 = _t_4[1];
-        _t_7 = _t_6.temperature;
-        _t_8 = _t_6.wind_speed;
-        _t_9 = _t_6.humidity;
-        _t_10 = _t_6.cloudiness;
-        _t_11 = _t_6.fog;
-        _t_12 = _t_6.status;
-        _t_13 = _t_6.icon;
-        _t_14 = __builtin.isNewTuple(_t_0, _t_6, ["location", "temperature", "wind_speed", "humidity", "cloudiness", "fog", "status", "icon"]);
-        _t_15 = __builtin.addTuple(_t_0, _t_6);
-        await __env.writeState(0, _t_15);
-        _t_0 = _t_15;
-        if (_t_14) {
+        _t_7 = _t_6.__response;
+        _t_8 = _t_6.temperature;
+        _t_9 = _t_6.wind_speed;
+        _t_10 = _t_6.humidity;
+        _t_11 = _t_6.cloudiness;
+        _t_12 = _t_6.fog;
+        _t_13 = _t_6.status;
+        _t_14 = _t_6.icon;
+        _t_15 = __builtin.isNewTuple(_t_0, _t_6, ["location", "__response", "temperature", "wind_speed", "humidity", "cloudiness", "fog", "status", "icon"]);
+        _t_16 = __builtin.addTuple(_t_0, _t_6);
+        await __env.writeState(0, _t_16);
+        _t_0 = _t_16;
+        if (_t_15) {
           emit(_t_5, _t_6);
         } else {
 
@@ -4225,6 +4374,7 @@ const TEST_CASES = [
   let _t_9;
   let _t_10;
   let _t_11;
+  let _t_12;
   try {
     _t_0 = __scope.s1;
     _t_1 = await __builtin.invokeStreamVarRef(__env, _t_0);
@@ -4234,13 +4384,14 @@ const TEST_CASES = [
         _t_2 = _iter_tmp.value;
         _t_3 = _t_2[0];
         _t_4 = _t_2[1];
-        _t_5 = _t_4.temperature;
-        _t_6 = _t_4.wind_speed;
-        _t_7 = _t_4.humidity;
-        _t_8 = _t_4.cloudiness;
-        _t_9 = _t_4.fog;
-        _t_10 = _t_4.status;
-        _t_11 = _t_4.icon;
+        _t_5 = _t_4.__response;
+        _t_6 = _t_4.temperature;
+        _t_7 = _t_4.wind_speed;
+        _t_8 = _t_4.humidity;
+        _t_9 = _t_4.cloudiness;
+        _t_10 = _t_4.fog;
+        _t_11 = _t_4.status;
+        _t_12 = _t_4.icon;
         try {
           await __env.output(String(_t_3), _t_4);
         } catch(_exc_) {
@@ -4288,6 +4439,9 @@ const TEST_CASES = [
   let _t_26;
   let _t_27;
   let _t_28;
+  let _t_29;
+  let _t_30;
+  let _t_31;
   _t_0 = new Array(0);
   try {
     _t_1 = {};
@@ -4300,13 +4454,14 @@ const TEST_CASES = [
         _t_5 = _t_4[0];
         _t_6 = _t_4[1];
         _t_7 = _t_6.count;
-        _t_8 = _t_6.image_id;
-        _t_9 = _t_6.picture_url;
-        _t_10 = _t_6.link;
-        _t_11 = new Array(2);
-        _t_11[0] = _t_5;
-        _t_11[1] = _t_6;
-        _t_0.push(_t_11);
+        _t_8 = _t_6.__response;
+        _t_9 = _t_6.image_id;
+        _t_10 = _t_6.picture_url;
+        _t_11 = _t_6.link;
+        _t_12 = new Array(2);
+        _t_12[0] = _t_5;
+        _t_12[1] = _t_6;
+        _t_0.push(_t_12);
         _iter_tmp = await _t_3.next();
       }
     }
@@ -4314,46 +4469,48 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke query", _exc_);
   }
   __env.clearGetCache();
-  _t_12 = _t_0[Symbol.iterator]();
+  _t_13 = _t_0[Symbol.iterator]();
   {
-    let _iter_tmp = await _t_12.next();
+    let _iter_tmp = await _t_13.next();
     while (!_iter_tmp.done) {
-      _t_13 = _iter_tmp.value;
-      _t_14 = _t_13[0];
-      _t_15 = _t_13[1];
-      _t_16 = _t_15.image_id;
-      _t_17 = _t_15.picture_url;
-      _t_18 = _t_15.link;
+      _t_14 = _iter_tmp.value;
+      _t_15 = _t_14[0];
+      _t_16 = _t_14[1];
+      _t_17 = _t_16.__response;
+      _t_18 = _t_16.image_id;
+      _t_19 = _t_16.picture_url;
+      _t_20 = _t_16.link;
       try {
-        await __env.output(String(_t_14), _t_15);
+        await __env.output(String(_t_15), _t_16);
       } catch(_exc_) {
         __env.reportError("Failed to invoke action", _exc_);
       }
-      _iter_tmp = await _t_12.next();
+      _iter_tmp = await _t_13.next();
     }
   }
   __env.clearGetCache();
-  _t_19 = _t_0[Symbol.iterator]();
+  _t_21 = _t_0[Symbol.iterator]();
   {
-    let _iter_tmp = await _t_19.next();
+    let _iter_tmp = await _t_21.next();
     while (!_iter_tmp.done) {
-      _t_20 = _iter_tmp.value;
-      _t_21 = _t_20[0];
-      _t_22 = _t_20[1];
-      _t_23 = _t_22.image_id;
-      _t_24 = _t_22.picture_url;
-      _t_25 = _t_22.link;
+      _t_22 = _iter_tmp.value;
+      _t_23 = _t_22[0];
+      _t_24 = _t_22[1];
+      _t_25 = _t_24.__response;
+      _t_26 = _t_24.image_id;
+      _t_27 = _t_24.picture_url;
+      _t_28 = _t_24.link;
       try {
-        _t_26 = {};
-        _t_27 = "cat";
-        _t_26.caption = _t_27;
-        _t_28 = String (_t_24);
-        _t_26.picture_url = _t_28;
-        await __env.invokeAction("com.twitter", { }, "post_picture", _t_26);
+        _t_29 = {};
+        _t_30 = "cat";
+        _t_29.caption = _t_30;
+        _t_31 = String (_t_27);
+        _t_29.picture_url = _t_31;
+        await __env.invokeAction("com.twitter", { }, "post_picture", _t_29);
       } catch(_exc_) {
         __env.reportError("Failed to invoke action", _exc_);
       }
-      _iter_tmp = await _t_19.next();
+      _iter_tmp = await _t_21.next();
     }
   }`]],
 
@@ -4385,6 +4542,8 @@ const TEST_CASES = [
   let _t_17;
   let _t_18;
   let _t_19;
+  let _t_20;
+  let _t_21;
   _t_0 = new Array(0);
   try {
     _t_1 = {};
@@ -4397,13 +4556,14 @@ const TEST_CASES = [
         _t_5 = _t_4[0];
         _t_6 = _t_4[1];
         _t_7 = _t_6.count;
-        _t_8 = _t_6.image_id;
-        _t_9 = _t_6.picture_url;
-        _t_10 = _t_6.link;
-        _t_11 = new Array(2);
-        _t_11[0] = _t_5;
-        _t_11[1] = _t_6;
-        _t_0.push(_t_11);
+        _t_8 = _t_6.__response;
+        _t_9 = _t_6.image_id;
+        _t_10 = _t_6.picture_url;
+        _t_11 = _t_6.link;
+        _t_12 = new Array(2);
+        _t_12[0] = _t_5;
+        _t_12[1] = _t_6;
+        _t_0.push(_t_12);
         _iter_tmp = await _t_3.next();
       }
     }
@@ -4412,23 +4572,24 @@ const TEST_CASES = [
   }
   await __env.writeState(0, _t_0);
   __env.clearGetCache();
-  _t_12 = await __env.readState(0);
-  _t_13 = _t_12[Symbol.iterator]();
+  _t_13 = await __env.readState(0);
+  _t_14 = _t_13[Symbol.iterator]();
   {
-    let _iter_tmp = await _t_13.next();
+    let _iter_tmp = await _t_14.next();
     while (!_iter_tmp.done) {
-      _t_14 = _iter_tmp.value;
-      _t_15 = _t_14[0];
-      _t_16 = _t_14[1];
-      _t_17 = _t_16.image_id;
-      _t_18 = _t_16.picture_url;
-      _t_19 = _t_16.link;
+      _t_15 = _iter_tmp.value;
+      _t_16 = _t_15[0];
+      _t_17 = _t_15[1];
+      _t_18 = _t_17.__response;
+      _t_19 = _t_17.image_id;
+      _t_20 = _t_17.picture_url;
+      _t_21 = _t_17.link;
       try {
-        await __env.output(String(_t_15), _t_16);
+        await __env.output(String(_t_16), _t_17);
       } catch(_exc_) {
         __env.reportError("Failed to invoke action", _exc_);
       }
-      _iter_tmp = await _t_13.next();
+      _iter_tmp = await _t_14.next();
     }
   }`, `"use strict";
   let _t_0;
@@ -4450,6 +4611,8 @@ const TEST_CASES = [
   let _t_16;
   let _t_17;
   let _t_18;
+  let _t_19;
+  let _t_20;
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
@@ -4466,23 +4629,26 @@ const TEST_CASES = [
             _t_6 = _iter_tmp.value;
             _t_7 = _t_6[0];
             _t_8 = _t_6[1];
-            _t_9 = _t_8.image_id;
-            _t_10 = _t_8.picture_url;
-            _t_11 = _t_8.link;
-            _t_12 = {};
-            _t_12.image_id = _t_9;
-            _t_12.picture_url = _t_10;
-            _t_12.link = _t_11;
-            _t_13 = _t_12.image_id;
-            _t_14 = _t_12.picture_url;
-            _t_15 = _t_12.link;
+            _t_9 = _t_8.__response;
+            _t_10 = _t_8.image_id;
+            _t_11 = _t_8.picture_url;
+            _t_12 = _t_8.link;
+            _t_13 = {};
+            _t_13.__response = _t_9;
+            _t_13.image_id = _t_10;
+            _t_13.picture_url = _t_11;
+            _t_13.link = _t_12;
+            _t_14 = _t_13.__response;
+            _t_15 = _t_13.image_id;
+            _t_16 = _t_13.picture_url;
+            _t_17 = _t_13.link;
             try {
-              _t_16 = {};
-              _t_17 = "cat";
-              _t_16.caption = _t_17;
-              _t_18 = String (_t_14);
-              _t_16.picture_url = _t_18;
-              await __env.invokeAction("com.twitter", { }, "post_picture", _t_16);
+              _t_18 = {};
+              _t_19 = "cat";
+              _t_18.caption = _t_19;
+              _t_20 = String (_t_16);
+              _t_18.picture_url = _t_20;
+              await __env.invokeAction("com.twitter", { }, "post_picture", _t_18);
             } catch(_exc_) {
               __env.reportError("Failed to invoke action", _exc_);
             }
@@ -4522,6 +4688,7 @@ const TEST_CASES = [
   let _t_8;
   let _t_9;
   let _t_10;
+  let _t_11;
   await __env.enterProcedure(0, "p1");
   try {
     try {
@@ -4535,9 +4702,10 @@ const TEST_CASES = [
           _t_4 = _iter_tmp.value;
           _t_5 = _t_4[0];
           _t_6 = _t_4[1];
-          _t_7 = _t_6.title;
-          _t_8 = _t_6.description;
-          _t_9 = _t_6.link;
+          _t_7 = _t_6.__response;
+          _t_8 = _t_6.title;
+          _t_9 = _t_6.description;
+          _t_10 = _t_6.link;
           try {
             await __env.output(String(_t_5), _t_6);
           } catch(_exc_) {
@@ -4551,9 +4719,9 @@ const TEST_CASES = [
     }
     __env.clearGetCache();
     try {
-      _t_10 = {};
-      _t_10.status = _t_0;
-      await __env.invokeAction("com.twitter", { }, "post", _t_10);
+      _t_11 = {};
+      _t_11.status = _t_0;
+      await __env.invokeAction("com.twitter", { }, "post", _t_11);
     } catch(_exc_) {
       __env.reportError("Failed to invoke action", _exc_);
     }
@@ -4648,6 +4816,9 @@ const TEST_CASES = [
   let _t_24;
   let _t_25;
   let _t_26;
+  let _t_27;
+  let _t_28;
+  let _t_29;
   await __env.enterProcedure(0, "p1");
   try {
     _t_1 = new Array(0);
@@ -4662,13 +4833,14 @@ const TEST_CASES = [
           _t_5 = _iter_tmp.value;
           _t_6 = _t_5[0];
           _t_7 = _t_5[1];
-          _t_8 = _t_7.title;
-          _t_9 = _t_7.description;
-          _t_10 = _t_7.link;
-          _t_11 = new Array(2);
-          _t_11[0] = _t_6;
-          _t_11[1] = _t_7;
-          _t_1.push(_t_11);
+          _t_8 = _t_7.__response;
+          _t_9 = _t_7.title;
+          _t_10 = _t_7.description;
+          _t_11 = _t_7.link;
+          _t_12 = new Array(2);
+          _t_12[0] = _t_6;
+          _t_12[1] = _t_7;
+          _t_1.push(_t_12);
           _iter_tmp = await _t_4.next();
         }
       }
@@ -4676,43 +4848,45 @@ const TEST_CASES = [
       __env.reportError("Failed to invoke query", _exc_);
     }
     __env.clearGetCache();
-    _t_12 = _t_1[Symbol.iterator]();
+    _t_13 = _t_1[Symbol.iterator]();
     {
-      let _iter_tmp = await _t_12.next();
+      let _iter_tmp = await _t_13.next();
       while (!_iter_tmp.done) {
-        _t_13 = _iter_tmp.value;
-        _t_14 = _t_13[0];
-        _t_15 = _t_13[1];
-        _t_16 = _t_15.title;
-        _t_17 = _t_15.description;
-        _t_18 = _t_15.link;
+        _t_14 = _iter_tmp.value;
+        _t_15 = _t_14[0];
+        _t_16 = _t_14[1];
+        _t_17 = _t_16.__response;
+        _t_18 = _t_16.title;
+        _t_19 = _t_16.description;
+        _t_20 = _t_16.link;
         try {
-          await __env.output(String(_t_14), _t_15);
+          await __env.output(String(_t_15), _t_16);
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
-        _iter_tmp = await _t_12.next();
+        _iter_tmp = await _t_13.next();
       }
     }
     __env.clearGetCache();
-    _t_19 = _t_1[Symbol.iterator]();
+    _t_21 = _t_1[Symbol.iterator]();
     {
-      let _iter_tmp = await _t_19.next();
+      let _iter_tmp = await _t_21.next();
       while (!_iter_tmp.done) {
-        _t_20 = _iter_tmp.value;
-        _t_21 = _t_20[0];
-        _t_22 = _t_20[1];
-        _t_23 = _t_22.title;
-        _t_24 = _t_22.description;
-        _t_25 = _t_22.link;
+        _t_22 = _iter_tmp.value;
+        _t_23 = _t_22[0];
+        _t_24 = _t_22[1];
+        _t_25 = _t_24.__response;
+        _t_26 = _t_24.title;
+        _t_27 = _t_24.description;
+        _t_28 = _t_24.link;
         try {
-          _t_26 = {};
-          _t_26.status = _t_23;
-          await __env.invokeAction("com.twitter", { }, "post", _t_26);
+          _t_29 = {};
+          _t_29.status = _t_26;
+          await __env.invokeAction("com.twitter", { }, "post", _t_29);
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
-        _iter_tmp = await _t_19.next();
+        _iter_tmp = await _t_21.next();
       }
     }
   } finally {
@@ -4748,7 +4922,6 @@ const TEST_CASES = [
     now => p1(p_foo = "two");
     `,
     [`"use strict";
-  let _t_10;
   let _t_11;
   let _t_12;
   let _t_13;
@@ -4764,9 +4937,12 @@ const TEST_CASES = [
   let _t_23;
   let _t_24;
   let _t_25;
+  let _t_26;
+  let _t_27;
+  let _t_28;
   await __env.enterProcedure(0, "p1");
   try {
-    _t_10 = async function(__env, emit) {
+    _t_11 = async function(__env, emit) {
       "use strict";
       let _t_1;
       let _t_2;
@@ -4777,6 +4953,7 @@ const TEST_CASES = [
       let _t_7;
       let _t_8;
       let _t_9;
+      let _t_10;
       try {
         _t_1 = {};
         _t_1.query = _t_0;
@@ -4788,9 +4965,10 @@ const TEST_CASES = [
             _t_4 = _iter_tmp.value;
             _t_5 = _t_4[0];
             _t_6 = _t_4[1];
-            _t_7 = _t_6.title;
-            _t_8 = _t_6.description;
-            _t_9 = _t_6.link;
+            _t_7 = _t_6.__response;
+            _t_8 = _t_6.title;
+            _t_9 = _t_6.description;
+            _t_10 = _t_6.link;
             emit(_t_5, _t_6);
             _iter_tmp = await _t_3.next();
           }
@@ -4800,22 +4978,23 @@ const TEST_CASES = [
       }
     };
     try {
-      _t_11 = await __builtin.invokeStreamVarRef(__env, _t_10);
+      _t_12 = await __builtin.invokeStreamVarRef(__env, _t_11);
       {
-        let _iter_tmp = await _t_11.next();
+        let _iter_tmp = await _t_12.next();
         while (!_iter_tmp.done) {
-          _t_12 = _iter_tmp.value;
-          _t_13 = _t_12[0];
-          _t_14 = _t_12[1];
-          _t_15 = _t_14.title;
-          _t_16 = _t_14.description;
-          _t_17 = _t_14.link;
+          _t_13 = _iter_tmp.value;
+          _t_14 = _t_13[0];
+          _t_15 = _t_13[1];
+          _t_16 = _t_15.__response;
+          _t_17 = _t_15.title;
+          _t_18 = _t_15.description;
+          _t_19 = _t_15.link;
           try {
-            await __env.output(String(_t_13), _t_14);
+            await __env.output(String(_t_14), _t_15);
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
-          _iter_tmp = await _t_11.next();
+          _iter_tmp = await _t_12.next();
         }
       }
     } catch(_exc_) {
@@ -4823,24 +5002,25 @@ const TEST_CASES = [
     }
     __env.clearGetCache();
     try {
-      _t_18 = await __builtin.invokeStreamVarRef(__env, _t_10);
+      _t_20 = await __builtin.invokeStreamVarRef(__env, _t_11);
       {
-        let _iter_tmp = await _t_18.next();
+        let _iter_tmp = await _t_20.next();
         while (!_iter_tmp.done) {
-          _t_19 = _iter_tmp.value;
-          _t_20 = _t_19[0];
-          _t_21 = _t_19[1];
-          _t_22 = _t_21.title;
-          _t_23 = _t_21.description;
-          _t_24 = _t_21.link;
+          _t_21 = _iter_tmp.value;
+          _t_22 = _t_21[0];
+          _t_23 = _t_21[1];
+          _t_24 = _t_23.__response;
+          _t_25 = _t_23.title;
+          _t_26 = _t_23.description;
+          _t_27 = _t_23.link;
           try {
-            _t_25 = {};
-            _t_25.status = _t_22;
-            await __env.invokeAction("com.twitter", { }, "post", _t_25);
+            _t_28 = {};
+            _t_28.status = _t_25;
+            await __env.invokeAction("com.twitter", { }, "post", _t_28);
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
-          _iter_tmp = await _t_18.next();
+          _iter_tmp = await _t_20.next();
         }
       }
     } catch(_exc_) {
@@ -5064,6 +5244,7 @@ const TEST_CASES = [
   let _t_6;
   let _t_7;
   let _t_8;
+  let _t_9;
   try {
     _t_0 = -1;
     _t_1 = await __env.readResult("com.thecatapi:get", _t_0);
@@ -5074,9 +5255,10 @@ const TEST_CASES = [
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
-        _t_6 = _t_5.image_id;
-        _t_7 = _t_5.picture_url;
-        _t_8 = _t_5.link;
+        _t_6 = _t_5.__response;
+        _t_7 = _t_5.image_id;
+        _t_8 = _t_5.picture_url;
+        _t_9 = _t_5.link;
         try {
           await __env.output(String(_t_4), _t_5);
         } catch(_exc_) {
@@ -5101,6 +5283,7 @@ const TEST_CASES = [
   let _t_6;
   let _t_7;
   let _t_8;
+  let _t_9;
   try {
     _t_0 = -2;
     _t_1 = await __env.readResult("com.thecatapi:get", _t_0);
@@ -5111,9 +5294,10 @@ const TEST_CASES = [
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
-        _t_6 = _t_5.image_id;
-        _t_7 = _t_5.picture_url;
-        _t_8 = _t_5.link;
+        _t_6 = _t_5.__response;
+        _t_7 = _t_5.image_id;
+        _t_8 = _t_5.picture_url;
+        _t_9 = _t_5.link;
         try {
           await __env.output(String(_t_4), _t_5);
         } catch(_exc_) {
@@ -5141,6 +5325,7 @@ const TEST_CASES = [
   let _t_9;
   let _t_10;
   let _t_11;
+  let _t_12;
   try {
     _t_0 = -1;
     _t_1 = await __env.readResult("com.thecatapi:get", _t_0);
@@ -5151,16 +5336,17 @@ const TEST_CASES = [
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
-        _t_6 = _t_5.image_id;
-        _t_7 = _t_5.picture_url;
-        _t_8 = _t_5.link;
+        _t_6 = _t_5.__response;
+        _t_7 = _t_5.image_id;
+        _t_8 = _t_5.picture_url;
+        _t_9 = _t_5.link;
         try {
-          _t_9 = {};
-          _t_10 = String (_t_7);
-          _t_9.picture_url = _t_10;
-          _t_11 = "cat";
-          _t_9.caption = _t_11;
-          await __env.invokeAction("com.twitter", { }, "post_picture", _t_9);
+          _t_10 = {};
+          _t_11 = String (_t_8);
+          _t_10.picture_url = _t_11;
+          _t_12 = "cat";
+          _t_10.caption = _t_12;
+          await __env.invokeAction("com.twitter", { }, "post_picture", _t_10);
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -5184,6 +5370,7 @@ const TEST_CASES = [
   let _t_7;
   let _t_8;
   let _t_9;
+  let _t_10;
   try {
     _t_0 = {};
     _t_1 = await __env.invokeQuery("com.spotify", { }, "get_currently_playing", _t_0);
@@ -5194,15 +5381,16 @@ const TEST_CASES = [
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
-        _t_6 = _t_5.song;
+        _t_6 = _t_5.__response;
+        _t_7 = _t_5.song;
         try {
-          _t_7 = {};
-          _t_8 = new Array(1);
-          _t_8[0] = _t_6;
-          _t_7.songs = _t_8;
-          _t_9 = "my favorite";
-          _t_7.playlist = _t_9;
-          await __env.invokeAction("com.spotify", { }, "add_songs_to_playlist", _t_7);
+          _t_8 = {};
+          _t_9 = new Array(1);
+          _t_9[0] = _t_7;
+          _t_8.songs = _t_9;
+          _t_10 = "my favorite";
+          _t_8.playlist = _t_10;
+          await __env.invokeAction("com.spotify", { }, "add_songs_to_playlist", _t_8);
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -5223,6 +5411,7 @@ const TEST_CASES = [
   let _t_4;
   let _t_5;
   let _t_6;
+  let _t_7;
   try {
     _t_1 = __ast[0];
     _t_0 = await __env.invokeDBQuery("org.wikidata", { }, _t_1);
@@ -5233,7 +5422,8 @@ const TEST_CASES = [
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
-        _t_6 = _t_5.id;
+        _t_6 = _t_5.__response;
+        _t_7 = _t_5.id;
         try {
           await __env.output(String(_t_4), _t_5);
         } catch(_exc_) {
@@ -5256,6 +5446,7 @@ const TEST_CASES = [
   let _t_4;
   let _t_5;
   let _t_6;
+  let _t_7;
   try {
     _t_1 = __ast[0];
     _t_0 = await __env.invokeDBQuery("org.wikidata", { }, _t_1);
@@ -5266,7 +5457,8 @@ const TEST_CASES = [
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
-        _t_6 = _t_5.id;
+        _t_6 = _t_5.__response;
+        _t_7 = _t_5.id;
         try {
           await __env.output(String(_t_4), _t_5);
         } catch(_exc_) {
@@ -5290,6 +5482,7 @@ const TEST_CASES = [
   let _t_5;
   let _t_6;
   let _t_7;
+  let _t_8;
   try {
     _t_1 = __ast[0];
     _t_0 = await __env.invokeDBQuery("org.wikidata", { }, _t_1);
@@ -5300,11 +5493,12 @@ const TEST_CASES = [
         _t_3 = _iter_tmp.value;
         _t_4 = _t_3[0];
         _t_5 = _t_3[1];
-        _t_6 = _t_5.P1477;
+        _t_6 = _t_5.__response;
+        _t_7 = _t_5.P1477;
         try {
-          _t_7 = {};
-          _t_7.status = _t_6;
-          await __env.invokeAction("com.twitter", { }, "post", _t_7);
+          _t_8 = {};
+          _t_8.status = _t_7;
+          await __env.invokeAction("com.twitter", { }, "post", _t_8);
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
