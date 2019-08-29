@@ -588,7 +588,7 @@ const TEST_CASES = [
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
-    _t_0 = await __env.invokeTimer(_t_1, _t_2);
+    _t_0 = await __env.invokeTimer(_t_1, _t_2, null);
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
@@ -617,7 +617,7 @@ const TEST_CASES = [
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
-    _t_0 = await __env.invokeTimer(_t_1, _t_2);
+    _t_0 = await __env.invokeTimer(_t_1, _t_2, null);
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
@@ -1460,7 +1460,7 @@ const TEST_CASES = [
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 10000;
-    _t_0 = await __env.invokeTimer(_t_1, _t_2);
+    _t_0 = await __env.invokeTimer(_t_1, _t_2, null);
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
@@ -2305,7 +2305,7 @@ const TEST_CASES = [
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
-    _t_0 = await __env.invokeTimer(_t_1, _t_2);
+    _t_0 = await __env.invokeTimer(_t_1, _t_2, null);
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
@@ -2476,7 +2476,7 @@ const TEST_CASES = [
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
-    _t_0 = await __env.invokeTimer(_t_1, _t_2);
+    _t_0 = await __env.invokeTimer(_t_1, _t_2, null);
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
@@ -2562,7 +2562,7 @@ const TEST_CASES = [
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
-    _t_0 = await __env.invokeTimer(_t_1, _t_2);
+    _t_0 = await __env.invokeTimer(_t_1, _t_2, null);
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
@@ -2656,7 +2656,7 @@ const TEST_CASES = [
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
-    _t_0 = await __env.invokeTimer(_t_1, _t_2);
+    _t_0 = await __env.invokeTimer(_t_1, _t_2, null);
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
@@ -2750,7 +2750,7 @@ const TEST_CASES = [
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
-    _t_0 = await __env.invokeTimer(_t_1, _t_2);
+    _t_0 = await __env.invokeTimer(_t_1, _t_2, null);
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
@@ -3172,7 +3172,7 @@ const TEST_CASES = [
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
-    _t_0 = await __env.invokeTimer(_t_1, _t_2);
+    _t_0 = await __env.invokeTimer(_t_1, _t_2, null);
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
@@ -3329,7 +3329,7 @@ const TEST_CASES = [
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
-    _t_0 = await __env.invokeTimer(_t_1, _t_2);
+    _t_0 = await __env.invokeTimer(_t_1, _t_2, null);
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
@@ -4616,7 +4616,7 @@ const TEST_CASES = [
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
-    _t_0 = await __env.invokeTimer(_t_1, _t_2);
+    _t_0 = await __env.invokeTimer(_t_1, _t_2, null);
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
@@ -5177,7 +5177,7 @@ const TEST_CASES = [
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
-    _t_0 = await __env.invokeTimer(_t_1, _t_2);
+    _t_0 = await __env.invokeTimer(_t_1, _t_2, null);
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
@@ -5507,6 +5507,35 @@ const TEST_CASES = [
     }
   } catch(_exc_) {
     __env.reportError("Failed to invoke query", _exc_);
+  }`]],
+
+    //70
+    [`timer(base=makeDate(), interval=1h, frequency=3) => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  try {
+    _t_1 = new Date(XNOWX);
+    _t_2 = 3600000;
+    _t_3 = 3;
+    _t_0 = await __env.invokeTimer(_t_1, _t_2, _t_3);
+    {
+      let _iter_tmp = await _t_0.next();
+      while (!_iter_tmp.done) {
+        _t_4 = _iter_tmp.value;
+        try {
+          await __env.output(null, _t_4);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_0.next();
+      }
+    }
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke timer", _exc_);
   }`]]
 ];
 
@@ -5542,7 +5571,7 @@ async function test(i) {
 
             if (code === undefined || code.trim() !== expected[j].trim()) {
                 console.error('Test Case #' + (i+1) + ': compiled code does not match what expected');
-                //console.error('Expected: ' + expected[j]);
+                console.error('Expected: ' + expected[j]);
                 console.error('Compiled: ' + code);
                 if (process.env.TEST_MODE)
                     throw new Error(`testCompiler ${i+1} FAILED`);
