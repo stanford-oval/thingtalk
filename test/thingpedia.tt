@@ -1711,5 +1711,26 @@ class @org.wikidatasportsskill
   #_[confirmation="wikidata sports team"]
   #[handle_thingtalk=true]
   #[default_projection=['id']];
-
 }
+
+class @com.yelp {
+    monitorable list query search( in opt query: String #[string_values='com.yelp:restaurants'],
+                                   in req location: Location,
+                                   in opt sort_by: Enum(best_match,rating,review_count,distance),
+                                   out name: String,
+                                   out picture_url: Picture,
+                                   out category: Array(String) #[string_values='com.yelp:restaurant_category'],
+                                   out rating: Number,
+                                   out review_count: Number,
+                                   out link: URL,
+                                   out address: Location,
+                                   out distance: Measure(m),
+                                   out open: Boolean
+    )
+    #_[canonical="restaurants on yelp"]
+    #_[confirmation="( ${query} | restaurants ) on yelp ( near ${location} | )"]
+    #_[formatted=[{type="rdl",displayTitle="${name}",webCallback="${link}",displayText="Rating: ${rating}\nCategory: ${category}\nAddress: ${address}"}, {type="picture",url="${picture_url}"}]]
+    #[poll_interval=30min]
+    #[doc="search for restaurants on yelp"];
+}
+
