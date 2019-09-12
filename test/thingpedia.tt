@@ -1713,3 +1713,12 @@ class @org.wikidatasportsskill
   #[default_projection=['id']];
 
 }
+class @schema.org {
+  list query restaurants(out name: String,
+                         out rating: {
+                            value: Number,
+                            count: Number
+                         })
+  #_[canonical="restaurants"]
+  #_[confirmation="restaurants"];
+}
