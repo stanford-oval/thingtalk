@@ -1713,7 +1713,7 @@ class @org.wikidatasportsskill
   #[default_projection=['id']];
 
 }
-class @schema.org {
+class @org.schema {
   list query restaurants(out name: String,
                          out rating: {
                             value: Number,

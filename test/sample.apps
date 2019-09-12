@@ -1489,3 +1489,7 @@ now => @thermostat.get_temperature(), value >= __const_MEASURE__C_0 => notify;
 // ** typecheck: expect TypeError **
 // wrong type
 now => @com.twitter.post(status=__const_NUMBER_0);
+
+====
+
+now => @org.schema.restaurants(), rating.value >= 4 => notify;
