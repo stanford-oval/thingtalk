@@ -1492,4 +1492,33 @@ now => @com.twitter.post(status=__const_NUMBER_0);
 
 ====
 
-now => @org.schema.restaurants(), rating.value >= 4 => notify;
+// compound value type
+{
+  class @org.schema {
+    list query restaurants(out name: String,
+                           out rating: {
+                             value: Number,
+                             count: Number
+                           });
+  }
+
+  now => @org.schema.restaurants(), rating.value >= 4 => notify;
+}
+
+====
+
+// nested compound value type
+{
+  class @org.schema {
+    list query restaurants(out name: String,
+                           out rating: {
+                             value: Number,
+                             count: Number,
+                             author: {
+                                name: String
+                             }
+                           });
+  }
+
+  now => @org.schema.restaurants(), rating.author.name ~= "bob" => notify;
+}
