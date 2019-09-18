@@ -136,6 +136,28 @@ executor = "matrix-account:@gcampax:matrix.org"^^tt:contact : { // WithPrincipal
     }
     now => @dyn_0.send(foo="foo");
 }
+
+====
+
+// sub function
+{
+    class @foo.bar {
+        query q1 (out a: Number);
+        query q2 extends q1 (out b: String);
+    }
+}
+
+====
+
+// sub function
+{
+    class @foo.bar {
+        query q1 (out a: Number);
+        query q2 extends q1 (out b: String);
+    }
+    now => @foo.bar.q2(), a >= 0 => notify;
+}
+
 ====
 
 // without wrapping it should still work
