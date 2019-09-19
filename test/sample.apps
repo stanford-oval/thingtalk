@@ -145,6 +145,7 @@ executor = "matrix-account:@gcampax:matrix.org"^^tt:contact : { // WithPrincipal
         query q1 (out a: Number);
         query q2 extends q1 (out b: String);
     }
+    now => @foo.bar.q2(), a >= 0 && b =~ "foo" => notify;
 }
 
 ====
@@ -153,9 +154,10 @@ executor = "matrix-account:@gcampax:matrix.org"^^tt:contact : { // WithPrincipal
 {
     class @foo.bar {
         query q1 (out a: Number);
-        query q2 extends q1 (out b: String);
+        query q2 (out b: String);
+        query q3 extends q1, q2 ();
     }
-    now => @foo.bar.q2(), a >= 0 => notify;
+    now => @foo.bar.q3(), a >= 0 && b =~ "foo" => notify;
 }
 
 ====
