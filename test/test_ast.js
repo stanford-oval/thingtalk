@@ -51,6 +51,7 @@ function testValues() {
 
 function testClone() {
     let fn = new Ast.FunctionDef('action', 'foo',
+        [], // extends
         [], // args
         false, // is_list
         false, // is_monitorable,
