@@ -162,6 +162,36 @@ executor = "matrix-account:@gcampax:matrix.org"^^tt:contact : { // WithPrincipal
 
 ====
 
+// sub function with conflict parameters
+class @foo.bar {
+    query q0 (out a: Number);
+    query q1 extends q0 (out b: Number);
+    query q2 extends q0 (out c: String);
+    query q3 extends q1, q2 (out d: Number);
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// sub function with conflict parameters
+class @foo.bar {
+    query q1 (out a: Number);
+    query q2 (out a: String);
+    query q3 extends q1, q2 (out c: Number);
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// sub function with conflict parameters
+class @foo.bar {
+    query q1 (out a: Number);
+    query q2 (out b: String);
+    query q3 extends q1, q2 (out a: Number);
+}
+
+====
+
 // without wrapping it should still work
 
 monitor @com.twitter.home_timeline() => notify;
