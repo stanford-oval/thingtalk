@@ -211,15 +211,6 @@ class @foo.bar {
 // ** typecheck: expect TypeError **
 // sub function with conflict parameters
 class @foo.bar {
-    list query q1 (out a: Number);
-    query q2 extends q1 (out b: String);
-}
-
-====
-
-// ** typecheck: expect TypeError **
-// sub function with conflict parameters
-class @foo.bar {
     query q1 (out a: Number);
     monitorable query q2 extends q1 (out b: String);
 }
