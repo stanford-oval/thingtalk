@@ -192,6 +192,40 @@ class @foo.bar {
 
 ====
 
+// sub function with conflict parameters
+class @foo.bar {
+    query q1 (out a: Number);
+    list query q2 extends q1 (out b: String);
+}
+
+====
+
+// sub function with conflict parameters
+class @foo.bar {
+    monitorable query q1 (out a: Number);
+    query q2 extends q1 (out b: String);
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// sub function with conflict parameters
+class @foo.bar {
+    list query q1 (out a: Number);
+    query q2 extends q1 (out b: String);
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// sub function with conflict parameters
+class @foo.bar {
+    query q1 (out a: Number);
+    monitorable query q2 extends q1 (out b: String);
+}
+
+====
+
 // without wrapping it should still work
 
 monitor @com.twitter.home_timeline() => notify;
