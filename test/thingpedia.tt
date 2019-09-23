@@ -1713,3 +1713,4 @@ class @org.wikidatasportsskill
   #[default_projection=['id']];
 
 }
+
