@@ -1601,3 +1601,19 @@ now => @com.twitter.post(status=__const_NUMBER_0);
 
   now => @org.schema.restaurants(), rating.author.name ~= "bob" => notify;
 }
+
+====
+
+// subfunction with compound value
+{
+  class @org.schema {
+    list query local_business(out name: String,
+                              out rating: {
+                                value: Number,
+                                count: Number
+                              });
+    list query restaurants extends local_business(out serveCuisine: String);
+  }
+
+  now => @org.schema.restaurants(), rating.value >= 4 && serveCuisine =~ "seafood" => notify;
+}
