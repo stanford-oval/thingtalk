@@ -1617,7 +1617,18 @@ now => @com.twitter.post(status=__const_NUMBER_0);
 
 ====
 
-// compound value type
+// aggregate filter on arrays
+{
+  class @org.schema {
+    list query restaurants(out name: String,
+                           out reviews: Array(Number));
+  }
+  now => @org.schema.restaurants(), count(reviews) >= 1 => notify;
+}
+
+====
+
+// aggregate filter on arrays
 {
   class @org.schema {
     list query restaurants(out name: String,
@@ -1626,10 +1637,9 @@ now => @com.twitter.post(status=__const_NUMBER_0);
   now => @org.schema.restaurants(), count(reviews, value == 5) >= 1 => notify;
 }
 
-
 ====
 
-// compound value type
+// aggregate filter on arrays of compound value
 {
   class @org.schema {
     list query restaurants(out name: String,
