@@ -136,6 +136,85 @@ executor = "matrix-account:@gcampax:matrix.org"^^tt:contact : { // WithPrincipal
     }
     now => @dyn_0.send(foo="foo");
 }
+
+====
+
+// sub function
+{
+    class @foo.bar {
+        query q1 (out a: Number);
+        query q2 extends q1 (out b: String);
+    }
+    now => @foo.bar.q2(), a >= 0 && b =~ "foo" => notify;
+}
+
+====
+
+// sub function
+{
+    class @foo.bar {
+        query q1 (out a: Number);
+        query q2 (out b: String);
+        query q3 extends q1, q2 (out c: Number);
+    }
+    now => @foo.bar.q3(), a >= 0 && b =~ "foo" && c == 1 => notify;
+}
+
+====
+
+// sub function with conflict parameters
+class @foo.bar {
+    query q0 (out a: Number);
+    query q1 extends q0 (out b: Number);
+    query q2 extends q0 (out c: String);
+    query q3 extends q1, q2 (out d: Number);
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// sub function with conflict parameters
+class @foo.bar {
+    query q1 (out a: Number);
+    query q2 (out a: String);
+    query q3 extends q1, q2 (out c: Number);
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// sub function with conflict parameters
+class @foo.bar {
+    query q1 (out a: Number);
+    query q2 (out b: String);
+    query q3 extends q1, q2 (out a: Number);
+}
+
+====
+
+// sub function with conflict parameters
+class @foo.bar {
+    query q1 (out a: Number);
+    list query q2 extends q1 (out b: String);
+}
+
+====
+
+// sub function with conflict parameters
+class @foo.bar {
+    monitorable query q1 (out a: Number);
+    query q2 extends q1 (out b: String);
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// sub function with conflict parameters
+class @foo.bar {
+    query q1 (out a: Number);
+    monitorable query q2 extends q1 (out b: String);
+}
+
 ====
 
 // without wrapping it should still work
@@ -1521,4 +1600,20 @@ now => @com.twitter.post(status=__const_NUMBER_0);
   }
 
   now => @org.schema.restaurants(), rating.author.name ~= "bob" => notify;
+}
+
+====
+
+// subfunction with compound value
+{
+  class @org.schema {
+    list query local_business(out name: String,
+                              out rating: {
+                                value: Number,
+                                count: Number
+                              });
+    list query restaurants extends local_business(out serveCuisine: String);
+  }
+
+  now => @org.schema.restaurants(), rating.value >= 4 && serveCuisine =~ "seafood" => notify;
 }
