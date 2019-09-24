@@ -1580,7 +1580,6 @@ now => @com.twitter.post(status=__const_NUMBER_0);
                              count: Number
                            });
   }
-
   now => @org.schema.restaurants(), rating.value >= 4 => notify;
 }
 
@@ -1598,7 +1597,6 @@ now => @com.twitter.post(status=__const_NUMBER_0);
                              }
                            });
   }
-
   now => @org.schema.restaurants(), rating.author.name ~= "bob" => notify;
 }
 
@@ -1614,6 +1612,61 @@ now => @com.twitter.post(status=__const_NUMBER_0);
                               });
     list query restaurants extends local_business(out serveCuisine: String);
   }
-
   now => @org.schema.restaurants(), rating.value >= 4 && serveCuisine =~ "seafood" => notify;
+}
+
+====
+
+// compound value type
+{
+  class @org.schema {
+    list query restaurants(out name: String,
+                           out reviews: Array(Number));
+  }
+  now => @org.schema.restaurants(), count(reviews, value == 5) >= 1 => notify;
+}
+
+
+====
+
+// compound value type
+{
+  class @org.schema {
+    list query restaurants(out name: String,
+                           out reviews: Array({
+                             rating: Number,
+                             review: String
+                           }));
+  }
+  now => @org.schema.restaurants(), count(reviews, rating >= 5) >= 1 => notify;
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// aggregate filter on scalar argument
+{
+  class @org.schema {
+    list query restaurants(out name: String,
+                           out reviews: Array({
+                             rating: Number,
+                             review: String
+                           }));
+  }
+  now => @org.schema.restaurants(), count(name, value =~ 'foo') >= 4 => notify;
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// invalid filter inside aggregate filter
+{
+  class @org.schema {
+    list query restaurants(out name: String,
+                           out reviews: Array({
+                             rating: Number,
+                             review: String
+                           }));
+  }
+  now => @org.schema.restaurants(), count(reviews, value == 5) >= 4 => notify;
 }
