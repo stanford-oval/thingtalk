@@ -261,6 +261,7 @@ out_param_list = {
 // "condition and (this or that) and (foo or bar)"
 filter = {
     or_filter;
+    aggregate_filter;
     f1:filter 'and' f2:or_filter => new Ast.BooleanExpression.And([f1, f2]);
 }
 
@@ -277,6 +278,45 @@ atom_filter = {
     };
     fn:call '{' filter '}' => {
         return new Ast.BooleanExpression.External(fn.selector, fn.channel, fn.in_params, filter, null);
+    };
+}
+
+aggregate_expression = {
+    'count' '(' pname:PARAM_NAME ')' => {
+        const list = new Ast.ListExpression(pname.value, null);
+        return new Ast.ScalarExpression.Aggregation('count', '*', list);
+    };
+
+    'count' '(' pname:PARAM_NAME 'filter' filter:filter ')' => {
+        const list = new Ast.ListExpression(pname.value, filter);
+        return new Ast.ScalarExpression.Aggregation('count', '*', list);
+    };
+
+    op:aggr_op '(' pname:PARAM_NAME ')' => {
+        const list = new Ast.ListExpression(pname.value, null);
+        return new Ast.ScalarExpression.Aggregation(op, null, list);
+    };
+
+    op:aggr_op '(' pname:PARAM_NAME 'filter' filter:filter ')' => {
+        const list = new Ast.ListExpression(pname.value, filter);
+        return new Ast.ScalarExpression.Aggregation(op, null, list);
+    };
+
+    op:aggr_op '(' field:PARAM_NAME 'of' pname:PARAM_NAME ')' => {
+        const list = new Ast.ListExpression(pname.value, null);
+        return new Ast.ScalarExpression.Aggregation(op, field.value, list);
+    };
+
+    op:aggr_op '(' field:PARAM_NAME 'of' pname:PARAM_NAME 'filter' filter:filter ')' => {
+        const list = new Ast.ListExpression(pname.value, filter);
+        return new Ast.ScalarExpression.Aggregation(op, field.value, list);
+    };
+}
+
+aggregate_filter = {
+    lhs:aggregate_expression filter:value_filter => {
+        const [op, rhs] = filter;
+        return new Ast.BooleanExpression.Compute(lhs, op, rhs);
     };
 }
 
@@ -376,7 +416,7 @@ word_list = {
 
 literal_number = {
     num:NUMBER => num.value;
-    num:LITERAL_INTEGER => num;
+    num:LITERAL_INTEGER => num.value;
     '1' => 1;
     '0' => 0;
 }

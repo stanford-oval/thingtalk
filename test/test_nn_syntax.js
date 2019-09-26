@@ -413,7 +413,24 @@ const TEST_CASES = [
 
     [`[ param:text:String , param:author:Entity(tt:username) ] of ( monitor ( @com.twitter.home_timeline ) on new param:text:String ) => notify`,
     `monitor new text of tweets and show me the text and author`, {},
-    `[text, author] of (monitor (@com.twitter.home_timeline()) on new [text]) => notify;`]
+    `[text, author] of (monitor (@com.twitter.home_timeline()) on new [text]) => notify;`],
+
+    [`now => ( @com.twitter.home_timeline ) filter count ( param:hashtags:Array(Entity(tt:hashtag)) ) >= 0 => notify`,
+    `get tweets with hashtags`, {},
+    `now => (@com.twitter.home_timeline()), count(hashtags) >= 0 => notify;`],
+
+    // just to test syntax, in reality we should not generate examples like this
+    [`now => ( @com.twitter.home_timeline ) filter count ( param:hashtags:Array(Entity(tt:hashtag)) filter param:value:Entity(tt:hashtag) == " foo " ^^tt:hashtag ) >= 0 => notify`,
+    `get tweets with hashtags foo`, {},
+    `now => (@com.twitter.home_timeline()), count(hashtags, value == "foo"^^tt:hashtag) >= 0 => notify;`],
+
+    [`now => ( @com.yelp.restaurants ) filter min ( param:ratings:Array(Number) ) >= NUMBER_0 => notify`,
+    `get restaurants with no rating below NUMBER_0`, { NUMBER_0: 3 },
+    `now => (@com.yelp.restaurants()), min(ratings) >= 3 => notify;`],
+
+    [`now => ( @com.yelp.restaurants ) filter min ( param:rating:Number of param:reviews:Array(Compound) ) >= NUMBER_0 => notify`,
+    `get restaurants with no rating below NUMBER_0`, { NUMBER_0: 3 },
+    `now => (@com.yelp.restaurants()), min(rating of reviews) >= 3 => notify;`],
 ];
 
 async function testCase(test, i) {
