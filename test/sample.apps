@@ -1762,3 +1762,36 @@ now => @com.twitter.post(status=__const_NUMBER_0);
   }
   now => @org.schema.restaurants(), avg(rating of aggregateRating.reviews) >= 1 => notify;
 }
+
+====
+
+// nested compound inside array
+{
+  class @org.schema {
+    list query restaurants(out name: String,
+                           out reviews: Array({
+                             reviewRating: {
+                               ratingValue: Number
+                             }
+                           }));
+  }
+  now => @org.schema.restaurants(), avg(reviewRating.ratingValue of reviews) >= 1 => notify;
+}
+
+====
+// nested compound inside array inside compound
+// this is the most complicated case we handle (for now), no nest arrays
+{
+  class @org.schema {
+    list query restaurants(out name: String,
+                           out aggregateRating: {
+                             reviewCount: Number,
+                             reviews: Array({
+                               reviewRating: {
+                                 ratingValue: Number
+                               }
+                             })
+                           });
+  }
+  now => @org.schema.restaurants(), avg(reviewRating.ratingValue of aggregateRating.reviews) >= 1 => notify;
+}
