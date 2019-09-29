@@ -37,7 +37,7 @@ Ast.toManifest = toManifest;
 const Builtin = require('./lib/builtin');
 
 module.exports = {
-    version: '1.8.0',
+    version: '1.9.0-alpha.1',
 
     // AST definitions
     Ast,
