@@ -1,14 +1,18 @@
 {
   "name": "thingtalk",
-  "version": "1.7.3",
+  "version": "1.8.0",
   "description": "ThingTalk Just-In-Time Compiler, Library and Runtime",
   "license": "GPL-3.0+",
-  "repository": "https://github.com/stanford-oval/ThingTalk",
-  "author": "Stanford University Mobile and Social Computing Lab",
+  "repository": "https://github.com/stanford-oval/thingtalk",
+  "author": "Stanford Open Virtual Assistant Lab",
   "contributors": [
     {
       "name": "Giovanni Campagna",
       "email": "gcampagn@cs.stanford.edu"
+    },
+    {
+      "name": "Silei Xu",
+      "email": "silei@cs.stanford.edu"
     }
   ],
   "main": "index.js",
@@ -24,7 +28,6 @@
   "devDependencies": {
     "argparse": "^1.0.10",
     "coveralls": "^3.0.0",
-    "csv": "^5.0.0",
     "deep-equal": "^1.0.1",
     "eslint": "^6.0.0",
     "nyc": "^14.0.0",

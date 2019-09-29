@@ -262,7 +262,29 @@ Picture: http://example.com/security-camera.jpg`
         webCallback: 'http://www.abc.com',
         displayTitle: 'http://www.abc.com',
         displayText: null } ]
-    ]
+    ],
+
+    ['org.wikidata:person', {
+        P735: 'robert',
+        P1449: 'bob',
+        P1971: 2
+    }, null,
+    ['given name: robert',
+     'nickname: bob',
+     'number of children: 2']
+    ],
+
+    ['sum(org.wikidata:person)', {
+        P1971: 10
+    }, null,
+    ['The total number of children is 10.']
+    ],
+
+    ['org.wikidata:person', {
+        text: 'lol'
+    }, null,
+    ['text: lol']
+    ],
 ];
 
 const gettext = {
