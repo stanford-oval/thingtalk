@@ -23,6 +23,7 @@ seq([
     ('./test_builtin_sort_index'),
     ('./test_ast'),
     ('./test_generated_parser'),
+    ('./test_compound_type'),
     ('./test_grammar'),
     ('./test_optimize'),
     ('./test_typecheck'),
