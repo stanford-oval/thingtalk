@@ -5162,7 +5162,7 @@ const TEST_CASES = [
   let _t_1;
   try {
     _t_0 = {};
-    _t_1 = wait __env.loadContext("selection", "String");
+    _t_1 = await __env.loadContext("selection", "String");
     _t_0.status = _t_1;
     await __env.invokeAction("com.twitter", { }, "post", _t_0);
   } catch(_exc_) {
