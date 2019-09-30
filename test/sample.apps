@@ -173,7 +173,7 @@ class @foo.bar {
 ====
 
 // ** typecheck: expect TypeError **
-// sub function with conflict parameters
+// sub function with conflict parameters with different types
 class @foo.bar {
     query q1 (out a: Number);
     query q2 (out a: String);
@@ -182,7 +182,6 @@ class @foo.bar {
 
 ====
 
-// ** typecheck: expect TypeError **
 // sub function with conflict parameters
 class @foo.bar {
     query q1 (out a: Number);
