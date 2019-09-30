@@ -193,13 +193,40 @@ class @foo.bar {
 
 // sub function with conflict parameters
 class @foo.bar {
+    query q1 (out a: {
+                b: String
+              });
+    query q2 (out a: {
+                b: String
+              });
+    query q3 extends q1, q2 ();
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// sub function with conflict parameters
+class @foo.bar {
+    query q1 (out a: {
+                b: String
+              });
+    query q2 (out a: {
+                b: Number
+              });
+    query q3 extends q1, q2 ();
+}
+
+====
+
+// sub function with different types
+class @foo.bar {
     query q1 (out a: Number);
     list query q2 extends q1 (out b: String);
 }
 
 ====
 
-// sub function with conflict parameters
+// sub function with different types
 class @foo.bar {
     monitorable query q1 (out a: Number);
     query q2 extends q1 (out b: String);
@@ -208,7 +235,7 @@ class @foo.bar {
 ====
 
 // ** typecheck: expect TypeError **
-// sub function with conflict parameters
+// sub function with conflict types
 class @foo.bar {
     query q1 (out a: Number);
     monitorable query q2 extends q1 (out b: String);
