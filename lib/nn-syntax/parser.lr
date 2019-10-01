@@ -324,6 +324,10 @@ scalar_expression = {
     op:scalar_op '(' operand_list ')' => {
         return new Ast.ScalarExpression.Derived(op, operand_list);
     };
+    'filter' '(' pname:PARAM_NAME 'filter' filter:filter ')' => {
+        const list = new Ast.ListExpression(pname.value, filter);
+        return new Ast.ScalarExpression.Filter(list);
+    };
 }
 
 operand_list = {

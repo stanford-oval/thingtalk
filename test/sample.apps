@@ -1846,3 +1846,62 @@ class @org.schema {
 now => compute distance(location, $context.location.current_location) of @org.schema.restaurants() => notify;
 now => (compute distance(location, $context.location.current_location) of @org.schema.restaurants()), distance <= 1km => notify;
 now => sort distance desc of compute distance(location, $context.location.current_location) of @org.schema.restaurants() => notify;
+
+====
+
+class @org.schema {
+  list query restaurants(out name: String,
+                         out aggregateRating: {
+                           reviewCount: Number,
+                           reviews: Array({
+                             author : String,
+                             reviewRating: {
+                               ratingValue: Number
+                             }
+                           })
+                         });
+}
+
+//now => [aggregateRating.reviews.reviewRating] of @org.schema.restaurants() => notify;
+now => compute filter(aggregateRating.reviews, reviewRating.ratingValue >= 4) of @org.schema.restaurants() => notify;
+
+now => [aggregateRating.reviews] of compute filter(aggregateRating.reviews, author == "Bob") of @org.schema.restaurants() => notify;
+
+====
+
+// ** typecheck: expect TypeError **
+// invalid type
+class @org.schema {
+  list query restaurants(out name: String,
+                         out aggregateRating: {
+                           reviewCount: Number,
+                           reviews: Array({
+                             author : String,
+                             reviewRating: {
+                               ratingValue: Number
+                             }
+                           })
+                         });
+}
+
+//now => [aggregateRating.reviews.reviewRating] of @org.schema.restaurants() => notify;
+now => compute filter(aggregateRating.reviews, reviewRating.ratingValue >= "bob") of @org.schema.restaurants() => notify;
+
+now => [aggregateRating.reviews] of compute filter(aggregateRating.reviews, author == "Bob") of @org.schema.restaurants() => notify;
+
+====
+
+class @org.schema {
+  list query restaurants(out name: String,
+                         out aggregateRating: {
+                           reviewCount: Number,
+                           reviews: Array({
+                             author : String,
+                             reviewRating: {
+                               ratingValue: Number
+                             }
+                           })
+                         });
+}
+
+now => [foo] of compute filter(aggregateRating.reviews, author == "Bob") as foo of @org.schema.restaurants() => notify;
