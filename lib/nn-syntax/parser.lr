@@ -145,6 +145,10 @@ aggr_op = {
     'avg' => 'avg';
 }
 
+scalar_op = {
+    'distance' => 'distance';
+}
+
 table = {
     call => new Ast.Table.Invocation(call, null);
     '(' table ')' 'filter' filter => {
@@ -167,6 +171,9 @@ table = {
     '(' table ')' '[' base:constant ':' delta:constant ']'    => new Ast.Table.Slice(table, base, delta, null);
 
     '[' pnames:out_param_list ']' 'of' '(' table ')'          => new Ast.Table.Projection(table, pnames.map((p) => p.name), null);
+
+    'compute' expr:scalar_expression 'of' '(' table ')'       => new Ast.Table.Compute(table, expr, null, null);
+    'compute' expr:aggregate_expression 'of' '(' table ')'       => new Ast.Table.Compute(table, expr, null, null);
 
     'window' base:constant ',' delta:constant 'of' '(' stream ')'        => new Ast.Table.Window(base, delta, stream, null);
     'timeseries' base:constant ',' delta:constant 'of' '(' stream ')' => new Ast.Table.TimeSeries(base, delta, stream, null);
@@ -313,8 +320,26 @@ aggregate_expression = {
     };
 }
 
+scalar_expression = {
+    op:scalar_op '(' operand_list ')' => {
+        return new Ast.ScalarExpression.Derived(op, operand_list);
+    };
+}
+
+operand_list = {
+    constant => [new Ast.ScalarExpression.Primary(constant)];
+    list:operand_list ',' constant => {
+        list.push(new Ast.ScalarExpression.Primary(constant));
+        return list;
+    };
+}
+
 aggregate_filter = {
     lhs:aggregate_expression filter:value_filter => {
+        const [op, rhs] = filter;
+        return new Ast.BooleanExpression.Compute(lhs, op, rhs);
+    };
+    lhs:scalar_expression filter:value_filter => {
         const [op, rhs] = filter;
         return new Ast.BooleanExpression.Compute(lhs, op, rhs);
     };

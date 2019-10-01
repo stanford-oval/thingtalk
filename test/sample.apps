@@ -1821,3 +1821,28 @@ now => @com.twitter.post(status=__const_NUMBER_0);
   }
   now => @org.schema.restaurants(), avg(reviewRating.ratingValue of aggregateRating.reviews) >= 1 => notify;
 }
+
+====
+
+class @org.schema {
+  list query restaurants(out name: String,
+                         out aggregateRating: {
+                           reviewCount: Number,
+                           reviews: Array({
+                             reviewRating: {
+                               ratingValue: Number
+                             }
+                           })
+                         });
+}
+now => compute count(aggregateRating.reviews) of @org.schema.restaurants() => notify;
+
+====
+
+class @org.schema {
+  list query restaurants(out name: String,
+                         out location : Location);
+}
+now => compute distance(location, $context.location.current_location) of @org.schema.restaurants() => notify;
+now => (compute distance(location, $context.location.current_location) of @org.schema.restaurants()), distance <= 1km => notify;
+now => sort distance desc of compute distance(location, $context.location.current_location) of @org.schema.restaurants() => notify;
