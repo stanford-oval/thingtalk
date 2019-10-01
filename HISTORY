@@ -1,3 +1,19 @@
+1.9.0-alpha.1
+=============
+
+* Queries can now return a `__response` hidden parameter, and if that's present,
+  it overrides formatting-based outputs [#134].
+* Interval timers can now be specified in terms of frequency instead of interval,
+  to support e.g. "twice a week", "three times an hour" without doing arithmetic
+  [Richard Grannis-Vu; #135, #136, #139].
+* Added compound (record) types [#142].
+* Added the ability to "extend" query functions. Extending function will inherit
+  all input and output parameters of the base function, including annotations,
+  and do not need to redeclare them. There is no link between the two functions other
+  than shared parameters [#146, #148].
+* Datasets can now be prettyprinted individually [#143].
+* Build system fixes and dependency updates [#150].
+
 1.8.0
 =====
 
