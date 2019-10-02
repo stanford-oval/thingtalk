@@ -1905,3 +1905,16 @@ class @org.schema {
 }
 
 now => [foo] of compute filter(aggregateRating.reviews, author == "Bob") as foo of @org.schema.restaurants() => notify;
+
+
+====
+class @foo.bar {
+  compute isTrue () : Boolean := true;
+  compute greaterThanZero (in req x:Number) : Boolean := x >= 0;
+  compute itself (in req x:Number) : Number := x;
+
+  list query q(out num: Number);
+}
+
+now => @foo.bar.q(), @foo.bar.itself(x=num) >= 0 => notify;
+now => @foo.bar.q(), @for.bar.greaterThanZero(x=num) => notify;
