@@ -1918,3 +1918,11 @@ class @foo.bar {
 
 now => @foo.bar.q(), @foo.bar.itself(x=num) >= 0 => notify;
 now => @foo.bar.q(), @for.bar.greaterThanZero(x=num) => notify;
+
+====
+
+now => compute flat(review) of @org.schema.hotel() => notify;
+
+====
+
+now => compute flat(review, author == 'bob') of @org.schema.hotel() => notify;

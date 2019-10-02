@@ -1772,6 +1772,6 @@ class @org.schema {
                                                    }),
                                                    out checkinTime: Time,
                                                    out checkoutTime: Time);
-  list query hotels extends lodgingBusiness();
+  list query hotel extends lodgingBusiness();
 
 }
