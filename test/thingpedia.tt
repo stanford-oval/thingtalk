@@ -1722,3 +1722,56 @@ class @com.yelp {
                             review: String
                          }));
 }
+
+class @org.schema {
+  list query thing(out name: String,
+                   out description: String,
+                   out image: Picture);
+
+  list query organization extends thing(out address: {
+                                          addressCountry: Entity(tt:country) #_[canonical="country"],
+                                          addressRegion: Entity(tt:us_state) #_[canonical="state"],
+                                          postalCode: String #[genie=false],
+                                          streetAddress: String #_[canonical="street"],
+                                          addressLocality: String #_[canonical="city"] #[string_values="org.schema:cities"]
+                                        },
+                                        out aggregateRating: {
+                                          ratingValue: Number #_[canonical="rating"],
+                                          reviewCount: Number #_[canonical="number of review"]
+                                        },
+                                        out review: Array({
+                                          reviewRating: {
+                                            ratingValue: Number #_[canonical="rating"]
+                                          },
+                                          datePublished: Date,
+                                          description: String,
+                                          author: String
+                                        }),
+                                        out telephone: PhoneNumber,
+                                        out brand: {
+                                           name: String #_[canonical="brand"]
+                                        });
+
+  list query place extends thing(out address: {
+                                   addressCountry: Entity(tt:country) #_[canonical="country"],
+                                   addressRegion: Entity(tt:us_state) #_[canonical="state"],
+                                   postalCode: String #[genie=false],
+                                   streetAddress: String #_[canonical="street"],
+                                   addressLocality: String #_[canonical="city"] #[string_values="org.schema:cities"]
+                                 },
+                                 out geo: Location #[genie=false]);
+
+  list query localBusiness extends organization, place(out priceRange: String #[genie=false],
+                                                       out openingHours: String #[genie=false]);
+
+  list query foodEstablishment extends localBusiness(out serveCuisine: String #[string_values="org.schema:cuisine"]);
+  list query restaurant extends foodEstablishment(out name: String #[string_values="com.yelp:restaurants"]);
+
+  list query lodgingBusiness extends localBusiness(out amenityFeature: Array({
+                                                     name: String #_[canonical="amenity"] #[string_values="org.schema:hotel_amenity"]
+                                                   }),
+                                                   out checkinTime: Time,
+                                                   out checkoutTime: Time);
+  list query hotels extends lodgingBusiness();
+
+}
