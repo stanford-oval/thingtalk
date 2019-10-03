@@ -1715,7 +1715,8 @@ class @org.wikidatasportsskill
 }
 
 class @com.yelp {
-  list query restaurants(out name: String,
+  monitorable list query restaurants(out name: String,
+                         out location: Location,
                          out ratings: Array(Number),
                          out reviews: Array({
                             rating: Number,
