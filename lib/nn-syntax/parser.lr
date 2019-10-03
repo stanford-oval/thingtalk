@@ -216,6 +216,9 @@ stream = {
 
     '[' pnames:out_param_list ']' 'of' '(' stream ')'          => new Ast.Stream.Projection(stream, pnames.map((p) => p.name), null);
 
+    'compute' expr:scalar_expression 'of' '(' stream ')'       => new Ast.Stream.Compute(stream, expr, null, null);
+    'compute' expr:aggregate_expression 'of' '(' stream ')'       => new Ast.Stream.Compute(stream, expr, null, null);
+
     stream_join;
 }
 

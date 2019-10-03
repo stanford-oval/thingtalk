@@ -431,6 +431,22 @@ const TEST_CASES = [
     [`now => ( @com.yelp.restaurants ) filter min ( param:rating:Number of param:reviews:Array(Compound) ) >= NUMBER_0 => notify`,
     `get restaurants with no rating below NUMBER_0`, { NUMBER_0: 3 },
     `now => (@com.yelp.restaurants()), min(rating of reviews) >= 3 => notify;`],
+
+    [`now => compute distance ( param:location:Location , location:current_location ) of ( @com.yelp.restaurants ) => notify`,
+    `get restaurants and their distance from here`, {},
+    `now => compute distance(location, $context.location.current_location) of (@com.yelp.restaurants()) => notify;`],
+
+    [`now => compute filter ( param:reviews:Array(Compound) filter param:rating:Number >= NUMBER_0 ) of ( @com.yelp.restaurants ) => notify`,
+    `get restaurants and their reviews better than NUMBER_0`, { NUMBER_0: 4 },
+    `now => compute filter(reviews, rating >= 4) of (@com.yelp.restaurants()) => notify;`],
+
+    [`now => compute count ( param:reviews:Array(Compound) ) of ( @com.yelp.restaurants ) => notify`,
+    `get restaurants and how many reviews they have`, {},
+    `now => compute count(reviews) of (@com.yelp.restaurants()) => notify;`],
+
+    [`compute distance ( param:location:Location , location:current_location ) of ( monitor ( @com.yelp.restaurants ) ) => notify`,
+    `get restaurants and their distance from here`, {},
+    `compute distance(location, $context.location.current_location) of (monitor (@com.yelp.restaurants())) => notify;`]
 ];
 
 async function testCase(test, i) {
