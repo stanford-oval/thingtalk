@@ -1724,6 +1724,21 @@ class @com.yelp {
                          }));
 }
 
+class @org.thingpedia.test.compounds_and_inheritance {
+  monitorable list query thing(out name: String,
+                               out description: String,
+                               out image: Picture);
+
+  monitorable list query foo extends thing (out compound: {
+                                              nestedCompound: {
+                                                p1: String,
+                                                p2: Number
+                                              },
+                                              p3: String
+                                            },
+                                            out p4: String);
+}
+
 class @org.schema {
   list query thing(out name: String,
                    out description: String,
