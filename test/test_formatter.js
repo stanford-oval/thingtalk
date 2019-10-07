@@ -269,9 +269,8 @@ Picture: http://example.com/security-camera.jpg`
         P1449: 'bob',
         P1971: 2
     }, null,
-    ['given name: robert',
-     'nickname: bob',
-     'number of children: 2']
+    ['The given name is robert.',
+     'The number of children is 2.']
     ],
 
     ['sum(org.wikidata:person)', {
@@ -283,7 +282,7 @@ Picture: http://example.com/security-camera.jpg`
     ['org.wikidata:person', {
         text: 'lol'
     }, null,
-    ['text: lol']
+    ['The text is lol.']
     ],
 ];
 
