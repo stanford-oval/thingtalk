@@ -186,7 +186,8 @@ table_join = {
 }
 
 stream = {
-    'timer' 'base' '=' base:constant ',' 'interval' '=' interval:constant => new Ast.Stream.Timer(base, interval, null);
+    'timer' 'base' '=' base:constant ',' 'interval' '=' interval:constant => new Ast.Stream.Timer(base, interval, null, null);
+    'timer' 'base' '=' base:constant ',' 'interval' '=' interval:constant ',' 'frequency' '=' frequency:constant => new Ast.Stream.Timer(base, interval, frequency, null);
     'attimer' 'time' '=' time:constant => new Ast.Stream.AtTimer(time.isArray ? time.value : [time], null, null);
     'attimer' 'time' '=' time:constant ',' 'expiration_date' '=' expiration_date:constant => new Ast.Stream.AtTimer(time.isArray ? time.value : [time], expiration_date, null);
 

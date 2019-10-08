@@ -51,6 +51,12 @@ var TEST_CASES = [
     [`attimer(time=[$context.time.evening]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's the evening");`,
     `send me a message “it's the evening” every day at the evening`,//'
     'Say'],
+    [`timer(base=makeDate(), interval=2h) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's the evening");`,
+    `send me a message “it's the evening” every 2 h`,//'
+    'Say'],
+    [`timer(base=makeDate(), interval=2h, frequency=2) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's the evening");`,
+    `send me a message “it's the evening” 2 times every 2 h`,//'
+    'Say'],
 
     [`now => @com.xkcd.get_comic() => notify;`,
     'get an Xkcd comic and then notify you',
