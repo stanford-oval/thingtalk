@@ -368,7 +368,7 @@ value_filter = {
     'prefix_of' v:string_constant => ['prefix_of', v];
     'suffix_of' v:string_constant => ['suffix_of', v];
     'contains' v:constant => ['contains', v];
-    'in_array' v:constant_Array => ['in_array', v];
+    'in_array' v:constant => ['in_array', v];
 }
 
 // this non-terminal exists only for convenience
