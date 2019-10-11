@@ -128,9 +128,9 @@ const TEST_CASES = [
     `monitor xkcd if the title changes`, {},
     `monitor (@com.xkcd.get_comic()) on new [title] => notify;`],
 
-    ['monitor ( @com.xkcd.get_comic ) on new [ param:title:String , param:alt_text:String ] => notify',
+    ['monitor ( @com.xkcd.get_comic ) on new [ param:alt_text:String , param:title:String ] => notify',
     `monitor xkcd if the title or alt text changes`, {},
-    `monitor (@com.xkcd.get_comic()) on new [title, alt_text] => notify;`],
+    `monitor (@com.xkcd.get_comic()) on new [alt_text, title] => notify;`],
 
     ['monitor ( ( @com.instagram.get_pictures param:count:Number = NUMBER_0 ) filter param:caption:String in_array [ QUOTED_STRING_0 , QUOTED_STRING_1 ] ) => notify',
     `monitor my last NUMBER_0 instagram pics if the caption is either QUOTED_STRING_0 or QUOTED_STRING_1`, {NUMBER_0: 100, QUOTED_STRING_0: 'abc', QUOTED_STRING_1: 'def'},
@@ -386,10 +386,10 @@ const TEST_CASES = [
     { QUOTED_STRING_0: "it's the evening" },
     `attimer(time=$context.time.evening) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's the evening");`],
 
-    ['now => [ param:title:String , param:description:String ] of ( @com.bing.web_search ) => notify',
+    ['now => [ param:description:String , param:title:String ] of ( @com.bing.web_search ) => notify',
     'get title and description from bing', {},
 
-    'now => [title, description] of (@com.bing.web_search()) => notify;'],
+    'now => [description, title] of (@com.bing.web_search()) => notify;'],
 
     [`now => result ( @com.thecatapi.get ) => notify`,
     `show me the same cat again`, {},
@@ -411,9 +411,9 @@ const TEST_CASES = [
     `add the currently playing song to my playlist`, {},
     `now => @com.spotify.get_currently_playing() => @com.spotify.add_songs_to_playlist(songs=[song]);`],
 
-    [`[ param:text:String , param:author:Entity(tt:username) ] of ( monitor ( @com.twitter.home_timeline ) on new param:text:String ) => notify`,
+    [`[ param:author:Entity(tt:username) , param:text:String ] of ( monitor ( @com.twitter.home_timeline ) on new param:text:String ) => notify`,
     `monitor new text of tweets and show me the text and author`, {},
-    `[text, author] of (monitor (@com.twitter.home_timeline()) on new [text]) => notify;`],
+    `[author, text] of (monitor (@com.twitter.home_timeline()) on new [text]) => notify;`],
 
     [`now => ( @com.twitter.home_timeline ) filter count ( param:hashtags:Array(Entity(tt:hashtag)) ) >= 0 => notify`,
     `get tweets with hashtags`, {},
