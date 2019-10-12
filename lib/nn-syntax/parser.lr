@@ -271,7 +271,6 @@ out_param_list = {
 // "condition and (this or that) and (foo or bar)"
 filter = {
     or_filter;
-    aggregate_filter;
     f1:filter 'and' f2:or_filter => new Ast.BooleanExpression.And([f1, f2]);
 }
 
@@ -286,6 +285,7 @@ atom_filter = {
         const [op, v] = filter;
         return new Ast.BooleanExpression.Atom(pname.value, op, v);
     };
+    aggregate_filter;
     fn:call '{' filter '}' => {
         return new Ast.BooleanExpression.External(fn.selector, fn.channel, fn.in_params, filter, null);
     };
