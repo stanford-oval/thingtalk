@@ -234,7 +234,7 @@ const TEST_CASES = [
         _t_5 = _t_3[1];
         _t_6 = _t_5.__response;
         _t_7 = _t_5.value;
-        _t_8 = __builtin.isNewTuple(_t_0, _t_5, ["__response", "value"]);
+        _t_8 = __builtin.isNewTuple(_t_0, _t_5, ["value"]);
         _t_9 = __builtin.addTuple(_t_0, _t_5);
         await __env.writeState(0, _t_9);
         _t_0 = _t_9;
@@ -292,7 +292,7 @@ const TEST_CASES = [
         _t_5 = _t_3[1];
         _t_6 = _t_5.__response;
         _t_7 = _t_5.value;
-        _t_8 = __builtin.isNewTuple(_t_0, _t_5, ["__response", "value"]);
+        _t_8 = __builtin.isNewTuple(_t_0, _t_5, ["value"]);
         _t_9 = __builtin.addTuple(_t_0, _t_5);
         await __env.writeState(0, _t_9);
         _t_0 = _t_9;
@@ -371,7 +371,7 @@ const TEST_CASES = [
         _t_10 = _t_5.author;
         _t_11 = _t_5.in_reply_to;
         _t_12 = _t_5.tweet_id;
-        _t_13 = __builtin.isNewTuple(_t_0, _t_5, ["__response", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
+        _t_13 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
         _t_14 = __builtin.addTuple(_t_0, _t_5);
         await __env.writeState(0, _t_14);
         _t_0 = _t_14;
@@ -437,7 +437,7 @@ const TEST_CASES = [
         _t_12 = _t_6.fog;
         _t_13 = _t_6.status;
         _t_14 = _t_6.icon;
-        _t_15 = __builtin.isNewTuple(_t_0, _t_6, ["location", "__response", "temperature", "wind_speed", "humidity", "cloudiness", "fog", "status", "icon"]);
+        _t_15 = __builtin.isNewTuple(_t_0, _t_6, ["temperature", "wind_speed", "humidity", "cloudiness", "fog", "status", "icon"]);
         _t_16 = __builtin.addTuple(_t_0, _t_6);
         await __env.writeState(0, _t_16);
         _t_0 = _t_16;
@@ -497,7 +497,7 @@ const TEST_CASES = [
         _t_12 = _t_6.fog;
         _t_13 = _t_6.status;
         _t_14 = _t_6.icon;
-        _t_15 = __builtin.isNewTuple(_t_0, _t_6, ["location", "__response", "temperature", "wind_speed", "humidity", "cloudiness", "fog", "status", "icon"]);
+        _t_15 = __builtin.isNewTuple(_t_0, _t_6, ["temperature", "wind_speed", "humidity", "cloudiness", "fog", "status", "icon"]);
         _t_16 = __builtin.addTuple(_t_0, _t_6);
         await __env.writeState(0, _t_16);
         _t_0 = _t_16;
@@ -730,7 +730,7 @@ const TEST_CASES = [
         _t_9 = _t_5.picture_url;
         _t_10 = _t_5.link;
         _t_11 = _t_5.alt_text;
-        _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["number", "__response", "title", "picture_url", "link", "alt_text"]);
+        _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["title", "picture_url", "link", "alt_text"]);
         _t_13 = __builtin.addTuple(_t_0, _t_5);
         await __env.writeState(0, _t_13);
         _t_0 = _t_13;
@@ -816,7 +816,7 @@ const TEST_CASES = [
         _t_10 = _t_5.author;
         _t_11 = _t_5.in_reply_to;
         _t_12 = _t_5.tweet_id;
-        _t_13 = __builtin.isNewTuple(_t_0, _t_5, ["__response", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
+        _t_13 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
         _t_14 = __builtin.addTuple(_t_0, _t_5);
         await __env.writeState(0, _t_14);
         _t_0 = _t_14;
@@ -890,7 +890,7 @@ const TEST_CASES = [
         _t_10 = _t_5.author;
         _t_11 = _t_5.in_reply_to;
         _t_12 = _t_5.tweet_id;
-        _t_13 = __builtin.isNewTuple(_t_0, _t_5, ["__response", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
+        _t_13 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
         _t_14 = __builtin.addTuple(_t_0, _t_5);
         await __env.writeState(0, _t_14);
         _t_0 = _t_14;
@@ -950,7 +950,7 @@ const TEST_CASES = [
         _t_10 = _t_5.author;
         _t_11 = _t_5.in_reply_to;
         _t_12 = _t_5.tweet_id;
-        _t_13 = __builtin.isNewTuple(_t_0, _t_5, ["__response", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
+        _t_13 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
         _t_14 = __builtin.addTuple(_t_0, _t_5);
         await __env.writeState(0, _t_14);
         _t_0 = _t_14;
@@ -1008,7 +1008,7 @@ const TEST_CASES = [
         _t_9 = _t_5.picture_url;
         _t_10 = _t_5.link;
         _t_11 = _t_5.alt_text;
-        _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["number", "__response", "title", "picture_url", "link", "alt_text"]);
+        _t_12 = __builtin.isNewTuple(_t_0, _t_5, ["title", "picture_url", "link", "alt_text"]);
         _t_13 = __builtin.addTuple(_t_0, _t_5);
         await __env.writeState(0, _t_13);
         _t_0 = _t_13;
@@ -1184,7 +1184,7 @@ const TEST_CASES = [
         _t_10 = _t_5.author;
         _t_11 = _t_5.in_reply_to;
         _t_12 = _t_5.tweet_id;
-        _t_13 = __builtin.isNewTuple(_t_0, _t_5, ["__response", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
+        _t_13 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
         _t_14 = __builtin.addTuple(_t_0, _t_5);
         await __env.writeState(0, _t_14);
         _t_0 = _t_14;
@@ -1271,7 +1271,7 @@ const TEST_CASES = [
         _t_10 = _t_5.author;
         _t_11 = _t_5.in_reply_to;
         _t_12 = _t_5.tweet_id;
-        _t_13 = __builtin.isNewTuple(_t_0, _t_5, ["__response", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
+        _t_13 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
         _t_14 = __builtin.addTuple(_t_0, _t_5);
         await __env.writeState(0, _t_14);
         _t_0 = _t_14;
@@ -1377,7 +1377,7 @@ const TEST_CASES = [
         _t_10 = _t_5.author;
         _t_11 = _t_5.in_reply_to;
         _t_12 = _t_5.tweet_id;
-        _t_13 = __builtin.isNewTuple(_t_0, _t_5, ["__response", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
+        _t_13 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
         _t_14 = __builtin.addTuple(_t_0, _t_5);
         await __env.writeState(1, _t_14);
         _t_0 = _t_14;
@@ -1537,7 +1537,7 @@ const TEST_CASES = [
         _t_9 = _t_8.__response;
         _t_10 = _t_8.__kindChannel;
         _t_11 = _t_8.interval;
-        _t_12 = __builtin.isNewTuple(_t_0, _t_8, ["__principal", "__program_id", "__flow", "__response", "__kindChannel", "interval"]);
+        _t_12 = __builtin.isNewTuple(_t_0, _t_8, ["__kindChannel", "interval"]);
         _t_13 = __builtin.addTuple(_t_0, _t_8);
         await __env.writeState(0, _t_13);
         _t_0 = _t_13;
@@ -1630,7 +1630,7 @@ const TEST_CASES = [
           _t_12 = _t_7.author;
           _t_13 = _t_7.in_reply_to;
           _t_14 = _t_7.tweet_id;
-          _t_15 = __builtin.isNewTuple(_t_2, _t_7, ["__response", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
+          _t_15 = __builtin.isNewTuple(_t_2, _t_7, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
           _t_16 = __builtin.addTuple(_t_2, _t_7);
           await __env.writeState(1, _t_16);
           _t_2 = _t_16;
@@ -1663,7 +1663,7 @@ const TEST_CASES = [
           _t_26 = _t_24.title;
           _t_27 = _t_24.description;
           _t_28 = _t_24.link;
-          _t_29 = __builtin.isNewTuple(_t_18, _t_24, ["query", "__response", "title", "description", "link"]);
+          _t_29 = __builtin.isNewTuple(_t_18, _t_24, ["title", "description", "link"]);
           _t_30 = __builtin.addTuple(_t_18, _t_24);
           await __env.writeState(2, _t_30);
           _t_18 = _t_30;
@@ -1697,7 +1697,7 @@ const TEST_CASES = [
       _t_43 = _t_34.author;
       _t_44 = _t_34.in_reply_to;
       _t_45 = _t_34.tweet_id;
-      _t_46 = __builtin.isNewTuple(_t_0, _t_34, ["query", "__response", "title", "description", "link", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
+      _t_46 = __builtin.isNewTuple(_t_0, _t_34, ["title", "description", "link", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
       _t_47 = __builtin.addTuple(_t_0, _t_34);
       await __env.writeState(0, _t_47);
       _t_0 = _t_47;
@@ -1786,7 +1786,7 @@ const TEST_CASES = [
           _t_12 = _t_7.author;
           _t_13 = _t_7.in_reply_to;
           _t_14 = _t_7.tweet_id;
-          _t_15 = __builtin.isNewTuple(_t_2, _t_7, ["__response", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
+          _t_15 = __builtin.isNewTuple(_t_2, _t_7, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
           _t_16 = __builtin.addTuple(_t_2, _t_7);
           await __env.writeState(1, _t_16);
           _t_2 = _t_16;
@@ -1819,7 +1819,7 @@ const TEST_CASES = [
           _t_26 = _t_24.title;
           _t_27 = _t_24.description;
           _t_28 = _t_24.link;
-          _t_29 = __builtin.isNewTuple(_t_18, _t_24, ["query", "__response", "title", "description", "link"]);
+          _t_29 = __builtin.isNewTuple(_t_18, _t_24, ["title", "description", "link"]);
           _t_30 = __builtin.addTuple(_t_18, _t_24);
           await __env.writeState(2, _t_30);
           _t_18 = _t_30;
@@ -1853,7 +1853,7 @@ const TEST_CASES = [
       _t_43 = _t_34.author;
       _t_44 = _t_34.in_reply_to;
       _t_45 = _t_34.tweet_id;
-      _t_46 = __builtin.isNewTuple(_t_0, _t_34, ["query", "__response", "title", "description", "link", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
+      _t_46 = __builtin.isNewTuple(_t_0, _t_34, ["title", "description", "link", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
       _t_47 = __builtin.addTuple(_t_0, _t_34);
       await __env.writeState(0, _t_47);
       _t_0 = _t_47;
@@ -3041,7 +3041,7 @@ const TEST_CASES = [
         _t_17 = _t_7.file_size;
         _t_18 = _t_7.last_modified_by;
         _t_19 = _t_7.link;
-        _t_20 = __builtin.isNewTuple(_t_2, _t_7, ["order_by", "__response", "file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "file_size", "last_modified_by", "link"]);
+        _t_20 = __builtin.isNewTuple(_t_2, _t_7, ["file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "file_size", "last_modified_by", "link"]);
         _t_21 = __builtin.addTuple(_t_2, _t_7);
         await __env.writeState(2, _t_21);
         _t_2 = _t_21;
@@ -4187,7 +4187,7 @@ const TEST_CASES = [
         _t_10 = _t_5.author;
         _t_11 = _t_5.in_reply_to;
         _t_12 = _t_5.tweet_id;
-        _t_13 = __builtin.isNewTuple(_t_0, _t_5, ["__response", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
+        _t_13 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
         _t_14 = __builtin.addTuple(_t_0, _t_5);
         await __env.writeState(0, _t_14);
         _t_0 = _t_14;
@@ -4347,7 +4347,7 @@ const TEST_CASES = [
         _t_12 = _t_6.fog;
         _t_13 = _t_6.status;
         _t_14 = _t_6.icon;
-        _t_15 = __builtin.isNewTuple(_t_0, _t_6, ["location", "__response", "temperature", "wind_speed", "humidity", "cloudiness", "fog", "status", "icon"]);
+        _t_15 = __builtin.isNewTuple(_t_0, _t_6, ["temperature", "wind_speed", "humidity", "cloudiness", "fog", "status", "icon"]);
         _t_16 = __builtin.addTuple(_t_0, _t_6);
         await __env.writeState(0, _t_16);
         _t_0 = _t_16;
@@ -5536,7 +5536,488 @@ const TEST_CASES = [
     }
   } catch(_exc_) {
     __env.reportError("Failed to invoke timer", _exc_);
-  }`]]
+  }`]],
+
+    //71 compound types & function inheritance
+    [`now => @org.thingpedia.test.compounds_and_inheritance.foo() => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  try {
+    _t_0 = {};
+    _t_1 = await __env.invokeQuery("org.thingpedia.test.compounds_and_inheritance", { }, "foo", _t_0);
+    _t_2 = _t_1[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.__response;
+        _t_7 = _t_5.compound;
+        if (_t_7) {
+          _t_8 = _t_7.nestedCompound;
+          if (_t_8) {
+            _t_9 = _t_8.p1;
+            _t_10 = _t_8.p2;
+          } else {
+
+          }
+          _t_11 = _t_7.p3;
+        } else {
+
+        }
+        _t_12 = _t_5.p4;
+        _t_13 = _t_5.name;
+        _t_14 = _t_5.description;
+        _t_15 = _t_5.image;
+        try {
+          await __env.output(String(_t_4), _t_5);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_2.next();
+      }
+    }
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke query", _exc_);
+  }`]],
+
+    //72 parameter passing with compound types
+    [`now => @org.thingpedia.test.compounds_and_inheritance.foo() => @com.twitter.post(status=compound.nestedCompound.p1);`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  try {
+    _t_0 = {};
+    _t_1 = await __env.invokeQuery("org.thingpedia.test.compounds_and_inheritance", { }, "foo", _t_0);
+    _t_2 = _t_1[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.__response;
+        _t_7 = _t_5.compound;
+        if (_t_7) {
+          _t_8 = _t_7.nestedCompound;
+          if (_t_8) {
+            _t_9 = _t_8.p1;
+            _t_10 = _t_8.p2;
+          } else {
+
+          }
+          _t_11 = _t_7.p3;
+        } else {
+
+        }
+        _t_12 = _t_5.p4;
+        _t_13 = _t_5.name;
+        _t_14 = _t_5.description;
+        _t_15 = _t_5.image;
+        try {
+          _t_16 = {};
+          _t_16.status = _t_9;
+          await __env.invokeAction("com.twitter", { }, "post", _t_16);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_2.next();
+      }
+    }
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke query", _exc_);
+  }`]],
+
+    // 73 monitor of that stuff
+    [`monitor @org.thingpedia.test.compounds_and_inheritance.foo() => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  _t_0 = await __env.readState(0);
+  try {
+    _t_1 = {};
+    _t_2 = await __env.invokeMonitor("org.thingpedia.test.compounds_and_inheritance", { }, "foo", _t_1, false);
+    {
+      let _iter_tmp = await _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.__response;
+        _t_7 = _t_5.compound;
+        if (_t_7) {
+          _t_8 = _t_7.nestedCompound;
+          if (_t_8) {
+            _t_9 = _t_8.p1;
+            _t_10 = _t_8.p2;
+          } else {
+
+          }
+          _t_11 = _t_7.p3;
+        } else {
+
+        }
+        _t_12 = _t_5.p4;
+        _t_13 = _t_5.name;
+        _t_14 = _t_5.description;
+        _t_15 = _t_5.image;
+        _t_16 = __builtin.isNewTuple(_t_0, _t_5, ["compound", "p4", "name", "description", "image"]);
+        _t_17 = __builtin.addTuple(_t_0, _t_5);
+        await __env.writeState(0, _t_17);
+        _t_0 = _t_17;
+        if (_t_16) {
+          try {
+            await __env.output(String(_t_4), _t_5);
+          } catch(_exc_) {
+            __env.reportError("Failed to invoke action", _exc_);
+          }
+        } else {
+
+        }
+        _iter_tmp = await _t_2.next();
+      }
+    }
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke trigger", _exc_);
+  }`]],
+
+    // 74 filter() compute operator
+    [`now => compute filter(review, reviewRating.ratingValue >= 0) of @org.schema.restaurant() => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  let _t_25;
+  let _t_26;
+  let _t_27;
+  let _t_28;
+  let _t_29;
+  let _t_30;
+  let _t_31;
+  let _t_32;
+  let _t_33;
+  let _t_34;
+  let _t_35;
+  try {
+    _t_0 = {};
+    _t_1 = await __env.invokeQuery("org.schema", { }, "restaurant", _t_0);
+    _t_2 = _t_1[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.__response;
+        _t_7 = _t_5.name;
+        _t_8 = _t_5.serveCuisine;
+        _t_9 = _t_5.priceRange;
+        _t_10 = _t_5.openingHours;
+        _t_11 = _t_5.address;
+        if (_t_11) {
+          _t_12 = _t_11.addressCountry;
+          _t_13 = _t_11.addressRegion;
+          _t_14 = _t_11.postalCode;
+          _t_15 = _t_11.streetAddress;
+          _t_16 = _t_11.addressLocality;
+        } else {
+
+        }
+        _t_17 = _t_5.aggregateRating;
+        if (_t_17) {
+          _t_18 = _t_17.ratingValue;
+          _t_19 = _t_17.reviewCount;
+        } else {
+
+        }
+        _t_20 = _t_5.review;
+        _t_21 = _t_5.telephone;
+        _t_22 = _t_5.brand;
+        if (_t_22) {
+          _t_23 = _t_22.name;
+        } else {
+
+        }
+        _t_24 = _t_5.description;
+        _t_25 = _t_5.image;
+        _t_26 = _t_5.geo;
+        _t_27 = _t_20.filter((_t_28) => {
+          _t_29 = _t_28.reviewRating;
+          if (_t_29) {
+            _t_30 = _t_29.ratingValue;
+          } else {
+
+          }
+          _t_31 = _t_28.datePublished;
+          _t_32 = _t_28.description;
+          _t_33 = _t_28.author;
+          _t_35 = 0;
+          _t_34 = _t_30 >= _t_35;
+          return _t_34;
+        });
+        _t_5.review = _t_27;
+        try {
+          await __env.output(String(_t_4), _t_5);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_2.next();
+      }
+    }
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke query", _exc_);
+  }`]],
+
+    // 75 aggregate filter
+    [`now => @org.schema.restaurant(), count(review, reviewRating.ratingValue >= 0) >= 0 => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  let _t_25;
+  let _t_26;
+  let _t_27;
+  let _t_28;
+  let _t_29;
+  let _t_30;
+  let _t_31;
+  let _t_32;
+  let _t_33;
+  let _t_34;
+  let _t_35;
+  let _t_36;
+  let _t_37;
+  let _t_38;
+  let _t_39;
+  try {
+    _t_0 = {};
+    _t_1 = await __env.invokeQuery("org.schema", { }, "restaurant", _t_0);
+    _t_2 = _t_1[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.__response;
+        _t_7 = _t_5.name;
+        _t_8 = _t_5.serveCuisine;
+        _t_9 = _t_5.priceRange;
+        _t_10 = _t_5.openingHours;
+        _t_11 = _t_5.address;
+        if (_t_11) {
+          _t_12 = _t_11.addressCountry;
+          _t_13 = _t_11.addressRegion;
+          _t_14 = _t_11.postalCode;
+          _t_15 = _t_11.streetAddress;
+          _t_16 = _t_11.addressLocality;
+        } else {
+
+        }
+        _t_17 = _t_5.aggregateRating;
+        if (_t_17) {
+          _t_18 = _t_17.ratingValue;
+          _t_19 = _t_17.reviewCount;
+        } else {
+
+        }
+        _t_20 = _t_5.review;
+        _t_21 = _t_5.telephone;
+        _t_22 = _t_5.brand;
+        if (_t_22) {
+          _t_23 = _t_22.name;
+        } else {
+
+        }
+        _t_24 = _t_5.description;
+        _t_25 = _t_5.image;
+        _t_26 = _t_5.geo;
+        _t_28 = _t_20.filter((_t_29) => {
+          _t_30 = _t_29.reviewRating;
+          if (_t_30) {
+            _t_31 = _t_30.ratingValue;
+          } else {
+
+          }
+          _t_32 = _t_29.datePublished;
+          _t_33 = _t_29.description;
+          _t_34 = _t_29.author;
+          _t_36 = 0;
+          _t_35 = _t_31 >= _t_36;
+          return _t_35;
+        });
+        _t_37 = "*";
+        _t_38 = __builtin.count(_t_28, _t_37);
+        _t_39 = 0;
+        _t_27 = _t_38 >= _t_39;
+        if (_t_27) {
+          try {
+            await __env.output(String(_t_4), _t_5);
+          } catch(_exc_) {
+            __env.reportError("Failed to invoke action", _exc_);
+          }
+        } else {
+
+        }
+        _iter_tmp = await _t_2.next();
+      }
+    }
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke query", _exc_);
+  }`]],
+
+    // 76 distance operator
+    [`now => compute distance(geo, makeLocation(90,0,"north pole")) of @org.schema.place() => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  try {
+    _t_0 = {};
+    _t_1 = await __env.invokeQuery("org.schema", { }, "place", _t_0);
+    _t_2 = _t_1[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.__response;
+        _t_7 = _t_5.address;
+        if (_t_7) {
+          _t_8 = _t_7.addressCountry;
+          _t_9 = _t_7.addressRegion;
+          _t_10 = _t_7.postalCode;
+          _t_11 = _t_7.streetAddress;
+          _t_12 = _t_7.addressLocality;
+        } else {
+
+        }
+        _t_13 = _t_5.geo;
+        _t_14 = _t_5.name;
+        _t_15 = _t_5.description;
+        _t_16 = _t_5.image;
+        _t_17 = new __builtin.Location(90, 0, "north pole");
+        _t_18 = __builtin.distance(_t_13, _t_17);
+        _t_5.distance = _t_18;
+        try {
+          await __env.output(String(_t_4), _t_5);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_2.next();
+      }
+    }
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke query", _exc_);
+  }`]],
 ];
 
 // eslint-disable-next-line prefer-arrow-callback

@@ -1606,7 +1606,6 @@ now => @com.twitter.post(status=__const_NUMBER_0);
                              count: Number
                            });
   }
-
   now => @org.schema.restaurants(), rating.value >= 4 => notify;
 }
 
@@ -1624,7 +1623,6 @@ now => @com.twitter.post(status=__const_NUMBER_0);
                              }
                            });
   }
-
   now => @org.schema.restaurants(), rating.author.name ~= "bob" => notify;
 }
 
@@ -1640,6 +1638,291 @@ now => @com.twitter.post(status=__const_NUMBER_0);
                               });
     list query restaurants extends local_business(out serveCuisine: String);
   }
-
   now => @org.schema.restaurants(), rating.value >= 4 && serveCuisine =~ "seafood" => notify;
 }
+
+====
+
+// aggregate filter on arrays
+{
+  class @org.schema {
+    list query restaurants(out name: String,
+                           out reviews: Array(Number));
+  }
+  now => @org.schema.restaurants(), count(reviews) >= 1 => notify;
+}
+
+====
+
+// aggregate filter on arrays
+{
+  class @org.schema {
+    list query restaurants(out name: String,
+                           out reviews: Array(Number));
+  }
+  now => @org.schema.restaurants(), count(reviews, value == 5) >= 1 => notify;
+}
+
+====
+
+// aggregate (non-count) filter on arrays
+{
+  class @org.schema {
+    list query restaurants(out name: String,
+                           out reviews: Array(Number));
+  }
+  now => @org.schema.restaurants(), avg(reviews) >= 4 => notify;
+}
+
+====
+
+// aggregate filter on arrays of compound value
+{
+  class @org.schema {
+    list query restaurants(out name: String,
+                           out reviews: Array({
+                             rating: Number,
+                             review: String
+                           }));
+  }
+  now => @org.schema.restaurants(), count(reviews, rating >= 5) >= 1 => notify;
+}
+
+====
+
+// aggregate (non-count) filter on arrays of compound value
+{
+  class @org.schema {
+    list query restaurants(out name: String,
+                           out reviews: Array({
+                             rating: Number,
+                             review: String
+                           }));
+  }
+  now => @org.schema.restaurants(), avg(rating of reviews, rating >= 5) >= 1 => notify;
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// aggregate filter on scalar argument
+{
+  class @org.schema {
+    list query restaurants(out name: String,
+                           out reviews: Array({
+                             rating: Number,
+                             review: String
+                           }));
+  }
+  now => @org.schema.restaurants(), count(name, value =~ 'foo') >= 4 => notify;
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// invalid filter inside aggregate filter
+{
+  class @org.schema {
+    list query restaurants(out name: String,
+                           out reviews: Array({
+                             rating: Number,
+                             review: String
+                           }));
+  }
+  now => @org.schema.restaurants(), count(reviews, value == 5) >= 4 => notify;
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// aggregate on non-numeric parameter
+{
+  class @org.schema {
+    list query restaurants(out name: Array(String));
+  }
+  now => @org.schema.restaurants(), avg(name) >= 1 => notify;
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// aggregate on non-numeric field
+{
+  class @org.schema {
+    list query restaurants(out name: String,
+                           out reviews: Array({
+                             rating: Number,
+                             review: String
+                           }));
+  }
+  now => @org.schema.restaurants(), avg(review of reviews) >= 1 => notify;
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// invalid field
+{
+  class @org.schema {
+    list query restaurants(out name: String,
+                           out reviews: Array({
+                             rating: Number,
+                             review: String
+                           }));
+  }
+  now => @org.schema.restaurants(), avg(x of reviews) >= 1 => notify;
+}
+
+====
+
+// array of compound inside compound
+{
+  class @org.schema {
+    list query restaurants(out name: String,
+                           out aggregateRating: {
+                             reviews: Array({
+                               rating: Number,
+                               review: String
+                             })
+                           });
+  }
+  now => @org.schema.restaurants(), avg(rating of aggregateRating.reviews) >= 1 => notify;
+}
+
+====
+
+// nested compound inside array
+{
+  class @org.schema {
+    list query restaurants(out name: String,
+                           out reviews: Array({
+                             reviewRating: {
+                               ratingValue: Number
+                             }
+                           }));
+  }
+  now => @org.schema.restaurants(), avg(reviewRating.ratingValue of reviews) >= 1 => notify;
+}
+
+====
+// nested compound inside array inside compound
+// this is the most complicated case we handle (for now), no nest arrays
+{
+  class @org.schema {
+    list query restaurants(out name: String,
+                           out aggregateRating: {
+                             reviewCount: Number,
+                             reviews: Array({
+                               reviewRating: {
+                                 ratingValue: Number
+                               }
+                             })
+                           });
+  }
+  now => @org.schema.restaurants(), avg(reviewRating.ratingValue of aggregateRating.reviews) >= 1 => notify;
+}
+
+====
+
+class @org.schema {
+  list query restaurants(out name: String,
+                         out aggregateRating: {
+                           reviewCount: Number,
+                           reviews: Array({
+                             reviewRating: {
+                               ratingValue: Number
+                             }
+                           })
+                         });
+}
+now => compute count(aggregateRating.reviews) of @org.schema.restaurants() => notify;
+
+====
+
+class @org.schema {
+  list query restaurants(out name: String,
+                         out location : Location);
+}
+now => compute distance(location, $context.location.current_location) of @org.schema.restaurants() => notify;
+now => (compute distance(location, $context.location.current_location) of @org.schema.restaurants()), distance <= 1km => notify;
+now => sort distance desc of compute distance(location, $context.location.current_location) of @org.schema.restaurants() => notify;
+
+====
+
+class @org.schema {
+  list query restaurants(out name: String,
+                         out aggregateRating: {
+                           reviewCount: Number,
+                           reviews: Array({
+                             author : String,
+                             reviewRating: {
+                               ratingValue: Number
+                             }
+                           })
+                         });
+}
+
+//now => [aggregateRating.reviews.reviewRating] of @org.schema.restaurants() => notify;
+now => compute filter(aggregateRating.reviews, reviewRating.ratingValue >= 4) of @org.schema.restaurants() => notify;
+
+now => [aggregateRating.reviews] of compute filter(aggregateRating.reviews, author == "Bob") of @org.schema.restaurants() => notify;
+
+====
+
+// ** typecheck: expect TypeError **
+// invalid type
+class @org.schema {
+  list query restaurants(out name: String,
+                         out aggregateRating: {
+                           reviewCount: Number,
+                           reviews: Array({
+                             author : String,
+                             reviewRating: {
+                               ratingValue: Number
+                             }
+                           })
+                         });
+}
+
+//now => [aggregateRating.reviews.reviewRating] of @org.schema.restaurants() => notify;
+now => compute filter(aggregateRating.reviews, reviewRating.ratingValue >= "bob") of @org.schema.restaurants() => notify;
+
+now => [aggregateRating.reviews] of compute filter(aggregateRating.reviews, author == "Bob") of @org.schema.restaurants() => notify;
+
+====
+
+class @org.schema {
+  list query restaurants(out name: String,
+                         out aggregateRating: {
+                           reviewCount: Number,
+                           reviews: Array({
+                             author : String,
+                             reviewRating: {
+                               ratingValue: Number
+                             }
+                           })
+                         });
+}
+
+now => [foo] of compute filter(aggregateRating.reviews, author == "Bob") as foo of @org.schema.restaurants() => notify;
+
+
+====
+class @foo.bar {
+  compute isTrue () : Boolean := true;
+  compute greaterThanZero (in req x:Number) : Boolean := x >= 0;
+  compute itself (in req x:Number) : Number := x;
+
+  list query q(out num: Number);
+}
+
+now => @foo.bar.q(), @foo.bar.itself(x=num) >= 0 => notify;
+now => @foo.bar.q(), @for.bar.greaterThanZero(x=num) => notify;
+
+====
+
+now => compute flat(review) of @org.schema.hotel() => notify;
+
+====
+
+now => compute flat(review, author == 'bob') of @org.schema.hotel() => notify;
