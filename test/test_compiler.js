@@ -5767,16 +5767,6 @@ const TEST_CASES = [
   let _t_33;
   let _t_34;
   let _t_35;
-  let _t_36;
-  let _t_37;
-  let _t_38;
-  let _t_39;
-  let _t_40;
-  let _t_41;
-  let _t_42;
-  let _t_43;
-  let _t_44;
-  let _t_45;
   try {
     _t_0 = {};
     _t_1 = await __env.invokeQuery("org.schema", { }, "restaurant", _t_0);
@@ -5817,38 +5807,24 @@ const TEST_CASES = [
         } else {
 
         }
-        _t_24 = _t_5.name;
-        _t_25 = _t_5.description;
-        _t_26 = _t_5.image;
-        _t_27 = _t_5.address;
-        if (_t_27) {
-          _t_28 = _t_27.addressCountry;
-          _t_29 = _t_27.addressRegion;
-          _t_30 = _t_27.postalCode;
-          _t_31 = _t_27.streetAddress;
-          _t_32 = _t_27.addressLocality;
-        } else {
-
-        }
-        _t_33 = _t_5.geo;
-        _t_34 = _t_5.name;
-        _t_35 = _t_5.description;
-        _t_36 = _t_5.image;
-        _t_37 = _t_20.filter((_t_38) => {
-          _t_39 = _t_38.reviewRating;
-          if (_t_39) {
-            _t_40 = _t_39.ratingValue;
+        _t_24 = _t_5.description;
+        _t_25 = _t_5.image;
+        _t_26 = _t_5.geo;
+        _t_27 = _t_20.filter((_t_28) => {
+          _t_29 = _t_28.reviewRating;
+          if (_t_29) {
+            _t_30 = _t_29.ratingValue;
           } else {
 
           }
-          _t_41 = _t_38.datePublished;
-          _t_42 = _t_38.description;
-          _t_43 = _t_38.author;
-          _t_45 = 0;
-          _t_44 = _t_40 >= _t_45;
-          return _t_44;
+          _t_31 = _t_28.datePublished;
+          _t_32 = _t_28.description;
+          _t_33 = _t_28.author;
+          _t_35 = 0;
+          _t_34 = _t_30 >= _t_35;
+          return _t_34;
         });
-        _t_5.review = _t_37;
+        _t_5.review = _t_27;
         try {
           await __env.output(String(_t_4), _t_5);
         } catch(_exc_) {
@@ -5904,16 +5880,6 @@ const TEST_CASES = [
   let _t_37;
   let _t_38;
   let _t_39;
-  let _t_40;
-  let _t_41;
-  let _t_42;
-  let _t_43;
-  let _t_44;
-  let _t_45;
-  let _t_46;
-  let _t_47;
-  let _t_48;
-  let _t_49;
   try {
     _t_0 = {};
     _t_1 = await __env.invokeQuery("org.schema", { }, "restaurant", _t_0);
@@ -5954,42 +5920,28 @@ const TEST_CASES = [
         } else {
 
         }
-        _t_24 = _t_5.name;
-        _t_25 = _t_5.description;
-        _t_26 = _t_5.image;
-        _t_27 = _t_5.address;
-        if (_t_27) {
-          _t_28 = _t_27.addressCountry;
-          _t_29 = _t_27.addressRegion;
-          _t_30 = _t_27.postalCode;
-          _t_31 = _t_27.streetAddress;
-          _t_32 = _t_27.addressLocality;
-        } else {
-
-        }
-        _t_33 = _t_5.geo;
-        _t_34 = _t_5.name;
-        _t_35 = _t_5.description;
-        _t_36 = _t_5.image;
-        _t_38 = _t_20.filter((_t_39) => {
-          _t_40 = _t_39.reviewRating;
-          if (_t_40) {
-            _t_41 = _t_40.ratingValue;
+        _t_24 = _t_5.description;
+        _t_25 = _t_5.image;
+        _t_26 = _t_5.geo;
+        _t_28 = _t_20.filter((_t_29) => {
+          _t_30 = _t_29.reviewRating;
+          if (_t_30) {
+            _t_31 = _t_30.ratingValue;
           } else {
 
           }
-          _t_42 = _t_39.datePublished;
-          _t_43 = _t_39.description;
-          _t_44 = _t_39.author;
-          _t_46 = 0;
-          _t_45 = _t_41 >= _t_46;
-          return _t_45;
+          _t_32 = _t_29.datePublished;
+          _t_33 = _t_29.description;
+          _t_34 = _t_29.author;
+          _t_36 = 0;
+          _t_35 = _t_31 >= _t_36;
+          return _t_35;
         });
-        _t_47 = "*";
-        _t_48 = __builtin.count(_t_38, _t_47);
-        _t_49 = 0;
-        _t_37 = _t_48 >= _t_49;
-        if (_t_37) {
+        _t_37 = "*";
+        _t_38 = __builtin.count(_t_28, _t_37);
+        _t_39 = 0;
+        _t_27 = _t_38 >= _t_39;
+        if (_t_27) {
           try {
             await __env.output(String(_t_4), _t_5);
           } catch(_exc_) {
