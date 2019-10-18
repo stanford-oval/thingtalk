@@ -17,6 +17,9 @@ tools/meta-sentence-generator/grammar.js
 tools/generate-parser/grammar.js
 test/test_sr_parser_generator.js
 
+# json doc
+/out
+
 *.tgz
 *.tsv
 *.py
