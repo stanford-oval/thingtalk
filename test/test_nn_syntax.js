@@ -386,6 +386,13 @@ const TEST_CASES = [
     { QUOTED_STRING_0: "it's the evening" },
     `attimer(time=$context.time.evening) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's the evening");`],
 
+    // To test LITERAL_TIME but might want to drop this functionality
+    // Left sentence blank because "at noon" should map to TIME_0 instead
+    [`attimer time = time:12:0:0 => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = QUOTED_STRING_0`,
+    '',
+    { QUOTED_STRING_0: "it's noon" },
+    `attimer(time=makeTime(12, 0)) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's noon");`],
+
     ['now => [ param:description:String , param:title:String ] of ( @com.bing.web_search ) => notify',
     'get title and description from bing', {},
 
