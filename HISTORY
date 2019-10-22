@@ -1,3 +1,19 @@
+1.9.0-alpha.2
+=============
+
+* Add "aggregate filters". These are filters that invoke an aggregation or
+  computation function on the left-hand-side of the comparator [#152].
+* Add flattening of fields in compound types [#151].
+* Allow overriding parameters in function inheritance [#151].
+* Add basic support for compute operations [#152, #153].
+* Add `distance` scalar operator [#153].
+* Added experimental support for user-defined scalar & filter functions ("macros") [#152].
+* Improved default formatting of results for functions without a `#_[formatted]`
+  annotation [#152].
+* Added basic jsdoc documentation, which can be built with `yarn doc` [#154].
+* SchemaRetriever now caches missing classes, to avoid repeated calls to Thingpedia [#156]
+* Misc bug fixes [#152, #157].
+
 1.9.0-alpha.1
 =============
 
