@@ -78,7 +78,7 @@ function main() {
         v5: 0.42,
         v6: 10,
         v7: 9.5
-    }), [ 'lol$foo$ null 69.8 2018-05-24T04:18:00.000Z 42 10 9.50' ]);
+    }), [ 'lol$foo$ undefined 69.8 2018-05-24T04:18:00.000Z 42 10 9.50' ]);
 
     assert.deepStrictEqual(formatter.format([{ type: 'text', text: '$v1$$foo$$ ${v2} ${v3:F} ${v4:iso-date} ${v5:%} ${v6} ${v7}' }], {
         v1: 'lol',
@@ -88,7 +88,7 @@ function main() {
         v5: 0.42,
         v6: 10,
         v7: 9.5
-    }, 'string'), 'lol$foo$ null 69.8 2018-05-24T04:18:00.000Z 42 10 9.50');
+    }, 'string'), 'lol$foo$ undefined 69.8 2018-05-24T04:18:00.000Z 42 10 9.50');
 
     assert.deepStrictEqual(formatter.format(['$v1$$foo$$ ${v2} ${v3:F} ${v4:iso-date} ${v5:%} ${v6} ${v7}'], {
         v1: 'lol',
@@ -98,7 +98,7 @@ function main() {
         v5: 0.42,
         v6: 10,
         v7: 9.5
-    }, 'string'), 'lol$foo$ null 69.8 2018-05-24T04:18:00.000Z 42 10 9.50');
+    }, 'string'), 'lol$foo$ undefined 69.8 2018-05-24T04:18:00.000Z 42 10 9.50');
 
     assert.deepStrictEqual(formatter.format([{ type: 'rdl', displayTitle:'text', webCallback: '$v1$$foo$$ ${v2} ${v3:F} ${v4:iso-date} ${v5:%} ${v6} ${v7}' }], {
         v1: 'lol',
@@ -108,7 +108,7 @@ function main() {
         v5: 0.42,
         v6: 10,
         v7: 9.5
-    }, 'string'), 'Link: text <lol$foo$ null 69.8 2018-05-24T04:18:00.000Z 42 10 9.50>');
+    }, 'string'), 'Link: text <lol$foo$ undefined 69.8 2018-05-24T04:18:00.000Z 42 10 9.50>');
 
     assert.deepStrictEqual(formatter.format([{ type: 'text', text: '$v1 ${v1} ${v1:enum}' }], {
         v1: 'some_enum'
