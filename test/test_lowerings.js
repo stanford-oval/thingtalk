@@ -31,7 +31,7 @@ const TEST_CASES = [
      `                in req __program_id: Entity(tt:program_id),\n` +
      `                in req __flow: Number,\n` +
      `                in req __kindChannel: Entity(tt:function),\n` +
-     `                in req __response: String,\n` +
+     `                in opt __response: String,\n` +
      `                in req start_time: Date,\n` +
      `                in req has_sound: Boolean,\n` +
      `                in req has_motion: Boolean,\n` +
@@ -61,7 +61,7 @@ const TEST_CASES = [
      `                in req __program_id: Entity(tt:program_id),\n` +
      `                in req __flow: Number,\n` +
      `                in req __kindChannel: Entity(tt:function),\n` +
-     `                in req __response: String,\n` +
+     `                in opt __response: String,\n` +
      `                in req title: String,\n` +
      `                in req description: String,\n` +
      `                in req link: Entity(tt:url));\n` +
@@ -87,7 +87,7 @@ const TEST_CASES = [
      `                in req __program_id: Entity(tt:program_id),\n` +
      `                in req __flow: Number,\n` +
      `                in req __kindChannel: Entity(tt:function),\n` +
-     `                in req __response: String,\n` +
+     `                in opt __response: String,\n` +
      `                in req start_time: Date,\n` +
      `                in req has_sound: Boolean,\n` +
      `                in req has_motion: Boolean,\n` +
