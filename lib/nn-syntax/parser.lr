@@ -145,6 +145,10 @@ aggr_op = {
     'avg' => 'avg';
 }
 
+scalar_op = {
+    'distance' => 'distance';
+}
+
 table = {
     call => new Ast.Table.Invocation(call, null);
     '(' table ')' 'filter' filter => {
@@ -167,6 +171,9 @@ table = {
     '(' table ')' '[' base:constant ':' delta:constant ']'    => new Ast.Table.Slice(table, base, delta, null);
 
     '[' pnames:out_param_list ']' 'of' '(' table ')'          => new Ast.Table.Projection(table, pnames.map((p) => p.name), null);
+
+    'compute' expr:scalar_expression 'of' '(' table ')'       => new Ast.Table.Compute(table, expr, null, null);
+    'compute' expr:aggregate_expression 'of' '(' table ')'       => new Ast.Table.Compute(table, expr, null, null);
 
     'window' base:constant ',' delta:constant 'of' '(' stream ')'        => new Ast.Table.Window(base, delta, stream, null);
     'timeseries' base:constant ',' delta:constant 'of' '(' stream ')' => new Ast.Table.TimeSeries(base, delta, stream, null);
@@ -208,6 +215,9 @@ stream = {
     'edge' '(' stream ')' 'on' 'true' => new Ast.Stream.EdgeFilter(stream, Ast.BooleanExpression.True, null);
 
     '[' pnames:out_param_list ']' 'of' '(' stream ')'          => new Ast.Stream.Projection(stream, pnames.map((p) => p.name), null);
+
+    'compute' expr:scalar_expression 'of' '(' stream ')'       => new Ast.Stream.Compute(stream, expr, null, null);
+    'compute' expr:aggregate_expression 'of' '(' stream ')'       => new Ast.Stream.Compute(stream, expr, null, null);
 
     stream_join;
 }
@@ -275,8 +285,70 @@ atom_filter = {
         const [op, v] = filter;
         return new Ast.BooleanExpression.Atom(pname.value, op, v);
     };
+    aggregate_filter;
     fn:call '{' filter '}' => {
         return new Ast.BooleanExpression.External(fn.selector, fn.channel, fn.in_params, filter, null);
+    };
+}
+
+aggregate_expression = {
+    'count' '(' pname:PARAM_NAME ')' => {
+        const list = new Ast.ListExpression(pname.value, null);
+        return new Ast.ScalarExpression.Aggregation('count', '*', list);
+    };
+
+    'count' '(' pname:PARAM_NAME 'filter' filter:filter ')' => {
+        const list = new Ast.ListExpression(pname.value, filter);
+        return new Ast.ScalarExpression.Aggregation('count', '*', list);
+    };
+
+    op:aggr_op '(' pname:PARAM_NAME ')' => {
+        const list = new Ast.ListExpression(pname.value, null);
+        return new Ast.ScalarExpression.Aggregation(op, null, list);
+    };
+
+    op:aggr_op '(' pname:PARAM_NAME 'filter' filter:filter ')' => {
+        const list = new Ast.ListExpression(pname.value, filter);
+        return new Ast.ScalarExpression.Aggregation(op, null, list);
+    };
+
+    op:aggr_op '(' field:PARAM_NAME 'of' pname:PARAM_NAME ')' => {
+        const list = new Ast.ListExpression(pname.value, null);
+        return new Ast.ScalarExpression.Aggregation(op, field.value, list);
+    };
+
+    op:aggr_op '(' field:PARAM_NAME 'of' pname:PARAM_NAME 'filter' filter:filter ')' => {
+        const list = new Ast.ListExpression(pname.value, filter);
+        return new Ast.ScalarExpression.Aggregation(op, field.value, list);
+    };
+}
+
+scalar_expression = {
+    op:scalar_op '(' operand_list ')' => {
+        return new Ast.ScalarExpression.Derived(op, operand_list);
+    };
+    'filter' '(' pname:PARAM_NAME 'filter' filter:filter ')' => {
+        const list = new Ast.ListExpression(pname.value, filter);
+        return new Ast.ScalarExpression.Filter(list);
+    };
+}
+
+operand_list = {
+    constant => [new Ast.ScalarExpression.Primary(constant)];
+    list:operand_list ',' constant => {
+        list.push(new Ast.ScalarExpression.Primary(constant));
+        return list;
+    };
+}
+
+aggregate_filter = {
+    lhs:aggregate_expression filter:value_filter => {
+        const [op, rhs] = filter;
+        return new Ast.BooleanExpression.Compute(lhs, op, rhs);
+    };
+    lhs:scalar_expression filter:value_filter => {
+        const [op, rhs] = filter;
+        return new Ast.BooleanExpression.Compute(lhs, op, rhs);
     };
 }
 
@@ -296,7 +368,7 @@ value_filter = {
     'prefix_of' v:string_constant => ['prefix_of', v];
     'suffix_of' v:string_constant => ['suffix_of', v];
     'contains' v:constant => ['contains', v];
-    'in_array' v:constant_Array => ['in_array', v];
+    'in_array' v:constant => ['in_array', v];
 }
 
 // this non-terminal exists only for convenience
@@ -378,7 +450,7 @@ word_list = {
 
 literal_number = {
     num:NUMBER => num.value;
-    num:LITERAL_INTEGER => num;
+    num:LITERAL_INTEGER => num.value;
     '1' => 1;
     '0' => 0;
 }

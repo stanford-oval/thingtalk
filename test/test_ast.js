@@ -30,6 +30,7 @@ const VALUE_TESTS = [
     [Type.Location, {x:1, y:2, display:'somewhere'}],
     [Type.Date, new Date(1)],
     [Type.Time, new Builtin.Time(1, 2)],
+    [Type.Time, new Builtin.Time(1, 2, 3)],
     [Type.Entity('tt:foo'), new Builtin.Entity('foo')],
     [Type.Entity('tt:foo'), new Builtin.Entity('foo', 'Foo')],
     [Type.Entity('tt:foo'), 'foo'],

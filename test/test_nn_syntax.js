@@ -128,9 +128,9 @@ const TEST_CASES = [
     `monitor xkcd if the title changes`, {},
     `monitor (@com.xkcd.get_comic()) on new [title] => notify;`],
 
-    ['monitor ( @com.xkcd.get_comic ) on new [ param:title:String , param:alt_text:String ] => notify',
+    ['monitor ( @com.xkcd.get_comic ) on new [ param:alt_text:String , param:title:String ] => notify',
     `monitor xkcd if the title or alt text changes`, {},
-    `monitor (@com.xkcd.get_comic()) on new [title, alt_text] => notify;`],
+    `monitor (@com.xkcd.get_comic()) on new [alt_text, title] => notify;`],
 
     ['monitor ( ( @com.instagram.get_pictures param:count:Number = NUMBER_0 ) filter param:caption:String in_array [ QUOTED_STRING_0 , QUOTED_STRING_1 ] ) => notify',
     `monitor my last NUMBER_0 instagram pics if the caption is either QUOTED_STRING_0 or QUOTED_STRING_1`, {NUMBER_0: 100, QUOTED_STRING_0: 'abc', QUOTED_STRING_1: 'def'},
@@ -386,10 +386,17 @@ const TEST_CASES = [
     { QUOTED_STRING_0: "it's the evening" },
     `attimer(time=$context.time.evening) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's the evening");`],
 
-    ['now => [ param:title:String , param:description:String ] of ( @com.bing.web_search ) => notify',
+    // To test LITERAL_TIME but might want to drop this functionality
+    // Left sentence blank because "at noon" should map to TIME_0 instead
+    [`attimer time = time:12:0:0 => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = QUOTED_STRING_0`,
+    '',
+    { QUOTED_STRING_0: "it's noon" },
+    `attimer(time=makeTime(12, 0)) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's noon");`],
+
+    ['now => [ param:description:String , param:title:String ] of ( @com.bing.web_search ) => notify',
     'get title and description from bing', {},
 
-    'now => [title, description] of (@com.bing.web_search()) => notify;'],
+    'now => [description, title] of (@com.bing.web_search()) => notify;'],
 
     [`now => result ( @com.thecatapi.get ) => notify`,
     `show me the same cat again`, {},
@@ -411,13 +418,46 @@ const TEST_CASES = [
     `add the currently playing song to my playlist`, {},
     `now => @com.spotify.get_currently_playing() => @com.spotify.add_songs_to_playlist(songs=[song]);`],
 
-    [`[ param:text:String , param:author:Entity(tt:username) ] of ( monitor ( @com.twitter.home_timeline ) on new param:text:String ) => notify`,
+    [`[ param:author:Entity(tt:username) , param:text:String ] of ( monitor ( @com.twitter.home_timeline ) on new param:text:String ) => notify`,
     `monitor new text of tweets and show me the text and author`, {},
-    `[text, author] of (monitor (@com.twitter.home_timeline()) on new [text]) => notify;`],
+    `[author, text] of (monitor (@com.twitter.home_timeline()) on new [text]) => notify;`],
 
     ['now => @com.twitter.post param:status:String = context:selection:String',
     'post this on twitter', {},
-    `now => @com.twitter.post(status=$context.selection : String);`]
+    `now => @com.twitter.post(status=$context.selection : String);`],
+
+    [`now => ( @com.twitter.home_timeline ) filter count ( param:hashtags:Array(Entity(tt:hashtag)) ) >= 0 => notify`,
+    `get tweets with hashtags`, {},
+    `now => (@com.twitter.home_timeline()), count(hashtags) >= 0 => notify;`],
+
+    // just to test syntax, in reality we should not generate examples like this
+    [`now => ( @com.twitter.home_timeline ) filter count ( param:hashtags:Array(Entity(tt:hashtag)) filter param:value:Entity(tt:hashtag) == " foo " ^^tt:hashtag ) >= 0 => notify`,
+    `get tweets with hashtags foo`, {},
+    `now => (@com.twitter.home_timeline()), count(hashtags, value == "foo"^^tt:hashtag) >= 0 => notify;`],
+
+    [`now => ( @com.yelp.restaurants ) filter min ( param:ratings:Array(Number) ) >= NUMBER_0 => notify`,
+    `get restaurants with no rating below NUMBER_0`, { NUMBER_0: 3 },
+    `now => (@com.yelp.restaurants()), min(ratings) >= 3 => notify;`],
+
+    [`now => ( @com.yelp.restaurants ) filter min ( param:rating:Number of param:reviews:Array(Compound) ) >= NUMBER_0 => notify`,
+    `get restaurants with no rating below NUMBER_0`, { NUMBER_0: 3 },
+    `now => (@com.yelp.restaurants()), min(rating of reviews) >= 3 => notify;`],
+
+    [`now => compute distance ( param:location:Location , location:current_location ) of ( @com.yelp.restaurants ) => notify`,
+    `get restaurants and their distance from here`, {},
+    `now => compute distance(location, $context.location.current_location) of (@com.yelp.restaurants()) => notify;`],
+
+    [`now => compute filter ( param:reviews:Array(Compound) filter param:rating:Number >= NUMBER_0 ) of ( @com.yelp.restaurants ) => notify`,
+    `get restaurants and their reviews better than NUMBER_0`, { NUMBER_0: 4 },
+    `now => compute filter(reviews, rating >= 4) of (@com.yelp.restaurants()) => notify;`],
+
+    [`now => compute count ( param:reviews:Array(Compound) ) of ( @com.yelp.restaurants ) => notify`,
+    `get restaurants and how many reviews they have`, {},
+    `now => compute count(reviews) of (@com.yelp.restaurants()) => notify;`],
+
+    [`compute distance ( param:location:Location , location:current_location ) of ( monitor ( @com.yelp.restaurants ) ) => notify`,
+    `get restaurants and their distance from here`, {},
+    `compute distance(location, $context.location.current_location) of (monitor (@com.yelp.restaurants())) => notify;`],
 ];
 
 async function testCase(test, i) {

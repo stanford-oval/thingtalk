@@ -1,6 +1,6 @@
 {
   "name": "thingtalk",
-  "version": "1.8.0",
+  "version": "1.9.0-alpha.2",
   "description": "ThingTalk Just-In-Time Compiler, Library and Runtime",
   "license": "GPL-3.0+",
   "repository": "https://github.com/stanford-oval/thingtalk",
@@ -30,6 +30,7 @@
     "coveralls": "^3.0.0",
     "deep-equal": "^1.0.1",
     "eslint": "^6.0.0",
+    "jsdoc": "^3.6.3",
     "nyc": "^14.0.0",
     "pegjs": "~0.10.0",
     "q": "^1.5.1",
@@ -41,7 +42,8 @@
     "lint": "eslint ./lib",
     "test": "nyc node ./test/test_all",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
-    "prepare": "make"
+    "prepare": "make",
+    "doc": "jsdoc -c jsdoc.json --readme README.md --package package.json --verbose -r index.js lib/"
   },
   "nyc": {
     "exclude": [

@@ -418,6 +418,17 @@ var TEST_CASES = [
     'ArrayIndexSlot([0] : Entity(tt:contact)) filter.in_array.$source[0] Who is the first friend who is allowed to ask you for this command?',
     'ArrayIndexSlot([1] : Entity(tt:contact)) filter.in_array.$source[1] Who is the second friend who is allowed to ask you for this command?']
     ],
+
+    [`now => @org.schema.restaurant(), count(review, author =~ "bob") >= 1 => notify;`,
+
+    ['query: Invocation(Device(org.schema, , ), restaurant, , )',
+     'action: Invocation(Builtin, notify, , )'],
+    ['Device(org.schema, , ) org.schema:restaurant',
+     'Atom(author, =~, String(bob)) org.schema:restaurant',
+     'Builtin undefined:notify'],
+    ['Selector(@org.schema)',
+     'FilterSlot(author =~ : String) filter.=~.author What should the author contain?']
+    ],
 ];
 
 async function test(i) {
