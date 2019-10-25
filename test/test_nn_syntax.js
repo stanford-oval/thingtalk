@@ -422,6 +422,10 @@ const TEST_CASES = [
     `monitor new text of tweets and show me the text and author`, {},
     `[author, text] of (monitor (@com.twitter.home_timeline()) on new [text]) => notify;`],
 
+    ['now => @com.twitter.post param:status:String = context:selection:String',
+    'post this on twitter', {},
+    `now => @com.twitter.post(status=$context.selection : String);`],
+
     [`now => ( @com.twitter.home_timeline ) filter count ( param:hashtags:Array(Entity(tt:hashtag)) ) >= 0 => notify`,
     `get tweets with hashtags`, {},
     `now => (@com.twitter.home_timeline()), count(hashtags) >= 0 => notify;`],
@@ -453,7 +457,7 @@ const TEST_CASES = [
 
     [`compute distance ( param:location:Location , location:current_location ) of ( monitor ( @com.yelp.restaurants ) ) => notify`,
     `get restaurants and their distance from here`, {},
-    `compute distance(location, $context.location.current_location) of (monitor (@com.yelp.restaurants())) => notify;`]
+    `compute distance(location, $context.location.current_location) of (monitor (@com.yelp.restaurants())) => notify;`],
 ];
 
 async function testCase(test, i) {

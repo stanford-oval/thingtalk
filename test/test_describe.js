@@ -289,8 +289,6 @@ var TEST_CASES = [
     [`bookkeeping(choice(0));`,
     'choice number 1', ''],
 
-    [`now => @org.wikidata.person(), contains(P1449, 'boogie') => notify;`,
-    'get wikidata human if the nickname contain “boogie” and then notify you', 'Wikidata ⇒ Notification'],
     [`now => result(@com.thecatapi.get) => notify;`,
     'get the last cat picture and then notify you', 'Thecatapi ⇒ Notification'],
     [`now => result(@com.thecatapi.get[1]) => notify;`,
@@ -301,9 +299,10 @@ var TEST_CASES = [
     'get the 2-th last cat picture and then notify you', 'Thecatapi ⇒ Notification'],
     [`now => @com.spotify.get_currently_playing() => @com.spotify.add_songs_to_playlist(songs=[song]);`,
     'get the currently playing track and then add the songs the song to the playlist ____', 'Spotify ⇒ Spotify'],
-
     [`attimer(time=$?) => @com.twitter.post();`,
-    `tweet ____ every day at ____`, 'Twitter']
+    `tweet ____ every day at ____`, 'Twitter'],
+    [`now => @com.twitter.post(status = $context.selection : String);`,
+    `tweet the selection on the screen`, `Twitter`],
 ];
 
 const gettext = {
