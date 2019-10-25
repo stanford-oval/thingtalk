@@ -1,3 +1,11 @@
+1.9.0-alpha.3
+=============
+
+* Added the ability to reference the current selection on the screen, and similar
+  context items, as a value in the program [Jackie Yang; #160]
+* Added the ability to traverse records when formatting [#155]
+* Misc bug fixes [Lim Swee Kiat; #159]
+
 1.9.0-alpha.2
 =============
 

@@ -42,7 +42,7 @@ const Builtin = require('./lib/builtin');
  * @type {string}
  * @alias version
  */
-const version = '1.9.0-alpha.2';
+const version = '1.9.0-alpha.3';
 
 module.exports = {
     version,
