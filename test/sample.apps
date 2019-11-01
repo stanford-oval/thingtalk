@@ -1935,3 +1935,10 @@ now => compute flat(review) of @org.schema.hotel() => notify;
 ====
 
 now => compute flat(review, author == 'bob') of @org.schema.hotel() => notify;
+
+====
+
+now => @light-bulb(name="bathroom").set_power(power=enum(on));
+now => @light-bulb(name="ceiling").set_power(power=enum(on));
+
+let query x(p_name : String) := @light-bulb(name=p_name).set_power(power=enum(on));
