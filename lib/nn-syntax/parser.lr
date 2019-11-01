@@ -242,7 +242,7 @@ selector = {
     fn:FUNCTION => [new Ast.Selector.Device(fn.value.kind, null, null), fn.value.channel];
 
     selector attr:device_attribute => {
-        const [sel, chan] = selector;
+        const [sel,] = selector;
         if (attr.name === 'id')
             sel.id = attr.value.toJS();
         else if (attr.name === 'all')
