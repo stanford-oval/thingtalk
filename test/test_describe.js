@@ -305,13 +305,13 @@ var TEST_CASES = [
     `tweet the selection on the screen`, `Twitter`],
 
     ['now => @light-bulb.set_power();',
-    'turn ____ your light-bulb', 'Light Bulb'],
+    'turn ____ your light bulb', 'Light Bulb'],
     ['now => @light-bulb(name="bedroom").set_power();',
-    'turn ____ your “bedroom” light-bulb', 'Light Bulb'],
+    'turn ____ your “bedroom” light bulb', 'Light Bulb'],
     ['now => @light-bulb(name="bedroom", all=true).set_power();',
-    'turn ____ all your “bedroom” light-bulb', 'Light Bulb'],
+    'turn ____ all your “bedroom” light bulb', 'Light Bulb'],
     ['now => @light-bulb(all=true).set_power();',
-    'turn ____ all your light-bulb', 'Light Bulb'],
+    'turn ____ all your light bulb', 'Light Bulb'],
 
     [`monitor (@smoke-alarm.status()) => notify;`,
     'notify you when the status of your smoke alarm changes', 'Smoke Alarm ⇒ Notification'],
