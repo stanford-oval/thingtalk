@@ -143,8 +143,8 @@ var TEST_CASES = [
      'Builtin undefined:notify'],
     ['Selector(@com.instagram)',
      'Selector(@org.thingpedia.weather)',
-     'ArrayIndexSlot([0] : Number) table.index[0] What is the index of the first result you would like?',
-     'ArrayIndexSlot([1] : Number) table.index[1] What is the index of the second result you would like?'],
+     'ArrayIndexSlot([0] : Number) table.index.0 What is the index of the first result you would like?',
+     'ArrayIndexSlot([1] : Number) table.index.1 What is the index of the second result you would like?'],
     ],
 
     [`now => (@com.instagram.get_pictures() join @org.thingpedia.weather.current() on (location=location))[1:2] => notify;`,
@@ -368,7 +368,7 @@ var TEST_CASES = [
     [`action: Invocation(Device(com.twitter, , ), post, InputParam(status, Undefined(true)), )`],
     ['Device(com.twitter, , ) com.twitter:post',
      'InputParam(status, Undefined(true)) com.twitter:post'],
-    ['ArrayIndexSlot([0] : Time) attimer.time[0] When do you want your command to run?',
+    ['ArrayIndexSlot([0] : Time) attimer.time.0 When do you want your command to run?',
      'Selector(@com.twitter)',
      'InputParamSlot(status : String) in_param.status What do you want to tweet?']
     ],
@@ -378,8 +378,8 @@ var TEST_CASES = [
     [`action: Invocation(Device(com.twitter, , ), post, InputParam(status, Undefined(true)), )`],
     ['Device(com.twitter, , ) com.twitter:post',
      'InputParam(status, Undefined(true)) com.twitter:post'],
-    ['ArrayIndexSlot([0] : Time) attimer.time[0] What is the first time you would like your command to run?',
-     'ArrayIndexSlot([1] : Time) attimer.time[1] What is the second time you would like your command to run?',
+    ['ArrayIndexSlot([0] : Time) attimer.time.0 What is the first time you would like your command to run?',
+     'ArrayIndexSlot([1] : Time) attimer.time.1 What is the second time you would like your command to run?',
      'Selector(@com.twitter)',
      'InputParamSlot(status : String) in_param.status What do you want to tweet?']
     ],
@@ -389,8 +389,8 @@ var TEST_CASES = [
     [`action: Invocation(Device(com.twitter, , ), post, InputParam(status, Undefined(true)), )`],
     ['Device(com.twitter, , ) com.twitter:post',
      'InputParam(status, Undefined(true)) com.twitter:post'],
-    ['ArrayIndexSlot([0] : Time) attimer.time[0] What is the first time you would like your command to run?',
-     'ArrayIndexSlot([1] : Time) attimer.time[1] What is the second time you would like your command to run?',
+    ['ArrayIndexSlot([0] : Time) attimer.time.0 What is the first time you would like your command to run?',
+     'ArrayIndexSlot([1] : Time) attimer.time.1 What is the second time you would like your command to run?',
      'FieldSlot(expiration_date : Date) attimer.expiration_date When should your command stop?',
      'Selector(@com.twitter)',
      'InputParamSlot(status : String) in_param.status What do you want to tweet?']
@@ -415,8 +415,8 @@ var TEST_CASES = [
     [],
     ['Atom(source, in_array, Array(Undefined(true),Undefined(true)))'],
     ['FilterSlot(source in_array : Array(Entity(tt:contact))) filter.in_array.$source Who is allowed to ask you for this command?',
-    'ArrayIndexSlot([0] : Entity(tt:contact)) filter.in_array.$source[0] Who is the first friend who is allowed to ask you for this command?',
-    'ArrayIndexSlot([1] : Entity(tt:contact)) filter.in_array.$source[1] Who is the second friend who is allowed to ask you for this command?']
+    'ArrayIndexSlot([0] : Entity(tt:contact)) filter.in_array.$source.0 Who is the first friend who is allowed to ask you for this command?',
+    'ArrayIndexSlot([1] : Entity(tt:contact)) filter.in_array.$source.1 Who is the second friend who is allowed to ask you for this command?']
     ],
 
     [`now => @org.schema.restaurant(), count(review, author =~ "bob") >= 1 => notify;`,
