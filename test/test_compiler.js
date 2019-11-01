@@ -6032,6 +6032,34 @@ const TEST_CASES = [
   } catch(_exc_) {
     __env.reportError("Failed to invoke action", _exc_);
   }`]],
+
+    //78 Test device selector
+    [`now => @light-bulb(name="bedroom").set_power(power=enum(on));`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  try {
+    _t_0 = {};
+    _t_1 = "on";
+    _t_0.power = _t_1;
+    await __env.invokeAction("light-bulb", { name: "bedroom", }, "set_power", _t_0);
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke action", _exc_);
+  }`]],
+
+    //78 Test device selector (with explicit all)
+    [`now => @light-bulb(name="bedroom", all=true).set_power(power=enum(on));`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  try {
+    _t_0 = {};
+    _t_1 = "on";
+    _t_0.power = _t_1;
+    await __env.invokeAction("light-bulb", { name: "bedroom", }, "set_power", _t_0);
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke action", _exc_);
+  }`]],
 ];
 
 // eslint-disable-next-line prefer-arrow-callback
