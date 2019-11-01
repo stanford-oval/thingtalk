@@ -429,6 +429,19 @@ var TEST_CASES = [
     ['Selector(@org.schema)',
      'FilterSlot(author =~ : String) filter.=~.author What should the author contain?']
     ],
+
+    [`now => @light-bulb(name="bedroom").set_power(power=enum(off));`,
+    ['action: Invocation(Device(light-bulb, , ), set_power, InputParam(power, Enum(off)), )'],
+    [
+    'Device(light-bulb, , ) light-bulb:set_power',
+    'InputParam(power, Enum(off)) light-bulb:set_power',
+    ],
+    [
+    'DeviceAttributeSlot(name : String) attribute.name Please tell me the name of the device you would like to use.',
+    'Selector(@light-bulb)',
+    'InputParamSlot(power : Enum(on,off)) in_param.power Do you want to turn it on or off?',
+    ]
+    ]
 ];
 
 async function test(i) {
