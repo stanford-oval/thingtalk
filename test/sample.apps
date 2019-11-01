@@ -1942,3 +1942,10 @@ now => @light-bulb(name="bathroom").set_power(power=enum(on));
 now => @light-bulb(name="ceiling").set_power(power=enum(on));
 
 let query x(p_name : String) := @light-bulb(name=p_name).set_power(power=enum(on));
+
+====
+
+dataset @light-bulb {
+  action (p_name : String) := @light-bulb(name=p_name).set_power(power=enum(on))
+  #_[utterances=["turn on my $p_name lights"]];
+}
