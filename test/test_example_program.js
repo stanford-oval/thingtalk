@@ -39,6 +39,9 @@ var TEST_CASES = [
 
     ['dataset foo { action (p_song1 : String, p_song2 : String) := @com.spotify.play_songs(songs=[p_song1, p_song2]); }',
      'now => @com.spotify.play_songs(songs=[__const_SLOT_0, __const_SLOT_1]);'],
+
+     ['dataset foo { action (p_name : String) := @light-bulb(name=p_name).set_power(power=enum(on)); }',
+     'now => @light-bulb(name=__const_SLOT_0).set_power(power=enum(on));'],
 ];
 
 function test(i) {

@@ -238,8 +238,30 @@ action = {
     call => new Ast.Action.Invocation(call, null);
 }
 
+selector = {
+    fn:FUNCTION => [new Ast.Selector.Device(fn.value.kind, null, null), fn.value.channel];
+
+    selector attr:device_attribute => {
+        const [sel,] = selector;
+        if (attr.name === 'id')
+            sel.id = attr.value.toJS();
+        else if (attr.name === 'all')
+            sel.all = attr.value.toJS();
+        else
+            sel.attributes.push(attr);
+        return selector;
+    };
+}
+
+device_attribute = {
+    pname:ATTRIBUTE_NAME '=' v:constant => new Ast.InputParam(pname.value, v);
+}
+
 call = {
-    fn:FUNCTION => new Ast.Invocation(new Ast.Selector.Device(fn.value.kind, null, null), fn.value.channel, [], null);
+    selector => {
+        const [sel, chan] = selector;
+        return new Ast.Invocation(sel, chan, [], null);
+    };
     inv:call ip:const_param => {
         inv = inv.clone();
         inv.in_params.push(ip);

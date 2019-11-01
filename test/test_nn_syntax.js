@@ -458,6 +458,10 @@ const TEST_CASES = [
     [`compute distance ( param:location:Location , location:current_location ) of ( monitor ( @com.yelp.restaurants ) ) => notify`,
     `get restaurants and their distance from here`, {},
     `compute distance(location, $context.location.current_location) of (monitor (@com.yelp.restaurants())) => notify;`],
+
+    [`now => @light-bulb.set_power attribute:name:String = " bedroom " param:power:Enum(on,off) = enum:off`,
+    `turn off my bedroom lights`, {},
+    `now => @light-bulb(name="bedroom").set_power(power=enum(off));`],
 ];
 
 async function testCase(test, i) {

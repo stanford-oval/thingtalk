@@ -46,7 +46,11 @@ const TEST_CASES = [
   list query q(out num: Number);
 }
 now => (@foo.bar.q()), @foo.bar.itself(x=num) >= 0 => notify;
-now => (@foo.bar.q()), @for.bar.greaterThanZero(x=num) => notify;`
+now => (@foo.bar.q()), @for.bar.greaterThanZero(x=num) => notify;`,
+
+// device selectors
+`now => @light-bulb(name="bathroom").set_power(power=enum(on));`,
+`now => @light-bulb(id="io.home-assistant/http://hassio.local:8123-light.hue_bloom_1", name="bathroom").set_power(power=enum(on));`
 ];
 
 function main() {
