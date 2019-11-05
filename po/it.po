@@ -2,288 +2,1042 @@
 # Traduzioni italiane per il pacchetto thingtalk..
 # Copyright (C) 2017 THE thingtalk'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the thingtalk package.
-# Giovanni Campagna <gcampagn@cs.stanford.edu>, 2017.
+# Giovanni Campagna <scampa.giovanni@gmail.com>, 2017-2019.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: thingtalk 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-08-21 14:01+0200\n"
-"PO-Revision-Date: 2017-07-10 14:05-0700\n"
-"Last-Translator: Giovanni Campagna <gcampagn@cs.stanford.edu>\n"
-"Language-Team: Italian\n"
+"POT-Creation-Date: 2019-11-03 17:53-0800\n"
+"PO-Revision-Date: 2019-11-03 17:52-0800\n"
+"Last-Translator: Giovanni Campagna <scampa.giovanni@gmail.com>\n"
+"Language-Team: Italian <it@li.org>\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"X-Generator: Gtranslator 3.34.0\n"
 
-#: lib/describe.js:29
+#: lib/ast/slots.js:138
+#, javascript-format
+msgid "Please tell me the %s."
+msgstr "Per favore dimmi il %s."
+
+#: lib/ast/slots.js:169
+msgid "Please tell me the name of the device you would like to use."
+msgstr "Per favore dimmi il nome del dispositivo che vuoi utilizzare."
+
+#: lib/ast/slots.js:248 lib/ast/slots.js:343
+msgid "Who is allowed to ask you for this command?"
+msgstr "Chi può richiedere questo comando?"
+
+#: lib/ast/slots.js:253
+#, javascript-format
+msgid "What should the %s be greater than?"
+msgstr "Il %s deve essere maggiore di cosa?"
+
+#: lib/ast/slots.js:255
+#, javascript-format
+msgid "What should the %s be less than?"
+msgstr "Il %s deve essere minore di cosa?"
+
+#: lib/ast/slots.js:257
+#, javascript-format
+msgid "How should the %s start with?"
+msgstr "Il %s deve iniziare con cosa?"
+
+#: lib/ast/slots.js:259
+#, javascript-format
+msgid "How should the %s end with?"
+msgstr "Il %s deve finire con cosa?"
+
+#: lib/ast/slots.js:261
+#, javascript-format
+msgid "What should the %s contain?"
+msgstr "Il %s deve contenere cosa?"
+
+#: lib/ast/slots.js:263
+#, javascript-format
+msgid "What should the %s be equal to?"
+msgstr "Il %s deve essere uguale a cosa?"
+
+#: lib/ast/slots.js:266
+#, javascript-format
+msgid "Please tell me the value of the filter on the %s."
+msgstr "Per favore dimmi il valore del filtro sul %s."
+
+#: lib/ast/slots.js:313 lib/ast/slots.js:426
+msgid "Which result do you want?"
+msgstr "Quale risultato vuoi?"
+
+#: lib/ast/slots.js:317
+msgid "What is the index of the first result you would like?"
+msgstr "Qual è l'indice del primo risultato che vuoi?"
+
+#: lib/ast/slots.js:319
+msgid "What is the index of the second result you would like?"
+msgstr "Qual è l'indice del secondo risultato che vuoi?"
+
+#: lib/ast/slots.js:321
+msgid "What is the index of the third result you would like?"
+msgstr "Qual è l'indice del terzo risultato che vuoi?"
+
+#: lib/ast/slots.js:323
+#, javascript-format
+msgid "What is the index of the %dth result you would like?"
+msgstr "Qual è l'indice del %dº risultato che vuoi?"
+
+#: lib/ast/slots.js:328
+msgid "When do you want your command to run?"
+msgstr "Quando vuoi che il tuo comando sia eseguito?"
+
+#: lib/ast/slots.js:332
+msgid "What is the first time you would like your command to run?"
+msgstr "Qual è il primo orario a cui vuoi che il tuo comando sia eseguito?"
+
+#: lib/ast/slots.js:334
+msgid "What is the second time you would like your command to run?"
+msgstr "Qual è il secondo orario a cui vuoi che il tuo comando sia eseguito?"
+
+#: lib/ast/slots.js:336
+msgid "What is the third time you would like your command to run?"
+msgstr "Qual è il terzo orario a cui vuoi che il tuo comando sia eseguito?"
+
+#: lib/ast/slots.js:338
+#, javascript-format
+msgid "What is the %dth time you would like your command to run?"
+msgstr "Qual è il %dº orario a cui vuoi che il tuo comando sia eseguito?"
+
+#: lib/ast/slots.js:347
+msgid "Who is the first friend who is allowed to ask you for this command?"
+msgstr "Chi è il primo amico a cui è consentito richiedere questo comando?"
+
+#: lib/ast/slots.js:349
+msgid "Who is the second friend who is allowed to ask you for this command?"
+msgstr "Chi è il secondo amico a cui è consentito richiedere questo comando?"
+
+#: lib/ast/slots.js:351
+msgid "Who is the third friend who is allowed to ask you for this command?"
+msgstr "Chi è il terzo amico a cui è consentito richiedere questo comando?"
+
+#: lib/ast/slots.js:353
+#, javascript-format
+msgid "Who is the %dth friend who is allowed to ask you for this command?"
+msgstr "Chi è il %dº amico a cui è consentito richiedere questo comando?"
+
+#: lib/ast/slots.js:365
+#, javascript-format
+msgid "What would you like the first %s to be?"
+msgstr "Cosa vuoi che sia il primo %s?"
+
+#: lib/ast/slots.js:367
+#, javascript-format
+msgid "What would you like the second %s to be?"
+msgstr "Cosa vuoi che sia il secondo %s?"
+
+#: lib/ast/slots.js:369
+#, javascript-format
+msgid "What would you like the third %s to be?"
+msgstr "Cosa vuoi che sia il terzo %s?"
+
+#: lib/ast/slots.js:371
+#, javascript-format
+msgid "What would you like the %dth %s to be?"
+msgstr "Cosa vuoi che sia il %dº %s?"
+
+#: lib/ast/slots.js:410
+msgid "Who should run this command?"
+msgstr "Chi deve eseguire questo comando?"
+
+#: lib/ast/slots.js:412
+msgid "When would you like your command to start?"
+msgstr "Quando vuoi che questo comando sia iniziato?"
+
+#: lib/ast/slots.js:414
+msgid "How often should your command run?"
+msgstr "Quando spesso deve essere eseguito questo comando?"
+
+#: lib/ast/slots.js:416
+msgid "How many times should your command run during that time interval?"
+msgstr ""
+"Quante volte deve essere eseguito il tuo comando nell'intervallo di tempo?"
+
+#: lib/ast/slots.js:418
+msgid "When should your command stop?"
+msgstr "Quando deve fermarsi il tuo comando?"
+
+#: lib/ast/slots.js:421
+msgid "What is the first result you would like?"
+msgstr "Qual è il primo risultato che vuoi?"
+
+#: lib/ast/slots.js:424
+msgid "How many results would you like?"
+msgstr "Quanti risultati vuoi?"
+
+#: lib/ast/slots.js:430
+#, javascript-format
+msgid "What %s would you like?"
+msgstr "Quale %s vuoi?"
+
+#: lib/describe.js:37 lib/format_utils.js:132
+#, javascript-format
+msgid "[Latitude: %.3f deg, Longitude: %.3f deg]"
+msgstr "[Latitudine: %.3f gradi, Longitudine: %.3f gradi]"
+
+#: lib/describe.js:43
 msgid "here"
 msgstr "qui"
 
-#: lib/describe.js:31
+#: lib/describe.js:45
 msgid "at home"
 msgstr "a casa"
 
-#: lib/describe.js:33
+#: lib/describe.js:47
 msgid "at work"
 msgstr "al lavoro"
 
-#: lib/describe.js:59
-#, javascript-format
-msgid "the %s value"
-msgstr "il valore di %s"
+#: lib/describe.js:58
+msgid "now"
+msgstr "adesso"
 
-#: lib/describe.js:61
+#: lib/describe.js:63
+msgid "this millisecond"
+msgstr "questo millisecondo"
+
+#: lib/describe.js:66
+msgid "this second"
+msgstr "questo secondo"
+
+#: lib/describe.js:69
+msgid "this minute"
+msgstr "questo minuto"
+
+#: lib/describe.js:72
+msgid "this hour"
+msgstr "quest'ora"
+
+#: lib/describe.js:75
+msgid "today"
+msgstr "oggi"
+
+#: lib/describe.js:78
+msgid "this week"
+msgstr "questa settimana"
+
+#: lib/describe.js:81
+msgid "this month"
+msgstr "questo mese"
+
+#: lib/describe.js:84
+msgid "this year"
+msgstr "quest'anno"
+
+#: lib/describe.js:88
+#, javascript-format
+msgid "the start of %s"
+msgstr "l'inizio di %s"
+
+#: lib/describe.js:90
+#, javascript-format
+msgid "the end of %s"
+msgstr "la fine di %s"
+
+#: lib/describe.js:99
+#, javascript-format
+msgid "%s past %s"
+msgstr "%s dopo %s"
+
+#: lib/describe.js:101
+#, javascript-format
+msgid "%s before %s"
+msgstr "%s prima di %s"
+
+#: lib/describe.js:127
+msgid "the morning"
+msgstr "la mattina"
+
+#: lib/describe.js:129
+msgid "the evening"
+msgstr "la sera"
+
+#: lib/describe.js:151
 #, javascript-format
 msgid "the %s"
 msgstr "il %s"
 
-#: lib/describe.js:63
-#, javascript-format
-msgid "its %s"
-msgstr ""
+#: lib/describe.js:156
+msgid "the selection on the screen"
+msgstr "la selezione sullo schermo"
 
-#: lib/describe.js:75
+#: lib/describe.js:166
+msgid "the program ID"
+msgstr "l'ID del programma"
+
+#: lib/describe.js:168
+msgid "the device type"
+msgstr "il tipo di dispositivo"
+
+#: lib/describe.js:170
 msgid "the result"
 msgstr "il risultato"
 
-#: lib/describe.js:77
-msgid "it"
-msgstr "esso"
-
-#: lib/describe.js:80
-msgid "the notification"
-msgstr "la notifica"
-
-#: lib/describe.js:82
-msgid "the result title"
-msgstr "il titolo del risultato"
-
-#: lib/describe.js:84
-msgid "the notification body"
-msgstr "il corpo della notifica"
-
-#: lib/describe.js:89
-msgid "the event"
-msgstr "l'evento"
-
-#: lib/describe.js:91
-msgid "the event's title"
-msgstr "il titolo dell'evento"
-
-#: lib/describe.js:93
-msgid "the event's long description"
-msgstr "la descrizione lunga dell'evento"
-
-#: lib/describe.js:118
-msgid "yes"
-msgstr "sì"
-
-#: lib/describe.js:118
-msgid "no"
-msgstr "no"
-
-#: lib/describe.js:120 lib/describe.js:228
+#: lib/describe.js:195 lib/describe.js:303
 msgid "true"
 msgstr "vero"
 
-#: lib/describe.js:120 lib/describe.js:230
+#: lib/describe.js:195 lib/describe.js:305
 msgid "false"
 msgstr "falso"
 
-#: lib/describe.js:140
-msgid "someone"
-msgstr "qualcuno"
-
-#: lib/describe.js:142
-msgid "some language"
-msgstr "qualche lingua"
-
-#: lib/describe.js:149
-msgid "some team"
-msgstr "qualche squadra"
-
-#: lib/describe.js:151
-msgid "some company"
-msgstr "qualche società"
-
-#: lib/describe.js:153 lib/describe.js:166
-msgid "something"
-msgstr "qualcosa"
-
-#: lib/describe.js:156
-msgid "some number"
-msgstr "qualche numero"
-
-#: lib/describe.js:158
-msgid "some value"
-msgstr "qualche valore"
-
-#: lib/describe.js:160
-msgid "some date"
-msgstr "qualche data"
-
-#: lib/describe.js:162
-msgid "some time"
-msgstr "qualche orario"
-
-#: lib/describe.js:164
-msgid "some place"
-msgstr "qualche località"
-
-#: lib/describe.js:180
-msgid "send it to $__principal"
-msgstr "invialo a $__principal"
-
-#: lib/describe.js:182
-msgid "you receive something from $__principal"
-msgstr "ricevi qualcosa da $__principal"
-
-#: lib/describe.js:218
+#: lib/describe.js:208
 #, javascript-format
-msgid " with %s equal to %s"
-msgstr " con %s uguale a %s"
+msgid "the %s do not contain %s"
+msgstr "i %s non contengono %s"
 
-#: lib/describe.js:221
+#: lib/describe.js:210
 #, javascript-format
-msgid " and %s equal to %s"
-msgstr " e %s uguale a %s"
+msgid "the %s contain %s"
+msgstr "i %s contengono %s"
 
-#: lib/describe.js:234 lib/describe.js:277
+#: lib/describe.js:214
+#, javascript-format
+msgid "the %s does not contain %s"
+msgstr "il %s non contiene %s"
+
+#: lib/describe.js:216
+#, javascript-format
+msgid "the %s contains %s"
+msgstr "il %s contiene %s"
+
+#: lib/describe.js:220
+#, javascript-format
+msgid "%s does not contain the %s"
+msgstr "%s non contiene il %s"
+
+#: lib/describe.js:222
+#, javascript-format
+msgid "%s contains the %s"
+msgstr "%s contiene il %s"
+
+#: lib/describe.js:225
+#, javascript-format
+msgid "the %s does not start with %s"
+msgstr "il %s non inizia con %s"
+
+#: lib/describe.js:227
+#, javascript-format
+msgid "the %s starts with %s"
+msgstr "il %s inizia con %s"
+
+#: lib/describe.js:230
+#, javascript-format
+msgid "the %s does not end with %s"
+msgstr "il %s non finisce con %s"
+
+#: lib/describe.js:232
+#, javascript-format
+msgid "the %s ends with %s"
+msgstr "il %s finisce con %s"
+
+#: lib/describe.js:235
+#, javascript-format
+msgid "the %s is not a prefix of %s"
+msgstr "il %s non è un prefisso di %s"
+
+#: lib/describe.js:237
+#, javascript-format
+msgid "the %s is a prefix of %s"
+msgstr "il %s è un prefisso %s"
+
+#: lib/describe.js:240
+#, javascript-format
+msgid "the %s is not a suffix of %s"
+msgstr "il %s non è un suffisso di %s"
+
+#: lib/describe.js:242
+#, javascript-format
+msgid "the %s is a suffix of %s"
+msgstr "il %s è un suffisso di %s"
+
+#: lib/describe.js:245
+#, javascript-format
+msgid "the %s is not equal to %s"
+msgstr "il %s non è uguale a %s"
+
+#: lib/describe.js:247
+#, javascript-format
+msgid "the %s is equal to %s"
+msgstr "il %s è uguale a %s"
+
+#: lib/describe.js:251 lib/describe.js:265
+#, javascript-format
+msgid "the %s is after %s"
+msgstr "il %s è dopo %s"
+
+#: lib/describe.js:253 lib/describe.js:263
+#, javascript-format
+msgid "the %s is before %s"
+msgstr "il %s è prima di %s"
+
+#: lib/describe.js:256
+#, javascript-format
+msgid "the %s is greater than %s"
+msgstr "il %s è maggiore di %s"
+
+#: lib/describe.js:258
+#, javascript-format
+msgid "the %s is less than or equal to %s"
+msgstr "il %s è minore uguale a %s"
+
+#: lib/describe.js:268
+#, javascript-format
+msgid "the %s is less than %s"
+msgstr "il %s è minore di %s"
+
+#: lib/describe.js:270
+#, javascript-format
+msgid "the %s is greater than or equal to %s"
+msgstr "il %s è maggiore uguale di %s"
+
+#: lib/describe.js:307 lib/describe.js:584 lib/describe.js:679
+#: lib/describe.js:683 lib/describe.js:714
 #, javascript-format
 msgid "%s and %s"
 msgstr "%s e %s"
 
-#: lib/describe.js:236
+#: lib/describe.js:309
 #, javascript-format
 msgid "%s or %s"
 msgstr "%s o %s"
 
-#: lib/describe.js:238
+#: lib/describe.js:313
 #, javascript-format
 msgid "not %s"
 msgstr "non %s"
 
-#: lib/describe.js:254 lib/describe.js:257
-#, javascript-format
-msgid "%s contains %s"
-msgstr "%s contiene %s"
+#: lib/describe.js:318
+msgid "current time"
+msgstr "l'ora attuale"
 
-#: lib/describe.js:259
-#, javascript-format
-msgid "%s is equal to %s"
-msgstr "%s è uguale a %s"
+#: lib/describe.js:323
+msgid "my location"
+msgstr "la mia posizione"
 
-#: lib/describe.js:261
+#: lib/describe.js:330 lib/describe.js:337 lib/describe.js:462
+#: lib/describe.js:719
 #, javascript-format
-msgid "%s is not equal to %s"
-msgstr "%s non è uguale a %s"
+msgid "the %s of %s"
+msgstr "il %s di %s"
 
-#: lib/describe.js:263
+#: lib/describe.js:344
 #, javascript-format
-msgid "%s is less than %s"
-msgstr "%s è minore di %s"
+msgid "for %s, %s"
+msgstr "per %s, %s"
 
-#: lib/describe.js:265
+#: lib/describe.js:365
+msgid "send it to me"
+msgstr "invialo a me"
+
+#: lib/describe.js:367
+msgid "notify you"
+msgstr "notifichi te"
+
+#: lib/describe.js:369
+msgid "save it"
+msgstr "salvalo"
+
+#: lib/describe.js:382
+msgid "send it to $__principal"
+msgstr "invialo a $__principal"
+
+#: lib/describe.js:384
+msgid "you receive something from $__principal"
+msgstr "ricevi qualcosa da $__principal"
+
+#: lib/describe.js:395 lib/describe.js:403 lib/describe.js:859
 #, javascript-format
-msgid "%s is greater than %s"
-msgstr "%s è maggiore di %s"
+msgid "your %s"
+msgstr "il tuo %s"
 
-#: lib/describe.js:267
+#: lib/describe.js:397
 #, javascript-format
-msgid "%s is less than or equal to %s"
-msgstr "%s è minore uguale a %s"
+msgid "all your %s %s"
+msgstr "tutti i tuoi %2$s %1$s"
 
-#: lib/describe.js:269
+#: lib/describe.js:399
 #, javascript-format
-msgid "%s is greater than or equal to %s"
-msgstr "%s è maggiore di %s"
+msgid "all your %s"
+msgstr "tutti i tuoi %s"
 
-#: lib/describe.js:279
+#: lib/describe.js:401
+#, javascript-format
+msgid "your %s %s"
+msgstr "il tuo %2$s %1$s"
+
+#: lib/describe.js:430
+#, javascript-format
+msgid " with %s equal to %s"
+msgstr " con %s uguale a %s"
+
+#: lib/describe.js:433
+#, javascript-format
+msgid " and %s equal to %s"
+msgstr " e %s uguale a %s"
+
+#: lib/describe.js:446 lib/describe.js:547
+#, javascript-format
+msgid "the last %s"
+msgstr "l'ultimo %s"
+
+#: lib/describe.js:448 lib/describe.js:543
+#, javascript-format
+msgid "the first %s"
+msgstr "il primo %s"
+
+#: lib/describe.js:450
+#, javascript-format
+msgid "the %d-th last %s"
+msgstr "il %dº %s dal fondo"
+
+#: lib/describe.js:453
+#, javascript-format
+msgid "the %d-th %s"
+msgstr "il %dº %s"
+
+#: lib/describe.js:459 lib/describe.js:828
 #, javascript-format
 msgid "%s if %s"
 msgstr "%s se %s"
 
-#: lib/describe.js:296
-msgid " and then "
-msgstr " e poi "
-
-#: lib/describe.js:298
-msgid " and "
-msgstr " e "
-
-#: lib/describe.js:302
+#: lib/describe.js:466 lib/describe.js:724
 #, javascript-format
-msgid "%s then %s %s"
-msgstr "%s poi %s %s"
+msgid "a value computed from %s"
+msgstr "un valore calcolato da %s"
 
-#: lib/describe.js:304
+#: lib/describe.js:472
 #, javascript-format
-msgid "%s then %s when %s"
-msgstr "%s poi %s quando %s"
+msgid "the number of %s"
+msgstr "il numero di %s"
 
-#: lib/describe.js:306 lib/describe.js:310
+#: lib/describe.js:477
+#, javascript-format
+msgid "the average %s in %s"
+msgstr "la media di %s in %s"
+
+#: lib/describe.js:480
+#, javascript-format
+msgid "the minimum %s in %s"
+msgstr "il minimo %s in %s"
+
+#: lib/describe.js:483
+#, javascript-format
+msgid "the maximum %s in %s"
+msgstr "il massimo %s in %s"
+
+#: lib/describe.js:486
+#, javascript-format
+msgid "the sum of the %s in %s"
+msgstr "la somma dei %s in %s"
+
+#: lib/describe.js:489
+#, javascript-format
+msgid "the number of %ss in %s"
+msgstr "il numero di %s in %s"
+
+#: lib/describe.js:504
+#, javascript-format
+msgid "the %s with the minimum %s"
+msgstr "il %s con il minimo %s"
+
+#: lib/describe.js:508
+#, javascript-format
+msgid "the %s with the maximum %s"
+msgstr "il %s con il massimo %s"
+
+#: lib/describe.js:518
+#, javascript-format
+msgid "the %s %s with the minimum %s"
+msgstr "il %s %s con il minimo %s"
+
+#: lib/describe.js:523
+#, javascript-format
+msgid "the %s %s with the maximum %s"
+msgstr "il %s %s con il massimo %s"
+
+#: lib/describe.js:530
+#, javascript-format
+msgid "the %s sorted by increasing %s"
+msgstr "i %s in ordine crescente di %s"
+
+#: lib/describe.js:535
+#, javascript-format
+msgid "the %s sorted by decreasing %s"
+msgstr "i %s in ordine decrescente di %s"
+
+#: lib/describe.js:552
+#, javascript-format
+msgid "the %s-nth %s"
+msgstr "il %sº %s"
+
+#: lib/describe.js:557
+#, javascript-format
+msgid "elements %s of the %s"
+msgstr "elementi %s dei %s"
+
+#: lib/describe.js:564
+#, javascript-format
+msgid "the first %s %s"
+msgstr "il primo %s %s"
+
+#: lib/describe.js:569
+#, javascript-format
+msgid "the last %s %s"
+msgstr "l'ultimo %s %s"
+
+#: lib/describe.js:575
+#, javascript-format
+msgid "%d elements starting from %s of the %s"
+msgstr "%d elementi iniziando da %s dei %s"
+
+#: lib/describe.js:590
+#, javascript-format
+msgid "the latest %s results of %s"
+msgstr "gli ultimi %s risultati di %s"
+
+#: lib/describe.js:595
+#, javascript-format
+msgid "the latest %s results, starting at the %d-th, of %s"
+msgstr "gli ultimi %s risultati, iniziando dal %dº, dei %s"
+
+#: lib/describe.js:603
+#, javascript-format
+msgid "the results in the last %s of %s"
+msgstr "i risultati negli ultimi %s dei %s"
+
+#: lib/describe.js:608
+#, javascript-format
+msgid "the results in the %s prior to %s of %s"
+msgstr "i risultati nei %s prima di %s dei %s"
+
+#: lib/describe.js:616
+#, javascript-format
+msgid "the latest %s %s"
+msgstr "gli ultimi %s %s"
+
+#: lib/describe.js:621
+#, javascript-format
+msgid "the latest %s %s, starting at the %d-th"
+msgstr "gli ultimi %s %s, iniziando con il %dº"
+
+#: lib/describe.js:629
+#, javascript-format
+msgid "the %s that changed in in the last %s"
+msgstr "i %s che hanno cambiato negli ultimi %s"
+
+#: lib/describe.js:634
+#, javascript-format
+msgid "the %s that changed in the %s prior to %s"
+msgstr "i %s che hanno cambiato negli ultimi %s prima di %s"
+
+#: lib/describe.js:655
+#, javascript-format
+msgid "every %s"
+msgstr "ogni %s"
+
+#: lib/describe.js:657
+#, javascript-format
+msgid "%s times every %s"
+msgstr "%s volte ogni %s"
+
+#: lib/describe.js:663
+#, javascript-format
+msgid "every %s starting %s"
+msgstr "ogni %s iniziando il %s"
+
+#: lib/describe.js:668
+#, javascript-format
+msgid "%s times every %s starting %s"
+msgstr "%s volte ogni %s iniziando il %s"
+
+#: lib/describe.js:678
+#, javascript-format
+msgid "every day at %s"
+msgstr "ogni giorno alle %s"
+
+#: lib/describe.js:682
+#, javascript-format
+msgid "every day at %s until %s"
+msgstr "ogni giorno alle %s fino al %s"
+
+#: lib/describe.js:691
+#, javascript-format
+msgid "when %s change if %s"
+msgstr "quando %s cambiano se %s"
+
+#: lib/describe.js:695
+#, javascript-format
+msgid "when %s changes if %s"
+msgstr "quando %s cambia se %s"
+
+#: lib/describe.js:703
+#, javascript-format
+msgid "when %s change"
+msgstr "quando %s cambia"
+
+#: lib/describe.js:705
+#, javascript-format
+msgid "when %s changes"
+msgstr "quando %s cambiano"
+
+#: lib/describe.js:707
+#, javascript-format
+msgid "%s changes"
+msgstr "%s cambia"
+
+#: lib/describe.js:709
+#, javascript-format
+msgid "%s and it becomes true that %s"
+msgstr "%s e diventa vero che %s"
+
+#: lib/describe.js:729
+#, javascript-format
+msgid "%s, get %s"
+msgstr "%s, ottieni %s"
+
+#: lib/describe.js:754
+#, javascript-format
+msgid "do the following: %s, and then %s"
+msgstr "esegui il seguente comando: %s, e poi %s"
+
+#: lib/describe.js:759
 #, javascript-format
 msgid "%s %s"
 msgstr "%s %s"
 
-#: lib/describe.js:308 lib/describe.js:312
+#: lib/describe.js:765
 #, javascript-format
-msgid "%s when %s"
-msgstr "%s quando %s"
+msgid "get %s and then %s"
+msgstr "ottieni %s e poi %s"
 
-#: lib/describe.js:314
+#: lib/describe.js:775 lib/describe.js:777 lib/describe.js:779
 #, javascript-format
-msgid "%s then %s"
-msgstr "%s poi %s"
+msgid "let %s be %s"
+msgstr "sia %s %s"
 
-#: lib/describe.js:316
+#: lib/describe.js:790
 #, javascript-format
-msgid "notify %s"
-msgstr "notificami %s"
+msgid "tell %s: %s"
+msgstr "di' a %s: %s"
 
-#: lib/describe.js:318
+#: lib/describe.js:833 lib/describe.js:835
 #, javascript-format
-msgid "notify when %s"
-msgstr "notificami quando %s"
+msgid "any %s"
+msgstr "ogni %s"
 
-#: lib/describe.js:324
-msgid " (only once)"
-msgstr " (solo una volta)"
+#: lib/describe.js:851
+msgid "your clock"
+msgstr "il tuo orario"
 
-#: lib/describe.js:365 lib/describe.js:367
-msgid " to "
-msgstr " a "
+#: lib/describe.js:853
+msgid "send you messages, configure new accounts and open links"
+msgstr "invii messaggi a te, configuri nuovi account e apra link"
 
-#: lib/describe.js:369
+#: lib/describe.js:861
 #, javascript-format
-msgid "%s to %s to %s"
-msgstr "%s a %s a %s"
+msgid "perform any action on your %s"
+msgstr "esegua ogni azione sui tuoi %s"
 
-#: lib/describe.js:371 lib/describe.js:373 lib/describe.js:375
+#: lib/describe.js:871
+msgid "anyone"
+msgstr "chiunque"
+
+#: lib/describe.js:875
 #, javascript-format
-msgid "%s to %s"
-msgstr "%s a %s"
+msgid "anyone in the %s group"
+msgstr "chiunque nel gruppo %s"
 
-#: lib/describe.js:377
+#: lib/describe.js:877
 #, javascript-format
-msgid "Monitor %s"
-msgstr "Osserva %s"
+msgid "anyone if %s"
+msgstr "chiunque se %s"
 
-#: lib/describe.js:379
+#: lib/describe.js:877
+msgid "requester"
+msgstr "richiedente"
+
+#: lib/describe.js:884
 #, javascript-format
-msgid "Execute %s"
-msgstr "Esegui %s"
+msgid "%s is allowed to perform any action"
+msgstr "a %s è consentito eseguire ogni azione"
 
-#: lib/describe.js:381
+#: lib/describe.js:886
 #, javascript-format
-msgid "Query %s"
-msgstr "Interroga %s"
+msgid "%s is allowed to %s"
+msgstr "a %s è consentito %s"
 
-#~ msgid "%s is not %s"
-#~ msgstr "%s non è %s"
+#: lib/describe.js:891
+#, javascript-format
+msgid "%s is allowed to read all your data"
+msgstr "a %s è consentito leggere tutti i tuoi dati"
+
+#: lib/describe.js:893
+#, javascript-format
+msgid "%s is allowed to read all your data and then perform any action with it"
+msgstr ""
+"a %s è consentito leggere tutti i tuoi dati ed eseguire ogni azione con essi"
+
+#: lib/describe.js:895
+#, javascript-format
+msgid "%s is allowed to read all your data and then use it to %s"
+msgstr "a %s è consentito leggere tutti i tuoi dati e poi usarli per %s"
+
+#: lib/describe.js:901
+#, javascript-format
+msgid "%s is allowed to read %s"
+msgstr "a %s è consentito leggere %s"
+
+#: lib/describe.js:906
+#, javascript-format
+msgid "%s is allowed to read %s and then perform any action with it"
+msgstr "a %s è consentito leggere %s e poi eseguire ogni azione con esso"
+
+#: lib/describe.js:911
+#, javascript-format
+msgid "%s is allowed to read %s and then use it to %s"
+msgstr "a %s è consentito leggere %s e poi usarlo per %s"
+
+#: lib/describe.js:923
+msgid "yes"
+msgstr "sì"
+
+#: lib/describe.js:925
+msgid "no"
+msgstr "no"
+
+#: lib/describe.js:927
+msgid "I did not understand"
+msgstr "Non ho capito"
+
+#: lib/describe.js:929
+msgid "train me again"
+msgstr "allenami ancora"
+
+#: lib/describe.js:931
+msgid "go back"
+msgstr "indietro"
+
+#: lib/describe.js:933
+msgid "show more results"
+msgstr "mostrami più risultati"
+
+#: lib/describe.js:935
+msgid "no action"
+msgstr "nessuna azione"
+
+#: lib/describe.js:937
+msgid "show debugging information"
+msgstr "mostra informazioni di debug"
+
+#: lib/describe.js:939
+msgid "maybe"
+msgstr "forse"
+
+#: lib/describe.js:941
+msgid "cancel"
+msgstr "annulla"
+
+#: lib/describe.js:943
+msgid "stop"
+msgstr "stop"
+
+#: lib/describe.js:945
+msgid "help"
+msgstr "aiuto"
+
+#: lib/describe.js:947
+msgid "make a new command"
+msgstr "crea un nuovo comando"
+
+#: lib/describe.js:949
+msgid "wake up"
+msgstr "sveglia"
+
+#: lib/describe.js:960
+#, javascript-format
+msgid "list the commands of %s, in category %s"
+msgstr "elenca i comandi di %s, nella categoria %s"
+
+#: lib/describe.js:962
+#, javascript-format
+msgid "choice number %d"
+msgstr "scelta numero %d"
+
+#: lib/describe.js:1009
+msgid "Notification"
+msgstr "Notifica"
+
+#: lib/runtime/format_objects.js:129
+#, javascript-format
+msgid "Picture: %s"
+msgstr "Immagine: %s"
+
+#: lib/runtime/format_objects.js:195
+#, javascript-format
+msgid "Link: %s <%s>"
+msgstr "Link: %s <%s>"
+
+#: lib/runtime/format_objects.js:248
+#, javascript-format
+msgid "Location: %s"
+msgstr "Località: %s"
+
+#: lib/runtime/format_objects.js:250
+#, javascript-format
+msgid "Location: [Latitude: %.3f deg, Longitude: %.3f deg]"
+msgstr "Località: [Latitudine: %.3f gradi, Longitudine: %.3f gradi]"
+
+#: lib/runtime/format_objects.js:287
+#, javascript-format
+msgid "Sound effect: %s"
+msgstr "Effetto sonoro: %s"
+
+#: lib/runtime/format_objects.js:327
+#, javascript-format
+msgid "Media: %s"
+msgstr "Media: %s"
+
+#: lib/runtime/formatter.js:124
+msgid ", "
+msgstr ", "
+
+#: lib/runtime/formatter.js:127
+msgid "N/A"
+msgstr "N/D"
+
+#: lib/runtime/formatter.js:175
+#, javascript-format
+msgid "%s of %s"
+msgstr "%s di %s"
+
+#: lib/runtime/formatter.js:276
+#, javascript-format
+msgid "Here are the %s:"
+msgstr "Ecco i %s:"
+
+#: lib/runtime/formatter.js:304
+#, javascript-format
+msgid "The %s is %s."
+msgstr "Il %s è %s."
+
+#: lib/runtime/formatter.js:340
+#, javascript-format
+msgid "I found %d result."
+msgid_plural "I found %d results."
+msgstr[0] "Ho trovato %d risultato."
+msgstr[1] "Ho trovato %d risultati."
+
+#: lib/runtime/formatter.js:348
+#, javascript-format
+msgid "I found only one value of %2$s."
+msgid_plural "I found %d distinct values of %s."
+msgstr[0] "Ho trovato solo un valore di %2$s."
+msgstr[1] "Ho trovato %d valori distinti di %s."
+
+#: lib/runtime/formatter.js:351
+#, javascript-format
+msgid "The minimum %s is %s."
+msgstr "Il %s minimo è %s."
+
+#: lib/runtime/formatter.js:354
+#, javascript-format
+msgid "The maximum %s is %s."
+msgstr "Il %s massimo è %s."
+
+#: lib/runtime/formatter.js:357
+#, javascript-format
+msgid "The average %s is %s."
+msgstr "Il %s medio è %s."
+
+#: lib/runtime/formatter.js:360
+#, javascript-format
+msgid "The total %s is %s."
+msgstr "Il %s totale è %s."
+
+#~ msgid "it"
+#~ msgstr "esso"
+
+#~ msgid "the result title"
+#~ msgstr "il titolo del risultato"
+
+#~ msgid "the notification body"
+#~ msgstr "il corpo della notifica"
+
+#~ msgid "the event's long description"
+#~ msgstr "la descrizione lunga dell'evento"
+
+#~ msgid "someone"
+#~ msgstr "qualcuno"
+
+#~ msgid "some language"
+#~ msgstr "qualche lingua"
+
+#~ msgid "some team"
+#~ msgstr "qualche squadra"
+
+#~ msgid "some company"
+#~ msgstr "qualche società"
+
+#~ msgid "something"
+#~ msgstr "qualcosa"
+
+#~ msgid "some number"
+#~ msgstr "qualche numero"
+
+#~ msgid "some value"
+#~ msgstr "qualche valore"
+
+#~ msgid "some date"
+#~ msgstr "qualche data"
+
+#~ msgid "some time"
+#~ msgstr "qualche orario"
+
+#~ msgid "some place"
+#~ msgstr "qualche località"
+
+#~ msgid " and "
+#~ msgstr " e "
+
+#, javascript-format
+#~ msgid "%s when %s"
+#~ msgstr "%s quando %s"
+
+#, javascript-format
+#~ msgid "%s then %s"
+#~ msgstr "%s poi %s"
+
+#, javascript-format
+#~ msgid "notify when %s"
+#~ msgstr "notificami quando %s"
+
+#~ msgid " (only once)"
+#~ msgstr " (solo una volta)"
+
+#~ msgid " to "
+#~ msgstr " a "
+
+#, javascript-format
+#~ msgid "%s to %s"
+#~ msgstr "%s a %s"
+
+#, javascript-format
+#~ msgid "Monitor %s"
+#~ msgstr "Osserva %s"
+
+#, javascript-format
+#~ msgid "Execute %s"
+#~ msgstr "Esegui %s"
 
 #~ msgid "me"
 #~ msgstr "me"

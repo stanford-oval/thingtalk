@@ -176,9 +176,21 @@ Picture: http://example.com/security-camera.jpg`
     ],
 
     [`count(com.bing:web_search)`, {
+        count: 1,
+    }, null,
+    [ 'I found 1 result.' ]
+    ],
+
+    [`count(com.bing:web_search)`, {
         title: 7,
     }, null,
     [ 'I found 7 distinct values of title.' ]
+    ],
+
+    [`count(com.bing:web_search)`, {
+        title: 1,
+    }, null,
+    [ 'I found only one value of title.' ]
     ],
 
     [`max(com.google.drive:list_drive_files)`, {
@@ -288,7 +300,8 @@ Picture: http://example.com/security-camera.jpg`
 
 const gettext = {
     locale: 'en-US',
-    dgettext: (domain, msgid) => msgid
+    dgettext: (domain, msgid) => msgid,
+    dngettext: (domain, msgid, msgid_plural, n) => n === 1 ? msgid : msgid_plural,
 };
 
 const formatter = new Formatter('en-US', 'America/Los_Angeles', schemaRetriever, gettext);

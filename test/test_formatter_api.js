@@ -208,6 +208,9 @@ function main() {
                 return 'Pacture: %s';
             else
                 return x;
+        },
+        dngettext(domain, msgid, msgid_plural, n) {
+            return n === 1 ? msgid : msgid_plural;
         }
     };
     I18n.init('en-Fake', fakeGettext);
