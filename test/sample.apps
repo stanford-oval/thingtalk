@@ -1955,3 +1955,15 @@ dataset @light-bulb {
 // ** typecheck: expect TypeError **
 // no param passing into a device attribute
 now => @com.bing.web_search() => @light-bulb(name=title).set_power(power=enum(on));
+
+====
+
+// ** typecheck: expect TypeError **
+// invalid enum
+now => @light-bulb.set_power(power=enum(cool));
+
+====
+
+// ** typecheck: expect TypeError **
+// invalid enum
+now => @org.thingpedia.icalendar.list_events(), status==enum(off) => notify;
