@@ -26,6 +26,8 @@ function main() {
     test(1, 'mon', 30, 'day');
     test(1, 'kg', 2.20462, 'lb');
     test(1, 'ft', 30.48, 'cm');
+    test(1, 'kW', 1000, 'W');
+    test(1, 'W', 0.001, 'W');
 }
 module.exports = main;
 if (!module.parent)
