@@ -45,8 +45,8 @@ function main() {
     assert.strictEqual(formatter.anyToString(date), '5/23/2018, 9:18:00 PM');
 
     let location = new builtin.Location(-37, 113);
-    assert.strictEqual(formatter.locationToString(location), '[Latitude: -37.000 deg, Longitude: 113.000 deg]');
-    assert.strictEqual(formatter.anyToString(location), '[Latitude: -37.000 deg, Longitude: 113.000 deg]');
+    assert.strictEqual(formatter.locationToString(location), '[Latitude: -37 deg, Longitude: 113 deg]');
+    assert.strictEqual(formatter.anyToString(location), '[Latitude: -37 deg, Longitude: 113 deg]');
 
     location = new builtin.Location(-37, 113, "Somewhere");
     assert.strictEqual(formatter.locationToString(location), 'Somewhere');
@@ -204,8 +204,8 @@ function main() {
 
     const fakeGettext = {
         dgettext(domain, x) {
-            if (x === 'Picture: %s')
-                return 'Pacture: %s';
+            if (x === 'Picture: ${url}')
+                return 'Pacture: ${url}';
             else
                 return x;
         },
@@ -253,7 +253,7 @@ function main() {
         v1: '1.0',
         v2: '2.0',
         v3: 'three'
-    }, 'string'), 'Location: [Latitude: 1.000 deg, Longitude: 2.000 deg]\nSound effect: message-new-instant\nMedia: three?y=1.0&x=2.0');
+    }, 'string'), 'Location: [Latitude: 1 deg, Longitude: 2 deg]\nSound effect: message-new-instant\nMedia: three?y=1.0&x=2.0');
 
     assert.strictEqual(formatter.format([
         { type: 'map', lat: '${v1}', lon: '${v2}', display: 'foo' },
