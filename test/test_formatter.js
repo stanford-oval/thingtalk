@@ -58,7 +58,7 @@ some alt text`,
           status: 'sunny',
           icon: 'http://example.com/sunny.png'
         }, null,
-    [ 'Current weather for Somewhere: sunny, temperature 21.0 C, wind speed 5.0 m/s, humidity 60%, cloudiness 0%, fog 0%.' ]
+    [ 'Current weather for Somewhere: sunny, temperature 21 C, wind speed 5 m/s, humidity 60%, cloudiness 0%, fog 0%.' ]
     ],
 
     ['org.thingpedia.weather:current',
@@ -71,7 +71,7 @@ some alt text`,
           status: 'sunny',
           icon: 'http://example.com/sunny.png'
         }, 'string',
-    'Current weather for Somewhere: sunny, temperature 21.0 C, wind speed 5.0 m/s, humidity 60%, cloudiness 0%, fog 0%.'
+    'Current weather for Somewhere: sunny, temperature 21 C, wind speed 5 m/s, humidity 60%, cloudiness 0%, fog 0%.'
     ],
 
     ['org.thingpedia.weather:current',
@@ -84,7 +84,7 @@ some alt text`,
           status: 'sunny',
           icon: 'http://example.com/sunny.png'
         }, 'string',
-    'Current weather for [Latitude: 37.000 deg, Longitude: -113.000 deg]: sunny, temperature 21.0 C, wind speed 5.0 m/s, humidity 60%, cloudiness 0%, fog 0%.'
+    'Current weather for [Latitude: 37.000 deg, Longitude: -113.000 deg]: sunny, temperature 21 C, wind speed 5 m/s, humidity 60%, cloudiness 0%, fog 0%.'
     ],
 
 

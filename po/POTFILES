@@ -30,7 +30,6 @@ lib/date_utils.js
 lib/describe.js
 lib/errors.js
 lib/escaping.js
-lib/format_utils.js
 lib/generate.js
 lib/grammar_api.js
 lib/grammar.js

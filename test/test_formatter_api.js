@@ -62,12 +62,12 @@ function main() {
 
     assert.strictEqual(formatter.measureToString(21, 0, 'C'), '21');
     assert.strictEqual(formatter.measureToString(20.5, 0, 'C'), '21');
-    assert.strictEqual(formatter.measureToString(21, 1, 'C'), '21.0');
+    assert.strictEqual(formatter.measureToString(21, 1, 'C'), '21');
     assert.strictEqual(formatter.measureToString(21, 0, 'F'), '70');
     assert.strictEqual(formatter.measureToString(20.5, 0, 'F'), '69');
     assert.strictEqual(formatter.measureToString(21, 1, 'F'), '69.8');
 
-    assert.strictEqual(formatter.measureToString(1000, 0, 'm'), '1000');
+    assert.strictEqual(formatter.measureToString(1000, 0, 'm'), '1,000');
     assert.strictEqual(formatter.measureToString(1000, 0, 'km'), '1');
 
     assert.deepStrictEqual(formatter.format([{ type: 'text', text: '$v1$$foo$$ ${v2} ${v3:F} ${v4:iso-date} ${v5:%} ${v6} ${v7}' }], {
@@ -78,7 +78,7 @@ function main() {
         v5: 0.42,
         v6: 10,
         v7: 9.5
-    }), [ 'lol$foo$ undefined 69.8 2018-05-24T04:18:00.000Z 42 10 9.50' ]);
+    }), [ 'lol$foo$ N/A 69.8 2018-05-24T04:18:00.000Z 42 10 9.5' ]);
 
     assert.deepStrictEqual(formatter.format([{ type: 'text', text: '$v1$$foo$$ ${v2} ${v3:F} ${v4:iso-date} ${v5:%} ${v6} ${v7}' }], {
         v1: 'lol',
@@ -88,7 +88,7 @@ function main() {
         v5: 0.42,
         v6: 10,
         v7: 9.5
-    }, 'string'), 'lol$foo$ undefined 69.8 2018-05-24T04:18:00.000Z 42 10 9.50');
+    }, 'string'), 'lol$foo$ N/A 69.8 2018-05-24T04:18:00.000Z 42 10 9.5');
 
     assert.deepStrictEqual(formatter.format(['$v1$$foo$$ ${v2} ${v3:F} ${v4:iso-date} ${v5:%} ${v6} ${v7}'], {
         v1: 'lol',
@@ -98,7 +98,7 @@ function main() {
         v5: 0.42,
         v6: 10,
         v7: 9.5
-    }, 'string'), 'lol$foo$ undefined 69.8 2018-05-24T04:18:00.000Z 42 10 9.50');
+    }, 'string'), 'lol$foo$ N/A 69.8 2018-05-24T04:18:00.000Z 42 10 9.5');
 
     assert.deepStrictEqual(formatter.format([{ type: 'rdl', displayTitle:'text', webCallback: '$v1$$foo$$ ${v2} ${v3:F} ${v4:iso-date} ${v5:%} ${v6} ${v7}' }], {
         v1: 'lol',
@@ -108,7 +108,7 @@ function main() {
         v5: 0.42,
         v6: 10,
         v7: 9.5
-    }, 'string'), 'Link: text <lol$foo$ undefined 69.8 2018-05-24T04:18:00.000Z 42 10 9.50>');
+    }, 'string'), 'Link: text <lol$foo$ N/A 69.8 2018-05-24T04:18:00.000Z 42 10 9.5>');
 
     assert.deepStrictEqual(formatter.format([{ type: 'text', text: '$v1 ${v1} ${v1:enum}' }], {
         v1: 'some_enum'
@@ -235,8 +235,8 @@ function main() {
         v1: '1.0',
         v2: '2.0',
         v3: 'three',
-        v4: { x: 11, y: 47 },
-        v5: { x: 11, y: 47, display:"Somewhere" }
+        v4: new builtin.Location(47, 11),
+        v5: new builtin.Location(47, 11, "Somewhere")
     });
 
     assert.strictEqual(JSON.stringify(map1), '{"type":"map","lat":1,"lon":2}');
