@@ -30,7 +30,7 @@
   "devDependencies": {
     "argparse": "^1.0.10",
     "coveralls": "^3.0.0",
-    "deep-equal": "^1.0.1",
+    "deep-equal": "^2.0.1",
     "eslint": "^6.0.0",
     "jsdoc": "^3.6.3",
     "nyc": "^14.0.0",

@@ -51,13 +51,11 @@ function testValues() {
 }
 
 function testClone() {
-    let fn = new Ast.FunctionDef('action', 'foo',
+    let fn = new Ast.FunctionDef('action', null, 'foo',
         [], // extends
-        [], // args
-        false, // is_list
-        false, // is_monitorable,
-        {}, // metadata
-        {} // annotations
+        { is_list: false, is_monitorable: false },
+        [], // args,
+        {}
     );
 
     let clone = fn.clone();
