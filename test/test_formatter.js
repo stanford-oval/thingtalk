@@ -12,8 +12,6 @@
 const Q = require('q');
 Q.longStackSupport = true;
 
-require('./polyfill');
-
 const SchemaRetriever = require('../lib/schema');
 const assert = require('assert');
 

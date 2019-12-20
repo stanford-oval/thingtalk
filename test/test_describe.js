@@ -9,8 +9,6 @@
 // See COPYING for details
 "use strict";
 
-require('./polyfill');
-
 const Describe = require('../lib/describe');
 const Grammar = require('../lib/grammar_api');
 const SchemaRetriever = require('../lib/schema');
