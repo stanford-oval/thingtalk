@@ -20,7 +20,8 @@ const Describe = require('../lib/describe');
 
 const gettext = {
     locale: 'en-US',
-    dgettext: (domain, msgid) => msgid
+    dgettext: (domain, msgid) => msgid,
+    dngettext: (domain, msgid, msgid_plural, n) => n === 1 ? msgid : msgid_plural,
 };
 
 async function testDescribeArg() {

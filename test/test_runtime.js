@@ -191,6 +191,10 @@ class MockExecEnvironment extends ExecEnvironment {
         return this._states.writeState(stateId, value);
     }
 
+    loadContext(info, into) {
+        return null;
+    }
+
     reportError(message, err) {
         console.error('Test failed with error: ' + message);
         throw err;

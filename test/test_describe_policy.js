@@ -203,60 +203,61 @@ var TEST_CASES = [
     ['true : @com.washingtonpost.get_article, section == enum(world) || section == enum(opinions) => notify',
     'anyone is allowed to read the latest articles in the any section section of the Washington Post if the section is equal to world or the section is equal to opinions'],
 
-    ['true : @com.wsj.get, section == enum(world) && updated >= makeDate() => notify',
-    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is after now'],
-    ['true : @com.wsj.get, section == enum(world) && updated <= makeDate() => notify',
-    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is before now'],
+    ['true : @com.wsj.get, section == enum(world_news) && updated >= makeDate() => notify',
+    'anyone is allowed to read articles published in the world news section of the Wall Street Journal if the updated is after now'],
+    ['true : @com.wsj.get, section == enum(world_news) && updated <= makeDate() => notify',
+    'anyone is allowed to read articles published in the world news section of the Wall Street Journal if the updated is before now'],
 
-    ['true : @com.wsj.get, section == enum(world) && updated >= makeDate(2018, 5, 4) => notify',
-    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is after Friday, May 4, 2018'],
-    ['true : @com.wsj.get, section == enum(world) && updated <= makeDate(2018, 5, 4) => notify',
-    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is before Friday, May 4, 2018'],
-    ['true : @com.wsj.get, section == enum(world) && !(updated <= makeDate(2018, 5, 4)) => notify',
-    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is after Friday, May 4, 2018'],
-    ['true : @com.wsj.get, section == enum(world) && !(updated >= makeDate(2018, 5, 4)) => notify',
-    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is before Friday, May 4, 2018'],
+    ['true : @com.wsj.get, section == enum(world_news) && updated >= makeDate(2018, 5, 4) => notify',
+    'anyone is allowed to read articles published in the world news section of the Wall Street Journal if the updated is after Friday, May 4, 2018'],
+    ['true : @com.wsj.get, section == enum(world_news) && updated <= makeDate(2018, 5, 4) => notify',
+    'anyone is allowed to read articles published in the world news section of the Wall Street Journal if the updated is before Friday, May 4, 2018'],
+    ['true : @com.wsj.get, section == enum(world_news) && !(updated <= makeDate(2018, 5, 4)) => notify',
+    'anyone is allowed to read articles published in the world news section of the Wall Street Journal if the updated is after Friday, May 4, 2018'],
+    ['true : @com.wsj.get, section == enum(world_news) && !(updated >= makeDate(2018, 5, 4)) => notify',
+    'anyone is allowed to read articles published in the world news section of the Wall Street Journal if the updated is before Friday, May 4, 2018'],
 
-    /*['true : @com.wsj.get, section == enum(world) && updated >= makeDate(2018, 5, 4, 17, 30, 0) => notify',
-    'anyone is allowed to read articles published in the world section if the updated is after 5/4/2018, 5:30:00 PM'],*/
+    /*['true : @com.wsj.get, section == enum(world_news) && updated >= makeDate(2018, 5, 4, 17, 30, 0) => notify',
+    'anyone is allowed to read articles published in the world news section if the updated is after 5/4/2018, 5:30:00 PM'],*/
 
-    ['true : @com.wsj.get, section == enum(world) && updated >= start_of(day) => notify',
-    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is after the start of today'],
+    ['true : @com.wsj.get, section == enum(world_news) && updated >= start_of(day) => notify',
+    'anyone is allowed to read articles published in the world news section of the Wall Street Journal if the updated is after the start of today'],
 
-    ['true : @com.wsj.get, section == enum(world) && updated >= start_of(week) => notify',
-    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is after the start of this week'],
+    ['true : @com.wsj.get, section == enum(world_news) && updated >= start_of(week) => notify',
+    'anyone is allowed to read articles published in the world news section of the Wall Street Journal if the updated is after the start of this week'],
 
-    ['true : @com.wsj.get, section == enum(world) && updated >= start_of(mon) => notify',
-    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is after the start of this month'],
+    ['true : @com.wsj.get, section == enum(world_news) && updated >= start_of(mon) => notify',
+    'anyone is allowed to read articles published in the world news section of the Wall Street Journal if the updated is after the start of this month'],
 
-    ['true : @com.wsj.get, section == enum(world) && updated >= start_of(year) => notify',
-    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is after the start of this year'],
+    ['true : @com.wsj.get, section == enum(world_news) && updated >= start_of(year) => notify',
+    'anyone is allowed to read articles published in the world news section of the Wall Street Journal if the updated is after the start of this year'],
 
-    ['true : @com.wsj.get, section == enum(world) && updated >= end_of(day) => notify',
-    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is after the end of today'],
+    ['true : @com.wsj.get, section == enum(world_news) && updated >= end_of(day) => notify',
+    'anyone is allowed to read articles published in the world news section of the Wall Street Journal if the updated is after the end of today'],
 
-    ['true : @com.wsj.get, section == enum(world) && updated >= end_of(week) => notify',
-    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is after the end of this week'],
+    ['true : @com.wsj.get, section == enum(world_news) && updated >= end_of(week) => notify',
+    'anyone is allowed to read articles published in the world news section of the Wall Street Journal if the updated is after the end of this week'],
 
-    ['true : @com.wsj.get, section == enum(world) && updated >= end_of(mon) => notify',
-    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is after the end of this month'],
+    ['true : @com.wsj.get, section == enum(world_news) && updated >= end_of(mon) => notify',
+    'anyone is allowed to read articles published in the world news section of the Wall Street Journal if the updated is after the end of this month'],
 
-    ['true : @com.wsj.get, section == enum(world) && updated >= end_of(year) => notify',
-    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is after the end of this year'],
+    ['true : @com.wsj.get, section == enum(world_news) && updated >= end_of(year) => notify',
+    'anyone is allowed to read articles published in the world news section of the Wall Street Journal if the updated is after the end of this year'],
 
-    ['true : @com.wsj.get, section == enum(world) && updated >= makeDate() + 1h => notify',
-    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is after 1 h past now'],
+    ['true : @com.wsj.get, section == enum(world_news) && updated >= makeDate() + 1h => notify',
+    'anyone is allowed to read articles published in the world news section of the Wall Street Journal if the updated is after 1 h past now'],
 
-    ['true : @com.wsj.get, section == enum(world) && updated >= makeDate() + 30min => notify',
-    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is after 30 min past now'],
+    ['true : @com.wsj.get, section == enum(world_news) && updated >= makeDate() + 30min => notify',
+    'anyone is allowed to read articles published in the world news section of the Wall Street Journal if the updated is after 30 min past now'],
 
-    ['true : @com.wsj.get, section == enum(world) && updated >= makeDate() - 30min => notify',
-    'anyone is allowed to read articles published in the world section of the Wall Street Journal if the updated is after 30 min before now'],
+    ['true : @com.wsj.get, section == enum(world_news) && updated >= makeDate() - 30min => notify',
+    'anyone is allowed to read articles published in the world news section of the Wall Street Journal if the updated is after 30 min before now'],
 ];
 
 const gettext = {
     locale: 'en-US',
-    dgettext: (domain, msgid) => msgid
+    dgettext: (domain, msgid) => msgid,
+    dngettext: (domain, msgid, msgid_plural, n) => n === 1 ? msgid : msgid_plural,
 };
 
 function test(i) {

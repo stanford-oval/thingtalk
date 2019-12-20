@@ -386,6 +386,13 @@ const TEST_CASES = [
     { QUOTED_STRING_0: "it's the evening" },
     `attimer(time=$context.time.evening) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's the evening");`],
 
+    // To test LITERAL_TIME but might want to drop this functionality
+    // Left sentence blank because "at noon" should map to TIME_0 instead
+    [`attimer time = time:12:0:0 => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = QUOTED_STRING_0`,
+    '',
+    { QUOTED_STRING_0: "it's noon" },
+    `attimer(time=makeTime(12, 0)) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's noon");`],
+
     ['now => [ param:description:String , param:title:String ] of ( @com.bing.web_search ) => notify',
     'get title and description from bing', {},
 
@@ -414,6 +421,10 @@ const TEST_CASES = [
     [`[ param:author:Entity(tt:username) , param:text:String ] of ( monitor ( @com.twitter.home_timeline ) on new param:text:String ) => notify`,
     `monitor new text of tweets and show me the text and author`, {},
     `[author, text] of (monitor (@com.twitter.home_timeline()) on new [text]) => notify;`],
+
+    ['now => @com.twitter.post param:status:String = context:selection:String',
+    'post this on twitter', {},
+    `now => @com.twitter.post(status=$context.selection : String);`],
 
     [`now => ( @com.twitter.home_timeline ) filter count ( param:hashtags:Array(Entity(tt:hashtag)) ) >= 0 => notify`,
     `get tweets with hashtags`, {},
@@ -446,7 +457,11 @@ const TEST_CASES = [
 
     [`compute distance ( param:location:Location , location:current_location ) of ( monitor ( @com.yelp.restaurants ) ) => notify`,
     `get restaurants and their distance from here`, {},
-    `compute distance(location, $context.location.current_location) of (monitor (@com.yelp.restaurants())) => notify;`]
+    `compute distance(location, $context.location.current_location) of (monitor (@com.yelp.restaurants())) => notify;`],
+
+    [`now => @light-bulb.set_power attribute:name:String = " bedroom " param:power:Enum(on,off) = enum:off`,
+    `turn off my bedroom lights`, {},
+    `now => @light-bulb(name="bedroom").set_power(power=enum(off));`],
 ];
 
 async function testCase(test, i) {

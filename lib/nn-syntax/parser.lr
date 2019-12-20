@@ -238,8 +238,30 @@ action = {
     call => new Ast.Action.Invocation(call, null);
 }
 
+selector = {
+    fn:FUNCTION => [new Ast.Selector.Device(fn.value.kind, null, null), fn.value.channel];
+
+    selector attr:device_attribute => {
+        const [sel,] = selector;
+        if (attr.name === 'id')
+            sel.id = attr.value.toJS();
+        else if (attr.name === 'all')
+            sel.all = attr.value.toJS();
+        else
+            sel.attributes.push(attr);
+        return selector;
+    };
+}
+
+device_attribute = {
+    pname:ATTRIBUTE_NAME '=' v:constant => new Ast.InputParam(pname.value, v);
+}
+
 call = {
-    fn:FUNCTION => new Ast.Invocation(new Ast.Selector.Device(fn.value.kind, null, null), fn.value.channel, [], null);
+    selector => {
+        const [sel, chan] = selector;
+        return new Ast.Invocation(sel, chan, [], null);
+    };
     inv:call ip:const_param => {
         inv = inv.clone();
         inv.in_params.push(ip);
@@ -397,6 +419,7 @@ constant = {
     constant_Entity__tt__picture;
     constant_Enum;
     out_param;
+    ctx:CONTEXT_REF => new Ast.Value.ContextRef(ctx.value.name, ctx.value.type);
     slot:SLOT => (slot.value === undefined ? Ast.Value.Undefined(true) : slot.value);
 }
 
@@ -417,6 +440,7 @@ string_constant = {
     'undefined' => new Ast.Value.Undefined(true);
     constant_String;
     out_param;
+    ctx:CONTEXT_REF => new Ast.Value.ContextRef(ctx.value.name, ctx.value.type);
     slot:SLOT => (slot.value === undefined ? Ast.Value.Undefined(true) : slot.value);
 }
 

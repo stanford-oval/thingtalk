@@ -1597,6 +1597,15 @@ now => @com.twitter.post(status=__const_NUMBER_0);
 
 ====
 
+now => @com.twitter.post(status = $context.selection : String);
+
+====
+
+// ** typecheck: expect TypeError **
+now => @com.twitter.post(status = $context.selection : Entity(tt:picture));
+
+====
+
 // compound value type
 {
   class @org.schema {
@@ -1926,3 +1935,35 @@ now => compute flat(review) of @org.schema.hotel() => notify;
 ====
 
 now => compute flat(review, author == 'bob') of @org.schema.hotel() => notify;
+
+====
+
+now => @light-bulb(name="bathroom").set_power(power=enum(on));
+now => @light-bulb(name="ceiling").set_power(power=enum(on));
+
+let action x(p_name : String) := @light-bulb(name=p_name).set_power(power=enum(on));
+
+====
+
+dataset @light-bulb {
+  action (p_name : String) := @light-bulb(name=p_name).set_power(power=enum(on))
+  #_[utterances=["turn on my $p_name lights"]];
+}
+
+====
+
+// ** typecheck: expect TypeError **
+// no param passing into a device attribute
+now => @com.bing.web_search() => @light-bulb(name=title).set_power(power=enum(on));
+
+====
+
+// ** typecheck: expect TypeError **
+// invalid enum
+now => @light-bulb.set_power(power=enum(cool));
+
+====
+
+// ** typecheck: expect TypeError **
+// invalid enum
+now => @org.thingpedia.icalendar.list_events(), status==enum(off) => notify;

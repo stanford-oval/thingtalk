@@ -1,3 +1,12 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Almond
+//
+// Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Silei Xu <silei@cs.stanford.edu>
+//
+// See COPYING for details
 "use strict";
 
 const assert = require('assert');
@@ -46,7 +55,21 @@ const TEST_CASES = [
   list query q(out num: Number);
 }
 now => (@foo.bar.q()), @foo.bar.itself(x=num) >= 0 => notify;
-now => (@foo.bar.q()), @for.bar.greaterThanZero(x=num) => notify;`
+now => (@foo.bar.q()), @for.bar.greaterThanZero(x=num) => notify;`,
+
+// device selectors
+`now => @light-bulb(name="bathroom").set_power(power=enum(on));`,
+`now => @light-bulb(id="io.home-assistant/http://hassio.local:8123-light.hue_bloom_1", name="bathroom").set_power(power=enum(on));`,
+`now => @light-bulb(all=true).set_power(power=enum(on));`,
+
+`dataset @everything language "en" {
+  query := @org.thingpedia.rss(all=true).get_post()
+  #_[utterances=["all rss feeds"]];
+
+  query (p_name :String) := @org.thingpedia.rss(name=p_name).get_post()
+  #_[utterances=["$p_name rss feed"]];
+}
+`,
 ];
 
 function main() {

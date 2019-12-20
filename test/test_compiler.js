@@ -6018,6 +6018,48 @@ const TEST_CASES = [
   } catch(_exc_) {
     __env.reportError("Failed to invoke query", _exc_);
   }`]],
+
+  //77 Test screen selection as a context
+    [`now => @com.twitter.post(status=$context.selection: String);`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  try {
+    _t_0 = {};
+    _t_1 = await __env.loadContext("selection", "String");
+    _t_0.status = _t_1;
+    await __env.invokeAction("com.twitter", { }, "post", _t_0);
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke action", _exc_);
+  }`]],
+
+    //78 Test device selector
+    [`now => @light-bulb(name="bedroom").set_power(power=enum(on));`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  try {
+    _t_0 = {};
+    _t_1 = "on";
+    _t_0.power = _t_1;
+    await __env.invokeAction("light-bulb", { name: "bedroom", }, "set_power", _t_0);
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke action", _exc_);
+  }`]],
+
+    //78 Test device selector (with explicit all)
+    [`now => @light-bulb(name="bedroom", all=true).set_power(power=enum(on));`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  try {
+    _t_0 = {};
+    _t_1 = "on";
+    _t_0.power = _t_1;
+    await __env.invokeAction("light-bulb", { name: "bedroom", }, "set_power", _t_0);
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke action", _exc_);
+  }`]],
 ];
 
 // eslint-disable-next-line prefer-arrow-callback
