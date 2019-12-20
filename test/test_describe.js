@@ -40,7 +40,7 @@ var TEST_CASES = [
     'send me a message ____ every day at 12:00 PM',
     'Say'],
     [`attimer(time=[makeTime(9,0), makeTime(15,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");`,
-    `send me a message “it's 9am or 3pm” every day at 9:00 AM and 3:00 PM`,//'
+    `send me a message “it's 9am or 3pm” every day at 9:00 AM, 3:00 PM`,//'
     'Say'],
     [`attimer(time=[makeTime(9,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am");`,
     `send me a message “it's 9am” every day at 9:00 AM`,//'
@@ -55,7 +55,7 @@ var TEST_CASES = [
     `send me a message “it's the evening” every 2 h`,//'
     'Say'],
     [`timer(base=makeDate(), interval=2h, frequency=2) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's the evening");`,
-    `send me a message “it's the evening” 2 times every 2 h`,//'
+    `send me a message “it's the evening” twice every 2 h`,//'
     'Say'],
 
     [`now => @com.xkcd.get_comic() => notify;`,
@@ -87,7 +87,7 @@ var TEST_CASES = [
     `get the current weather for at work and then notify you`,
     'Weather ⇒ Notification'],
     [`now => @org.thingpedia.weather.current(location=makeLocation(37,-137)) => notify;`,
-    `get the current weather for [Latitude: 37.000 deg, Longitude: -137.000 deg] and then notify you`,
+    `get the current weather for [Latitude: 37 deg, Longitude: -137 deg] and then notify you`,
     'Weather ⇒ Notification'],
     [`now => @org.thingpedia.weather.current(location=makeLocation(37,-137, "Somewhere")) => notify;`,
     `get the current weather for Somewhere and then notify you`,
@@ -104,10 +104,10 @@ var TEST_CASES = [
     'Weather ⇒ Notification'],*/
 
     [`now => @com.instagram.get_pictures(), in_array(caption,["foo","bar"]) => notify;`,
-    `get your recent Instagram pictures if “foo”, “bar” contains the caption and then notify you`,
+    `get your recent Instagram pictures such that the caption is any of “foo”, “bar” and then notify you`,
     'Instagram ⇒ Notification'],
     [`now => @com.instagram.get_pictures(), contains(hashtags, "foo"^^tt:hashtag) => notify;`,
-    `get your recent Instagram pictures if the hashtags contain #foo and then notify you`,
+    `get your recent Instagram pictures such that the hashtags contain #foo and then notify you`,
     'Instagram ⇒ Notification'],
 
     [`now => @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code, text="hello") => @com.facebook.post(status=$event);`,
@@ -237,7 +237,7 @@ var TEST_CASES = [
     'get the last files in your Google Drive and then notify you',
     'Google Drive ⇒ Notification'],
     [`now => @com.google.drive.list_drive_files()[$?] => notify;`,
-    'get the ____-nth files in your Google Drive and then notify you',
+    'get the files in your Google Drive with index ____ and then notify you',
     'Google Drive ⇒ Notification'],
     [`now => @com.google.drive.list_drive_files()[1:$?] => notify;`,
     'get the first ____ files in your Google Drive and then notify you',
@@ -294,9 +294,17 @@ var TEST_CASES = [
     [`now => result(@com.thecatapi.get[1]) => notify;`,
     'get the first cat picture and then notify you', 'Thecatapi ⇒ Notification'],
     [`now => result(@com.thecatapi.get[2]) => notify;`,
-    'get the 2-th cat picture and then notify you', 'Thecatapi ⇒ Notification'],
+    'get the second cat picture and then notify you', 'Thecatapi ⇒ Notification'],
     [`now => result(@com.thecatapi.get[-2]) => notify;`,
-    'get the 2-th last cat picture and then notify you', 'Thecatapi ⇒ Notification'],
+    'get the second to last cat picture and then notify you', 'Thecatapi ⇒ Notification'],
+    [`now => result(@com.thecatapi.get[3]) => notify;`,
+    'get the third cat picture and then notify you', 'Thecatapi ⇒ Notification'],
+    [`now => result(@com.thecatapi.get[-3]) => notify;`,
+    'get the 3rd last cat picture and then notify you', 'Thecatapi ⇒ Notification'],
+    [`now => result(@com.thecatapi.get[4]) => notify;`,
+    'get the 4th cat picture and then notify you', 'Thecatapi ⇒ Notification'],
+    [`now => result(@com.thecatapi.get[-4]) => notify;`,
+    'get the 4th last cat picture and then notify you', 'Thecatapi ⇒ Notification'],
     [`now => @com.spotify.get_currently_playing() => @com.spotify.add_songs_to_playlist(songs=[song]);`,
     'get the currently playing track and then add the songs the song to the playlist ____', 'Spotify ⇒ Spotify'],
     [`attimer(time=$?) => @com.twitter.post();`,

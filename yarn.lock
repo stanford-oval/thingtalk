@@ -1821,7 +1821,7 @@ sshpk@^1.7.0:
 
 "string-interp@git://github.com/stanford-oval/string-interp":
   version "0.1.0"
-  resolved "git://github.com/stanford-oval/string-interp#e050bd860ba1fbc17f111eec50c1f2fe282cb4c5"
+  resolved "git://github.com/stanford-oval/string-interp#ec6cebed07054bfcf4cd4b11f2aab7eef56f65a8"
   dependencies:
     thingtalk-units "^0.1.0"
 

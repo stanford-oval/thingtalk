@@ -66,7 +66,7 @@ var TEST_CASES = [
      'anyone in the @family group is allowed to tweet any status'],
 
     ['source == "mom"^^tt:username || source == "dad"^^tt:username : now => @com.twitter.post',
-     'anyone if the requester is equal to @mom or the requester is equal to @dad is allowed to tweet any status'],
+     'if the requester is equal to @mom or the requester is equal to @dad, the requester is allowed to tweet any status'],
 
     ['true : now => @com.twitter.post, status == "foo"',
      'anyone is allowed to tweet “foo”'],
