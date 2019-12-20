@@ -53,6 +53,5 @@ lib/schema.js
 lib/sql_compiler.js
 lib/typecheck.js
 lib/type.js
-lib/units.js
 lib/utils.js
 lib/wikidata_sparql.js

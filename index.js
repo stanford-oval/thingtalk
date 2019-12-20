@@ -9,6 +9,8 @@
 // See COPYING for details
 "use strict";
 
+const Units = require('thingtalk-units');
+
 const Ast = require('./lib/ast');
 const Compiler = require('./lib/compiler');
 const Grammar = require('./lib/grammar_api');
@@ -19,7 +21,6 @@ const Generate = require('./lib/generate');
 const Describe = require('./lib/describe');
 const Formatter = require('./lib/runtime/formatter');
 const PermissionChecker = require('./lib/permission_checker');
-const Units = require('./lib/units');
 const NNSyntax = require('./lib/nn-syntax');
 const Helper = require('./lib/helper');
 const I18n = require('./lib/i18n');
