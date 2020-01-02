@@ -42,7 +42,7 @@ for (let method of Object.getOwnPropertyNames(NodeVisitor.prototype)) {
     if (!method.startsWith('visit'))
         continue;
     let className = method.substring('visit'.length);
-    TestVisitor.prototype[method] = async function(node) {
+    TestVisitor.prototype[method] = function(node) {
         if (className !== 'Value')
             assert.strictEqual(node.constructor.name, className);
         assert(this._stack.length > 0);
