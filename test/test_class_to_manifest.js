@@ -26,7 +26,7 @@ const TEST_CASES = [
     '#_[name="Foo"]\n' +
     '#_[description="This is Foo"] {\n' +
     '  import loader from @org.thingpedia.v2();\n' +
-    '  import config from @org.thingpedia.config.form(params=makeArgMap(url:Entity(tt:url),password:Entity(tt:password)));\n' +
+    '  import config from @org.thingpedia.config.form(params=new ArgMap(url:Entity(tt:url),password:Entity(tt:password)));\n' +
     '\n' +
     '  monitorable query get_power(out power: Enum(on,off))\n' +
     '  #_[canonical="power status of foo"]\n' +
@@ -56,7 +56,7 @@ const TEST_CASES = [
 
     'class @com.foo {\n' +
     '  import loader from @org.thingpedia.v2();\n' +
-    '  import config from @org.thingpedia.config.basic_auth(extra_params=makeArgMap(serial_number:String));\n' +
+    '  import config from @org.thingpedia.config.basic_auth(extra_params=new ArgMap(serial_number:String));\n' +
     '}\n',
 
     'class @com.foo {\n' +
@@ -93,17 +93,17 @@ const TEST_CASES = [
 
     'class @com.foo {\n' +
     '  import loader from @org.thingpedia.v2();\n' +
-    '  import config from @org.thingpedia.config.form(params=makeArgMap(url:Entity(tt:url),text:String));\n' +
+    '  import config from @org.thingpedia.config.form(params=new ArgMap(url:Entity(tt:url),text:String));\n' +
     '}\n',
 
     'class @com.foo {\n' +
     '  import loader from @org.thingpedia.v2();\n' +
-    '  import config from @org.thingpedia.config.form(params=makeArgMap(email:Entity(tt:email_address),text:String));\n' +
+    '  import config from @org.thingpedia.config.form(params=new ArgMap(email:Entity(tt:email_address),text:String));\n' +
     '}\n',
 
     'class @com.foo {\n' +
     '  import loader from @org.thingpedia.v2();\n' +
-    '  import config from @org.thingpedia.config.form(params=makeArgMap(number:Entity(tt:phone_number),text:String));\n' +
+    '  import config from @org.thingpedia.config.form(params=new ArgMap(number:Entity(tt:phone_number),text:String));\n' +
     '}\n',
 
     {
