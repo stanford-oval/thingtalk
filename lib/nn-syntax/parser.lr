@@ -586,8 +586,8 @@ constant_Location = {
 // start_of/end_of with less than 1h are not supported
 // (they don't make sense)
 constant_Date = {
-    'now' => new Ast.Value.Date(null, '+', null);
-    'new' 'Date' '(' ')' => new Ast.Value.Date(null, '+', null);
+    'now' => new Ast.Value.Date(null);
+    'new' 'Date' '(' ')' => new Ast.Value.Date(null);
     'new' 'Date' '(' year:literal_number ',' month:literal_number ',' day:literal_number ')' => {
         const d = new Date;
         d.setFullYear(year);
@@ -597,7 +597,7 @@ constant_Date = {
         d.setMinutes(0);
         d.setSeconds(0);
         d.setMilliseconds(0);
-        return new Ast.Value.Date(d, '+', null);
+        return new Ast.Value.Date(d);
     };
     'new' 'Date' '(' year:literal_number ',' month:literal_number ',' day:literal_number ','
                      hours:literal_number ',' minutes:literal_number ',' seconds:literal_number ')' => {
@@ -609,20 +609,20 @@ constant_Date = {
         d.setMinutes(minutes);
         d.setSeconds(seconds);
         d.setMilliseconds(0);
-        return new Ast.Value.Date(d, '+', null);
+        return new Ast.Value.Date(d);
     };
     'new' 'Date' '(' unix:literal_number ')' => {
         const d = new Date;
         d.setTime(unix);
-        return new Ast.Value.Date(d, '+', null);
+        return new Ast.Value.Date(d);
     };
     'new' 'Date' '(' '"' iso:word_list '"' ')' => {
-        return new Ast.Value.Date(new Date(iso), '+', null);
+        return new Ast.Value.Date(new Date(iso));
     };
 
-    'start_of' unit:UNIT => new Ast.Value.Date(new Ast.DateEdge('start_of', unit.value), '+', null);
-    'end_of' unit:UNIT => new Ast.Value.Date(new Ast.DateEdge('end_of', unit.value), '+', null);
-    abs:DATE => new Ast.Value.Date(parseDate(abs.value), '+', null);
+    'start_of' unit:UNIT => new Ast.Value.Date(new Ast.DateEdge('start_of', unit.value));
+    'end_of' unit:UNIT => new Ast.Value.Date(new Ast.DateEdge('end_of', unit.value));
+    abs:DATE => new Ast.Value.Date(parseDate(abs.value));
 }
 
 // Note that while keeping digits in ranges [0-23],[0-59],[0-59] is not enforced
