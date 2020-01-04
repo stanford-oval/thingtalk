@@ -100,13 +100,13 @@ const TEST_CASES = [
     `notify me if the temperature is above NUMBER_0 degrees`, {'NUMBER_0': 70},
     `monitor ((@thermostat.get_temperature()), value > 70F) => notify;`],
 
-    [`now => timeseries now , 1 unit:week of ( monitor ( @thermostat.get_temperature ) ) => notify`,
+    [`now => timeseries ( now , 1 unit:week ) of ( monitor ( @thermostat.get_temperature ) ) => notify`,
     `show me the temperature on the thermostat in the last week`, {},
-    `now => timeseries makeDate(), 1week of (monitor (@thermostat.get_temperature())) => notify;`],
+    `now => timeseries (makeDate(), 1week) of (monitor (@thermostat.get_temperature())) => notify;`],
 
-    [`now => timeseries now , NUMBER_0 unit:week of ( monitor ( @thermostat.get_temperature ) ) => notify`,
+    [`now => timeseries ( now , NUMBER_0 unit:week ) of ( monitor ( @thermostat.get_temperature ) ) => notify`,
     `show me the temperature on the thermostat in the last NUMBER_0 weeks`, {NUMBER_0: 2},
-    `now => timeseries makeDate(), 2week of (monitor (@thermostat.get_temperature())) => notify;`],
+    `now => timeseries (makeDate(), 2week) of (monitor (@thermostat.get_temperature())) => notify;`],
 
     [`now => ( @com.bing.image_search ) filter param:width:Number > NUMBER_0 or param:height:Number > NUMBER_1 => notify`,
     `search images wider than NUMBER_0 pixels or taller than NUMBER_1 pixels`, {NUMBER_0: 100, NUMBER_1:200},
@@ -431,9 +431,9 @@ const TEST_CASES = [
     `now => (@com.twitter.home_timeline()), count(hashtags) >= 0 => notify;`],
 
     // just to test syntax, in reality we should not generate examples like this
-    [`now => ( @com.twitter.home_timeline ) filter count ( param:hashtags:Array(Entity(tt:hashtag)) filter param:value:Entity(tt:hashtag) == " foo " ^^tt:hashtag ) >= 0 => notify`,
+    [`now => ( @com.twitter.home_timeline ) filter count ( param:hashtags:Array(Entity(tt:hashtag)) filter { param:value:Entity(tt:hashtag) == " foo " ^^tt:hashtag } ) >= 0 => notify`,
     `get tweets with hashtags foo`, {},
-    `now => (@com.twitter.home_timeline()), count(hashtags, value == "foo"^^tt:hashtag) >= 0 => notify;`],
+    `now => (@com.twitter.home_timeline()), count((hashtags) filter { value == "foo"^^tt:hashtag }) >= 0 => notify;`],
 
     [`now => ( @com.yelp.restaurants ) filter min ( param:ratings:Array(Number) ) >= NUMBER_0 => notify`,
     `get restaurants with no rating below NUMBER_0`, { NUMBER_0: 3 },
@@ -441,23 +441,23 @@ const TEST_CASES = [
 
     [`now => ( @com.yelp.restaurants ) filter min ( param:rating:Number of param:reviews:Array(Compound) ) >= NUMBER_0 => notify`,
     `get restaurants with no rating below NUMBER_0`, { NUMBER_0: 3 },
-    `now => (@com.yelp.restaurants()), min(rating of reviews) >= 3 => notify;`],
+    `now => (@com.yelp.restaurants()), min(rating of (reviews)) >= 3 => notify;`],
 
     [`now => compute distance ( param:location:Location , location:current_location ) of ( @com.yelp.restaurants ) => notify`,
     `get restaurants and their distance from here`, {},
-    `now => compute distance(location, $context.location.current_location) of (@com.yelp.restaurants()) => notify;`],
+    `now => compute (distance(location, $context.location.current_location)) of (@com.yelp.restaurants()) => notify;`],
 
-    [`now => compute filter ( param:reviews:Array(Compound) filter param:rating:Number >= NUMBER_0 ) of ( @com.yelp.restaurants ) => notify`,
+    [`now => compute ( param:reviews:Array(Compound) filter { param:rating:Number >= NUMBER_0 } ) of ( @com.yelp.restaurants ) => notify`,
     `get restaurants and their reviews better than NUMBER_0`, { NUMBER_0: 4 },
-    `now => compute filter(reviews, rating >= 4) of (@com.yelp.restaurants()) => notify;`],
+    `now => compute ((reviews) filter { rating >= 4 }) of (@com.yelp.restaurants()) => notify;`],
 
     [`now => compute count ( param:reviews:Array(Compound) ) of ( @com.yelp.restaurants ) => notify`,
     `get restaurants and how many reviews they have`, {},
-    `now => compute count(reviews) of (@com.yelp.restaurants()) => notify;`],
+    `now => compute (count(reviews)) of (@com.yelp.restaurants()) => notify;`],
 
     [`compute distance ( param:location:Location , location:current_location ) of ( monitor ( @com.yelp.restaurants ) ) => notify`,
     `get restaurants and their distance from here`, {},
-    `compute distance(location, $context.location.current_location) of (monitor (@com.yelp.restaurants())) => notify;`],
+    `compute (distance(location, $context.location.current_location)) of (monitor (@com.yelp.restaurants())) => notify;`],
 
     [`now => @light-bulb.set_power attribute:name:String = " bedroom " param:power:Enum(on,off) = enum:off`,
     `turn off my bedroom lights`, {},

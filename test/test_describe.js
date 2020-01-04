@@ -317,6 +317,11 @@ var TEST_CASES = [
     'notify you when the status of your smoke alarm changes', 'Smoke Alarm ⇒ Notification'],
     [`monitor (@smoke-alarm(name="kitchen").status()) => notify;`,
     'notify you when the status of your “kitchen” smoke alarm changes', 'Smoke Alarm ⇒ Notification'],
+
+    [`now => compute distance(geo, $context.location.current_location) of @org.schema.place() => notify;`,
+    'get places and the distance between the geo and here and then notify you', 'Schema ⇒ Notification'],
+    [`compute distance(geo, $context.location.current_location) of (timer(base=$?, interval=$?) join @org.schema.place()) => notify;`,
+    'notify you every ____ starting ____, get places and the distance between the geo and here', 'Schema ⇒ Notification'],
 ];
 
 const gettext = {

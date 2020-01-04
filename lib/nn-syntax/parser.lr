@@ -63,7 +63,7 @@ const { parseDate } = require('../date_utils');
 input = {
     program;
     'bookkeeping' 'special' s:SPECIAL => new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.Special(s.value));
-    'bookkeeping' 'answer' c:constant => new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.Answer(c));
+    'bookkeeping' 'answer' c:value => new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.Answer(c));
     'bookkeeping' 'filter' f:filter => new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.Predicate(f));
     'bookkeeping' 'category' c:command_category => new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.CommandList(new Ast.Value.Undefined(true), c));
     'bookkeeping' 'commands' c:command_category d:constant_Entity__tt__device => new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.CommandList(d, c));
@@ -93,7 +93,7 @@ command_category = {
 
 program = {
     rule:rule => new Ast.Program([], [], [rule], null);
-    'executor' '=' user:constant ':' rule => {
+    'executor' '=' user:value ':' rule => {
         return new Ast.Program([], [], [rule], user);
     };
 }
@@ -158,27 +158,26 @@ table = {
     'result' '(' fn:FUNCTION ')' => {
         return new Ast.Table.ResultRef(fn.value.kind, fn.value.channel, new Ast.Value.Number(-1), null);
     };
-    'result' '(' fn:FUNCTION '[' index:constant ']' ')' => {
+    'result' '(' fn:FUNCTION '[' index:value ']' ')' => {
         return new Ast.Table.ResultRef(fn.value.kind, fn.value.channel, index, null);
     };
 
-    'aggregate' op:aggr_op field:out_param 'of' '(' table ')' => new Ast.Table.Aggregation(table, field.name, op, null, null);
+    'aggregate' op:aggr_op pname:PARAM_NAME 'of' '(' table ')' => new Ast.Table.Aggregation(table, pname.value, op, null, null);
     'aggregate' 'count' 'of' '(' table ')'                    => new Ast.Table.Aggregation(table, '*', 'count', null, null);
 
-    'sort' field:out_param 'asc' 'of' '(' table ')'           => new Ast.Table.Sort(table, field.name, 'asc', null);
-    'sort' field:out_param 'desc' 'of' '(' table ')'          => new Ast.Table.Sort(table, field.name, 'desc', null);
-    '(' table ')' '[' indices:constant_array_values ']'       => new Ast.Table.Index(table, indices, null);
-    '(' table ')' '[' base:constant ':' delta:constant ']'    => new Ast.Table.Slice(table, base, delta, null);
+    'sort' pname:PARAM_NAME 'asc' 'of' '(' table ')'           => new Ast.Table.Sort(table, pname.value, 'asc', null);
+    'sort' pname:PARAM_NAME 'desc' 'of' '(' table ')'          => new Ast.Table.Sort(table, pname.value, 'desc', null);
+    '(' table ')' '[' indices:array_literal_values ']'       => new Ast.Table.Index(table, indices, null);
+    '(' table ')' '[' base:value ':' delta:value ']'    => new Ast.Table.Slice(table, base, delta, null);
 
     '[' pnames:out_param_list ']' 'of' '(' table ')'          => new Ast.Table.Projection(table, pnames.map((p) => p.name), null);
 
-    'compute' expr:scalar_expression 'of' '(' table ')'       => new Ast.Table.Compute(table, expr, null, null);
-    'compute' expr:aggregate_expression 'of' '(' table ')'       => new Ast.Table.Compute(table, expr, null, null);
+    'compute' expr:non_ambiguous_value 'of' '(' table ')'       => new Ast.Table.Compute(table, expr, null, null);
 
-    'window' base:constant ',' delta:constant 'of' '(' stream ')'        => new Ast.Table.Window(base, delta, stream, null);
-    'timeseries' base:constant ',' delta:constant 'of' '(' stream ')' => new Ast.Table.TimeSeries(base, delta, stream, null);
-    'sequence' base:constant ',' delta:constant 'of' '(' table ')'       => new Ast.Table.Sequence(base, delta, table, null);
-    'history' base:constant ',' delta:constant 'of' '(' table ')'     => new Ast.Table.History(base, delta, table, null);
+    'window' '(' base:value ',' delta:value ')' 'of' '(' stream ')'        => new Ast.Table.Window(base, delta, stream, null);
+    'timeseries' '(' base:value ',' delta:value ')' 'of' '(' stream ')' => new Ast.Table.TimeSeries(base, delta, stream, null);
+    'sequence' '(' base:value ',' delta:value ')' 'of' '(' table ')'       => new Ast.Table.Sequence(base, delta, table, null);
+    'history' '(' base:value ',' delta:value ')' 'of' '(' table ')'     => new Ast.Table.History(base, delta, table, null);
 
     table_join;
 }
@@ -193,10 +192,10 @@ table_join = {
 }
 
 stream = {
-    'timer' 'base' '=' base:constant ',' 'interval' '=' interval:constant => new Ast.Stream.Timer(base, interval, null, null);
-    'timer' 'base' '=' base:constant ',' 'interval' '=' interval:constant ',' 'frequency' '=' frequency:constant => new Ast.Stream.Timer(base, interval, frequency, null);
-    'attimer' 'time' '=' time:constant => new Ast.Stream.AtTimer(time.isArray ? time.value : [time], null, null);
-    'attimer' 'time' '=' time:constant ',' 'expiration_date' '=' expiration_date:constant => new Ast.Stream.AtTimer(time.isArray ? time.value : [time], expiration_date, null);
+    'timer' 'base' '=' base:value ',' 'interval' '=' interval:value => new Ast.Stream.Timer(base, interval, null, null);
+    'timer' 'base' '=' base:value ',' 'interval' '=' interval:value ',' 'frequency' '=' frequency:value => new Ast.Stream.Timer(base, interval, frequency, null);
+    'attimer' 'time' '=' time:value => new Ast.Stream.AtTimer(time.isArray ? time.value : [time], null, null);
+    'attimer' 'time' '=' time:value ',' 'expiration_date' '=' expiration_date:value => new Ast.Stream.AtTimer(time.isArray ? time.value : [time], expiration_date, null);
 
     'monitor' '(' table ')' => new Ast.Stream.Monitor(table, null, null);
     'monitor' '(' table ')' 'on' 'new' pname:out_param => {
@@ -216,8 +215,7 @@ stream = {
 
     '[' pnames:out_param_list ']' 'of' '(' stream ')'          => new Ast.Stream.Projection(stream, pnames.map((p) => p.name), null);
 
-    'compute' expr:scalar_expression 'of' '(' stream ')'       => new Ast.Stream.Compute(stream, expr, null, null);
-    'compute' expr:aggregate_expression 'of' '(' stream ')'       => new Ast.Stream.Compute(stream, expr, null, null);
+    'compute' expr:non_ambiguous_value 'of' '(' stream ')'       => new Ast.Stream.Compute(stream, expr, null, null);
 
     stream_join;
 }
@@ -254,7 +252,7 @@ selector = {
 }
 
 device_attribute = {
-    pname:ATTRIBUTE_NAME '=' v:constant => new Ast.InputParam(pname.value, v);
+    pname:ATTRIBUTE_NAME '=' v:value => new Ast.InputParam(pname.value, v);
 }
 
 call = {
@@ -274,7 +272,7 @@ param_passing = {
     pname:PARAM_NAME '=' 'event' => new Ast.InputParam(pname.value, new Ast.Value.Event(null));
 }
 
-const_param = pname:PARAM_NAME '=' v:constant => new Ast.InputParam(pname.value, v);
+const_param = pname:PARAM_NAME '=' v:value => new Ast.InputParam(pname.value, v);
 
 out_param = pname:PARAM_NAME => new Ast.Value.VarRef(pname.value);
 
@@ -303,16 +301,21 @@ or_filter = {
 }
 
 atom_filter = {
-    pname:PARAM_NAME filter:value_filter => {
-        const [op, v] = filter;
-        return new Ast.BooleanExpression.Atom(pname.value, op, v);
+    pname:PARAM_NAME op:comparison_op rhs:value => {
+        return new Ast.BooleanExpression.Atom(pname.value, op, rhs);
     };
-    aggregate_filter;
+    lhs:non_ambiguous_value op:comparison_op rhs:value => {
+        if (lhs.isVarRef)
+            return new Ast.BooleanExpression.Atom(lhs.name, op, rhs);
+        else
+            return new Ast.BooleanExpression.Compute(lhs, op, rhs);
+    };
     fn:call '{' filter '}' => {
         return new Ast.BooleanExpression.External(fn.selector, fn.channel, fn.in_params, filter, null);
     };
 }
 
+/*
 aggregate_expression = {
     'count' '(' pname:PARAM_NAME ')' => {
         const list = new Ast.ListExpression(pname.value, null);
@@ -344,7 +347,9 @@ aggregate_expression = {
         return new Ast.ScalarExpression.Aggregation(op, field.value, list);
     };
 }
+*/
 
+/*
 scalar_expression = {
     op:scalar_op '(' operand_list ')' => {
         return new Ast.ScalarExpression.Derived(op, operand_list);
@@ -354,50 +359,148 @@ scalar_expression = {
         return new Ast.ScalarExpression.Filter(list);
     };
 }
+*/
 
 operand_list = {
-    constant => [new Ast.ScalarExpression.Primary(constant)];
-    list:operand_list ',' constant => {
-        list.push(new Ast.ScalarExpression.Primary(constant));
+    value => [value];
+    list:operand_list ',' value => {
+        list.push(value);
         return list;
     };
 }
 
-aggregate_filter = {
-    lhs:aggregate_expression filter:value_filter => {
-        const [op, rhs] = filter;
-        return new Ast.BooleanExpression.Compute(lhs, op, rhs);
-    };
-    lhs:scalar_expression filter:value_filter => {
-        const [op, rhs] = filter;
-        return new Ast.BooleanExpression.Compute(lhs, op, rhs);
-    };
+comparison_op = {
+    '==';
+    '>=';
+    '<=';
+    '>';
+    '<';
+    '=~';
+    '~=';
+    'starts_with';
+    'ends_with';
+    'prefix_of';
+    'suffix_of';
+    'contains';
+    'in_array';
 }
 
-// in luinet these are strongly typed constants, so only
-// numbers and measures can be compared for order, etc
-// we're a little looser here because otherwise it becomes unwieldly
-value_filter = {
-    '==' v:constant => ['==', v];
-    '>=' v:comparable_constant => ['>=', v];
-    '<=' v:comparable_constant => ['<=', v];
-    '>' v:comparable_constant => ['>', v];
-    '<' v:comparable_constant => ['<', v];
-    '=~' v:string_constant => ['=~', v];
-    '~=' v:string_constant => ['~=', v];
-    'starts_with' v:string_constant => ['starts_with', v];
-    'ends_with' v:string_constant => ['ends_with', v];
-    'prefix_of' v:string_constant => ['prefix_of', v];
-    'suffix_of' v:string_constant => ['suffix_of', v];
-    'contains' v:constant => ['contains', v];
-    'in_array' v:constant => ['in_array', v];
+// to avoid ambiguity caused by the "true" boolean constant and the "true" boolean expression
+// and the `PARAM_NAME of ...` value (array field) and the `PARAM_NAME of ...` table (projection)
+// we need to force certain expressions not to be constants or raw PARAM_NAMEs
+// to do that, we need to duplicate the grammar
+non_ambiguous_value = {
+    nc_add_expr;
 }
 
-// this non-terminal exists only for convenience
-// the almond nn-parser grammar does not have it
-constant = {
+nc_add_expr = {
+    nc_mul_expr;
+
+    lhs:nc_add_expr '+' rhs:nc_mul_expr => new Ast.Value.Computation('+', [lhs, rhs]);
+    lhs:nc_add_expr '-' rhs:nc_mul_expr => new Ast.Value.Computation('-', [lhs, rhs]);
+}
+nc_mul_expr = {
+    nc_exp_expr;
+
+    lhs:nc_mul_expr '*' rhs:nc_exp_expr => new Ast.Value.Computation('*', [lhs, rhs]);
+    lhs:nc_mul_expr '/' rhs:nc_exp_expr => new Ast.Value.Computation('/', [lhs, rhs]);
+    lhs:nc_mul_expr '%' rhs:nc_exp_expr => new Ast.Value.Computation('%', [lhs, rhs]);
+}
+nc_exp_expr = {
+    nc_array_field_value;
+
+    lhs:nc_exp_expr '**' rhs:nc_array_field_value => new Ast.Value.Computation('**', [lhs, rhs]);
+}
+
+nc_array_field_value = {
+    field:PARAM_NAME 'of' value:nc_filter_value => new Ast.Value.ArrayField(value, field.value);
+
+    nc_filter_value;
+}
+
+nc_filter_value = {
+    nc_primary_value;
+
+    value:nc_primary_value 'filter' '{' filter '}' => new Ast.Value.Filter(value, filter);
+}
+
+nc_primary_value = {
+    // if we introduce a level of parenthesis, the ambiguity caused by "true"/"false"
+    // goes away and we can use constants too
+    '(' value ')' => value;
+
+    array_value;
+    scalar_function;
+    undefined_value;
+    context_value;
+}
+
+primary_value = {
+    nc_primary_value;
+    var_ref_value;
+    constant_value;
+}
+
+
+value = {
+    add_expr;
+}
+
+add_expr = {
+    mul_expr;
+
+    lhs:add_expr '+' rhs:mul_expr => new Ast.Value.Computation('+', [lhs, rhs]);
+    lhs:add_expr '-' rhs:mul_expr => new Ast.Value.Computation('-', [lhs, rhs]);
+}
+mul_expr = {
+    exp_expr;
+
+    lhs:mul_expr '*' rhs:exp_expr => new Ast.Value.Computation('*', [lhs, rhs]);
+    lhs:mul_expr '/' rhs:exp_expr => new Ast.Value.Computation('/', [lhs, rhs]);
+    lhs:mul_expr '%' rhs:exp_expr => new Ast.Value.Computation('%', [lhs, rhs]);
+}
+exp_expr = {
+    array_field_value;
+
+    lhs:exp_expr '**' rhs:array_field_value => new Ast.Value.Computation('**', [lhs, rhs]);
+}
+
+array_field_value = {
+    field:PARAM_NAME 'of' value:filter_value => new Ast.Value.ArrayField(value, field.value);
+
+    filter_value;
+}
+
+filter_value = {
+    primary_value;
+
+    value:primary_value 'filter' '{' filter '}' => new Ast.Value.Filter(value, filter);
+}
+
+scalar_function = {
+    op:scalar_op '(' operand_list ')' => new Ast.Value.Computation(op, operand_list);
+    op:aggr_op '(' value ')' => new Ast.Value.Computation(op, [value]);
+    'count' '(' value ')' => new Ast.Value.Computation('count', [value]);
+}
+
+undefined_value = {
     'undefined' => new Ast.Value.Undefined(true);
-    constant_Array;
+}
+
+var_ref_value = {
+    out_param;
+}
+
+context_value = {
+    ctx:CONTEXT_REF => new Ast.Value.ContextRef(ctx.value.name, ctx.value.type);
+}
+
+array_value = {
+    '[' ']' => new Ast.Value.Array([]);
+    '[' values:array_literal_values ']' => new Ast.Value.Array(values);
+}
+
+constant_value = {
     constant_Boolean;
     constant_String;
     constant_Measure;
@@ -415,43 +518,14 @@ constant = {
     constant_Entity__tt__path_name;
     constant_Entity__tt__url;
     constant_Entity__tt__device;
-    constant_Entity__tt__function;
     constant_Entity__tt__picture;
     constant_Enum;
-    out_param;
-    ctx:CONTEXT_REF => new Ast.Value.ContextRef(ctx.value.name, ctx.value.type);
     slot:SLOT => (slot.value === undefined ? Ast.Value.Undefined(true) : slot.value);
 }
 
-comparable_constant = {
-    'undefined' => new Ast.Value.Undefined(true);
-    constant_String;
-    constant_Measure;
-    tok: DURATION => new Ast.Value.Measure(tok.value.value, tok.value.unit);
-    constant_Number;
-    constant_Currency;
-    constant_Date;
-    constant_Time;
-    out_param;
-    slot:SLOT => (slot.value === undefined ? Ast.Value.Undefined(true) : slot.value);
-}
-
-string_constant = {
-    'undefined' => new Ast.Value.Undefined(true);
-    constant_String;
-    out_param;
-    ctx:CONTEXT_REF => new Ast.Value.ContextRef(ctx.value.name, ctx.value.type);
-    slot:SLOT => (slot.value === undefined ? Ast.Value.Undefined(true) : slot.value);
-}
-
-constant_Array = {
-    '[' ']' => new Ast.Value.Array([]);
-    '[' values:constant_array_values ']' => new Ast.Value.Array(values);
-}
-
-constant_array_values = {
-    constant => [constant];
-    array:constant_array_values ',' v:constant => array.concat([v]);
+array_literal_values = {
+    value => [value];
+    array:array_literal_values ',' v:value => array.concat([v]);
 }
 
 constant_Boolean = {
@@ -477,30 +551,9 @@ literal_number = {
     '0' => 0;
 }
 
-constant_one_measure = {
+constant_Measure = {
     num:literal_number unit:UNIT => new Ast.Value.Measure(num, unit.value);
     tok:MEASURE => new Ast.Value.Measure(tok.value.value, tok.value.unit);
-}
-
-constant_Measure = {
-    constant_one_measure;
-
-    v1:constant_Measure v2:constant_one_measure => {
-      if (v1.isCompoundMeasure) {
-          v1.value.push(v2);
-          return v1;
-      } else {
-          return new Ast.Value.CompoundMeasure([v1, v2]);
-      }
-    };
-}
-constant_Measure_ms = {
-    v:constant_Measure => {
-        if (!Type.Measure('ms').equals(v.getType()))
-            throw $.error(`Invalid Measure(ms) constant`);
-        return v;
-    };
-    tok:DURATION => new Ast.Value.Measure(tok.value.value, tok.value.unit);
 }
 
 constant_Number = {
@@ -524,8 +577,6 @@ constant_Date = {
     'start_of' unit:UNIT => new Ast.Value.Date(new Ast.DateEdge('start_of', unit.value), '+', null);
     'end_of' unit:UNIT => new Ast.Value.Date(new Ast.DateEdge('end_of', unit.value), '+', null);
     abs:DATE => new Ast.Value.Date(parseDate(abs.value), '+', null);
-    date:constant_Date '+' offset:constant_Measure_ms => new Ast.Value.Date(date.value, '+', offset);
-    date:constant_Date '-' offset:constant_Measure_ms => new Ast.Value.Date(date.value, '-', offset);
 }
 
 // Note that while keeping digits in ranges [0-23],[0-59],[0-59] is not enforced
@@ -562,5 +613,4 @@ constant_Entity__tt__phone_number  = entity:PHONE_NUMBER  => new Ast.Value.Entit
 constant_Entity__tt__email_address = entity:EMAIL_ADDRESS => new Ast.Value.Entity(entity.value, 'tt:email_address', null);
 constant_Entity__tt__path_name     = entity:PATH_NAME     => new Ast.Value.Entity(entity.value, 'tt:path_name', null);
 constant_Entity__tt__device        = entity:DEVICE        => new Ast.Value.Entity(entity.value, 'tt:device', null);
-constant_Entity__tt__function      = entity:FUNCTION      => new Ast.Value.Entity(entity.kind + ':' + entity.device, 'tt:function', null);
 constant_Entity__tt__picture       = entity:PICTURE       => new Ast.Value.Entity(entity.value, 'tt:picture', null);

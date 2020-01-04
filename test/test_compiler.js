@@ -5729,7 +5729,7 @@ const TEST_CASES = [
   }`]],
 
     // 74 filter() compute operator
-    [`now => compute filter(review, reviewRating.ratingValue >= 0) of @org.schema.restaurant() => notify;`,
+    [`now => compute (review filter { reviewRating.ratingValue >= 0 }) of @org.schema.restaurant() => notify;`,
     [`"use strict";
   let _t_0;
   let _t_1;
@@ -5838,7 +5838,7 @@ const TEST_CASES = [
   }`]],
 
     // 75 aggregate filter
-    [`now => @org.schema.restaurant(), count(review, reviewRating.ratingValue >= 0) >= 0 => notify;`,
+    [`now => @org.schema.restaurant(), count(review filter { reviewRating.ratingValue >= 0 }) >= 0 => notify;`,
     [`"use strict";
   let _t_0;
   let _t_1;
@@ -5879,7 +5879,6 @@ const TEST_CASES = [
   let _t_36;
   let _t_37;
   let _t_38;
-  let _t_39;
   try {
     _t_0 = {};
     _t_1 = await __env.invokeQuery("org.schema", { }, "restaurant", _t_0);
@@ -5937,10 +5936,9 @@ const TEST_CASES = [
           _t_35 = _t_31 >= _t_36;
           return _t_35;
         });
-        _t_37 = "*";
-        _t_38 = __builtin.count(_t_28, _t_37);
-        _t_39 = 0;
-        _t_27 = _t_38 >= _t_39;
+        _t_37 = __builtin.count(_t_28);
+        _t_38 = 0;
+        _t_27 = _t_37 >= _t_38;
         if (_t_27) {
           try {
             await __env.output(String(_t_4), _t_5);

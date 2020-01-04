@@ -40,9 +40,9 @@ const TEST_CASES = [
 `now => (@org.schema.restaurant()), count(review) >= 1 => notify;`,
 
 // compute table
-`now => compute count(reviews) of (@org.schema.restaurant()) => notify;`,
-`now => compute filter(aggregateRating.reviews, author == "Bob") of (@org.schema.restaurants()) => notify;`,
-`now => [foo] of (compute filter(aggregateRating.reviews, author == "Bob") as foo of (@org.schema.restaurants())) => notify;`,
+`now => compute (count(reviews)) of (@org.schema.restaurant()) => notify;`,
+`now => compute ((aggregateRating.reviews) filter { author == "Bob" }) of (@org.schema.restaurants()) => notify;`,
+`now => [foo] of (compute ((aggregateRating.reviews) filter { author == "Bob" }) as foo of (@org.schema.restaurants())) => notify;`,
 
 // macros
 `class @foo.bar {
@@ -50,11 +50,8 @@ const TEST_CASES = [
 
   compute greaterThanZero(in req x: Number) : Boolean := x >= 0;
 
-  compute itself(in req x: Number) : Number := x;
-
   list query q(out num: Number);
 }
-now => (@foo.bar.q()), @foo.bar.itself(x=num) >= 0 => notify;
 now => (@foo.bar.q()), @for.bar.greaterThanZero(x=num) => notify;`,
 
 // device selectors
