@@ -561,19 +561,62 @@ constant_Number = {
     '-' num:literal_number => new Ast.Value.Number(-num);
 }
 
-constant_Currency = tok:CURRENCY => new Ast.Value.Currency(tok.value.value, tok.value.unit);
+constant_Currency = {
+    tok:CURRENCY => new Ast.Value.Currency(tok.value.value, tok.value.unit);
+    'new' 'Currency' '(' num:literal_number ',' unit:UNIT ')' => new Ast.Value.Currency(num, unit.value);
+}
 constant_Location = {
     'location:current_location' => new Ast.Value.Location(new Ast.Location.Relative('current_location'));
     'location:home' => new Ast.Value.Location(new Ast.Location.Relative('home'));
     'location:work' => new Ast.Value.Location(new Ast.Location.Relative('work'));
     loc:LOCATION => new Ast.Value.Location(new Ast.Location.Absolute(loc.value.latitude, loc.value.longitude, loc.value.display||null));
     'location:' '"' str:word_list '"' => new Ast.Value.Location(new Ast.Location.Unresolved(str));
+
+    'new' 'Location' '(' lat:constant_Number ',' lon:constant_Number ',' display:constant_String ')' => {
+        return new Ast.Value.Location(new Ast.Location.Absolute(lat.value, lon.value, display.value));
+    };
+    'new' 'Location' '(' lat:constant_Number ',' lon:constant_Number ')' => {
+        return new Ast.Value.Location(new Ast.Location.Absolute(lat.value, lon.value, null));
+    };
+    'new' 'Location' '(' name:constant_String ')' => {
+        return new Ast.Value.Location(new Ast.Location.Unresolved(name.value));
+    };
 }
 
 // start_of/end_of with less than 1h are not supported
 // (they don't make sense)
 constant_Date = {
     'now' => new Ast.Value.Date(null, '+', null);
+    'new' 'Date' '(' ')' => new Ast.Value.Date(null, '+', null);
+    'new' 'Date' '(' year:literal_number ',' month:literal_number ',' day:literal_number ')' => {
+        const d = new Date;
+        d.setFullYear(year);
+        d.setMonth(month-1);
+        d.setDate(day);
+        d.setHours(0);
+        d.setMinutes(0);
+        d.setSeconds(0);
+        d.setMilliseconds(0);
+        return new Ast.Value.Date(d, '+', null);
+    };
+    'new' 'Date' '(' year:literal_number ',' month:literal_number ',' day:literal_number ','
+                     hours:literal_number ',' minutes:literal_number ',' seconds:literal_number ')' => {
+        const d = new Date;
+        d.setFullYear(year);
+        d.setMonth(month-1);
+        d.setDate(day);
+        d.setHours(hours);
+        d.setMinutes(minutes);
+        d.setSeconds(seconds);
+        d.setMilliseconds(0);
+        return new Ast.Value.Date(d, '+', null);
+    };
+    'new' 'Date' '(' unix:literal_number ')' => {
+        const d = new Date;
+        d.setTime(unix);
+        return new Ast.Value.Date(d, '+', null);
+    };
+
     'start_of' unit:UNIT => new Ast.Value.Date(new Ast.DateEdge('start_of', unit.value), '+', null);
     'end_of' unit:UNIT => new Ast.Value.Date(new Ast.DateEdge('end_of', unit.value), '+', null);
     abs:DATE => new Ast.Value.Date(parseDate(abs.value), '+', null);
