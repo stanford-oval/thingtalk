@@ -616,6 +616,9 @@ constant_Date = {
         d.setTime(unix);
         return new Ast.Value.Date(d, '+', null);
     };
+    'new' 'Date' '(' '"' iso:word_list '"' ')' => {
+        return new Ast.Value.Date(new Date(iso), '+', null);
+    };
 
     'start_of' unit:UNIT => new Ast.Value.Date(new Ast.DateEdge('start_of', unit.value), '+', null);
     'end_of' unit:UNIT => new Ast.Value.Date(new Ast.DateEdge('end_of', unit.value), '+', null);

@@ -226,19 +226,23 @@ const TEST_CASES = [
 
     [`now => @org.thingpedia.weather.sunrise param:date:Date = DATE_0 => notify`,
      `get sunrise sunset on date DATE_0`, { DATE_0: { year: 2018, month: 5, day: 23, hour: -1, minute: -1, second: -1 } },
-     `now => @org.thingpedia.weather.sunrise(date=new Date(1527058800000)) => notify;`],
+     `now => @org.thingpedia.weather.sunrise(date=new Date("2018-05-23T07:00:00.000Z")) => notify;`],
+
+    [`now => @org.thingpedia.weather.sunrise param:date:Date = new Date ( " 2018-05-23T07:00:00.000Z " ) => notify`,
+     `get sunrise sunset on date 2018-05-23T07:00:00.000Z`, { },
+     `now => @org.thingpedia.weather.sunrise(date=new Date("2018-05-23T07:00:00.000Z")) => notify;`],
 
     [`now => @org.thingpedia.weather.sunrise param:date:Date = DATE_0 => notify`,
      `get sunrise sunset on date DATE_0`, { DATE_0: { year: 2018, month: 5, day: 23, hour: 10, minute: 40, second: 0 } },
-     `now => @org.thingpedia.weather.sunrise(date=new Date(1527097200000)) => notify;`],
+     `now => @org.thingpedia.weather.sunrise(date=new Date("2018-05-23T17:40:00.000Z")) => notify;`],
 
     [`now => @org.thingpedia.weather.sunrise param:date:Date = DATE_0 => notify`,
      `get sunrise sunset on date DATE_0`, { DATE_0: { year: 2018, month: 5, day: 23, hour: 10, minute: 40, second: -1 } },
-     `now => @org.thingpedia.weather.sunrise(date=new Date(1527097200000)) => notify;`],
+     `now => @org.thingpedia.weather.sunrise(date=new Date("2018-05-23T17:40:00.000Z")) => notify;`],
 
     [`now => @org.thingpedia.weather.sunrise param:date:Date = DATE_0 => notify`,
      `get sunrise sunset on date DATE_0`, { DATE_0: { year: 2018, month: 5, day: 23, hour: 10, minute: 40, second: 40.5 } },
-     `now => @org.thingpedia.weather.sunrise(date=new Date(1527097240500)) => notify;`],
+     `now => @org.thingpedia.weather.sunrise(date=new Date("2018-05-23T17:40:40.500Z")) => notify;`],
 
     ['now => ( @com.bing.web_search ) join ( @com.yandex.translate.translate param:target_language:Entity(tt:iso_lang_code) = GENERIC_ENTITY_tt:iso_lang_code_0 ) on param:text:String = event => notify',
     `translate web searches to GENERIC_ENTITY_tt:iso_lang_code_0`, { 'GENERIC_ENTITY_tt:iso_lang_code_0': { value: 'it', display: "Italian" } },
