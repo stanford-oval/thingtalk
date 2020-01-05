@@ -528,12 +528,32 @@ class SLRParserGenerator {
         }
     }
 
+    _recursivePrintItemSet(itemSetId, printed, recurse = 0) {
+        if (printed.has(itemSetId))
+            return;
+        printed.add(itemSetId);
+
+        const itemSet = this._itemSets[itemSetId];
+        console.error("Item Set", itemSetId, itemSet.info.intransitions);
+        for (let rule of itemSet.rules) {
+            let [ruleId, rhs] = rule.stuff;
+            let [lhs,,] = this.rules[ruleId];
+            console.error(ruleId, lhs, '->', rhs);
+        }
+        console.error();
+
+        if (recurse > 0) {
+            for (let [from,] of itemSet.info.intransitions)
+                this._recursivePrintItemSet(from, printed, recurse - 1);
+        }
+    }
+
     _buildParseTables() {
         this.gotoTable = [];
         this.actionTable = [];
         for (let i = 0; i < this._nStates; i++) {
-            this.gotoTable[i] = {};
-            this.actionTable[i] = {};
+            this.gotoTable[i] = Object.create(null);
+            this.actionTable[i] = Object.create(null);
         }
 
         for (let nonterm of this.nonTerminals) {
@@ -568,13 +588,10 @@ class SLRParserGenerator {
                 for (let term of this.terminals) {
                     if (this._followSets.get(lhs).has(term)) {
                         if (term in this.actionTable[itemSet.info.id] && !arrayEquals(this.actionTable[itemSet.info.id][term], ['reduce', ruleId])) {
-                            console.error("Item Set", itemSet.info.id, itemSet.info.intransitions);
-                            for (let rule of itemSet.rules) {
-                                let [ruleId, rhs] = rule.stuff;
-                                let [lhs,,] = this.rules[ruleId];
-                                console.error(ruleId, lhs, '->', rhs);
-                            }
-                            console.error();
+
+                            let printed = new Set;
+                            this._recursivePrintItemSet(itemSet.info.id, printed);
+
                             throw new Error("Conflict for state " + itemSet.info.id + " terminal " + term + " want " + ["reduce", ruleId] + " have " + this.actionTable[itemSet.info.id][term]);
                         }
                         this.actionTable[itemSet.info.id][term] = ['reduce', ruleId];

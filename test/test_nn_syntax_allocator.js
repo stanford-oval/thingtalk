@@ -79,7 +79,7 @@ const TEST_CASES = [
     [`monitor ( ( @thermostat.get_temperature ) filter param:value:Measure(C) > MEASURE_C_0 ) => notify`,
      {'MEASURE_C_0': { unit: 'F', value: 70 }}],
 
-    [`now => timeseries now , 1 unit:week of ( monitor ( @thermostat.get_temperature ) ) => notify`,
+    [`now => timeseries ( now , 1 unit:week ) of ( monitor ( @thermostat.get_temperature ) ) => notify`,
      {}],
 
     [`now => ( @com.bing.image_search ) filter param:width:Number > NUMBER_0 or param:height:Number > NUMBER_1 => notify`,
