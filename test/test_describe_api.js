@@ -9,8 +9,6 @@
 // See COPYING for details
 "use strict";
 
-require('./polyfill');
-
 const assert = require('assert');
 
 const Q = require('q');
@@ -67,7 +65,7 @@ async function testDescribeArg() {
         [new Ast.Value.Location(new Ast.Location.Relative('work')), `at work`],
         [new Ast.Value.Location(new Ast.Location.Relative('current_location')), `here`],
         [new Ast.Value.Location(new Ast.Location.Absolute(0, 0, 'North Pole')), `North Pole`],
-        [new Ast.Value.Location(new Ast.Location.Absolute(0, 0, null)), `[Latitude: 0.000 deg, Longitude: 0.000 deg]`],
+        [new Ast.Value.Location(new Ast.Location.Absolute(0, 0, null)), `[Latitude: 0 deg, Longitude: 0 deg]`],
 
         [new Ast.Value.Time(new Ast.Time.Relative('morning')), 'the morning'],
         [new Ast.Value.Time(new Ast.Time.Relative('evening')), 'the evening'],

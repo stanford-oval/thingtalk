@@ -9,8 +9,6 @@
 // See COPYING for details
 "use strict";
 
-require('./polyfill');
-
 const Q = require('q');
 Q.longStackSupport = true;
 const Grammar = require('../lib/grammar_api');

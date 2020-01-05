@@ -16,7 +16,6 @@ async function seq(array) {
 
 seq([
     ('./test_version'),
-    ('./test_units'),
     ('./test_date_utils'),
     ('./test_utils'),
     ('./test_builtin_values'),
