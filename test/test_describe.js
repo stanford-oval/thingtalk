@@ -328,6 +328,17 @@ var TEST_CASES = [
     'get places and the distance between the geo and here and then notify you', 'Schema ⇒ Notification'],
     [`compute distance(geo, $context.location.current_location) of (timer(base=$?, interval=$?) join @org.schema.place()) => notify;`,
     'notify you every ____ starting ____, get places and the distance between the geo and here', 'Schema ⇒ Notification'],
+
+    [`executor = "bob"^^tt:username : now => @com.twitter.post(status="lol");`,
+    `tell @bob: tweet “lol”`, `Twitter`],
+
+    [`executor = "bob"^^tt:username : monitor(@security-camera.current_event()) => @com.twitter.post(status="lol");`,
+    `tell @bob: tweet “lol” when the current event detected on your security camera changes`,
+    `Security Camera ⇒ Twitter`],
+
+    [`executor = "bob"^^tt:username : monitor(@security-camera.current_event()) => @com.yandex.translate.translate(text="lol") => @com.twitter.post(status=translated_text);`,
+    `tell @bob: do the following: when the current event detected on your security camera changes, get the translation of “lol” to ____, and then tweet the translated text`,
+    `Security Camera ⇒ Yandex Translate ⇒ Twitter`]
 ];
 
 const gettext = {
