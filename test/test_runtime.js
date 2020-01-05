@@ -12,7 +12,6 @@
 const Q = require('q');
 Q.longStackSupport = true;
 const assert = require('assert');
-require('./polyfill');
 
 require('../lib/ast/api');
 const Compiler = require('../lib/compiler');

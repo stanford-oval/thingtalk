@@ -10,7 +10,6 @@
 "use strict";
 
 const assert = require('assert');
-require('./polyfill');
 
 const Grammar = require('../lib/grammar_api');
 const Ast = require('../lib/ast');
