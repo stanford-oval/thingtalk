@@ -54,9 +54,9 @@ const TEST_CASES = [
 
     [`{\n` +
      `  class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {\n` +
-     `    action send (in req __principal : Entity(tt:contact), in req __program_id : Entity(tt:program_id), in req __flow : Number, in req __kindChannel : Entity(tt:function), in req media_id : Entity(instagram:media_id), in req picture_url : Entity(tt:picture), in req caption : String, in req link : Entity(tt:url), in req filter : Entity(com.instagram:filter), in req hashtags : Array(Entity(tt:hashtag)), in req location : Location);\n` +
+     `    action send (in req __principal : Entity(tt:contact), in req __program_id : Entity(tt:program_id), in req __flow : Number, in req __kindChannel : Entity(tt:function), in req media_id : Entity(instagram:media_id), in req picture_url : Entity(tt:picture), in req caption : String, in req link : Entity(tt:url), in req filter_ : Entity(com.instagram:filter_), in req hashtags : Array(Entity(tt:hashtag)), in req location : Location);\n` +
      `}\n` +
-     `  now => @com.instagram.get_pictures() => @__dyn_0.send(__principal="matrix-account:@rayx6:matrix.org"^^tt:contact, __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, media_id=media_id, picture_url=picture_url, caption=caption, link=link, filter=filter, hashtags=hashtags, location=location);\n` +
+     `  now => @com.instagram.get_pictures() => @__dyn_0.send(__principal="matrix-account:@rayx6:matrix.org"^^tt:contact, __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, media_id=media_id, picture_url=picture_url, caption=caption, link=link, filter_=filter_, hashtags=hashtags, location=location);\n` +
      `}`,
      `class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {\n` +
      `  action send(in req __principal: Entity(tt:contact),\n` +
@@ -67,11 +67,11 @@ const TEST_CASES = [
      `              in req picture_url: Entity(tt:picture),\n` +
      `              in req caption: String,\n` +
      `              in req link: Entity(tt:url),\n` +
-     `              in req filter: Entity(com.instagram:filter),\n` +
+     `              in req filter_: Entity(com.instagram:filter_),\n` +
      `              in req hashtags: Array(Entity(tt:hashtag)),\n` +
      `              in req location: Location);\n` +
      `}\n` +
-     `now => (@com.instagram.get_pictures()), caption =~ "trip" => @__dyn_0.send(__principal="matrix-account:@rayx6:matrix.org"^^tt:contact, __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, media_id=media_id, picture_url=picture_url, caption=caption, link=link, filter=filter, hashtags=hashtags, location=location);`]
+     `now => (@com.instagram.get_pictures()), caption =~ "trip" => @__dyn_0.send(__principal="matrix-account:@rayx6:matrix.org"^^tt:contact, __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, media_id=media_id, picture_url=picture_url, caption=caption, link=link, filter_=filter_, hashtags=hashtags, location=location);`]
 
     /*[`monitor @thermostat.get_temperature(), @com.xkcd.get_comic(number=10) { title =~ "lol" }  => notify;`,
     `@thermostat.temperature(), @xkcd.get_comic(number=10) { title =~ "lol" }  => notify;`],
@@ -92,12 +92,9 @@ const TEST_CASES = [
 }`]*/
 ];
 
-function promiseLoop(array, fn) {
-    return (function loop(i) {
-        if (i === array.length)
-            return Q();
-        return Q(fn(array[i], i)).then(() => loop(i+1));
-    })(0);
+async function promiseLoop(array, fn) {
+    for (let i = 0; i < array.length; i++)
+        await fn(array[i], i);
 }
 
 const PERMISSION_DATABASE = [
@@ -136,50 +133,50 @@ class MockGroupDelegate {
     }
 }
 
-function main() {
+async function main() {
     var checker = new PermissionChecker(CVC4Solver, schemaRetriever, new MockGroupDelegate());
 
-    return Q.all(PERMISSION_DATABASE.map((a, i) => {
+    await Promise.all(PERMISSION_DATABASE.map((a, i) => {
         console.log('Parsing rule ', i+1);
         return checker.allowed(Grammar.parsePermissionRule(a));
-    })).then(() => {
-        const principal = Ast.Value.Entity('omlet-messaging:testtesttest', 'tt:contact', null);
+    }));
 
-        return promiseLoop(TEST_CASES, ([input, expected, options], i) => {
-            console.error('Test case #' + (i+1));
-            //console.log('Checking program');
-            //console.log(input);
-            return checker.check(principal, Grammar.parse(input), options).then((prog) => {
-                if (prog) {
-                    console.log('Program accepted');
-                    let code = typeof prog === 'boolean' ? prog : prog.prettyprint(true);
-                    if (code !== expected) {
-                        console.error('Test case #' + (i+1) + ' FAIL');
-                        console.error('Program does not match what expected');
-                        console.error('Expected:');
-                        console.error(expected);
-                        console.error('Generated:');
-                        console.error(code);
-                    } else {
-                        console.error('Test case #' + (i+1) + ' PASS');
-                        console.error('Program matches what expected');
-                    }
+    const principal = Ast.Value.Entity('omlet-messaging:testtesttest', 'tt:contact', null);
 
-                    if (typeof prog !== 'boolean') {
-                        let compiler = new Compiler(schemaRetriever);
-                        return compiler.compileProgram(prog);
-                    }
-                } else if (expected !== null) {
+    return promiseLoop(TEST_CASES, ([input, expected, options], i) => {
+        console.error('Test case #' + (i+1));
+        //console.log('Checking program');
+        //console.log(input);
+        return checker.check(principal, Grammar.parse(input), options).then((prog) => {
+            if (prog) {
+                console.log('Program accepted');
+                let code = typeof prog === 'boolean' ? prog : prog.prettyprint(true);
+                if (code !== expected) {
                     console.error('Test case #' + (i+1) + ' FAIL');
-                    console.error('Program rejected unexpectedly');
+                    console.error('Program does not match what expected');
+                    console.error('Expected:');
+                    console.error(expected);
+                    console.error('Generated:');
+                    console.error(code);
                 } else {
                     console.error('Test case #' + (i+1) + ' PASS');
-                    console.error('Program rejected as expected');
+                    console.error('Program matches what expected');
                 }
 
-                // quiet eslint
-                return Promise.resolve();
-            });
+                if (typeof prog !== 'boolean') {
+                    let compiler = new Compiler(schemaRetriever);
+                    return compiler.compileProgram(prog);
+                }
+            } else if (expected !== null) {
+                console.error('Test case #' + (i+1) + ' FAIL');
+                console.error('Program rejected unexpectedly');
+            } else {
+                console.error('Test case #' + (i+1) + ' PASS');
+                console.error('Program rejected as expected');
+            }
+
+            // quiet eslint
+            return Promise.resolve();
         });
     });
 }
