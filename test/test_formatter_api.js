@@ -262,6 +262,13 @@ function main() {
         v2: '2.0',
         v3: 'three'
     }, 'string'), 'Location: foo\nSound effect: message-new-instant\nMedia: three?y=1.0&x=2.0');
+
+    assert.strictEqual(JSON.stringify(formatter.format([
+        {type: "map", lat: "${location:lat}", lon: "${location:lon}"},
+        {type: "map", lat: "${location.lat}", lon: "${location.lon}"},
+    ], {
+        location: new builtin.Location(-90, 0, 'South pole')
+    })), '[{"type":"map","lat":-90,"lon":0},{"type":"map","lat":-90,"lon":0}]');
 }
 module.exports = main;
 if (!module.parent)
