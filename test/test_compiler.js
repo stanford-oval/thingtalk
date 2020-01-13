@@ -5729,7 +5729,7 @@ const TEST_CASES = [
   }`]],
 
     // 74 filter() compute operator
-    [`now => compute filter(review, reviewRating.ratingValue >= 0) of @org.schema.restaurant() => notify;`,
+    [`now => compute (review filter { reviewRating.ratingValue >= 0 }) of @org.schema.restaurant() => notify;`,
     [`"use strict";
   let _t_0;
   let _t_1;
@@ -5838,7 +5838,7 @@ const TEST_CASES = [
   }`]],
 
     // 75 aggregate filter
-    [`now => @org.schema.restaurant(), count(review, reviewRating.ratingValue >= 0) >= 0 => notify;`,
+    [`now => @org.schema.restaurant(), count(review filter { reviewRating.ratingValue >= 0 }) >= 0 => notify;`,
     [`"use strict";
   let _t_0;
   let _t_1;
@@ -5879,7 +5879,6 @@ const TEST_CASES = [
   let _t_36;
   let _t_37;
   let _t_38;
-  let _t_39;
   try {
     _t_0 = {};
     _t_1 = await __env.invokeQuery("org.schema", { }, "restaurant", _t_0);
@@ -5937,10 +5936,9 @@ const TEST_CASES = [
           _t_35 = _t_31 >= _t_36;
           return _t_35;
         });
-        _t_37 = "*";
-        _t_38 = __builtin.count(_t_28, _t_37);
-        _t_39 = 0;
-        _t_27 = _t_38 >= _t_39;
+        _t_37 = __builtin.count(_t_28);
+        _t_38 = 0;
+        _t_27 = _t_37 >= _t_38;
         if (_t_27) {
           try {
             await __env.output(String(_t_4), _t_5);
@@ -6047,7 +6045,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke action", _exc_);
   }`]],
 
-    //78 Test device selector (with explicit all)
+    //79 Test device selector (with explicit all)
     [`now => @light-bulb(name="bedroom", all=true).set_power(power=enum(on));`,
     [`"use strict";
   let _t_0;
@@ -6059,6 +6057,253 @@ const TEST_CASES = [
     await __env.invokeAction("light-bulb", { name: "bedroom", }, "set_power", _t_0);
   } catch(_exc_) {
     __env.reportError("Failed to invoke action", _exc_);
+  }`]],
+
+    // 80 computation (+)
+    [`now => compute ("Author: " + author) of @com.twitter.home_timeline() => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  try {
+    _t_0 = {};
+    _t_1 = await __env.invokeQuery("com.twitter", { }, "home_timeline", _t_0);
+    _t_2 = _t_1[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.__response;
+        _t_7 = _t_5.text;
+        _t_8 = _t_5.hashtags;
+        _t_9 = _t_5.urls;
+        _t_10 = _t_5.author;
+        _t_11 = _t_5.in_reply_to;
+        _t_12 = _t_5.tweet_id;
+        _t_13 = "Author: ";
+        _t_14 = _t_13 + _t_10;
+        _t_5.result = _t_14;
+        try {
+          await __env.output(String(_t_4), _t_5);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_2.next();
+      }
+    }
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke query", _exc_);
+  }`]],
+
+    // 81 computation (-)
+    [`now => compute (file_size - 1GiB) of @com.google.drive.list_drive_files() => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  try {
+    _t_0 = {};
+    _t_1 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_0);
+    _t_2 = _t_1[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.order_by;
+        _t_7 = _t_5.__response;
+        _t_8 = _t_5.file_id;
+        _t_9 = _t_5.file_name;
+        _t_10 = _t_5.mime_type;
+        _t_11 = _t_5.description;
+        _t_12 = _t_5.starred;
+        _t_13 = _t_5.created_time;
+        _t_14 = _t_5.modified_time;
+        _t_15 = _t_5.file_size;
+        _t_16 = _t_5.last_modified_by;
+        _t_17 = _t_5.link;
+        _t_18 = 1073741824;
+        _t_19 = _t_15 - _t_18;
+        _t_5.result = _t_19;
+        try {
+          await __env.output(String(_t_4), _t_5);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_2.next();
+      }
+    }
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke query", _exc_);
+  }`]],
+
+    // 82 date
+    [`now => @org.thingpedia.weather.sunrise(location=new Location(90, 0, "north pole"), date=new Date("2020-01-04T18:08:20.451Z")) => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  try {
+    _t_0 = {};
+    _t_1 = new __builtin.Location(90, 0, "north pole");
+    _t_0.location = _t_1;
+    _t_2 = new Date(XNOWX);
+    _t_0.date = _t_2;
+    _t_3 = await __env.invokeQuery("org.thingpedia.weather", { }, "sunrise", _t_0);
+    _t_4 = _t_3[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_4.next();
+      while (!_iter_tmp.done) {
+        _t_5 = _iter_tmp.value;
+        _t_6 = _t_5[0];
+        _t_7 = _t_5[1];
+        _t_8 = _t_7.__response;
+        _t_9 = _t_7.sunrise_time;
+        _t_10 = _t_7.sunset_time;
+        try {
+          await __env.output(String(_t_6), _t_7);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_4.next();
+      }
+    }
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke query", _exc_);
+  }`]],
+
+    // 83 computed date (+)
+    [`now => @org.thingpedia.weather.sunrise(location=new Location(90, 0, "north pole"), date=new Date("2020-01-04T18:08:20.451Z") + 7min) => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  try {
+    _t_0 = {};
+    _t_1 = new __builtin.Location(90, 0, "north pole");
+    _t_0.location = _t_1;
+    _t_2 = new Date(XNOWX);
+    _t_3 = 420000;
+    _t_4 = __builtin.dateAdd(_t_2, _t_3);
+    _t_0.date = _t_4;
+    _t_5 = await __env.invokeQuery("org.thingpedia.weather", { }, "sunrise", _t_0);
+    _t_6 = _t_5[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_6.next();
+      while (!_iter_tmp.done) {
+        _t_7 = _iter_tmp.value;
+        _t_8 = _t_7[0];
+        _t_9 = _t_7[1];
+        _t_10 = _t_9.__response;
+        _t_11 = _t_9.sunrise_time;
+        _t_12 = _t_9.sunset_time;
+        try {
+          await __env.output(String(_t_8), _t_9);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_6.next();
+      }
+    }
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke query", _exc_);
+  }`]],
+
+    // 84 computed date (-)
+    [`now => @org.thingpedia.weather.sunrise(location=new Location(90, 0, "north pole"), date=new Date("2020-01-04T18:08:20.451Z") - 7min) => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  try {
+    _t_0 = {};
+    _t_1 = new __builtin.Location(90, 0, "north pole");
+    _t_0.location = _t_1;
+    _t_2 = new Date(XNOWX);
+    _t_3 = 420000;
+    _t_4 = __builtin.dateSub(_t_2, _t_3);
+    _t_0.date = _t_4;
+    _t_5 = await __env.invokeQuery("org.thingpedia.weather", { }, "sunrise", _t_0);
+    _t_6 = _t_5[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_6.next();
+      while (!_iter_tmp.done) {
+        _t_7 = _iter_tmp.value;
+        _t_8 = _t_7[0];
+        _t_9 = _t_7[1];
+        _t_10 = _t_9.__response;
+        _t_11 = _t_9.sunrise_time;
+        _t_12 = _t_9.sunset_time;
+        try {
+          await __env.output(String(_t_8), _t_9);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_6.next();
+      }
+    }
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke query", _exc_);
   }`]],
 ];
 

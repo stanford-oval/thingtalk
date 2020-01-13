@@ -10,7 +10,6 @@
 "use strict";
 
 const assert = require('assert');
-require('./polyfill');
 
 const Grammar = require('../lib/grammar_api');
 const Ast = require('../lib/ast');
@@ -419,15 +418,15 @@ var TEST_CASES = [
     'ArrayIndexSlot([1] : Entity(tt:contact)) filter.in_array.$source.1 Who is the second friend who is allowed to ask you for this command?']
     ],
 
-    [`now => @org.schema.restaurant(), count(review, author =~ "bob") >= 1 => notify;`,
+    [`now => @org.schema.restaurant(), count(review filter { author =~ "bob" }) >= 1 => notify;`,
 
     ['query: Invocation(Device(org.schema, , ), restaurant, , )',
      'action: Invocation(Builtin, notify, , )'],
     ['Device(org.schema, , ) org.schema:restaurant',
-     'Atom(author, =~, String(bob)) org.schema:restaurant',
      'Builtin undefined:notify'],
     ['Selector(@org.schema)',
-     'FilterSlot(author =~ : String) filter.=~.author What should the author contain?']
+     'FieldSlot(lhs : Number) compute_filter.lhs What is the left hand side of the filter?',
+     'FieldSlot(rhs : Number) compute_filter.rhs What is the right hand side of the filter?']
     ],
 
     [`now => @light-bulb(name="bedroom").set_power(power=enum(off));`,

@@ -74,15 +74,15 @@ const TEST_CASES = [
 
     [`( ( timer base = now , interval = 1 unit:h ) => ( @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_1 param:low:Number = NUMBER_0 ) ) => ( @com.xkcd.get_comic ) on param:number:Number = param:random:Number => notify`,
     `every hour get xkcd whose number is a random number between NUMBER_0 and NUMBER_1`, {'NUMBER_0': 55, 'NUMBER_1': 1024},
-    `((timer(base=makeDate(), interval=1h) => @org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55)) => @com.xkcd.get_comic() on (number=random)) => notify;`],
+    `((timer(base=new Date(), interval=1h) => @org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55)) => @com.xkcd.get_comic() on (number=random)) => notify;`],
 
     [`( timer base = now , interval = 1 unit:h ) => ( ( @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_1 param:low:Number = NUMBER_0 ) join ( @com.xkcd.get_comic ) on param:number:Number = param:random:Number ) => notify`,
         `every hour get xkcd whose number is a random number between NUMBER_0 and NUMBER_1`, {'NUMBER_0': 55, 'NUMBER_1': 1024},
-        `(timer(base=makeDate(), interval=1h) => (@org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55) join @com.xkcd.get_comic() on (number=random))) => notify;`],
+        `(timer(base=new Date(), interval=1h) => (@org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55) join @com.xkcd.get_comic() on (number=random))) => notify;`],
 
     [`( ( timer base = now , interval = 1 unit:h , frequency = NUMBER_2 ) => ( @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_1 param:low:Number = NUMBER_0 ) ) => ( @com.xkcd.get_comic ) on param:number:Number = param:random:Number => notify`,
     `NUMBER_2 times every hour get xkcd whose number is a random number between NUMBER_0 and NUMBER_1`, {'NUMBER_0': 55, 'NUMBER_1': 1024, 'NUMBER_2': 3},
-    `((timer(base=makeDate(), interval=1h, frequency=3) => @org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55)) => @com.xkcd.get_comic() on (number=random)) => notify;`],
+    `((timer(base=new Date(), interval=1h, frequency=3) => @org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55)) => @com.xkcd.get_comic() on (number=random)) => notify;`],
 
     [`now => @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_1 param:low:Number = NUMBER_0 => notify`,
     `get a random number between NUMBER_0 and NUMBER_1`,{'NUMBER_0': 55, 'NUMBER_1': 1024},
@@ -100,13 +100,13 @@ const TEST_CASES = [
     `notify me if the temperature is above NUMBER_0 degrees`, {'NUMBER_0': 70},
     `monitor ((@thermostat.get_temperature()), value > 70F) => notify;`],
 
-    [`now => timeseries now , 1 unit:week of ( monitor ( @thermostat.get_temperature ) ) => notify`,
+    [`now => timeseries ( now , 1 unit:week ) of ( monitor ( @thermostat.get_temperature ) ) => notify`,
     `show me the temperature on the thermostat in the last week`, {},
-    `now => timeseries makeDate(), 1week of (monitor (@thermostat.get_temperature())) => notify;`],
+    `now => timeseries (new Date(), 1week) of (monitor (@thermostat.get_temperature())) => notify;`],
 
-    [`now => timeseries now , NUMBER_0 unit:week of ( monitor ( @thermostat.get_temperature ) ) => notify`,
+    [`now => timeseries ( now , NUMBER_0 unit:week ) of ( monitor ( @thermostat.get_temperature ) ) => notify`,
     `show me the temperature on the thermostat in the last NUMBER_0 weeks`, {NUMBER_0: 2},
-    `now => timeseries makeDate(), 2week of (monitor (@thermostat.get_temperature())) => notify;`],
+    `now => timeseries (new Date(), 2week) of (monitor (@thermostat.get_temperature())) => notify;`],
 
     [`now => ( @com.bing.image_search ) filter param:width:Number > NUMBER_0 or param:height:Number > NUMBER_1 => notify`,
     `search images wider than NUMBER_0 pixels or taller than NUMBER_1 pixels`, {NUMBER_0: 100, NUMBER_1:200},
@@ -138,7 +138,7 @@ const TEST_CASES = [
 
     ['timer base = now , interval = DURATION_0 => notify',
     `alert me every DURATION_0`, {DURATION_0: { value: 2, unit: 'h'}},
-    `timer(base=makeDate(), interval=2h) => notify;`],
+    `timer(base=new Date(), interval=2h) => notify;`],
 
     ['monitor ( ( @com.phdcomics.get_post ) filter not param:title:String =~ QUOTED_STRING_0 ) => notify',
     `monitor phd comics post that do n't have QUOTED_STRING_0 in the title`, {QUOTED_STRING_0: 'abc'}, //'
@@ -146,7 +146,7 @@ const TEST_CASES = [
 
     ['now => ( @com.uber.price_estimate param:end:Location = location:home param:start:Location = location:work ) filter param:low_estimate:Currency >= CURRENCY_0 => notify',
     `get an uber price estimate from home to work if the low estimate is greater than CURRENCY_0`, {CURRENCY_0: { value: 50, unit: 'usd' } },
-    `now => (@com.uber.price_estimate(end=$context.location.home, start=$context.location.work)), low_estimate >= makeCurrency(50, usd) => notify;`],
+    `now => (@com.uber.price_estimate(end=$context.location.home, start=$context.location.work)), low_estimate >= new Currency(50, usd) => notify;`],
 
     ['now => ( @com.uber.price_estimate ) filter param:uber_type:Enum(pool,uber_x,uber_xl,uber_black,select,suv,assist) == enum:uber_x => notify',
     `get a price estimate for uber x`, {},
@@ -158,7 +158,7 @@ const TEST_CASES = [
 
     ['now => ( @com.nytimes.get_front_page ) filter param:updated:Date >= now - DURATION_0 => notify',
      `get new york times articles published in the last DURATION_0`, { DURATION_0: { value: 2, unit: 'h' } },
-     `now => (@com.nytimes.get_front_page()), updated >= makeDate() - 2h => notify;`],
+     `now => (@com.nytimes.get_front_page()), updated >= new Date() - 2h => notify;`],
 
     [`executor = USERNAME_0 : now => @com.twitter.post`,
      `ask USERNAME_0 to post on twitter`, { USERNAME_0: 'bob' },
@@ -226,19 +226,23 @@ const TEST_CASES = [
 
     [`now => @org.thingpedia.weather.sunrise param:date:Date = DATE_0 => notify`,
      `get sunrise sunset on date DATE_0`, { DATE_0: { year: 2018, month: 5, day: 23, hour: -1, minute: -1, second: -1 } },
-     `now => @org.thingpedia.weather.sunrise(date=makeDate(1527058800000)) => notify;`],
+     `now => @org.thingpedia.weather.sunrise(date=new Date("2018-05-23T07:00:00.000Z")) => notify;`],
+
+    [`now => @org.thingpedia.weather.sunrise param:date:Date = new Date ( " 2018-05-23T07:00:00.000Z " ) => notify`,
+     `get sunrise sunset on date 2018-05-23T07:00:00.000Z`, { },
+     `now => @org.thingpedia.weather.sunrise(date=new Date("2018-05-23T07:00:00.000Z")) => notify;`],
 
     [`now => @org.thingpedia.weather.sunrise param:date:Date = DATE_0 => notify`,
      `get sunrise sunset on date DATE_0`, { DATE_0: { year: 2018, month: 5, day: 23, hour: 10, minute: 40, second: 0 } },
-     `now => @org.thingpedia.weather.sunrise(date=makeDate(1527097200000)) => notify;`],
+     `now => @org.thingpedia.weather.sunrise(date=new Date("2018-05-23T17:40:00.000Z")) => notify;`],
 
     [`now => @org.thingpedia.weather.sunrise param:date:Date = DATE_0 => notify`,
      `get sunrise sunset on date DATE_0`, { DATE_0: { year: 2018, month: 5, day: 23, hour: 10, minute: 40, second: -1 } },
-     `now => @org.thingpedia.weather.sunrise(date=makeDate(1527097200000)) => notify;`],
+     `now => @org.thingpedia.weather.sunrise(date=new Date("2018-05-23T17:40:00.000Z")) => notify;`],
 
     [`now => @org.thingpedia.weather.sunrise param:date:Date = DATE_0 => notify`,
      `get sunrise sunset on date DATE_0`, { DATE_0: { year: 2018, month: 5, day: 23, hour: 10, minute: 40, second: 40.5 } },
-     `now => @org.thingpedia.weather.sunrise(date=makeDate(1527097240500)) => notify;`],
+     `now => @org.thingpedia.weather.sunrise(date=new Date("2018-05-23T17:40:40.500Z")) => notify;`],
 
     ['now => ( @com.bing.web_search ) join ( @com.yandex.translate.translate param:target_language:Entity(tt:iso_lang_code) = GENERIC_ENTITY_tt:iso_lang_code_0 ) on param:text:String = event => notify',
     `translate web searches to GENERIC_ENTITY_tt:iso_lang_code_0`, { 'GENERIC_ENTITY_tt:iso_lang_code_0': { value: 'it', display: "Italian" } },
@@ -356,7 +360,7 @@ const TEST_CASES = [
 
     ['bookkeeping answer LOCATION_0',
     'LOCATION_0', { LOCATION_0: { latitude: 0, longitude: 0, display: "North Pole" } },
-    `bookkeeping(answer(makeLocation(0, 0, "North Pole")));`],
+    `bookkeeping(answer(new Location(0, 0, "North Pole")));`],
 
     ['bookkeeping answer 0',
     'zero', {},
@@ -364,17 +368,17 @@ const TEST_CASES = [
 
     ['now => @org.thingpedia.weather.current param:location:Location = location: " stanford california " => notify',
     'get weather for stanford california', {},
-    `now => @org.thingpedia.weather.current(location=makeLocation("stanford california")) => notify;`],
+    `now => @org.thingpedia.weather.current(location=new Location("stanford california")) => notify;`],
 
     ['attimer time = TIME_0 => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = QUOTED_STRING_0',
     `say "it's 9am" every day at 9am`,
     { TIME_0: { hour: 9, minute: 0 }, QUOTED_STRING_0: "it's 9am" },
-    `attimer(time=makeTime(9, 0)) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am");`],
+    `attimer(time=new Time(9, 0)) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am");`],
 
     ['attimer time = [ TIME_0 , TIME_1 ] => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = QUOTED_STRING_0',
     `say "it's 9am or 3pm" every day at 9am and 3pm`,
     { TIME_0: { hour: 9, minute: 0 }, TIME_1: { hour: 15, minute: 0 }, QUOTED_STRING_0: "it's 9am or 3pm" },
-    `attimer(time=[makeTime(9, 0), makeTime(15, 0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");`],
+    `attimer(time=[new Time(9, 0), new Time(15, 0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");`],
 
     [`attimer time = time:morning => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = QUOTED_STRING_0`,
     `say "it's the morning" every day in the morning`,
@@ -391,7 +395,7 @@ const TEST_CASES = [
     [`attimer time = time:12:0:0 => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = QUOTED_STRING_0`,
     '',
     { QUOTED_STRING_0: "it's noon" },
-    `attimer(time=makeTime(12, 0)) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's noon");`],
+    `attimer(time=new Time(12, 0)) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's noon");`],
 
     ['now => [ param:description:String , param:title:String ] of ( @com.bing.web_search ) => notify',
     'get title and description from bing', {},
@@ -431,9 +435,9 @@ const TEST_CASES = [
     `now => (@com.twitter.home_timeline()), count(hashtags) >= 0 => notify;`],
 
     // just to test syntax, in reality we should not generate examples like this
-    [`now => ( @com.twitter.home_timeline ) filter count ( param:hashtags:Array(Entity(tt:hashtag)) filter param:value:Entity(tt:hashtag) == " foo " ^^tt:hashtag ) >= 0 => notify`,
+    [`now => ( @com.twitter.home_timeline ) filter count ( param:hashtags:Array(Entity(tt:hashtag)) filter { param:value:Entity(tt:hashtag) == " foo " ^^tt:hashtag } ) >= 0 => notify`,
     `get tweets with hashtags foo`, {},
-    `now => (@com.twitter.home_timeline()), count(hashtags, value == "foo"^^tt:hashtag) >= 0 => notify;`],
+    `now => (@com.twitter.home_timeline()), count((hashtags) filter { value == "foo"^^tt:hashtag }) >= 0 => notify;`],
 
     [`now => ( @com.yelp.restaurants ) filter min ( param:ratings:Array(Number) ) >= NUMBER_0 => notify`,
     `get restaurants with no rating below NUMBER_0`, { NUMBER_0: 3 },
@@ -441,23 +445,23 @@ const TEST_CASES = [
 
     [`now => ( @com.yelp.restaurants ) filter min ( param:rating:Number of param:reviews:Array(Compound) ) >= NUMBER_0 => notify`,
     `get restaurants with no rating below NUMBER_0`, { NUMBER_0: 3 },
-    `now => (@com.yelp.restaurants()), min(rating of reviews) >= 3 => notify;`],
+    `now => (@com.yelp.restaurants()), min(rating of (reviews)) >= 3 => notify;`],
 
     [`now => compute distance ( param:location:Location , location:current_location ) of ( @com.yelp.restaurants ) => notify`,
     `get restaurants and their distance from here`, {},
-    `now => compute distance(location, $context.location.current_location) of (@com.yelp.restaurants()) => notify;`],
+    `now => compute (distance(location, $context.location.current_location)) of (@com.yelp.restaurants()) => notify;`],
 
-    [`now => compute filter ( param:reviews:Array(Compound) filter param:rating:Number >= NUMBER_0 ) of ( @com.yelp.restaurants ) => notify`,
+    [`now => compute ( param:reviews:Array(Compound) filter { param:rating:Number >= NUMBER_0 } ) of ( @com.yelp.restaurants ) => notify`,
     `get restaurants and their reviews better than NUMBER_0`, { NUMBER_0: 4 },
-    `now => compute filter(reviews, rating >= 4) of (@com.yelp.restaurants()) => notify;`],
+    `now => compute ((reviews) filter { rating >= 4 }) of (@com.yelp.restaurants()) => notify;`],
 
     [`now => compute count ( param:reviews:Array(Compound) ) of ( @com.yelp.restaurants ) => notify`,
     `get restaurants and how many reviews they have`, {},
-    `now => compute count(reviews) of (@com.yelp.restaurants()) => notify;`],
+    `now => compute (count(reviews)) of (@com.yelp.restaurants()) => notify;`],
 
     [`compute distance ( param:location:Location , location:current_location ) of ( monitor ( @com.yelp.restaurants ) ) => notify`,
     `get restaurants and their distance from here`, {},
-    `compute distance(location, $context.location.current_location) of (monitor (@com.yelp.restaurants())) => notify;`],
+    `compute (distance(location, $context.location.current_location)) of (monitor (@com.yelp.restaurants())) => notify;`],
 
     [`now => @light-bulb.set_power attribute:name:String = " bedroom " param:power:Enum(on,off) = enum:off`,
     `turn off my bedroom lights`, {},

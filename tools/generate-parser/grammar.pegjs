@@ -40,6 +40,7 @@
 
 {
   const Ast = require('./meta_ast');
+  const { stringEscape } = require('../../lib/escaping');
 
   function take(array, idx) {
       return array.map(function(v) { return v[idx]; });
@@ -83,6 +84,11 @@ RuleBlock = '{' __ rules:(Rule __)* '}' {
 Rule
   = head:Identifier __ ';' {
     return new Ast.Rule([new Ast.RuleHeadPart.NonTerminal(null, head)], `{ return $0; }`);
+  }
+  / head:StringLiteral __ ';' {
+    if (head.indexOf(' ') >= 0)
+      return error(`Terminal tokens cannot contain spaces`);
+    return new Ast.Rule([new Ast.RuleHeadPart.StringLiteral(head)], `{ return ${stringEscape(head)}; }`);
   }
   / head:RuleHead __ '=>' __ body:CodeNoSemicolon ';' {
     return new Ast.Rule(head, body);

@@ -69,7 +69,7 @@ const TEST_CASES = [
     SELECT (?table0 as ?id) (?table0Label as ?idLabel) WHERE {
     ?table0 wdt:P2048 ?p24.
     ?table0 wdt:P641 ?p71.
-    FILTER (?p24 > "231"^^xsd:decimal).
+    FILTER (?p24 > "2.31"^^xsd:decimal).
     FILTER (?p71 = wd:Q5372).
     ?table0 wdt:P31 wd:Q5
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. }}

@@ -12,8 +12,6 @@
 const Q = require('q');
 Q.longStackSupport = true;
 
-require('./polyfill');
-
 const SchemaRetriever = require('../lib/schema');
 const assert = require('assert');
 
@@ -41,12 +39,12 @@ function main() {
     assert.strictEqual(formatter.dateToString(date), 'Wednesday, May 23, 2018');
     assert.strictEqual(formatter.dateToString(date, { year: 'numeric' }), '2018');
     assert.strictEqual(formatter.dateAndTimeToString(date), '5/23/2018, 9:18:00 PM');
-    assert.strictEqual(formatter.timeToString(date), '9:18:00 PM PDT');
+    assert.strictEqual(formatter.timeToString(date), '09:18:00 PM PDT');
     assert.strictEqual(formatter.anyToString(date), '5/23/2018, 9:18:00 PM');
 
     let location = new builtin.Location(-37, 113);
-    assert.strictEqual(formatter.locationToString(location), '[Latitude: -37.000 deg, Longitude: 113.000 deg]');
-    assert.strictEqual(formatter.anyToString(location), '[Latitude: -37.000 deg, Longitude: 113.000 deg]');
+    assert.strictEqual(formatter.locationToString(location), '[Latitude: -37 deg, Longitude: 113 deg]');
+    assert.strictEqual(formatter.anyToString(location), '[Latitude: -37 deg, Longitude: 113 deg]');
 
     location = new builtin.Location(-37, 113, "Somewhere");
     assert.strictEqual(formatter.locationToString(location), 'Somewhere');
@@ -62,12 +60,12 @@ function main() {
 
     assert.strictEqual(formatter.measureToString(21, 0, 'C'), '21');
     assert.strictEqual(formatter.measureToString(20.5, 0, 'C'), '21');
-    assert.strictEqual(formatter.measureToString(21, 1, 'C'), '21.0');
+    assert.strictEqual(formatter.measureToString(21, 1, 'C'), '21');
     assert.strictEqual(formatter.measureToString(21, 0, 'F'), '70');
     assert.strictEqual(formatter.measureToString(20.5, 0, 'F'), '69');
     assert.strictEqual(formatter.measureToString(21, 1, 'F'), '69.8');
 
-    assert.strictEqual(formatter.measureToString(1000, 0, 'm'), '1000');
+    assert.strictEqual(formatter.measureToString(1000, 0, 'm'), '1,000');
     assert.strictEqual(formatter.measureToString(1000, 0, 'km'), '1');
 
     assert.deepStrictEqual(formatter.format([{ type: 'text', text: '$v1$$foo$$ ${v2} ${v3:F} ${v4:iso-date} ${v5:%} ${v6} ${v7}' }], {
@@ -78,7 +76,7 @@ function main() {
         v5: 0.42,
         v6: 10,
         v7: 9.5
-    }), [ 'lol$foo$ undefined 69.8 2018-05-24T04:18:00.000Z 42 10 9.50' ]);
+    }), [ 'lol$foo$ N/A 69.8 2018-05-24T04:18:00.000Z 42 10 9.5' ]);
 
     assert.deepStrictEqual(formatter.format([{ type: 'text', text: '$v1$$foo$$ ${v2} ${v3:F} ${v4:iso-date} ${v5:%} ${v6} ${v7}' }], {
         v1: 'lol',
@@ -88,7 +86,7 @@ function main() {
         v5: 0.42,
         v6: 10,
         v7: 9.5
-    }, 'string'), 'lol$foo$ undefined 69.8 2018-05-24T04:18:00.000Z 42 10 9.50');
+    }, 'string'), 'lol$foo$ N/A 69.8 2018-05-24T04:18:00.000Z 42 10 9.5');
 
     assert.deepStrictEqual(formatter.format(['$v1$$foo$$ ${v2} ${v3:F} ${v4:iso-date} ${v5:%} ${v6} ${v7}'], {
         v1: 'lol',
@@ -98,7 +96,7 @@ function main() {
         v5: 0.42,
         v6: 10,
         v7: 9.5
-    }, 'string'), 'lol$foo$ undefined 69.8 2018-05-24T04:18:00.000Z 42 10 9.50');
+    }, 'string'), 'lol$foo$ N/A 69.8 2018-05-24T04:18:00.000Z 42 10 9.5');
 
     assert.deepStrictEqual(formatter.format([{ type: 'rdl', displayTitle:'text', webCallback: '$v1$$foo$$ ${v2} ${v3:F} ${v4:iso-date} ${v5:%} ${v6} ${v7}' }], {
         v1: 'lol',
@@ -108,7 +106,7 @@ function main() {
         v5: 0.42,
         v6: 10,
         v7: 9.5
-    }, 'string'), 'Link: text <lol$foo$ undefined 69.8 2018-05-24T04:18:00.000Z 42 10 9.50>');
+    }, 'string'), 'Link: text <lol$foo$ N/A 69.8 2018-05-24T04:18:00.000Z 42 10 9.5>');
 
     assert.deepStrictEqual(formatter.format([{ type: 'text', text: '$v1 ${v1} ${v1:enum}' }], {
         v1: 'some_enum'
@@ -204,8 +202,8 @@ function main() {
 
     const fakeGettext = {
         dgettext(domain, x) {
-            if (x === 'Picture: %s')
-                return 'Pacture: %s';
+            if (x === 'Picture: ${url}')
+                return 'Pacture: ${url}';
             else
                 return x;
         },
@@ -235,8 +233,8 @@ function main() {
         v1: '1.0',
         v2: '2.0',
         v3: 'three',
-        v4: { x: 11, y: 47 },
-        v5: { x: 11, y: 47, display:"Somewhere" }
+        v4: new builtin.Location(47, 11),
+        v5: new builtin.Location(47, 11, "Somewhere")
     });
 
     assert.strictEqual(JSON.stringify(map1), '{"type":"map","lat":1,"lon":2}');
@@ -253,7 +251,7 @@ function main() {
         v1: '1.0',
         v2: '2.0',
         v3: 'three'
-    }, 'string'), 'Location: [Latitude: 1.000 deg, Longitude: 2.000 deg]\nSound effect: message-new-instant\nMedia: three?y=1.0&x=2.0');
+    }, 'string'), 'Location: [Latitude: 1 deg, Longitude: 2 deg]\nSound effect: message-new-instant\nMedia: three?y=1.0&x=2.0');
 
     assert.strictEqual(formatter.format([
         { type: 'map', lat: '${v1}', lon: '${v2}', display: 'foo' },
@@ -264,6 +262,13 @@ function main() {
         v2: '2.0',
         v3: 'three'
     }, 'string'), 'Location: foo\nSound effect: message-new-instant\nMedia: three?y=1.0&x=2.0');
+
+    assert.strictEqual(JSON.stringify(formatter.format([
+        {type: "map", lat: "${location:lat}", lon: "${location:lon}"},
+        {type: "map", lat: "${location.lat}", lon: "${location.lon}"},
+    ], {
+        location: new builtin.Location(-90, 0, 'South pole')
+    })), '[{"type":"map","lat":-90,"lon":0},{"type":"map","lat":-90,"lon":0}]');
 }
 module.exports = main;
 if (!module.parent)

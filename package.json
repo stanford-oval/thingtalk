@@ -1,6 +1,6 @@
 {
   "name": "thingtalk",
-  "version": "1.9.2",
+  "version": "1.10.0-alpha.1",
   "description": "ThingTalk Just-In-Time Compiler, Library and Runtime",
   "license": "GPL-3.0+",
   "repository": "https://github.com/stanford-oval/thingtalk",
@@ -23,7 +23,9 @@
     "adt": "~0.7.2",
     "byline": "^5.0.0",
     "consumer-queue": "^1.0.0",
-    "smtlib": "^0.1.1"
+    "smtlib": "^0.1.1",
+    "string-interp": "^0.1.0",
+    "thingtalk-units": "^0.1.0"
   },
   "devDependencies": {
     "argparse": "^1.0.10",

@@ -1,3 +1,23 @@
+1.10.0-alpha.1
+==============
+
+* AST classes were refactored to simplify usage and clean up the API.
+  As part of the refactoring, the use of the adt library was reduced significantly,
+  and refactored AST objects are native ES6 classes. Hence, constructors must
+  now be called with `new`. The refactoring is not complete yet, but will
+  be completed before 1.10.0 [#158]
+* Scalar and list expressions have been eliminated, and merged with new subclasses
+  of Ast.Value. All places where values can be referenced (parameters, filters, slice
+  indices) now admit arithmetic and computation expressions. The syntax of these
+  experimental features also changed incompatibly. Using computation expression
+  is still experimental and subject to change [#75, #178].
+* String formatting for confirmation strings and formatted output has been
+  refactored to use a new library called `string-interp`. This ensures that
+  both `#_[confirmation]` and `#_[formatted]` annotations use a consistent syntax
+  and the same features. It also introduces more flexible formatting of numbers,
+  dates, plural and ordinal forms, and optional parameters [#137, #175].
+* Updated dependencies [#174, #176].
+
 1.9.2
 =====
 

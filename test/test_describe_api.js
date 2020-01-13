@@ -9,8 +9,6 @@
 // See COPYING for details
 "use strict";
 
-require('./polyfill');
-
 const assert = require('assert');
 
 const Q = require('q');
@@ -47,7 +45,7 @@ async function testDescribeArg() {
 
         [new Ast.Value.Measure(21, 'C'), `21 C`],
         [new Ast.Value.Measure(21, 'kmph'), `21 kmph`],
-        [new Ast.Value.CompoundMeasure(
+        [new Ast.Value.Computation('+',
             [new Ast.Value.Measure(6, 'ft'),
              new Ast.Value.Measure(4, 'in')]),
          `6 ft 4 in`],
@@ -67,7 +65,7 @@ async function testDescribeArg() {
         [new Ast.Value.Location(new Ast.Location.Relative('work')), `at work`],
         [new Ast.Value.Location(new Ast.Location.Relative('current_location')), `here`],
         [new Ast.Value.Location(new Ast.Location.Absolute(0, 0, 'North Pole')), `North Pole`],
-        [new Ast.Value.Location(new Ast.Location.Absolute(0, 0, null)), `[Latitude: 0.000 deg, Longitude: 0.000 deg]`],
+        [new Ast.Value.Location(new Ast.Location.Absolute(0, 0, null)), `[Latitude: 0 deg, Longitude: 0 deg]`],
 
         [new Ast.Value.Time(new Ast.Time.Relative('morning')), 'the morning'],
         [new Ast.Value.Time(new Ast.Time.Relative('evening')), 'the evening'],
@@ -83,13 +81,13 @@ async function testDescribeArg() {
             assert.strictEqual(describer.describeArg(value), expected);
     }
 
-    const date = new Ast.Value.Date(new Date(2018, 9, 13, 0, 0, 0), '+', null);
+    const date = new Ast.Value.Date(new Date(2018, 9, 13, 0, 0, 0));
 
     assert.strictEqual(describer.describeArg(date), 'Saturday, October 13, 2018');
     assert.strictEqual(describer2.describeArg(date), 'Saturday, October 13, 2018');
     assert.strictEqual(describer3.describeArg(date), 'Friday, October 12, 2018');
 
-    const date2 = new Ast.Value.Date(new Date(2018, 9, 13, 1, 0, 0), '+', null);
+    const date2 = new Ast.Value.Date(new Date(2018, 9, 13, 1, 0, 0));
     assert.strictEqual(describer.describeArg(date2), '10/13/2018, 1:00:00 AM');
     assert.strictEqual(describer2.describeArg(date2), '10/13/2018, 5:00:00 PM');
     assert.strictEqual(describer3.describeArg(date2), '10/12/2018, 10:00:00 PM');
