@@ -39,7 +39,7 @@ function main() {
     assert.strictEqual(formatter.dateToString(date), 'Wednesday, May 23, 2018');
     assert.strictEqual(formatter.dateToString(date, { year: 'numeric' }), '2018');
     assert.strictEqual(formatter.dateAndTimeToString(date), '5/23/2018, 9:18:00 PM');
-    assert.strictEqual(formatter.timeToString(date), '9:18:00 PM PDT');
+    assert.strictEqual(formatter.timeToString(date), '09:18:00 PM PDT');
     assert.strictEqual(formatter.anyToString(date), '5/23/2018, 9:18:00 PM');
 
     let location = new builtin.Location(-37, 113);
@@ -262,6 +262,13 @@ function main() {
         v2: '2.0',
         v3: 'three'
     }, 'string'), 'Location: foo\nSound effect: message-new-instant\nMedia: three?y=1.0&x=2.0');
+
+    assert.strictEqual(JSON.stringify(formatter.format([
+        {type: "map", lat: "${location:lat}", lon: "${location:lon}"},
+        {type: "map", lat: "${location.lat}", lon: "${location.lon}"},
+    ], {
+        location: new builtin.Location(-90, 0, 'South pole')
+    })), '[{"type":"map","lat":-90,"lon":0},{"type":"map","lat":-90,"lon":0}]');
 }
 module.exports = main;
 if (!module.parent)
