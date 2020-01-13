@@ -61,12 +61,12 @@ const { parseDate } = require('../date_utils');
 
 input = {
     program;
-    'bookkeeping' 'special' s:SPECIAL => new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.Special(s.value));
-    'bookkeeping' 'answer' c:value => new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.Answer(c));
-    'bookkeeping' 'filter' f:filter => new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.Predicate(f));
-    'bookkeeping' 'category' c:command_category => new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.CommandList(new Ast.Value.Undefined(true), c));
-    'bookkeeping' 'commands' c:command_category d:constant_Entity__tt__device => new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.CommandList(d, c));
-    'bookkeeping' 'choice' n:literal_integer => new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.Choice(n));
+    'bookkeeping' 'special' s:SPECIAL => new Ast.Input.Bookkeeping(null, new Ast.BookkeepingIntent.Special(null, s.value));
+    'bookkeeping' 'answer' c:value => new Ast.Input.Bookkeeping(null, new Ast.BookkeepingIntent.Answer(null, c));
+    'bookkeeping' 'filter' f:filter => new Ast.Input.Bookkeeping(null, new Ast.BookkeepingIntent.Predicate(null, f));
+    'bookkeeping' 'category' c:command_category => new Ast.Input.Bookkeeping(null, new Ast.BookkeepingIntent.CommandList(null, new Ast.Value.Undefined(true), c));
+    'bookkeeping' 'commands' c:command_category d:constant_Entity__tt__device => new Ast.Input.Bookkeeping(null, new Ast.BookkeepingIntent.CommandList(null, d, c));
+    'bookkeeping' 'choice' n:literal_integer => new Ast.Input.Bookkeeping(null, new Ast.BookkeepingIntent.Choice(null, n));
 
     'policy' p:policy => p;
 }
@@ -91,9 +91,9 @@ command_category = {
 }
 
 program = {
-    rule:rule => new Ast.Program([], [], [rule], null);
+    rule:rule => new Ast.Program(null, [], [], [rule], null);
     'executor' '=' user:value ':' rule => {
-        return new Ast.Program([], [], [rule], user);
+        return new Ast.Program(null, [], [], [rule], user);
     };
 }
 
@@ -108,27 +108,27 @@ policy = {
 
 policy_body = {
     'now' '=>' action:policy_fn => {
-        return new Ast.PermissionRule(Ast.BooleanExpression.True, Ast.PermissionFunction.Builtin, action);
+        return new Ast.PermissionRule(null, Ast.BooleanExpression.True, Ast.PermissionFunction.Builtin, action);
     };
     query:policy_fn '=>' 'notify' => {
-        return new Ast.PermissionRule(Ast.BooleanExpression.True, query, Ast.PermissionFunction.Builtin);
+        return new Ast.PermissionRule(null, Ast.BooleanExpression.True, query, Ast.PermissionFunction.Builtin);
     };
     query:policy_fn '=>' action:policy_fn => {
-        return new Ast.PermissionRule(Ast.BooleanExpression.True, query, action);
+        return new Ast.PermissionRule(null, Ast.BooleanExpression.True, query, action);
     };
 }
 
 policy_fn = {
     '*' => Ast.PermissionFunction.Star;
-    klass:CLASS_STAR => new Ast.PermissionFunction.ClassStar(klass.value);
-    fn:FUNCTION => new Ast.PermissionFunction.Specified(fn.value.kind, fn.value.channel, Ast.BooleanExpression.True, null);
-    fn:FUNCTION 'filter' filter => new Ast.PermissionFunction.Specified(fn.value.kind, fn.value.channel, filter, null);
+    klass:CLASS_STAR => new Ast.PermissionFunction.ClassStar(null, klass.value);
+    fn:FUNCTION => new Ast.PermissionFunction.Specified(null, fn.value.kind, fn.value.channel, Ast.BooleanExpression.True, null);
+    fn:FUNCTION 'filter' filter => new Ast.PermissionFunction.Specified(null, fn.value.kind, fn.value.channel, filter, null);
 }
 
 rule = {
-    stream '=>' action => new Ast.Statement.Rule(stream, [action]);
-    'now' '=>' table '=>' action => new Ast.Statement.Command(table, [action]);
-    'now' '=>' action => new Ast.Statement.Command(null, [action]);
+    stream '=>' action => new Ast.Statement.Rule(null, stream, [action]);
+    'now' '=>' table '=>' action => new Ast.Statement.Command(null, table, [action]);
+    'now' '=>' action => new Ast.Statement.Command(null, null, [action]);
 
     rule 'on' pp:param_passing => {
         rule = rule.clone();
@@ -149,40 +149,40 @@ scalar_op = {
 }
 
 table = {
-    call => new Ast.Table.Invocation(call, null);
+    call => new Ast.Table.Invocation(null, call, null);
     '(' table ')' 'filter' filter => {
-        return new Ast.Table.Filter(table, filter, table.schema);
+        return new Ast.Table.Filter(null, table, filter, table.schema);
     };
 
     'result' '(' fn:FUNCTION ')' => {
-        return new Ast.Table.ResultRef(fn.value.kind, fn.value.channel, new Ast.Value.Number(-1), null);
+        return new Ast.Table.ResultRef(null, fn.value.kind, fn.value.channel, new Ast.Value.Number(-1), null);
     };
     'result' '(' fn:FUNCTION '[' index:value ']' ')' => {
-        return new Ast.Table.ResultRef(fn.value.kind, fn.value.channel, index, null);
+        return new Ast.Table.ResultRef(null, fn.value.kind, fn.value.channel, index, null);
     };
 
-    'aggregate' op:aggr_op pname:PARAM_NAME 'of' '(' table ')' => new Ast.Table.Aggregation(table, pname.value, op, null, null);
-    'aggregate' 'count' 'of' '(' table ')'                    => new Ast.Table.Aggregation(table, '*', 'count', null, null);
+    'aggregate' op:aggr_op pname:PARAM_NAME 'of' '(' table ')' => new Ast.Table.Aggregation(null, table, pname.value, op, null, null);
+    'aggregate' 'count' 'of' '(' table ')'                    => new Ast.Table.Aggregation(null, table, '*', 'count', null, null);
 
-    'sort' pname:PARAM_NAME 'asc' 'of' '(' table ')'           => new Ast.Table.Sort(table, pname.value, 'asc', null);
-    'sort' pname:PARAM_NAME 'desc' 'of' '(' table ')'          => new Ast.Table.Sort(table, pname.value, 'desc', null);
-    '(' table ')' '[' indices:array_literal_values ']'       => new Ast.Table.Index(table, indices, null);
-    '(' table ')' '[' base:value ':' delta:value ']'    => new Ast.Table.Slice(table, base, delta, null);
+    'sort' pname:PARAM_NAME 'asc' 'of' '(' table ')'           => new Ast.Table.Sort(null, table, pname.value, 'asc', null);
+    'sort' pname:PARAM_NAME 'desc' 'of' '(' table ')'          => new Ast.Table.Sort(null, table, pname.value, 'desc', null);
+    '(' table ')' '[' indices:array_literal_values ']'       => new Ast.Table.Index(null, table, indices, null);
+    '(' table ')' '[' base:value ':' delta:value ']'    => new Ast.Table.Slice(null, table, base, delta, null);
 
-    '[' pnames:out_param_list ']' 'of' '(' table ')'          => new Ast.Table.Projection(table, pnames.map((p) => p.name), null);
+    '[' pnames:out_param_list ']' 'of' '(' table ')'          => new Ast.Table.Projection(null, table, pnames.map((p) => p.name), null);
 
-    'compute' expr:non_ambiguous_value 'of' '(' table ')'       => new Ast.Table.Compute(table, expr, null, null);
+    'compute' expr:non_ambiguous_value 'of' '(' table ')'       => new Ast.Table.Compute(null, table, expr, null, null);
 
-    'window' '(' base:value ',' delta:value ')' 'of' '(' stream ')'        => new Ast.Table.Window(base, delta, stream, null);
-    'timeseries' '(' base:value ',' delta:value ')' 'of' '(' stream ')' => new Ast.Table.TimeSeries(base, delta, stream, null);
-    'sequence' '(' base:value ',' delta:value ')' 'of' '(' table ')'       => new Ast.Table.Sequence(base, delta, table, null);
-    'history' '(' base:value ',' delta:value ')' 'of' '(' table ')'     => new Ast.Table.History(base, delta, table, null);
+    'window' '(' base:value ',' delta:value ')' 'of' '(' stream ')'        => new Ast.Table.Window(null, base, delta, stream, null);
+    'timeseries' '(' base:value ',' delta:value ')' 'of' '(' stream ')' => new Ast.Table.TimeSeries(null, base, delta, stream, null);
+    'sequence' '(' base:value ',' delta:value ')' 'of' '(' table ')'       => new Ast.Table.Sequence(null, base, delta, table, null);
+    'history' '(' base:value ',' delta:value ')' 'of' '(' table ')'     => new Ast.Table.History(null, base, delta, table, null);
 
     table_join;
 }
 
 table_join = {
-    '(' t1:table ')' 'join' '(' t2:table ')' => new Ast.Table.Join(t1, t2, [], null);
+    '(' t1:table ')' 'join' '(' t2:table ')' => new Ast.Table.Join(null, t1, t2, [], null);
     join:table_join 'on' pp:param_passing => {
         join = join.clone();
         join.in_params.push(pp);
@@ -191,37 +191,37 @@ table_join = {
 }
 
 stream = {
-    'timer' 'base' '=' base:value ',' 'interval' '=' interval:value => new Ast.Stream.Timer(base, interval, null, null);
-    'timer' 'base' '=' base:value ',' 'interval' '=' interval:value ',' 'frequency' '=' frequency:value => new Ast.Stream.Timer(base, interval, frequency, null);
-    'attimer' 'time' '=' time:value => new Ast.Stream.AtTimer(time.isArray ? time.value : [time], null, null);
-    'attimer' 'time' '=' time:value ',' 'expiration_date' '=' expiration_date:value => new Ast.Stream.AtTimer(time.isArray ? time.value : [time], expiration_date, null);
+    'timer' 'base' '=' base:value ',' 'interval' '=' interval:value => new Ast.Stream.Timer(null, base, interval, null, null);
+    'timer' 'base' '=' base:value ',' 'interval' '=' interval:value ',' 'frequency' '=' frequency:value => new Ast.Stream.Timer(null, base, interval, frequency, null);
+    'attimer' 'time' '=' time:value => new Ast.Stream.AtTimer(null, time.isArray ? time.value : [time], null, null);
+    'attimer' 'time' '=' time:value ',' 'expiration_date' '=' expiration_date:value => new Ast.Stream.AtTimer(null, time.isArray ? time.value : [time], expiration_date, null);
 
-    'monitor' '(' table ')' => new Ast.Stream.Monitor(table, null, null);
+    'monitor' '(' table ')' => new Ast.Stream.Monitor(null, table, null, null);
     'monitor' '(' table ')' 'on' 'new' pname:out_param => {
-        return new Ast.Stream.Monitor(table, [pname.name], null);
+        return new Ast.Stream.Monitor(null, table, [pname.name], null);
     };
 
     'monitor' '(' table ')' 'on' 'new' '[' pnames:out_param_list ']' => {
-        return new Ast.Stream.Monitor(table, pnames.map((p) => p.name), null);
+        return new Ast.Stream.Monitor(null, table, pnames.map((p) => p.name), null);
     };
 
     'edge' '(' stream ')' 'on' filter => {
-        return new Ast.Stream.EdgeFilter(stream, filter, null);
+        return new Ast.Stream.EdgeFilter(null, stream, filter, null);
     };
 
     // edge on true is the equivalent of "only once"
-    'edge' '(' stream ')' 'on' 'true' => new Ast.Stream.EdgeFilter(stream, Ast.BooleanExpression.True, null);
+    'edge' '(' stream ')' 'on' 'true' => new Ast.Stream.EdgeFilter(null, stream, Ast.BooleanExpression.True, null);
 
-    '[' pnames:out_param_list ']' 'of' '(' stream ')'          => new Ast.Stream.Projection(stream, pnames.map((p) => p.name), null);
+    '[' pnames:out_param_list ']' 'of' '(' stream ')'          => new Ast.Stream.Projection(null, stream, pnames.map((p) => p.name), null);
 
-    'compute' expr:non_ambiguous_value 'of' '(' stream ')'       => new Ast.Stream.Compute(stream, expr, null, null);
+    'compute' expr:non_ambiguous_value 'of' '(' stream ')'       => new Ast.Stream.Compute(null, stream, expr, null, null);
 
     stream_join;
 }
 
 stream_join = {
-    '(' stream ')' '=>' '(' table ')' => new Ast.Stream.Join(stream, table, [], null);
-    '(' stream ')' 'join' '(' table ')' => new Ast.Stream.Join(stream, table, [], null);
+    '(' stream ')' '=>' '(' table ')' => new Ast.Stream.Join(null, stream, table, [], null);
+    '(' stream ')' 'join' '(' table ')' => new Ast.Stream.Join(null, stream, table, [], null);
     join:stream_join 'on' pp:param_passing => {
         join = join.clone();
         join.in_params.push(pp);
@@ -232,11 +232,11 @@ stream_join = {
 action = {
     'notify' => notifyAction();
     'return' => notifyAction('return');
-    call => new Ast.Action.Invocation(call, null);
+    call => new Ast.Action.Invocation(null, call, null);
 }
 
 selector = {
-    fn:FUNCTION => [new Ast.Selector.Device(fn.value.kind, null, null), fn.value.channel];
+    fn:FUNCTION => [new Ast.Selector.Device(null, fn.value.kind, null, null), fn.value.channel];
 
     selector attr:device_attribute => {
         const [sel,] = selector;
@@ -251,13 +251,13 @@ selector = {
 }
 
 device_attribute = {
-    pname:ATTRIBUTE_NAME '=' v:value => new Ast.InputParam(pname.value, v);
+    pname:ATTRIBUTE_NAME '=' v:value => new Ast.InputParam(null, pname.value, v);
 }
 
 call = {
     selector => {
         const [sel, chan] = selector;
-        return new Ast.Invocation(sel, chan, [], null);
+        return new Ast.Invocation(null, sel, chan, [], null);
     };
     inv:call ip:const_param => {
         inv = inv.clone();
@@ -267,11 +267,11 @@ call = {
 }
 
 param_passing = {
-    pname:PARAM_NAME '=' out_param => new Ast.InputParam(pname.value, out_param);
-    pname:PARAM_NAME '=' 'event' => new Ast.InputParam(pname.value, new Ast.Value.Event(null));
+    pname:PARAM_NAME '=' out_param => new Ast.InputParam(null, pname.value, out_param);
+    pname:PARAM_NAME '=' 'event' => new Ast.InputParam(null, pname.value, new Ast.Value.Event(null));
 }
 
-const_param = pname:PARAM_NAME '=' v:value => new Ast.InputParam(pname.value, v);
+const_param = pname:PARAM_NAME '=' v:value => new Ast.InputParam(null, pname.value, v);
 
 out_param = pname:PARAM_NAME => new Ast.Value.VarRef(pname.value);
 
@@ -290,60 +290,60 @@ out_param_list = {
 // "condition and (this or that) and (foo or bar)"
 filter = {
     or_filter;
-    f1:filter 'and' f2:or_filter => new Ast.BooleanExpression.And([f1, f2]);
+    f1:filter 'and' f2:or_filter => new Ast.BooleanExpression.And(null, [f1, f2]);
 }
 
 or_filter = {
     atom_filter;
-    'not' f:atom_filter => new Ast.BooleanExpression.Not(f);
-    f1:or_filter 'or' f2:atom_filter => new Ast.BooleanExpression.Or([f1, f2]);
+    'not' f:atom_filter => new Ast.BooleanExpression.Not(null, f);
+    f1:or_filter 'or' f2:atom_filter => new Ast.BooleanExpression.Or(null, [f1, f2]);
 }
 
 atom_filter = {
     pname:PARAM_NAME op:comparison_op rhs:value => {
-        return new Ast.BooleanExpression.Atom(pname.value, op, rhs);
+        return new Ast.BooleanExpression.Atom(null, pname.value, op, rhs);
     };
     lhs:non_ambiguous_value op:comparison_op rhs:value => {
         if (lhs.isVarRef)
-            return new Ast.BooleanExpression.Atom(lhs.name, op, rhs);
+            return new Ast.BooleanExpression.Atom(null, lhs.name, op, rhs);
         else
-            return new Ast.BooleanExpression.Compute(lhs, op, rhs);
+            return new Ast.BooleanExpression.Compute(null, lhs, op, rhs);
     };
     fn:call '{' filter '}' => {
-        return new Ast.BooleanExpression.External(fn.selector, fn.channel, fn.in_params, filter, null);
+        return new Ast.BooleanExpression.External(null, fn.selector, fn.channel, fn.in_params, filter, null);
     };
 }
 
 /*
 aggregate_expression = {
     'count' '(' pname:PARAM_NAME ')' => {
-        const list = new Ast.ListExpression(pname.value, null);
-        return new Ast.ScalarExpression.Aggregation('count', '*', list);
+        const list = new Ast.ListExpression(null, pname.value, null);
+        return new Ast.ScalarExpression.Aggregation(null, 'count', '*', list);
     };
 
     'count' '(' pname:PARAM_NAME 'filter' filter:filter ')' => {
-        const list = new Ast.ListExpression(pname.value, filter);
-        return new Ast.ScalarExpression.Aggregation('count', '*', list);
+        const list = new Ast.ListExpression(null, pname.value, filter);
+        return new Ast.ScalarExpression.Aggregation(null, 'count', '*', list);
     };
 
     op:aggr_op '(' pname:PARAM_NAME ')' => {
-        const list = new Ast.ListExpression(pname.value, null);
-        return new Ast.ScalarExpression.Aggregation(op, null, list);
+        const list = new Ast.ListExpression(null, pname.value, null);
+        return new Ast.ScalarExpression.Aggregation(null, op, null, list);
     };
 
     op:aggr_op '(' pname:PARAM_NAME 'filter' filter:filter ')' => {
-        const list = new Ast.ListExpression(pname.value, filter);
-        return new Ast.ScalarExpression.Aggregation(op, null, list);
+        const list = new Ast.ListExpression(null, pname.value, filter);
+        return new Ast.ScalarExpression.Aggregation(null, op, null, list);
     };
 
     op:aggr_op '(' field:PARAM_NAME 'of' pname:PARAM_NAME ')' => {
-        const list = new Ast.ListExpression(pname.value, null);
-        return new Ast.ScalarExpression.Aggregation(op, field.value, list);
+        const list = new Ast.ListExpression(null, pname.value, null);
+        return new Ast.ScalarExpression.Aggregation(null, op, field.value, list);
     };
 
     op:aggr_op '(' field:PARAM_NAME 'of' pname:PARAM_NAME 'filter' filter:filter ')' => {
-        const list = new Ast.ListExpression(pname.value, filter);
-        return new Ast.ScalarExpression.Aggregation(op, field.value, list);
+        const list = new Ast.ListExpression(null, pname.value, filter);
+        return new Ast.ScalarExpression.Aggregation(null, op, field.value, list);
     };
 }
 */
@@ -351,11 +351,11 @@ aggregate_expression = {
 /*
 scalar_expression = {
     op:scalar_op '(' operand_list ')' => {
-        return new Ast.ScalarExpression.Derived(op, operand_list);
+        return new Ast.ScalarExpression.Derived(null, op, operand_list);
     };
     'filter' '(' pname:PARAM_NAME 'filter' filter:filter ')' => {
-        const list = new Ast.ListExpression(pname.value, filter);
-        return new Ast.ScalarExpression.Filter(list);
+        const list = new Ast.ListExpression(null, pname.value, filter);
+        return new Ast.ScalarExpression.Filter(null, list);
     };
 }
 */
