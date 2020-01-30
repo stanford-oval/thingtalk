@@ -39,6 +39,8 @@ const VALUE_TESTS = [
 ];
 
 function testValues() {
+    assert(Ast.Value.Date.now() instanceof Ast.Value);
+
     for (let [type, jsvalue] of VALUE_TESTS) {
         let v = Ast.Value.fromJS(type, jsvalue);
         let newjs = v.toJS();
