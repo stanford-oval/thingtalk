@@ -1,3 +1,14 @@
+1.10.0-alpha.2
+
+* Constructors for all AST classes (except Ast.Value and descendant) have been
+  modified to accept a parameter indicating the location of the corresponding
+  code in the original source. All callers must be updated. This is a large
+  breaking change [#177].
+* The word `filter` is now treated as a keyword everywhere, rather than a
+  contextual keyword. Hence, parameters and functions cannot be named `filter`
+  any more [#179].
+* Misc bug fixes [#181].
+
 1.10.0-alpha.1
 ==============
 
