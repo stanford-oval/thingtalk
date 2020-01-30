@@ -52,6 +52,27 @@ function testValues() {
     }
 }
 
+const IS_CONSTANT_TESTS = [
+    [new Ast.Value.Number(0), true],
+    [new Ast.Value.Boolean(true), true],
+    [new Ast.Value.String('foo'), true],
+    [new Ast.Value.Event(null), false],
+    [new Ast.Value.Event('program_id'), false],
+    [new Ast.Value.Date(new Date('2020-01-29')), true],
+    [new Ast.Value.Date(Ast.DateEdge('start_of', 'week')), true],
+    [new Ast.Value.Date(null), true],
+    [new Ast.Value.VarRef('foo'), false],
+    [new Ast.Value.VarRef('__const_QUOTED_STRING_0'), true],
+    [new Ast.Value.Computation('+', [new Ast.Value.Number(2), new Ast.Value.Number(2)]), false],
+    [new Ast.Value.Undefined(true), false],
+    [new Ast.Value.Undefined(false), false],
+];
+
+function testIsConstant() {
+    for (let [v, expected] of IS_CONSTANT_TESTS)
+        assert.strictEqual(v.isConstant(), expected, v);
+}
+
 function testClone() {
     let fn = new Ast.FunctionDef(null, 'action', null, 'foo',
         [], // extends
@@ -72,6 +93,7 @@ function testClone() {
 
 function main() {
     testValues();
+    testIsConstant();
     testClone();
 }
 module.exports = main;
