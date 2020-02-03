@@ -69,6 +69,8 @@ input = {
     'bookkeeping' 'choice' n:literal_integer => new Ast.Input.Bookkeeping(null, new Ast.BookkeepingIntent.Choice(null, n));
 
     'policy' p:policy => p;
+
+    dialogue_state;
 }
 
 literal_integer = {
@@ -88,6 +90,40 @@ command_category = {
     'data-management' => 'data-management';
     'health' => 'health';
     'service' => 'service';
+}
+
+dialogue_state = {
+    '$dialogue' dialogueAct:FUNCTION ';' history:dialogue_history_item_list => {
+        return new Ast.DialogueState(null, dialogueAct.value.kind, dialogueAct.value.channel, history);
+    };
+
+    '$dialogue' dialogueAct:FUNCTION ';' => {
+        return new Ast.DialogueState(null, dialogueAct.value.kind, dialogueAct.value.channel, []);
+    };
+}
+
+dialogue_history_item_list = {
+    item:dialogue_history_item => [item];
+    list:dialogue_history_item_list item:dialogue_history_item => {
+        list.push(item);
+        return list;
+    };
+}
+
+dialogue_history_item = {
+    // FIXME the null keyword here should be unnecessary, but we get a shift/reduce conflict otherwise
+    // and I don't feel like reworking the grammar to avoid it, or changing the parser to prefer shift
+    rule:rule ';' 'null' => new Ast.DialogueHistoryItem(null, rule, null);
+    rule:rule ';' '[' ']' => new Ast.DialogueHistoryItem(null, rule, []);
+    rule:rule ';' '[' results:dialogue_result_list ']' => new Ast.DialogueHistoryItem(null, rule, results);
+}
+
+dialogue_result_list = {
+    value:object_literal_value => [new Ast.DialogueHistoryResult(null, value.value)];
+    list:dialogue_result_list ',' value:object_literal_value => {
+        list.push(new Ast.DialogueHistoryResult(null, value.value));
+        return list;
+    };
 }
 
 program = {
@@ -432,6 +468,7 @@ nc_primary_value = {
     scalar_function;
     undefined_value;
     context_value;
+    object_literal_value;
 }
 
 primary_value = {
@@ -497,6 +534,19 @@ context_value = {
 array_value = {
     '[' ']' => new Ast.Value.Array([]);
     '[' values:array_literal_values ']' => new Ast.Value.Array(values);
+}
+
+object_literal_value = {
+    '{' '}' => new Ast.Value.Object({});
+    '{' values:object_literal_entry_list '}' => new Ast.Value.Object(values);
+}
+
+object_literal_entry_list = {
+    name:PARAM_NAME '=' value:value => ({ [name.value]: value });
+    obj:object_literal_entry_list ',' name:PARAM_NAME '=' value:value => {
+        obj[name.value] = value;
+        return obj;
+    };
 }
 
 constant_value = {
