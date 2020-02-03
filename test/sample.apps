@@ -1951,3 +1951,31 @@ now => @light-bulb.set_power(power=enum(cool));
 // ** typecheck: expect TypeError **
 // invalid enum
 now => @org.thingpedia.icalendar.list_events(), status==enum(off) => notify;
+
+====
+
+// dialogue states
+
+$dialogue @org.thingpedia.dialogue.transaction.greet;
+
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => @com.thecatapi.get() => notify;
+
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => @com.thecatapi.get() => notify;
+[
+  { image_id = "..."^^com.thecatapi:image_id, url = "..."^^tt:url, link = "..."^^tt:url }
+];
+
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => @com.thecatapi.get() => notify;
+[
+  { image_id = "..."^^com.thecatapi:image_id, url = "..."^^tt:url, link = "..."^^tt:url }
+];
+now => @com.twitter.post();
