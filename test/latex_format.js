@@ -125,8 +125,8 @@ function latexprintTrigger(trigger, state) {
     return latexprintInvocation(trigger, state);
 }
 function latexprintAction(action, state) {
-    if (!action || action.selector.isBuiltin)
-        return '\\texttt{notify}';
+    if (!action || action.isNotify)
+        return '\\texttt{' + action.name + '}';
 
     return latexprintInvocation(action, state);
 }

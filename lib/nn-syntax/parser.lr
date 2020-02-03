@@ -230,8 +230,8 @@ stream_join = {
 }
 
 action = {
-    'notify' => notifyAction();
-    'return' => notifyAction('return');
+    'notify' => new Ast.Action.Notify(null, 'notify', null);
+    'return' => new Ast.Action.Notify(null, 'return', null);
     call => new Ast.Action.Invocation(null, call, null);
 }
 
