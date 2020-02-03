@@ -500,6 +500,17 @@ now => @com.thecatapi.get() => notify;
 now => @com.twitter.post_picture(picture_url="https://example.com/1"^^tt:picture);`]
 ];
 
+function stripTypeAnnotations(program) {
+    return program.split(' ').map((token) => {
+        if (token.startsWith('param:'))
+            return 'param:' + token.split(':')[1];
+        else if (token.startsWith('attribute:'))
+            return 'attribute:' + token.split(':')[1];
+        else
+            return token;
+    }).join(' ');
+}
+
 async function testCase(test, i) {
     if (test.length !== 4)
         throw new Error('invalid test ' + test[0]);
@@ -532,10 +543,20 @@ async function testCase(test, i) {
                 throw new Error(`testNNSyntax ${i+1} FAILED`);
         }
 
+        let withoutTypeAnnotations = NNSyntax.toNN(program, sentence, entities, { typeAnnotations: false }).join(' ');
+        if (withoutTypeAnnotations !== stripTypeAnnotations(test[0])) {
+            console.error('Test Case #' + (i+1) + ' failed (wrong NN syntax without type annotations)');
+            console.error('Expected:', stripTypeAnnotations(test[0]));
+            console.error('Generated:', withoutTypeAnnotations);
+            if (process.env.TEST_MODE)
+                throw new Error(`testNNSyntax ${i+1} FAILED`);
+        }
+
         /*let parser = new NNOutputParser();
         let reduces = parser.getReduceSequence({
             [Symbol.iterator]() {
                 return new SimpleSequenceLexer(sequence);
+
             }
         });
         console.log('Reduces:', reduces);*/
