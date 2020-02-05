@@ -111,11 +111,17 @@ dialogue_history_item_list = {
 }
 
 dialogue_history_item = {
-    // FIXME the null keyword here should be unnecessary, but we get a shift/reduce conflict otherwise
-    // and I don't feel like reworking the grammar to avoid it, or changing the parser to prefer shift
-    rule:rule ';' 'null' => new Ast.DialogueHistoryItem(null, rule, null);
-    rule:rule ';' '[' ']' => new Ast.DialogueHistoryItem(null, rule, []);
-    rule:rule ';' '[' results:dialogue_result_list ']' => new Ast.DialogueHistoryItem(null, rule, results);
+    rule:rule ';' => new Ast.DialogueHistoryItem(null, rule, null, false);
+
+    // note: the syntax here is very hard-coded because we don't want the AST
+    // to be generic, otherwise it's hard to manipulate
+
+    // results
+    rule:rule '#[' 'results' '=' '[' ']' ']' ';' => new Ast.DialogueHistoryItem(null, rule, [], true);
+    rule:rule '#[' 'results' '=' '[' results:dialogue_result_list ']' ']' ';' => new Ast.DialogueHistoryItem(null, rule, results, true);
+
+    // confirm
+    rule:rule '#[' 'confirm' '=' 'true' ']' ';' => new Ast.DialogueHistoryItem(null, rule, null, true);
 }
 
 dialogue_result_list = {

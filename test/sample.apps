@@ -1966,16 +1966,26 @@ now => @com.thecatapi.get() => notify;
 ====
 
 $dialogue @org.thingpedia.dialogue.transaction.execute;
-now => @com.thecatapi.get() => notify;
-[
+now => @com.thecatapi.get() => notify
+#[results=[
   { image_id = "..."^^com.thecatapi:image_id, url = "..."^^tt:url, link = "..."^^tt:url }
-];
+]];
 
 ====
 
 $dialogue @org.thingpedia.dialogue.transaction.execute;
-now => @com.thecatapi.get() => notify;
-[
+now => @com.thecatapi.get() => notify
+#[results=[
   { image_id = "..."^^com.thecatapi:image_id, url = "..."^^tt:url, link = "..."^^tt:url }
-];
+]];
 now => @com.twitter.post();
+
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => @com.thecatapi.get() => notify
+#[results=[
+  { image_id = "..."^^com.thecatapi:image_id, url = "..."^^tt:url, link = "..."^^tt:url }
+]];
+now => @com.twitter.post()
+#[confirm=true];
