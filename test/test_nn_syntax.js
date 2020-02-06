@@ -511,7 +511,33 @@ now => @com.thecatapi.get() => notify
   { image_id="1234"^^com.thecatapi:image_id, picture_url="https://example.com/1"^^tt:picture, link="https://example.com/2"^^tt:url }
 ]];
 now => @com.twitter.post_picture(picture_url="https://example.com/1"^^tt:picture)
-#[confirm=true];`]
+#[confirm=true];`],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute ; ` +
+     `now => @com.thecatapi.get => notify ` +
+     `#[ results = [ { param:image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , param:picture_url = PICTURE_0 , param:link = URL_0 } ] ] ` +
+     `#[ count = NUMBER_0 ] ;`,
+    `i found NUMBER_0 cat pictures , here is one`, { 'GENERIC_ENTITY_com.thecatapi:image_id_0': { value: '1234', display: null }, PICTURE_0: 'https://example.com/1', URL_0: 'https://example.com/2', NUMBER_0: 55 },
+    `$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => @com.thecatapi.get() => notify
+#[results=[
+  { image_id="1234"^^com.thecatapi:image_id, picture_url="https://example.com/1"^^tt:picture, link="https://example.com/2"^^tt:url }
+]]
+#[count=55];`],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute ; ` +
+     `now => @com.thecatapi.get => notify ` +
+     `#[ results = [ { param:image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , param:picture_url = PICTURE_0 , param:link = URL_0 } ] ] ` +
+     `#[ count = NUMBER_0 ] ` +
+     `#[ more = true ] ;`,
+    `i found more than NUMBER_0 cat pictures , here is one`, { 'GENERIC_ENTITY_com.thecatapi:image_id_0': { value: '1234', display: null }, PICTURE_0: 'https://example.com/1', URL_0: 'https://example.com/2', NUMBER_0: 55 },
+    `$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => @com.thecatapi.get() => notify
+#[results=[
+  { image_id="1234"^^com.thecatapi:image_id, picture_url="https://example.com/1"^^tt:picture, link="https://example.com/2"^^tt:url }
+]]
+#[count=55]
+#[more=true];`],
 ];
 
 function stripTypeAnnotations(program) {

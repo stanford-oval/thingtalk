@@ -1989,3 +1989,22 @@ now => @com.thecatapi.get() => notify
 ]];
 now => @com.twitter.post()
 #[confirm=true];
+
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => @com.thecatapi.get() => notify
+#[results=[
+  { image_id = "..."^^com.thecatapi:image_id, url = "..."^^tt:url, link = "..."^^tt:url }
+]]
+#[count=3];
+
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => @com.thecatapi.get() => notify
+#[results=[
+  { image_id = "..."^^com.thecatapi:image_id, url = "..."^^tt:url, link = "..."^^tt:url }
+]]
+#[count=3]
+#[more=true];
