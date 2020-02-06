@@ -73,6 +73,33 @@ const TEST_CASES = [
         `monitor ([text, author] of @com.twitter.home_timeline()) => @com.twitter.post(status=text);`,
         `monitor (@com.twitter.home_timeline()) on new [text, author] => @com.twitter.post(status=text);`
     ],
+
+    [
+        `now => (@com.twitter.home_timeline()), !!!!(text =~ "lol") => notify;`,
+        `now => (@com.twitter.home_timeline()), text =~ "lol" => notify;`
+    ],
+
+    [
+        `now => (@com.twitter.home_timeline()), !!!(text =~ "lol") => notify;`,
+        `now => (@com.twitter.home_timeline()), !(text =~ "lol") => notify;`
+    ],
+
+    [
+        `now => (@com.twitter.home_timeline()), !(text =~ "lol" && contains(hashtags, "xx")) => notify;`,
+        `now => (@com.twitter.home_timeline()), (!(text =~ "lol") || !(contains(hashtags, "xx"))) => notify;`
+    ],
+
+    [
+        `now => (@com.twitter.home_timeline()), !(text =~ "lol" && !contains(hashtags, "xx")) => notify;`,
+        `now => (@com.twitter.home_timeline()), (!(text =~ "lol") || contains(hashtags, "xx")) => notify;`
+    ],
+
+    [
+        `now => (@com.twitter.home_timeline()), !(text =~ "lol" || !contains(hashtags, "xx")) => notify;`,
+        `now => (@com.twitter.home_timeline()), (!(text =~ "lol") && contains(hashtags, "xx")) => notify;`
+    ],
+
+
 ];
 
 
