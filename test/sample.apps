@@ -261,7 +261,7 @@ monitor @com.twitter.home_timeline() => notify;
 
 // Contains
 {
-    monitor @com.twitter.home_timeline(), contains(hashtags, "lol") => notify;
+    monitor @com.twitter.home_timeline(), contains(hashtags, "lol"^^tt:hashtag) => notify;
 }
 
 ====
@@ -2013,3 +2013,15 @@ now => @com.thecatapi.get() => notify
 
 $dialogue @org.thingpedia.dialogue.transaction.sys_search_question(serveCuisine);
 now => @org.schema.restaurant() => notify;
+
+====
+
+now => @org.schema.full.Restaurant(), id =~ "starbucks" => notify;
+now => @org.schema.full.Restaurant(), "starbucks" ~= id => notify;
+
+====
+
+// ** typecheck: expect TypeError **
+// equality of entity and string
+
+now => @org.schema.full.Restaurant(), id == "starbucks" => notify;
