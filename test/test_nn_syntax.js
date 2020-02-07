@@ -546,6 +546,12 @@ now => @com.thecatapi.get() => notify
 ]]
 #[count=55]
 #[more=true];`],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.sys_search_question param:serveCuisine ; ` +
+     `now => @org.schema.restaurant => notify ;`,
+     'what kind of cuisine are you looking for ?', {},
+     `$dialogue @org.thingpedia.dialogue.transaction.sys_search_question(serveCuisine);
+now => @org.schema.restaurant() => notify;`],
 ];
 
 function stripTypeAnnotations(program) {

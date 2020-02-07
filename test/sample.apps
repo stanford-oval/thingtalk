@@ -2008,3 +2008,8 @@ now => @com.thecatapi.get() => notify
 ]]
 #[count=3]
 #[more=true];
+
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.sys_search_question(serveCuisine);
+now => @org.schema.restaurant() => notify;

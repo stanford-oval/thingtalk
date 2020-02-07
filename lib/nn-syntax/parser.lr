@@ -94,11 +94,17 @@ command_category = {
 
 dialogue_state = {
     '$dialogue' dialogueAct:FUNCTION ';' history:dialogue_history_item_list => {
-        return new Ast.DialogueState(null, dialogueAct.value.kind, dialogueAct.value.channel, history);
+        return new Ast.DialogueState(null, dialogueAct.value.kind, dialogueAct.value.channel, null, history);
+    };
+    '$dialogue' dialogueAct:FUNCTION param:PARAM_NAME ';' history:dialogue_history_item_list => {
+        return new Ast.DialogueState(null, dialogueAct.value.kind, dialogueAct.value.channel, param.value, history);
     };
 
     '$dialogue' dialogueAct:FUNCTION ';' => {
-        return new Ast.DialogueState(null, dialogueAct.value.kind, dialogueAct.value.channel, []);
+        return new Ast.DialogueState(null, dialogueAct.value.kind, dialogueAct.value.channel, null, []);
+    };
+    '$dialogue' dialogueAct:FUNCTION param:PARAM_NAME ';' => {
+        return new Ast.DialogueState(null, dialogueAct.value.kind, dialogueAct.value.channel, param.value, []);
     };
 }
 
