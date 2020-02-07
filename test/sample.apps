@@ -1865,6 +1865,8 @@ now => @org.thingpedia.icalendar.list_events(), status==enum(off) => notify;
 
 now => @org.schema.full.Restaurant(), id =~ "starbucks" => notify;
 now => @org.schema.full.Restaurant(), "starbucks" ~= id => notify;
+now => @org.schema.full.Restaurant(), in_array~(id, ["starbucks", "mcdonalds"]) => notify;
+//now => @com.twitter.search(), contains~(hashtags, "foo") => notify;
 
 ====
 
