@@ -261,7 +261,7 @@ monitor @com.twitter.home_timeline() => notify;
 
 // Contains
 {
-    monitor @com.twitter.home_timeline(), contains(hashtags, "lol") => notify;
+    monitor @com.twitter.home_timeline(), contains(hashtags, "lol"^^tt:hashtag) => notify;
 }
 
 ====
@@ -1951,3 +1951,15 @@ now => @light-bulb.set_power(power=enum(cool));
 // ** typecheck: expect TypeError **
 // invalid enum
 now => @org.thingpedia.icalendar.list_events(), status==enum(off) => notify;
+
+====
+
+now => @org.schema.full.Restaurant(), id =~ "starbucks" => notify;
+now => @org.schema.full.Restaurant(), "starbucks" ~= id => notify;
+
+====
+
+// ** typecheck: expect TypeError **
+// equality of entity and string
+
+now => @org.schema.full.Restaurant(), id == "starbucks" => notify;
