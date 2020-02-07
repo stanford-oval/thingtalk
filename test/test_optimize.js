@@ -99,6 +99,16 @@ const TEST_CASES = [
         `now => (@com.twitter.home_timeline()), (!(text =~ "lol") && contains(hashtags, "xx")) => notify;`
     ],
 
+    [
+        `now => (sort file_size asc of @com.dropbox.list_folder(folder_name=$?)), file_name == "xx" => notify;`,
+        `now => sort file_size asc of ((@com.dropbox.list_folder(folder_name=$?)), file_name == "xx") => notify;`,
+    ],
+
+    [
+        `now => (@com.twitter.my_tweets() join @com.bing.web_search() on (query=text)), title =~ "bla" => notify ;`,
+        `now => ((@com.twitter.my_tweets() join @com.bing.web_search() on (query=text))), title =~ "bla" => notify;`
+    ]
+
 
 ];
 

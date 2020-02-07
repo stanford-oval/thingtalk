@@ -189,7 +189,7 @@ var TEST_CASES = [
      'anyone is allowed to read websites matching “foo” on Bing if the description contains “lol”'],
 
     ['true : @com.bing.web_search, !(query == "foo" && description =~ "lol") => notify',
-     'anyone is allowed to read websites matching any query on Bing if not the query is equal to “foo” and the description contains “lol”'],
+     'anyone is allowed to read websites matching any query on Bing if the query is not equal to “foo” or the description does not contain “lol”'],
 
     ['true : @com.bing.web_search, (query == "foo" || query == "bar") && description =~ "lol" => notify',
      'anyone is allowed to read websites matching any query on Bing if the query is equal to “foo” or the query is equal to “bar” and the description contains “lol”'],

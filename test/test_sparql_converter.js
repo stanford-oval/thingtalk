@@ -141,9 +141,9 @@ const TEST_CASES = [
         `,
         `
     SELECT (?table0 as ?id) (?table0Label as ?idLabel) WHERE {
-    ?table0 wdt:P569 ?p14.
     ?table0 wdt:P647 ?p48.
     FILTER (?p48 = wd:Q157376).
+    ?table0 wdt:P569 ?p14.
     ?table0 wdt:P31 wd:Q5
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. }}
     ORDER BY desc(?p14)
