@@ -78,6 +78,11 @@ const TEST_CASES = [
         `monitor (@com.twitter.home_timeline()), author == "bob"^^tt:username || author == "charlie"^^tt:username => notify;`,
         `monitor ((@com.twitter.home_timeline()), in_array(author, ["bob"^^tt:username, "charlie"^^tt:username])) => notify;`
     ],
+
+    [
+        `now => @org.schema.full.Restaurant(), id =~ "starbucks" || id =~ "mcdonalds" => notify;`,
+        `now => (@org.schema.full.Restaurant()), in_array~(id, ["starbucks", "mcdonalds"]) => notify;`
+    ]
 ];
 
 
