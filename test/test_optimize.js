@@ -73,6 +73,11 @@ const TEST_CASES = [
         `monitor ([text, author] of @com.twitter.home_timeline()) => @com.twitter.post(status=text);`,
         `monitor (@com.twitter.home_timeline()) on new [text, author] => @com.twitter.post(status=text);`
     ],
+
+    [
+        `monitor (@com.twitter.home_timeline()), author == "bob"^^tt:username || author == "charlie"^^tt:username => notify;`,
+        `monitor ((@com.twitter.home_timeline()), in_array(author, ["bob"^^tt:username, "charlie"^^tt:username])) => notify;`
+    ],
 ];
 
 
