@@ -648,19 +648,6 @@ now => @com.twitter.follow(user_name=null^^tt:username("donald trump"));
 ====
 
 // ** typecheck: expect TypeError **
-// invalid value type for natural language annotations
-{
-  class @com.foo {
-    list query get_random_number(out number : Number)
-    #_[canonical='get random number']
-    #_[confirmation='random number']
-    #_[foo=10];
-  }
-}
-
-====
-
-// ** typecheck: expect TypeError **
 // action is not monitorable
 {
   class @com.foo {
@@ -1246,13 +1233,6 @@ let procedure p1 := {
 
 ====
 
-// ** typecheck: expect TypeError **
-// invalid annotation type
-
-let stream s := monitor(@com.bing.web_search()) #_[canonical=42];
-
-====
-
 // procedure with nested declarations
 let procedure p1(p_foo : String) := {
     let query q1 := @com.bing.web_search(query = p_foo);
@@ -1465,77 +1445,6 @@ class @foo {
         out nickname: String #_[canonical={ default='npp', npp=['nickname'], pvp=['nicknamed', 'called']}],
         out owner_of: String #_[canonical={ default='npi', npi=['owner of'], avp=['own']}],
         out gender: Enum(male,female) #_[canonical={ default='apv', apv=true, npv=true, npp=['gender', 'sex'] }]
-    )
-    #_[canonical='foo']
-    #_[confirmation='bar'];
-}
-
-====
-// ** typecheck: expect TypeError **
-// missing default field
-
-class @foo {
-    query bar(
-        out nickname: String #_[canonical={ npp=['nickname'], pvp=['nicknamed', 'called']}],
-        out owner_of: String #_[canonical={ default='npi', npi=['owner of'], avp=['own']}],
-        out gender: Enum(male,female) #_[canonical={ default='apv', apv=true, npv=true, npp=['gender', 'sex'] }]
-    )
-    #_[canonical='foo']
-    #_[confirmation='bar'];
-}
-
-====
-// ** typecheck: expect TypeError **
-// missing default canonical
-
-class @foo {
-    query bar(
-        out nickname: String #_[canonical={ default='npp', pvp=['nicknamed', 'called']}],
-        out owner_of: String #_[canonical={ default='npi', npi=['owner of'], avp=['own']}],
-        out gender: Enum(male,female) #_[canonical={ default='apv', apv=true, npv=true, npp=['gender', 'sex'] }]
-    )
-    #_[canonical='foo']
-    #_[confirmation='bar'];
-}
-
-====
-// ** typecheck: expect TypeError **
-// wrong type in canonical
-
-class @foo {
-    query bar(
-        out nickname: String #_[canonical={ default='npp', npp='nickname', pvp=['nicknamed', 'called']}],
-        out owner_of: String #_[canonical={ default='npi', npi=['owner of'], avp=['own']}],
-        out gender: Enum(male,female) #_[canonical={ default='apv', apv=true, npv=true, npp=['gender', 'sex'] }]
-    )
-    #_[canonical='foo']
-    #_[confirmation='bar'];
-}
-
-====
-// ** typecheck: expect TypeError **
-// wrong type in canonical
-
-class @foo {
-    query bar(
-        out nickname: String #_[canonical={ default='npp', npp=['nickname'], pvp=['nicknamed', 123]}],
-        out owner_of: String #_[canonical={ default='npi', npi=['owner of'], avp=['own']}],
-        out gender: Enum(male,female) #_[canonical={ default='apv', apv=true, npv=true, npp=['gender', 'sex'] }]
-    )
-    #_[canonical='foo']
-    #_[confirmation='bar'];
-}
-
-
-====
-// ** typecheck: expect TypeError **
-// wrong type in canonical
-
-class @foo {
-    query bar(
-        out nickname: String #_[canonical={ default='npp', npp=['nickname'], pvp=['nicknamed', 'called']}],
-        out owner_of: String #_[canonical={ default='npi', npi=['owner of'], avp=['own']}],
-        out gender: Enum(male,female) #_[canonical={ default='apv', apv=['male', 'female'], npv=true, npp=['gender', 'sex'] }]
     )
     #_[canonical='foo']
     #_[confirmation='bar'];
