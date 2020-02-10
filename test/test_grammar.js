@@ -52,7 +52,7 @@ for (let method of Object.getOwnPropertyNames(NodeVisitor.prototype)) {
 }
 
 async function main() {
-    const testFile = fs.readFileSync('./test/sample.apps').toString('utf8').split('====');
+    const testFile = fs.readFileSync(process.argv[2] || './test/sample.apps').toString('utf8').split('====');
 
     for (let i = 0; i < testFile.length; i++) {
         console.log('# Test Case ' + (i+1));
