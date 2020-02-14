@@ -562,5 +562,5 @@ constant_Entity__tt__phone_number  = entity:PHONE_NUMBER  => new Ast.Value.Entit
 constant_Entity__tt__email_address = entity:EMAIL_ADDRESS => new Ast.Value.Entity(entity.value, 'tt:email_address', null);
 constant_Entity__tt__path_name     = entity:PATH_NAME     => new Ast.Value.Entity(entity.value, 'tt:path_name', null);
 constant_Entity__tt__device        = entity:DEVICE        => new Ast.Value.Entity(entity.value, 'tt:device', null);
-constant_Entity__tt__function      = entity:FUNCTION      => new Ast.Value.Entity(entity.kind + ':' + entity.device, 'tt:function', null);
+constant_Entity__tt__function      = entity:FUNCTION      => new Ast.Value.Entity(entity.value.kind + ':' + entity.value.channel, 'tt:function', null);
 constant_Entity__tt__picture       = entity:PICTURE       => new Ast.Value.Entity(entity.value, 'tt:picture', null);
