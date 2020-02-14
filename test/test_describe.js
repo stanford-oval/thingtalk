@@ -317,6 +317,11 @@ var TEST_CASES = [
     'notify you when the status of your smoke alarm changes', 'Smoke Alarm ⇒ Notification'],
     [`monitor (@smoke-alarm(name="kitchen").status()) => notify;`,
     'notify you when the status of your “kitchen” smoke alarm changes', 'Smoke Alarm ⇒ Notification'],
+
+    [`edge (monitor (@org.thingpedia.weather.current(location=$?))) on temperature >= 5defaultTemperature => notify;`,
+    'notify you when the current weather for ____ changes and it becomes true that the temperature is greater than or equal to 5.0 degrees', 'Weather ⇒ Notification'],
+    [`now => (@org.thingpedia.weather.current(location=$?)), temperature >= 10defaultTemperature => notify;`,
+    'get the current weather for ____ if the temperature is greater than or equal to 10.0 degrees and then notify you', 'Weather ⇒ Notification'],
 ];
 
 const gettext = {
