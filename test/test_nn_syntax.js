@@ -462,6 +462,10 @@ const TEST_CASES = [
     [`now => @light-bulb.set_power attribute:name:String = " bedroom " param:power:Enum(on,off) = enum:off`,
     `turn off my bedroom lights`, {},
     `now => @light-bulb(name="bedroom").set_power(power=enum(off));`],
+
+    [`bookkeeping answer @com.google.contacts.get_contacts`,
+    `google contacts`, {},
+    `bookkeeping(answer("com.google.contacts:get_contacts"^^tt:function));`]
 ];
 
 async function testCase(test, i) {
