@@ -1779,6 +1779,8 @@ class @com.yelp
                         }])
   #_[canonical="restaurant"]
   #_[confirmation="restaurants on Yelp"]
+  #[minimal_projection=["id"]]
+  #[default_projection=["id", "link", "rating", "cuisines", "geo", "image_url"]]
   #_[formatted=[{
     type="rdl",
     displayTitle="${name}",
