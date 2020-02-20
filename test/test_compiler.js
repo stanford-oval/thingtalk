@@ -6403,7 +6403,70 @@ const TEST_CASES = [
   } else {
 
   }
-`]]
+`]],
+
+    // 86 compiler bug
+    [`now => aggregate count of (@com.yelp.restaurant()) => notify;`,
+[`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  _t_0 = 0;
+  try {
+    _t_1 = {};
+    _t_2 = await __env.invokeQuery("com.yelp", { }, "restaurant", _t_1);
+    _t_3 = _t_2[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_3.next();
+      while (!_iter_tmp.done) {
+        _t_4 = _iter_tmp.value;
+        _t_5 = _t_4[0];
+        _t_6 = _t_4[1];
+        _t_7 = _t_6.__response;
+        _t_8 = _t_6.id;
+        _t_9 = _t_6.image_url;
+        _t_10 = _t_6.link;
+        _t_11 = _t_6.cuisines;
+        _t_12 = _t_6.price;
+        _t_13 = _t_6.rating;
+        _t_14 = _t_6.reviewCount;
+        _t_15 = _t_6.geo;
+        _t_16 = _t_6.phone;
+        _t_17 = 1;
+        _t_0 = _t_0 + _t_17;
+        _iter_tmp = await _t_3.next();
+      }
+    }
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke query", _exc_);
+  }
+  _t_19 = "count";
+  _t_18 = __builtin.aggregateOutputType(_t_19, _t_5);
+  _t_20 = {};
+  _t_20.count = _t_0;
+  try {
+    await __env.output(String(_t_18), _t_20);
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke action", _exc_);
+  }`]]
 ];
 
 // eslint-disable-next-line prefer-arrow-callback
