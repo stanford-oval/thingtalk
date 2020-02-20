@@ -82,6 +82,41 @@ const TEST_CASES = [
     [
         `now => @org.schema.full.Restaurant(), id =~ "starbucks" || id =~ "mcdonalds" => notify;`,
         `now => (@org.schema.full.Restaurant()), in_array~(id, ["starbucks", "mcdonalds"]) => notify;`
+    ],
+
+    [
+`$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => [food] of ((@uk.ac.cam.multiwoz.Restaurant.Restaurant()), true) => notify
+#[results=[
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::0:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::9:", price_range=enum(moderate), area=enum(south) },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::1:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::25:", price_range=enum(moderate), area=enum(centre) },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::2:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::44:", price_range=enum(moderate), area=enum(north) },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::3:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::17:", price_range=enum(expensive), area=enum(centre) },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::4:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::18:", price_range=enum(expensive), area=enum(south) },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::5:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::41:", price_range=enum(expensive), area=enum(north) },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::6:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::41:", price_range=enum(cheap), area=enum(south) },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::7:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::22:", price_range=enum(cheap), area=enum(south) },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::8:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::5:", price_range=enum(moderate), area=enum(south) },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::9:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::33:", price_range=enum(moderate), area=enum(south) }
+]]
+#[count=50]
+#[more=true];`,
+`$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => [food] of (@uk.ac.cam.multiwoz.Restaurant.Restaurant()) => notify
+#[results=[
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::0:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::9:", price_range=enum(moderate), area=enum(south) },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::1:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::25:", price_range=enum(moderate), area=enum(centre) },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::2:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::44:", price_range=enum(moderate), area=enum(north) },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::3:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::17:", price_range=enum(expensive), area=enum(centre) },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::4:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::18:", price_range=enum(expensive), area=enum(south) },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::5:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::41:", price_range=enum(expensive), area=enum(north) },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::6:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::41:", price_range=enum(cheap), area=enum(south) },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::7:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::22:", price_range=enum(cheap), area=enum(south) },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::8:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::5:", price_range=enum(moderate), area=enum(south) },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::9:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::33:", price_range=enum(moderate), area=enum(south) }
+]]
+#[count=50]
+#[more=true];`
     ]
 ];
 
