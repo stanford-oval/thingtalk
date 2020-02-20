@@ -1716,14 +1716,78 @@ class @org.wikidatasportsskill
 
 }
 
-class @com.yelp {
-  monitorable list query restaurants(out name: String,
-                         out location: Location,
-                         out ratings: Array(Number),
-                         out reviews: Array({
-                            rating: Number,
-                            review: String
-                         }));
+class @com.yelp
+#_[name="Yelp"]
+#_[description="Search restaurants on Yelp"]
+#_[canonical="yelp"]
+{
+  list query restaurant(out id: Entity(com.yelp:restaurant)
+                        #[conflict_filter=["cuisines", "price_range"]]
+                        #[unique=true]
+                        #[string_values="gov.data:restaurant_names"]
+                        #_[canonical={
+                          default="npp", // ignored
+                          base=["name"],
+                          property=[]
+                        }],
+                        out image_url: Entity(tt:picture)
+                        #[genie=false]
+                        #_[canonical={
+                          base=["picture", "image", "photo"]
+                        }],
+                        out link: Entity(tt:url)
+                        #[genie=false]
+                        #_[canonical="link"],
+                        out cuisines: Array(Entity(com.yelp:restaurant_cuisine))
+                        #[conflict_filter=["id"]]
+                        #_[canonical={
+                          default="npp", // ignored
+                          base=["cuisines", "types of cuisine", "food", "types of food"],
+                          property=["# food", "# cuisine"],
+                          adjective=["#"],
+                          verb=["serves # cuisine", "serves # food", "offer # cuisine", "offer # food", "serves", "offers"]
+                        }],
+                        out price : Enum(cheap, moderate, expensive, luxury)
+                        #[conflict_filter=["id"]]
+                        #_[canonical={
+                          default="npp",
+                          base=["price range", "price"],
+                          property=[],
+                          adjective=["#", "# -ly priced"]
+                          // FIXME
+                          /*adjective_enum={ expensive=["upscale"] }*/
+                        }],
+                        out rating: Number
+                        #_[canonical={
+                          default="npp", // ignored
+                          base=["rating", "average rating"],
+                          passive_verb=["rated # star"],
+                          adjective=["# star"],
+                          npp=["rating", "# star rating"]
+                        }],
+                        out reviewCount: Number
+                        #_[canonical="review count"],
+                        out geo: Location
+                        #_[canonical={
+                          default="npp", // ignored,
+                          base=["location", "address"]
+                        }],
+                        out phone: Entity(tt:phone_number)
+                        #_[canonical={
+                          default="npp",
+                          base=["telephone", "phone number"]
+                        }])
+  #_[canonical="restaurant"]
+  #_[confirmation="restaurants on Yelp"]
+  #_[formatted=[{
+    type="rdl",
+    displayTitle="${name}",
+    webCallback="${link}",
+    displayText="Rating: ${rating}\nCuisines: ${cuisines}\nAddress: ${geo}",
+    pictureUrl="${image_url}"
+  }]]
+  #[doc="search for restaurants on Yelp"]
+  #[confirm=false];
 }
 
 class @org.thingpedia.test.compounds_and_inheritance {
