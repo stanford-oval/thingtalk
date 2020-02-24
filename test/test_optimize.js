@@ -132,7 +132,10 @@ now => [distance] of (compute (distance(geo, $context.location.current_location)
 #[results=[
   { distance=1.5604449514735575e-9 },
   { distance=0 }
-]];`]
+]];`],
+
+    [`monitor @com.twitter.home_timeline(), text =~ "foo" || (text =~"bar" && !(text =~ "lol")) => notify;`,
+     `monitor ((@com.twitter.home_timeline()), ((text =~ "bar" && !(text =~ "lol")) || text =~ "foo")) => notify;`],
 ];
 
 
