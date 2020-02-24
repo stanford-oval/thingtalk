@@ -517,6 +517,7 @@ constant_value = {
     constant_Entity__tt__path_name;
     constant_Entity__tt__url;
     constant_Entity__tt__device;
+    constant_Entity__tt__function;
     constant_Entity__tt__picture;
     constant_Enum;
     slot:SLOT => (slot.value === undefined ? Ast.Value.Undefined(true) : slot.value);
