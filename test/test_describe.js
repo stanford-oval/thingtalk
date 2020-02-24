@@ -338,7 +338,16 @@ var TEST_CASES = [
 
     [`executor = "bob"^^tt:username : monitor(@security-camera.current_event()) => @com.yandex.translate.translate(text="lol") => @com.twitter.post(status=translated_text);`,
     `tell @bob: do the following: when the current event detected on your security camera changes, get the translation of “lol” to ____, and then tweet the translated text`,
-    `Security Camera ⇒ Yandex Translate ⇒ Twitter`]
+    `Security Camera ⇒ Yandex Translate ⇒ Twitter`],
+
+    [`edge (monitor (@org.thingpedia.weather.current(location=$?))) on temperature >= 5defaultTemperature => notify;`,
+    'notify you when the current weather for ____ changes and it becomes true that the temperature is greater than or equal to 5 degrees', 'Weather ⇒ Notification'],
+    [`now => (@org.thingpedia.weather.current(location=$?)), temperature >= 10defaultTemperature => notify;`,
+    'get the current weather for ____ such that the temperature is greater than or equal to 10 degrees and then notify you', 'Weather ⇒ Notification'],
+    [`now => (@org.thingpedia.weather.current(location=$?)), temperature >= 10.2defaultTemperature => notify;`,
+    'get the current weather for ____ such that the temperature is greater than or equal to 10.2 degrees and then notify you', 'Weather ⇒ Notification'],
+    [`now => (@org.thingpedia.weather.current(location=$?)), temperature >= 10.33defaultTemperature => notify;`,
+    'get the current weather for ____ such that the temperature is greater than or equal to 10.3 degrees and then notify you', 'Weather ⇒ Notification'],
 ];
 
 const gettext = {
