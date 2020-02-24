@@ -117,7 +117,22 @@ now => [food] of (@uk.ac.cam.multiwoz.Restaurant.Restaurant()) => notify
 ]]
 #[count=50]
 #[more=true];`
-    ]
+    ],
+
+    [`
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => [distance] of compute (distance(geo, $context.location.current_location)) of @com.yelp.restaurant() => notify
+#[results=[
+{ distance=1.5604449514735575e-9 },
+{ distance=0 }
+]];
+`,
+    `$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => [distance] of (compute (distance(geo, $context.location.current_location)) of (@com.yelp.restaurant())) => notify
+#[results=[
+  { distance=1.5604449514735575e-9 },
+  { distance=0 }
+]];`]
 ];
 
 
