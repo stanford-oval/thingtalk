@@ -383,6 +383,7 @@ var TEST_CASES = [
     ['Device(org.schema, , ) org.schema:restaurant'],
     ['Selector(@org.schema)',
      'FieldSlot(lhs : Number) compute_filter.lhs What is the left hand side of the filter?',
+     'ComputationOperandSlot(count[0] : Number) compute_filter.lhs.count.0 What is the first operand to count you would like?',
      'FieldSlot(rhs : Number) compute_filter.rhs What is the right hand side of the filter?']
     ],
 
@@ -397,6 +398,15 @@ var TEST_CASES = [
     'Selector(@light-bulb)',
     'InputParamSlot(power : Enum(on,off)) in_param.power Do you want to turn it on or off?',
     ]
+    ],
+
+    [`now => compute distance(geo, $context.location.current_location) of @com.yelp.restaurant() => notify;`,
+    ['query: Invocation(Device(com.yelp, , ), restaurant, , )'],
+    ['Device(com.yelp, , ) com.yelp:restaurant'],
+    ['Selector(@com.yelp)',
+    'FieldSlot(expression : Measure(m)) compute.expression What expression would you like?',
+    'ComputationOperandSlot(distance[0] : Measure(m)) compute.expression.distance.0 What is the first operand to distance you would like?',
+    'ComputationOperandSlot(distance[1] : Measure(m)) compute.expression.distance.1 What is the second operand to distance you would like?']
     ]
 ];
 
