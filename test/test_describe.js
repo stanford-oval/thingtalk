@@ -348,6 +348,10 @@ var TEST_CASES = [
     'get the current weather for ____ such that the temperature is greater than or equal to 10.2 degrees and then notify you', 'Weather ⇒ Notification'],
     [`now => (@org.thingpedia.weather.current(location=$?)), temperature >= 10.33defaultTemperature => notify;`,
     'get the current weather for ____ such that the temperature is greater than or equal to 10.3 degrees and then notify you', 'Weather ⇒ Notification'],
+
+    [`now => (@com.yelp.restaurant()), true(cuisines) => notify;`,
+    `get restaurants on Yelp such that any value of cuisines is acceptable and then notify you`,
+    `Yelp`],
 ];
 
 const gettext = {

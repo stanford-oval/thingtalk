@@ -477,7 +477,11 @@ const TEST_CASES = [
 
     [`bookkeeping answer @com.google.contacts.get_contacts`,
     `google contacts`, {},
-    `bookkeeping(answer("com.google.contacts:get_contacts"^^tt:function));`]
+    `bookkeeping(answer("com.google.contacts:get_contacts"^^tt:function));`],
+
+    [`now => ( @com.yelp.restaurant ) filter true param:cuisines:Array(Entity(com.yelp:restaurant_cuisine)) => notify`,
+    `i 'm looking for a restaurant , i do n't care what cuisine`, {},
+    `now => (@com.yelp.restaurant()), true(cuisines) => notify;`],
 ];
 
 function stripTypeAnnotations(program) {
