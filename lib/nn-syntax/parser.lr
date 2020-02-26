@@ -395,6 +395,8 @@ or_filter = {
 }
 
 atom_filter = {
+    'true' pname:PARAM_NAME => new Ast.BooleanExpression.DontCare(null, pname.value);
+
     pname:PARAM_NAME op:comparison_op rhs:value => {
         return new Ast.BooleanExpression.Atom(null, pname.value, op, rhs);
     };

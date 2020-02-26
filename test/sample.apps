@@ -1936,3 +1936,8 @@ now => @org.schema.full.Restaurant(), in_array~(id, ["starbucks", "mcdonalds"]) 
 // equality of entity and string
 
 now => @org.schema.full.Restaurant(), id == "starbucks" => notify;
+
+====
+
+// explicit dontcare
+now => @org.schema.full.Restaurant(), true(servesCuisine) => notify;

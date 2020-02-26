@@ -560,6 +560,10 @@ now => @org.schema.restaurant() => notify;`],
      'what kind of cuisine and price are you looking for ?', {},
      `$dialogue @org.thingpedia.dialogue.transaction.sys_search_question(price, serveCuisine);
 now => @org.schema.restaurant() => notify;`],
+
+    [`now => ( @com.yelp.restaurant ) filter true param:cuisines:Array(Entity(com.yelp:restaurant_cuisine)) => notify`,
+    `i 'm looking for a restaurant , i do n't care what cuisine`, {},
+    `now => (@com.yelp.restaurant()), true(cuisines) => notify;`],
 ];
 
 function stripTypeAnnotations(program) {

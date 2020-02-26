@@ -338,7 +338,11 @@ var TEST_CASES = [
 
     [`executor = "bob"^^tt:username : monitor(@security-camera.current_event()) => @com.yandex.translate.translate(text="lol") => @com.twitter.post(status=translated_text);`,
     `tell @bob: do the following: when the current event detected on your security camera changes, get the translation of “lol” to ____, and then tweet the translated text`,
-    `Security Camera ⇒ Yandex Translate ⇒ Twitter`]
+    `Security Camera ⇒ Yandex Translate ⇒ Twitter`],
+
+    [`now => (@com.yelp.restaurant()), true(cuisines) => notify;`,
+    `get restaurants on Yelp such that any value of cuisines is acceptable and then notify you`,
+    `Yelp`],
 ];
 
 const gettext = {
