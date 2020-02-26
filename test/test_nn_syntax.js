@@ -447,6 +447,7 @@ const TEST_CASES = [
     `get tweets with hashtags foo`, {},
     `now => (@com.twitter.home_timeline()), count((hashtags) filter { value == "foo"^^tt:hashtag }) >= 0 => notify;`],
 
+    /*
     [`now => ( @com.yelp.restaurants ) filter min ( param:ratings:Array(Number) ) >= NUMBER_0 => notify`,
     `get restaurants with no rating below NUMBER_0`, { NUMBER_0: 3.5 },
     `now => (@com.yelp.restaurants()), min(ratings) >= 3.5 => notify;`],
@@ -470,6 +471,7 @@ const TEST_CASES = [
     [`compute distance ( param:location:Location , location:current_location ) of ( monitor ( @com.yelp.restaurants ) ) => notify`,
     `get restaurants and their distance from here`, {},
     `compute (distance(location, $context.location.current_location)) of (monitor (@com.yelp.restaurants())) => notify;`],
+    */
 
     [`now => @light-bulb.set_power attribute:name:String = " bedroom " param:power:Enum(on,off) = enum:off`,
     `turn off my bedroom lights`, {},
@@ -551,6 +553,12 @@ now => @com.thecatapi.get() => notify
      `now => @org.schema.restaurant => notify ;`,
      'what kind of cuisine are you looking for ?', {},
      `$dialogue @org.thingpedia.dialogue.transaction.sys_search_question(serveCuisine);
+now => @org.schema.restaurant() => notify;`],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.sys_search_question param:price , param:serveCuisine ; ` +
+     `now => @org.schema.restaurant => notify ;`,
+     'what kind of cuisine and price are you looking for ?', {},
+     `$dialogue @org.thingpedia.dialogue.transaction.sys_search_question(price, serveCuisine);
 now => @org.schema.restaurant() => notify;`],
 ];
 
