@@ -26,7 +26,7 @@ const TEST_CASES = [
   let _t_11;
   try {
     _t_0 = {};
-    _t_1 = await __env.invokeQuery("com.xkcd", { }, "get_comic", _t_0);
+    _t_1 = await __env.invokeQuery("com.xkcd", { }, "get_comic", _t_0, { projection: ["number", "title", "picture_url", "link", "alt_text"] });
     _t_2 = _t_1[Symbol.iterator]();
     {
       let _iter_tmp = await _t_2.next();
@@ -69,7 +69,7 @@ const TEST_CASES = [
   let _t_11;
   try {
     _t_0 = {};
-    _t_1 = await __env.invokeQuery("com.xkcd", { id: "com.xkcd-123", }, "get_comic", _t_0);
+    _t_1 = await __env.invokeQuery("com.xkcd", { id: "com.xkcd-123", }, "get_comic", _t_0, { projection: ["number", "title", "picture_url", "link", "alt_text"] });
     _t_2 = _t_1[Symbol.iterator]();
     {
       let _iter_tmp = await _t_2.next();
@@ -113,7 +113,7 @@ const TEST_CASES = [
   let _t_12;
   try {
     _t_0 = {};
-    _t_1 = await __env.invokeQuery("com.xkcd", { }, "get_comic", _t_0);
+    _t_1 = await __env.invokeQuery("com.xkcd", { }, "get_comic", _t_0, { projection: ["number", "title", "picture_url", "link", "alt_text"] });
     _t_2 = _t_1[Symbol.iterator]();
     {
       let _iter_tmp = await _t_2.next();
@@ -166,7 +166,7 @@ const TEST_CASES = [
   let _t_14;
   try {
     _t_0 = {};
-    _t_1 = await __env.invokeQuery("com.xkcd", { }, "get_comic", _t_0);
+    _t_1 = await __env.invokeQuery("com.xkcd", { }, "get_comic", _t_0, { projection: ["number", "title", "picture_url", "link", "alt_text"] });
     _t_2 = _t_1[Symbol.iterator]();
     {
       let _iter_tmp = await _t_2.next();
@@ -225,7 +225,7 @@ const TEST_CASES = [
   _t_0 = await __env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = await __env.invokeMonitor("thermostat", { }, "get_temperature", _t_1, false);
+    _t_2 = await __env.invokeMonitor("thermostat", { }, "get_temperature", _t_1, { projection: ["value"] });
     {
       let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
@@ -283,7 +283,7 @@ const TEST_CASES = [
   _t_0 = await __env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = await __env.invokeMonitor("thermostat", { }, "get_temperature", _t_1, false);
+    _t_2 = await __env.invokeMonitor("thermostat", { }, "get_temperature", _t_1, { projection: ["value"] });
     {
       let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
@@ -354,33 +354,47 @@ const TEST_CASES = [
   let _t_14;
   let _t_15;
   let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
   _t_0 = await __env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = await __env.invokeMonitor("com.twitter", { id: "twitter-foo", }, "home_timeline", _t_1, false);
+    _t_1 = new Array(2);
+    _t_3 = new Array(3);
+    _t_4 = "author";
+    _t_3[0] = _t_4;
+    _t_5 = "==";
+    _t_3[1] = _t_5;
+    _t_6 = new __builtin.Entity("HillaryClinton", null);
+    _t_3[2] = _t_6;
+    _t_2[0] = _t_3;
+    _t_7 = await __env.invokeMonitor("com.twitter", { id: "twitter-foo", }, "home_timeline", _t_1, { projection: ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"], filter: _t_2 });
     {
-      let _iter_tmp = await _t_2.next();
+      let _iter_tmp = await _t_7.next();
       while (!_iter_tmp.done) {
-        _t_3 = _iter_tmp.value;
-        _t_4 = _t_3[0];
-        _t_5 = _t_3[1];
-        _t_6 = _t_5.__response;
-        _t_7 = _t_5.text;
-        _t_8 = _t_5.hashtags;
-        _t_9 = _t_5.urls;
-        _t_10 = _t_5.author;
-        _t_11 = _t_5.in_reply_to;
-        _t_12 = _t_5.tweet_id;
-        _t_13 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
-        _t_14 = __builtin.addTuple(_t_0, _t_5);
-        await __env.writeState(0, _t_14);
-        _t_0 = _t_14;
-        if (_t_13) {
-          _t_16 = new __builtin.Entity("HillaryClinton", null);
-          _t_15 = __builtin.equality(_t_10, _t_16);
-          if (_t_15) {
+        _t_8 = _iter_tmp.value;
+        _t_9 = _t_8[0];
+        _t_10 = _t_8[1];
+        _t_11 = _t_10.__response;
+        _t_12 = _t_10.text;
+        _t_13 = _t_10.hashtags;
+        _t_14 = _t_10.urls;
+        _t_15 = _t_10.author;
+        _t_16 = _t_10.in_reply_to;
+        _t_17 = _t_10.tweet_id;
+        _t_18 = __builtin.isNewTuple(_t_0, _t_10, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
+        _t_19 = __builtin.addTuple(_t_0, _t_10);
+        await __env.writeState(0, _t_19);
+        _t_0 = _t_19;
+        if (_t_18) {
+          _t_21 = new __builtin.Entity("HillaryClinton", null);
+          _t_20 = __builtin.equality(_t_15, _t_21);
+          if (_t_20) {
             try {
-              await __env.output(String(_t_4), _t_5);
+              await __env.output(String(_t_9), _t_10);
             } catch(_exc_) {
               __env.reportError("Failed to invoke action", _exc_);
             }
@@ -390,7 +404,7 @@ const TEST_CASES = [
         } else {
 
         }
-        _iter_tmp = await _t_2.next();
+        _iter_tmp = await _t_7.next();
       }
     }
   } catch(_exc_) {
@@ -422,7 +436,7 @@ const TEST_CASES = [
     _t_1 = {};
     _t_2 = new __builtin.Location(1, 3, "Somewhere");
     _t_1.location = _t_2;
-    _t_3 = await __env.invokeMonitor("org.thingpedia.weather", { }, "current", _t_1, false);
+    _t_3 = await __env.invokeMonitor("org.thingpedia.weather", { }, "current", _t_1, { projection: ["temperature", "wind_speed", "humidity", "cloudiness", "fog", "status", "icon"] });
     {
       let _iter_tmp = await _t_3.next();
       while (!_iter_tmp.done) {
@@ -482,7 +496,7 @@ const TEST_CASES = [
     _t_1 = {};
     _t_2 = new __builtin.Location(1, 3, null);
     _t_1.location = _t_2;
-    _t_3 = await __env.invokeMonitor("org.thingpedia.weather", { }, "current", _t_1, false);
+    _t_3 = await __env.invokeMonitor("org.thingpedia.weather", { }, "current", _t_1, { projection: ["temperature", "wind_speed", "humidity", "cloudiness", "fog", "status", "icon"] });
     {
       let _iter_tmp = await _t_3.next();
       while (!_iter_tmp.done) {
@@ -657,38 +671,52 @@ const TEST_CASES = [
   let _t_14;
   let _t_15;
   let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
   try {
     _t_0 = {};
     _t_1 = "lol";
     _t_0.query = _t_1;
-    _t_2 = await __env.invokeQuery("com.youtube", { }, "search_videos", _t_0);
-    _t_3 = _t_2[Symbol.iterator]();
+    _t_1 = new Array(2);
+    _t_3 = new Array(3);
+    _t_4 = "video_url";
+    _t_3[0] = _t_4;
+    _t_5 = "==";
+    _t_3[1] = _t_5;
+    _t_6 = new __builtin.Entity("http://www.youtube.com", null);
+    _t_3[2] = _t_6;
+    _t_2[0] = _t_3;
+    _t_7 = await __env.invokeQuery("com.youtube", { }, "search_videos", _t_0, { projection: ["video_id", "channel_id", "title", "description", "thumbnail", "count", "video_url"], filter: _t_2 });
+    _t_8 = _t_7[Symbol.iterator]();
     {
-      let _iter_tmp = await _t_3.next();
+      let _iter_tmp = await _t_8.next();
       while (!_iter_tmp.done) {
-        _t_4 = _iter_tmp.value;
-        _t_5 = _t_4[0];
-        _t_6 = _t_4[1];
-        _t_7 = _t_6.channel_id;
-        _t_8 = _t_6.count;
-        _t_9 = _t_6.__response;
-        _t_10 = _t_6.video_id;
-        _t_11 = _t_6.title;
-        _t_12 = _t_6.description;
-        _t_13 = _t_6.thumbnail;
-        _t_14 = _t_6.video_url;
-        _t_16 = new __builtin.Entity("http://www.youtube.com", null);
-        _t_15 = __builtin.equality(_t_14, _t_16);
-        if (_t_15) {
+        _t_9 = _iter_tmp.value;
+        _t_10 = _t_9[0];
+        _t_11 = _t_9[1];
+        _t_12 = _t_11.channel_id;
+        _t_13 = _t_11.count;
+        _t_14 = _t_11.__response;
+        _t_15 = _t_11.video_id;
+        _t_16 = _t_11.title;
+        _t_17 = _t_11.description;
+        _t_18 = _t_11.thumbnail;
+        _t_19 = _t_11.video_url;
+        _t_21 = new __builtin.Entity("http://www.youtube.com", null);
+        _t_20 = __builtin.equality(_t_19, _t_21);
+        if (_t_20) {
           try {
-            await __env.output(String(_t_5), _t_6);
+            await __env.output(String(_t_10), _t_11);
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
         } else {
 
         }
-        _iter_tmp = await _t_3.next();
+        _iter_tmp = await _t_8.next();
       }
     }
   } catch(_exc_) {
@@ -717,7 +745,7 @@ const TEST_CASES = [
   _t_0 = await __env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = await __env.invokeMonitor("com.xkcd", { id: "com.xkcd-6", }, "get_comic", _t_1, false);
+    _t_2 = await __env.invokeMonitor("com.xkcd", { id: "com.xkcd-6", }, "get_comic", _t_1, { projection: ["title", "picture_url", "link", "alt_text"] });
     {
       let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
@@ -802,7 +830,7 @@ const TEST_CASES = [
   _t_0 = await __env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = await __env.invokeMonitor("com.twitter", { }, "home_timeline", _t_1, false);
+    _t_2 = await __env.invokeMonitor("com.twitter", { }, "home_timeline", _t_1, { projection: ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"] });
     {
       let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
@@ -876,7 +904,7 @@ const TEST_CASES = [
   _t_0 = await __env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = await __env.invokeMonitor("com.twitter", { }, "home_timeline", _t_1, false);
+    _t_2 = await __env.invokeMonitor("com.twitter", { }, "home_timeline", _t_1, { projection: ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"] });
     {
       let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
@@ -936,7 +964,7 @@ const TEST_CASES = [
   _t_0 = await __env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = await __env.invokeMonitor("com.twitter", { }, "home_timeline", _t_1, false);
+    _t_2 = await __env.invokeMonitor("com.twitter", { }, "home_timeline", _t_1, { projection: ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"] });
     {
       let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
@@ -995,7 +1023,7 @@ const TEST_CASES = [
   _t_0 = await __env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = await __env.invokeMonitor("com.xkcd", { id: "com.xkcd-6", }, "get_comic", _t_1, false);
+    _t_2 = await __env.invokeMonitor("com.xkcd", { id: "com.xkcd-6", }, "get_comic", _t_1, { projection: ["picture_url", "title", "link", "alt_text"] });
     {
       let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
@@ -1047,7 +1075,7 @@ const TEST_CASES = [
   let _t_10;
   try {
     _t_0 = {};
-    _t_1 = await __env.invokeQuery("org.thingpedia.builtin.thingengine.builtin", { }, "get_time", _t_0);
+    _t_1 = await __env.invokeQuery("org.thingpedia.builtin.thingengine.builtin", { }, "get_time", _t_0, { projection: ["time"] });
     _t_2 = _t_1[Symbol.iterator]();
     {
       let _iter_tmp = await _t_2.next();
@@ -1077,7 +1105,6 @@ const TEST_CASES = [
   }`]],
 
     //23
-    //Changes start here
     [`now => @com.uber.price_estimate(start=makeLocation(1, 3, "Somewhere"), end=makeLocation(1, 3, "Somewhere")), low_estimate >= 7 => notify;`,
   [`"use strict";
   let _t_0;
@@ -1098,46 +1125,59 @@ const TEST_CASES = [
   let _t_15;
   let _t_16;
   let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
   try {
     _t_0 = {};
     _t_1 = new __builtin.Location(1, 3, "Somewhere");
     _t_0.start = _t_1;
     _t_2 = new __builtin.Location(1, 3, "Somewhere");
     _t_0.end = _t_2;
-    _t_3 = await __env.invokeQuery("com.uber", { }, "price_estimate", _t_0);
-    _t_4 = _t_3[Symbol.iterator]();
+    _t_1 = new Array(3);
+    _t_4 = new Array(3);
+    _t_5 = "low_estimate";
+    _t_4[0] = _t_5;
+    _t_6 = ">=";
+    _t_4[1] = _t_6;
+    _t_7 = 7;
+    _t_4[2] = _t_7;
+    _t_3[0] = _t_4;
+    _t_8 = await __env.invokeQuery("com.uber", { }, "price_estimate", _t_0, { projection: ["uber_type", "low_estimate", "high_estimate", "surge", "duration", "distance"], filter: _t_3 });
+    _t_9 = _t_8[Symbol.iterator]();
     {
-      let _iter_tmp = await _t_4.next();
+      let _iter_tmp = await _t_9.next();
       while (!_iter_tmp.done) {
-        _t_5 = _iter_tmp.value;
-        _t_6 = _t_5[0];
-        _t_7 = _t_5[1];
-        _t_8 = _t_7.__response;
-        _t_9 = _t_7.uber_type;
-        _t_10 = _t_7.low_estimate;
-        _t_11 = _t_7.high_estimate;
-        _t_12 = _t_7.surge;
-        _t_13 = _t_7.duration;
-        _t_14 = _t_7.distance;
-        _t_16 = 7;
-        _t_17 = __builtin.getCurrency (_t_16);
-        _t_15 = _t_10 >= _t_17;
-        if (_t_15) {
+        _t_10 = _iter_tmp.value;
+        _t_11 = _t_10[0];
+        _t_12 = _t_10[1];
+        _t_13 = _t_12.__response;
+        _t_14 = _t_12.uber_type;
+        _t_15 = _t_12.low_estimate;
+        _t_16 = _t_12.high_estimate;
+        _t_17 = _t_12.surge;
+        _t_18 = _t_12.duration;
+        _t_19 = _t_12.distance;
+        _t_21 = 7;
+        _t_22 = __builtin.getCurrency (_t_21);
+        _t_20 = _t_15 >= _t_22;
+        if (_t_20) {
           try {
-            await __env.output(String(_t_6), _t_7);
+            await __env.output(String(_t_11), _t_12);
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
         } else {
 
         }
-        _iter_tmp = await _t_4.next();
+        _iter_tmp = await _t_9.next();
       }
     }
   } catch(_exc_) {
     __env.reportError("Failed to invoke query", _exc_);
   }`]],
-    //Changes end here
 
     //24
     [`{
@@ -1170,7 +1210,7 @@ const TEST_CASES = [
   _t_0 = await __env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = await __env.invokeMonitor("com.twitter", { }, "home_timeline", _t_1, false);
+    _t_2 = await __env.invokeMonitor("com.twitter", { }, "home_timeline", _t_1, { projection: ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"] });
     {
       let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
@@ -1257,7 +1297,7 @@ const TEST_CASES = [
   _t_0 = await __env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = await __env.invokeMonitor("com.twitter", { }, "home_timeline", _t_1, false);
+    _t_2 = await __env.invokeMonitor("com.twitter", { }, "home_timeline", _t_1, { projection: ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"] });
     {
       let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
@@ -1279,7 +1319,7 @@ const TEST_CASES = [
           _t_15 = false;
           try {
             _t_17 = {};
-            _t_16 = await __env.invokeQuery("org.thingpedia.builtin.thingengine.builtin", { }, "get_time", _t_17);
+            _t_16 = await __env.invokeQuery("org.thingpedia.builtin.thingengine.builtin", { }, "get_time", _t_17, { projection: ["time"] });
             _t_18 = _t_16[Symbol.iterator]();
             {
               let _iter_tmp = await _t_18.next();
@@ -1360,69 +1400,83 @@ const TEST_CASES = [
   let _t_30;
   let _t_31;
   let _t_32;
+  let _t_33;
+  let _t_34;
+  let _t_35;
+  let _t_36;
+  let _t_37;
   _t_0 = await __env.readState(1);
   try {
     _t_1 = {};
-    _t_2 = await __env.invokeMonitor("com.twitter", { }, "home_timeline", _t_1, false);
+    _t_1 = new Array(2);
+    _t_3 = new Array(3);
+    _t_4 = "text";
+    _t_3[0] = _t_4;
+    _t_5 = "=~";
+    _t_3[1] = _t_5;
+    _t_6 = "lol";
+    _t_3[2] = _t_6;
+    _t_2[0] = _t_3;
+    _t_7 = await __env.invokeMonitor("com.twitter", { }, "home_timeline", _t_1, { projection: ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"], filter: _t_2 });
     {
-      let _iter_tmp = await _t_2.next();
+      let _iter_tmp = await _t_7.next();
       while (!_iter_tmp.done) {
-        _t_3 = _iter_tmp.value;
-        _t_4 = _t_3[0];
-        _t_5 = _t_3[1];
-        _t_6 = _t_5.__response;
-        _t_7 = _t_5.text;
-        _t_8 = _t_5.hashtags;
-        _t_9 = _t_5.urls;
-        _t_10 = _t_5.author;
-        _t_11 = _t_5.in_reply_to;
-        _t_12 = _t_5.tweet_id;
-        _t_13 = __builtin.isNewTuple(_t_0, _t_5, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
-        _t_14 = __builtin.addTuple(_t_0, _t_5);
-        await __env.writeState(1, _t_14);
-        _t_0 = _t_14;
-        if (_t_13) {
-          _t_15 = true;
-          _t_17 = "lol";
-          _t_16 = __builtin.like(_t_7, _t_17);
-          _t_15 = _t_15 && _t_16;
-          _t_18 = false;
+        _t_8 = _iter_tmp.value;
+        _t_9 = _t_8[0];
+        _t_10 = _t_8[1];
+        _t_11 = _t_10.__response;
+        _t_12 = _t_10.text;
+        _t_13 = _t_10.hashtags;
+        _t_14 = _t_10.urls;
+        _t_15 = _t_10.author;
+        _t_16 = _t_10.in_reply_to;
+        _t_17 = _t_10.tweet_id;
+        _t_18 = __builtin.isNewTuple(_t_0, _t_10, ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"]);
+        _t_19 = __builtin.addTuple(_t_0, _t_10);
+        await __env.writeState(1, _t_19);
+        _t_0 = _t_19;
+        if (_t_18) {
+          _t_20 = true;
+          _t_22 = "lol";
+          _t_21 = __builtin.like(_t_12, _t_22);
+          _t_20 = _t_20 && _t_21;
+          _t_23 = false;
           try {
-            _t_20 = {};
-            _t_19 = await __env.invokeQuery("org.thingpedia.builtin.thingengine.builtin", { }, "get_time", _t_20);
-            _t_21 = _t_19[Symbol.iterator]();
+            _t_25 = {};
+            _t_24 = await __env.invokeQuery("org.thingpedia.builtin.thingengine.builtin", { }, "get_time", _t_25, { projection: ["time"] });
+            _t_26 = _t_24[Symbol.iterator]();
             {
-              let _iter_tmp = await _t_21.next();
+              let _iter_tmp = await _t_26.next();
               while (!_iter_tmp.done) {
-                _t_22 = _iter_tmp.value;
-                _t_23 = _t_22[0];
-                _t_24 = _t_22[1];
-                _t_25 = _t_24.time;
-                _t_26 = true;
-                _t_28 = __builtin.getTime (_t_25);
-                _t_29 = new __builtin.Time(9, 0, 0);
-                _t_27 = _t_28 >= _t_29;
-                _t_26 = _t_26 && _t_27;
-                _t_31 = __builtin.getTime (_t_25);
-                _t_32 = new __builtin.Time(10, 0, 0);
-                _t_30 = _t_31 <= _t_32;
-                _t_26 = _t_26 && _t_30;
-                if (_t_26) {
-                  _t_18 = true;
+                _t_27 = _iter_tmp.value;
+                _t_28 = _t_27[0];
+                _t_29 = _t_27[1];
+                _t_30 = _t_29.time;
+                _t_31 = true;
+                _t_33 = __builtin.getTime (_t_30);
+                _t_34 = new __builtin.Time(9, 0, 0);
+                _t_32 = _t_33 >= _t_34;
+                _t_31 = _t_31 && _t_32;
+                _t_36 = __builtin.getTime (_t_30);
+                _t_37 = new __builtin.Time(10, 0, 0);
+                _t_35 = _t_36 <= _t_37;
+                _t_31 = _t_31 && _t_35;
+                if (_t_31) {
+                  _t_23 = true;
                   break;
                 } else {
 
                 }
-                _iter_tmp = await _t_21.next();
+                _iter_tmp = await _t_26.next();
               }
             }
           } catch(_exc_) {
             __env.reportError("Failed to invoke get-predicate query", _exc_);
           }
-          _t_15 = _t_15 && _t_18;
-          if (_t_15) {
+          _t_20 = _t_20 && _t_23;
+          if (_t_20) {
             try {
-              await __env.output(String(_t_4), _t_5);
+              await __env.output(String(_t_9), _t_10);
             } catch(_exc_) {
               __env.reportError("Failed to invoke action", _exc_);
             }
@@ -1432,7 +1486,7 @@ const TEST_CASES = [
         } else {
 
         }
-        _iter_tmp = await _t_2.next();
+        _iter_tmp = await _t_7.next();
       }
     }
   } catch(_exc_) {
@@ -1527,7 +1581,7 @@ const TEST_CASES = [
     _t_1.__program_id = _t_3;
     _t_4 = 0;
     _t_1.__flow = _t_4;
-    _t_5 = await __env.invokeMonitor("org.thingpedia.builtin.thingengine.remote", { }, "receive", _t_1, false);
+    _t_5 = await __env.invokeMonitor("org.thingpedia.builtin.thingengine.remote", { }, "receive", _t_1, { projection: ["__kindChannel", "interval"] });
     {
       let _iter_tmp = await _t_5.next();
       while (!_iter_tmp.done) {
@@ -1616,7 +1670,7 @@ const TEST_CASES = [
     _t_2 = await __env.readState(1);
     try {
       _t_3 = {};
-      _t_4 = await __env.invokeMonitor("com.twitter", { }, "home_timeline", _t_3, false);
+      _t_4 = await __env.invokeMonitor("com.twitter", { }, "home_timeline", _t_3, { projection: ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"] });
       {
         let _iter_tmp = await _t_4.next();
         while (!_iter_tmp.done) {
@@ -1652,7 +1706,7 @@ const TEST_CASES = [
       _t_19 = {};
       _t_20 = "foo";
       _t_19.query = _t_20;
-      _t_21 = await __env.invokeMonitor("com.bing", { }, "web_search", _t_19, false);
+      _t_21 = await __env.invokeMonitor("com.bing", { }, "web_search", _t_19, { projection: ["title", "description", "link"] });
       {
         let _iter_tmp = await _t_21.next();
         while (!_iter_tmp.done) {
@@ -1772,7 +1826,7 @@ const TEST_CASES = [
     _t_2 = await __env.readState(1);
     try {
       _t_3 = {};
-      _t_4 = await __env.invokeMonitor("com.twitter", { }, "home_timeline", _t_3, false);
+      _t_4 = await __env.invokeMonitor("com.twitter", { }, "home_timeline", _t_3, { projection: ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"] });
       {
         let _iter_tmp = await _t_4.next();
         while (!_iter_tmp.done) {
@@ -1808,7 +1862,7 @@ const TEST_CASES = [
       _t_19 = {};
       _t_20 = "foo";
       _t_19.query = _t_20;
-      _t_21 = await __env.invokeMonitor("com.bing", { }, "web_search", _t_19, false);
+      _t_21 = await __env.invokeMonitor("com.bing", { }, "web_search", _t_19, { projection: ["title", "description", "link"] });
       {
         let _iter_tmp = await _t_21.next();
         while (!_iter_tmp.done) {
@@ -1918,7 +1972,7 @@ const TEST_CASES = [
   let _t_35;
   try {
     _t_0 = {};
-    _t_1 = await __env.invokeQuery("com.twitter", { }, "home_timeline", _t_0);
+    _t_1 = await __env.invokeQuery("com.twitter", { }, "home_timeline", _t_0, { projection: ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"] });
     _t_2 = _t_1[Symbol.iterator]();
     {
       let _iter_tmp = await _t_2.next();
@@ -1936,7 +1990,7 @@ const TEST_CASES = [
         try {
           _t_13 = {};
           _t_13.query = _t_7;
-          _t_14 = await __env.invokeQuery("com.bing", { }, "web_search", _t_13);
+          _t_14 = await __env.invokeQuery("com.bing", { }, "web_search", _t_13, { projection: ["title", "description", "link"] });
           _t_15 = _t_14[Symbol.iterator]();
           {
             let _iter_tmp = await _t_15.next();
@@ -2037,7 +2091,7 @@ const TEST_CASES = [
   _t_0 = async function(emit) {
     try {
       _t_1 = {};
-      _t_2 = await __env.invokeQuery("com.twitter", { }, "home_timeline", _t_1);
+      _t_2 = await __env.invokeQuery("com.twitter", { }, "home_timeline", _t_1, { projection: ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"] });
       _t_3 = _t_2[Symbol.iterator]();
       {
         let _iter_tmp = await _t_3.next();
@@ -2065,7 +2119,7 @@ const TEST_CASES = [
       _t_15 = {};
       _t_16 = "foo";
       _t_15.query = _t_16;
-      _t_17 = await __env.invokeQuery("com.bing", { }, "web_search", _t_15);
+      _t_17 = await __env.invokeQuery("com.bing", { }, "web_search", _t_15, { projection: ["title", "description", "link"] });
       _t_18 = _t_17[Symbol.iterator]();
       {
         let _iter_tmp = await _t_18.next();
@@ -2152,7 +2206,7 @@ const TEST_CASES = [
         _t_3 = _iter_tmp.value;
         try {
           _t_4 = {};
-          _t_5 = await __env.invokeQuery("com.thecatapi", { id: "com.thecatapi", }, "get", _t_4);
+          _t_5 = await __env.invokeQuery("com.thecatapi", { id: "com.thecatapi", }, "get", _t_4, { projection: ["picture_url"] });
           _t_6 = _t_5[Symbol.iterator]();
           {
             let _iter_tmp = await _t_6.next();
@@ -2232,7 +2286,7 @@ const TEST_CASES = [
     _t_0.size = _t_1;
     _t_2 = 1;
     _t_0.count = _t_2;
-    _t_3 = await __env.invokeQuery("org.thingpedia.builtin.test", { id: "org.thingpedia.builtin.test", }, "get_data", _t_0);
+    _t_3 = await __env.invokeQuery("org.thingpedia.builtin.test", { id: "org.thingpedia.builtin.test", }, "get_data", _t_0, { projection: ["data"] });
     _t_4 = _t_3[Symbol.iterator]();
     {
       let _iter_tmp = await _t_4.next();
@@ -2302,6 +2356,11 @@ const TEST_CASES = [
   let _t_26;
   let _t_27;
   let _t_28;
+  let _t_29;
+  let _t_30;
+  let _t_31;
+  let _t_32;
+  let _t_33;
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
@@ -2312,51 +2371,60 @@ const TEST_CASES = [
         _t_3 = _iter_tmp.value;
         try {
           _t_4 = {};
-          _t_5 = await __env.invokeQuery("com.twitter", { }, "search", _t_4);
-          _t_6 = _t_5[Symbol.iterator]();
+          _t_1 = new Array(5);
+          _t_6 = new Array(3);
+          _t_7 = "text";
+          _t_6[0] = _t_7;
+          _t_8 = "=~";
+          _t_6[1] = _t_8;
+          _t_9 = "lol";
+          _t_6[2] = _t_9;
+          _t_5[0] = _t_6;
+          _t_10 = await __env.invokeQuery("com.twitter", { }, "search", _t_4, { projection: ["count", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"], filter: _t_5 });
+          _t_11 = _t_10[Symbol.iterator]();
           {
-            let _iter_tmp = await _t_6.next();
+            let _iter_tmp = await _t_11.next();
             while (!_iter_tmp.done) {
-              _t_7 = _iter_tmp.value;
-              _t_8 = _t_7[0];
-              _t_9 = _t_7[1];
-              _t_10 = _t_9.count;
-              _t_11 = _t_9.__response;
-              _t_12 = _t_9.text;
-              _t_13 = _t_9.hashtags;
-              _t_14 = _t_9.urls;
-              _t_15 = _t_9.author;
-              _t_16 = _t_9.in_reply_to;
-              _t_17 = _t_9.tweet_id;
-              _t_19 = "lol";
-              _t_18 = __builtin.like(_t_12, _t_19);
-              if (_t_18) {
-                _t_20 = {};
-                _t_20.count = _t_10;
-                _t_20.__response = _t_11;
-                _t_20.text = _t_12;
-                _t_20.hashtags = _t_13;
-                _t_20.urls = _t_14;
-                _t_20.author = _t_15;
-                _t_20.in_reply_to = _t_16;
-                _t_20.tweet_id = _t_17;
-                _t_21 = _t_20.count;
-                _t_22 = _t_20.__response;
-                _t_23 = _t_20.text;
-                _t_24 = _t_20.hashtags;
-                _t_25 = _t_20.urls;
-                _t_26 = _t_20.author;
-                _t_27 = _t_20.in_reply_to;
-                _t_28 = _t_20.tweet_id;
+              _t_12 = _iter_tmp.value;
+              _t_13 = _t_12[0];
+              _t_14 = _t_12[1];
+              _t_15 = _t_14.count;
+              _t_16 = _t_14.__response;
+              _t_17 = _t_14.text;
+              _t_18 = _t_14.hashtags;
+              _t_19 = _t_14.urls;
+              _t_20 = _t_14.author;
+              _t_21 = _t_14.in_reply_to;
+              _t_22 = _t_14.tweet_id;
+              _t_24 = "lol";
+              _t_23 = __builtin.like(_t_17, _t_24);
+              if (_t_23) {
+                _t_25 = {};
+                _t_25.count = _t_15;
+                _t_25.__response = _t_16;
+                _t_25.text = _t_17;
+                _t_25.hashtags = _t_18;
+                _t_25.urls = _t_19;
+                _t_25.author = _t_20;
+                _t_25.in_reply_to = _t_21;
+                _t_25.tweet_id = _t_22;
+                _t_26 = _t_25.count;
+                _t_27 = _t_25.__response;
+                _t_28 = _t_25.text;
+                _t_29 = _t_25.hashtags;
+                _t_30 = _t_25.urls;
+                _t_31 = _t_25.author;
+                _t_32 = _t_25.in_reply_to;
+                _t_33 = _t_25.tweet_id;
                 try {
-                  await __env.output(String(_t_8), _t_20);
+                  await __env.output(String(_t_13), _t_25);
                 } catch(_exc_) {
                   __env.reportError("Failed to invoke action", _exc_);
                 }
               } else {
 
               }
-              _iter_tmp = await _t_6.next();
+              _iter_tmp = await _t_11.next();
             }
           }
         } catch(_exc_) {
@@ -2416,7 +2484,7 @@ const TEST_CASES = [
     _t_1 = {};
     _t_2 = "dogs";
     _t_1.query = _t_2;
-    _t_3 = await __env.invokeQuery("com.bing", { }, "web_search", _t_1);
+    _t_3 = await __env.invokeQuery("com.bing", { }, "web_search", _t_1, { projection: [] });
     _t_4 = _t_3[Symbol.iterator]();
     {
       let _iter_tmp = await _t_4.next();
@@ -2486,7 +2554,7 @@ const TEST_CASES = [
           _t_5 = {};
           _t_6 = "dogs";
           _t_5.query = _t_6;
-          _t_7 = await __env.invokeQuery("com.bing", { }, "web_search", _t_5);
+          _t_7 = await __env.invokeQuery("com.bing", { }, "web_search", _t_5, { projection: [] });
           _t_8 = _t_7[Symbol.iterator]();
           {
             let _iter_tmp = await _t_8.next();
@@ -2570,7 +2638,7 @@ const TEST_CASES = [
         _t_4 = new __builtin.EqualitySet();
         try {
           _t_5 = {};
-          _t_6 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_5);
+          _t_6 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_5, { projection: ["mime_type"] });
           _t_7 = _t_6[Symbol.iterator]();
           {
             let _iter_tmp = await _t_7.next();
@@ -2665,7 +2733,7 @@ const TEST_CASES = [
         _t_4 = 0;
         try {
           _t_6 = {};
-          _t_7 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_6);
+          _t_7 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_6, { projection: ["file_size"] });
           _t_8 = _t_7[Symbol.iterator]();
           {
             let _iter_tmp = await _t_8.next();
@@ -2758,7 +2826,7 @@ const TEST_CASES = [
         _t_4 = -Infinity;
         try {
           _t_5 = {};
-          _t_6 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_5);
+          _t_6 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_5, { projection: ["file_size"] });
           _t_7 = _t_6[Symbol.iterator]();
           {
             let _iter_tmp = await _t_7.next();
@@ -2870,7 +2938,7 @@ const TEST_CASES = [
   _t_0 = async function(emit) {
     try {
       _t_1 = {};
-      _t_2 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_1);
+      _t_2 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_1, { projection: ["order_by", "file_size", "file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "last_modified_by", "link"] });
       _t_3 = _t_2[Symbol.iterator]();
       {
         let _iter_tmp = await _t_3.next();
@@ -2902,7 +2970,7 @@ const TEST_CASES = [
     _t_20 = -Infinity;
     try {
       _t_21 = {};
-      _t_22 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_21);
+      _t_22 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_21, { projection: ["file_size"] });
       _t_23 = _t_22[Symbol.iterator]();
       {
         let _iter_tmp = await _t_23.next();
@@ -3022,7 +3090,7 @@ const TEST_CASES = [
   _t_2 = await __env.readState(2);
   try {
     _t_3 = {};
-    _t_4 = await __env.invokeMonitor("com.google.drive", { }, "list_drive_files", _t_3, false);
+    _t_4 = await __env.invokeMonitor("com.google.drive", { }, "list_drive_files", _t_3, { projection: ["file_size"] });
     {
       let _iter_tmp = await _t_4.next();
       while (!_iter_tmp.done) {
@@ -3055,7 +3123,7 @@ const TEST_CASES = [
             _t_25 = -Infinity;
             try {
               _t_26 = {};
-              _t_27 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_26);
+              _t_27 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_26, { projection: ["file_size"] });
               _t_28 = _t_27[Symbol.iterator]();
               {
                 let _iter_tmp = await _t_28.next();
@@ -3181,7 +3249,7 @@ const TEST_CASES = [
         _t_5 = -Infinity;
         try {
           _t_8 = {};
-          _t_9 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_8);
+          _t_9 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_8, { projection: ["file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "file_size", "order_by", "last_modified_by", "link"], sort: ["file_size", "desc"], limit: 1 });
           _t_10 = _t_9[Symbol.iterator]();
           {
             let _iter_tmp = await _t_10.next();
@@ -3338,7 +3406,7 @@ const TEST_CASES = [
         _t_5 = Infinity;
         try {
           _t_8 = {};
-          _t_9 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_8);
+          _t_9 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_8, { projection: ["file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "file_size", "order_by", "last_modified_by", "link"], sort: ["file_size", "asc"], limit: 1 });
           _t_10 = _t_9[Symbol.iterator]();
           {
             let _iter_tmp = await _t_10.next();
@@ -3476,7 +3544,7 @@ const TEST_CASES = [
   _t_4 = new __builtin.ArgMinMaxState(_t_2, _t_3, _t_0, _t_1);
   try {
     _t_5 = {};
-    _t_6 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_5);
+    _t_6 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_5, { projection: ["file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "file_size", "order_by", "last_modified_by", "link"], sort: ["file_size", "desc"], limit: 2 });
     _t_7 = _t_6[Symbol.iterator]();
     {
       let _iter_tmp = await _t_7.next();
@@ -3558,7 +3626,7 @@ const TEST_CASES = [
   _t_2 = 0;
   try {
     _t_3 = {};
-    _t_4 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_3);
+    _t_4 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_3, { projection: ["file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "file_size", "order_by", "last_modified_by", "link"], limit: 2 });
     _t_5 = _t_4[Symbol.iterator]();
     {
       let _iter_tmp = await _t_5.next();
@@ -3662,7 +3730,7 @@ const TEST_CASES = [
         _t_6 = 0;
         try {
           _t_7 = {};
-          _t_8 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_7);
+          _t_8 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_7, { projection: ["file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "file_size", "order_by", "last_modified_by", "link"], limit: 2 });
           _t_9 = _t_8[Symbol.iterator]();
           {
             let _iter_tmp = await _t_9.next();
@@ -3793,7 +3861,7 @@ const TEST_CASES = [
   _t_4 = new Array(0);
   try {
     _t_5 = {};
-    _t_6 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_5);
+    _t_6 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_5, { projection: ["file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "file_size", "order_by", "last_modified_by", "link"] });
     _t_7 = _t_6[Symbol.iterator]();
     {
       let _iter_tmp = await _t_7.next();
@@ -3894,7 +3962,7 @@ const TEST_CASES = [
   _t_2 = new Array(0);
   try {
     _t_3 = {};
-    _t_4 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_3);
+    _t_4 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_3, { projection: ["file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "file_size", "order_by", "last_modified_by", "link"], limit: 5 });
     _t_5 = _t_4[Symbol.iterator]();
     {
       let _iter_tmp = await _t_5.next();
@@ -3991,7 +4059,7 @@ const TEST_CASES = [
   _t_0 = new Array(0);
   try {
     _t_1 = {};
-    _t_2 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_1);
+    _t_2 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_1, { projection: ["file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "file_size", "order_by", "last_modified_by", "link"], sort: ["file_size", "asc"] });
     _t_3 = _t_2[Symbol.iterator]();
     {
       let _iter_tmp = await _t_3.next();
@@ -4066,7 +4134,7 @@ const TEST_CASES = [
   let _t_12;
   try {
     _t_0 = {};
-    _t_1 = await __env.invokeQuery("com.thecatapi", { }, "get", _t_0);
+    _t_1 = await __env.invokeQuery("com.thecatapi", { }, "get", _t_0, { projection: ["image_id", "count", "picture_url", "link"] });
     _t_2 = _t_1[Symbol.iterator]();
     {
       let _iter_tmp = await _t_2.next();
@@ -4122,7 +4190,7 @@ const TEST_CASES = [
   let _t_12;
   try {
     _t_0 = {};
-    _t_1 = await __env.invokeQuery("com.thecatapi", { }, "get", _t_0);
+    _t_1 = await __env.invokeQuery("com.thecatapi", { }, "get", _t_0, { projection: ["image_id", "count", "picture_url", "link"] });
     _t_2 = _t_1[Symbol.iterator]();
     {
       let _iter_tmp = await _t_2.next();
@@ -4173,7 +4241,7 @@ const TEST_CASES = [
   _t_0 = await __env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = await __env.invokeMonitor("com.twitter", { }, "home_timeline", _t_1, false);
+    _t_2 = await __env.invokeMonitor("com.twitter", { }, "home_timeline", _t_1, { projection: ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"] });
     {
       let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
@@ -4228,7 +4296,7 @@ const TEST_CASES = [
   try {
     _t_1 = {};
     _t_1.query = _t_0;
-    _t_2 = await __env.invokeQuery("com.bing", { }, "web_search", _t_1);
+    _t_2 = await __env.invokeQuery("com.bing", { }, "web_search", _t_1, { projection: ["title", "description", "link", "p_query"] });
     _t_3 = _t_2[Symbol.iterator]();
     {
       let _iter_tmp = await _t_3.next();
@@ -4332,7 +4400,7 @@ const TEST_CASES = [
     _t_1 = {};
     _t_2 = new __builtin.Location(1, 2, "foo");
     _t_1.location = _t_2;
-    _t_3 = await __env.invokeMonitor("org.thingpedia.weather", { }, "current", _t_1, false);
+    _t_3 = await __env.invokeMonitor("org.thingpedia.weather", { }, "current", _t_1, { projection: ["temperature", "wind_speed", "humidity", "cloudiness", "fog", "status", "icon"] });
     {
       let _iter_tmp = await _t_3.next();
       while (!_iter_tmp.done) {
@@ -4445,7 +4513,7 @@ const TEST_CASES = [
   _t_0 = new Array(0);
   try {
     _t_1 = {};
-    _t_2 = await __env.invokeQuery("com.thecatapi", { }, "get", _t_1);
+    _t_2 = await __env.invokeQuery("com.thecatapi", { }, "get", _t_1, { projection: ["image_id", "count", "picture_url", "link"] });
     _t_3 = _t_2[Symbol.iterator]();
     {
       let _iter_tmp = await _t_3.next();
@@ -4547,7 +4615,7 @@ const TEST_CASES = [
   _t_0 = new Array(0);
   try {
     _t_1 = {};
-    _t_2 = await __env.invokeQuery("com.thecatapi", { }, "get", _t_1);
+    _t_2 = await __env.invokeQuery("com.thecatapi", { }, "get", _t_1, { projection: ["image_id", "count", "picture_url", "link"] });
     _t_3 = _t_2[Symbol.iterator]();
     {
       let _iter_tmp = await _t_3.next();
@@ -4694,7 +4762,7 @@ const TEST_CASES = [
     try {
       _t_1 = {};
       _t_1.query = _t_0;
-      _t_2 = await __env.invokeQuery("com.bing", { }, "web_search", _t_1);
+      _t_2 = await __env.invokeQuery("com.bing", { }, "web_search", _t_1, { projection: ["title", "description", "link"] });
       _t_3 = _t_2[Symbol.iterator]();
       {
         let _iter_tmp = await _t_3.next();
@@ -4825,7 +4893,7 @@ const TEST_CASES = [
     try {
       _t_2 = {};
       _t_2.query = _t_0;
-      _t_3 = await __env.invokeQuery("com.bing", { }, "web_search", _t_2);
+      _t_3 = await __env.invokeQuery("com.bing", { }, "web_search", _t_2, { projection: ["title", "description", "link"] });
       _t_4 = _t_3[Symbol.iterator]();
       {
         let _iter_tmp = await _t_4.next();
@@ -4957,7 +5025,7 @@ const TEST_CASES = [
       try {
         _t_1 = {};
         _t_1.query = _t_0;
-        _t_2 = await __env.invokeQuery("com.bing", { }, "web_search", _t_1);
+        _t_2 = await __env.invokeQuery("com.bing", { }, "web_search", _t_1, { projection: ["title", "description", "link"] });
         _t_3 = _t_2[Symbol.iterator]();
         {
           let _iter_tmp = await _t_3.next();
@@ -5373,7 +5441,7 @@ const TEST_CASES = [
   let _t_10;
   try {
     _t_0 = {};
-    _t_1 = await __env.invokeQuery("com.spotify", { }, "get_currently_playing", _t_0);
+    _t_1 = await __env.invokeQuery("com.spotify", { }, "get_currently_playing", _t_0, { projection: ["song"] });
     _t_2 = _t_1[Symbol.iterator]();
     {
       let _iter_tmp = await _t_2.next();
@@ -5827,7 +5895,7 @@ const TEST_CASES = [
   let _t_15;
   try {
     _t_0 = {};
-    _t_1 = await __env.invokeQuery("org.thingpedia.test.compounds_and_inheritance", { }, "foo", _t_0);
+    _t_1 = await __env.invokeQuery("org.thingpedia.test.compounds_and_inheritance", { }, "foo", _t_0, { projection: ["compound", "p4", "compound.nestedCompound", "compound.nestedCompound.p1", "compound.nestedCompound.p2", "compound.p3", "name", "description", "image"] });
     _t_2 = _t_1[Symbol.iterator]();
     {
       let _iter_tmp = await _t_2.next();
@@ -5887,7 +5955,7 @@ const TEST_CASES = [
   let _t_16;
   try {
     _t_0 = {};
-    _t_1 = await __env.invokeQuery("org.thingpedia.test.compounds_and_inheritance", { }, "foo", _t_0);
+    _t_1 = await __env.invokeQuery("org.thingpedia.test.compounds_and_inheritance", { }, "foo", _t_0, { projection: ["compound.nestedCompound.p1"] });
     _t_2 = _t_1[Symbol.iterator]();
     {
       let _iter_tmp = await _t_2.next();
@@ -5951,7 +6019,7 @@ const TEST_CASES = [
   _t_0 = await __env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = await __env.invokeMonitor("org.thingpedia.test.compounds_and_inheritance", { }, "foo", _t_1, false);
+    _t_2 = await __env.invokeMonitor("org.thingpedia.test.compounds_and_inheritance", { }, "foo", _t_1, { projection: ["compound", "p4", "compound.nestedCompound", "compound.nestedCompound.p1", "compound.nestedCompound.p2", "compound.p3", "name", "description", "image"] });
     {
       let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
@@ -6037,7 +6105,7 @@ const TEST_CASES = [
   let _t_35;
   try {
     _t_0 = {};
-    _t_1 = await __env.invokeQuery("org.schema", { }, "restaurant", _t_0);
+    _t_1 = await __env.invokeQuery("org.schema", { }, "restaurant", _t_0, { projection: ["name", "serveCuisine", "priceRange", "openingHours", "address", "aggregateRating", "review", "telephone", "brand", "address.addressCountry", "address.addressRegion", "address.postalCode", "address.streetAddress", "address.addressLocality", "aggregateRating.ratingValue", "aggregateRating.reviewCount", "brand.name", "description", "image", "geo"] });
     _t_2 = _t_1[Symbol.iterator]();
     {
       let _iter_tmp = await _t_2.next();
@@ -6149,7 +6217,7 @@ const TEST_CASES = [
   let _t_38;
   try {
     _t_0 = {};
-    _t_1 = await __env.invokeQuery("org.schema", { }, "restaurant", _t_0);
+    _t_1 = await __env.invokeQuery("org.schema", { }, "restaurant", _t_0, { projection: ["name", "serveCuisine", "priceRange", "openingHours", "address", "aggregateRating", "review", "telephone", "brand", "address.addressCountry", "address.addressRegion", "address.postalCode", "address.streetAddress", "address.addressLocality", "aggregateRating.ratingValue", "aggregateRating.reviewCount", "brand.name", "description", "image", "geo"] });
     _t_2 = _t_1[Symbol.iterator]();
     {
       let _iter_tmp = await _t_2.next();
@@ -6247,7 +6315,7 @@ const TEST_CASES = [
   let _t_18;
   try {
     _t_0 = {};
-    _t_1 = await __env.invokeQuery("org.schema", { }, "place", _t_0);
+    _t_1 = await __env.invokeQuery("org.schema", { }, "place", _t_0, { projection: ["address", "geo", "address.addressCountry", "address.addressRegion", "address.postalCode", "address.streetAddress", "address.addressLocality", "name", "description", "image", "distance"] });
     _t_2 = _t_1[Symbol.iterator]();
     {
       let _iter_tmp = await _t_2.next();
@@ -6347,7 +6415,7 @@ const TEST_CASES = [
   let _t_14;
   try {
     _t_0 = {};
-    _t_1 = await __env.invokeQuery("com.twitter", { }, "home_timeline", _t_0);
+    _t_1 = await __env.invokeQuery("com.twitter", { }, "home_timeline", _t_0, { projection: ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id", "result"] });
     _t_2 = _t_1[Symbol.iterator]();
     {
       let _iter_tmp = await _t_2.next();
@@ -6402,7 +6470,7 @@ const TEST_CASES = [
   let _t_19;
   try {
     _t_0 = {};
-    _t_1 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_0);
+    _t_1 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_0, { projection: ["file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "file_size", "order_by", "last_modified_by", "link", "result"] });
     _t_2 = _t_1[Symbol.iterator]();
     {
       let _iter_tmp = await _t_2.next();
@@ -6457,7 +6525,7 @@ const TEST_CASES = [
     _t_0.location = _t_1;
     _t_2 = new Date(XNOWX);
     _t_0.date = _t_2;
-    _t_3 = await __env.invokeQuery("org.thingpedia.weather", { }, "sunrise", _t_0);
+    _t_3 = await __env.invokeQuery("org.thingpedia.weather", { }, "sunrise", _t_0, { projection: ["sunrise_time", "sunset_time"] });
     _t_4 = _t_3[Symbol.iterator]();
     {
       let _iter_tmp = await _t_4.next();
@@ -6504,7 +6572,7 @@ const TEST_CASES = [
     _t_3 = 420000;
     _t_4 = __builtin.dateAdd(_t_2, _t_3);
     _t_0.date = _t_4;
-    _t_5 = await __env.invokeQuery("org.thingpedia.weather", { }, "sunrise", _t_0);
+    _t_5 = await __env.invokeQuery("org.thingpedia.weather", { }, "sunrise", _t_0, { projection: ["sunrise_time", "sunset_time"] });
     _t_6 = _t_5[Symbol.iterator]();
     {
       let _iter_tmp = await _t_6.next();
@@ -6551,7 +6619,7 @@ const TEST_CASES = [
     _t_3 = 420000;
     _t_4 = __builtin.dateSub(_t_2, _t_3);
     _t_0.date = _t_4;
-    _t_5 = await __env.invokeQuery("org.thingpedia.weather", { }, "sunrise", _t_0);
+    _t_5 = await __env.invokeQuery("org.thingpedia.weather", { }, "sunrise", _t_0, { projection: ["sunrise_time", "sunset_time"] });
     _t_6 = _t_5[Symbol.iterator]();
     {
       let _iter_tmp = await _t_6.next();
@@ -6616,7 +6684,7 @@ const TEST_CASES = [
   _t_1 = Infinity;
   try {
     _t_4 = {};
-    _t_5 = await __env.invokeQuery("com.yelp", { }, "restaurant", _t_4);
+    _t_5 = await __env.invokeQuery("com.yelp", { }, "restaurant", _t_4, { projection: ["id", "link", "rating", "cuisines", "geo", "image_url"], sort: ["distance", "asc"], limit: 1 });
     _t_6 = _t_5[Symbol.iterator]();
     {
       let _iter_tmp = await _t_6.next();
@@ -6708,7 +6776,7 @@ const TEST_CASES = [
   _t_0 = 0;
   try {
     _t_1 = {};
-    _t_2 = await __env.invokeQuery("com.yelp", { }, "restaurant", _t_1);
+    _t_2 = await __env.invokeQuery("com.yelp", { }, "restaurant", _t_1, { projection: [] });
     _t_3 = _t_2[Symbol.iterator]();
     {
       let _iter_tmp = await _t_3.next();
@@ -6766,7 +6834,7 @@ const TEST_CASES = [
   let _t_16;
   try {
     _t_0 = {};
-    _t_1 = await __env.invokeQuery("com.yelp", { }, "restaurant", _t_0);
+    _t_1 = await __env.invokeQuery("com.yelp", { }, "restaurant", _t_0, { projection: ["id", "rating"] });
     _t_2 = _t_1[Symbol.iterator]();
     {
       let _iter_tmp = await _t_2.next();
