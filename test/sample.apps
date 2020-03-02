@@ -1503,7 +1503,7 @@ now => @com.twitter.post(status = $context.selection : String);
 ====
 
 // ** typecheck: expect TypeError **
-now => @com.twitter.post(status = $context.selection : Entity(tt:picture));
+now => @thermostat.set_target_temperature(value = $context.selection : Entity(tt:picture));
 
 ====
 
@@ -1878,4 +1878,4 @@ now => @org.schema.full.Restaurant(), id == "starbucks" => notify;
 ====
 
 // explicit dontcare
-now => @org.schema.full.Restaurant(), true(servesCuisine) => notify;
+now => @org.schema.full.FoodEstablishment(), true(servesCuisine) => notify;
