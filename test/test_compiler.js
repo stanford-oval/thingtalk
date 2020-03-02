@@ -362,7 +362,7 @@ const TEST_CASES = [
   _t_0 = await __env.readState(0);
   try {
     _t_1 = {};
-    _t_1 = new Array(2);
+    _t_2 = new Array(1);
     _t_3 = new Array(3);
     _t_4 = "author";
     _t_3[0] = _t_4;
@@ -680,7 +680,7 @@ const TEST_CASES = [
     _t_0 = {};
     _t_1 = "lol";
     _t_0.query = _t_1;
-    _t_1 = new Array(2);
+    _t_2 = new Array(1);
     _t_3 = new Array(3);
     _t_4 = "video_url";
     _t_3[0] = _t_4;
@@ -1136,7 +1136,7 @@ const TEST_CASES = [
     _t_0.start = _t_1;
     _t_2 = new __builtin.Location(1, 3, "Somewhere");
     _t_0.end = _t_2;
-    _t_1 = new Array(3);
+    _t_3 = new Array(1);
     _t_4 = new Array(3);
     _t_5 = "low_estimate";
     _t_4[0] = _t_5;
@@ -1408,7 +1408,7 @@ const TEST_CASES = [
   _t_0 = await __env.readState(1);
   try {
     _t_1 = {};
-    _t_1 = new Array(2);
+    _t_2 = new Array(1);
     _t_3 = new Array(3);
     _t_4 = "text";
     _t_3[0] = _t_4;
@@ -2371,7 +2371,7 @@ const TEST_CASES = [
         _t_3 = _iter_tmp.value;
         try {
           _t_4 = {};
-          _t_1 = new Array(5);
+          _t_5 = new Array(1);
           _t_6 = new Array(3);
           _t_7 = "text";
           _t_6[0] = _t_7;
@@ -6891,7 +6891,7 @@ const TEST_CASES = [
   let _t_17;
   try {
     _t_0 = {};
-    _t_1 = await __env.invokeQuery("com.yelp", { }, "restaurant", _t_0);
+    _t_1 = await __env.invokeQuery("com.yelp", { }, "restaurant", _t_0, { projection: ["id", "link", "rating", "cuisines", "geo", "image_url"] });
     _t_2 = _t_1[Symbol.iterator]();
     {
       let _iter_tmp = await _t_2.next();
