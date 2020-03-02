@@ -9,7 +9,6 @@
 // See COPYING for details
 
 {
-const { notifyAction } = require('../ast/api');
 const Ast = require('../ast');
 const { parseDate } = require('../date_utils');
 }
