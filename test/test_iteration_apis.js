@@ -213,12 +213,13 @@ var TEST_CASES = [
     ['query: Invocation(Device(com.washingtonpost, , ), get_article, InputParam(section, Enum(world)), )'],
     ['Device(com.washingtonpost, , ) com.washingtonpost:get_article',
      'InputParam(section, Enum(world)) com.washingtonpost:get_article',
-     'Atom(title, =~, String(lol)) com.washingtonpost:get_article',
-     'Atom(title, =~, String(bar)) com.washingtonpost:get_article'],
+     'Atom(title, in_array~, Array(String(lol),String(bar))) com.washingtonpost:get_article',
+     ],
     ['Selector(@com.washingtonpost)',
      'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle)) in_param.section What section do you want to read?',
-     'FilterSlot(title =~ : String) filter.=~.title What should the title contain?',
-     'FilterSlot(title =~ : String) filter.=~.title What should the title contain?'],
+     'FilterSlot(title in_array~ : Array(String)) filter.in_array~.title Please tell me the value of the filter on the title.',
+     'ArrayIndexSlot([0] : String) filter.in_array~.title.0 What would you like the first title to be?',
+     'ArrayIndexSlot([1] : String) filter.in_array~.title.1 What would you like the second title to be?'],
     ],
 
     [`now => @com.washingtonpost.get_article(section=enum(world)), title =~ "lol" => notify;`,
@@ -235,12 +236,13 @@ var TEST_CASES = [
     ['query: Invocation(Device(com.washingtonpost, , ), get_article, InputParam(section, Enum(world)), )'],
     ['Device(com.washingtonpost, , ) com.washingtonpost:get_article',
      'InputParam(section, Enum(world)) com.washingtonpost:get_article',
-     'Atom(title, =~, String(lol)) com.washingtonpost:get_article',
-     'Atom(title, =~, String(bar)) com.washingtonpost:get_article'],
+     'Atom(title, in_array~, Array(String(lol),String(bar))) com.washingtonpost:get_article'
+     ],
     ['Selector(@com.washingtonpost)',
      'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle)) in_param.section What section do you want to read?',
-     'FilterSlot(title =~ : String) filter.=~.title What should the title contain?',
-     'FilterSlot(title =~ : String) filter.=~.title What should the title contain?'],
+     'FilterSlot(title in_array~ : Array(String)) filter.in_array~.title Please tell me the value of the filter on the title.',
+     'ArrayIndexSlot([0] : String) filter.in_array~.title.0 What would you like the first title to be?',
+     'ArrayIndexSlot([1] : String) filter.in_array~.title.1 What would you like the second title to be?'],
     ],
 
     ['now => (@com.bing.web_search() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code("Italian")) on (text=$event)) => notify;',
@@ -407,7 +409,23 @@ var TEST_CASES = [
     'FieldSlot(expression : Measure(m)) compute.expression What expression would you like?',
     'ComputationOperandSlot(distance[0] : Location) compute.expression.distance.0 What is the first operand to distance you would like?',
     'ComputationOperandSlot(distance[1] : Location) compute.expression.distance.1 What is the second operand to distance you would like?']
-    ]
+    ],
+
+    [`monitor @security-camera.current_event(), (has_person == true && @org.thingpedia.builtin.thingengine.builtin.get_gps() { location == new Location(1, 2) })  => notify;`,
+    ['query: Invocation(Device(security-camera, , ), current_event, , )',
+     'filter: External(Device(org.thingpedia.builtin.thingengine.builtin, , ), get_gps, , Atom(location, ==, Location(Absolute(1, 2, ))))'],
+    [
+    'Device(security-camera, , ) security-camera:current_event',
+    'Atom(has_person, ==, Boolean(true)) security-camera:current_event',
+    'Device(org.thingpedia.builtin.thingengine.builtin, , ) org.thingpedia.builtin.thingengine.builtin:get_gps',
+    'Atom(location, ==, Location(Absolute(1, 2, ))) security-camera:current_event'
+    ],
+    [
+    'Selector(@security-camera)',
+    'FilterSlot(has_person == : Boolean) filter.==.has_person Do you want events with people in front of the camera?',
+    'Selector(@org.thingpedia.builtin.thingengine.builtin)',
+    'FilterSlot(location == : Location) filter.==.location What location are you interested in?'
+    ]]
 ];
 
 async function test(i) {
@@ -443,6 +461,7 @@ async function test(i) {
         assertArrayEquals(i, generatedSlots2, expectedSlots2);
     } catch(e) {
         console.error('Test Case #' + (i+1) + ': failed with exception');
+        console.error(code);
         console.error('Error: ' + e.message);
         console.error(e.stack);
         if (process.env.TEST_MODE)

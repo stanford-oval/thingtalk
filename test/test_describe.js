@@ -146,7 +146,7 @@ var TEST_CASES = [
     `post the snippet on Facebook when the emails in your GMail inbox change if the labels do not contain “work”`,
     'Gmail ⇒ Facebook'],
 
-    ['monitor @com.twitter.home_timeline(), contains(hashtags, "funny") => @com.twitter.post(status=text);',
+    ['monitor @com.twitter.home_timeline(), contains~(hashtags, "funny") => @com.twitter.post(status=text);',
     'tweet the text when tweets from anyone you follow change if the hashtags contain “funny”',
     'Twitter ⇒ Twitter'],
     ['monitor @com.twitter.home_timeline(), text =~ "funny" => @com.twitter.post(status=text);',
@@ -341,13 +341,13 @@ var TEST_CASES = [
     `Security Camera ⇒ Yandex Translate ⇒ Twitter`],
 
     [`edge (monitor (@org.thingpedia.weather.current(location=$?))) on temperature >= 5defaultTemperature => notify;`,
-    'notify you when the current weather for ____ changes and it becomes true that the temperature is greater than or equal to 5 degrees', 'Weather ⇒ Notification'],
+    'notify you when the current weather for ____ changes and it becomes true that the temperature is greater than or equal to 5 degrees', 'Weather'],
     [`now => (@org.thingpedia.weather.current(location=$?)), temperature >= 10defaultTemperature => notify;`,
-    'get the current weather for ____ such that the temperature is greater than or equal to 10 degrees and then notify you', 'Weather ⇒ Notification'],
+    'get the current weather for ____ such that the temperature is greater than or equal to 10 degrees and then notify you', 'Weather'],
     [`now => (@org.thingpedia.weather.current(location=$?)), temperature >= 10.2defaultTemperature => notify;`,
-    'get the current weather for ____ such that the temperature is greater than or equal to 10.2 degrees and then notify you', 'Weather ⇒ Notification'],
+    'get the current weather for ____ such that the temperature is greater than or equal to 10.2 degrees and then notify you', 'Weather'],
     [`now => (@org.thingpedia.weather.current(location=$?)), temperature >= 10.33defaultTemperature => notify;`,
-    'get the current weather for ____ such that the temperature is greater than or equal to 10.3 degrees and then notify you', 'Weather ⇒ Notification'],
+    'get the current weather for ____ such that the temperature is greater than or equal to 10.3 degrees and then notify you', 'Weather'],
 
     [`now => (@com.yelp.restaurant()), true(cuisines) => notify;`,
     `get restaurants on Yelp such that any value of cuisines is acceptable and then notify you`,
@@ -360,37 +360,39 @@ const gettext = {
     dngettext: (domain, msgid, msgid_plural, n) => n === 1 ? msgid : msgid_plural,
 };
 
-function test(i) {
+async function test(i) {
     console.log('Test Case #' + (i+1));
     var [code, expected, expectedname] = TEST_CASES[i];
 
-    return Grammar.parseAndTypecheck(code, schemaRetriever, true).then((prog) => {
+    let failed = false;
+    try {
+        const prog = await Grammar.parseAndTypecheck(code, schemaRetriever, true);
         const describer = new Describe.Describer(gettext, 'en-US', 'America/Los_Angeles');
         let reconstructed = describer.describe(prog);
         if (expected !== reconstructed) {
             console.error('Test Case #' + (i+1) + ': does not match what expected');
             console.error('Expected: ' + expected);
             console.error('Generated: ' + reconstructed);
-            if (process.env.TEST_MODE)
-                throw new Error(`testDescribe ${i+1} FAILED`);
-        }
-        if (prog.isProgram) {
+            failed = true;
+        } else if (prog.isProgram) {
             let name = Describe.getProgramName(gettext, prog);
             if (name !== expectedname) {
                 console.error('Test Case #' + (i+1) + ': does not match what expected');
                 console.error('Expected: ' + expectedname);
                 console.error('Generated: ' + name);
-                if (process.env.TEST_MODE)
-                    throw new Error(`testDescribe ${i+1} FAILED`);
+                failed = true;
             }
         }
-    }).catch((e) => {
+    } catch(e) {
         console.error('Test Case #' + (i+1) + ': failed with exception');
+        console.error(code);
         console.error('Error: ' + e.message);
         console.error(e.stack);
         if (process.env.TEST_MODE)
             throw e;
-    });
+    }
+    if (failed && process.env.TEST_MODE)
+        throw new Error(`testDescribe ${i+1} FAILED`);
 }
 
 async function main() {

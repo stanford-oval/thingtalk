@@ -17,7 +17,7 @@ const TEST_CASES = [
     [`now => @com.facebook.post(status="this is really funny lol");`,
       true, { transform: false }],
     [`now => @com.facebook.post(status="this is sad");`,
-      false, { transform: false }],
+      null, { transform: false }],
     [`now => @com.facebook.post(status=$undefined);`,
       true, { transform: false }],
 
@@ -30,16 +30,16 @@ const TEST_CASES = [
      `now => (@com.twitter.search()), text =~ "funny lol" => @com.facebook.post(status=text);`],
 
     [`now => @com.twitter.search() => @com.facebook.post(status=text);`,
-     `now => (@com.twitter.search()), ((text =~ "funny" && text =~ "lol") || text =~ "https://www.wsj.com" || text =~ "https://www.washingtonpost.com") => @com.facebook.post(status=text);`],
+     `now => (@com.twitter.search()), ((text =~ "funny" && text =~ "lol") || in_array~(text, ["https://www.wsj.com", "https://www.washingtonpost.com"])) => @com.facebook.post(status=text);`],
 
     [`now => @com.bing.web_search(query="cats") => @com.facebook.post(status=description);`,
-     `now => (@com.bing.web_search(query="cats")), ((description =~ "funny" && description =~ "lol") || description =~ "https://www.wsj.com" || description =~ "https://www.washingtonpost.com" || description =~ "cat") => @com.facebook.post(status=description);`],
+     `now => (@com.bing.web_search(query="cats")), ((description =~ "funny" && description =~ "lol") || in_array~(description, ["https://www.wsj.com", "https://www.washingtonpost.com"]) || description =~ "cat") => @com.facebook.post(status=description);`],
 
     [`monitor @security-camera.current_event(), has_person == true => notify;`,
-    `monitor ((@security-camera.current_event()), (@org.thingpedia.builtin.thingengine.builtin.get_gps() { location == makeLocation(1, 2) } && has_person == true)) => notify;`],
+    `monitor ((@security-camera.current_event()), (@org.thingpedia.builtin.thingengine.builtin.get_gps() { location == new Location(1, 2) } && has_person == true)) => notify;`],
 
     // the program should be rejected because there is no rule that allows builtin.get_gps()
-    [`monitor @security-camera.current_event(), (has_person == true && @org.thingpedia.builtin.thingengine.builtin.get_gps() { location == makeLocation(1, 2) })  => notify;`,
+    [`monitor @security-camera.current_event(), (has_person == true && @org.thingpedia.builtin.thingengine.builtin.get_gps() { location == new Location(1, 2) })  => notify;`,
      null],
 
     [`now => @org.thingpedia.builtin.thingengine.builtin.get_gps() => notify;`, null],
@@ -47,8 +47,8 @@ const TEST_CASES = [
     [`now => @thermostat.get_temperature() => notify;`,
      `now => (@thermostat.get_temperature()), @com.xkcd.get_comic(number=10) { title =~ "lol" } => notify;`],
 
-    [`attimer(time=makeTime(10,30)) join @thermostat.get_temperature() => notify;`,
-     `(attimer(time=makeTime(10, 30)) => @thermostat.get_temperature()), @com.xkcd.get_comic(number=10) { title =~ "lol" } => notify;`],
+    [`attimer(time=new Time(10,30)) join @thermostat.get_temperature() => notify;`,
+     `(attimer(time=new Time(10, 30)) => @thermostat.get_temperature()), @com.xkcd.get_comic(number=10) { title =~ "lol" } => notify;`],
 
     [`now => @com.lg.tv.webos2.set_power(power=enum(on));`, null],
 
@@ -111,7 +111,7 @@ const PERMISSION_DATABASE = [
     `source == "mom@stanford.edu"^^tt:contact : * => @com.lg.tv.webos2.set_power, power == enum(on)`,
     `true : @com.xkcd.get_comic => *`,
 
-    `true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_gps() { location == makeLocation(1,2) } => notify`,
+    `true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_gps() { location == new Location(1,2) } => notify`,
     `true : @thermostat.get_temperature, @com.xkcd.get_comic(number=10) { title =~ "lol" } => notify`,
     `true : @thermostat.get_humidity, @com.xkcd.get_comic() { title =~ "lol" } => notify`,
 
@@ -158,6 +158,8 @@ async function main() {
                     console.error(expected);
                     console.error('Generated:');
                     console.error(code);
+                    if (process.env.TEST_MODE)
+                        throw new Error(`testPermissions ${i+1} FAILED`);
                 } else {
                     console.error('Test case #' + (i+1) + ' PASS');
                     console.error('Program matches what expected');
@@ -170,6 +172,8 @@ async function main() {
             } else if (expected !== null) {
                 console.error('Test case #' + (i+1) + ' FAIL');
                 console.error('Program rejected unexpectedly');
+                if (process.env.TEST_MODE)
+                    throw new Error(`testPermissions ${i+1} FAILED`);
             } else {
                 console.error('Test case #' + (i+1) + ' PASS');
                 console.error('Program rejected as expected');

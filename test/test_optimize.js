@@ -96,6 +96,8 @@ function test(i) {
             console.error('Test Case #' + (i+1) + ': optimized program does not match what expected');
             console.error('Expected: ' + expectedOptimized);
             console.error('Generated: ' + optimized);
+            if (process.env.TEST_MODE)
+                throw new Error(`testOptimize ${i+1} FAILED`);
         }
     }).catch((e) => {
         console.error('Test Case #' + (i+1) + ': failed with exception');

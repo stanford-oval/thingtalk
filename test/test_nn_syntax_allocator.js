@@ -85,7 +85,7 @@ const TEST_CASES = [
     [`now => ( @com.bing.image_search ) filter param:width:Number > NUMBER_0 or param:height:Number > NUMBER_1 => notify`,
     { NUMBER_0: 100, NUMBER_1:200 }],
 
-    [`now => ( @com.bing.image_search ) filter param:width:Number > NUMBER_0 or param:height:Number > NUMBER_1 and param:width:Number < NUMBER_2 => notify`,
+    [`now => ( @com.bing.image_search ) filter param:width:Number < NUMBER_0 and param:width:Number > NUMBER_1 or param:height:Number > NUMBER_2 => notify`,
     {NUMBER_0: 100, NUMBER_1:200, NUMBER_2: 500}],
 
     [`now => ( @com.bing.image_search ) filter param:width:Number > NUMBER_0 or param:height:Number > NUMBER_0 => notify`,
@@ -98,7 +98,7 @@ const TEST_CASES = [
     {NUMBER_0: 100, QUOTED_STRING_0: 'abc', QUOTED_STRING_1: 'def'}],
 
     ['timer base = now , interval = DURATION_0 => notify',
-     {DURATION_0: { value: 2, unit: 'h'}}],
+     {DURATION_0: { value: 24, unit: 'h'}}],
 
     ['monitor ( ( @com.phdcomics.get_post ) filter not param:title:String =~ QUOTED_STRING_0 ) => notify',
      {QUOTED_STRING_0: 'abc'}],
@@ -107,7 +107,7 @@ const TEST_CASES = [
      {CURRENCY_0: { value: 50, unit: 'usd' } }],
 
     ['now => ( @com.nytimes.get_front_page ) filter param:updated:Date >= now - DURATION_0 => notify',
-     { DURATION_0: { value: 2, unit: 'h' } }],
+     { DURATION_0: { value: 24, unit: 'h' } }],
 
     [`executor = USERNAME_0 : now => @com.twitter.post`,
      { USERNAME_0: 'bob' }],
@@ -126,16 +126,16 @@ const TEST_CASES = [
     { 'GENERIC_ENTITY_tt:iso_lang_code_0': { value: 'it', display: "Italian" } }],
 
     ['now => ( @com.gmail.inbox ) [ 1 : NUMBER_0 ] => notify',
-    { NUMBER_0: 3 }],
+    { NUMBER_0: 15 }],
 
     ['now => ( @com.gmail.inbox ) [ NUMBER_0 : NUMBER_1 ] => notify',
-    { NUMBER_0: 3, NUMBER_1: 2 }],
+    { NUMBER_0: 21, NUMBER_1: 23 }],
 
     ['now => ( @com.gmail.inbox ) [ NUMBER_0 , NUMBER_1 , NUMBER_2 ] => notify',
-    { NUMBER_0: 3, NUMBER_1: 7, NUMBER_2: 22 }],
+    { NUMBER_0: 21, NUMBER_1: 28, NUMBER_2: 22 }],
 
     ['now => ( @com.gmail.inbox ) [ NUMBER_0 , NUMBER_1 , NUMBER_0 ] => notify',
-    { NUMBER_0: 3, NUMBER_1: 7 }],
+    { NUMBER_0: 22, NUMBER_1: 29 }],
 
     ['bookkeeping answer LOCATION_0',
      { LOCATION_0: { latitude: 0, longitude: 0, display: "North Pole" } }],
