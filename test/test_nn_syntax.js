@@ -80,8 +80,8 @@ const TEST_CASES = [
         `every hour get xkcd whose number is a random number between NUMBER_0 and NUMBER_1`, {'NUMBER_0': 55, 'NUMBER_1': 1024},
         `(timer(base=new Date(), interval=1h) => (@org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55) join @com.xkcd.get_comic() on (number=random))) => notify;`],
 
-    [`( ( timer base = now , interval = 1 unit:h , frequency = NUMBER_2 ) => ( @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_1 param:low:Number = NUMBER_0 ) ) => ( @com.xkcd.get_comic ) on param:number:Number = param:random:Number => notify`,
-    `NUMBER_2 times every hour get xkcd whose number is a random number between NUMBER_0 and NUMBER_1`, {'NUMBER_0': 55, 'NUMBER_1': 1024, 'NUMBER_2': 3},
+    [`( ( timer base = now , interval = 1 unit:h , frequency = 3 ) => ( @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_1 param:low:Number = NUMBER_0 ) ) => ( @com.xkcd.get_comic ) on param:number:Number = param:random:Number => notify`,
+    `3 times every hour get xkcd whose number is a random number between NUMBER_0 and NUMBER_1`, {'NUMBER_0': 55, 'NUMBER_1': 1024 },
     `((timer(base=new Date(), interval=1h, frequency=3) => @org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55)) => @com.xkcd.get_comic() on (number=random)) => notify;`],
 
     [`now => @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_1 param:low:Number = NUMBER_0 => notify`,
@@ -104,17 +104,17 @@ const TEST_CASES = [
     `show me the temperature on the thermostat in the last week`, {},
     `now => timeseries (new Date(), 1week) of (monitor (@thermostat.get_temperature())) => notify;`],
 
-    [`now => timeseries ( now , NUMBER_0 unit:week ) of ( monitor ( @thermostat.get_temperature ) ) => notify`,
-    `show me the temperature on the thermostat in the last NUMBER_0 weeks`, {NUMBER_0: 2},
+    [`now => timeseries ( now , 2 unit:week ) of ( monitor ( @thermostat.get_temperature ) ) => notify`,
+    `show me the temperature on the thermostat in the last two weeks`, {NUMBER_0: 2},
     `now => timeseries (new Date(), 2week) of (monitor (@thermostat.get_temperature())) => notify;`],
 
     [`now => ( @com.bing.image_search ) filter param:width:Number > NUMBER_0 or param:height:Number > NUMBER_1 => notify`,
     `search images wider than NUMBER_0 pixels or taller than NUMBER_1 pixels`, {NUMBER_0: 100, NUMBER_1:200},
     `now => (@com.bing.image_search()), (width > 100 || height > 200) => notify;`],
 
-    [`now => ( @com.bing.image_search ) filter param:width:Number > NUMBER_0 or param:height:Number > NUMBER_1 and param:width:Number < NUMBER_2 => notify`,
+    [`now => ( @com.bing.image_search ) filter param:width:Number < NUMBER_2 and param:width:Number > NUMBER_0 or param:height:Number > NUMBER_1 => notify`,
     `search images wider than NUMBER_0 pixels or taller than NUMBER_1 pixels and narrower than NUMBER_2 pixels`, {NUMBER_0: 100, NUMBER_1:200, NUMBER_2: 500},
-    `now => (@com.bing.image_search()), ((width > 100 || height > 200) && width < 500) => notify;`],
+    `now => (@com.bing.image_search()), (width < 500 && (width > 100 || height > 200)) => notify;`],
 
     [`now => ( @com.bing.image_search ) filter param:width:Number > NUMBER_0 or param:height:Number > NUMBER_0 => notify`,
     `search images larger than NUMBER_0 pixels in either dimension`, {NUMBER_0: 100},
@@ -137,8 +137,8 @@ const TEST_CASES = [
     `monitor ((@com.instagram.get_pictures(count=100)), in_array(caption, ["abc", "def"])) => notify;`],
 
     ['timer base = now , interval = DURATION_0 => notify',
-    `alert me every DURATION_0`, {DURATION_0: { value: 2, unit: 'h'}},
-    `timer(base=new Date(), interval=2h) => notify;`],
+    `alert me every DURATION_0`, {DURATION_0: { value: 30, unit: 'min'}},
+    `timer(base=new Date(), interval=30min) => notify;`],
 
     ['monitor ( ( @com.phdcomics.get_post ) filter not param:title:String =~ QUOTED_STRING_0 ) => notify',
     `monitor phd comics post that do n't have QUOTED_STRING_0 in the title`, {QUOTED_STRING_0: 'abc'}, //'
@@ -157,8 +157,8 @@ const TEST_CASES = [
     `now => @org.thingpedia.builtin.thingengine.builtin.configure(device="com.google"^^tt:device);`],
 
     ['now => ( @com.nytimes.get_front_page ) filter param:updated:Date >= now - DURATION_0 => notify',
-     `get new york times articles published in the last DURATION_0`, { DURATION_0: { value: 2, unit: 'h' } },
-     `now => (@com.nytimes.get_front_page()), updated >= new Date() - 2h => notify;`],
+     `get new york times articles published in the last DURATION_0`, { DURATION_0: { value: 15, unit: 'min' } },
+     `now => (@com.nytimes.get_front_page()), updated >= new Date() - 15min => notify;`],
 
     [`executor = USERNAME_0 : now => @com.twitter.post`,
      `ask USERNAME_0 to post on twitter`, { USERNAME_0: 'bob' },
@@ -314,16 +314,24 @@ const TEST_CASES = [
     'show me exactly one email', {},
     `now => (@com.gmail.inbox())[1] => notify;`],
 
-    ['now => ( @com.gmail.inbox ) [ 1 : NUMBER_0 ] => notify',
-    'show me exactly NUMBER_0 emails', { NUMBER_0: 3 },
+    ['now => ( @com.gmail.inbox ) [ 1 : 3 ] => notify',
+    'show me exactly 3 emails', {},
     `now => (@com.gmail.inbox())[1 : 3] => notify;`],
 
-    ['now => ( @com.gmail.inbox ) [ NUMBER_1 : NUMBER_0 ] => notify',
-    'show me exactly NUMBER_0 emails , starting from the NUMBER_1', { NUMBER_0: 3, NUMBER_1: 2 },
-    `now => (@com.gmail.inbox())[2 : 3] => notify;`],
+    ['now => ( @com.gmail.inbox ) [ 1 : NUMBER_0 ] => notify',
+    'show me exactly NUMBER_0 emails', { NUMBER_0: 22 },
+    `now => (@com.gmail.inbox())[1 : 22] => notify;`],
 
-    ['now => ( @com.gmail.inbox ) [ NUMBER_0 , NUMBER_1 , NUMBER_2 ] => notify',
-    'show me exactly the emails number NUMBER_0 , NUMBER_1 and NUMBER_2', { NUMBER_0: 3, NUMBER_1: 7, NUMBER_2: 22 },
+    ['now => ( @com.gmail.inbox ) [ 3 : NUMBER_0 ] => notify',
+    'show me exactly NUMBER_0 emails , starting from the third', { NUMBER_0: 22 },
+    `now => (@com.gmail.inbox())[3 : 22] => notify;`],
+
+    ['now => ( @com.gmail.inbox ) [ NUMBER_1 : NUMBER_0 ] => notify',
+    'show me exactly NUMBER_0 emails , starting from the NUMBER_1', { NUMBER_1: 13, NUMBER_0: 22 },
+    `now => (@com.gmail.inbox())[13 : 22] => notify;`],
+
+    ['now => ( @com.gmail.inbox ) [ 3 , 7 , NUMBER_0 ] => notify',
+    'show me exactly the emails number 3 , 7 and NUMBER_0', { NUMBER_0: 22 },
     `now => (@com.gmail.inbox())[3, 7, 22] => notify;`],
 
     ['bookkeeping special special:yes',
@@ -406,16 +414,16 @@ const TEST_CASES = [
     `show me the same cat again`, {},
     `now => result(@com.thecatapi.get) => notify;`],
 
-    [`now => result ( @com.thecatapi.get [ - NUMBER_0 ] ) => notify`,
-    `show me the NUMBER_0 to last cat again`, { NUMBER_0: 2 },
+    [`now => result ( @com.thecatapi.get [ - 2 ] ) => notify`,
+    `show me the second to last cat again`, { },
     `now => result(@com.thecatapi.get[-2]) => notify;`],
 
     [`now => result ( @com.thecatapi.get [ 1 ] ) => notify`,
     `show me the first cat again`, {},
     `now => result(@com.thecatapi.get[1]) => notify;`],
 
-    [`now => result ( @com.thecatapi.get [ NUMBER_0 ] ) => notify`,
-    `show me the NUMBER_0 cat again`, { NUMBER_0: 2 },
+    [`now => result ( @com.thecatapi.get [ 2 ] ) => notify`,
+    `show me the second cat again`, {},
     `now => result(@com.thecatapi.get[2]) => notify;`],
 
     [`now => @com.spotify.get_currently_playing => @com.spotify.add_songs_to_playlist param:songs:Array(String) = [ param:song:String ]`,
@@ -439,38 +447,29 @@ const TEST_CASES = [
     `get tweets with hashtags foo`, {},
     `now => (@com.twitter.home_timeline()), count((hashtags) filter { value == "foo"^^tt:hashtag }) >= 0 => notify;`],
 
-    [`now => ( @com.yelp.restaurants ) filter min ( param:ratings:Array(Number) ) >= NUMBER_0 => notify`,
-    `get restaurants with no rating below NUMBER_0`, { NUMBER_0: 3 },
-    `now => (@com.yelp.restaurants()), min(ratings) >= 3 => notify;`],
-
-    [`now => ( @com.yelp.restaurants ) filter min ( param:rating:Number of param:reviews:Array(Compound) ) >= NUMBER_0 => notify`,
-    `get restaurants with no rating below NUMBER_0`, { NUMBER_0: 3 },
-    `now => (@com.yelp.restaurants()), min(rating of (reviews)) >= 3 => notify;`],
-
-    [`now => compute distance ( param:location:Location , location:current_location ) of ( @com.yelp.restaurants ) => notify`,
-    `get restaurants and their distance from here`, {},
-    `now => compute (distance(location, $context.location.current_location)) of (@com.yelp.restaurants()) => notify;`],
-
-    [`now => compute ( param:reviews:Array(Compound) filter { param:rating:Number >= NUMBER_0 } ) of ( @com.yelp.restaurants ) => notify`,
-    `get restaurants and their reviews better than NUMBER_0`, { NUMBER_0: 4 },
-    `now => compute ((reviews) filter { rating >= 4 }) of (@com.yelp.restaurants()) => notify;`],
-
-    [`now => compute count ( param:reviews:Array(Compound) ) of ( @com.yelp.restaurants ) => notify`,
-    `get restaurants and how many reviews they have`, {},
-    `now => compute (count(reviews)) of (@com.yelp.restaurants()) => notify;`],
-
-    [`compute distance ( param:location:Location , location:current_location ) of ( monitor ( @com.yelp.restaurants ) ) => notify`,
-    `get restaurants and their distance from here`, {},
-    `compute (distance(location, $context.location.current_location)) of (monitor (@com.yelp.restaurants())) => notify;`],
-
     [`now => @light-bulb.set_power attribute:name:String = " bedroom " param:power:Enum(on,off) = enum:off`,
     `turn off my bedroom lights`, {},
     `now => @light-bulb(name="bedroom").set_power(power=enum(off));`],
 
     [`bookkeeping answer @com.google.contacts.get_contacts`,
     `google contacts`, {},
-    `bookkeeping(answer("com.google.contacts:get_contacts"^^tt:function));`]
+    `bookkeeping(answer("com.google.contacts:get_contacts"^^tt:function));`],
+
+    [`now => ( @com.yelp.restaurant ) filter true param:cuisines:Array(Entity(com.yelp:restaurant_cuisine)) => notify`,
+    `i 'm looking for a restaurant , i do n't care what cuisine`, {},
+    `now => (@com.yelp.restaurant()), true(cuisines) => notify;`],
 ];
+
+function stripTypeAnnotations(program) {
+    return program.split(' ').map((token) => {
+        if (token.startsWith('param:'))
+            return 'param:' + token.split(':')[1];
+        else if (token.startsWith('attribute:'))
+            return 'attribute:' + token.split(':')[1];
+        else
+            return token;
+    }).join(' ');
+}
 
 async function testCase(test, i) {
     if (test.length !== 4)
@@ -504,10 +503,20 @@ async function testCase(test, i) {
                 throw new Error(`testNNSyntax ${i+1} FAILED`);
         }
 
+        let withoutTypeAnnotations = NNSyntax.toNN(program, sentence, entities, { typeAnnotations: false }).join(' ');
+        if (withoutTypeAnnotations !== stripTypeAnnotations(test[0])) {
+            console.error('Test Case #' + (i+1) + ' failed (wrong NN syntax without type annotations)');
+            console.error('Expected:', stripTypeAnnotations(test[0]));
+            console.error('Generated:', withoutTypeAnnotations);
+            if (process.env.TEST_MODE)
+                throw new Error(`testNNSyntax ${i+1} FAILED`);
+        }
+
         /*let parser = new NNOutputParser();
         let reduces = parser.getReduceSequence({
             [Symbol.iterator]() {
                 return new SimpleSequenceLexer(sequence);
+
             }
         });
         console.log('Reduces:', reduces);*/

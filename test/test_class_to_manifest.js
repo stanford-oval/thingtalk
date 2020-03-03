@@ -231,6 +231,7 @@ const TEST_CASES = [
             formatted: [],
             is_list: false,
             poll_interval: -1,
+            minimal_projection: [],
             json_key: 'data'
         }
       },

@@ -9,7 +9,6 @@
 // See COPYING for details
 
 {
-const { notifyAction } = require('../ast/api');
 const Ast = require('../ast');
 const { parseDate } = require('../date_utils');
 }
@@ -230,8 +229,8 @@ stream_join = {
 }
 
 action = {
-    'notify' => notifyAction();
-    'return' => notifyAction('return');
+    'notify' => new Ast.Action.Notify(null, 'notify', null);
+    'return' => new Ast.Action.Notify(null, 'return', null);
     call => new Ast.Action.Invocation(null, call, null);
 }
 
@@ -300,6 +299,8 @@ or_filter = {
 }
 
 atom_filter = {
+    'true' pname:PARAM_NAME => new Ast.BooleanExpression.DontCare(null, pname.value);
+
     pname:PARAM_NAME op:comparison_op rhs:value => {
         return new Ast.BooleanExpression.Atom(null, pname.value, op, rhs);
     };

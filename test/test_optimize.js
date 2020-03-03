@@ -73,6 +73,16 @@ const TEST_CASES = [
         `monitor ([text, author] of @com.twitter.home_timeline()) => @com.twitter.post(status=text);`,
         `monitor (@com.twitter.home_timeline()) on new [text, author] => @com.twitter.post(status=text);`
     ],
+
+    [
+        `monitor (@com.twitter.home_timeline()), author == "bob"^^tt:username || author == "charlie"^^tt:username => notify;`,
+        `monitor ((@com.twitter.home_timeline()), in_array(author, ["bob"^^tt:username, "charlie"^^tt:username])) => notify;`
+    ],
+
+    [
+        `now => @org.schema.full.Restaurant(), id =~ "starbucks" || id =~ "mcdonalds" => notify;`,
+        `now => (@org.schema.full.Restaurant()), in_array~(id, ["starbucks", "mcdonalds"]) => notify;`
+    ]
 ];
 
 
@@ -86,6 +96,8 @@ function test(i) {
             console.error('Test Case #' + (i+1) + ': optimized program does not match what expected');
             console.error('Expected: ' + expectedOptimized);
             console.error('Generated: ' + optimized);
+            if (process.env.TEST_MODE)
+                throw new Error(`testOptimize ${i+1} FAILED`);
         }
     }).catch((e) => {
         console.error('Test Case #' + (i+1) + ': failed with exception');
