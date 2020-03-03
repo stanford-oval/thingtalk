@@ -39,7 +39,7 @@ function main() {
     assert.strictEqual(formatter.dateToString(date), 'Wednesday, May 23, 2018');
     assert.strictEqual(formatter.dateToString(date, { year: 'numeric' }), '2018');
     assert.strictEqual(formatter.dateAndTimeToString(date), '5/23/2018, 9:18:00 PM');
-    assert.strictEqual(formatter.timeToString(date), '9:18:00 PM PDT');
+    assert.strictEqual(formatter.timeToString(date), '09:18:00 PM PDT');
     assert.strictEqual(formatter.anyToString(date), '5/23/2018, 9:18:00 PM');
 
     let location = new builtin.Location(-37, 113);
