@@ -102,10 +102,10 @@ var TEST_CASES = [
     'Weather'],*/
 
     [`now => @com.instagram.get_pictures(), in_array(caption,["foo","bar"]) => notify;`,
-    `get your recent Instagram pictures such that the caption is any of “foo”, “bar” and then notify you`,
+    `get your recent Instagram pictures that have caption “foo”, “bar” and then notify you`,
     'Instagram'],
     [`now => @com.instagram.get_pictures(), contains(hashtags, "foo"^^tt:hashtag) => notify;`,
-    `get your recent Instagram pictures such that the hashtags contain #foo and then notify you`,
+    `get your recent Instagram pictures that have hashtags #foo and then notify you`,
     'Instagram'],
 
     [`now => @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code, text="hello") => @com.facebook.post(status=$event);`,
@@ -351,6 +351,30 @@ var TEST_CASES = [
 
     [`now => (@com.yelp.restaurant()), true(cuisines) => notify;`,
     `get restaurants on Yelp such that any value of cuisines is acceptable and then notify you`,
+    `Yelp`],
+
+    [`now => (@com.yelp.restaurant()), contains(cuisines, "mexican"^^com.yelp:restaurant_cuisine("Mexican")) => notify;`,
+    `get restaurants on Yelp that have Mexican food and then notify you`,
+    `Yelp`],
+
+    [`now => (@com.yelp.restaurant()), contains(cuisines, "mexican"^^com.yelp:restaurant_cuisine("Mexican")) && price == enum(cheap) => notify;`,
+    `get cheap restaurants on Yelp that have Mexican food and then notify you`,
+    `Yelp`],
+
+    [`now => (@com.yelp.restaurant()), contains(cuisines, "mexican"^^com.yelp:restaurant_cuisine("Mexican")) && rating == 4 => notify;`,
+    `get restaurants on Yelp rated 4 star that have Mexican food and then notify you`,
+    `Yelp`],
+
+    [`now => (@com.yelp.restaurant()), contains(cuisines, "mexican"^^com.yelp:restaurant_cuisine("Mexican")) && rating >= 4 => notify;`,
+    `get restaurants on Yelp that have Mexican food such that the rating is greater than or equal to 4 and then notify you`,
+    `Yelp`],
+
+    [`now => (@com.yelp.restaurant()), contains(cuisines, "mexican"^^com.yelp:restaurant_cuisine("Mexican")) && geo == new Location("Palo Alto") => notify;`,
+    `get restaurants on Yelp that have Mexican food near Palo Alto and then notify you`,
+    `Yelp`],
+
+    [`now => (@com.yelp.restaurant()), geo == new Location("Palo Alto") && contains(cuisines, "mexican"^^com.yelp:restaurant_cuisine("Mexican")) => notify;`,
+    `get restaurants on Yelp that have Mexican food near Palo Alto and then notify you`,
     `Yelp`],
 ];
 
