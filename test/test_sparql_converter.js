@@ -188,7 +188,7 @@ const TEST_CASES = [
     FILTER (?p74 = wd:Q222047)}
     UNION
     {?table0 wdt:P413 ?p71.
-    ?table0 wdt:P166 ?p72}.
+    ?table0 wdt:P166 ?p72} .
     FILTER (?p71 = wd:Q212413).
     FILTER (?p72 = wd:Q31391).
     ?table0 wdt:P31 wd:Q5
@@ -204,7 +204,7 @@ const TEST_CASES = [
     join ([P735, P19] of @org.wikidata.person())), id==lhs.P22 => notify;
         `,
         `
-    SELECT (?p67 as ?P735) (?p75 as ?P19) (?table1 as ?id) (?table1Label as ?idLabel) (?table0 as ?lhs__id) (?table0Label as ?lhs__idLabel) WHERE {
+    SELECT (?table1 as ?id) (?table1Label as ?idLabel) (?p67 as ?P735) (?p75 as ?P19) (?table0 as ?lhs__id) (?table0Label as ?lhs__idLabel) WHERE {
     ?string50 ?label50 'Microsoft'@en.
     ?table0 wdt:P1830 ?p50.
     FILTER (?p50 = ?string50).
@@ -214,7 +214,7 @@ const TEST_CASES = [
     ?table1 wdt:P19 ?p75.
     ?table0 wdt:P31 wd:Q5.
     ?table1 wdt:P31 wd:Q5
-    SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?p67 rdfs:label ?p67Label. ?p75 rdfs:label ?p75Label. ?table1 rdfs:label ?table1Label. ?table0 rdfs:label ?table0Label. }}
+    SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table1 rdfs:label ?table1Label. ?p67 rdfs:label ?p67Label. ?p75 rdfs:label ?p75Label. ?table0 rdfs:label ?table0Label. }}
     limit 1 offset 0
         `,
     ],
@@ -233,7 +233,7 @@ const TEST_CASES = [
     ?table0 wdt:P735 ?p0.
     FILTER (?p1 = ?string1).
     ?p0 rdfs:label ?p67.
-    FILTER CONTAINS(?p67, 'Bar').
+    FILTER CONTAINS(?p67, 'Bar') .
     ?table0 wdt:P18 ?p13.
     ?table0 wdt:P31 wd:Q5
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. ?p13 rdfs:label ?p13Label. }}
@@ -244,20 +244,20 @@ const TEST_CASES = [
 
 async function test(index) {
     let thingtalk = TEST_CASES[index][0];
-    let sparql = TEST_CASES[index][1];
+    let expected = TEST_CASES[index][1];
     await AppGrammar.parseAndTypecheck(thingtalk, _schemaRetriever).then(
         (program) => {
             //convert from ast to sparql
-            let sparqlQuery = Helper.toSparql(program);
-            compare_sparqls(sparql, sparqlQuery);
+            let generated = Helper.toSparql(program);
+            compare_sparqls(generated, expected);
         }
     );
 }
 
 function compare_sparqls(sqarqlQuery1, sqarqlQuery2) {
     //remove all whitespaces
-    let lines1 = sqarqlQuery1.replace(/\s+/g, "");
-    let lines2 = sqarqlQuery2.replace(/\s+/g, "");
+    let lines1 = sqarqlQuery1.replace(/\s+/g, ' ').trim();
+    let lines2 = sqarqlQuery2.replace(/\s+/g, ' ').trim();
     assert.strictEqual(lines1, lines2);
 }
 

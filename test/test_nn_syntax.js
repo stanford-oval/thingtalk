@@ -112,9 +112,9 @@ const TEST_CASES = [
     `search images wider than NUMBER_0 pixels or taller than NUMBER_1 pixels`, {NUMBER_0: 100, NUMBER_1:200},
     `now => (@com.bing.image_search()), (width > 100 || height > 200) => notify;`],
 
-    [`now => ( @com.bing.image_search ) filter param:width:Number > NUMBER_0 or param:height:Number > NUMBER_1 and param:width:Number < NUMBER_2 => notify`,
+    [`now => ( @com.bing.image_search ) filter param:width:Number < NUMBER_2 and param:width:Number > NUMBER_0 or param:height:Number > NUMBER_1 => notify`,
     `search images wider than NUMBER_0 pixels or taller than NUMBER_1 pixels and narrower than NUMBER_2 pixels`, {NUMBER_0: 100, NUMBER_1:200, NUMBER_2: 500},
-    `now => (@com.bing.image_search()), ((width > 100 || height > 200) && width < 500) => notify;`],
+    `now => (@com.bing.image_search()), (width < 500 && (width > 100 || height > 200)) => notify;`],
 
     [`now => ( @com.bing.image_search ) filter param:width:Number > NUMBER_0 or param:height:Number > NUMBER_0 => notify`,
     `search images larger than NUMBER_0 pixels in either dimension`, {NUMBER_0: 100},
@@ -447,32 +447,6 @@ const TEST_CASES = [
     `get tweets with hashtags foo`, {},
     `now => (@com.twitter.home_timeline()), count((hashtags) filter { value == "foo"^^tt:hashtag }) >= 0 => notify;`],
 
-    /*
-    [`now => ( @com.yelp.restaurants ) filter min ( param:ratings:Array(Number) ) >= NUMBER_0 => notify`,
-    `get restaurants with no rating below NUMBER_0`, { NUMBER_0: 3.5 },
-    `now => (@com.yelp.restaurants()), min(ratings) >= 3.5 => notify;`],
-
-    [`now => ( @com.yelp.restaurants ) filter min ( param:rating:Number of param:reviews:Array(Compound) ) >= NUMBER_0 => notify`,
-    `get restaurants with no rating below NUMBER_0`, { NUMBER_0: 3.5 },
-    `now => (@com.yelp.restaurants()), min(rating of (reviews)) >= 3.5 => notify;`],
-
-    [`now => compute distance ( param:location:Location , location:current_location ) of ( @com.yelp.restaurants ) => notify`,
-    `get restaurants and their distance from here`, {},
-    `now => compute (distance(location, $context.location.current_location)) of (@com.yelp.restaurants()) => notify;`],
-
-    [`now => compute ( param:reviews:Array(Compound) filter { param:rating:Number >= NUMBER_0 } ) of ( @com.yelp.restaurants ) => notify`,
-    `get restaurants and their reviews better than NUMBER_0`, { NUMBER_0: 4.1 },
-    `now => compute ((reviews) filter { rating >= 4.1 }) of (@com.yelp.restaurants()) => notify;`],
-
-    [`now => compute count ( param:reviews:Array(Compound) ) of ( @com.yelp.restaurants ) => notify`,
-    `get restaurants and how many reviews they have`, {},
-    `now => compute (count(reviews)) of (@com.yelp.restaurants()) => notify;`],
-
-    [`compute distance ( param:location:Location , location:current_location ) of ( monitor ( @com.yelp.restaurants ) ) => notify`,
-    `get restaurants and their distance from here`, {},
-    `compute (distance(location, $context.location.current_location)) of (monitor (@com.yelp.restaurants())) => notify;`],
-    */
-
     [`now => @light-bulb.set_power attribute:name:String = " bedroom " param:power:Enum(on,off) = enum:off`,
     `turn off my bedroom lights`, {},
     `now => @light-bulb(name="bedroom").set_power(power=enum(off));`],
@@ -560,6 +534,10 @@ now => @org.schema.restaurant() => notify;`],
      'what kind of cuisine and price are you looking for ?', {},
      `$dialogue @org.thingpedia.dialogue.transaction.sys_search_question(price, serveCuisine);
 now => @org.schema.restaurant() => notify;`],
+
+    [`bookkeeping answer @com.google.contacts.get_contacts`,
+    `google contacts`, {},
+    `bookkeeping(answer("com.google.contacts:get_contacts"^^tt:function));`],
 
     [`now => ( @com.yelp.restaurant ) filter true param:cuisines:Array(Entity(com.yelp:restaurant_cuisine)) => notify`,
     `i 'm looking for a restaurant , i do n't care what cuisine`, {},

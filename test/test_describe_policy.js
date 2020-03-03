@@ -64,7 +64,7 @@ var TEST_CASES = [
      'anyone in the @family group is allowed to tweet any status'],
 
     ['source == "mom"^^tt:username || source == "dad"^^tt:username : now => @com.twitter.post',
-     'if the requester is equal to @mom or the requester is equal to @dad, the requester is allowed to tweet any status'],
+     'if the requester is any of @mom, @dad, the requester is allowed to tweet any status'],
 
     ['true : now => @com.twitter.post, status == "foo"',
      'anyone is allowed to tweet “foo”'],
@@ -103,7 +103,7 @@ var TEST_CASES = [
      'anyone is allowed to tweet any status if the status is not a suffix of “foo”'],
 
     ['true : now => @com.twitter.post, status == "foo" || status == "bar"',
-     'anyone is allowed to tweet any status if the status is equal to “foo” or the status is equal to “bar”'],
+     'anyone is allowed to tweet any status if the status is any of “foo”, “bar”'],
 
     ['true : now => @com.twitter.post, status =~ "foo" && status =~ "bar"',
      'anyone is allowed to tweet any status if the status contains “foo” and the status contains “bar”'],
@@ -181,7 +181,7 @@ var TEST_CASES = [
      'anyone is allowed to read websites matching “foo” on Bing'],
 
     ['true : @com.bing.web_search, query == "foo" || query == "bar" => notify',
-     'anyone is allowed to read websites matching any query on Bing if the query is equal to “foo” or the query is equal to “bar”'],
+     'anyone is allowed to read websites matching any query on Bing if the query is any of “foo”, “bar”'],
 
     ['true : @com.bing.web_search, query == "foo" && description =~ "lol" => notify',
      'anyone is allowed to read websites matching “foo” on Bing if the description contains “lol”'],
@@ -190,7 +190,7 @@ var TEST_CASES = [
      'anyone is allowed to read websites matching any query on Bing if not the query is equal to “foo” and the description contains “lol”'],
 
     ['true : @com.bing.web_search, (query == "foo" || query == "bar") && description =~ "lol" => notify',
-     'anyone is allowed to read websites matching any query on Bing if the query is equal to “foo” or the query is equal to “bar” and the description contains “lol”'],
+     'anyone is allowed to read websites matching any query on Bing if the query is any of “foo”, “bar” and the description contains “lol”'],
 
     ['true : @com.washingtonpost.get_article => notify',
     'anyone is allowed to read the latest articles in the any section section of the Washington Post'],
@@ -199,7 +199,7 @@ var TEST_CASES = [
     'anyone is allowed to read the latest articles in the world section of the Washington Post'],
 
     ['true : @com.washingtonpost.get_article, section == enum(world) || section == enum(opinions) => notify',
-    'anyone is allowed to read the latest articles in the any section section of the Washington Post if the section is equal to world or the section is equal to opinions'],
+    'anyone is allowed to read the latest articles in the any section section of the Washington Post if the section is any of world, opinions'],
 
     ['true : @com.wsj.get, section == enum(world_news) && updated >= makeDate() => notify',
     'anyone is allowed to read articles published in the world news section of the Wall Street Journal if the updated is after now'],

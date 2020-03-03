@@ -135,7 +135,8 @@ now => [distance] of (compute (distance(geo, $context.location.current_location)
 ]];`],
 
     [`monitor @com.twitter.home_timeline(), text =~ "foo" || (text =~"bar" && !(text =~ "lol")) => notify;`,
-     `monitor ((@com.twitter.home_timeline()), ((text =~ "bar" && !(text =~ "lol")) || text =~ "foo")) => notify;`],
+     `monitor ((@com.twitter.home_timeline()), ((text =~ "bar" && !(text =~ "lol")) || text =~ "foo")) => notify;`
+    ],
 ];
 
 
@@ -149,6 +150,8 @@ function test(i) {
             console.error('Test Case #' + (i+1) + ': optimized program does not match what expected');
             console.error('Expected: ' + expectedOptimized);
             console.error('Generated: ' + optimized);
+            if (process.env.TEST_MODE)
+                throw new Error(`testOptimize ${i+1} FAILED`);
         }
     }).catch((e) => {
         console.error('Test Case #' + (i+1) + ': failed with exception');

@@ -35,6 +35,13 @@
   dates, plural and ordinal forms, and optional parameters [#137, #175].
 * Updated dependencies [#174, #176].
 
+1.9.3
+=====
+* Added new pseudo-unit "defaultTemperature" to indicate the user's preferred
+  temperature unit [#187]
+* Fixed constants of type Entity(tt:function) in NN syntax [#185, #186]
+* Fixed displaying times in recent versions of node
+
 1.9.2
 =====
 
