@@ -76,22 +76,22 @@ const TEST_CASES = [
 
     [`monitor ( @thermostat.get_temperature ) => notify`, {}],
 
-    [`monitor ( ( @thermostat.get_temperature ) filter param:value:Measure(C) > MEASURE_C_0 ) => notify`,
+    [`monitor ( ( @thermostat.get_temperature ) filter param:value:Measure(C) >= MEASURE_C_0 ) => notify`,
      {'MEASURE_C_0': { unit: 'F', value: 70 }}],
 
     [`now => timeseries ( now , 1 unit:week ) of ( monitor ( @thermostat.get_temperature ) ) => notify`,
      {}],
 
-    [`now => ( @com.bing.image_search ) filter param:width:Number > NUMBER_0 or param:height:Number > NUMBER_1 => notify`,
+    [`now => ( @com.bing.image_search ) filter param:width:Number >= NUMBER_0 or param:height:Number >= NUMBER_1 => notify`,
     { NUMBER_0: 100, NUMBER_1:200 }],
 
-    [`now => ( @com.bing.image_search ) filter param:width:Number < NUMBER_0 and param:width:Number > NUMBER_1 or param:height:Number > NUMBER_2 => notify`,
+    [`now => ( @com.bing.image_search ) filter param:width:Number <= NUMBER_0 and param:width:Number >= NUMBER_1 or param:height:Number >= NUMBER_2 => notify`,
     {NUMBER_0: 100, NUMBER_1:200, NUMBER_2: 500}],
 
-    [`now => ( @com.bing.image_search ) filter param:width:Number > NUMBER_0 or param:height:Number > NUMBER_0 => notify`,
+    [`now => ( @com.bing.image_search ) filter param:width:Number >= NUMBER_0 or param:height:Number >= NUMBER_0 => notify`,
     {NUMBER_0: 100}],
 
-    [`now => ( @com.bing.image_search ) filter param:width:Number > NUMBER_0 => notify`,
+    [`now => ( @com.bing.image_search ) filter param:width:Number >= NUMBER_0 => notify`,
      {NUMBER_0: 100 }],
 
     ['monitor ( ( @com.instagram.get_pictures param:count:Number = NUMBER_0 ) filter param:caption:String in_array [ QUOTED_STRING_0 , QUOTED_STRING_1 ] ) => notify',

@@ -373,8 +373,6 @@ comparison_op = {
     '==';
     '>=';
     '<=';
-    '>';
-    '<';
     '=~';
     '~=';
     'starts_with';
@@ -382,7 +380,11 @@ comparison_op = {
     'prefix_of';
     'suffix_of';
     'contains';
+    'contains~';
+    '~contains';
     'in_array';
+    'in_array~';
+    '~in_array';
 }
 
 // to avoid ambiguity caused by the "true" boolean constant and the "true" boolean expression
