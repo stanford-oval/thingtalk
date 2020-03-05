@@ -96,9 +96,9 @@ const TEST_CASES = [
     `monitor thermostat`, {},
     `monitor (@thermostat.get_temperature()) => notify;`],
 
-    [`monitor ( ( @thermostat.get_temperature ) filter param:value:Measure(C) > NUMBER_0 unit:F ) => notify`,
+    [`monitor ( ( @thermostat.get_temperature ) filter param:value:Measure(C) >= NUMBER_0 unit:F ) => notify`,
     `notify me if the temperature is above NUMBER_0 degrees`, {'NUMBER_0': 70},
-    `monitor ((@thermostat.get_temperature()), value > 70F) => notify;`],
+    `monitor ((@thermostat.get_temperature()), value >= 70F) => notify;`],
 
     [`now => timeseries ( now , 1 unit:week ) of ( monitor ( @thermostat.get_temperature ) ) => notify`,
     `show me the temperature on the thermostat in the last week`, {},
@@ -108,21 +108,21 @@ const TEST_CASES = [
     `show me the temperature on the thermostat in the last two weeks`, {NUMBER_0: 2},
     `now => timeseries (new Date(), 2week) of (monitor (@thermostat.get_temperature())) => notify;`],
 
-    [`now => ( @com.bing.image_search ) filter param:width:Number > NUMBER_0 or param:height:Number > NUMBER_1 => notify`,
+    [`now => ( @com.bing.image_search ) filter param:width:Number >= NUMBER_0 or param:height:Number >= NUMBER_1 => notify`,
     `search images wider than NUMBER_0 pixels or taller than NUMBER_1 pixels`, {NUMBER_0: 100, NUMBER_1:200},
-    `now => (@com.bing.image_search()), (width > 100 || height > 200) => notify;`],
+    `now => (@com.bing.image_search()), (width >= 100 || height >= 200) => notify;`],
 
-    [`now => ( @com.bing.image_search ) filter param:width:Number < NUMBER_2 and param:width:Number > NUMBER_0 or param:height:Number > NUMBER_1 => notify`,
+    [`now => ( @com.bing.image_search ) filter param:width:Number <= NUMBER_2 and param:width:Number >= NUMBER_0 or param:height:Number >= NUMBER_1 => notify`,
     `search images wider than NUMBER_0 pixels or taller than NUMBER_1 pixels and narrower than NUMBER_2 pixels`, {NUMBER_0: 100, NUMBER_1:200, NUMBER_2: 500},
-    `now => (@com.bing.image_search()), (width < 500 && (width > 100 || height > 200)) => notify;`],
+    `now => (@com.bing.image_search()), (width <= 500 && (width >= 100 || height >= 200)) => notify;`],
 
-    [`now => ( @com.bing.image_search ) filter param:width:Number > NUMBER_0 or param:height:Number > NUMBER_0 => notify`,
+    [`now => ( @com.bing.image_search ) filter param:width:Number >= NUMBER_0 or param:height:Number >= NUMBER_0 => notify`,
     `search images larger than NUMBER_0 pixels in either dimension`, {NUMBER_0: 100},
-    `now => (@com.bing.image_search()), (width > 100 || height > 100) => notify;`],
+    `now => (@com.bing.image_search()), (width >= 100 || height >= 100) => notify;`],
 
-    [`now => ( @com.bing.image_search ) filter param:width:Number > NUMBER_0 => notify`,
+    [`now => ( @com.bing.image_search ) filter param:width:Number >= NUMBER_0 => notify`,
     `search images wider than NUMBER_0 pixels`, {NUMBER_0: 100 },
-    `now => (@com.bing.image_search()), width > 100 => notify;`],
+    `now => (@com.bing.image_search()), width >= 100 => notify;`],
 
     ['monitor ( @com.xkcd.get_comic ) on new param:title:String => notify',
     `monitor xkcd if the title changes`, {},

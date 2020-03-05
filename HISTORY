@@ -1,3 +1,21 @@
+1.10.0-alpha.4
+==============
+
+* Update and optimize operators in ThingTalk. A set of new operators for soft
+  matching for arrays are added. Soft matching for entities are now allowed
+  base on display value. `or` filters are optimized as `in_array` filters.
+  Both < and > operators are totally removed, use >= and <= instead. [#188]
+* Add "minimal_projection" annotation. This allow developers to set parameters
+  that will always be present regardless of the program; it is default to `id`
+  if `id` is present [#188]
+* Add "don't care" boolean expression in the format of `true($param)`. It is
+  semantically equivalent to true constant, but the agent will no longer ask
+  about it [#188]
+* Nerf typechecking for natural language annotations since they are template
+  dependent [#188]
+* Misc bug fixes [#188, #190]
+* Update dependencies [#188]
+
 1.10.0-alpha.3
 ==============
 
