@@ -116,16 +116,16 @@ dialogue_history_item_list = {
 }
 
 dialogue_history_item = {
-    rule:rule ';' => new Ast.DialogueHistoryItem(null, rule, null, false);
+    rule:rule ';' => new Ast.DialogueHistoryItem(null, rule, null, 'accepted');
 
     // note: the syntax here is very hard-coded because we don't want the AST
     // to be generic, otherwise it's hard to manipulate
 
     // results
-    rule:rule results:dialogue_result_annotation_bag ';' => new Ast.DialogueHistoryItem(null, rule, results, true);
+    rule:rule results:dialogue_result_annotation_bag ';' => new Ast.DialogueHistoryItem(null, rule, results, 'confirmed');
 
     // confirm
-    rule:rule '#[' 'confirm' '=' 'true' ']' ';' => new Ast.DialogueHistoryItem(null, rule, null, true);
+    rule:rule '#[' 'confirm' '=' venum:ENUM ']' ';' => new Ast.DialogueHistoryItem(null, rule, null, venum.value);
 }
 
 dialogue_result_annotation_list = {
