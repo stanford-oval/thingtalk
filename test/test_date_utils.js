@@ -22,7 +22,7 @@ function main() {
     today.setMinutes(0);
     today.setSeconds(0);
     today.setMilliseconds(0);
-    test(DateEdge('start_of', 'day'), today);
+    test(new DateEdge('start_of', 'day'), today);
 
     const tomorrow = new Date;
     tomorrow.setDate(tomorrow.getDate()+1);
@@ -30,7 +30,7 @@ function main() {
     tomorrow.setMinutes(0);
     tomorrow.setSeconds(0);
     tomorrow.setMilliseconds(0);
-    test(DateEdge('end_of', 'day'), tomorrow);
+    test(new DateEdge('end_of', 'day'), tomorrow);
 
     const this_month = new Date;
     this_month.setDate(1);
@@ -38,7 +38,7 @@ function main() {
     this_month.setMinutes(0);
     this_month.setSeconds(0);
     this_month.setMilliseconds(0);
-    test(DateEdge('start_of', 'mon'), this_month);
+    test(new DateEdge('start_of', 'mon'), this_month);
 
     const next_month = new Date;
     next_month.setDate(1);
@@ -47,7 +47,7 @@ function main() {
     next_month.setSeconds(0);
     next_month.setMilliseconds(0);
     next_month.setMonth(next_month.getMonth()+1);
-    test(DateEdge('end_of', 'mon'), next_month);
+    test(new DateEdge('end_of', 'mon'), next_month);
 }
 module.exports = main;
 if (!module.parent)

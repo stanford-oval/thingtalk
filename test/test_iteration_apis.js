@@ -413,12 +413,12 @@ var TEST_CASES = [
 
     [`monitor @security-camera.current_event(), (has_person == true && @org.thingpedia.builtin.thingengine.builtin.get_gps() { location == new Location(1, 2) })  => notify;`,
     ['query: Invocation(Device(security-camera, , ), current_event, , )',
-     'filter: External(Device(org.thingpedia.builtin.thingengine.builtin, , ), get_gps, , Atom(location, ==, Location(Absolute(1, 2, ))))'],
+     'filter: External(Device(org.thingpedia.builtin.thingengine.builtin, , ), get_gps, , Atom(location, ==, Location(Absolute(1, 2, null))))'],
     [
     'Device(security-camera, , ) security-camera:current_event',
     'Atom(has_person, ==, Boolean(true)) security-camera:current_event',
     'Device(org.thingpedia.builtin.thingengine.builtin, , ) org.thingpedia.builtin.thingengine.builtin:get_gps',
-    'Atom(location, ==, Location(Absolute(1, 2, ))) security-camera:current_event'
+    'Atom(location, ==, Location(Absolute(1, 2, null))) security-camera:current_event'
     ],
     [
     'Selector(@security-camera)',
