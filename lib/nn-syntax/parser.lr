@@ -523,7 +523,7 @@ constant_value = {
     constant_Entity__tt__function;
     constant_Entity__tt__picture;
     constant_Enum;
-    slot:SLOT => (slot.value === undefined ? Ast.Value.Undefined(true) : slot.value);
+    slot:SLOT => (slot.value === undefined ? new Ast.Value.Undefined(true) : slot.value);
 }
 
 array_literal_values = {
