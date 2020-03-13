@@ -135,10 +135,8 @@ dialogue_result_annotation_list = {
 }
 
 dialogue_result_annotation_bag = {
-    '#[' 'results' '=' '[' ']' ']' => new Ast.DialogueHistoryResultList(null, [], new Ast.Value.Number(0), false);
-
     list:dialogue_result_annotation_list => {
-        let results, more, count;
+        let results, _error, more, count;
 
         for (let [key, value] of list) {
             switch (key) {
@@ -146,6 +144,11 @@ dialogue_result_annotation_bag = {
                 if (results !== undefined)
                     return error(`Duplicate history annotation #[results]`);
                 results = value;
+                break;
+            case 'error':
+                if (_error !== undefined)
+                    return error(`Duplicate history annotation #[results]`);
+                _error = value;
                 break;
             case 'more':
                 if (more !== undefined)
@@ -163,20 +166,24 @@ dialogue_result_annotation_bag = {
             return error(`Missing history annotation #[results]`);
         if (count === undefined)
             count = new Ast.Value.Number(results.length);
-        if (more === undefined)
-            more = false;
 
-        return new Ast.DialogueHistoryResultList(null, results, count, more);
+        return new Ast.DialogueHistoryResultList(null, results, count, more, _error);
     };
 }
 
 dialogue_result_annotation = {
-    '#[' 'results' '=' '[' results:dialogue_result_list ']' ']' => ['results', results];
+    '#[' 'results' '=' results:dialogue_result_list ']' => ['results', results];
     '#[' 'count' '=' count:value ']' => ['count', count];
     '#[' 'more' '=' 'true' ']' => ['more', true];
+    '#[' 'error' '=' error:value ']' => ['error', error];
 }
 
 dialogue_result_list = {
+    '[' ']' => [];
+    '[' list:dialogue_result_list_nonempty ']' => list;
+}
+
+dialogue_result_list_nonempty = {
     value:object_literal_value => [new Ast.DialogueHistoryResultItem(null, value.value)];
     list:dialogue_result_list ',' value:object_literal_value => {
         list.push(new Ast.DialogueHistoryResultItem(null, value.value));

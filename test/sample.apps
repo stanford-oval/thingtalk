@@ -1905,6 +1905,29 @@ $dialogue @org.thingpedia.dialogue.transaction.execute;
 now => @com.thecatapi.get() => notify
 #[results=[
   { image_id = "..."^^com.thecatapi:image_id, url = "..."^^tt:url, link = "..."^^tt:url }
+]];
+now => @com.twitter.post()
+#[results=[
+  { tweet_id = "..."^^com.twitter:tweet_id, link = "..."^^tt:url }
+]];
+
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => @com.thecatapi.get() => notify
+#[results=[
+  { image_id = "..."^^com.thecatapi:image_id, url = "..."^^tt:url, link = "..."^^tt:url }
+]];
+now => @com.twitter.post()
+#[results=[]]
+#[error="something bad happened"];
+
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => @com.thecatapi.get() => notify
+#[results=[
+  { image_id = "..."^^com.thecatapi:image_id, url = "..."^^tt:url, link = "..."^^tt:url }
 ]]
 #[count=3];
 
