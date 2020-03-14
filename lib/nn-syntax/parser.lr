@@ -395,9 +395,13 @@ filter = {
 }
 
 or_filter = {
+    unary_filter;
+    f1:or_filter 'or' f2:unary_filter => new Ast.BooleanExpression.Or(null, [f1, f2]);
+}
+
+unary_filter = {
     atom_filter;
     'not' f:atom_filter => new Ast.BooleanExpression.Not(null, f);
-    f1:or_filter 'or' f2:atom_filter => new Ast.BooleanExpression.Or(null, [f1, f2]);
 }
 
 atom_filter = {
