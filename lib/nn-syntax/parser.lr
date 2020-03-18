@@ -142,28 +142,28 @@ dialogue_result_annotation_bag = {
             switch (key) {
             case 'results':
                 if (results !== undefined)
-                    return error(`Duplicate history annotation #[results]`);
+                    return $.error(`Duplicate history annotation #[results]`);
                 results = value;
                 break;
             case 'error':
                 if (_error !== undefined)
-                    return error(`Duplicate history annotation #[results]`);
+                    return $.error(`Duplicate history annotation #[results]`);
                 _error = value;
                 break;
             case 'more':
                 if (more !== undefined)
-                    return error(`Duplicate history annotation #[more]`);
+                    return $.error(`Duplicate history annotation #[more]`);
                 more = value;
                 break;
             case 'count':
                 if (count !== undefined)
-                    return error(`Duplicate history annotation #[count]`);
+                    return $.error(`Duplicate history annotation #[count]`);
                 count = value;
                 break;
             }
         }
         if (results === undefined)
-            return error(`Missing history annotation #[results]`);
+            return $.error(`Missing history annotation #[results]`);
         if (count === undefined)
             count = new Ast.Value.Number(results.length);
 
