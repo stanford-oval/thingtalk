@@ -2782,7 +2782,7 @@ some alt text` }
     {
         type: 'action',
         fn: 'com.twitter:post',
-        params: { status: 'now => [P1477] of ((@org.wikidata.person()), P735 ~= "Bob") => notify;' }
+        params: { status: 'now => (@org.wikidata.person()), P735 ~= "Bob" => notify;' }
     }]],
 ];
 
