@@ -279,7 +279,7 @@ const TEST_CASES = [
     'true : now => @org.thingpedia.builtin.thingengine.builtin.discover, @org.thingpedia.builtin.test.get_data() { data == "foo" };'],
 
     [`now => @com.xkcd.get_comic param:number:Number = SLOT_0 => notify`,
-     '', {'SLOT_0': Ast.Value.Number(1234) },
+     '', {'SLOT_0': new Ast.Value.Number(1234) },
      `now => @com.xkcd.get_comic(number=1234) => notify;`],
 
     [`now => @com.xkcd.get_comic param:number:Number = SLOT_0 => notify`,
@@ -287,11 +287,11 @@ const TEST_CASES = [
      `now => @com.xkcd.get_comic(number=$?) => notify;`],
 
     [`bookkeeping filter param:title:String =~ SLOT_0`,
-    '', {'SLOT_0': Ast.Value.String('foo') },
+    '', {'SLOT_0': new Ast.Value.String('foo') },
     `bookkeeping(predicate(title =~ "foo"));`],
 
     [`bookkeeping filter param:title:String == SLOT_0`,
-    '', {'SLOT_0': Ast.Value.String('foo') },
+    '', {'SLOT_0': new Ast.Value.String('foo') },
     `bookkeeping(predicate(title == "foo"));`],
 
     [`now => @com.xkcd.get_comic param:number:Number = undefined => notify`,

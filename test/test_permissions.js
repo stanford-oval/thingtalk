@@ -141,7 +141,7 @@ async function main() {
         return checker.allowed(Grammar.parsePermissionRule(a));
     }));
 
-    const principal = Ast.Value.Entity('omlet-messaging:testtesttest', 'tt:contact', null);
+    const principal = new Ast.Value.Entity('omlet-messaging:testtesttest', 'tt:contact', null);
 
     return promiseLoop(TEST_CASES, ([input, expected, options], i) => {
         console.error('Test case #' + (i+1));

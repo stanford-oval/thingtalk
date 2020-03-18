@@ -27,9 +27,17 @@ class TestVisitor extends NodeVisitor {
     }
 
     enter(node) {
-        assert(node instanceof Value || node instanceof AstNode);
+        assert(node instanceof AstNode);
         if (this._nodes.has(node) && !expectedsingletons.has(node))
             throw new Error(`Node ${node} was entered multiple times`);
+        if (node instanceof Value) {
+            const fullname = node.constructor.name;
+            assert(fullname.endsWith('Value'));
+            const name = fullname.substring(0, fullname.length-'Value'.length);
+            assert(node instanceof Value[name]);
+            assert(node['is' + name] === true, `bad isX property for ${name}`);
+        }
+
         this._nodes.add(node);
         this._stack.push(node);
     }
