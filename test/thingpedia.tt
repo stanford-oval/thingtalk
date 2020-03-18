@@ -1726,7 +1726,7 @@ class @com.yelp
                         #[unique=true]
                         #[string_values="gov.data:restaurant_names"]
                         #_[canonical={
-                          default="npp", // ignored
+                          default="property",
                           base=["name"],
                           property=[]
                         }],
@@ -1741,7 +1741,7 @@ class @com.yelp
                         out cuisines: Array(Entity(com.yelp:restaurant_cuisine))
                         #[conflict_filter=["id"]]
                         #_[canonical={
-                          default="npp", // ignored
+                          default="property",
                           base=["cuisines", "types of cuisine", "food", "types of food"],
                           property=["# food", "# cuisine"],
                           adjective=["#"],
@@ -1750,7 +1750,7 @@ class @com.yelp
                         out price : Enum(cheap, moderate, expensive, luxury)
                         #[conflict_filter=["id"]]
                         #_[canonical={
-                          default="npp",
+                          default="adjective",
                           base=["price range", "price"],
                           property=[],
                           adjective=["#", "# -ly priced"]
@@ -1759,7 +1759,7 @@ class @com.yelp
                         }],
                         out rating: Number
                         #_[canonical={
-                          default="npp", // ignored
+                          default="passive_verb",
                           base=["rating", "average rating"],
                           passive_verb=["rated # star"],
                           adjective=["# star"],
@@ -1769,13 +1769,14 @@ class @com.yelp
                         #_[canonical="review count"],
                         out geo: Location
                         #_[canonical={
-                          default="npp", // ignored,
-                          base=["location", "address"]
+                          default="preposition",
+                          base=["address", "location"],
+                          preposition=["near #", "in #", "around #"]
                         }],
                         out phone: Entity(tt:phone_number)
                         #_[canonical={
-                          default="npp",
-                          base=["telephone", "phone number"]
+                          default="base",
+                          base=["phone number", "telephone"]
                         }])
   #_[canonical="restaurant"]
   #_[confirmation="restaurants on Yelp"]
@@ -4833,4 +4834,90 @@ class @org.schema.full {
 
   list query TheaterEvent(out id: Entity(org.schema:TheaterEvent))
   #[org_schema_comment="Event type: Theater performance."];
+}
+class @uk.ac.cam.multiwoz.Restaurant
+#_[name="Cambridge Restaurants"]
+#_[description="Fake data used by MultiWOZ"]
+#_[canonical="cambridge restaurants"]
+{
+  import loader from @org.thingpedia.v2();
+  import config from @org.thingpedia.config.none();
+
+  list query Restaurant(out id : Entity(uk.ac.cam.multiwoz.Restaurant:Restaurant)
+                        #[conflict_filter=['food', 'price_range']]
+                        #[unique=true]
+                        #[string_values="uk.ac.cam.multiwoz.Restaurant:name"]
+                        #_[canonical={
+                          base=["name"],
+                          property=[]
+                        }],
+                        out food : String
+                        #[string_values="uk.ac.cam.multiwoz.Restaurant:food"]
+                        #[conflict_filter=['id']]
+                        #_[prompt=["what would you like to eat", "what are you in the mood for"]]
+                        #_[canonical={
+                          default="npp", // ignored
+                          base=["cuisine", "type of cuisine", "food", "type of food"],
+                          property=["# food", "# cuisine"],
+                          adjective=["#"],
+                          verb=["serves # cuisine", "serves # food", "offer # cuisine", "offer # food", "serves", "offers"]
+                        }],
+                        out price_range : Enum(cheap, moderate, expensive)
+                        #[conflict_filter=['id']]
+                        #_[canonical={
+                          default="npp",
+                          base=["price range"],
+                          property=[],
+                          adjective=["#", "# -ly priced"]
+                          // FIXME
+                          /*adjective_enum={ expensive=["upscale"] }*/
+                        }],
+                        out area : Enum(centre, south, north, east)
+                        #_[canonical={
+                          default="npp",
+                          base=["area", "area of the city", "part of town"],
+                          property=[],
+                          preposition=["in the #", "in the # area", "in the # part of town",
+                                       "near the #", "near the # area", "near the # part of town",
+                                       "around the #", "around the # area", "around the # part of town"]
+                          // FIXME
+                          /*preposition_enum={ centre=["in the city centre"] }*/
+                        }])
+  #_[canonical=["restaurant", "food place"]]
+  #_[confirmation="restaurants"]
+  #[confirm=false];
+
+  action make_reservation(in req restaurant : Entity(uk.ac.cam.multiwoz.Restaurant:Restaurant)
+                          #[string_values="uk.ac.cam.multiwoz.Restaurant:name"]
+                          #_[prompt="what restaurant would you like to book?"],
+                          in req book_time : Time
+                          #_[prompt=["what time is your reservation for",
+                                     "what time do you need your reservation for",
+                                     "at what time is your reservation"]]
+                          #_[canonical={
+                            default="npp",
+                            base=["time", "reservation time"],
+                            preposition=["at #"]
+                          }],
+                          in req book_day : Enum(monday, tuesday, wednesday, thursday, friday, saturday, sunday)
+                          #_[prompt=["what day is your reservation for",
+                                     "what day do you need your reservation for",
+                                     "on which day do you want your reservation"]]
+                          #_[canonical={
+                            default="npp",
+                            base=["day", "date"],
+                            preposition=["for #", "on #"]
+                          }],
+                          in req book_people : Number
+                          #[number_min=1] #[number_max=7]
+                          #_[prompt=["how many people is your reservation for",
+                                     "for how many people do you need a reservation",
+                                     "how many people"]]
+                          #_[canonical={
+                            default="npp",
+                            base=["number of people"],
+                            preposition=["for # people", "for #"]
+                          }])
+  #_[confirmation="make a reservation at ${restaurant}"]
+  #[confirm=true];
 }

@@ -241,7 +241,7 @@ Picture: http://example.com/security-camera.jpg`
             cloudiness: undefined,
             fog: undefined,
             status: undefined,
-            icon: 'http://example.com/sunny.png'
+            icon: undefined,
         }, null,
         [ ]
     ],
@@ -293,6 +293,13 @@ Picture: http://example.com/security-camera.jpg`
         text: 'lol'
     }, null,
     ['The text is lol.']
+    ],
+
+    ['com.yelp:restaurant', {
+        rating: 3.5,
+        id: new builtin.Entity("r6RztnVjcMq8wqI8o9ra_A", "Reposado")
+    }, null,
+    ['The rating of Reposado is 3.5.']
     ],
 ];
 

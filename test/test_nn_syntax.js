@@ -451,6 +451,135 @@ const TEST_CASES = [
     `turn off my bedroom lights`, {},
     `now => @light-bulb(name="bedroom").set_power(power=enum(off));`],
 
+    [`$dialogue @org.thingpedia.dialogue.transaction.greet ;`,
+     `hello`, {},
+     `$dialogue @org.thingpedia.dialogue.transaction.greet;`],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute ; ` +
+     `now => @com.thecatapi.get => notify ;`,
+    `get a cat picture`, {},
+    `$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => @com.thecatapi.get() => notify;`],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute ; ` +
+     `now => @com.thecatapi.get => notify ` +
+     `#[ results = [ { param:image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , param:picture_url = PICTURE_0 , param:link = URL_0 } ] ] ;`,
+    `here is your cat picture`, { 'GENERIC_ENTITY_com.thecatapi:image_id_0': { value: '1234', display: null }, PICTURE_0: 'https://example.com/1', URL_0: 'https://example.com/2' },
+    `$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => @com.thecatapi.get() => notify
+#[results=[
+  { image_id="1234"^^com.thecatapi:image_id, picture_url="https://example.com/1"^^tt:picture, link="https://example.com/2"^^tt:url }
+]];`],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute ; ` +
+     `now => @com.thecatapi.get => notify ` +
+     `#[ results = [ { param:image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , param:picture_url = PICTURE_0 , param:link = URL_1 } ] ] ; ` +
+     `now => @com.twitter.post_picture param:picture_url:Entity(tt:picture) = PICTURE_0 ;`,
+    `now post it on twitter`, { 'GENERIC_ENTITY_com.thecatapi:image_id_0': { value: '1234', display: null }, PICTURE_0: 'https://example.com/1', URL_1: 'https://example.com/2' },
+    `$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => @com.thecatapi.get() => notify
+#[results=[
+  { image_id="1234"^^com.thecatapi:image_id, picture_url="https://example.com/1"^^tt:picture, link="https://example.com/2"^^tt:url }
+]];
+now => @com.twitter.post_picture(picture_url="https://example.com/1"^^tt:picture);`],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute ; ` +
+     `now => @com.thecatapi.get => notify ` +
+     `#[ results = [ { param:image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , param:picture_url = PICTURE_0 , param:link = URL_1 } ] ] ; ` +
+     `now => @com.twitter.post_picture param:picture_url:Entity(tt:picture) = PICTURE_0 ` +
+     `#[ confirm = enum:confirmed ] ;`,
+    `confirm posting it on twitter`, { 'GENERIC_ENTITY_com.thecatapi:image_id_0': { value: '1234', display: null }, PICTURE_0: 'https://example.com/1', URL_1: 'https://example.com/2' },
+    `$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => @com.thecatapi.get() => notify
+#[results=[
+  { image_id="1234"^^com.thecatapi:image_id, picture_url="https://example.com/1"^^tt:picture, link="https://example.com/2"^^tt:url }
+]];
+now => @com.twitter.post_picture(picture_url="https://example.com/1"^^tt:picture)
+#[confirm=enum(confirmed)];`],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute ; ` +
+     `now => @com.thecatapi.get => notify ` +
+     `#[ results = [ { param:image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , param:picture_url = PICTURE_0 , param:link = URL_0 } ] ] ; ` +
+     `now => @com.twitter.post_picture param:picture_url:Entity(tt:picture) = PICTURE_0 ` +
+     `#[ results = [ { param:tweet_id = GENERIC_ENTITY_com.twitter:tweet_id_0 , param:link = URL_1 } ] ] ;`,
+    `here is your twitter picture`, {
+        'GENERIC_ENTITY_com.thecatapi:image_id_0': { value: '1234', display: null },
+        PICTURE_0: 'https://example.com/1',
+        URL_0: 'https://example.com/2',
+        'GENERIC_ENTITY_com.twitter:tweet_id_0': { value: '1111', display: null },
+        URL_1: 'https://example.com/3'
+    },
+    `$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => @com.thecatapi.get() => notify
+#[results=[
+  { image_id="1234"^^com.thecatapi:image_id, picture_url="https://example.com/1"^^tt:picture, link="https://example.com/2"^^tt:url }
+]];
+now => @com.twitter.post_picture(picture_url="https://example.com/1"^^tt:picture)
+#[results=[
+  { tweet_id="1111"^^com.twitter:tweet_id, link="https://example.com/3"^^tt:url }
+]];`],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute ; ` +
+     `now => @com.thecatapi.get => notify ` +
+     `#[ results = [ { param:image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , param:picture_url = PICTURE_0 , param:link = URL_0 } ] ] ; ` +
+     `now => @com.twitter.post_picture param:picture_url:Entity(tt:picture) = PICTURE_0 ` +
+     `#[ results = [ ] ] #[ error = QUOTED_STRING_0 ] ;`,
+    `sorry , that did not work : QUOTED_STRING_0`, {
+        'GENERIC_ENTITY_com.thecatapi:image_id_0': { value: '1234', display: null },
+        PICTURE_0: 'https://example.com/1',
+        URL_0: 'https://example.com/2',
+        'GENERIC_ENTITY_com.twitter:tweet_id_0': { value: '1111', display: null },
+        URL_1: 'https://example.com/3',
+        QUOTED_STRING_0: 'something bad happened'
+    },
+    `$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => @com.thecatapi.get() => notify
+#[results=[
+  { image_id="1234"^^com.thecatapi:image_id, picture_url="https://example.com/1"^^tt:picture, link="https://example.com/2"^^tt:url }
+]];
+now => @com.twitter.post_picture(picture_url="https://example.com/1"^^tt:picture)
+#[results=[
+]]
+#[error="something bad happened"];`],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute ; ` +
+     `now => @com.thecatapi.get => notify ` +
+     `#[ results = [ { param:image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , param:picture_url = PICTURE_0 , param:link = URL_0 } ] ] ` +
+     `#[ count = NUMBER_0 ] ;`,
+    `i found NUMBER_0 cat pictures , here is one`, { 'GENERIC_ENTITY_com.thecatapi:image_id_0': { value: '1234', display: null }, PICTURE_0: 'https://example.com/1', URL_0: 'https://example.com/2', NUMBER_0: 55 },
+    `$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => @com.thecatapi.get() => notify
+#[results=[
+  { image_id="1234"^^com.thecatapi:image_id, picture_url="https://example.com/1"^^tt:picture, link="https://example.com/2"^^tt:url }
+]]
+#[count=55];`],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute ; ` +
+     `now => @com.thecatapi.get => notify ` +
+     `#[ results = [ { param:image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , param:picture_url = PICTURE_0 , param:link = URL_0 } ] ] ` +
+     `#[ count = NUMBER_0 ] ` +
+     `#[ more = true ] ;`,
+    `i found more than NUMBER_0 cat pictures , here is one`, { 'GENERIC_ENTITY_com.thecatapi:image_id_0': { value: '1234', display: null }, PICTURE_0: 'https://example.com/1', URL_0: 'https://example.com/2', NUMBER_0: 55 },
+    `$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => @com.thecatapi.get() => notify
+#[results=[
+  { image_id="1234"^^com.thecatapi:image_id, picture_url="https://example.com/1"^^tt:picture, link="https://example.com/2"^^tt:url }
+]]
+#[count=55]
+#[more=true];`],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.sys_search_question param:serveCuisine ; ` +
+     `now => @org.schema.restaurant => notify ;`,
+     'what kind of cuisine are you looking for ?', {},
+     `$dialogue @org.thingpedia.dialogue.transaction.sys_search_question(serveCuisine);
+now => @org.schema.restaurant() => notify;`],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.sys_search_question param:price , param:serveCuisine ; ` +
+     `now => @org.schema.restaurant => notify ;`,
+     'what kind of cuisine and price are you looking for ?', {},
+     `$dialogue @org.thingpedia.dialogue.transaction.sys_search_question(price, serveCuisine);
+now => @org.schema.restaurant() => notify;`],
+
     [`bookkeeping answer @com.google.contacts.get_contacts`,
     `google contacts`, {},
     `bookkeeping(answer("com.google.contacts:get_contacts"^^tt:function));`],

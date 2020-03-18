@@ -213,8 +213,8 @@ var TEST_CASES = [
     ['query: Invocation(Device(com.washingtonpost, , ), get_article, InputParam(section, Enum(world)), )'],
     ['Device(com.washingtonpost, , ) com.washingtonpost:get_article',
      'InputParam(section, Enum(world)) com.washingtonpost:get_article',
-     'Atom(title, in_array~, Array(String(lol),String(bar))) com.washingtonpost:get_article',
-     ],
+     'Atom(title, in_array~, Array(String(lol),String(bar))) com.washingtonpost:get_article'
+    ],
     ['Selector(@com.washingtonpost)',
      'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle)) in_param.section What section do you want to read?',
      'FilterSlot(title in_array~ : Array(String)) filter.in_array~.title Please tell me the value of the filter on the title.',
@@ -236,8 +236,7 @@ var TEST_CASES = [
     ['query: Invocation(Device(com.washingtonpost, , ), get_article, InputParam(section, Enum(world)), )'],
     ['Device(com.washingtonpost, , ) com.washingtonpost:get_article',
      'InputParam(section, Enum(world)) com.washingtonpost:get_article',
-     'Atom(title, in_array~, Array(String(lol),String(bar))) com.washingtonpost:get_article'
-     ],
+     'Atom(title, in_array~, Array(String(lol),String(bar))) com.washingtonpost:get_article'],
     ['Selector(@com.washingtonpost)',
      'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle)) in_param.section What section do you want to read?',
      'FilterSlot(title in_array~ : Array(String)) filter.in_array~.title Please tell me the value of the filter on the title.',
@@ -400,6 +399,25 @@ var TEST_CASES = [
     'Selector(@light-bulb)',
     'InputParamSlot(power : Enum(on,off)) in_param.power Do you want to turn it on or off?',
     ]
+    ],
+
+    [`
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => [food] of ((@uk.ac.cam.multiwoz.Restaurant.Restaurant()), true) => notify
+#[results=[
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::0:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::9:" },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::1:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::25:" }
+]]
+#[count=50]
+#[more=true];
+    `,
+    ['query: Invocation(Device(uk.ac.cam.multiwoz.Restaurant, , ), Restaurant, , )'],
+    ['Device(uk.ac.cam.multiwoz.Restaurant, , ) uk.ac.cam.multiwoz.Restaurant:Restaurant'],
+    ['Selector(@uk.ac.cam.multiwoz.Restaurant)',
+     'ResultSlot(id : Entity(uk.ac.cam.multiwoz.Restaurant:Restaurant)) result.id Please tell me the id.',
+     'ResultSlot(food : String) result.food what would you like to eat,what are you in the mood for',
+     'ResultSlot(id : Entity(uk.ac.cam.multiwoz.Restaurant:Restaurant)) result.id Please tell me the id.',
+     'ResultSlot(food : String) result.food what would you like to eat,what are you in the mood for']
     ],
 
     [`now => compute distance(geo, $context.location.current_location) of @com.yelp.restaurant() => notify;`,

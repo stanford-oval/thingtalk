@@ -1863,6 +1863,91 @@ now => @org.thingpedia.icalendar.list_events(), status==enum(off) => notify;
 
 ====
 
+// dialogue states
+
+$dialogue @org.thingpedia.dialogue.transaction.greet;
+
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => @com.thecatapi.get() => notify;
+
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => @com.thecatapi.get() => notify
+#[results=[
+  { image_id = "..."^^com.thecatapi:image_id, url = "..."^^tt:url, link = "..."^^tt:url }
+]];
+
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => @com.thecatapi.get() => notify
+#[results=[
+  { image_id = "..."^^com.thecatapi:image_id, url = "..."^^tt:url, link = "..."^^tt:url }
+]];
+now => @com.twitter.post();
+
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => @com.thecatapi.get() => notify
+#[results=[
+  { image_id = "..."^^com.thecatapi:image_id, url = "..."^^tt:url, link = "..."^^tt:url }
+]];
+now => @com.twitter.post()
+#[confirm=true];
+
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => @com.thecatapi.get() => notify
+#[results=[
+  { image_id = "..."^^com.thecatapi:image_id, url = "..."^^tt:url, link = "..."^^tt:url }
+]];
+now => @com.twitter.post()
+#[results=[
+  { tweet_id = "..."^^com.twitter:tweet_id, link = "..."^^tt:url }
+]];
+
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => @com.thecatapi.get() => notify
+#[results=[
+  { image_id = "..."^^com.thecatapi:image_id, url = "..."^^tt:url, link = "..."^^tt:url }
+]];
+now => @com.twitter.post()
+#[results=[]]
+#[error="something bad happened"];
+
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => @com.thecatapi.get() => notify
+#[results=[
+  { image_id = "..."^^com.thecatapi:image_id, url = "..."^^tt:url, link = "..."^^tt:url }
+]]
+#[count=3];
+
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => @com.thecatapi.get() => notify
+#[results=[
+  { image_id = "..."^^com.thecatapi:image_id, url = "..."^^tt:url, link = "..."^^tt:url }
+]]
+#[count=3]
+#[more=true];
+
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.sys_search_question(serveCuisine);
+now => @org.schema.restaurant() => notify;
+
+====
+
 now => @org.schema.full.Restaurant(), id =~ "starbucks" => notify;
 now => @org.schema.full.Restaurant(), "starbucks" ~= id => notify;
 now => @org.schema.full.Restaurant(), in_array~(id, ["starbucks", "mcdonalds"]) => notify;
