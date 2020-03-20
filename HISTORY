@@ -1,3 +1,18 @@
+1.10.0-alpha.5
+==============
+
+* A new language of dialogue states has been introduces. This allows to
+  express the state of a dialogue as a sequence of ThingTalk statements that
+  have been executed, and statements that should be executed next [#192].
+* Thingpedia queries now receive "hints" including the projection and filter
+  that will be applied after the query. These allows to push those operations
+  to the remote server, and avoid retrieving large amounts of data, or not
+  retrieiving the correct data due to API limits [#189].
+* Time values now support the "+" and "-" operations with Measure(ms) values [#192].
+* The refactoring of Ast classes has been completed. All Ast nodes are now
+  true ES6 classes, and must be constructed with `new` [#191, #193].
+* Misc bug fixes [#192].
+
 1.10.0-alpha.4
 ==============
 
