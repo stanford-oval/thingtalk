@@ -45,11 +45,6 @@ const TEST_CASES = [
     ],
 
     [
-        `now => result(@com.thecatapi.get[-1]) => notify;`,
-        `now => result(@com.thecatapi.get) => notify;`
-    ],
-
-    [
         `now => [text] of [text, author] of @com.twitter.home_timeline() => notify;`,
         `now => [text] of (@com.twitter.home_timeline()) => notify;`,
     ],

@@ -410,22 +410,6 @@ const TEST_CASES = [
 
     'now => [description, title] of (@com.bing.web_search()) => notify;'],
 
-    [`now => result ( @com.thecatapi.get ) => notify`,
-    `show me the same cat again`, {},
-    `now => result(@com.thecatapi.get) => notify;`],
-
-    [`now => result ( @com.thecatapi.get [ - 2 ] ) => notify`,
-    `show me the second to last cat again`, { },
-    `now => result(@com.thecatapi.get[-2]) => notify;`],
-
-    [`now => result ( @com.thecatapi.get [ 1 ] ) => notify`,
-    `show me the first cat again`, {},
-    `now => result(@com.thecatapi.get[1]) => notify;`],
-
-    [`now => result ( @com.thecatapi.get [ 2 ] ) => notify`,
-    `show me the second cat again`, {},
-    `now => result(@com.thecatapi.get[2]) => notify;`],
-
     [`now => @com.spotify.get_currently_playing => @com.spotify.add_songs_to_playlist param:songs:Array(String) = [ param:song:String ]`,
     `add the currently playing song to my playlist`, {},
     `now => @com.spotify.get_currently_playing() => @com.spotify.add_songs_to_playlist(songs=[song]);`],

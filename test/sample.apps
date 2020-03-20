@@ -1452,37 +1452,6 @@ class @foo {
 
 ====
 
-// result references
-
-// latest
-now => result(@com.thecatapi.get) => notify;
-now => result(@com.thecatapi.get[-1]) => notify;
-
-// first ever
-now => result(@com.thecatapi.get[1]) => notify;
-
-// second latest
-now => result(@com.thecatapi.get[-2]) => notify;
-
-// w/ param passing
-now => result(@com.thecatapi.get) => @com.twitter.post_picture(picture_url=picture_url);
-
-====
-
-// ** typecheck: expect TypeError **
-// invalid index
-
-now => result(@com.thecatapi.get['foo']) => notify;
-
-====
-
-// ** typecheck: expect TypeError **
-// not a query
-
-now => result(@com.twitter.post) => notify;
-
-====
-
 now => @com.twitter.post(status=__const_QUOTED__STRING_0);
 // note the escaping: tt:iso_lang_code becomes tt_3aiso__lang__code
 // because ':' is escaped to '_3a' and '_' is escaped to __

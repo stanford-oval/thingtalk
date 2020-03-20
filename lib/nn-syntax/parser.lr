@@ -255,13 +255,6 @@ table = {
         return new Ast.Table.Filter(null, table, filter, table.schema);
     };
 
-    'result' '(' fn:FUNCTION ')' => {
-        return new Ast.Table.ResultRef(null, fn.value.kind, fn.value.channel, new Ast.Value.Number(-1), null);
-    };
-    'result' '(' fn:FUNCTION '[' index:value ']' ')' => {
-        return new Ast.Table.ResultRef(null, fn.value.kind, fn.value.channel, index, null);
-    };
-
     'aggregate' op:aggr_op pname:PARAM_NAME 'of' '(' table ')' => new Ast.Table.Aggregation(null, table, pname.value, op, null, null);
     'aggregate' 'count' 'of' '(' table ')'                    => new Ast.Table.Aggregation(null, table, '*', 'count', null, null);
 

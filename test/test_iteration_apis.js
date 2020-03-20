@@ -306,12 +306,6 @@ var TEST_CASES = [
     ['InputParamSlot(p_query : Any) in_param.p_query Please tell me the query.']
     ],
 
-    [`now => result(@com.thecatapi.get) => notify;`,
-    ['query: ResultRef(com.thecatapi, get, Number(-1), )'],
-     [],
-    ['FieldSlot(index : Number) result_ref.index Which result do you want?']
-    ],
-
     [`executor = $? : now => @com.twitter.post();`,
 
     [`action: Invocation(Device(com.twitter, , ), post, InputParam(status, Undefined(true)), )`],
