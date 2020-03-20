@@ -267,11 +267,6 @@ table = {
 
     'compute' expr:non_ambiguous_value 'of' '(' table ')'       => new Ast.Table.Compute(null, table, expr, null, null);
 
-    'window' '(' base:value ',' delta:value ')' 'of' '(' stream ')'        => new Ast.Table.Window(null, base, delta, stream, null);
-    'timeseries' '(' base:value ',' delta:value ')' 'of' '(' stream ')' => new Ast.Table.TimeSeries(null, base, delta, stream, null);
-    'sequence' '(' base:value ',' delta:value ')' 'of' '(' table ')'       => new Ast.Table.Sequence(null, base, delta, table, null);
-    'history' '(' base:value ',' delta:value ')' 'of' '(' table ')'     => new Ast.Table.History(null, base, delta, table, null);
-
     table_join;
 }
 
