@@ -100,14 +100,6 @@ const TEST_CASES = [
     `notify me if the temperature is above NUMBER_0 degrees`, {'NUMBER_0': 70},
     `monitor ((@thermostat.get_temperature()), value >= 70F) => notify;`],
 
-    [`now => timeseries ( now , 1 unit:week ) of ( monitor ( @thermostat.get_temperature ) ) => notify`,
-    `show me the temperature on the thermostat in the last week`, {},
-    `now => timeseries (new Date(), 1week) of (monitor (@thermostat.get_temperature())) => notify;`],
-
-    [`now => timeseries ( now , 2 unit:week ) of ( monitor ( @thermostat.get_temperature ) ) => notify`,
-    `show me the temperature on the thermostat in the last two weeks`, {NUMBER_0: 2},
-    `now => timeseries (new Date(), 2week) of (monitor (@thermostat.get_temperature())) => notify;`],
-
     [`now => ( @com.bing.image_search ) filter param:width:Number >= NUMBER_0 or param:height:Number >= NUMBER_1 => notify`,
     `search images wider than NUMBER_0 pixels or taller than NUMBER_1 pixels`, {NUMBER_0: 100, NUMBER_1:200},
     `now => (@com.bing.image_search()), (width >= 100 || height >= 200) => notify;`],
@@ -409,22 +401,6 @@ const TEST_CASES = [
     'get title and description from bing', {},
 
     'now => [description, title] of (@com.bing.web_search()) => notify;'],
-
-    [`now => result ( @com.thecatapi.get ) => notify`,
-    `show me the same cat again`, {},
-    `now => result(@com.thecatapi.get) => notify;`],
-
-    [`now => result ( @com.thecatapi.get [ - 2 ] ) => notify`,
-    `show me the second to last cat again`, { },
-    `now => result(@com.thecatapi.get[-2]) => notify;`],
-
-    [`now => result ( @com.thecatapi.get [ 1 ] ) => notify`,
-    `show me the first cat again`, {},
-    `now => result(@com.thecatapi.get[1]) => notify;`],
-
-    [`now => result ( @com.thecatapi.get [ 2 ] ) => notify`,
-    `show me the second cat again`, {},
-    `now => result(@com.thecatapi.get[2]) => notify;`],
 
     [`now => @com.spotify.get_currently_playing => @com.spotify.add_songs_to_playlist param:songs:Array(String) = [ param:song:String ]`,
     `add the currently playing song to my playlist`, {},

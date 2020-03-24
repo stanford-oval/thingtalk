@@ -473,16 +473,6 @@ edge (monitor @thermostat.get_temperature()) on value >= 70F => notify;
 
 ====
 
-// Window
-{
-let table A := window (1, 3) of timer(base=makeDate(), interval=10min);
-let table B := timeseries (makeDate(), -1week) of timer(base=makeDate(), interval=10min);
-let table C := sequence (1, 3) of Q1;
-let table D := history (start_of(week), -1week) of Q1;
-}
-
-====
-
 // Computation
 {
 let table x := compute distance(location, makeLocation(1,2)) of @org.thingpedia.builtin.thingengine.builtin.get_gps();
@@ -1452,37 +1442,6 @@ class @foo {
 
 ====
 
-// result references
-
-// latest
-now => result(@com.thecatapi.get) => notify;
-now => result(@com.thecatapi.get[-1]) => notify;
-
-// first ever
-now => result(@com.thecatapi.get[1]) => notify;
-
-// second latest
-now => result(@com.thecatapi.get[-2]) => notify;
-
-// w/ param passing
-now => result(@com.thecatapi.get) => @com.twitter.post_picture(picture_url=picture_url);
-
-====
-
-// ** typecheck: expect TypeError **
-// invalid index
-
-now => result(@com.thecatapi.get['foo']) => notify;
-
-====
-
-// ** typecheck: expect TypeError **
-// not a query
-
-now => result(@com.twitter.post) => notify;
-
-====
-
 now => @com.twitter.post(status=__const_QUOTED__STRING_0);
 // note the escaping: tt:iso_lang_code becomes tt_3aiso__lang__code
 // because ':' is escaped to '_3a' and '_' is escaped to __
@@ -1815,19 +1774,6 @@ class @org.schema {
 }
 
 now => [foo] of compute aggregateRating.reviews filter { author == "Bob" } as foo of @org.schema.restaurants() => notify;
-
-
-====
-class @foo.bar {
-  compute isTrue () : Boolean := true;
-  compute greaterThanZero (in req x:Number) : Boolean := x >= 0;
-  compute itself (in req x:Number) : Number := x;
-
-  list query q(out num: Number);
-}
-
-//now => @foo.bar.q(), @foo.bar.itself(x=num) >= 0 => notify;
-now => @foo.bar.q(), @for.bar.greaterThanZero(x=num) => notify;
 
 ====
 

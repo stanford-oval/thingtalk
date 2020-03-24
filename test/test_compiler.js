@@ -5301,131 +5301,6 @@ const TEST_CASES = [
   }`]],
 
     //63
-    [`now => result(@com.thecatapi.get) => notify;`,
-    [`"use strict";
-  let _t_0;
-  let _t_1;
-  let _t_2;
-  let _t_3;
-  let _t_4;
-  let _t_5;
-  let _t_6;
-  let _t_7;
-  let _t_8;
-  let _t_9;
-  try {
-    _t_0 = -1;
-    _t_1 = await __env.readResult("com.thecatapi:get", _t_0);
-    _t_2 = _t_1[Symbol.iterator]();
-    {
-      let _iter_tmp = await _t_2.next();
-      while (!_iter_tmp.done) {
-        _t_3 = _iter_tmp.value;
-        _t_4 = _t_3[0];
-        _t_5 = _t_3[1];
-        _t_6 = _t_5.__response;
-        _t_7 = _t_5.image_id;
-        _t_8 = _t_5.picture_url;
-        _t_9 = _t_5.link;
-        try {
-          await __env.output(String(_t_4), _t_5);
-        } catch(_exc_) {
-          __env.reportError("Failed to invoke action", _exc_);
-        }
-        _iter_tmp = await _t_2.next();
-      }
-    }
-  } catch(_exc_) {
-    __env.reportError("Failed to invoke readResult", _exc_);
-  }`]],
-
-    //64
-    [`now => result(@com.thecatapi.get[-2]) => notify;`,
-    [`"use strict";
-  let _t_0;
-  let _t_1;
-  let _t_2;
-  let _t_3;
-  let _t_4;
-  let _t_5;
-  let _t_6;
-  let _t_7;
-  let _t_8;
-  let _t_9;
-  try {
-    _t_0 = -2;
-    _t_1 = await __env.readResult("com.thecatapi:get", _t_0);
-    _t_2 = _t_1[Symbol.iterator]();
-    {
-      let _iter_tmp = await _t_2.next();
-      while (!_iter_tmp.done) {
-        _t_3 = _iter_tmp.value;
-        _t_4 = _t_3[0];
-        _t_5 = _t_3[1];
-        _t_6 = _t_5.__response;
-        _t_7 = _t_5.image_id;
-        _t_8 = _t_5.picture_url;
-        _t_9 = _t_5.link;
-        try {
-          await __env.output(String(_t_4), _t_5);
-        } catch(_exc_) {
-          __env.reportError("Failed to invoke action", _exc_);
-        }
-        _iter_tmp = await _t_2.next();
-      }
-    }
-  } catch(_exc_) {
-    __env.reportError("Failed to invoke readResult", _exc_);
-  }`]],
-
-    //65
-    [`now => result(@com.thecatapi.get) => @com.twitter.post_picture(picture_url=picture_url, caption="cat");`,
-    [`"use strict";
-  let _t_0;
-  let _t_1;
-  let _t_2;
-  let _t_3;
-  let _t_4;
-  let _t_5;
-  let _t_6;
-  let _t_7;
-  let _t_8;
-  let _t_9;
-  let _t_10;
-  let _t_11;
-  let _t_12;
-  try {
-    _t_0 = -1;
-    _t_1 = await __env.readResult("com.thecatapi:get", _t_0);
-    _t_2 = _t_1[Symbol.iterator]();
-    {
-      let _iter_tmp = await _t_2.next();
-      while (!_iter_tmp.done) {
-        _t_3 = _iter_tmp.value;
-        _t_4 = _t_3[0];
-        _t_5 = _t_3[1];
-        _t_6 = _t_5.__response;
-        _t_7 = _t_5.image_id;
-        _t_8 = _t_5.picture_url;
-        _t_9 = _t_5.link;
-        try {
-          _t_10 = {};
-          _t_11 = String (_t_8);
-          _t_10.picture_url = _t_11;
-          _t_12 = "cat";
-          _t_10.caption = _t_12;
-          await __env.invokeAction("com.twitter", { }, "post_picture", _t_10);
-        } catch(_exc_) {
-          __env.reportError("Failed to invoke action", _exc_);
-        }
-        _iter_tmp = await _t_2.next();
-      }
-    }
-  } catch(_exc_) {
-    __env.reportError("Failed to invoke readResult", _exc_);
-  }`]],
-
-    //66
     [`now => @com.spotify.get_currently_playing() => @com.spotify.add_songs_to_playlist(songs=[song], playlist="my favorite");`,
   [`"use strict";
   let _t_0;
@@ -5469,7 +5344,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke query", _exc_);
   }`]],
 
-    //67 Database query
+    //64 Database query
     [`now => [id] of @org.wikidata.person(), P735 ~= 'Bob' => notify;`,
     [`"use strict";
   let _t_0;
@@ -5504,7 +5379,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke query", _exc_);
   }`]],
 
-    //68 Auto apply projections to database query
+    //65 Auto apply projections to database query
     [`now => @org.wikidata.person(), P735 ~= 'Bob' => notify;`,
     [`"use strict";
   let _t_0;
@@ -5673,7 +5548,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke query", _exc_);
   }`]],
 
-    //69 Auto apply projections to database query
+    //66 Auto apply projections to database query
     [`now => @org.wikidata.person(), P735 ~= 'Bob' => @com.twitter.post(status=P1477);`,
     [`"use strict";
   let _t_0;
@@ -5845,7 +5720,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke query", _exc_);
   }`]],
 
-    //70
+    //67
     [`timer(base=makeDate(), interval=1h, frequency=3) => notify;`,
     [`"use strict";
   let _t_0;
@@ -5874,7 +5749,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke timer", _exc_);
   }`]],
 
-    //71 compound types & function inheritance
+    //68 compound types & function inheritance
     [`now => @org.thingpedia.test.compounds_and_inheritance.foo() => notify;`,
     [`"use strict";
   let _t_0;
@@ -5933,7 +5808,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke query", _exc_);
   }`]],
 
-    //72 parameter passing with compound types
+    //69 parameter passing with compound types
     [`now => @org.thingpedia.test.compounds_and_inheritance.foo() => @com.twitter.post(status=compound.nestedCompound.p1);`,
     [`"use strict";
   let _t_0;
@@ -5995,7 +5870,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke query", _exc_);
   }`]],
 
-    // 73 monitor of that stuff
+    // 70 monitor of that stuff
     [`monitor @org.thingpedia.test.compounds_and_inheritance.foo() => notify;`,
     [`"use strict";
   let _t_0;
@@ -6064,7 +5939,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke trigger", _exc_);
   }`]],
 
-    // 74 filter() compute operator
+    //71 filter() compute operator
     [`now => compute (review filter { reviewRating.ratingValue >= 0 }) of @org.schema.restaurant() => notify;`,
     [`"use strict";
   let _t_0;
@@ -6173,7 +6048,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke query", _exc_);
   }`]],
 
-    // 75 aggregate filter
+    // 72 aggregate filter
     [`now => @org.schema.restaurant(), count(review filter { reviewRating.ratingValue >= 0 }) >= 0 => notify;`,
     [`"use strict";
   let _t_0;
@@ -6291,7 +6166,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke query", _exc_);
   }`]],
 
-    // 76 distance operator
+    // 73 distance operator
     [`now => compute distance(geo, makeLocation(90,0,"north pole")) of @org.schema.place() => notify;`,
     [`"use strict";
   let _t_0;
@@ -6353,7 +6228,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke query", _exc_);
   }`]],
 
-  //77 Test screen selection as a context
+  // 74 Test screen selection as a context
     [`now => @com.twitter.post(status=$context.selection: String);`,
     [`"use strict";
   let _t_0;
@@ -6367,7 +6242,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke action", _exc_);
   }`]],
 
-    //78 Test device selector
+    // 75 Test device selector
     [`now => @light-bulb(name="bedroom").set_power(power=enum(on));`,
     [`"use strict";
   let _t_0;
@@ -6381,7 +6256,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke action", _exc_);
   }`]],
 
-    //79 Test device selector (with explicit all)
+    // 76 Test device selector (with explicit all)
     [`now => @light-bulb(name="bedroom", all=true).set_power(power=enum(on));`,
     [`"use strict";
   let _t_0;
@@ -6395,7 +6270,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke action", _exc_);
   }`]],
 
-    // 80 computation (+)
+    // 77 computation (+)
     [`now => compute ("Author: " + author) of @com.twitter.home_timeline() => notify;`,
     [`"use strict";
   let _t_0;
@@ -6445,7 +6320,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke query", _exc_);
   }`]],
 
-    // 81 computation (-)
+    // 78 computation (-)
     [`now => compute (file_size - 1GiB) of @com.google.drive.list_drive_files() => notify;`,
     [`"use strict";
   let _t_0;
@@ -6505,7 +6380,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke query", _exc_);
   }`]],
 
-    // 82 date
+    // 79 date
     [`now => @org.thingpedia.weather.sunrise(location=new Location(90, 0, "north pole"), date=new Date("2020-01-04T18:08:20.451Z")) => notify;`,
     [`"use strict";
   let _t_0;
@@ -6548,7 +6423,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke query", _exc_);
   }`]],
 
-    // 83 computed date (+)
+    // 80 computed date (+)
     [`now => @org.thingpedia.weather.sunrise(location=new Location(90, 0, "north pole"), date=new Date("2020-01-04T18:08:20.451Z") + 7min) => notify;`,
     [`"use strict";
   let _t_0;
@@ -6595,7 +6470,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke query", _exc_);
   }`]],
 
-    // 84 computed date (-)
+    // 81 computed date (-)
     [`now => @org.thingpedia.weather.sunrise(location=new Location(90, 0, "north pole"), date=new Date("2020-01-04T18:08:20.451Z") - 7min) => notify;`,
     [`"use strict";
   let _t_0;
@@ -6642,7 +6517,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke query", _exc_);
   }`]],
 
-    // 85 compilation bug
+    // 82 compilation bug
     [`now => (sort distance asc of (compute (distance(geo, new Location(13, 13))) of (@com.yelp.restaurant())))[1] => notify;`,
 [`"use strict";
   let _t_0;
@@ -6749,7 +6624,7 @@ const TEST_CASES = [
   }
 `]],
 
-    // 86 compiler bug
+    // 83 compiler bug
     [`now => aggregate count of (@com.yelp.restaurant()) => notify;`,
 [`"use strict";
   let _t_0;
@@ -6812,7 +6687,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke action", _exc_);
   }`]],
 
-    // 87 projection
+    // 84 projection
     [`now => [rating] of (@com.yelp.restaurant()) => notify;`,
     [`"use strict";
   let _t_0;
@@ -6868,7 +6743,7 @@ const TEST_CASES = [
   }
 `]],
 
-    // 88 dontcare
+    // 85 dontcare
     [`now => (@com.yelp.restaurant()), true(cuisines) => notify;`,
     [`"use strict";
   let _t_0;
@@ -6933,6 +6808,7 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke query", _exc_);
   }`]],
 
+    // 86
   [`now => [count] of (compute (count(cuisines)) of (@com.yelp.restaurant())) => notify;`,
   [`"use strict";
   let _t_0;
