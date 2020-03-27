@@ -1,3 +1,11 @@
+1.10.0-beta.1
+=============
+
+* A number of incomplete language features have been removed from ThingTalk. These
+  features had buggy, incomplete or entirely missing implementation, and we think
+  it is unlikely they had any use in the wild [#194].
+* Misc bug fixes [#195].
+
 1.10.0-alpha.5
 ==============
 
