@@ -132,6 +132,10 @@ now => [distance] of (compute (distance(geo, $context.location.current_location)
     [`monitor @com.twitter.home_timeline(), text =~ "foo" || (text =~"bar" && !(text =~ "lol")) => notify;`,
      `monitor ((@com.twitter.home_timeline()), ((text =~ "bar" && !(text =~ "lol")) || text =~ "foo")) => notify;`
     ],
+
+    [`now => [aggregateRating.ratingValue] of ((sort distance asc of (compute (distance(geo, new Location("foo"))) of ((@org.schema.restaurant()), name =~ $context.selection : String)))[1]) => notify;`,
+    `now => [aggregateRating.ratingValue] of ((sort distance asc of (compute (distance(geo, new Location("foo"))) of ((@org.schema.restaurant()), name =~ $context.selection : String)))[1]) => notify;`
+    ],
 ];
 
 
