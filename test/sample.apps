@@ -1910,3 +1910,10 @@ now => @org.schema.full.Restaurant(), id == "starbucks" => notify;
 
 // explicit dontcare
 now => @org.schema.full.FoodEstablishment(), true(servesCuisine) => notify;
+
+====
+
+// regression test for bug in projection with function inheritance
+// ** typecheck: expect TypeError **
+// the projection is inside and masks the parameter, including inherited ones
+now => compute distance(geo, $context.location.current_location) of ([address] of @org.schema.place()) => notify;
