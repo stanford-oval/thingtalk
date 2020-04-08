@@ -1903,3 +1903,16 @@ now => @org.schema.full.FoodEstablishment(), true(servesCuisine) => notify;
 // ** typecheck: expect TypeError **
 // the projection is inside and masks the parameter, including inherited ones
 now => compute distance(geo, $context.location.current_location) of ([address] of @org.schema.place()) => notify;
+
+====
+
+// procedures with actions and returned values
+
+let procedure cat_and_twitter := {
+  let result cat := @com.thecatapi.get();
+  now => cat => @com.twitter.post_picture(picture_url=picture_url, caption="cat");
+  now => cat => notify;
+};
+let result cat2 := cat_and_twitter();
+now => cat2 => notify;
+now => cat2 => @com.facebook.post_picture(picture_url=picture_url, caption="cat");
