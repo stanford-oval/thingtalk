@@ -1134,7 +1134,6 @@ now => sort sender_address asc of @com.gmail.inbox() => notify;
 
 let procedure p1 := {
   now => @com.thecatapi.get() => notify;
-  now => @uk.co.thedogapi.get() => notify;
 };
 let program p2 := {
   attimer(time=makeTime(7, 0)) => @com.thecatapi.get() => notify;
@@ -1205,9 +1204,8 @@ let query q := @com.bing.web_search() #_[canonical="bing search"] #[foo=43];
 let action a := \(p_value : String) -> @com.twitter.post(status=p_value) #_[canonical="roast on twitter"];
 
 let procedure p1 := {
-  now => @com.thecatapi.get() => notify;
   now => @uk.co.thedogapi.get() => notify;
-} #_[canonical="cats and dogs"];
+} #_[canonical="cats"];
 
 ====
 
