@@ -1666,7 +1666,7 @@ const TEST_CASES = [
   let _t_46;
   let _t_47;
   _t_0 = await __env.readState(0);
-  _t_1 = async function(emit) {
+  _t_1 = async function(__emit) {
     _t_2 = await __env.readState(1);
     try {
       _t_3 = {};
@@ -1689,7 +1689,7 @@ const TEST_CASES = [
           await __env.writeState(1, _t_16);
           _t_2 = _t_16;
           if (_t_15) {
-            emit(_t_6, _t_7);
+            __emit(_t_6, _t_7);
           } else {
 
           }
@@ -1700,7 +1700,7 @@ const TEST_CASES = [
       __env.reportError("Failed to invoke trigger", _exc_);
     }
   }
-  _t_17 = async function(emit) {
+  _t_17 = async function(__emit) {
     _t_18 = await __env.readState(2);
     try {
       _t_19 = {};
@@ -1722,7 +1722,7 @@ const TEST_CASES = [
           await __env.writeState(2, _t_30);
           _t_18 = _t_30;
           if (_t_29) {
-            emit(_t_23, _t_24);
+            __emit(_t_23, _t_24);
           } else {
 
           }
@@ -1822,7 +1822,7 @@ const TEST_CASES = [
   let _t_48;
   let _t_49;
   _t_0 = await __env.readState(0);
-  _t_1 = async function(emit) {
+  _t_1 = async function(__emit) {
     _t_2 = await __env.readState(1);
     try {
       _t_3 = {};
@@ -1845,7 +1845,7 @@ const TEST_CASES = [
           await __env.writeState(1, _t_16);
           _t_2 = _t_16;
           if (_t_15) {
-            emit(_t_6, _t_7);
+            __emit(_t_6, _t_7);
           } else {
 
           }
@@ -1856,7 +1856,7 @@ const TEST_CASES = [
       __env.reportError("Failed to invoke trigger", _exc_);
     }
   }
-  _t_17 = async function(emit) {
+  _t_17 = async function(__emit) {
     _t_18 = await __env.readState(2);
     try {
       _t_19 = {};
@@ -1878,7 +1878,7 @@ const TEST_CASES = [
           await __env.writeState(2, _t_30);
           _t_18 = _t_30;
           if (_t_29) {
-            emit(_t_23, _t_24);
+            __emit(_t_23, _t_24);
           } else {
 
           }
@@ -2088,7 +2088,7 @@ const TEST_CASES = [
   let _t_38;
   let _t_39;
   let _t_40;
-  _t_0 = async function(emit) {
+  _t_0 = async function(__emit) {
     try {
       _t_1 = {};
       _t_2 = await __env.invokeQuery("com.twitter", { }, "home_timeline", _t_1, { projection: ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"] });
@@ -2106,7 +2106,7 @@ const TEST_CASES = [
           _t_11 = _t_6.author;
           _t_12 = _t_6.in_reply_to;
           _t_13 = _t_6.tweet_id;
-          emit(_t_5, _t_6);
+          __emit(_t_5, _t_6);
           _iter_tmp = await _t_3.next();
         }
       }
@@ -2114,7 +2114,7 @@ const TEST_CASES = [
       __env.reportError("Failed to invoke query", _exc_);
     }
   }
-  _t_14 = async function(emit) {
+  _t_14 = async function(__emit) {
     try {
       _t_15 = {};
       _t_16 = "foo";
@@ -2131,7 +2131,7 @@ const TEST_CASES = [
           _t_23 = _t_21.title;
           _t_24 = _t_21.description;
           _t_25 = _t_21.link;
-          emit(_t_20, _t_21);
+          __emit(_t_20, _t_21);
           _iter_tmp = await _t_18.next();
         }
       }
@@ -2935,7 +2935,7 @@ const TEST_CASES = [
   let _t_55;
   let _t_56;
   let _t_57;
-  _t_0 = async function(emit) {
+  _t_0 = async function(__emit) {
     try {
       _t_1 = {};
       _t_2 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_1, { projection: ["order_by", "file_size", "file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "last_modified_by", "link"] });
@@ -2958,7 +2958,7 @@ const TEST_CASES = [
           _t_16 = _t_6.file_size;
           _t_17 = _t_6.last_modified_by;
           _t_18 = _t_6.link;
-          emit(_t_5, _t_6);
+          __emit(_t_5, _t_6);
           _iter_tmp = await _t_3.next();
         }
       }
@@ -2966,7 +2966,7 @@ const TEST_CASES = [
       __env.reportError("Failed to invoke query", _exc_);
     }
   }
-  _t_19 = async function(emit) {
+  _t_19 = async function(__emit) {
     _t_20 = -Infinity;
     try {
       _t_21 = {};
@@ -3001,7 +3001,7 @@ const TEST_CASES = [
     _t_39 = __builtin.aggregateOutputType(_t_40, _t_25);
     _t_41 = {};
     _t_41.file_size = _t_20;
-    emit(_t_39, _t_41);
+    __emit(_t_39, _t_41);
   }
   _t_42 = __builtin.tableCrossJoin(_t_0, _t_19);
   {
@@ -4308,7 +4308,7 @@ const TEST_CASES = [
         _t_8 = _t_6.title;
         _t_9 = _t_6.description;
         _t_10 = _t_6.link;
-        emit(_t_5, _t_6);
+        __emit(_t_5, _t_6);
         _iter_tmp = await _t_3.next();
       }
     }
@@ -4337,6 +4337,16 @@ const TEST_CASES = [
   let _t_11;
   let _t_12;
   let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
   try {
     _t_0 = __scope.q;
     _t_1 = "foo";
@@ -4354,7 +4364,18 @@ const TEST_CASES = [
         try {
           _t_10 = __scope.a;
           _t_11 = String (_t_9);
-          await _t_10(__env, _t_11);
+          _t_12 = await __builtin.invokeStreamVarRef(__env, _t_10, _t_11);
+          {
+            let _iter_tmp = await _t_12.next();
+            while (!_iter_tmp.done) {
+              _t_13 = _iter_tmp.value;
+              _t_14 = _t_13[0];
+              _t_15 = _t_13[1];
+              _t_16 = _t_15.__response;
+              await __env.output(String(_t_14), _t_15);
+              _iter_tmp = await _t_12.next();
+            }
+          }
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -4366,9 +4387,20 @@ const TEST_CASES = [
   }
   __env.clearGetCache();
   try {
-    _t_12 = __scope.a;
-    _t_13 = "no";
-    await _t_12(__env, _t_13);
+    _t_17 = __scope.a;
+    _t_18 = "no";
+    _t_19 = await __builtin.invokeStreamVarRef(__env, _t_17, _t_18);
+    {
+      let _iter_tmp = await _t_19.next();
+      while (!_iter_tmp.done) {
+        _t_20 = _iter_tmp.value;
+        _t_21 = _t_20[0];
+        _t_22 = _t_20[1];
+        _t_23 = _t_22.__response;
+        await __env.output(String(_t_21), _t_22);
+        _iter_tmp = await _t_19.next();
+      }
+    }
   } catch(_exc_) {
     __env.reportError("Failed to invoke action", _exc_);
   }`]],
@@ -4420,7 +4452,7 @@ const TEST_CASES = [
         await __env.writeState(0, _t_16);
         _t_0 = _t_16;
         if (_t_15) {
-          emit(_t_5, _t_6);
+          __emit(_t_5, _t_6);
         } else {
 
         }
@@ -4775,7 +4807,7 @@ const TEST_CASES = [
           _t_9 = _t_6.description;
           _t_10 = _t_6.link;
           try {
-            await __env.output(String(_t_5), _t_6);
+            __emit(_t_5, _t_6);
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
@@ -4817,33 +4849,115 @@ const TEST_CASES = [
   let _t_5;
   let _t_6;
   let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  let _t_25;
+  let _t_26;
+  let _t_27;
+  let _t_28;
+  let _t_29;
+  let _t_30;
+  let _t_31;
+  let _t_32;
+  let _t_33;
+  let _t_34;
+  let _t_35;
+  let _t_36;
   try {
     _t_0 = __scope.p1;
     _t_1 = "one";
-    await _t_0(__env, _t_1);
+    _t_2 = await __builtin.invokeStreamVarRef(__env, _t_0, _t_1);
+    {
+      let _iter_tmp = await _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.__response;
+        _t_7 = _t_5.title;
+        _t_8 = _t_5.description;
+        _t_9 = _t_5.link;
+        await __env.output(String(_t_4), _t_5);
+        _iter_tmp = await _t_2.next();
+      }
+    }
   } catch(_exc_) {
     __env.reportError("Failed to invoke action", _exc_);
   }
   __env.clearGetCache();
   try {
-    _t_2 = __scope.p1;
-    _t_3 = "two";
-    await _t_2(__env, _t_3);
+    _t_10 = __scope.p1;
+    _t_11 = "two";
+    _t_12 = await __builtin.invokeStreamVarRef(__env, _t_10, _t_11);
+    {
+      let _iter_tmp = await _t_12.next();
+      while (!_iter_tmp.done) {
+        _t_13 = _iter_tmp.value;
+        _t_14 = _t_13[0];
+        _t_15 = _t_13[1];
+        _t_16 = _t_15.__response;
+        _t_17 = _t_15.title;
+        _t_18 = _t_15.description;
+        _t_19 = _t_15.link;
+        await __env.output(String(_t_14), _t_15);
+        _iter_tmp = await _t_12.next();
+      }
+    }
   } catch(_exc_) {
     __env.reportError("Failed to invoke action", _exc_);
   }
   __env.clearGetCache();
   try {
-    _t_4 = __scope.p1;
-    _t_5 = "three";
-    await _t_4(__env, _t_5);
+    _t_20 = __scope.p1;
+    _t_21 = "three";
+    _t_22 = await __builtin.invokeStreamVarRef(__env, _t_20, _t_21);
+    {
+      let _iter_tmp = await _t_22.next();
+      while (!_iter_tmp.done) {
+        _t_23 = _iter_tmp.value;
+        _t_24 = _t_23[0];
+        _t_25 = _t_23[1];
+        _t_26 = _t_25.__response;
+        _t_27 = _t_25.title;
+        _t_28 = _t_25.description;
+        _t_29 = _t_25.link;
+        await __env.output(String(_t_24), _t_25);
+        _iter_tmp = await _t_22.next();
+      }
+    }
   } catch(_exc_) {
     __env.reportError("Failed to invoke action", _exc_);
   }
   try {
-    _t_6 = __scope.p2;
-    _t_7 = "four";
-    await _t_6(__env, _t_7);
+    _t_30 = __scope.p2;
+    _t_31 = "four";
+    _t_32 = await __builtin.invokeStreamVarRef(__env, _t_30, _t_31);
+    {
+      let _iter_tmp = await _t_32.next();
+      while (!_iter_tmp.done) {
+        _t_33 = _iter_tmp.value;
+        _t_34 = _t_33[0];
+        _t_35 = _t_33[1];
+        _t_36 = _t_35.__response;
+        await __env.output(String(_t_34), _t_35);
+        _iter_tmp = await _t_32.next();
+      }
+    }
   } catch(_exc_) {
     __env.reportError("Failed to invoke action", _exc_);
   }`]],
@@ -4928,7 +5042,7 @@ const TEST_CASES = [
         _t_19 = _t_16.description;
         _t_20 = _t_16.link;
         try {
-          await __env.output(String(_t_15), _t_16);
+          __emit(_t_15, _t_16);
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -4964,18 +5078,62 @@ const TEST_CASES = [
   let _t_1;
   let _t_2;
   let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
   try {
     _t_0 = __scope.p1;
     _t_1 = "one";
-    await _t_0(__env, _t_1);
+    _t_2 = await __builtin.invokeStreamVarRef(__env, _t_0, _t_1);
+    {
+      let _iter_tmp = await _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.__response;
+        _t_7 = _t_5.title;
+        _t_8 = _t_5.description;
+        _t_9 = _t_5.link;
+        await __env.output(String(_t_4), _t_5);
+        _iter_tmp = await _t_2.next();
+      }
+    }
   } catch(_exc_) {
     __env.reportError("Failed to invoke action", _exc_);
   }
   __env.clearGetCache();
   try {
-    _t_2 = __scope.p1;
-    _t_3 = "two";
-    await _t_2(__env, _t_3);
+    _t_10 = __scope.p1;
+    _t_11 = "two";
+    _t_12 = await __builtin.invokeStreamVarRef(__env, _t_10, _t_11);
+    {
+      let _iter_tmp = await _t_12.next();
+      while (!_iter_tmp.done) {
+        _t_13 = _iter_tmp.value;
+        _t_14 = _t_13[0];
+        _t_15 = _t_13[1];
+        _t_16 = _t_15.__response;
+        _t_17 = _t_15.title;
+        _t_18 = _t_15.description;
+        _t_19 = _t_15.link;
+        await __env.output(String(_t_14), _t_15);
+        _iter_tmp = await _t_12.next();
+      }
+    }
   } catch(_exc_) {
     __env.reportError("Failed to invoke action", _exc_);
   }`]],
@@ -5010,7 +5168,7 @@ const TEST_CASES = [
   let _t_28;
   await __env.enterProcedure(0, "p1");
   try {
-    _t_11 = async function(__env, emit) {
+    _t_11 = async function(__env, __emit) {
       "use strict";
       let _t_1;
       let _t_2;
@@ -5037,7 +5195,7 @@ const TEST_CASES = [
             _t_8 = _t_6.title;
             _t_9 = _t_6.description;
             _t_10 = _t_6.link;
-            emit(_t_5, _t_6);
+            __emit(_t_5, _t_6);
             _iter_tmp = await _t_3.next();
           }
         }
@@ -5058,7 +5216,7 @@ const TEST_CASES = [
           _t_18 = _t_15.description;
           _t_19 = _t_15.link;
           try {
-            await __env.output(String(_t_14), _t_15);
+            __emit(_t_14, _t_15);
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
@@ -5101,18 +5259,62 @@ const TEST_CASES = [
   let _t_1;
   let _t_2;
   let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
   try {
     _t_0 = __scope.p1;
     _t_1 = "one";
-    await _t_0(__env, _t_1);
+    _t_2 = await __builtin.invokeStreamVarRef(__env, _t_0, _t_1);
+    {
+      let _iter_tmp = await _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.__response;
+        _t_7 = _t_5.title;
+        _t_8 = _t_5.description;
+        _t_9 = _t_5.link;
+        await __env.output(String(_t_4), _t_5);
+        _iter_tmp = await _t_2.next();
+      }
+    }
   } catch(_exc_) {
     __env.reportError("Failed to invoke action", _exc_);
   }
   __env.clearGetCache();
   try {
-    _t_2 = __scope.p1;
-    _t_3 = "two";
-    await _t_2(__env, _t_3);
+    _t_10 = __scope.p1;
+    _t_11 = "two";
+    _t_12 = await __builtin.invokeStreamVarRef(__env, _t_10, _t_11);
+    {
+      let _iter_tmp = await _t_12.next();
+      while (!_iter_tmp.done) {
+        _t_13 = _iter_tmp.value;
+        _t_14 = _t_13[0];
+        _t_15 = _t_13[1];
+        _t_16 = _t_15.__response;
+        _t_17 = _t_15.title;
+        _t_18 = _t_15.description;
+        _t_19 = _t_15.link;
+        await __env.output(String(_t_14), _t_15);
+        _iter_tmp = await _t_12.next();
+      }
+    }
   } catch(_exc_) {
     __env.reportError("Failed to invoke action", _exc_);
   }`]],
@@ -5132,9 +5334,19 @@ const TEST_CASES = [
   let _t_3;
   let _t_4;
   let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
   await __env.enterProcedure(0, "p1");
   try {
-    _t_3 = async function(__env, _t_1) {
+    _t_3 = async function(__env, __emit, _t_1) {
       "use strict";
       let _t_2;
       await __env.enterProcedure(1, "p2");
@@ -5153,14 +5365,34 @@ const TEST_CASES = [
     };
     try {
       _t_4 = "body one";
-      await _t_3(__env, _t_4);
+      _t_5 = await __builtin.invokeStreamVarRef(__env, _t_3, _t_4);
+      {
+        let _iter_tmp = await _t_5.next();
+        while (!_iter_tmp.done) {
+          _t_6 = _iter_tmp.value;
+          _t_7 = _t_6[0];
+          _t_8 = _t_6[1];
+          _t_9 = _t_8.__response;
+          _iter_tmp = await _t_5.next();
+        }
+      }
     } catch(_exc_) {
       __env.reportError("Failed to invoke action", _exc_);
     }
     __env.clearGetCache();
     try {
-      _t_5 = "body two";
-      await _t_3(__env, _t_5);
+      _t_10 = "body two";
+      _t_11 = await __builtin.invokeStreamVarRef(__env, _t_3, _t_10);
+      {
+        let _iter_tmp = await _t_11.next();
+        while (!_iter_tmp.done) {
+          _t_12 = _iter_tmp.value;
+          _t_13 = _t_12[0];
+          _t_14 = _t_12[1];
+          _t_15 = _t_14.__response;
+          _iter_tmp = await _t_11.next();
+        }
+      }
     } catch(_exc_) {
       __env.reportError("Failed to invoke action", _exc_);
     }
@@ -5171,18 +5403,50 @@ const TEST_CASES = [
   let _t_1;
   let _t_2;
   let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
   try {
     _t_0 = __scope.p1;
     _t_1 = "title one";
-    await _t_0(__env, _t_1);
+    _t_2 = await __builtin.invokeStreamVarRef(__env, _t_0, _t_1);
+    {
+      let _iter_tmp = await _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.__response;
+        await __env.output(String(_t_4), _t_5);
+        _iter_tmp = await _t_2.next();
+      }
+    }
   } catch(_exc_) {
     __env.reportError("Failed to invoke action", _exc_);
   }
   __env.clearGetCache();
   try {
-    _t_2 = __scope.p1;
-    _t_3 = "title two";
-    await _t_2(__env, _t_3);
+    _t_7 = __scope.p1;
+    _t_8 = "title two";
+    _t_9 = await __builtin.invokeStreamVarRef(__env, _t_7, _t_8);
+    {
+      let _iter_tmp = await _t_9.next();
+      while (!_iter_tmp.done) {
+        _t_10 = _iter_tmp.value;
+        _t_11 = _t_10[0];
+        _t_12 = _t_10[1];
+        _t_13 = _t_12.__response;
+        await __env.output(String(_t_11), _t_12);
+        _iter_tmp = await _t_9.next();
+      }
+    }
   } catch(_exc_) {
     __env.reportError("Failed to invoke action", _exc_);
   }`]],
@@ -5201,9 +5465,19 @@ const TEST_CASES = [
   let _t_3;
   let _t_4;
   let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
   await __env.enterProcedure(0, "p1");
   try {
-    _t_3 = async function(__env, _t_1) {
+    _t_3 = async function(__env, __emit, _t_1) {
       "use strict";
       let _t_2;
       await __env.enterProcedure(1, "p2");
@@ -5222,14 +5496,34 @@ const TEST_CASES = [
     };
     try {
       _t_4 = "body one";
-      await _t_3(__env, _t_4);
+      _t_5 = await __builtin.invokeStreamVarRef(__env, _t_3, _t_4);
+      {
+        let _iter_tmp = await _t_5.next();
+        while (!_iter_tmp.done) {
+          _t_6 = _iter_tmp.value;
+          _t_7 = _t_6[0];
+          _t_8 = _t_6[1];
+          _t_9 = _t_8.__response;
+          _iter_tmp = await _t_5.next();
+        }
+      }
     } catch(_exc_) {
       __env.reportError("Failed to invoke action", _exc_);
     }
     __env.clearGetCache();
     try {
-      _t_5 = "body two";
-      await _t_3(__env, _t_5);
+      _t_10 = "body two";
+      _t_11 = await __builtin.invokeStreamVarRef(__env, _t_3, _t_10);
+      {
+        let _iter_tmp = await _t_11.next();
+        while (!_iter_tmp.done) {
+          _t_12 = _iter_tmp.value;
+          _t_13 = _t_12[0];
+          _t_14 = _t_12[1];
+          _t_15 = _t_14.__response;
+          _iter_tmp = await _t_11.next();
+        }
+      }
     } catch(_exc_) {
       __env.reportError("Failed to invoke action", _exc_);
     }
@@ -5242,6 +5536,11 @@ const TEST_CASES = [
   let _t_3;
   let _t_4;
   let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
@@ -5253,7 +5552,18 @@ const TEST_CASES = [
         try {
           _t_4 = __scope.p1;
           _t_5 = "title one";
-          await _t_4(__env, _t_5);
+          _t_6 = await __builtin.invokeStreamVarRef(__env, _t_4, _t_5);
+          {
+            let _iter_tmp = await _t_6.next();
+            while (!_iter_tmp.done) {
+              _t_7 = _iter_tmp.value;
+              _t_8 = _t_7[0];
+              _t_9 = _t_7[1];
+              _t_10 = _t_9.__response;
+              await __env.output(String(_t_8), _t_9);
+              _iter_tmp = await _t_6.next();
+            }
+          }
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -6864,6 +7174,187 @@ const TEST_CASES = [
     }
   } catch(_exc_) {
     __env.reportError("Failed to invoke query", _exc_);
+  }`]],
+
+
+    // 87
+    // procedure with result, called from let result
+    [`
+    let procedure cat_and_twitter := {
+      let result cat := @com.thecatapi.get();
+      now => cat => @com.twitter.post_picture(picture_url=picture_url, caption="cat");
+      now => cat => notify;
+    };
+    let result cat2 := cat_and_twitter();
+    now => cat2 => notify;
+    `,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  let _t_25;
+  let _t_26;
+  let _t_27;
+  let _t_28;
+  let _t_29;
+  let _t_30;
+  let _t_31;
+  await __env.enterProcedure(0, "cat_and_twitter");
+  try {
+    _t_0 = new Array(0);
+    try {
+      _t_1 = {};
+      _t_2 = await __env.invokeQuery("com.thecatapi", { }, "get", _t_1, { projection: ["image_id", "count", "picture_url", "link"] });
+      _t_3 = _t_2[Symbol.iterator]();
+      {
+        let _iter_tmp = await _t_3.next();
+        while (!_iter_tmp.done) {
+          _t_4 = _iter_tmp.value;
+          _t_5 = _t_4[0];
+          _t_6 = _t_4[1];
+          _t_7 = _t_6.count;
+          _t_8 = _t_6.__response;
+          _t_9 = _t_6.image_id;
+          _t_10 = _t_6.picture_url;
+          _t_11 = _t_6.link;
+          _t_12 = new Array(2);
+          _t_12[0] = _t_5;
+          _t_12[1] = _t_6;
+          _t_0.push(_t_12);
+          _iter_tmp = await _t_3.next();
+        }
+      }
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke query", _exc_);
+    }
+    __env.clearGetCache();
+    _t_13 = _t_0[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_13.next();
+      while (!_iter_tmp.done) {
+        _t_14 = _iter_tmp.value;
+        _t_15 = _t_14[0];
+        _t_16 = _t_14[1];
+        _t_17 = _t_16.__response;
+        _t_18 = _t_16.image_id;
+        _t_19 = _t_16.picture_url;
+        _t_20 = _t_16.link;
+        try {
+          _t_21 = {};
+          _t_22 = String (_t_19);
+          _t_21.picture_url = _t_22;
+          _t_23 = "cat";
+          _t_21.caption = _t_23;
+          await __env.invokeAction("com.twitter", { }, "post_picture", _t_21);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_13.next();
+      }
+    }
+    __env.clearGetCache();
+    _t_24 = _t_0[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_24.next();
+      while (!_iter_tmp.done) {
+        _t_25 = _iter_tmp.value;
+        _t_26 = _t_25[0];
+        _t_27 = _t_25[1];
+        _t_28 = _t_27.__response;
+        _t_29 = _t_27.image_id;
+        _t_30 = _t_27.picture_url;
+        _t_31 = _t_27.link;
+        try {
+          __emit(_t_26, _t_27);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_24.next();
+      }
+    }
+  } finally {
+    await __env.exitProcedure(0, "cat_and_twitter");
+  }`, `"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  _t_0 = new Array(0);
+  _t_1 = __scope.cat_and_twitter;
+  _t_2 = await __builtin.invokeStreamVarRef(__env, _t_1);
+  {
+    let _iter_tmp = await _t_2.next();
+    while (!_iter_tmp.done) {
+      _t_3 = _iter_tmp.value;
+      _t_4 = _t_3[0];
+      _t_5 = _t_3[1];
+      _t_6 = _t_5.__response;
+      _t_7 = _t_5.image_id;
+      _t_8 = _t_5.picture_url;
+      _t_9 = _t_5.link;
+      _t_10 = new Array(2);
+      _t_10[0] = _t_4;
+      _t_10[1] = _t_5;
+      _t_0.push(_t_10);
+      _iter_tmp = await _t_2.next();
+    }
+  }
+  __env.clearGetCache();
+  _t_11 = _t_0[Symbol.iterator]();
+  {
+    let _iter_tmp = await _t_11.next();
+    while (!_iter_tmp.done) {
+      _t_12 = _iter_tmp.value;
+      _t_13 = _t_12[0];
+      _t_14 = _t_12[1];
+      _t_15 = _t_14.__response;
+      _t_16 = _t_14.image_id;
+      _t_17 = _t_14.picture_url;
+      _t_18 = _t_14.link;
+      try {
+        await __env.output(String(_t_13), _t_14);
+      } catch(_exc_) {
+        __env.reportError("Failed to invoke action", _exc_);
+      }
+      _iter_tmp = await _t_11.next();
+    }
   }`]],
 ];
 
