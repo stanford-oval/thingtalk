@@ -44,16 +44,6 @@ const TEST_CASES = [
 `now => compute ((aggregateRating.reviews) filter { author == "Bob" }) of (@org.schema.restaurants()) => notify;`,
 `now => [foo] of (compute ((aggregateRating.reviews) filter { author == "Bob" }) as foo of (@org.schema.restaurants())) => notify;`,
 
-// macros
-`class @foo.bar {
-  compute isTrue() : Boolean := true;
-
-  compute greaterThanZero(in req x: Number) : Boolean := x >= 0;
-
-  list query q(out num: Number);
-}
-now => (@foo.bar.q()), @for.bar.greaterThanZero(x=num) => notify;`,
-
 // device selectors
 `now => @light-bulb(name="bathroom").set_power(power=enum(on));`,
 `now => @light-bulb(id="io.home-assistant/http://hassio.local:8123-light.hue_bloom_1", name="bathroom").set_power(power=enum(on));`,
