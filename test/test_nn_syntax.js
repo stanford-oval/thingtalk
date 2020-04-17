@@ -520,6 +520,28 @@ now => @com.twitter.post_picture(picture_url="https://example.com/1"^^tt:picture
 
     [`$dialogue @org.thingpedia.dialogue.transaction.execute ; ` +
      `now => @com.thecatapi.get => notify ` +
+     `#[ results = [ { param:image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , param:picture_url = PICTURE_0 , param:link = URL_0 } ] ] ; ` +
+     `now => @com.twitter.post_picture param:picture_url:Entity(tt:picture) = PICTURE_0 ` +
+     `#[ results = [ ] ] #[ error = enum:my_error_code ] ;`,
+    `sorry , that did not work : QUOTED_STRING_0`, {
+        'GENERIC_ENTITY_com.thecatapi:image_id_0': { value: '1234', display: null },
+        PICTURE_0: 'https://example.com/1',
+        URL_0: 'https://example.com/2',
+        'GENERIC_ENTITY_com.twitter:tweet_id_0': { value: '1111', display: null },
+        URL_1: 'https://example.com/3'
+    },
+    `$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => @com.thecatapi.get() => notify
+#[results=[
+  { image_id="1234"^^com.thecatapi:image_id, picture_url="https://example.com/1"^^tt:picture, link="https://example.com/2"^^tt:url }
+]];
+now => @com.twitter.post_picture(picture_url="https://example.com/1"^^tt:picture)
+#[results=[
+]]
+#[error=enum(my_error_code)];`],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute ; ` +
+     `now => @com.thecatapi.get => notify ` +
      `#[ results = [ { param:image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , param:picture_url = PICTURE_0 , param:link = URL_0 } ] ] ` +
      `#[ count = NUMBER_0 ] ;`,
     `i found NUMBER_0 cat pictures , here is one`, { 'GENERIC_ENTITY_com.thecatapi:image_id_0': { value: '1234', display: null }, PICTURE_0: 'https://example.com/1', URL_0: 'https://example.com/2', NUMBER_0: 55 },
