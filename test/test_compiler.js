@@ -7511,7 +7511,96 @@ const TEST_CASES = [
     }
   } else {
 
-  }`]]
+  }`]],
+
+    // 89
+    [`now => [nutrition.cholesterolContent, nutrition.saturatedFatContent] of (@org.schema.full.Recipe()) => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  let _t_25;
+  let _t_26;
+  let _t_27;
+  let _t_28;
+  let _t_29;
+  let _t_30;
+  try {
+    _t_0 = {};
+    _t_1 = await __env.invokeQuery("org.schema.full", { }, "Recipe", _t_0, { projection: ["id", "nutrition.saturatedFatContent", "nutrition.cholesterolContent"] });
+    _t_2 = _t_1[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_2.next();
+      while (!_iter_tmp.done) {
+        _t_3 = _iter_tmp.value;
+        _t_4 = _t_3[0];
+        _t_5 = _t_3[1];
+        _t_6 = _t_5.__response;
+        _t_7 = _t_5.id;
+        _t_8 = _t_5.recipeYield;
+        _t_9 = _t_5.recipeCategory;
+        _t_10 = _t_5.recipeIngredient;
+        _t_11 = _t_5.recipeInstructions;
+        _t_12 = _t_5.nutrition;
+        if (_t_12) {
+          _t_13 = _t_12.saturatedFatContent;
+          _t_14 = _t_12.fatContent;
+          _t_15 = _t_12.unsaturatedFatContent;
+          _t_16 = _t_12.sugarContent;
+          _t_17 = _t_12.cholesterolContent;
+          _t_18 = _t_12.carbohydrateContent;
+          _t_19 = _t_12.proteinContent;
+          _t_20 = _t_12.sodiumContent;
+          _t_21 = _t_12.transFatContent;
+          _t_22 = _t_12.fiberContent;
+          _t_23 = _t_12.calories;
+          _t_24 = _t_12.servingSize;
+        } else {
+
+        }
+        _t_25 = _t_5.suitableForDiet;
+        _t_26 = _t_5.recipeCuisine;
+        _t_27 = _t_5.cookTime;
+        _t_28 = _t_5.cookingMethod;
+        _t_29 = {};
+        _t_29.id = _t_7;
+        _t_30 = {};
+        _t_29.nutrition = _t_30;
+        _t_29.nutrition.saturatedFatContent = _t_13;
+        _t_29.nutrition.cholesterolContent = _t_17;
+        try {
+          await __env.output(String(_t_4), _t_29);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_2.next();
+      }
+    }
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke query", _exc_);
+  }`]],
 ];
 
 // eslint-disable-next-line prefer-arrow-callback
