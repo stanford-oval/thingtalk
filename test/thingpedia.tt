@@ -2357,7 +2357,7 @@ class @org.schema.full {
 
   list query Recipe(out id: Entity(org.schema:Recipe),
                     out recipeYield: Number #[org_schema_type="QuantitativeValue"] #[org_schema_comment="The quantity produced by the recipe (for example, number of people served, number of servings, etc)."],
-                    out recipeCategory: String #[org_schema_type="Text"] #[org_schema_comment="The category of the recipe—for example, appetizer, entree, etc."],
+                    out recipeCategory: Array(String) #[org_schema_type="Text"] #[org_schema_comment="The category of the recipe—for example, appetizer, entree, etc."],
                     out recipeIngredient: Array(String) #[org_schema_type="Text"] #[org_schema_comment="A single ingredient used in the recipe, e.g. sugar, flour or garlic."],
                     out recipeInstructions: Array(String) #[org_schema_type="Text"] #[org_schema_comment="A step in making the recipe, in the form of a single item (document, video, etc.) or an ordered list with HowToStep and/or HowToSection items."],
                     out nutrition: {
