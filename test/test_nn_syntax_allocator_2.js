@@ -24,7 +24,22 @@ const TEST_CASES = [
      {'QUOTED_STRING_0': 'hello'},
      `now => @com.twitter.post param:status:String = " world "`,
      {'QUOTED_STRING_0': 'hello', 'QUOTED_STRING_1': 'world'}
-    ]
+    ],
+
+    [`now => @org.thingpedia.weather.current param:location:Location = location: " stanford california " => notify`,
+     {'LOCATION_0': { display: 'stanford california', latitude: NaN, longitude: NaN }},
+     `now => @org.thingpedia.weather.current param:location:Location = location: " palo alto california " => notify`,
+     {
+         'LOCATION_0': { display: 'stanford california', latitude: NaN, longitude: NaN },
+         'LOCATION_1': { display: 'palo alto california', latitude: NaN, longitude: NaN },
+     },
+    ],
+
+    [`now => @org.thingpedia.weather.current param:location:Location = location: " stanford california " => notify`,
+     {'LOCATION_0': { display: 'stanford california', latitude: NaN, longitude: NaN }},
+     `now => @org.thingpedia.weather.current param:location:Location = location: " stanford california " => notify`,
+     {'LOCATION_0': { display: 'stanford california', latitude: NaN, longitude: NaN }},
+    ],
 ];
 
 async function testCase(test, i) {
