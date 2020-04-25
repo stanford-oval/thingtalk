@@ -408,9 +408,9 @@ now => [food] of ((@uk.ac.cam.multiwoz.Restaurant.Restaurant()), true) => notify
     ['query: Invocation(Device(uk.ac.cam.multiwoz.Restaurant, , ), Restaurant, , )'],
     ['Device(uk.ac.cam.multiwoz.Restaurant, , ) uk.ac.cam.multiwoz.Restaurant:Restaurant'],
     ['Selector(@uk.ac.cam.multiwoz.Restaurant)',
-     'ResultSlot(id : Entity(uk.ac.cam.multiwoz.Restaurant:Restaurant)) result.id Please tell me the id.',
+     'ResultSlot(id : Entity(uk.ac.cam.multiwoz.Restaurant:Restaurant)) result.id Please tell me the name.',
      'ResultSlot(food : String) result.food what would you like to eat,what are you in the mood for',
-     'ResultSlot(id : Entity(uk.ac.cam.multiwoz.Restaurant:Restaurant)) result.id Please tell me the id.',
+     'ResultSlot(id : Entity(uk.ac.cam.multiwoz.Restaurant:Restaurant)) result.id Please tell me the name.',
      'ResultSlot(food : String) result.food what would you like to eat,what are you in the mood for']
     ],
 
