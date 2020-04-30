@@ -585,6 +585,10 @@ now => @org.schema.restaurant() => notify;`],
     [`now => ( @com.yelp.restaurant ) filter true param:cuisines:Array(Entity(com.yelp:restaurant_cuisine)) => notify`,
     `i 'm looking for a restaurant , i do n't care what cuisine`, {},
     `now => (@com.yelp.restaurant()), true(cuisines) => notify;`],
+
+    ['now => ( @org.schema.full.Recipe ) filter param:nutrition.fatContent:Measure(kg) >= MEASURE_kg_0 and param:nutrition.sugarContent:Measure(kg) >= MEASURE_kg_0 => notify',
+     `yeah please find a recipe with that fat content and that sugar content`, { MEASURE_kg_0: { value: 13, unit: 'kg' } },
+     `now => (@org.schema.full.Recipe()), (nutrition.fatContent >= 13kg && nutrition.sugarContent >= 13kg) => notify;`]
 ];
 
 function stripTypeAnnotations(program) {

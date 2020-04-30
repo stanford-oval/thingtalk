@@ -140,7 +140,11 @@ const TEST_CASES = [
     ['bookkeeping answer TIME_0',
      { TIME_0: { hour: 18, minute: 0, second: 0 } }],
 
+    ['now => @com.thecatapi.get param:count:Number = NUMBER_0 => notify',
+     { NUMBER_0: 13 }],
 
+    ['now => ( @org.schema.full.Recipe ) filter param:nutrition.fatContent:Measure(kg) >= MEASURE_kg_0 => notify',
+     { MEASURE_kg_0: { value: 13, unit: 'kg' } }]
 ];
 
 async function testCase(test, i) {
