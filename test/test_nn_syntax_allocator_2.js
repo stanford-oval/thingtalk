@@ -40,6 +40,20 @@ const TEST_CASES = [
      `now => @org.thingpedia.weather.current param:location:Location = location: " stanford california " => notify`,
      {'LOCATION_0': { display: 'stanford california', latitude: NaN, longitude: NaN }},
     ],
+
+    [
+     `now => @com.cryptonator.get_price param:currency:Entity(tt:cryptocurrency_code) = " btc " ^^tt:cryptocurrency_code => notify`,
+     {'GENERIC_ENTITY_tt:cryptocurrency_code_0': { display: 'btc', value: null }},
+     `now => @com.cryptonator.get_price param:currency:Entity(tt:cryptocurrency_code) = " btc " ^^tt:cryptocurrency_code => notify`,
+     {'GENERIC_ENTITY_tt:cryptocurrency_code_0': { display: 'btc', value: null }}
+    ],
+
+    [
+     `now => @com.cryptonator.get_price param:currency:Entity(tt:cryptocurrency_code) = " btc " ^^tt:cryptocurrency_code => notify`,
+     {'GENERIC_ENTITY_tt:cryptocurrency_code_0': { display: 'btc', value: null }},
+     `now => @com.cryptonator.get_price param:currency:Entity(tt:cryptocurrency_code) = " eth " ^^tt:cryptocurrency_code => notify`,
+     {'GENERIC_ENTITY_tt:cryptocurrency_code_0': { display: 'btc', value: null }, 'GENERIC_ENTITY_tt:cryptocurrency_code_1': { display: 'eth', value: null }}
+    ],
 ];
 
 async function testCase(test, i) {
