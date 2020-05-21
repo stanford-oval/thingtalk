@@ -4921,3 +4921,110 @@ class @uk.ac.cam.multiwoz.Restaurant
   #_[confirmation="make a reservation at ${restaurant}"]
   #[confirm=true];
 }
+
+class @uk.ac.cam.multiwoz.Train
+#_[name="Cambridge Train"]
+#_[description="Fake data used by MultiWOZ"]
+#_[canonical="cambridge train"]
+{
+  import loader from @org.thingpedia.v2();
+  import config from @org.thingpedia.config.none();
+  list query Train(out id : Entity(uk.ac.cam.multiwoz.Train:Train)
+                   #[conflict_filter=['arrive_by', 'leave_by']]
+                   #[unique=true]
+                   #[string_values="uk.ac.cam.multiwoz.Train:id"]
+                   #_[canonical={
+                     base=["name"],
+                     passive_verb=["named #", "called #"]
+                   }],
+                   out destination : String
+                   #[string_values="uk.ac.cam.multiwoz.Train:destination"]
+                   #_[prompt=["what is your destination", "where to", "where will you be heading"]]
+                   #_[canonical={
+                     default="preposition",
+                     base=["destination"],
+                     preposition=["to #", "headed towards #"]
+                   }],
+                   out departure : String
+                   #[string_values="uk.ac.cam.multiwoz.Train:departure"]
+                   #_[prompt=["where will you be departing from", "where will you be leaving from"]]
+                   #_[canonical={
+                     default="preposition",
+                     base=["departure"],
+                     preposition=["from #", "leaving from #", "departing from #"]
+                   }],
+                   out day : Enum(friday, wednesday, monday, saturday, thursday, tuesday, sunday)
+                   #[conflict_filter=['id']]
+                   #_[canonical={
+                     default="preposition",
+                     base=["day"],
+                     preposition=["on #", "leaving on #"]
+                   }],
+                   out arrive_by : Time
+                   #[conflict_filter=['leave_at', 'id']]
+                   #[slot_operator="<="]
+                   #_[prompt=["when do you want to arrive", "by when do you want to arrive"]]
+                   #_[canonical={
+                     default="preposition",
+                     base=["arrival time"],
+                     preposition=["arriving by #", "arriving before #"]
+                   }],
+                   out leave_at : Time
+                   #[conflict_filter=['arrive_by', 'id']]
+                   #[slot_operator=">="]
+                   #_[prompt=["when do you want to leave", "when do you want to travel"]]
+                   #_[canonical={
+                     default="preposition",
+                     base=["departure time"],
+                     preposition=["leaving at #", "leaving #", "leaving after #"]
+                   }],
+                   out price : Currency
+                   #[filterable=false]
+                   #_[canonical={
+                     default="base",
+                     base=["cost", "price"]
+                   }],
+                   out duration : Measure(ms)
+                   #[filterable=false]
+                   #_[canonical={
+                     default="base",
+                     base=["duration", "length", "travel time"]
+                   }]
+                   )
+  #[minimal_projection=["id"]]
+  #_[canonical=["train", "train ticket"]]
+  #_[confirmation="train"]
+  #[confirm=false];
+
+  action make_booking(in req train : Entity(uk.ac.cam.multiwoz.Train:Train)
+                      #[string_values="uk.ac.cam.multiwoz.Train:id"]
+                      #_[prompt="what train would you like to book?"],
+                      in req day : Enum(monday, tuesday, wednesday, thursday, friday, saturday, sunday)
+                      #_[prompt=["what day is your booking for",
+                                 "what day do you want to leave"]]
+                      #_[canonical={
+                        default="preposition",
+                        base=["day", "date"],
+                        preposition=["on #", "leaving on #"]
+                      }],
+                      in opt book_people : Number
+                      #[min_number=1]
+                      #[max_number=15]
+                      #_[prompt=["for how many people", "how many people will be traveling"]]
+                      #_[canonical={
+                        default="preposition",
+                        base=["people"],
+                        preposition=["for # people"]
+                      }],
+                      out reference_number : String
+                      #_[canonical={
+                        default="base",
+                        base=["reference number", "confirmation number"]
+                      }])
+  #_[confirmation="make a booking for train ${train}"]
+  // multiwoz people don't ask for a confirmation before doing the booking...
+  #[confirm=false]
+  #_[on_error={
+     no_slot_available=["there are no seats available on ${train}"]
+  }];
+}
