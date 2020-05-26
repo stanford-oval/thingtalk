@@ -31,7 +31,7 @@
     "argparse": "^1.0.10",
     "coveralls": "^3.0.0",
     "deep-equal": "^2.0.1",
-    "eslint": "^6.0.0",
+    "eslint": "^7.1.0",
     "jsdoc": "^3.6.3",
     "nyc": "^15.0.0",
     "pegjs": "~0.10.0",
