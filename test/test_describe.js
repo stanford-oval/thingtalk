@@ -38,7 +38,7 @@ var TEST_CASES = [
     'send me a message ____ every day at 12:00 PM',
     'Say'],
     [`attimer(time=[makeTime(9,0), makeTime(15,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");`,
-    `send me a message “it's 9am or 3pm” every day at 9:00 AM, 3:00 PM`,//'
+    `send me a message “it's 9am or 3pm” every day at 9:00 AM and 3:00 PM`,//'
     'Say'],
     [`attimer(time=[makeTime(9,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am");`,
     `send me a message “it's 9am” every day at 9:00 AM`,//'
@@ -102,7 +102,7 @@ var TEST_CASES = [
     'Weather'],*/
 
     [`now => @com.instagram.get_pictures(), in_array(caption,["foo","bar"]) => notify;`,
-    `get your recent Instagram pictures that have caption “foo”, “bar” and then notify you`,
+    `get your recent Instagram pictures that have caption “foo” or “bar” and then notify you`,
     'Instagram'],
     [`now => @com.instagram.get_pictures(), contains(hashtags, "foo"^^tt:hashtag) => notify;`,
     `get your recent Instagram pictures that have hashtags #foo and then notify you`,
@@ -180,7 +180,7 @@ var TEST_CASES = [
     'Yahoo Finance'],
 
     [`now => [ask_price, bid_price] of @com.yahoo.finance.get_stock_quote(stock_id="goog"^^tt:stock_id("Alphabet, Inc.")) => notify;`,
-    'get the ask price, bid price of the stock price of Alphabet, Inc. and then notify you',
+    'get the ask price and bid price of the stock price of Alphabet, Inc. and then notify you',
     'Yahoo Finance'],
 
     [`now => aggregate avg file_size of @com.google.drive.list_drive_files() => notify;`,
@@ -256,7 +256,7 @@ var TEST_CASES = [
     'get 5 elements starting from -2 of the files in your Google Drive and then notify you',
     'Google Drive'],
     [`now => @com.google.drive.list_drive_files()[1, 2, 7] => notify;`,
-    'get elements 1, 2, 7 of the files in your Google Drive and then notify you',
+    'get elements 1, 2, and 7 of the files in your Google Drive and then notify you',
     'Google Drive'],
 
     [`now => [file_name] of sort file_size asc of @com.google.drive.list_drive_files() => notify;`,
