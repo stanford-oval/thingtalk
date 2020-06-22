@@ -39,7 +39,7 @@ function main() {
     assert.strictEqual(formatter.dateToString(date), 'Wednesday, May 23, 2018');
     assert.strictEqual(formatter.dateToString(date, { year: 'numeric' }), '2018');
     assert.strictEqual(formatter.dateAndTimeToString(date), '5/23/2018, 9:18:00 PM');
-    assert.strictEqual(formatter.timeToString(date), '09:18:00 PM PDT');
+    assert.strictEqual(formatter.timeToString(date), '9:18:00 PM PDT');
     assert.strictEqual(formatter.anyToString(date), '5/23/2018, 9:18:00 PM');
 
     let location = new builtin.Location(-37, 113);
@@ -117,7 +117,7 @@ function main() {
         v2: [21, 42],
         v3: [date, date2],
         v4: [0.42, 0.84],
-    }), [ 'lol, cat 69.8, 107.6 5/23/2018, 9:18:00 PM, 1/7/2019, 10:30:00 AM 2018-05-24T04:18:00.000Z, 2019-01-07T18:30:00.000Z 42, 84' ]);
+    }), [ 'lol and cat 69.8 and 107.6 5/23/2018, 9:18:00 PM and 1/7/2019, 10:30:00 AM 2018-05-24T04:18:00.000Z and 2019-01-07T18:30:00.000Z 42 and 84' ]);
 
     assert.deepStrictEqual(formatter.format([simpleFormatFunction], {
         v1: 'one',
