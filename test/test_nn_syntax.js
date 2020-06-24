@@ -588,7 +588,11 @@ now => @org.schema.restaurant() => notify;`],
 
     ['now => ( @org.schema.full.Recipe ) filter param:nutrition.fatContent:Measure(kg) >= MEASURE_kg_0 and param:nutrition.sugarContent:Measure(kg) >= MEASURE_kg_0 => notify',
      `yeah please find a recipe with that fat content and that sugar content`, { MEASURE_kg_0: { value: 13, unit: 'kg' } },
-     `now => (@org.schema.full.Recipe()), (nutrition.fatContent >= 13kg && nutrition.sugarContent >= 13kg) => notify;`]
+     `now => (@org.schema.full.Recipe()), (nutrition.fatContent >= 13kg && nutrition.sugarContent >= 13kg) => notify;`],
+
+    ['now => ( @com.uber.price_estimate ) filter param:low_estimate:Currency <= new Currency ( NUMBER_0 , unit:usd ) => notify',
+     'is it less than $ NUMBER_0 ?', { NUMBER_0: 1000 },
+     'now => (@com.uber.price_estimate()), low_estimate <= new Currency(1000, usd) => notify;'],
 ];
 
 function stripTypeAnnotations(program) {
