@@ -138,7 +138,7 @@ const TEST_CASES = [
 
     ['now => ( @com.uber.price_estimate param:end:Location = location:home param:start:Location = location:work ) filter param:low_estimate:Currency >= CURRENCY_0 => notify',
     `get an uber price estimate from home to work if the low estimate is greater than CURRENCY_0`, {CURRENCY_0: { value: 50, unit: 'usd' } },
-    `now => (@com.uber.price_estimate(end=$context.location.home, start=$context.location.work)), low_estimate >= new Currency(50, usd) => notify;`],
+    `now => (@com.uber.price_estimate(end=$context.location.home, start=$context.location.work)), low_estimate >= 50$usd => notify;`],
 
     ['now => ( @com.uber.price_estimate ) filter param:uber_type:Enum(pool,uber_x,uber_xl,uber_black,select,suv,assist) == enum:uber_x => notify',
     `get a price estimate for uber x`, {},
@@ -590,9 +590,9 @@ now => @org.schema.restaurant() => notify;`],
      `yeah please find a recipe with that fat content and that sugar content`, { MEASURE_kg_0: { value: 13, unit: 'kg' } },
      `now => (@org.schema.full.Recipe()), (nutrition.fatContent >= 13kg && nutrition.sugarContent >= 13kg) => notify;`],
 
-    ['now => ( @com.uber.price_estimate ) filter param:low_estimate:Currency <= new Currency ( NUMBER_0 , unit:usd ) => notify',
+    ['now => ( @com.uber.price_estimate ) filter param:low_estimate:Currency <= NUMBER_0 unit:$usd => notify',
      'is it less than $ NUMBER_0 ?', { NUMBER_0: 1000 },
-     'now => (@com.uber.price_estimate()), low_estimate <= new Currency(1000, usd) => notify;'],
+     'now => (@com.uber.price_estimate()), low_estimate <= 1000$usd => notify;'],
 ];
 
 function stripTypeAnnotations(program) {

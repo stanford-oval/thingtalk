@@ -675,6 +675,7 @@ constant_Number = {
 constant_Currency = {
     tok:CURRENCY => new Ast.Value.Currency(tok.value.value, tok.value.unit);
     'new' 'Currency' '(' num:literal_number ',' unit:UNIT ')' => new Ast.Value.Currency(num, unit.value);
+    num:literal_number tok:CURRENCY_CODE => new Ast.Value.Currency(num, tok.value);
 }
 constant_Location = {
     'location:current_location' => new Ast.Value.Location(new Ast.Location.Relative('current_location'));
