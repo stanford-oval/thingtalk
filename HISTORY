@@ -1,3 +1,20 @@
+1.11.0-alpha.1
+==============
+
+* Actions and procedures are now allowed to return values (as output parameters).
+  They can be called in assignment statements to make use of the return value [#197].
+* Procedure calling is now trackable by the runtime through appropriate hooks in
+  ExecEnvironment. This is useful when actions are stateful and state should not
+  be affected by nested procedures [#197].
+* The #[error] annotation on dialogue states has changed to an enum instead of
+  a string [#198].
+* Added new short-hand syntax for Currencies: "number $ unit" (without spaces) [#216].
+* NN syntax conversion now allows strings to be non-consecutive in the input [#201].
+* Fixed NN syntax conversion and normalization bugs [#199, #200, #202].
+* Fixed various compiler bugs [#198, #203].
+* Fixed compatibility with node 12 [#212].
+* Updated dependencies [#204, #205, #206, #208, #210, #211, #214, #215].
+
 1.10.0
 ======
 
