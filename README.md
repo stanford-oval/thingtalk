@@ -1,6 +1,6 @@
 # ThingTalk
 
-[![Build Status](https://travis-ci.org/stanford-oval/thingtalk.svg?branch=master)](https://travis-ci.org/stanford-oval/thingtalk) [![Coverage Status](https://coveralls.io/repos/github/stanford-oval/thingtalk/badge.svg?branch=master)](https://coveralls.io/github/stanford-oval/thingtalk?branch=master) [![Dependency Status](https://david-dm.org/stanford-oval/thingtalk/status.svg)](https://david-dm.org/stanford-oval/thingtalk) [![Greenkeeper badge](https://badges.greenkeeper.io/stanford-oval/thingtalk.svg)](https://greenkeeper.io/) [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/stanford-oval/thingtalk.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/stanford-oval/thingtalk/context:javascript)
+[![Build Status](https://travis-ci.com/stanford-oval/thingtalk.svg?branch=master)](https://travis-ci.com/stanford-oval/thingtalk) [![Coverage Status](https://coveralls.io/repos/github/stanford-oval/thingtalk/badge.svg?branch=master)](https://coveralls.io/github/stanford-oval/thingtalk?branch=master) [![Dependency Status](https://david-dm.org/stanford-oval/thingtalk/status.svg)](https://david-dm.org/stanford-oval/thingtalk) [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/stanford-oval/thingtalk.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/stanford-oval/thingtalk/context:javascript)
 
 ## The Programming Language of Virtual Assistants
 
@@ -52,6 +52,4 @@ be interpreted as:
 - Patch version will be bumped for compatible bug fixes
 
 **Minor version bumps can introduce incompatibility to library users**; it is
-recommended that library users use tilde version ranges on their ThingTalk dependency,
-or use a service such as [Greenkeeper](https://greenkeeper.io) to check for incompatibilities
-when a new version of the ThingTalk library is published.
+recommended that library users use tilde version ranges on their ThingTalk dependency.
