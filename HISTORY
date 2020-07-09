@@ -1,3 +1,11 @@
+1.11.0-alpha.2
+==============
+
+* Library users can now implement custom matching of values mentioned in a
+  sentence when converting to NN syntax. As a result, a number of hacks
+  have been removed in the default implementation [#217].
+* Updated dependencies [#218].
+
 1.11.0-alpha.1
 ==============
 
