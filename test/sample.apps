@@ -1928,3 +1928,24 @@ let procedure cat_and_twitter := {
 let result cat2 := cat_and_twitter();
 now => cat2 => notify;
 now => cat2 => @com.facebook.post_picture(picture_url=picture_url, caption="cat");
+
+====
+
+// entity declarations
+class @com.example {
+  entity restaurant #_[description="Restaurant"] #[has_ner=true];
+
+  query restaurant(out id : Entity(com.example:restaurant),
+                   out geo : Location);
+
+  entity movie #_[description="Movie"] #[has_ner=true];
+  entity person #_[description="Person"] #[has_ner=true];
+  query movie(out id : Entity(com.example:movie),
+              out actors : Array(Entity(com.example:person)),
+              out director : Entity(com.example:person));
+
+  entity email #_[description="Email Message"] #[has_ner=false];
+  query email(out id : Entity(com.example:email),
+              out subject : String,
+              out sender : Entity(tt:email_address));
+}

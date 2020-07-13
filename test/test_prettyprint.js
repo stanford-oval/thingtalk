@@ -36,6 +36,18 @@ const TEST_CASES = [
 }
 `,
 
+// entity def
+`class @com.example {
+  entity restaurant
+    #_[description="Restaurant"]
+    #[has_ner=true];
+
+  query restaurant(out id: Entity(com.example:restaurant),
+                   out geo: Location)
+  #[minimal_projection=["id"]];
+}
+`,
+
 // aggregate filter
 `now => (@org.schema.restaurant()), count(review) >= 1 => notify;`,
 
