@@ -36,8 +36,7 @@ from Stanford University.  You can find more information at
 
 ## License
 
-This package is covered by the GNU General Public License, version 3
-or any later version. See [LICENSE](LICENSE) for details.
+This package is covered by the Apache 2.0 license. See [LICENSE](LICENSE) for details.
 
 ## Versioning
 
