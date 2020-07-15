@@ -7656,7 +7656,61 @@ const TEST_CASES = [
     }
   } catch(_exc_) {
     __env.reportError("Failed to invoke action", _exc_);
-  }`]]
+  }`]],
+
+    // projection on a function with input parameters: the input parameters are carried over
+    [`now => [temperature] of @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California")) => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  try {
+    _t_0 = {};
+    _t_1 = new __builtin.Location(37.442156, -122.1634471, "Palo Alto, California");
+    _t_0.location = _t_1;
+    _t_2 = await __env.invokeQuery("org.thingpedia.weather", { }, "current", _t_0, { projection: ["temperature"] });
+    _t_3 = _t_2[Symbol.iterator]();
+    {
+      let _iter_tmp = await _t_3.next();
+      while (!_iter_tmp.done) {
+        _t_4 = _iter_tmp.value;
+        _t_5 = _t_4[0];
+        _t_6 = _t_4[1];
+        _t_7 = _t_6.__response;
+        _t_8 = _t_6.temperature;
+        _t_9 = _t_6.wind_speed;
+        _t_10 = _t_6.humidity;
+        _t_11 = _t_6.cloudiness;
+        _t_12 = _t_6.fog;
+        _t_13 = _t_6.status;
+        _t_14 = _t_6.icon;
+        _t_15 = {};
+        _t_15.location = _t_1;
+        _t_15.temperature = _t_8;
+        try {
+          await __env.output(String(_t_5), _t_15);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_3.next();
+      }
+    }
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke query", _exc_);
+  }`]],
 ];
 
 // eslint-disable-next-line prefer-arrow-callback
