@@ -1,3 +1,14 @@
+1.11.0-beta.1
+=============
+
+* The ThingTalk library and compiler is now licensed under the Apache 2.0
+  license, which allows proprietary applications to use it [#219].
+* Added a new syntax to define entities inside a ThingTalk class. Defining
+  an entity provides annotations on the entities and reduces the need for
+  separate entity metadata files [#220].
+* Fixed a number of small grammar bugs [#220, #221].
+* Fixed compiling projections of functions with input parameters [#222].
+
 1.11.0-alpha.2
 ==============
 
