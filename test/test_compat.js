@@ -79,6 +79,30 @@ const TEST_CASES = [
     'now => (@org.thingpedia.weather.current), temperature >= 10 unit:defaultTemperature => notify;',
     'now => (@org.thingpedia.weather.current), temperature >= 10 unit:F => notify;'
     ],
+
+    [
+    '1.10.0', { NUMBER_0: 55 },
+    'bookkeeping answer NUMBER_0 unit:$usd',
+    'bookkeeping answer new Currency ( NUMBER_0 , unit:usd )'
+    ],
+
+    [
+    '1.11.0-alpha.1', { NUMBER_0: 55 },
+    'bookkeeping answer NUMBER_0 unit:$usd',
+    'bookkeeping answer NUMBER_0 unit:$usd'
+    ],
+
+    [
+    '1.10.0', {},
+    'bookkeeping answer 7 unit:$usd',
+    'bookkeeping answer new Currency ( 7 , unit:usd )'
+    ],
+
+    [
+    '1.11.0-alpha.1', {},
+    'bookkeeping answer 7 unit:$usd',
+    'bookkeeping answer 7 unit:$usd'
+    ],
 ];
 
 async function test(i) {
