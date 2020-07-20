@@ -1,3 +1,12 @@
+1.11.0-beta.2
+=============
+
+* Added the ability to convert NN syntax code to older versions of ThingTalk,
+  for compatibility [#223].
+* Added new syntax to choose a specific device ID in NN syntax [#226].
+* Misc bug fixes [#224].
+* Updated dependencies [#225].
+
 1.11.0-beta.1
 =============
 
