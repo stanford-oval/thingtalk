@@ -339,12 +339,15 @@ selector = {
 
     selector attr:device_attribute => {
         const [sel,] = selector;
-        if (attr.name === 'id')
-            sel.id = attr.value.toJS();
-        else if (attr.name === 'all')
+        if (attr.name === 'id') {
+            sel.id = String(attr.value.toJS());
+            if (attr.value.display)
+                sel.attributes.push(new Ast.InputParam(null, 'name', new Ast.Value.String(attr.value.display)));
+        } else if (attr.name === 'all') {
             sel.all = attr.value.toJS();
-        else
+        } else {
             sel.attributes.push(attr);
+        }
         return selector;
     };
 }

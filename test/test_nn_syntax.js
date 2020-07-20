@@ -603,6 +603,16 @@ now => @org.schema.restaurant() => notify;`],
     ['now => ( @com.uber.price_estimate ) filter param:low_estimate:Currency <= NUMBER_0 unit:$usd => notify',
      'is it less than $ NUMBER_0 ?', { NUMBER_0: 1000 },
      'now => (@com.uber.price_estimate()), low_estimate <= 1000$usd => notify;'],
+
+    ['now => @com.twitter.post attribute:id:Entity(tt:device_id) = GENERIC_ENTITY_tt:device_id_0 param:status:String = QUOTED_STRING_0',
+     'post QUOTED_STRING_0 on it', { 'GENERIC_ENTITY_tt:device_id_0': { value: 'twitter-account-foo', display: "Twitter Account foo" },
+                                     QUOTED_STRING_0: 'hello' },
+     `now => @com.twitter(id="twitter-account-foo", name="Twitter Account foo").post(status="hello");`],
+
+    ['now => @com.twitter.post attribute:id:Entity(tt:device_id) = GENERIC_ENTITY_tt:device_id_0 param:status:String = QUOTED_STRING_0',
+     'post QUOTED_STRING_0 on it', { 'GENERIC_ENTITY_tt:device_id_0': { value: 'twitter-account-foo' },
+                                     QUOTED_STRING_0: 'hello' },
+     `now => @com.twitter(id="twitter-account-foo").post(status="hello");`],
 ];
 
 function stripTypeAnnotations(program) {
