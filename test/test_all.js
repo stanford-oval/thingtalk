@@ -46,6 +46,7 @@ seq([
     ('./test_sparql_converter'),
     ('./test_nn_syntax'),
     ('./test_nn_syntax_allocator'),
+    ('./test_compat'),
     ('./test_compiler'),
     ('./test_builtin'),
     ('./test_describe'),
