@@ -20,7 +20,7 @@
 const assert = require('assert');
 
 const { parseDate, normalizeDate } = require('../lib/date_utils');
-const { DateEdge } = require('../lib/ast');
+const { DateEdge, DatePiece } = require('../lib/ast');
 
 function test(value, expected) {
     expected = parseDate(expected);
@@ -65,6 +65,33 @@ function main() {
     next_month.setMilliseconds(0);
     next_month.setMonth(next_month.getMonth()+1);
     test(new DateEdge('end_of', 'mon'), next_month);
+
+    const the_11th = new Date;
+    the_11th.setDate(11);
+    the_11th.setHours(0);
+    the_11th.setMinutes(0);
+    the_11th.setSeconds(0);
+    the_11th.setMilliseconds(0);
+    test(new DatePiece('day', 11), the_11th);
+
+    const february = new Date;
+    february.setDate(1);
+    february.setHours(0);
+    february.setMinutes(0);
+    february.setSeconds(0);
+    february.setMilliseconds(0);
+    february.setMonth(1);
+    test(new DatePiece('month', 2), february);
+
+    const the_80s = new Date;
+    the_80s.setMonth(0);
+    the_80s.setDate(1);
+    the_80s.setHours(0);
+    the_80s.setMinutes(0);
+    the_80s.setSeconds(0);
+    the_80s.setMilliseconds(0);
+    the_80s.setYear(1980);
+    test(new DatePiece('year', 1980), the_80s);
 }
 module.exports = main;
 if (!module.parent)
