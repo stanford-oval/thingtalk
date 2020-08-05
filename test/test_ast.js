@@ -70,7 +70,7 @@ const IS_CONSTANT_TESTS = [
     [new Ast.Value.Event('program_id'), false],
     [new Ast.Value.Date(new Date('2020-01-29')), true],
     [new Ast.Value.Date(new Ast.DateEdge('start_of', 'week')), true],
-    [new Ast.Value.Date(new Ast.DatePiece('day', 11)), true],
+    [new Ast.Value.Date(new Ast.DatePiece(-1, -1, 11, -1, -1)), true],
     [new Ast.Value.Date(null), true],
     [new Ast.Value.VarRef('foo'), false],
     [new Ast.Value.VarRef('__const_QUOTED_STRING_0'), true],

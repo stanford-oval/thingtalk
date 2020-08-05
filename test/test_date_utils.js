@@ -72,7 +72,7 @@ function main() {
     the_11th.setMinutes(0);
     the_11th.setSeconds(0);
     the_11th.setMilliseconds(0);
-    test(new DatePiece('day', 11), the_11th);
+    test(new DatePiece(-1, -1, 11, -1, -1), the_11th);
 
     const february = new Date;
     february.setDate(1);
@@ -81,7 +81,7 @@ function main() {
     february.setSeconds(0);
     february.setMilliseconds(0);
     february.setMonth(1);
-    test(new DatePiece('month', 2), february);
+    test(new DatePiece(-1, 2, -1, -1, -1), february);
 
     const the_80s = new Date;
     the_80s.setMonth(0);
@@ -91,7 +91,7 @@ function main() {
     the_80s.setSeconds(0);
     the_80s.setMilliseconds(0);
     the_80s.setYear(1980);
-    test(new DatePiece('year', 1980), the_80s);
+    test(new DatePiece(80, -1, -1, -1, -1), the_80s);
 }
 module.exports = main;
 if (!module.parent)

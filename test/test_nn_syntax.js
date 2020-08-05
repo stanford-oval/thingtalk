@@ -613,6 +613,10 @@ now => @org.schema.restaurant() => notify;`],
      'post QUOTED_STRING_0 on it', { 'GENERIC_ENTITY_tt:device_id_0': { value: 'twitter-account-foo' },
                                      QUOTED_STRING_0: 'hello' },
      `now => @com.twitter(id="twitter-account-foo").post(status="hello");`],
+
+    [`now => @org.thingpedia.weather.sunrise param:date:Date = datePiece ( LITERAL_INTEGER_0 , LITERAL_INTEGER_0 , LITERAL_INTEGER_1 , LITERAL_INTEGER_0 , LITERAL_INTEGER_0 ) => notify`, `get sunrise sunset on the twelfth`, { LITERAL_INTEGER_0: -1, LITERAL_INTEGER_1: 12 },
+     `now => @org.thingpedia.weather.sunrise(date=datePiece( -1, -1, 12, -1, -1 )) => notify;`],
+
 ];
 
 function stripTypeAnnotations(program) {

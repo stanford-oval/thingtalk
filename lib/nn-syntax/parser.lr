@@ -747,9 +747,13 @@ constant_Date = {
 
     'start_of' unit:UNIT => new Ast.Value.Date(new Ast.DateEdge('start_of', unit.value));
     'end_of' unit:UNIT => new Ast.Value.Date(new Ast.DateEdge('end_of', unit.value));
-    'day' value:VALUE => new Ast.Value.Date(new Ast.DatePiece('day', value.value));
-    'month' value:VALUE => new Ast.Value.Date(new Ast.DatePiece('month', value.value));
-    'year' value:VALUE => new Ast.Value.Date(new Ast.DatePiece('year', value.value));
+
+    'datePiece' '(' year:literal_number ',' month:literal_number ','
+                    day:literal_number ',' hours:literal_number ','
+                    minutes:literal_number ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(year, month, day, hours, minutes));
+    };
+
     abs:DATE => new Ast.Value.Date(parseDate(abs.value));
 }
 
