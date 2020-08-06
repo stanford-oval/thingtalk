@@ -614,8 +614,9 @@ now => @org.schema.restaurant() => notify;`],
                                      QUOTED_STRING_0: 'hello' },
      `now => @com.twitter(id="twitter-account-foo").post(status="hello");`],
 
-    [`now => @org.thingpedia.weather.sunrise param:date:Date = new DatePiece ( -1 , -1 , 12 , -1 , -1 ) => notify`, `get sunrise sunset on the twelfth`, {},
-     `now => @org.thingpedia.weather.sunrise(date=new DatePiece(-1, -1, 12, -1, -1)) => notify;`],
+    [`now => @org.thingpedia.weather.sunrise param:date:Date = new DatePiece ( -1 , -1 , NUMBER_0 , time:-1 ) => notify`,
+     `get sunrise sunset on the NUMBER_0 th`, { NUMBER_0: 25 },
+     `now => @org.thingpedia.weather.sunrise(date=new DatePiece(-1, -1, 25, -1)) => notify;`],
 
 ];
 

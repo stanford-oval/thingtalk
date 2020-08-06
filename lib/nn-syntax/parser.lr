@@ -709,6 +709,19 @@ constant_Location = {
     };
 }
 
+// Note that while keeping digits in ranges [0-23],[0-59],[0-59] is not enforced
+// here, it is enforced in tonn_converter, rendering it unnecessary to do so here
+constant_Time = {
+    time:TIME => new Ast.Value.Time(new Ast.Time.Absolute(time.value.hour, time.value.minute, time.value.second||0));
+    time:LITERAL_TIME => {
+        let tokens = time.value.split(':');
+        return new Ast.Value.Time(new Ast.Time.Absolute(parseInt(tokens[0]), parseInt(tokens[1]), parseInt(tokens[2])));
+    };
+    'time:morning' => new Ast.Value.Time(new Ast.Time.Relative('morning'));
+    'time:evening' => new Ast.Value.Time(new Ast.Time.Relative('evening'));
+    'time:-1' => new Ast.Value.Number(-1);
+}
+
 // start_of/end_of with less than 1h are not supported
 // (they don't make sense)
 constant_Date = {
@@ -749,25 +762,12 @@ constant_Date = {
     'start_of' unit:UNIT => new Ast.Value.Date(new Ast.DateEdge('start_of', unit.value));
     'end_of' unit:UNIT => new Ast.Value.Date(new Ast.DateEdge('end_of', unit.value));
 
-    'new' 'DatePiece' '(' year:literal_number ',' month:literal_number ','
-                          day:literal_number ',' hours:literal_number ','
-                          minutes:literal_number ')' => {
-        return new Ast.Value.Date(new Ast.DatePiece(year, month, day, hours, minutes));
+    'new' 'DatePiece' '(' year:constant_Number ',' month:constant_Number ','
+                          day:constant_Number ',' time:constant_Time ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(year.value, month.value, day.value, time.value));
     };
 
     abs:DATE => new Ast.Value.Date(parseDate(abs.value));
-}
-
-// Note that while keeping digits in ranges [0-23],[0-59],[0-59] is not enforced
-// here, it is enforced in tonn_converter, rendering it unnecessary to do so here
-constant_Time = {
-    time:TIME => new Ast.Value.Time(new Ast.Time.Absolute(time.value.hour, time.value.minute, time.value.second||0));
-    time:LITERAL_TIME => {
-        let tokens = time.value.split(':');
-        return new Ast.Value.Time(new Ast.Time.Absolute(parseInt(tokens[0]), parseInt(tokens[1]), parseInt(tokens[2])));
-    };
-    'time:morning' => new Ast.Value.Time(new Ast.Time.Relative('morning'));
-    'time:evening' => new Ast.Value.Time(new Ast.Time.Relative('evening'));
 }
 
 // luinet expands this into the various enums in the right
