@@ -673,6 +673,7 @@ literal_number = {
     num:LITERAL_INTEGER => num.value;
     '1' => 1;
     '0' => 0;
+    '-1' => -1;
 }
 
 constant_Measure = {
@@ -748,9 +749,9 @@ constant_Date = {
     'start_of' unit:UNIT => new Ast.Value.Date(new Ast.DateEdge('start_of', unit.value));
     'end_of' unit:UNIT => new Ast.Value.Date(new Ast.DateEdge('end_of', unit.value));
 
-    'datePiece' '(' year:literal_number ',' month:literal_number ','
-                    day:literal_number ',' hours:literal_number ','
-                    minutes:literal_number ')' => {
+    'new' 'DatePiece' '(' year:literal_number ',' month:literal_number ','
+                          day:literal_number ',' hours:literal_number ','
+                          minutes:literal_number ')' => {
         return new Ast.Value.Date(new Ast.DatePiece(year, month, day, hours, minutes));
     };
 
