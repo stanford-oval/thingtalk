@@ -103,7 +103,14 @@ function main() {
     the_10s.setYear(2010);
     test(new DatePiece(10, -1, -1, -1, -1), the_10s);
 
-    assert(the_80s !== the_10s);
+    assert(!(new DatePiece(10, -1, -1, -1, -1)).equals(new DatePiece(80, -1, -1, -1, -1)));
+
+    const eleven_thirty = new Date;
+    eleven_thirty.setHours(11);
+    eleven_thirty.setMinutes(30);
+    eleven_thirty.setSeconds(0);
+    eleven_thirty.setMilliseconds(0);
+    test(new DatePiece(-1, -1, -1, 11, 30), eleven_thirty);
 }
 module.exports = main;
 if (!module.parent)
