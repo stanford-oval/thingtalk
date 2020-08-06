@@ -92,6 +92,18 @@ function main() {
     the_80s.setMilliseconds(0);
     the_80s.setYear(1980);
     test(new DatePiece(80, -1, -1, -1, -1), the_80s);
+
+    const the_10s = new Date;
+    the_10s.setMonth(0);
+    the_10s.setDate(1);
+    the_10s.setHours(0);
+    the_10s.setMinutes(0);
+    the_10s.setSeconds(0);
+    the_10s.setMilliseconds(0);
+    the_10s.setYear(2010);
+    test(new DatePiece(10, -1, -1, -1, -1), the_10s);
+
+    assert(the_80s !== the_10s);
 }
 module.exports = main;
 if (!module.parent)

@@ -370,6 +370,10 @@ var TEST_CASES = [
     [`now => (@com.yelp.restaurant()), geo == new Location("Palo Alto") && contains(cuisines, "mexican"^^com.yelp:restaurant_cuisine("Mexican")) => notify;`,
     `get restaurants on Yelp that have Mexican food near Palo Alto and then notify you`,
     `Yelp`],
+
+    [`now => @org.thingpedia.builtin.thingengine.builtin.get_date(), date >= new DatePiece(-1, 6, -1, -1, -1) => notify;`,
+     `get today's date such that the date is after ????-06-?? ??:?? and then notify you`,
+     `Get Date`],
 ];
 
 const gettext = {
