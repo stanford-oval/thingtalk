@@ -673,7 +673,6 @@ literal_number = {
     num:LITERAL_INTEGER => num.value;
     '1' => 1;
     '0' => 0;
-    '-1' => -1;
 }
 
 constant_Measure = {
@@ -719,7 +718,6 @@ constant_Time = {
     };
     'time:morning' => new Ast.Value.Time(new Ast.Time.Relative('morning'));
     'time:evening' => new Ast.Value.Time(new Ast.Time.Relative('evening'));
-    'time:-1' => new Ast.Value.Number(-1);
 }
 
 // start_of/end_of with less than 1h are not supported
@@ -764,6 +762,11 @@ constant_Date = {
 
     'new' 'DatePiece' '(' year:constant_Number ',' month:constant_Number ','
                           day:constant_Number ',' time:constant_Time ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(year.value, month.value, day.value, time.value));
+    };
+
+    'new' 'DatePiece' '(' year:constant_Number ',' month:constant_Number ','
+                          day:constant_Number ',' time:constant_Number ')' => {
         return new Ast.Value.Date(new Ast.DatePiece(year.value, month.value, day.value, time.value));
     };
 
