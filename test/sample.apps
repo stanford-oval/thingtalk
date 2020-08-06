@@ -1956,3 +1956,9 @@ class @com.example {
 {
     now => @org.thingpedia.builtin.thingengine.builtin.get_date(), date >= new Date(, 6, ) => notify;
 }
+
+====
+
+// Recurrent time specification
+now => @com.yelp.restaurant(), contains(openingHours, new Date()) => notify;
+
