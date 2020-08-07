@@ -371,7 +371,7 @@ var TEST_CASES = [
     `get restaurants on Yelp that have Mexican food near Palo Alto and then notify you`,
     `Yelp`],
 
-    [`now => @org.thingpedia.builtin.thingengine.builtin.get_date(), date >= new DatePiece(null, 6, null, null) => notify;`,
+    [`now => @org.thingpedia.builtin.thingengine.builtin.get_date(), date >= new DatePiece(, 6, , ) => notify;`,
      `get today's date such that the date is after ????-06-?? ??:?? and then notify you`,
      `Get Date`],
 ];

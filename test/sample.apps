@@ -1954,5 +1954,5 @@ class @com.example {
 
 // date piece
 {
-    now => @org.thingpedia.builtin.thingengine.builtin.get_date(), date >= new DatePiece(null, 6, null, null) => notify;
+    now => @org.thingpedia.builtin.thingengine.builtin.get_date(), date >= new DatePiece(, 6, , ) => notify;
 }

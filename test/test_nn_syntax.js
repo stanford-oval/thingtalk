@@ -616,19 +616,19 @@ now => @org.schema.restaurant() => notify;`],
 
     [`now => @org.thingpedia.weather.sunrise param:date:Date = new DatePiece ( , , NUMBER_0 , ) => notify`,
      `get sunrise sunset on the NUMBER_0 th`, { NUMBER_0: 25 },
-     `now => @org.thingpedia.weather.sunrise(date=new DatePiece(null, null, 25, null)) => notify;`],
+     `now => @org.thingpedia.weather.sunrise(date=new DatePiece(, , 25, )) => notify;`],
 
     [`now => @org.thingpedia.weather.sunrise param:date:Date = new DatePiece ( , , 10 , TIME_0 ) => notify`,
      `get sunrise sunset on the 10 th at TIME_0`, { TIME_0: { hour: 5, minute: 0 } },
-     `now => @org.thingpedia.weather.sunrise(date=new DatePiece(null, null, 10, new Time(5, 0))) => notify;`],
+     `now => @org.thingpedia.weather.sunrise(date=new DatePiece(, , 10, new Time(5, 0))) => notify;`],
 
     [`now => @org.thingpedia.weather.sunrise param:date:Date = new DatePiece ( NUMBER_0 , 3 , , ) => notify`,
      `get sunrise sunset on March, NUMBER_0`, { NUMBER_0: 2020 },
-     `now => @org.thingpedia.weather.sunrise(date=new DatePiece(2020, 3, null, null)) => notify;`],
+     `now => @org.thingpedia.weather.sunrise(date=new DatePiece(2020, 3, , )) => notify;`],
 
     [`now => @org.thingpedia.weather.sunrise param:date:Date = new DatePiece ( 10 , , , ) => notify`,
      `get sunrise sunset in the 10s`, {},
-     `now => @org.thingpedia.weather.sunrise(date=new DatePiece(10, null, null, null)) => notify;`],
+     `now => @org.thingpedia.weather.sunrise(date=new DatePiece(10, , , )) => notify;`],
 ];
 
 function stripTypeAnnotations(program) {
