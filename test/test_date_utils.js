@@ -72,7 +72,7 @@ function main() {
     the_11th.setMinutes(0);
     the_11th.setSeconds(0);
     the_11th.setMilliseconds(0);
-    test(new DatePiece(-1, -1, 11, -1), the_11th);
+    test(new DatePiece(null, null, 11, null), the_11th);
 
     const february = new Date;
     february.setDate(1);
@@ -81,7 +81,7 @@ function main() {
     february.setSeconds(0);
     february.setMilliseconds(0);
     february.setMonth(1);
-    test(new DatePiece(-1, 2, -1, -1), february);
+    test(new DatePiece(null, 2, null, null), february);
 
     const the_80s = new Date;
     the_80s.setMonth(0);
@@ -91,7 +91,7 @@ function main() {
     the_80s.setSeconds(0);
     the_80s.setMilliseconds(0);
     the_80s.setYear(1980);
-    test(new DatePiece(80, -1, -1, -1), the_80s);
+    test(new DatePiece(80, null, null, null), the_80s);
 
     const the_10s = new Date;
     the_10s.setMonth(0);
@@ -101,9 +101,9 @@ function main() {
     the_10s.setSeconds(0);
     the_10s.setMilliseconds(0);
     the_10s.setYear(2010);
-    test(new DatePiece(10, -1, -1, -1), the_10s);
+    test(new DatePiece(10, null, null, null), the_10s);
 
-    assert(!(new DatePiece(10, -1, -1, -1)).equals(new DatePiece(80, -1, -1, -1)));
+    assert(!(new DatePiece(10, null, null, null)).equals(new DatePiece(80, null, null, null)));
 
     const eleven_thirty = new Date;
     eleven_thirty.setDate(25);
@@ -111,7 +111,7 @@ function main() {
     eleven_thirty.setMinutes(30);
     eleven_thirty.setSeconds(0);
     eleven_thirty.setMilliseconds(0);
-    test(new DatePiece(-1, -1, 25, new Time.Absolute(11, 30, 0)), eleven_thirty);
+    test(new DatePiece(null, null, 25, new Time.Absolute(11, 30, 0)), eleven_thirty);
 }
 module.exports = main;
 if (!module.parent)

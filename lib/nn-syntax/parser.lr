@@ -760,14 +760,32 @@ constant_Date = {
     'start_of' unit:UNIT => new Ast.Value.Date(new Ast.DateEdge('start_of', unit.value));
     'end_of' unit:UNIT => new Ast.Value.Date(new Ast.DateEdge('end_of', unit.value));
 
-    'new' 'DatePiece' '(' year:constant_Number ',' month:constant_Number ','
-                          day:constant_Number ',' time:constant_Time ')' => {
-        return new Ast.Value.Date(new Ast.DatePiece(year.value, month.value, day.value, time.value));
+    'new' 'DatePiece' '(' year:constant_Number ',' ',' ',' ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(year.value, null, null, null));
     };
 
-    'new' 'DatePiece' '(' year:constant_Number ',' month:constant_Number ','
-                          day:constant_Number ',' time:constant_Number ')' => {
-        return new Ast.Value.Date(new Ast.DatePiece(year.value, month.value, day.value, time.value));
+    'new' 'DatePiece' '(' ',' month:constant_Number ',' ',' ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(null, month.value, null, null));
+    };
+
+    'new' 'DatePiece' '(' ',' ',' day:constant_Number ',' ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(null, null, day.value, null));
+    };
+
+    'new' 'DatePiece' '(' year:constant_Number ',' month:constant_Number ',' ',' ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(year.value, month.value, null, null));
+    };
+
+    'new' 'DatePiece' '(' ',' month:constant_Number ',' day:constant_Number ',' ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(null, month.value, day.value, null));
+    };
+
+    'new' 'DatePiece' '(' ',' ',' day:constant_Number ',' time:constant_Time ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(null, null, day.value, time.value));
+    };
+
+    'new' 'DatePiece' '(' ',' month:constant_Number ',' day:constant_Number ',' time:constant_Time ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(null, month.value, day.value, time.value));
     };
 
     abs:DATE => new Ast.Value.Date(parseDate(abs.value));
