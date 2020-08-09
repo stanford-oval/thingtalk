@@ -146,6 +146,41 @@ now => [distance] of (compute (distance(geo, $context.location.current_location)
     [`now => [aggregateRating.ratingValue] of ((sort distance asc of (compute (distance(geo, new Location("foo"))) of ((@org.schema.restaurant()), name =~ $context.selection : String)))[1]) => notify;`,
     `now => [aggregateRating.ratingValue] of ((sort distance asc of (compute (distance(geo, new Location("foo"))) of ((@org.schema.restaurant()), name =~ $context.selection : String)))[1]) => notify;`
     ],
+
+    [`now => compute distance(geo, $context.location.current_location) of compute distance(geo, $context.location.current_location) of @com.yelp.restaurant() => notify;`,
+     `now => compute (distance(geo, $context.location.current_location)) of (@com.yelp.restaurant()) => notify;`],
+
+    [`now => compute distance(geo, $context.location.current_location) of compute distance(geo, $context.location.home) of @com.yelp.restaurant() => notify;`,
+     `now => compute (distance(geo, $context.location.current_location)) of (compute (distance(geo, $context.location.home)) of (@com.yelp.restaurant())) => notify;`],
+
+    [`now => compute distance(geo, $context.location.current_location) of compute rating + 2 of @com.yelp.restaurant() => notify;`,
+     `now => compute (distance(geo, $context.location.current_location)) of (compute (rating + 2) of (@com.yelp.restaurant())) => notify;`],
+
+    [`now => compute distance(geo, $context.location.current_location) of compute rating + 2 of compute distance(geo, $context.location.current_location) of @com.yelp.restaurant() => notify;`,
+     `now => compute (rating + 2) of (compute (distance(geo, $context.location.current_location)) of (@com.yelp.restaurant())) => notify;`],
+
+    [`now => compute result + 2 of compute rating + 2 of @com.yelp.restaurant() => notify;`,
+     `now => compute (result + 2) of (compute (rating + 2) of (@com.yelp.restaurant())) => notify;`],
+
+    [`now => compute result + 2 of compute result + 2 of compute rating + 2 of @com.yelp.restaurant() => notify;`,
+     `now => compute (result + 2) of (compute (result + 2) of (compute (rating + 2) of (@com.yelp.restaurant()))) => notify;`],
+
+    [`now => compute result + 2 of compute distance(geo, $context.location.current_location) of compute result + 2 of compute rating + 2 of @com.yelp.restaurant() => notify;`,
+     `now => compute (result + 2) of (compute (distance(geo, $context.location.current_location)) of (compute (result + 2) of (compute (rating + 2) of (@com.yelp.restaurant())))) => notify;`],
+
+    [`now => compute result of compute rating + 2 of @com.yelp.restaurant() => notify;`,
+     `now => compute (rating + 2) of (@com.yelp.restaurant()) => notify;`],
+
+    [`now => compute rating of @com.yelp.restaurant() => notify;`,
+     `now => @com.yelp.restaurant() => notify;`],
+
+    [`now => compute distance(geo, $context.location.current_location) of (sort distance asc of compute distance(geo, $context.location.current_location) of @com.yelp.restaurant()) => notify;`,
+    `now => sort distance asc of (compute (distance(geo, $context.location.current_location)) of (@com.yelp.restaurant())) => notify;`],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute; now => compute distance(geo, $context.location.current_location) of (sort distance asc of compute distance(geo, $context.location.current_location) of @com.yelp.restaurant()) => notify;`,
+    `$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => sort distance asc of (compute (distance(geo, $context.location.current_location)) of (@com.yelp.restaurant())) => notify;`]
+
 ];
 
 
