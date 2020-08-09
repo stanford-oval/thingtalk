@@ -725,32 +725,32 @@ constant_Time = {
 constant_Date = {
     'now' => new Ast.Value.Date(null);
     'new' 'Date' '(' ')' => new Ast.Value.Date(null);
-    'new' 'Date' '(' year:literal_number ',' month:literal_number ',' day:literal_number ')' => {
+    'new' 'Date' '(' year:constant_Number ',' month:constant_Number ',' day:constant_Number ')' => {
         const d = new Date;
-        d.setFullYear(year);
-        d.setMonth(month-1);
-        d.setDate(day);
+        d.setFullYear(year.value);
+        d.setMonth(month.value-1);
+        d.setDate(day.value);
         d.setHours(0);
         d.setMinutes(0);
         d.setSeconds(0);
         d.setMilliseconds(0);
         return new Ast.Value.Date(d);
     };
-    'new' 'Date' '(' year:literal_number ',' month:literal_number ',' day:literal_number ','
-                     hours:literal_number ',' minutes:literal_number ',' seconds:literal_number ')' => {
+    'new' 'Date' '(' year:constant_Number ',' month:constant_Number ',' day:constant_Number ','
+                     hours:constant_Number ',' minutes:constant_Number ',' seconds:constant_Number ')' => {
         const d = new Date;
-        d.setFullYear(year);
-        d.setMonth(month-1);
-        d.setDate(day);
-        d.setHours(hours);
-        d.setMinutes(minutes);
-        d.setSeconds(seconds);
+        d.setFullYear(year.value);
+        d.setMonth(month.value-1);
+        d.setDate(day.value);
+        d.setHours(hours.value);
+        d.setMinutes(minutes.value);
+        d.setSeconds(seconds.value);
         d.setMilliseconds(0);
         return new Ast.Value.Date(d);
     };
-    'new' 'Date' '(' unix:literal_number ')' => {
+    'new' 'Date' '(' unix:constant_Number ')' => {
         const d = new Date;
-        d.setTime(unix);
+        d.setTime(unix.value);
         return new Ast.Value.Date(d);
     };
     'new' 'Date' '(' '"' iso:word_list '"' ')' => {
@@ -760,35 +760,29 @@ constant_Date = {
     'start_of' unit:UNIT => new Ast.Value.Date(new Ast.DateEdge('start_of', unit.value));
     'end_of' unit:UNIT => new Ast.Value.Date(new Ast.DateEdge('end_of', unit.value));
 
-    'new' 'DatePiece' '(' year:constant_Number ',' ',' ',' ')' => {
+    abs:DATE => new Ast.Value.Date(parseDate(abs.value));
+
+    'new' 'Date' '(' year:constant_Number ',' ',' ',' ')' => {
         return new Ast.Value.Date(new Ast.DatePiece(year.value, null, null, null));
     };
-
-    'new' 'DatePiece' '(' ',' month:constant_Number ',' ',' ')' => {
+    'new' 'Date' '(' ',' month:constant_Number ',' ',' ')' => {
         return new Ast.Value.Date(new Ast.DatePiece(null, month.value, null, null));
     };
-
-    'new' 'DatePiece' '(' ',' ',' day:constant_Number ',' ')' => {
+    'new' 'Date' '(' ',' ',' day:constant_Number ',' ')' => {
         return new Ast.Value.Date(new Ast.DatePiece(null, null, day.value, null));
     };
-
-    'new' 'DatePiece' '(' year:constant_Number ',' month:constant_Number ',' ',' ')' => {
+    'new' 'Date' '(' year:constant_Number ',' month:constant_Number ',' ',' ')' => {
         return new Ast.Value.Date(new Ast.DatePiece(year.value, month.value, null, null));
     };
-
-    'new' 'DatePiece' '(' ',' month:constant_Number ',' day:constant_Number ',' ')' => {
+    'new' 'Date' '(' ',' month:constant_Number ',' day:constant_Number ',' ')' => {
         return new Ast.Value.Date(new Ast.DatePiece(null, month.value, day.value, null));
     };
-
-    'new' 'DatePiece' '(' ',' ',' day:constant_Number ',' time:constant_Time ')' => {
-        return new Ast.Value.Date(new Ast.DatePiece(null, null, day.value, time.value));
+    'new' 'Date' '(' ',' ',' day:constant_Number ',' time:constant_Time ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(null, null, day.value, time));
     };
-
-    'new' 'DatePiece' '(' ',' month:constant_Number ',' day:constant_Number ',' time:constant_Time ')' => {
-        return new Ast.Value.Date(new Ast.DatePiece(null, month.value, day.value, time.value));
+    'new' 'Date' '(' ',' month:constant_Number ',' day:constant_Number ',' time:constant_Time ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(null, month.value, day.value, time));
     };
-
-    abs:DATE => new Ast.Value.Date(parseDate(abs.value));
 }
 
 // luinet expands this into the various enums in the right
