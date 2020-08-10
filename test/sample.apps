@@ -1962,3 +1962,10 @@ class @com.example {
 // Recurrent time specification
 now => @com.yelp.restaurant(), contains(openingHours, new Date()) => notify;
 
+====
+
+// weekday
+{
+    now => @org.thingpedia.builtin.thingengine.builtin.get_date(), date >= new Date('monday') => notify;
+    now => @org.thingpedia.builtin.thingengine.builtin.get_date(), date >= new Date("monday", 12, 0, 0) => notify;
+}

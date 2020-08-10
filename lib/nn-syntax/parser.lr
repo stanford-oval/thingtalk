@@ -783,6 +783,14 @@ constant_Date = {
     'new' 'Date' '(' ',' month:constant_Number ',' day:constant_Number ',' time:constant_Time ')' => {
         return new Ast.Value.Date(new Ast.DatePiece(null, month.value, day.value, time));
     };
+    'new' 'Date' '(' weekday:ENUM ')' => {
+        const d = new Ast.WeekDay(weekday.value, null);
+        return new Ast.Value.Date(d);
+    };
+    'new' 'Date' '(' weekday:ENUM ',' time:constant_Time ')' => {
+        const d = new Ast.WeekDay(weekday.value, time);
+        return new Ast.Value.Date(d);
+    };
 }
 
 // luinet expands this into the various enums in the right
