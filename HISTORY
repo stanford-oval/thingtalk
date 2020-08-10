@@ -1,3 +1,14 @@
+1.11.0-beta.3
+=============
+
+* Added support for partial dates (specifying only the day, only the month,
+  or only the year, or a combination of those) [#232].
+* Substring match (=~) now ignores accents [#239].
+* Fixed normalization of nested compute tables [#240].
+* Procedure enter/exit runtime hooks are now called for the main program as
+  well [#234].
+* Updated dependencies [#228, #233].
+
 1.11.0-beta.2
 =============
 
