@@ -20,7 +20,7 @@
 const assert = require('assert');
 
 const { parseDate, normalizeDate } = require('../lib/date_utils');
-const { DateEdge } = require('../lib/ast');
+const { DateEdge, DatePiece, Time } = require('../lib/ast');
 
 function test(value, expected) {
     expected = parseDate(expected);
@@ -65,6 +65,53 @@ function main() {
     next_month.setMilliseconds(0);
     next_month.setMonth(next_month.getMonth()+1);
     test(new DateEdge('end_of', 'mon'), next_month);
+
+    const the_11th = new Date;
+    the_11th.setDate(11);
+    the_11th.setHours(0);
+    the_11th.setMinutes(0);
+    the_11th.setSeconds(0);
+    the_11th.setMilliseconds(0);
+    test(new DatePiece(null, null, 11, null), the_11th);
+
+    const february = new Date;
+    february.setDate(1);
+    february.setHours(0);
+    february.setMinutes(0);
+    february.setSeconds(0);
+    february.setMilliseconds(0);
+    february.setMonth(1);
+    test(new DatePiece(null, 2, null, null), february);
+
+    const the_80s = new Date;
+    the_80s.setMonth(0);
+    the_80s.setDate(1);
+    the_80s.setHours(0);
+    the_80s.setMinutes(0);
+    the_80s.setSeconds(0);
+    the_80s.setMilliseconds(0);
+    the_80s.setYear(1980);
+    test(new DatePiece(80, null, null, null), the_80s);
+
+    const the_10s = new Date;
+    the_10s.setMonth(0);
+    the_10s.setDate(1);
+    the_10s.setHours(0);
+    the_10s.setMinutes(0);
+    the_10s.setSeconds(0);
+    the_10s.setMilliseconds(0);
+    the_10s.setYear(2010);
+    test(new DatePiece(10, null, null, null), the_10s);
+
+    assert(!(new DatePiece(10, null, null, null)).equals(new DatePiece(80, null, null, null)));
+
+    const eleven_thirty = new Date;
+    eleven_thirty.setDate(25);
+    eleven_thirty.setHours(11);
+    eleven_thirty.setMinutes(30);
+    eleven_thirty.setSeconds(0);
+    eleven_thirty.setMilliseconds(0);
+    test(new DatePiece(null, null, 25, new Time.Absolute(11, 30, 0)), eleven_thirty);
 }
 module.exports = main;
 if (!module.parent)

@@ -708,48 +708,6 @@ constant_Location = {
     };
 }
 
-// start_of/end_of with less than 1h are not supported
-// (they don't make sense)
-constant_Date = {
-    'now' => new Ast.Value.Date(null);
-    'new' 'Date' '(' ')' => new Ast.Value.Date(null);
-    'new' 'Date' '(' year:literal_number ',' month:literal_number ',' day:literal_number ')' => {
-        const d = new Date;
-        d.setFullYear(year);
-        d.setMonth(month-1);
-        d.setDate(day);
-        d.setHours(0);
-        d.setMinutes(0);
-        d.setSeconds(0);
-        d.setMilliseconds(0);
-        return new Ast.Value.Date(d);
-    };
-    'new' 'Date' '(' year:literal_number ',' month:literal_number ',' day:literal_number ','
-                     hours:literal_number ',' minutes:literal_number ',' seconds:literal_number ')' => {
-        const d = new Date;
-        d.setFullYear(year);
-        d.setMonth(month-1);
-        d.setDate(day);
-        d.setHours(hours);
-        d.setMinutes(minutes);
-        d.setSeconds(seconds);
-        d.setMilliseconds(0);
-        return new Ast.Value.Date(d);
-    };
-    'new' 'Date' '(' unix:literal_number ')' => {
-        const d = new Date;
-        d.setTime(unix);
-        return new Ast.Value.Date(d);
-    };
-    'new' 'Date' '(' '"' iso:word_list '"' ')' => {
-        return new Ast.Value.Date(new Date(iso));
-    };
-
-    'start_of' unit:UNIT => new Ast.Value.Date(new Ast.DateEdge('start_of', unit.value));
-    'end_of' unit:UNIT => new Ast.Value.Date(new Ast.DateEdge('end_of', unit.value));
-    abs:DATE => new Ast.Value.Date(parseDate(abs.value));
-}
-
 // Note that while keeping digits in ranges [0-23],[0-59],[0-59] is not enforced
 // here, it is enforced in tonn_converter, rendering it unnecessary to do so here
 constant_Time = {
@@ -760,6 +718,71 @@ constant_Time = {
     };
     'time:morning' => new Ast.Value.Time(new Ast.Time.Relative('morning'));
     'time:evening' => new Ast.Value.Time(new Ast.Time.Relative('evening'));
+}
+
+// start_of/end_of with less than 1h are not supported
+// (they don't make sense)
+constant_Date = {
+    'now' => new Ast.Value.Date(null);
+    'new' 'Date' '(' ')' => new Ast.Value.Date(null);
+    'new' 'Date' '(' year:constant_Number ',' month:constant_Number ',' day:constant_Number ')' => {
+        const d = new Date;
+        d.setFullYear(year.value);
+        d.setMonth(month.value-1);
+        d.setDate(day.value);
+        d.setHours(0);
+        d.setMinutes(0);
+        d.setSeconds(0);
+        d.setMilliseconds(0);
+        return new Ast.Value.Date(d);
+    };
+    'new' 'Date' '(' year:constant_Number ',' month:constant_Number ',' day:constant_Number ','
+                     hours:constant_Number ',' minutes:constant_Number ',' seconds:constant_Number ')' => {
+        const d = new Date;
+        d.setFullYear(year.value);
+        d.setMonth(month.value-1);
+        d.setDate(day.value);
+        d.setHours(hours.value);
+        d.setMinutes(minutes.value);
+        d.setSeconds(seconds.value);
+        d.setMilliseconds(0);
+        return new Ast.Value.Date(d);
+    };
+    'new' 'Date' '(' unix:constant_Number ')' => {
+        const d = new Date;
+        d.setTime(unix.value);
+        return new Ast.Value.Date(d);
+    };
+    'new' 'Date' '(' '"' iso:word_list '"' ')' => {
+        return new Ast.Value.Date(new Date(iso));
+    };
+
+    'start_of' unit:UNIT => new Ast.Value.Date(new Ast.DateEdge('start_of', unit.value));
+    'end_of' unit:UNIT => new Ast.Value.Date(new Ast.DateEdge('end_of', unit.value));
+
+    abs:DATE => new Ast.Value.Date(parseDate(abs.value));
+
+    'new' 'Date' '(' year:constant_Number ',' ',' ',' ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(year.value, null, null, null));
+    };
+    'new' 'Date' '(' ',' month:constant_Number ',' ',' ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(null, month.value, null, null));
+    };
+    'new' 'Date' '(' ',' ',' day:constant_Number ',' ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(null, null, day.value, null));
+    };
+    'new' 'Date' '(' year:constant_Number ',' month:constant_Number ',' ',' ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(year.value, month.value, null, null));
+    };
+    'new' 'Date' '(' ',' month:constant_Number ',' day:constant_Number ',' ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(null, month.value, day.value, null));
+    };
+    'new' 'Date' '(' ',' ',' day:constant_Number ',' time:constant_Time ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(null, null, day.value, time));
+    };
+    'new' 'Date' '(' ',' month:constant_Number ',' day:constant_Number ',' time:constant_Time ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(null, month.value, day.value, time));
+    };
 }
 
 // luinet expands this into the various enums in the right

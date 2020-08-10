@@ -1949,3 +1949,10 @@ class @com.example {
               out subject : String,
               out sender : Entity(tt:email_address));
 }
+
+====
+
+// date piece
+{
+    now => @org.thingpedia.builtin.thingengine.builtin.get_date(), date >= new Date(, 6, ) => notify;
+}
