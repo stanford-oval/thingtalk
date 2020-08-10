@@ -784,11 +784,11 @@ constant_Date = {
         return new Ast.Value.Date(new Ast.DatePiece(null, month.value, day.value, time));
     };
     'new' 'Date' '(' weekday:ENUM ')' => {
-        const d = new Ast.WeekDay(weekday.value, null);
+        const d = new Ast.WeekDayDate(weekday.value, null);
         return new Ast.Value.Date(d);
     };
     'new' 'Date' '(' weekday:ENUM ',' time:constant_Time ')' => {
-        const d = new Ast.WeekDay(weekday.value, time);
+        const d = new Ast.WeekDayDate(weekday.value, time);
         return new Ast.Value.Date(d);
     };
 }

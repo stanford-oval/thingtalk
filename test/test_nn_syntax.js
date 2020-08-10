@@ -632,11 +632,11 @@ now => @org.schema.restaurant() => notify;`],
 
     [`now => @org.thingpedia.weather.sunrise param:date:Date = new Date ( enum:monday ) => notify`,
      `get sunrise sunset on Monday`, {},
-     `now => @org.thingpedia.weather.sunrise(date=new Date("monday")) => notify;`],
+     `now => @org.thingpedia.weather.sunrise(date=new Date(monday)) => notify;`],
 
     [`now => @org.thingpedia.weather.sunrise param:date:Date = new Date ( enum:monday , TIME_0 ) => notify`,
      `get sunrise sunset on Monday`, { TIME_0: { hour: 5, minute: 0 } },
-     `now => @org.thingpedia.weather.sunrise(date=new Date("monday", 5, 0, 0)) => notify;`],
+     `now => @org.thingpedia.weather.sunrise(date=new Date(monday, 5, 0, 0)) => notify;`],
 ];
 
 function stripTypeAnnotations(program) {
