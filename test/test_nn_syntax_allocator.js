@@ -72,11 +72,11 @@ const TEST_CASES = [
     [`now => ( @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_0 param:low:Number = NUMBER_1 ) join ( @com.xkcd.get_comic ) on param:number:Number = param:random:Number => notify`,
      {'NUMBER_0': 55, 'NUMBER_1': 1024}],
 
-    [`( ( timer base = now , interval = 1 unit:h ) => ( @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_0 param:low:Number = NUMBER_1 ) ) => ( @com.xkcd.get_comic ) on param:number:Number = param:random:Number => notify`,
-    {'NUMBER_0': 55, 'NUMBER_1': 1024}],
+    [`( ( timer base = now , interval = DURATION_0 ) => ( @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_0 param:low:Number = NUMBER_1 ) ) => ( @com.xkcd.get_comic ) on param:number:Number = param:random:Number => notify`,
+    {'NUMBER_0': 55, 'NUMBER_1': 1024, DURATION_0: { value: 24, unit: 'h'}}],
 
-    [`( timer base = now , interval = 1 unit:h ) => ( ( @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_0 param:low:Number = NUMBER_1 ) join ( @com.xkcd.get_comic ) on param:number:Number = param:random:Number ) => notify`,
-     {'NUMBER_0': 55, 'NUMBER_1': 1024}],
+    [`( timer base = now , interval = DURATION_0 ) => ( ( @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_0 param:low:Number = NUMBER_1 ) join ( @com.xkcd.get_comic ) on param:number:Number = param:random:Number ) => notify`,
+     {'NUMBER_0': 55, 'NUMBER_1': 1024, DURATION_0: { value: 24, unit: 'h'}}],
 
     [`now => @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_0 param:low:Number = NUMBER_1 => notify`,
     {'NUMBER_0': 55, 'NUMBER_1': 1024}],
