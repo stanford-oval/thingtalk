@@ -266,7 +266,8 @@ table = {
     };
 
     'aggregate' op:aggr_op pname:PARAM_NAME 'of' '(' table ')' => new Ast.Table.Aggregation(null, table, pname.value, op, null, null);
-    'aggregate' 'count' 'of' '(' table ')'                    => new Ast.Table.Aggregation(null, table, '*', 'count', null, null);
+    'aggregate' 'count' 'of' '(' table ')'                     => new Ast.Table.Aggregation(null, table, '*', 'count', null, null);
+    'aggregate' 'count' pname:PARAM_NAME 'of' '(' table ')'    => new Ast.Table.Aggregation(null, table, pname.value, 'count', null, null);
 
     'sort' pname:PARAM_NAME 'asc' 'of' '(' table ')'           => new Ast.Table.Sort(null, table, pname.value, 'asc', null);
     'sort' pname:PARAM_NAME 'desc' 'of' '(' table ')'          => new Ast.Table.Sort(null, table, pname.value, 'desc', null);
