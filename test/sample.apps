@@ -1974,3 +1974,7 @@ now => @com.yelp.restaurant(), contains(openingHours, new Time(9, 0, 0)) => noti
     now => @org.thingpedia.builtin.thingengine.builtin.get_date(), date >= new Date(monday) => notify;
     now => @org.thingpedia.builtin.thingengine.builtin.get_date(), date >= new Date(monday, 12, 0, 0) => notify;
 }
+
+====
+
+now => (@com.yelp(id="com.yelp", name="com.yelp").restaurant()), distance(geo, new Location(4, 4)) <= 23mi => notify;
