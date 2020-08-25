@@ -1,5 +1,5 @@
 %.js : %.lr tools/generate-parser/*.js tools/generate-parser/grammar.js
-	node tools/generate-parser $< -o $@
+	node tools/generate-parser $@ $<
 	node -c $@
 
 %.js : %.pegjs
