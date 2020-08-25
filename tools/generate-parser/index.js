@@ -23,7 +23,6 @@ process.on('unhandledRejection', (up) => { throw up; });
 
 const fs = require('fs');
 const path = require('path');
-const argparse = require('argparse');
 
 const Grammar = require('./grammar');
 const SLRParserGenerator = require('./slr_generator');
@@ -87,43 +86,16 @@ async function processFile(filename, grammar, isTopLevel) {
 
 const TARGET_LANGUAGE = {
     'javascript': require('./javascript'),
-    'python': require('./python'),
 };
 
 async function main() {
-    const parser = new argparse.ArgumentParser({
-        addHelp: true,
-        description: 'Compile a Genie grammar'
-    });
-
-    parser.addArgument('input', {
-    });
-    parser.addArgument(['-o', '--output'], {
-        required: true,
-        help: "Where to write the specif"
-    });
-    parser.addArgument(['-s', '--start'], {
-        required: false,
-        defaultValue: 'input',
-        help: "The start symbol of the grammar (defaults to `input`)"
-    });
-    parser.addArgument(['-l', '--runtime-language'], {
-        required: false,
-        defaultValue: 'javascript',
-        choices: Object.keys(TARGET_LANGUAGE),
-        help: "Generate a parser in the given programming language"
-    });
-    parser.addArgument(['--runtime-path'], {
-        required: false,
-        help: "Path to the parser runtime code"
-    });
-
-    const args = parser.parseArgs();
+    const output = process.argv[2];
+    const input = process.argv[3];
 
     const grammar = {};
     let firstFile;
     try {
-        firstFile = await processFile(path.resolve(args.input), grammar, true);
+        firstFile = await processFile(path.resolve(input), grammar, true);
     } catch(e) {
         if (e.location) {
             console.error(`Syntax error at line ${e.location.start.line} column ${e.location.start.column}: ${e.message}`);
@@ -134,6 +106,6 @@ async function main() {
     }
 
     const generator = new SLRParserGenerator(grammar, 'input');
-    await TARGET_LANGUAGE[args.runtime_language](firstFile.preamble, generator, fs.createWriteStream(args.output), args.runtime_path, args.output);
+    await TARGET_LANGUAGE['javascript'](firstFile.preamble, generator, fs.createWriteStream(output), output);
 }
 main();

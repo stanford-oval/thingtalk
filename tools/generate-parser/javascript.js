@@ -21,9 +21,8 @@
 
 const path = require('path');
 
-module.exports = function writeout(preamble, generator, output, runtimePath, outputPath) {
-    if (!runtimePath)
-        runtimePath = require.resolve('../../lib/nn-syntax/sr_parser_runtime');
+module.exports = function writeout(preamble, generator, output, outputPath) {
+    const runtimePath = require.resolve('../../lib/nn-syntax/sr_parser_runtime');
     const runtimedir = path.relative(path.dirname(outputPath),
                                      path.dirname(runtimePath));
     const relativeruntimepath = './' + path.join(runtimedir, 'sr_parser_runtime');

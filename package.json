@@ -16,9 +16,6 @@
     }
   ],
   "main": "index.js",
-  "bin": {
-    "thingtalk-generate-parser": "./tools/generate-parser/index.js"
-  },
   "dependencies": {
     "adt": "~0.7.2",
     "byline": "^5.0.0",
@@ -29,7 +26,6 @@
     "thingtalk-units": "^0.1.0"
   },
   "devDependencies": {
-    "argparse": "^1.0.10",
     "coveralls": "^3.0.0",
     "deep-equal": "^2.0.1",
     "eslint": "^7.1.0",
