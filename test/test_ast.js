@@ -45,7 +45,10 @@ const VALUE_TESTS = [
     [Type.Entity('tt:foo'), new Builtin.Entity('foo', 'Foo')],
     [Type.Entity('tt:foo'), 'foo'],
     [Type.Array(Type.Number), [22, 21]],
-    [Type.ArgMap, {a: Type.Boolean}]
+    [Type.ArgMap, {a: Type.Boolean}],
+    [Type.RecurrentTimeSpecification, [new Builtin.RecurrentTimeRule({ beginTime: new Builtin.Time(1, 2), endTime: new Builtin.Time(3, 4) })]],
+    [Type.RecurrentTimeSpecification, [new Builtin.RecurrentTimeRule({ beginTime: new Builtin.Time(1, 2), endTime: new Builtin.Time(3, 4),
+        beginDate: new Date(2020, 8, 26), endDate: new Date(2020, 8, 27) })]],
 ];
 
 function testValues() {

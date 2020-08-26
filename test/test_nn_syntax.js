@@ -637,6 +637,11 @@ now => @org.schema.restaurant() => notify;`],
     [`now => @org.thingpedia.weather.sunrise param:date:Date = new Date ( enum:monday , TIME_0 ) => notify`,
      `get sunrise sunset on Monday`, { TIME_0: { hour: 5, minute: 0 } },
      `now => @org.thingpedia.weather.sunrise(date=new Date(monday, 5, 0, 0)) => notify;`],
+
+    [`now => ( @com.yelp.restaurant ) filter param:openingHours:RecurrentTimeSpecification == new RecurrentTimeSpecification ( { beginTime = time:0:0:0 , endTime = time:24:0:0 ,`
+    + ` dayOfWeek = enum:friday } , { beginTime = time:0:0:0 , endTime = time:24:0:0 , dayOfWeek = enum:saturday } ) => notify`,
+    `restaurants open 24 hours on friday and saturday`, {},
+    `now => (@com.yelp.restaurant()), openingHours == new RecurrentTimeSpecification({ beginTime = new Time(0, 0), endTime = new Time(24, 0), dayOfWeek = enum(friday), }, { beginTime = new Time(0, 0), endTime = new Time(24, 0), dayOfWeek = enum(saturday), }) => notify;`],
 ];
 
 function stripTypeAnnotations(program) {

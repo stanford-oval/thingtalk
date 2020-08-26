@@ -8003,6 +8003,359 @@ const TEST_CASES = [
   } finally {
     await __env.exitProcedure(0, null);
   }`]],
+
+    // 92 restaurants open 24/7
+    [`now => @com.yelp.restaurant(),
+  openingHours == new RecurrentTimeSpecification({ beginTime = new Time(0,0), endTime = new Time(24,0) }) => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  await __env.enterProcedure(0, null);
+  try {
+    try {
+      _t_0 = {};
+      _t_1 = new Array(1);
+      _t_2 = new Array(3);
+      _t_3 = "openingHours";
+      _t_2[0] = _t_3;
+      _t_4 = "==";
+      _t_2[1] = _t_4;
+      _t_5 = [new __builtin.RecurrentTimeRule({ beginTime: new __builtin.Time(0, 0, 0), endTime: new __builtin.Time(24, 0, 0), interval: 86400000, frequency: 1, dayOfWeek: null, beginDate: null, endDate: null, subtract: false, })];
+      _t_2[2] = _t_5;
+      _t_1[0] = _t_2;
+      _t_6 = await __env.invokeQuery("com.yelp", { }, "restaurant", _t_0, { projection: ["id", "link", "rating", "cuisines", "geo", "image_url", "openingHours"], filter: _t_1 });
+      _t_7 = _t_6[Symbol.iterator]();
+      {
+        let _iter_tmp = await _t_7.next();
+        while (!_iter_tmp.done) {
+          _t_8 = _iter_tmp.value;
+          _t_9 = _t_8[0];
+          _t_10 = _t_8[1];
+          _t_11 = _t_10.__response;
+          _t_12 = _t_10.id;
+          _t_13 = _t_10.image_url;
+          _t_14 = _t_10.link;
+          _t_15 = _t_10.cuisines;
+          _t_16 = _t_10.price;
+          _t_17 = _t_10.rating;
+          _t_18 = _t_10.reviewCount;
+          _t_19 = _t_10.geo;
+          _t_20 = _t_10.phone;
+          _t_21 = _t_10.openingHours;
+          _t_23 = [new __builtin.RecurrentTimeRule({ beginTime: new __builtin.Time(0, 0, 0), endTime: new __builtin.Time(24, 0, 0), interval: 86400000, frequency: 1, dayOfWeek: null, beginDate: null, endDate: null, subtract: false, })];
+          _t_22 = __builtin.equality(_t_21, _t_23);
+          if (_t_22) {
+            _t_24 = {};
+            _t_24.id = _t_12;
+            _t_24.link = _t_14;
+            _t_24.rating = _t_17;
+            _t_24.cuisines = _t_15;
+            _t_24.geo = _t_19;
+            _t_24.image_url = _t_13;
+            try {
+              await __env.output(String(_t_9), _t_24);
+            } catch(_exc_) {
+              __env.reportError("Failed to invoke action", _exc_);
+            }
+          } else {
+
+          }
+          _iter_tmp = await _t_7.next();
+        }
+      }
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke query", _exc_);
+    }
+  } finally {
+    await __env.exitProcedure(0, null);
+  }`]],
+
+    // 93 restaurants open this sunday
+    [`now => @com.yelp.restaurant(), contains(openingHours, new Date(sunday)) => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  await __env.enterProcedure(0, null);
+  try {
+    try {
+      _t_0 = {};
+      _t_1 = new Array(1);
+      _t_2 = new Array(3);
+      _t_3 = "openingHours";
+      _t_2[0] = _t_3;
+      _t_4 = "contains";
+      _t_2[1] = _t_4;
+      _t_5 = new Date(XNOWX);
+      _t_2[2] = _t_5;
+      _t_1[0] = _t_2;
+      _t_6 = await __env.invokeQuery("com.yelp", { }, "restaurant", _t_0, { projection: ["id", "link", "rating", "cuisines", "geo", "image_url", "openingHours"], filter: _t_1 });
+      _t_7 = _t_6[Symbol.iterator]();
+      {
+        let _iter_tmp = await _t_7.next();
+        while (!_iter_tmp.done) {
+          _t_8 = _iter_tmp.value;
+          _t_9 = _t_8[0];
+          _t_10 = _t_8[1];
+          _t_11 = _t_10.__response;
+          _t_12 = _t_10.id;
+          _t_13 = _t_10.image_url;
+          _t_14 = _t_10.link;
+          _t_15 = _t_10.cuisines;
+          _t_16 = _t_10.price;
+          _t_17 = _t_10.rating;
+          _t_18 = _t_10.reviewCount;
+          _t_19 = _t_10.geo;
+          _t_20 = _t_10.phone;
+          _t_21 = _t_10.openingHours;
+          _t_23 = new Date(XNOWX);
+          _t_22 = __builtin.recurrentTimeSpecContains(_t_21, _t_23);
+          if (_t_22) {
+            _t_24 = {};
+            _t_24.id = _t_12;
+            _t_24.link = _t_14;
+            _t_24.rating = _t_17;
+            _t_24.cuisines = _t_15;
+            _t_24.geo = _t_19;
+            _t_24.image_url = _t_13;
+            try {
+              await __env.output(String(_t_9), _t_24);
+            } catch(_exc_) {
+              __env.reportError("Failed to invoke action", _exc_);
+            }
+          } else {
+
+          }
+          _iter_tmp = await _t_7.next();
+        }
+      }
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke query", _exc_);
+    }
+  } finally {
+    await __env.exitProcedure(0, null);
+  }`]],
+
+    // 94 restaurants open now
+    [`now => @com.yelp.restaurant(), contains(openingHours, new Date()) => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  await __env.enterProcedure(0, null);
+  try {
+    try {
+      _t_0 = {};
+      _t_1 = new Array(1);
+      _t_2 = new Array(3);
+      _t_3 = "openingHours";
+      _t_2[0] = _t_3;
+      _t_4 = "contains";
+      _t_2[1] = _t_4;
+      _t_5 = new Date(XNOWX);
+      _t_2[2] = _t_5;
+      _t_1[0] = _t_2;
+      _t_6 = await __env.invokeQuery("com.yelp", { }, "restaurant", _t_0, { projection: ["id", "link", "rating", "cuisines", "geo", "image_url", "openingHours"], filter: _t_1 });
+      _t_7 = _t_6[Symbol.iterator]();
+      {
+        let _iter_tmp = await _t_7.next();
+        while (!_iter_tmp.done) {
+          _t_8 = _iter_tmp.value;
+          _t_9 = _t_8[0];
+          _t_10 = _t_8[1];
+          _t_11 = _t_10.__response;
+          _t_12 = _t_10.id;
+          _t_13 = _t_10.image_url;
+          _t_14 = _t_10.link;
+          _t_15 = _t_10.cuisines;
+          _t_16 = _t_10.price;
+          _t_17 = _t_10.rating;
+          _t_18 = _t_10.reviewCount;
+          _t_19 = _t_10.geo;
+          _t_20 = _t_10.phone;
+          _t_21 = _t_10.openingHours;
+          _t_23 = new Date(XNOWX);
+          _t_22 = __builtin.recurrentTimeSpecContains(_t_21, _t_23);
+          if (_t_22) {
+            _t_24 = {};
+            _t_24.id = _t_12;
+            _t_24.link = _t_14;
+            _t_24.rating = _t_17;
+            _t_24.cuisines = _t_15;
+            _t_24.geo = _t_19;
+            _t_24.image_url = _t_13;
+            try {
+              await __env.output(String(_t_9), _t_24);
+            } catch(_exc_) {
+              __env.reportError("Failed to invoke action", _exc_);
+            }
+          } else {
+
+          }
+          _iter_tmp = await _t_7.next();
+        }
+      }
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke query", _exc_);
+    }
+  } finally {
+    await __env.exitProcedure(0, null);
+  }`]],
+
+    // 95 restaurants open at 5pm
+    [`now => @com.yelp.restaurant(), contains(openingHours, new Time(17, 0)) => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  await __env.enterProcedure(0, null);
+  try {
+    try {
+      _t_0 = {};
+      _t_1 = new Array(1);
+      _t_2 = new Array(3);
+      _t_3 = "openingHours";
+      _t_2[0] = _t_3;
+      _t_4 = "contains";
+      _t_2[1] = _t_4;
+      _t_5 = new __builtin.Time(17, 0, 0);
+      _t_2[2] = _t_5;
+      _t_1[0] = _t_2;
+      _t_6 = await __env.invokeQuery("com.yelp", { }, "restaurant", _t_0, { projection: ["id", "link", "rating", "cuisines", "geo", "image_url", "openingHours"], filter: _t_1 });
+      _t_7 = _t_6[Symbol.iterator]();
+      {
+        let _iter_tmp = await _t_7.next();
+        while (!_iter_tmp.done) {
+          _t_8 = _iter_tmp.value;
+          _t_9 = _t_8[0];
+          _t_10 = _t_8[1];
+          _t_11 = _t_10.__response;
+          _t_12 = _t_10.id;
+          _t_13 = _t_10.image_url;
+          _t_14 = _t_10.link;
+          _t_15 = _t_10.cuisines;
+          _t_16 = _t_10.price;
+          _t_17 = _t_10.rating;
+          _t_18 = _t_10.reviewCount;
+          _t_19 = _t_10.geo;
+          _t_20 = _t_10.phone;
+          _t_21 = _t_10.openingHours;
+          _t_23 = new __builtin.Time(17, 0, 0);
+          _t_22 = __builtin.recurrentTimeSpecContains(_t_21, _t_23);
+          if (_t_22) {
+            _t_24 = {};
+            _t_24.id = _t_12;
+            _t_24.link = _t_14;
+            _t_24.rating = _t_17;
+            _t_24.cuisines = _t_15;
+            _t_24.geo = _t_19;
+            _t_24.image_url = _t_13;
+            try {
+              await __env.output(String(_t_9), _t_24);
+            } catch(_exc_) {
+              __env.reportError("Failed to invoke action", _exc_);
+            }
+          } else {
+
+          }
+          _iter_tmp = await _t_7.next();
+        }
+      }
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke query", _exc_);
+    }
+  } finally {
+    await __env.exitProcedure(0, null);
+  }`]],
 ];
 
 // eslint-disable-next-line prefer-arrow-callback
