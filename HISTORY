@@ -1,3 +1,13 @@
+1.11.0-beta.4
+=============
+
+* Added new syntax to support referring to dates by week day ("this Sunday") [#241].
+* Added new type: RecurrentTimeSpecification. This type refers to a time or time
+  interval that recurs over multiple days. It can be used for calendar events,
+  shop opening hours, TV shows, etc. [#241].
+* Misc bug fixes [#242].
+* Update dependencies [#244, #245]
+
 1.11.0-beta.3
 =============
 
