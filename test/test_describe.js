@@ -374,6 +374,18 @@ var TEST_CASES = [
     [`now => @org.thingpedia.builtin.thingengine.builtin.get_date(), date >= new Date(, 6, ) => notify;`,
      `get today's date such that the date is after start of day on day 1 of june, this year and then notify you`,
      `Get Date`],
+
+    [`now => @org.thingpedia.builtin.thingengine.builtin.get_date(), date >= new Date(, 6, , 12, 0, 0) => notify;`,
+     `get today's date such that the date is after 12:00 PM on day 1 of june, this year and then notify you`,
+     `Get Date`],
+
+    [`now => @org.thingpedia.builtin.thingengine.builtin.get_date(), date >= new Date(monday) => notify;`,
+     `get today's date such that the date is after start of day on monday and then notify you`,
+     `Get Date`],
+
+    [`now => @org.thingpedia.builtin.thingengine.builtin.get_date(), date >= new Date(monday, 12, 0, 0) => notify;`,
+     `get today's date such that the date is after 12:00 PM on monday and then notify you`,
+     `Get Date`]
 ];
 
 const gettext = {

@@ -266,7 +266,8 @@ table = {
     };
 
     'aggregate' op:aggr_op pname:PARAM_NAME 'of' '(' table ')' => new Ast.Table.Aggregation(null, table, pname.value, op, null, null);
-    'aggregate' 'count' 'of' '(' table ')'                    => new Ast.Table.Aggregation(null, table, '*', 'count', null, null);
+    'aggregate' 'count' 'of' '(' table ')'                     => new Ast.Table.Aggregation(null, table, '*', 'count', null, null);
+    'aggregate' 'count' pname:PARAM_NAME 'of' '(' table ')'    => new Ast.Table.Aggregation(null, table, pname.value, 'count', null, null);
 
     'sort' pname:PARAM_NAME 'asc' 'of' '(' table ')'           => new Ast.Table.Sort(null, table, pname.value, 'asc', null);
     'sort' pname:PARAM_NAME 'desc' 'of' '(' table ')'          => new Ast.Table.Sort(null, table, pname.value, 'desc', null);
@@ -623,11 +624,57 @@ object_literal_entry_list = {
     };
 }
 
+constant_RecurrentTimeSpecification = {
+    'new' 'RecurrentTimeSpecification' '(' rules:recurrent_time_rule_list ')' =>
+        new Ast.Value.RecurrentTimeSpecification(rules);
+}
+
+recurrent_time_rule_list = {
+    first:recurrent_time_rule => [first];
+
+    head:recurrent_time_rule_list ',' tail:recurrent_time_rule => head.concat([tail]);
+}
+
+recurrent_time_rule = {
+    '{' list:recurrent_time_item_list '}' => {
+        const obj = {};
+        for (let item of list) {
+            if (obj[item[0]]) {
+                $.error(`Duplicate recurrent time rule key ${item[0]}`);
+                return null;
+            }
+            obj[item[0]] = item[1];
+        }
+        return new Ast.RecurrentTimeRule(obj);
+    };
+}
+
+recurrent_time_item_list = {
+    first:recurrent_time_item => [first];
+
+    head:recurrent_time_item_list ',' tail:recurrent_time_item => head.concat([tail]);
+}
+
+recurrent_time_item = {
+    'beginDate' '=' v:absolute_or_edge_date => ['beginDate', v.value];
+    'endDate' '=' v:absolute_or_edge_date => ['endDate', v.value];
+
+    'beginTime' '=' v:absolute_time => ['beginTime', v.value];
+    'endTime' '=' v:absolute_time => ['endTime', v.value];
+
+    'frequency' '=' v:literal_number => ['frequency', v];
+    'interval' '=' v:constant_Measure => ['interval', v];
+
+    'dayOfWeek' '=' v:ENUM => ['dayOfWeek', v.value];
+
+    'subtract' '=' 'true' => ['subtract', 'true'];
+    'subtract' '=' 'false' => ['subtract', 'false'];
+}
+
 constant_value = {
     constant_Boolean;
     constant_String;
     constant_Measure;
-    tok: DURATION => new Ast.Value.Measure(tok.value.value, tok.value.unit);
     constant_Number;
     constant_Currency;
     constant_Location;
@@ -644,6 +691,7 @@ constant_value = {
     constant_Entity__tt__function;
     constant_Entity__tt__picture;
     constant_Enum;
+    constant_RecurrentTimeSpecification;
     slot:SLOT => (slot.value === undefined ? new Ast.Value.Undefined(true) : slot.value);
 }
 
@@ -678,6 +726,7 @@ literal_number = {
 constant_Measure = {
     num:literal_number unit:UNIT => new Ast.Value.Measure(num, unit.value);
     tok:MEASURE => new Ast.Value.Measure(tok.value.value, tok.value.unit);
+    tok:DURATION => new Ast.Value.Measure(tok.value.value, tok.value.unit);
 }
 
 constant_Number = {
@@ -710,12 +759,17 @@ constant_Location = {
 
 // Note that while keeping digits in ranges [0-23],[0-59],[0-59] is not enforced
 // here, it is enforced in tonn_converter, rendering it unnecessary to do so here
-constant_Time = {
+absolute_time = {
     time:TIME => new Ast.Value.Time(new Ast.Time.Absolute(time.value.hour, time.value.minute, time.value.second||0));
     time:LITERAL_TIME => {
         let tokens = time.value.split(':');
         return new Ast.Value.Time(new Ast.Time.Absolute(parseInt(tokens[0]), parseInt(tokens[1]), parseInt(tokens[2])));
     };
+}
+
+constant_Time = {
+    absolute_time;
+
     'time:morning' => new Ast.Value.Time(new Ast.Time.Relative('morning'));
     'time:evening' => new Ast.Value.Time(new Ast.Time.Relative('evening'));
 }
@@ -725,6 +779,11 @@ constant_Time = {
 constant_Date = {
     'now' => new Ast.Value.Date(null);
     'new' 'Date' '(' ')' => new Ast.Value.Date(null);
+
+    absolute_or_edge_date;
+}
+
+absolute_or_edge_date = {
     'new' 'Date' '(' year:constant_Number ',' month:constant_Number ',' day:constant_Number ')' => {
         const d = new Date;
         d.setFullYear(year.value);
@@ -757,9 +816,6 @@ constant_Date = {
         return new Ast.Value.Date(new Date(iso));
     };
 
-    'start_of' unit:UNIT => new Ast.Value.Date(new Ast.DateEdge('start_of', unit.value));
-    'end_of' unit:UNIT => new Ast.Value.Date(new Ast.DateEdge('end_of', unit.value));
-
     abs:DATE => new Ast.Value.Date(parseDate(abs.value));
 
     'new' 'Date' '(' year:constant_Number ',' ',' ',' ')' => {
@@ -783,6 +839,17 @@ constant_Date = {
     'new' 'Date' '(' ',' month:constant_Number ',' day:constant_Number ',' time:constant_Time ')' => {
         return new Ast.Value.Date(new Ast.DatePiece(null, month.value, day.value, time));
     };
+    'new' 'Date' '(' weekday:ENUM ')' => {
+        const d = new Ast.WeekDayDate(weekday.value, null);
+        return new Ast.Value.Date(d);
+    };
+    'new' 'Date' '(' weekday:ENUM ',' time:constant_Time ')' => {
+        const d = new Ast.WeekDayDate(weekday.value, time);
+        return new Ast.Value.Date(d);
+    };
+
+    'start_of' unit:UNIT => new Ast.Value.Date(new Ast.DateEdge('start_of', unit.value));
+    'end_of' unit:UNIT => new Ast.Value.Date(new Ast.DateEdge('end_of', unit.value));
 }
 
 // luinet expands this into the various enums in the right

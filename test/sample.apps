@@ -1956,3 +1956,36 @@ class @com.example {
 {
     now => @org.thingpedia.builtin.thingengine.builtin.get_date(), date >= new Date(, 6, ) => notify;
 }
+
+====
+
+// Recurrent time specification
+now => @com.yelp.restaurant(), contains(openingHours, new Date()) => notify;
+
+====
+
+// Recurrent time specification
+now => @com.yelp.restaurant(), contains(openingHours, new Time(9, 0, 0)) => notify;
+
+====
+
+// weekday
+{
+    now => @org.thingpedia.builtin.thingengine.builtin.get_date(), date >= new Date(monday) => notify;
+    now => @org.thingpedia.builtin.thingengine.builtin.get_date(), date >= new Date(monday, 12, 0, 0) => notify;
+}
+
+====
+
+now => (@com.yelp(id="com.yelp", name="com.yelp").restaurant()), distance(geo, new Location(4, 4)) <= 23mi => notify;
+
+====
+
+// restaurants open 24/7
+now => @com.yelp.restaurant(),
+  openingHours == new RecurrentTimeSpecification({ beginTime = new Time(0,0), endTime = new Time(24,0) }) => notify;
+
+// restaurants open 24h on friday and saturday
+now => @com.yelp.restaurant(),
+  openingHours == new RecurrentTimeSpecification({ beginTime = new Time(0,0), endTime = new Time(24,0), dayOfWeek=enum(friday) },
+                                                 { beginTime = new Time(0,0), endTime = new Time(24,0), dayOfWeek=enum(saturday) }) => notify;
