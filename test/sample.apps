@@ -1989,3 +1989,27 @@ now => @com.yelp.restaurant(),
 now => @com.yelp.restaurant(),
   openingHours == new RecurrentTimeSpecification({ beginTime = new Time(0,0), endTime = new Time(24,0), dayOfWeek=enum(friday) },
                                                  { beginTime = new Time(0,0), endTime = new Time(24,0), dayOfWeek=enum(saturday) }) => notify;
+
+====
+
+class @org.thingpedia.weather {
+  monitorable query current(in opt location: Location
+                            #[default=$context.location.current_location],
+                            out temperature: Measure(C)
+                            #[min_number=-10C]
+                            #[max_number=50C],
+                            out wind_speed: Measure(mps)
+                            #[min_number=0kmph]
+                            #[max_number=150kmph],
+                            out humidity: Number
+                            #[min_number=0]
+                            #[max_number=100],
+                            out cloudiness: Number
+                            #[min_number=0]
+                            #[max_number=100],
+                            out fog: Number
+                            #[min_number=0]
+                            #[max_number=100],
+                            out status: Enum(raining,cloudy,sunny,snowy,sleety,drizzling,windy),
+                            out icon: Entity(tt:picture));
+}
