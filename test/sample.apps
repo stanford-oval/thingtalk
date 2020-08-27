@@ -2013,3 +2013,28 @@ class @org.thingpedia.weather {
                             out status: Enum(raining,cloudy,sunny,snowy,sleety,drizzling,windy),
                             out icon: Entity(tt:picture));
 }
+
+====
+
+// ** typecheck: expect TypeError **
+class @org.thingpedia.weather {
+  monitorable query current(in opt location: Location
+                            #[default='foo'],
+                            out temperature: Measure(C)
+                            #[min_number=-10C]
+                            #[max_number=50C],
+                            out wind_speed: Measure(mps)
+                            #[min_number=0kmph]
+                            #[max_number=150kmph],
+                            out humidity: Number
+                            #[min_number=0]
+                            #[max_number=100],
+                            out cloudiness: Number
+                            #[min_number=0]
+                            #[max_number=100],
+                            out fog: Number
+                            #[min_number=0]
+                            #[max_number=100],
+                            out status: Enum(raining,cloudy,sunny,snowy,sleety,drizzling,windy),
+                            out icon: Entity(tt:picture));
+}
