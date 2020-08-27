@@ -60,7 +60,8 @@ async function testInjectManifest() {
   #_[confirmation="an Xkcd comic"]
   #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}"}, {type="picture",url="${'${picture_url}'}"}, {type="text",text="${'${alt_text}'}"}]]
   #[poll_interval=86400000ms]
-  #[doc="retrieve the comic with a given number, or the latest comit"];
+  #[doc="retrieve the comic with a given number, or the latest comit"]
+  #[minimal_projection=[]];
 
   query random_comic(out number: Number,
                      out title: String,
@@ -70,7 +71,8 @@ async function testInjectManifest() {
   #_[canonical="random xkcd comic"]
   #_[confirmation="a random Xkcd comic"]
   #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}"}, {type="picture",url="${'${picture_url}'}"}, {type="text",text="${'${alt_text}'}"}]]
-  #[doc="retrieve a random xkcd"];
+  #[doc="retrieve a random xkcd"]
+  #[minimal_projection=[]];
 
   monitorable list query what_if(out title: String,
                                  out link: Entity(tt:url),
@@ -79,7 +81,8 @@ async function testInjectManifest() {
   #_[confirmation="Xkcd's What If blog posts"]
   #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}"}]]
   #[poll_interval=86400000ms]
-  #[doc="retrieve the latest posts on Xkcd's What If blog"];
+  #[doc="retrieve the latest posts on Xkcd's What If blog"]
+  #[minimal_projection=[]];
 }
 `
     );
@@ -87,7 +90,11 @@ async function testInjectManifest() {
     const fakeTwitter = (await Grammar.parseAndTypecheck(FAKE_TWITTER, schemaRetriever)).classes[0];
     schemaRetriever.injectClass(fakeTwitter);
 
-    assert.deepStrictEqual((await schemaRetriever.getSchemaAndNames('com.twitter', 'query', 'fake_query')).prettyprint(), `monitorable list query fake_query(in req fake_argument: String)\n  #[poll_interval=1min]\n  #[formatted=["foo"]];`);
+    assert.deepStrictEqual((await schemaRetriever.getSchemaAndNames('com.twitter', 'query', 'fake_query')).prettyprint(),
+        `monitorable list query fake_query(in req fake_argument: String)\n` +
+        `  #[poll_interval=1min]\n` +
+        `  #[formatted=["foo"]]\n` +
+        `  #[minimal_projection=[]];`);
 }
 
 async function testInvalid() {

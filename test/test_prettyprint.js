@@ -30,7 +30,8 @@ const TEST_CASES = [
                             out rating: {
                               value: Number #_[canonical="v"],
                               count: Number #[foo=true]
-                            });
+                            })
+  #[minimal_projection=[]];
 }
 `,
 
@@ -40,9 +41,11 @@ const TEST_CASES = [
                             out rating: {
                               value: Number,
                               count: Number
-                            });
+                            })
+  #[minimal_projection=[]];
 
-  list query restaurants extends local_business(out serveCuisine: String);
+  list query restaurants extends local_business(out serveCuisine: String)
+  #[minimal_projection=[]];
 }
 `,
 

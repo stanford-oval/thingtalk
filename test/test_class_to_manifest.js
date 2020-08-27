@@ -42,11 +42,13 @@ const TEST_CASES = [
     '  #_[canonical="power status of foo"]\n' +
     '  #_[confirmation="status of foo"]\n' +
     '  #_[formatted=["Here is something for you", {type="rdl",displayTitle="$title",webCallback="$url"}]]\n' +
-    '  #[poll_interval=600000ms];\n' +
+    '  #[poll_interval=600000ms]\n' +
+    '  #[minimal_projection=[]];\n' +
     '\n' +
     '  action set_power(in req power: Enum(on,off) #_[prompt="do you want turn on or off?"])\n' +
     '  #_[canonical="set power of foo"]\n' +
-    '  #_[confirmation="turn $power foo"];\n' +
+    '  #_[confirmation="turn $power foo"]\n' +
+    '  #[minimal_projection=[]];\n' +
     '}\n',
 
     'class @com.foo {\n' +
@@ -325,7 +327,8 @@ const TEST_CASES = [
     '  #_[canonical="foo"]\n' +
     '  #_[confirmation="bar"]\n' +
     '  #[require_filter=true]\n' +
-    '  #[default_projection=["title", "description"]];\n' +
+    '  #[default_projection=["title", "description"]]\n' +
+    '  #[minimal_projection=[]];\n' +
     '}\n',
 
 ];
