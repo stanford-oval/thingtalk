@@ -86,7 +86,8 @@ const TEST_CASES = [
      `              in req link: Entity(tt:url),\n` +
      `              in req filter_: Entity(com.instagram:filter_),\n` +
      `              in req hashtags: Array(Entity(tt:hashtag)),\n` +
-     `              in req location: Location);\n` +
+     `              in req location: Location)\n` +
+     `  #[minimal_projection=[]];\n` +
      `}\n` +
      `now => (@com.instagram.get_pictures()), caption =~ "trip" => @__dyn_0.send(__principal="matrix-account:@rayx6:matrix.org"^^tt:contact, __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, media_id=media_id, picture_url=picture_url, caption=caption, link=link, filter_=filter_, hashtags=hashtags, location=location);`]
 
