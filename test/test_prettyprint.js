@@ -26,10 +26,17 @@ const { prettyprint } = require('../lib/prettyprint');
 const TEST_CASES = [
 // compound type
 `class @org.schema {
-  list query local_business(out name: String,
+  list query local_business(out name: String
+                            #_[canonical={
+                              base=["name"],
+                              passive_verb=["called"]
+                            }]
+                            #[filterable=false],
                             out rating: {
-                              value: Number #_[canonical="v"],
-                              count: Number #[foo=true]
+                              value: Number
+                              #_[canonical="v"],
+                              count: Number
+                              #[foo=true]
                             })
   #[minimal_projection=[]];
 }
