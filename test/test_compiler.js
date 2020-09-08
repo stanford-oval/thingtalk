@@ -8356,6 +8356,879 @@ const TEST_CASES = [
   } finally {
     await __env.exitProcedure(0, null);
   }`]],
+
+    // 96 nested indices (issue #236)
+    [`now => ((sort popularity desc of ((@com.spotify2.song()), id =~ "str:QUOTED_STRING::3:"))[1])[1] => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  let _t_25;
+  let _t_26;
+  let _t_27;
+  let _t_28;
+  let _t_29;
+  let _t_30;
+  let _t_31;
+  let _t_32;
+  let _t_33;
+  let _t_34;
+  let _t_35;
+  let _t_36;
+  let _t_37;
+  let _t_38;
+  let _t_39;
+  let _t_40;
+  let _t_41;
+  let _t_42;
+  let _t_43;
+  let _t_44;
+  let _t_45;
+  let _t_46;
+  let _t_47;
+  let _t_48;
+  let _t_49;
+  let _t_50;
+  let _t_51;
+  let _t_52;
+  await __env.enterProcedure(0, null);
+  try {
+    _t_0 = new Array(1);
+    _t_1 = 1;
+    _t_0[0] = _t_1;
+    _t_2 = new Array(0);
+    _t_3 = false;
+    _t_4 = -Infinity;
+    try {
+      _t_7 = {};
+      _t_8 = new Array(1);
+      _t_9 = new Array(3);
+      _t_10 = "id";
+      _t_9[0] = _t_10;
+      _t_11 = "=~";
+      _t_9[1] = _t_11;
+      _t_12 = "str:QUOTED_STRING::3:";
+      _t_9[2] = _t_12;
+      _t_8[0] = _t_9;
+      _t_13 = await __env.invokeQuery("com.spotify2", { }, "song", _t_7, { projection: ["id", "artists", "album", "genres", "release_date", "popularity", "energy", "danceability"], filter: _t_8, sort: ["popularity", "desc"], limit: 1 });
+      _t_14 = _t_13[Symbol.iterator]();
+      {
+        let _iter_tmp = await _t_14.next();
+        while (!_iter_tmp.done) {
+          _t_15 = _iter_tmp.value;
+          _t_16 = _t_15[0];
+          _t_17 = _t_15[1];
+          _t_18 = _t_17.__response;
+          _t_19 = _t_17.id;
+          _t_20 = _t_17.artists;
+          _t_21 = _t_17.album;
+          _t_22 = _t_17.genres;
+          _t_23 = _t_17.release_date;
+          _t_24 = _t_17.popularity;
+          _t_25 = _t_17.energy;
+          _t_26 = _t_17.danceability;
+          _t_28 = "str:QUOTED_STRING::3:";
+          _t_27 = __builtin.like(_t_19, _t_28);
+          if (_t_27) {
+            _t_29 = _t_4 < _t_24;
+            if (_t_29) {
+              _t_4 = _t_24;
+              _t_5 = _t_17;
+              _t_6 = _t_16;
+              _t_3 = true;
+            } else {
+
+            }
+          } else {
+
+          }
+          _iter_tmp = await _t_14.next();
+        }
+      }
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke query", _exc_);
+    }
+    if (_t_3) {
+      _t_30 = _t_5.__response;
+      _t_31 = _t_5.id;
+      _t_32 = _t_5.artists;
+      _t_33 = _t_5.album;
+      _t_34 = _t_5.genres;
+      _t_35 = _t_5.release_date;
+      _t_36 = _t_5.popularity;
+      _t_37 = _t_5.energy;
+      _t_38 = _t_5.danceability;
+      _t_39 = new Array(2);
+      _t_39[0] = _t_5;
+      _t_39[1] = _t_6;
+      _t_2.push(_t_39);
+    } else {
+
+    }
+    _t_40 = __builtin.indexArray(_t_2, _t_0);
+    for (_t_41 of _t_40) {
+      _t_43 = _t_41[0];
+      _t_42 = _t_41[1];
+      _t_44 = _t_43.__response;
+      _t_45 = _t_43.id;
+      _t_46 = _t_43.artists;
+      _t_47 = _t_43.album;
+      _t_48 = _t_43.genres;
+      _t_49 = _t_43.release_date;
+      _t_50 = _t_43.popularity;
+      _t_51 = _t_43.energy;
+      _t_52 = _t_43.danceability;
+      try {
+        await __env.output(String(_t_42), _t_43);
+      } catch(_exc_) {
+        __env.reportError("Failed to invoke action", _exc_);
+      }
+    }
+  } finally {
+    await __env.exitProcedure(0, null);
+  }`]],
+
+    // 97 nested indices (issue #236)
+    [`now => ((sort popularity desc of ((@com.spotify2.song()), id =~ "str:QUOTED_STRING::3:"))[1])[1] => @com.spotify2.play_song(song=id);`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  let _t_25;
+  let _t_26;
+  let _t_27;
+  let _t_28;
+  let _t_29;
+  let _t_30;
+  let _t_31;
+  let _t_32;
+  let _t_33;
+  let _t_34;
+  let _t_35;
+  let _t_36;
+  let _t_37;
+  let _t_38;
+  let _t_39;
+  let _t_40;
+  let _t_41;
+  let _t_42;
+  let _t_43;
+  let _t_44;
+  let _t_45;
+  let _t_46;
+  let _t_47;
+  let _t_48;
+  let _t_49;
+  let _t_50;
+  let _t_51;
+  let _t_52;
+  let _t_53;
+  let _t_54;
+  let _t_55;
+  let _t_56;
+  let _t_57;
+  let _t_58;
+  let _t_59;
+  let _t_60;
+  await __env.enterProcedure(0, null);
+  try {
+    _t_0 = new Array(1);
+    _t_1 = 1;
+    _t_0[0] = _t_1;
+    _t_2 = new Array(0);
+    _t_3 = false;
+    _t_4 = -Infinity;
+    try {
+      _t_7 = {};
+      _t_8 = new Array(1);
+      _t_9 = new Array(3);
+      _t_10 = "id";
+      _t_9[0] = _t_10;
+      _t_11 = "=~";
+      _t_9[1] = _t_11;
+      _t_12 = "str:QUOTED_STRING::3:";
+      _t_9[2] = _t_12;
+      _t_8[0] = _t_9;
+      _t_13 = await __env.invokeQuery("com.spotify2", { }, "song", _t_7, { projection: ["id"], filter: _t_8, sort: ["popularity", "desc"], limit: 1 });
+      _t_14 = _t_13[Symbol.iterator]();
+      {
+        let _iter_tmp = await _t_14.next();
+        while (!_iter_tmp.done) {
+          _t_15 = _iter_tmp.value;
+          _t_16 = _t_15[0];
+          _t_17 = _t_15[1];
+          _t_18 = _t_17.__response;
+          _t_19 = _t_17.id;
+          _t_20 = _t_17.artists;
+          _t_21 = _t_17.album;
+          _t_22 = _t_17.genres;
+          _t_23 = _t_17.release_date;
+          _t_24 = _t_17.popularity;
+          _t_25 = _t_17.energy;
+          _t_26 = _t_17.danceability;
+          _t_28 = "str:QUOTED_STRING::3:";
+          _t_27 = __builtin.like(_t_19, _t_28);
+          if (_t_27) {
+            _t_29 = _t_4 < _t_24;
+            if (_t_29) {
+              _t_4 = _t_24;
+              _t_5 = _t_17;
+              _t_6 = _t_16;
+              _t_3 = true;
+            } else {
+
+            }
+          } else {
+
+          }
+          _iter_tmp = await _t_14.next();
+        }
+      }
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke query", _exc_);
+    }
+    if (_t_3) {
+      _t_30 = _t_5.__response;
+      _t_31 = _t_5.id;
+      _t_32 = _t_5.artists;
+      _t_33 = _t_5.album;
+      _t_34 = _t_5.genres;
+      _t_35 = _t_5.release_date;
+      _t_36 = _t_5.popularity;
+      _t_37 = _t_5.energy;
+      _t_38 = _t_5.danceability;
+      _t_39 = new Array(2);
+      _t_39[0] = _t_5;
+      _t_39[1] = _t_6;
+      _t_2.push(_t_39);
+    } else {
+
+    }
+    _t_40 = __builtin.indexArray(_t_2, _t_0);
+    for (_t_41 of _t_40) {
+      _t_43 = _t_41[0];
+      _t_42 = _t_41[1];
+      _t_44 = _t_43.__response;
+      _t_45 = _t_43.id;
+      _t_46 = _t_43.artists;
+      _t_47 = _t_43.album;
+      _t_48 = _t_43.genres;
+      _t_49 = _t_43.release_date;
+      _t_50 = _t_43.popularity;
+      _t_51 = _t_43.energy;
+      _t_52 = _t_43.danceability;
+      try {
+        _t_53 = {};
+        _t_53.song = _t_45;
+        _t_54 = await __env.invokeAction("com.spotify2", { }, "play_song", _t_53);
+        _t_55 = _t_54[Symbol.iterator]();
+        {
+          let _iter_tmp = await _t_55.next();
+          while (!_iter_tmp.done) {
+            _t_56 = _iter_tmp.value;
+            _t_57 = _t_56[0];
+            _t_58 = _t_56[1];
+            _t_59 = _t_58.__response;
+            _t_60 = _t_58.device;
+            await __env.output(String(_t_57), _t_58);
+            _iter_tmp = await _t_55.next();
+          }
+        }
+      } catch(_exc_) {
+        __env.reportError("Failed to invoke action", _exc_);
+      }
+    }
+  } finally {
+    await __env.exitProcedure(0, null);
+  }`]],
+
+    // 98 nested indices (complex index inside)
+    [`now => ((sort popularity desc of @com.spotify2.song())[1, 2, 3])[1] => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  let _t_25;
+  let _t_26;
+  let _t_27;
+  let _t_28;
+  let _t_29;
+  let _t_30;
+  let _t_31;
+  let _t_32;
+  let _t_33;
+  let _t_34;
+  let _t_35;
+  let _t_36;
+  let _t_37;
+  let _t_38;
+  let _t_39;
+  let _t_40;
+  let _t_41;
+  let _t_42;
+  let _t_43;
+  let _t_44;
+  let _t_45;
+  let _t_46;
+  let _t_47;
+  let _t_48;
+  let _t_49;
+  let _t_50;
+  let _t_51;
+  let _t_52;
+  let _t_53;
+  let _t_54;
+  let _t_55;
+  let _t_56;
+  let _t_57;
+  let _t_58;
+  let _t_59;
+  let _t_60;
+  let _t_61;
+  let _t_62;
+  let _t_63;
+  let _t_64;
+  let _t_65;
+  await __env.enterProcedure(0, null);
+  try {
+    _t_0 = new Array(1);
+    _t_1 = 1;
+    _t_0[0] = _t_1;
+    _t_2 = new Array(0);
+    _t_3 = new Array(3);
+    _t_4 = 1;
+    _t_3[0] = _t_4;
+    _t_5 = 2;
+    _t_3[1] = _t_5;
+    _t_6 = 3;
+    _t_3[2] = _t_6;
+    _t_7 = new Array(0);
+    _t_8 = new Array(0);
+    try {
+      _t_9 = {};
+      _t_10 = await __env.invokeQuery("com.spotify2", { }, "song", _t_9, { projection: ["id", "artists", "album", "genres", "release_date", "popularity", "energy", "danceability"], sort: ["popularity", "desc"], limit: 1 });
+      _t_11 = _t_10[Symbol.iterator]();
+      {
+        let _iter_tmp = await _t_11.next();
+        while (!_iter_tmp.done) {
+          _t_12 = _iter_tmp.value;
+          _t_13 = _t_12[0];
+          _t_14 = _t_12[1];
+          _t_15 = _t_14.__response;
+          _t_16 = _t_14.id;
+          _t_17 = _t_14.artists;
+          _t_18 = _t_14.album;
+          _t_19 = _t_14.genres;
+          _t_20 = _t_14.release_date;
+          _t_21 = _t_14.popularity;
+          _t_22 = _t_14.energy;
+          _t_23 = _t_14.danceability;
+          _t_24 = new Array(2);
+          _t_24[0] = _t_14;
+          _t_24[1] = _t_13;
+          _t_8.push(_t_24);
+          _iter_tmp = await _t_11.next();
+        }
+      }
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke query", _exc_);
+    }
+    _t_25 = "popularity";
+    __builtin.sortdesc(_t_8, _t_25);
+    for (_t_26 of _t_8) {
+      _t_28 = _t_26[0];
+      _t_27 = _t_26[1];
+      _t_29 = _t_28.__response;
+      _t_30 = _t_28.id;
+      _t_31 = _t_28.artists;
+      _t_32 = _t_28.album;
+      _t_33 = _t_28.genres;
+      _t_34 = _t_28.release_date;
+      _t_35 = _t_28.popularity;
+      _t_36 = _t_28.energy;
+      _t_37 = _t_28.danceability;
+      _t_38 = new Array(2);
+      _t_38[0] = _t_28;
+      _t_38[1] = _t_27;
+      _t_7.push(_t_38);
+    }
+    _t_39 = __builtin.indexArray(_t_7, _t_3);
+    for (_t_40 of _t_39) {
+      _t_42 = _t_40[0];
+      _t_41 = _t_40[1];
+      _t_43 = _t_42.__response;
+      _t_44 = _t_42.id;
+      _t_45 = _t_42.artists;
+      _t_46 = _t_42.album;
+      _t_47 = _t_42.genres;
+      _t_48 = _t_42.release_date;
+      _t_49 = _t_42.popularity;
+      _t_50 = _t_42.energy;
+      _t_51 = _t_42.danceability;
+      _t_52 = new Array(2);
+      _t_52[0] = _t_42;
+      _t_52[1] = _t_41;
+      _t_2.push(_t_52);
+    }
+    _t_53 = __builtin.indexArray(_t_2, _t_0);
+    for (_t_54 of _t_53) {
+      _t_56 = _t_54[0];
+      _t_55 = _t_54[1];
+      _t_57 = _t_56.__response;
+      _t_58 = _t_56.id;
+      _t_59 = _t_56.artists;
+      _t_60 = _t_56.album;
+      _t_61 = _t_56.genres;
+      _t_62 = _t_56.release_date;
+      _t_63 = _t_56.popularity;
+      _t_64 = _t_56.energy;
+      _t_65 = _t_56.danceability;
+      try {
+        await __env.output(String(_t_55), _t_56);
+      } catch(_exc_) {
+        __env.reportError("Failed to invoke action", _exc_);
+      }
+    }
+  } finally {
+    await __env.exitProcedure(0, null);
+  }`]],
+
+    // 99 nested indices (complex index outsde)
+    [`now => ((sort popularity desc of @com.spotify2.song())[1])[1, 2, 3] => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  let _t_25;
+  let _t_26;
+  let _t_27;
+  let _t_28;
+  let _t_29;
+  let _t_30;
+  let _t_31;
+  let _t_32;
+  let _t_33;
+  let _t_34;
+  let _t_35;
+  let _t_36;
+  let _t_37;
+  let _t_38;
+  let _t_39;
+  let _t_40;
+  let _t_41;
+  let _t_42;
+  let _t_43;
+  let _t_44;
+  let _t_45;
+  let _t_46;
+  let _t_47;
+  await __env.enterProcedure(0, null);
+  try {
+    _t_0 = new Array(3);
+    _t_1 = 1;
+    _t_0[0] = _t_1;
+    _t_2 = 2;
+    _t_0[1] = _t_2;
+    _t_3 = 3;
+    _t_0[2] = _t_3;
+    _t_4 = new Array(0);
+    _t_5 = false;
+    _t_6 = -Infinity;
+    try {
+      _t_9 = {};
+      _t_10 = await __env.invokeQuery("com.spotify2", { }, "song", _t_9, { projection: ["id", "artists", "album", "genres", "release_date", "popularity", "energy", "danceability"], sort: ["popularity", "desc"], limit: 1 });
+      _t_11 = _t_10[Symbol.iterator]();
+      {
+        let _iter_tmp = await _t_11.next();
+        while (!_iter_tmp.done) {
+          _t_12 = _iter_tmp.value;
+          _t_13 = _t_12[0];
+          _t_14 = _t_12[1];
+          _t_15 = _t_14.__response;
+          _t_16 = _t_14.id;
+          _t_17 = _t_14.artists;
+          _t_18 = _t_14.album;
+          _t_19 = _t_14.genres;
+          _t_20 = _t_14.release_date;
+          _t_21 = _t_14.popularity;
+          _t_22 = _t_14.energy;
+          _t_23 = _t_14.danceability;
+          _t_24 = _t_6 < _t_21;
+          if (_t_24) {
+            _t_6 = _t_21;
+            _t_7 = _t_14;
+            _t_8 = _t_13;
+            _t_5 = true;
+          } else {
+
+          }
+          _iter_tmp = await _t_11.next();
+        }
+      }
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke query", _exc_);
+    }
+    if (_t_5) {
+      _t_25 = _t_7.__response;
+      _t_26 = _t_7.id;
+      _t_27 = _t_7.artists;
+      _t_28 = _t_7.album;
+      _t_29 = _t_7.genres;
+      _t_30 = _t_7.release_date;
+      _t_31 = _t_7.popularity;
+      _t_32 = _t_7.energy;
+      _t_33 = _t_7.danceability;
+      _t_34 = new Array(2);
+      _t_34[0] = _t_7;
+      _t_34[1] = _t_8;
+      _t_4.push(_t_34);
+    } else {
+
+    }
+    _t_35 = __builtin.indexArray(_t_4, _t_0);
+    for (_t_36 of _t_35) {
+      _t_38 = _t_36[0];
+      _t_37 = _t_36[1];
+      _t_39 = _t_38.__response;
+      _t_40 = _t_38.id;
+      _t_41 = _t_38.artists;
+      _t_42 = _t_38.album;
+      _t_43 = _t_38.genres;
+      _t_44 = _t_38.release_date;
+      _t_45 = _t_38.popularity;
+      _t_46 = _t_38.energy;
+      _t_47 = _t_38.danceability;
+      try {
+        await __env.output(String(_t_37), _t_38);
+      } catch(_exc_) {
+        __env.reportError("Failed to invoke action", _exc_);
+      }
+    }
+  } finally {
+    await __env.exitProcedure(0, null);
+  }`]],
+
+    // 100 nested indices (no sort)
+    [`now => (@com.spotify2.song()[1])[1] => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  let _t_25;
+  let _t_26;
+  let _t_27;
+  let _t_28;
+  let _t_29;
+  let _t_30;
+  let _t_31;
+  let _t_32;
+  let _t_33;
+  let _t_34;
+  let _t_35;
+  let _t_36;
+  await __env.enterProcedure(0, null);
+  try {
+    _t_0 = new Array(1);
+    _t_1 = 1;
+    _t_0[0] = _t_1;
+    _t_2 = new Array(0);
+    _t_3 = 1;
+    _t_4 = false;
+    _t_5 = 0;
+    try {
+      _t_6 = {};
+      _t_7 = await __env.invokeQuery("com.spotify2", { }, "song", _t_6, { projection: ["id", "artists", "album", "genres", "release_date", "popularity", "energy", "danceability"], limit: 1 });
+      _t_8 = _t_7[Symbol.iterator]();
+      {
+        let _iter_tmp = await _t_8.next();
+        while (!_iter_tmp.done) {
+          _t_9 = _iter_tmp.value;
+          _t_10 = _t_9[0];
+          _t_11 = _t_9[1];
+          _t_12 = _t_11.__response;
+          _t_13 = _t_11.id;
+          _t_14 = _t_11.artists;
+          _t_15 = _t_11.album;
+          _t_16 = _t_11.genres;
+          _t_17 = _t_11.release_date;
+          _t_18 = _t_11.popularity;
+          _t_19 = _t_11.energy;
+          _t_20 = _t_11.danceability;
+          _t_21 = 1;
+          _t_5 = _t_5 + _t_21;
+          _t_22 = _t_3 == _t_5;
+          if (_t_22) {
+            _t_4 = true;
+            break;
+          } else {
+
+          }
+          _iter_tmp = await _t_8.next();
+        }
+      }
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke query", _exc_);
+    }
+    if (_t_4) {
+      _t_23 = new Array(2);
+      _t_23[0] = _t_11;
+      _t_23[1] = _t_10;
+      _t_2.push(_t_23);
+    } else {
+
+    }
+    _t_24 = __builtin.indexArray(_t_2, _t_0);
+    for (_t_25 of _t_24) {
+      _t_27 = _t_25[0];
+      _t_26 = _t_25[1];
+      _t_28 = _t_27.__response;
+      _t_29 = _t_27.id;
+      _t_30 = _t_27.artists;
+      _t_31 = _t_27.album;
+      _t_32 = _t_27.genres;
+      _t_33 = _t_27.release_date;
+      _t_34 = _t_27.popularity;
+      _t_35 = _t_27.energy;
+      _t_36 = _t_27.danceability;
+      try {
+        await __env.output(String(_t_26), _t_27);
+      } catch(_exc_) {
+        __env.reportError("Failed to invoke action", _exc_);
+      }
+    }
+  } finally {
+    await __env.exitProcedure(0, null);
+  }`]],
+
+    // 100 nested indices (no sort, complex index outside)
+    [`now => (@com.spotify2.song()[1])[1, 2, 3] => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  let _t_25;
+  let _t_26;
+  let _t_27;
+  let _t_28;
+  let _t_29;
+  let _t_30;
+  let _t_31;
+  let _t_32;
+  let _t_33;
+  let _t_34;
+  let _t_35;
+  let _t_36;
+  let _t_37;
+  let _t_38;
+  await __env.enterProcedure(0, null);
+  try {
+    _t_0 = new Array(3);
+    _t_1 = 1;
+    _t_0[0] = _t_1;
+    _t_2 = 2;
+    _t_0[1] = _t_2;
+    _t_3 = 3;
+    _t_0[2] = _t_3;
+    _t_4 = new Array(0);
+    _t_5 = 1;
+    _t_6 = false;
+    _t_7 = 0;
+    try {
+      _t_8 = {};
+      _t_9 = await __env.invokeQuery("com.spotify2", { }, "song", _t_8, { projection: ["id", "artists", "album", "genres", "release_date", "popularity", "energy", "danceability"], limit: 1 });
+      _t_10 = _t_9[Symbol.iterator]();
+      {
+        let _iter_tmp = await _t_10.next();
+        while (!_iter_tmp.done) {
+          _t_11 = _iter_tmp.value;
+          _t_12 = _t_11[0];
+          _t_13 = _t_11[1];
+          _t_14 = _t_13.__response;
+          _t_15 = _t_13.id;
+          _t_16 = _t_13.artists;
+          _t_17 = _t_13.album;
+          _t_18 = _t_13.genres;
+          _t_19 = _t_13.release_date;
+          _t_20 = _t_13.popularity;
+          _t_21 = _t_13.energy;
+          _t_22 = _t_13.danceability;
+          _t_23 = 1;
+          _t_7 = _t_7 + _t_23;
+          _t_24 = _t_5 == _t_7;
+          if (_t_24) {
+            _t_6 = true;
+            break;
+          } else {
+
+          }
+          _iter_tmp = await _t_10.next();
+        }
+      }
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke query", _exc_);
+    }
+    if (_t_6) {
+      _t_25 = new Array(2);
+      _t_25[0] = _t_13;
+      _t_25[1] = _t_12;
+      _t_4.push(_t_25);
+    } else {
+
+    }
+    _t_26 = __builtin.indexArray(_t_4, _t_0);
+    for (_t_27 of _t_26) {
+      _t_29 = _t_27[0];
+      _t_28 = _t_27[1];
+      _t_30 = _t_29.__response;
+      _t_31 = _t_29.id;
+      _t_32 = _t_29.artists;
+      _t_33 = _t_29.album;
+      _t_34 = _t_29.genres;
+      _t_35 = _t_29.release_date;
+      _t_36 = _t_29.popularity;
+      _t_37 = _t_29.energy;
+      _t_38 = _t_29.danceability;
+      try {
+        await __env.output(String(_t_28), _t_29);
+      } catch(_exc_) {
+        __env.reportError("Failed to invoke action", _exc_);
+      }
+    }
+  } finally {
+    await __env.exitProcedure(0, null);
+  }`]],
 ];
 
 // eslint-disable-next-line prefer-arrow-callback

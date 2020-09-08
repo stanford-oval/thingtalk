@@ -40,6 +40,14 @@
       "facets": [ "loader" ]
     },
     {
+      "kind": "org.thingpedia.rss",
+      "args": [],
+      "types": [],
+      "required": [],
+      "is_input": [],
+      "facets": [ "loader" ]
+    },
+    {
       "kind": "org.thingpedia.config.none",
       "args": [ "api_key", "subscription_key" ],
       "types": [ "String", "String" ],
@@ -64,6 +72,14 @@
       "facets": [ "config" ]
     },
     {
+      "kind": "org.thingpedia.config.discovery",
+      "args": [ "protocol" ],
+      "types": [ "Enum(upnp,bluetooth)" ],
+      "required": [ true ],
+      "is_input": [ true ],
+      "facets": [ "config" ]
+    },
+    {
       "kind": "org.thingpedia.config.form",
       "args": [ "params" ],
       "types": [ "ArgMap"],
@@ -73,10 +89,10 @@
     },
     {
       "kind": "org.thingpedia.config.oauth2",
-      "args": [ "client_id", "client_secret" ],
-      "types": [ "String", "String" ],
-      "required": [ false, false ],
-      "is_input": [ true, true ],
+      "args": [ "client_id", "client_secret", "authorize", "get_access_token", "scope", "set_state", "get_profile", "profile", "redirect_uri" ],
+      "types": [ "String", "String", "Entity(tt:url)", "Entity(tt:url)", "Array(String)", "Boolean", "Entity(tt:url)", "Array(String)", "Entity(tt:url)" ],
+      "required": [ false, false, false, false, false, false, false, false, false ],
+      "is_input": [ true, true, true, true, true, true, true, true, true ],
       "facets": [ "config" ]
     },
     {
