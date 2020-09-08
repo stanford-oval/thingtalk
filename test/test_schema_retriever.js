@@ -51,14 +51,15 @@ async function testInjectManifest() {
   import loader from @org.thingpedia.v2();
   import config from @org.thingpedia.config.none();
 
-  monitorable query get_comic(in opt number: Number #_[prompt="What Xkcd comic do you want?"],
+  monitorable query get_comic(in opt number: Number
+                              #_[prompt="What Xkcd comic do you want?"],
                               out title: String,
                               out picture_url: Entity(tt:picture),
                               out link: Entity(tt:url),
                               out alt_text: String)
   #_[canonical="xkcd comic"]
   #_[confirmation="an Xkcd comic"]
-  #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}"}, {type="picture",url="${'${picture_url}'}"}, {type="text",text="${'${alt_text}'}"}]]
+  #_[formatted=[{type="rdl", webCallback="${'${link}'}", displayTitle="${'${title}'}"}, {type="picture", url="${'${picture_url}'}"}, {type="text", text="${'${alt_text}'}"}]]
   #[poll_interval=86400000ms]
   #[doc="retrieve the comic with a given number, or the latest comit"]
   #[minimal_projection=[]];
@@ -70,7 +71,7 @@ async function testInjectManifest() {
                      out alt_text: String)
   #_[canonical="random xkcd comic"]
   #_[confirmation="a random Xkcd comic"]
-  #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}"}, {type="picture",url="${'${picture_url}'}"}, {type="text",text="${'${alt_text}'}"}]]
+  #_[formatted=[{type="rdl", webCallback="${'${link}'}", displayTitle="${'${title}'}"}, {type="picture", url="${'${picture_url}'}"}, {type="text", text="${'${alt_text}'}"}]]
   #[doc="retrieve a random xkcd"]
   #[minimal_projection=[]];
 
@@ -79,7 +80,7 @@ async function testInjectManifest() {
                                  out updated_time: Date)
   #_[canonical="xkcd what if blog posts"]
   #_[confirmation="Xkcd's What If blog posts"]
-  #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}"}]]
+  #_[formatted=[{type="rdl", webCallback="${'${link}'}", displayTitle="${'${title}'}"}]]
   #[poll_interval=86400000ms]
   #[doc="retrieve the latest posts on Xkcd's What If blog"]
   #[minimal_projection=[]];

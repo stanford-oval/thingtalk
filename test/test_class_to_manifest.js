@@ -41,11 +41,12 @@ const TEST_CASES = [
     '  monitorable query get_power(out power: Enum(on,off))\n' +
     '  #_[canonical="power status of foo"]\n' +
     '  #_[confirmation="status of foo"]\n' +
-    '  #_[formatted=["Here is something for you", {type="rdl",displayTitle="$title",webCallback="$url"}]]\n' +
+    '  #_[formatted=["Here is something for you", {type="rdl", displayTitle="$title", webCallback="$url"}]]\n' +
     '  #[poll_interval=600000ms]\n' +
     '  #[minimal_projection=[]];\n' +
     '\n' +
-    '  action set_power(in req power: Enum(on,off) #_[prompt="do you want turn on or off?"])\n' +
+    '  action set_power(in req power: Enum(on,off)\n' +
+    '                   #_[prompt="do you want turn on or off?"])\n' +
     '  #_[canonical="set power of foo"]\n' +
     '  #_[confirmation="turn $power foo"]\n' +
     '  #[minimal_projection=[]];\n' +
@@ -323,7 +324,8 @@ const TEST_CASES = [
     '\n' +
     '  query bar(out title: String,\n' +
     '            out description: String,\n' +
-    '            out url: Entity(tt:url) #[unique=true])\n' +
+    '            out url: Entity(tt:url)\n' +
+    '            #[unique=true])\n' +
     '  #_[canonical="foo"]\n' +
     '  #_[confirmation="bar"]\n' +
     '  #[require_filter=true]\n' +
