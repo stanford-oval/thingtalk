@@ -20,7 +20,7 @@
 const assert = require('assert');
 
 const __builtin = require('../lib/builtin/values');
-const { equality } = require('../lib/builtin/primitive_ops');
+const { equality, like } = require('../lib/builtin/primitive_ops');
 
 function testValueOf(what, expected) {
     assert.strictEqual(+what, expected);
@@ -36,7 +36,7 @@ function testEval(obj) {
     const newobj = eval(jsSource);
     assert(equality(newobj, obj));
     assert.strictEqual(String(newobj), String(obj));
-}   
+}
 
 function main() {
     assert.throws(() => new __builtin.Time());
@@ -131,6 +131,23 @@ function main() {
     assert(!equality([1, 2], [1]));
     assert(!equality([1], [1, 2]));
     assert(!equality([1, 2], [1, 3]));
+
+    assert(like("queen", "queen"));
+    assert(like("beyoncé", "beyonce"));
+    assert(like("the rolling stones", "rolling stones"));
+    assert(like("gigi d' agostino", "gigi dagostino"));
+    assert(like("taylor swift", "taylor swiit"));
+    assert(like("the beatles", "beetles"));
+    assert(like("drake", "drakes"));
+    assert(like("camila cabello", "camilla cabelo"));
+    assert(like("the wall(remastered)", "the wall remastered"));
+    assert(like("despacito - remix", "despacito remix"));
+    assert(like("bohemian rhapsody", "bohemian rhapsody!!!"));
+    assert(like("another brick in the wall, pt. 1", "another brick in the wall pt 1"));
+    assert(like("k-pop", "kpop"));
+    assert(like("r&b", "r & b"));
+    assert(!like("john legend", "john the legend"));
+    assert(!like("21", "twenty one"));
 }
 module.exports = main;
 if (!module.parent)
