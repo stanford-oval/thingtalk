@@ -1,3 +1,14 @@
+1.11.0-rc.1
+===========
+
+* The `=~` operator is now a "loose string match", rather an a simple
+  string match. It implements a number of heuristics, including removing
+  accents and punctuation. We expect heuristics to be refined in the
+  future [#252].
+* Improved prettyprinting of annotations [#251].
+* Misc bug fixes [#236, #250].
+* Updated dependencies [#248, #249, #253].
+
 1.11.0-beta.5
 =============
 
