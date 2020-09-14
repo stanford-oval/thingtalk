@@ -1893,11 +1893,11 @@ sshpk@^1.7.0:
     tweetnacl "~0.14.0"
 
 string-interp@^0.3.1:
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/string-interp/-/string-interp-0.3.1.tgz#27f14d690828e1a88eaa11d6145d234933b84e3c"
-  integrity sha512-SObZ/Gzoe0YTH3B8tD5/hPyX3SksgUV0Az+MCLl7Pzh40BTAysC1A46rDRzOEdREegU0iTrpFwBhc/Jc0MKyzQ==
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/string-interp/-/string-interp-0.3.2.tgz#d713209fc05bcd340c96a4d428e4ede7889eb29b"
+  integrity sha512-HAFXnMl8hO4nqfi1whSVSYC7UAAYx2DqyI4yq9gtGVX4Nk6RS1M0gGhpGIHVznMvM6kxIJqADPswvRGdlIhGYA==
   dependencies:
-    thingtalk-units "^0.1.0"
+    thingtalk-units "^0.2.0"
 
 string-width@^3.0.0:
   version "3.1.0"
@@ -1999,11 +1999,6 @@ text-table@^0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
   integrity sha1-f17oI66AUgfACvLfSoTsP8+lcLQ=
-
-thingtalk-units@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/thingtalk-units/-/thingtalk-units-0.1.0.tgz#c3b69bc0c7d0a3ba5bfad3ccf02dc1c291d1abc8"
-  integrity sha512-rV5/jZw9fBk3OgYi/HrA1LsTmD5w0gYDlsc1US3/ePR5szaUxwMUtN8UAPYaUorOiW0Qcjm1plvssOC97EkedQ==
 
 thingtalk-units@^0.2.0:
   version "0.2.0"
