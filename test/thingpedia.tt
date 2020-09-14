@@ -1368,84 +1368,6 @@ class @jpk.athletics
   #_[canonical="get feed on stanford athletics feed"]
   #_[confirmation="Outside World"];
 }
-class @org.wikidata
-#_[canonical="wikidata"] {
-  list query person(out P735: String #_[canonical="given name"] #[string_values="org.wikidata:given_name"],
-                    out P734: String #_[canonical="family name"] #[string_values="org.wikidata:family_name"],
-                    out P1477: String #_[canonical="birth name"] #[string_values="org.wikidata:birth_name"],
-                    out P1449: Array(String) #_[canonical={ default='npp', npp=['nickname'], pvp=['called', 'nicknamed'] }] #[string_values="org.wikidata:nickname"],
-                    out P21: Enum(male,female) #_[canonical={ default="apv", apv=true, npv=true, npp=['gender', 'sex']}],
-                    out P27: String #_[canonical="country of citizenship"] #[string_values="org.wikidata:country_of_citizenship"],
-                    out P569: Date #_[canonical={ default='pvp', npp=["date of birth", "birthday"], pvp=["born on"] }],
-                    out P570: Date #_[canonical={ default='avp', npp=["date of death"], avp=["died on", "passed away on"] }],
-                    out P19: String #_[canonical={ default='pvp', npp=["place of birth"], pvp=["born in"]}] #[string_values="org.wikidata:place_of_birth"],
-                    out P20: String #_[canonical={ default='avp', npp=["place of death"], avp=["died in", "passed way in"] }] #[string_values="org.wikidata:place_of_death"],
-                    out P1196: String #_[canonical="manner of death"] #[string_values="org.wikidata:manner_of_death"],
-                    out P509: String #_[canonical={ default="pvp", npp=["cause of death"], pvp=["killed by"], avp=["died because of", "died from"] }] #[string_values="org.wikidata:cause_of_death"],
-                    out P119: String #_[canonical={ default="pvp", npp=["place of burial"], pvp=["buried at"] }] #[string_values="org.wikidata:place_of_burial"],
-                    out P18: Entity(tt:picture) #_[canonical="image"],
-                    out P109: Entity(tt:picture) #_[canonical="signature"],
-                    out P22: Entity(org.wikidata:human) #_[canonical={ default="npp", npp=["father", "dad"]}],
-                    out P25: Entity(org.wikidata:human) #_[canonical={ default="npp", npp=["mother", "mom"]}],
-                    out P3373: Array(Entity(org.wikidata:human)) #_[canonical="sibling"],
-                    out P26: Array(Entity(org.wikidata:human)) #_[canonical={ default="avp", npp=["spouse"], avp=["married with"]}],
-                    out P40: Array(Entity(org.wikidata:human)) #_[canonical="child"],
-                    out P1971: Number #_[canonical="number of children"],
-                    out P103: String #_[canonical="native language"] #[string_values="org.wikidata:native_language"],
-                    out P106: Array(String) #_[canonical={ default="npp", npp=["occupation", "job", "profession"], avp=["work as a"], npv=true}] #[string_values="org.wikidata:occupation"],
-                    out P108: Array(String) #_[canonical={ default="avp", npp=["employer"], avp=["work for", "work in"], pvp=["employed by"] }] #[string_values="org.wikidata:employer"],
-                    out P39: Array(String) #_[canonical={ default="npp", npp=["position", "position held", "job title"] }] #[string_values="org.wikidata:position_held"],
-                    out P166: Array(String) #_[canonical={ default="avp", avp=["won", "received"], npp=["award"]}] #[string_values="org.wikidata:award_received"],
-                    out P1411: Array(String) #_[canonical={ default='pvp', pvp=["nominated for"] }] #[string_values="org.wikidata:nominated_for"],
-                    out P69: Array(String) #_[canonical={ default='pvp', pvp=["educated at", "studied at"] }] #[string_values="org.wikidata:educated_at"],
-                    out P512: Array(String) #_[canonical={ default="npv", npv=true, npp=["academic degree"], avp=["received"] }] #[string_values="org.wikidata:academic_degree"],
-                    out P551: Array(String) #_[canonical={ default="avp", avp=["lives in", "resident in"], npi=["resident of"], npp=["residence"]}] #[string_values="org.wikidata:residence"],
-                    out P937: Array(String) #_[canonical={ default="avp", avp=["work in city", "work in"], npp=["work location"]}] #[string_values="org.wikidata:work_location"],
-                    out P102: Array(String) #_[canonical={ default="npi", npi=["member of"], npp=["political party"]}] #[string_values="org.wikidata:member_of_political_party"],
-                    out P1576: Array(String) #_[canonical="lifestyle"] #[string_values="org.wikidata:lifestyle"],
-                    out P172: Array(String) #_[canonical={ default="npv", npv=true, npp=["ethnicity", "ethnic group"]}] #[string_values="org.wikidata:ethnic_group"],
-                    out P140: Array(String) #_[canonical="religion"] #[string_values="org.wikidata:religion"],
-                    out P2048: Measure(m) #_[canonical={ default="apv", apv=true, npp=["height"]}],
-                    out P2067: Measure(kg) #_[canonical={ default="apv", apv=true, npp=["mass", "weight"]}],
-                    out P1853: Enum(A,B,AB,O) #_[canonical="blood type"],
-                    out P1050: String #_[canonical="medical condition"] #[string_values="org.wikidata:medical_condition"],
-                    out P1429: Array(String) #_[canonical={default="npp", npp=["pet"], avp=["own", "pet"]}] #[string_values="org.wikidata:has_pet"],
-                    out P552: Enum(left,right) #_[canonical={default="npp", npp=["dominant hand", "handedness"]}],
-                    out P410: Array(String) #_[canonical="military rank"] #[string_values="org.wikidata:military_rank"],
-                    out P856: Entity(tt:url) #_[canonical="official website"] #[string_values="org.wikidata:official_website"],
-                    out P737: Array(Entity(org.wikidata:human)) #_[canonical={default="pvp", pvp=["influenced by"]}],
-                    out P641: Array(String) #_[canonical={default="avp", avp=["play"], npp=["sport"]}] #[string_values="org.wikidata:sport"],
-                    out P54: Array(String) #_[canonical={default="avp", avp=["play for"], npi=["member of sports team", "member of", "player in team"]}] #[string_values="org.wikidata:member_of_sports_team"],
-                    out P647: Array(String) #_[canonical={default="pvp", pvp=["drafted by"]}] #[string_values="org.wikidata:drafted_by"],
-                    out P1618: Array(String) #_[canonical={default="avp", avp=["wear number"], npp=["jersey number"]}] #[string_values="org.wikidata:sport_number"],
-                    out P286: Array(String) #_[canonical={default="npp", npp=["head coach"], pvp=["coached by"], avp=["play for coach"]}] #[string_values="org.wikidata:head_coach"],
-                    out P1344: Array(String) #_[canonical={default="avp", avp=["participated", "attended"], npi=["participant of"]}] #[string_values="org.wikidata:participant_of"],
-                    out P1830: Array(String) #_[canonical={ default="avp", avp=["own"], npi=["owner of"]}] #[string_values="org.wikidata:owner_of"],
-                    out P3828: Array(String) #_[canonical={default="avp", avp=["wears"]}] #[string_values="org.wikidata:wears"],
-                    out P136: Array(String) #_[canonical="genre"] #[string_values="org.wikidata:genre"],
-                    out P264: Array(String) #_[canonical="record label"] #[string_values="org.wikidata:record_label"],
-                    out P1303: Array(String) #_[canonical={default="avp", avp=["play instrument", "play"], npp=["instrument"]}] #[string_values="org.wikidata:instrument"],
-                    out P184: Array(Entity(org.wikidata:human)) #_[canonical="doctoral advisor"],
-                    out P185: Array(Entity(org.wikidata:human)) #_[canonical="doctoral student"],
-                    out P2002: String #_[canonical="twitter username"] #[string_values="org.wikidata:Twitter_username"] #[unique=true],
-                    out P2003: String #_[canonical="instagram username"] #[string_values="org.wikidata:Instagram_username"] #[unique=true],
-                    out P2013: String #_[canonical="facebook id"] #[string_values="org.wikidata:Facebook_ID"] #[unique=true],
-                    out P2847: String #_[canonical="google+ id"] #[string_values="org.wikidata:Google+_ID"] #[unique=true],
-                    out P3265: String #_[canonical="myspace id"] #[string_values="org.wikidata:Myspace_ID"] #[unique=true],
-                    out P2397: String #_[canonical="youtube channel id"] #[string_values="org.wikidata:YouTube_channel_ID"] #[unique=true],
-                    out P4265: String #_[canonical="reddit username"] #[string_values="org.wikidata:Reddit_username"] #[unique=true],
-                    out P4411: String #_[canonical="quora username"] #[string_values="org.wikidata:Quora_username"] #[unique=true],
-                    out P4013: String #_[canonical="giphy username"] #[string_values="org.wikidata:Giphy_username"] #[unique=true],
-                    out P3984: String #_[canonical="subreddit"] #[string_values="org.wikidata:subreddit"] #[unique=true],
-                    out id: Entity(org.wikidata:human) #_[canonical="person"] #[unique=true])
-
-  #_[canonical="wikidata human data"]
-  #_[confirmation="wikidata human"]
-  #[handle_thingtalk=true]
-  #[wikidata_subject='Q5']
-  #[default_projection=['id']];
-
-}
 class @com.wikicfp
 #_[name="WikiCFP"]
 #_[description="Keep updated with paper submission deadlines"]
@@ -1893,133 +1815,6 @@ class @com.spotify2
     #[doc="set the repeat state"]
     #[confirm=false];
 }
-class @org.wikidatasportsskill
-#_[canonical="wikidata sports"] {
-  list query athlete(out P18: Array(Entity(tt:picture)) #_[canonical="image"],
-                     out P19: String #_[canonical="place of birth"] #[string_values="org.wikidata:place_of_birth"],
-                     out P20: String #_[canonical="place of death"] #[string_values="org.wikidata:place_of_death"],
-                     out P21: Enum(male,female,transgender_female,intersex,transgender_male) #_[canonical="sex or gender"],
-                     out P27: Array(Entity(org.wikidatasportsskill:country)) #_[canonical="country of citizenship"],
-                     out P69: Array(Entity(org.wikidatasportsskill:educated_at)) #_[canonical="educated at"],
-                     out P119: String #_[canonical="place of burial"] #[string_values="org.wikidata:place_of_burial"],
-                     out P166: Array(Entity(org.wikidatasportsskill:award_received)) #_[canonical="award received"],
-                     out P213: Entity(org.wikidatasportsskill:isni) #_[canonical="isni"],
-                     out P214: Entity(org.wikidatasportsskill:viaf_id) #_[canonical="viaf id"],
-                     out P227: Entity(org.wikidatasportsskill:gnd_id) #_[canonical="gnd id"],
-                     out P244: Entity(org.wikidatasportsskill:library_of_congress_authority_id) #_[canonical="library of congress authority id"],
-                     out P349: Entity(org.wikidatasportsskill:ndl_auth_id) #_[canonical="ndl auth id"],
-                     out P509: String #_[canonical="cause of death"] #[string_values="org.wikidata:cause_of_death"],
-                     out P569: Date #_[canonical="date of birth"],
-                     out P570: Date #_[canonical="date of death"],
-                     out P641: Array(Entity(org.wikidatasportsskill:sports)) #_[canonical="sport"],
-                     out P646: Entity(org.wikidatasportsskill:freebase_id) #_[canonical="freebase id"],
-                     out P734: String #_[canonical="family name"] #[string_values="org.wikidata:family_name"],
-                     out P735: String #_[canonical="given name"] #[string_values="org.wikidata:given_name"],
-                     out P1006: Entity(org.wikidatasportsskill:national_thesaurus_for_author_names_id) #_[canonical="national thesaurus for author names id"],
-                     out P1263: Entity(org.wikidatasportsskill:nndb_people_id) #_[canonical="nndb people id"],
-                     out P1532: Array(Entity(org.wikidatasportsskill:country)) #_[canonical="country for sport"],
-                     out P1741: Entity(org.wikidatasportsskill:gtaa_id) #_[canonical="gtaa id"],
-                     out P2048: Measure(cm) #_[canonical="height"],
-                     out P2067: Measure(kg) #_[canonical="mass"],
-                     out P2094: Entity(org.wikidatasportsskill:competition_class) #_[canonical="competition class"],
-                     out P26: Entity(org.wikidata:human) #_[canonical="spouse"],
-                     out P40: Entity(org.wikidata:human) #_[canonical="child"],
-                     out P2949: Entity(org.wikidatasportsskill:wikitree_person_id) #_[canonical="wikitree person id"],
-                     out P3417: String #_[canonical="quora topic id"] #[string_values="org.wikidata:Quora_topic_ID"],
-                     out P691: Entity(org.wikidatasportsskill:nkcr_aut_id) #_[canonical="nkcr aut id"],
-                     out P1315: Entity(org.wikidatasportsskill:nla_persistent_identifier) #_[canonical="nla persistent identifier"],
-                     out P1411: Array(Entity(org.wikidatasportsskill:award_received)) #_[canonical="nominated for"],
-                     out P1412: Array(String) #_[canonical="languages spoken, written or signed"] #[string_values="org.wikidata:native_language"],
-                     out P1477: String #_[canonical="birth name"] #[string_values="org.wikidata:birth_name"],
-                     out P1146: Entity(org.wikidatasportsskill:iaaf_athlete_id) #_[canonical="iaaf athlete id"],
-                     out P1449: Array(String) #_[canonical="nickname"] #[string_values="org.wikidata:nickname"],
-                     out P2416: Array(Entity(org.wikidatasportsskill:sports_discipline_competed_in)) #_[canonical="sports discipline competed in"],
-                     out P856: Entity(tt:url) #_[canonical="official website"] #[string_values="org.wikidata:official_website"],
-                     out P3373: Array(Entity(org.wikidata:human)) #_[canonical="sibling"],
-                     out P54: Array(Entity(org.wikidatasportsskill:sports_teams)) #_[canonical="member of sports team"],
-                     out P413: Array(Entity(org.wikidatasportsskill:position_played_on_team)) #_[canonical="position played on team / speciality"],
-                     out P3574: Entity(org.wikidatasportsskill:fangraphs_player_id) #_[canonical="fangraphs player id"],
-                     out P4731: Entity(org.wikidatasportsskill:the_baseball_cube_player_id) #_[canonical="the baseball cube player id"],
-                     out P172: Array(String) #_[canonical="ethnic group"] #[string_values="org.wikidata:ethnic_group"],
-                     out P22: Entity(org.wikidata:human) #_[canonical="father"],
-                     out P3542: Array(Entity(org.wikidatasportsskill:fiba_player_id)) #_[canonical="fiba player id"],
-                     out P647: Entity(org.wikidatasportsskill:sports_teams) #_[canonical="drafted by"],
-                     out P4548: Entity(org.wikidatasportsskill:commonwealth_games_federation_athlete_id) #_[canonical="commonwealth games federation athlete id"],
-                     out P2002: String #_[canonical="twitter username"] #[string_values="org.wikidata:Twitter_username"],
-                     out P2446: Entity(org.wikidatasportsskill:transfermarkt_player_id) #_[canonical="transfermarkt player id"],
-                     out P2091: Entity(org.wikidatasportsskill:fisa_rower_id) #_[canonical="fisa rower id"],
-                     out P118: Entity(org.wikidatasportsskill:league) #_[canonical="league"],
-                     out P423: Enum(left_handed_shot,right_handed_shot) #_[canonical="shooting handedness"],
-                     out P1350: Number #_[canonical="number of matches played/races/starts"],
-                     out P2481: Entity(org.wikidatasportsskill:elite_prospects_player_id) #_[canonical="elite prospects player id"],
-                     out P6509: Number #_[canonical="total goals in career"],
-                     out P6544: Number #_[canonical="total points in career"],
-                     out P6545: Number #_[canonical="total assists in career"],
-                     out P6546: Number #_[canonical="penalty minutes in career"],
-                     out P2698: Entity(org.wikidatasportsskill:cricketarchive_player_id) #_[canonical="cricketarchive player id"],
-                     out P1469: Entity(org.wikidatasportsskill:fifa_player_id) #_[canonical="fifa player id"],
-                     out P599: Entity(org.wikidatasportsskill:itf_player_id) #_[canonical="itf player id"],
-                     out P3547: Entity(org.wikidatasportsskill:afl_tables_player_id) #_[canonical="afl tables player id"],
-                     out P1087: Number #_[canonical="elo rating"],
-                     out P2962: Array(Entity(org.wikidatasportsskill:title_of_chess_person)) #_[canonical="title of chess person"],
-                     out P741: Enum(left_handed_shot,right_handed_shot,two_handed_backhand,one_handed_backhand,one_handed_forhand,two_handed_forhand) #_[canonical="playing hand"],
-                     out P6543: Number #_[canonical="total shots in career"],
-                     out P6547: Number #_[canonical="career plus-minus rating"],
-                     out P3957: Entity(org.wikidatasportsskill:realgm_basketball_player_id) #_[canonical="realgm basketball player id"],
-                     out id: Entity(org.wikidatasportsskill:athletes) #_[canonical="athlete"])
-  #_[canonical="wikidata athlete"]
-  #_[confirmation="wikidata athlete"]
-  #[handle_thingtalk=true]
-  #[wikidata_subject='Q5']
-  #[default_projection=['id']];
-
-
-  list query sports(out P18: Array(Entity(tt:picture)) #_[canonical="image"],
-                    out P227: Entity(org.wikidatasportsskill:gnd_id) #_[canonical="gnd id"],
-                    out P244: Array(Entity(org.wikidatasportsskill:library_of_congress_authority_id)) #_[canonical="library of congress authority id"],
-                    out P349: Entity(org.wikidatasportsskill:ndl_auth_id) #_[canonical="ndl auth id"],
-                    out P646: Entity(org.wikidatasportsskill:freebase_id) #_[canonical="freebase id"],
-                    out P1225: Array(Entity(org.wikidatasportsskill:us_national_archives_identifier)) #_[canonical="us national archives identifier"],
-                    out P1282: Entity(org.wikidatasportsskill:osm_tag_or_key) #_[canonical="osm tag or key"],
-                    out P2283: Array(Entity(org.wikidatasportsskill:uses)) #_[canonical="uses"],
-                    out P2581: Entity(org.wikidatasportsskill:babelnet_id) #_[canonical="babelnet id"],
-                    out P3417: Array(Entity(org.wikidatasportsskill:quora_topic_id)) #_[canonical="quora topic id"],
-                    out P3827: Entity(org.wikidatasportsskill:jstor_topic_id) #_[canonical="jstor topic id"],
-                    out P1014: Array(Entity(org.wikidatasportsskill:aat_id)) #_[canonical="aat id"],
-                    out P495: Array(Entity(org.wikidatasportsskill:country)) #_[canonical="country of origin"],
-                    out P1051: Entity(org.wikidatasportsskill:psh_id) #_[canonical="psh id"],
-                    out P2910: Entity(tt:picture) #_[canonical="icon"],
-                    out P5250: Entity(org.wikidatasportsskill:iab_code) #_[canonical="iab code"],
-                    out id: Entity(org.wikidatasportsskill:sports) #_[canonical="sports"])
-  #_[canonical="wikidata sports data"]
-  #_[confirmation="wikidata sports"]
-  #[handle_thingtalk=true]
-  #[wikidata_subject='Q31629']
-  #[default_projection=['id']];
-
-
-  list query sports_team(out P17: Entity(org.wikidatasportsskill:country) #_[canonical="country"],
-                         out P571: Date #_[canonical="inception"],
-                         out P2002: Array(String) #_[canonical="twitter username"] #[string_values="org.wikidata:Twitter_username"],
-                         out P641: Entity(org.wikidatasportsskill:sports) #_[canonical="sport"],
-                         out P2416: Entity(org.wikidatasportsskill:sports_discipline_competed_in) #_[canonical="sports discipline competed in"],
-                         out P856: Array(Entity(tt:picture)) #_[canonical="official website"],
-                         out P2013: Array(String) #_[canonical="facebook id"] #[string_values="org.wikidata:Facebook_ID"],
-                         out P646: String #_[canonical="freebase id"] #[string_values="org.wikidata:Freebase_ID"],
-                         out P18: Array(Entity(tt:picture)) #_[canonical="image"],
-                         out P118: Array(Entity(org.wikidatasportsskill:league)) #_[canonical="league"],
-                         out P2094: Array(Entity(org.wikidatasportsskill:competition_class)) #_[canonical="competition class"],
-                         out P115: Array(Entity(org.wikidatasportsskill:home_venue)) #_[canonical="home venue"],
-                         out P3022: Array(Entity(org.wikidata:human)) #_[canonical="flag bearer"],
-                         out P166: Array(Entity(org.wikidatasportsskill:award_received)) #_[canonical="award received"],
-                         out P286: Entity(org.wikidatasportsskill:athletes) #_[canonical="head coach"],
-                         out id: Entity(org.wikidatasportsskill:sports_teams) #_[canonical="sports team"])
-  #_[canonical="wikidata sports team"]
-  #_[confirmation="wikidata sports team"]
-  #[handle_thingtalk=true]
-  #[default_projection=['id']];
-
-}
 
 class @com.yelp
 #_[name="Yelp"]
@@ -2116,6 +1911,192 @@ class @org.thingpedia.test.compounds_and_inheritance {
                                               p3: String
                                             },
                                             out p4: String);
+}
+
+class @org.wikidata
+#_[name="Wikidata for domain Q515"]
+#_[description="Natural language dialogues over Wikidata knowledge base."] {
+  import loader from @org.thingpedia.v2();
+  import config from @org.thingpedia.config.none();
+
+  list query city(out id: Entity(org.wikidata:city)
+                  #_[canonical={
+                    base=["name"],
+                    passive_verb=["named", "called"]
+                  }]
+                  #[unique=true],
+                  out inception: Date
+                  #_[canonical={
+                    default="property",
+                    base=["inception", "foundation", "formation", "introduction", "date of establishment", "date of founding", "establishment date", "founding date", "commencement date", "construction date", "creation date", "date commenced", "date constructed", "date created", "date formed", "date founded", "date incorporated", "date of commencement", "date of creation", "date of foundation", "date of foundation or creation", "date of incorporation", "dedication date", "first issue", "formation date", "foundation / creation date", "foundation date", "incorporation date", "launch date", "time of foundation or creation", "time of inception", "year commenced", "year created", "year established", "year founded", "year incorporated", "year written"],
+                    passive_verb=["formed in", "introduced", "created", "built", "completed", "constructed", "created on date", "established", "established on date", "formed at", "formed on date", "founded", "founded on date", "inaugurated", "incorporated", "incorporated on date", "inititated", "written on date", "launched"],
+                    verb=["commenced on date"]
+                  }]
+                  #[wikidata_id="P571"],
+                  out named_after: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["named after", "toponym", "eponym", "named for", "linked with"],
+                    base=["etymology", "name after", "namesake"],
+                    reverse_property=["named in honor of", "# named in honor", "# 's named in honor"]
+                  }]
+                  #[wikidata_id="P138"]
+                  #[string_values="org.wikidata:city_named_after"],
+                  out continent: Enum(Africa,SouthAmerica,Europe,Asia,NorthAmerica,Antarctica,Oceania,Americas,Australia,Eurasia,CentralAmerica,AustraliaAndOceania,Caribbean,Tamriel,Faerun,KaraTur,Westeros,NorthernAmericaAndMexico)
+                  #_[canonical={
+                    default="property",
+                    base=["continent"]
+                  }]
+                  #[wikidata_id="P30"],
+                  out country: Entity(org.wikidata:country)
+                  #_[canonical={
+                    default="property",
+                    base=["country", "state", "land", "sovereign state", "host country"]
+                  }]
+                  #[wikidata_id="P17"],
+                  out capital_of: String
+                  #_[canonical={
+                    default="reverse_property",
+                    reverse_property=["capital of", "# capital", "# 's capital", "county seat of", "# county seat", "# 's county seat"],
+                    base=["county seat for"]
+                  }]
+                  #[wikidata_id="P1376"]
+                  #[string_values="org.wikidata:city_capital_of"],
+                  out located_in_the_administrative_territorial_entity: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["located in the administrative territorial entity", "based in", "in", "in administrative unit", "in the administrative unit", "located in", "located in administrative unit", "located in the administrative territorial entity", "located in the administrative unit", "located in the territorial entity"],
+                    base=["city", "town", "locality", "administrative territorial entity", "region", "state", "indian reservation", "location (administrative territorial entity)"],
+                    verb=["happens in"],
+                    reverse_property=["in administrative unit", "in the administrative region of", "in the administrative unit", "in the arrondissement of", "in the borough of", "in the city of", "in the commune of", "in the county of", "in the department of", "in the district of", "in the indian reservation of", "in the indian reserve of", "in the local government area of", "in the municipality of", "in the parish of", "in the prefecture of", "in the principal area of", "in the province of", "in the region of", "in the rural city of", "in the settlement of", "in the shire of", "in the state of", "in the territory of", "in the town of", "in the village of", "in the voivodeship of", "in the ward of"]
+                  }]
+                  #[wikidata_id="P131"]
+                  #[string_values="org.wikidata:city_located_in_the_administrative_territorial_entity"],
+                  out located_in_or_next_to_body_of_water: Array(String)
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["located in or next to body of water", "located next to body of water", "located on body of water", "on", "on", "on", "on"],
+                    base=["bays", "lakes", "seas", "body of water", "loc (water)", "next to lakes", "oceans", "on bays", "on harbour", "on lakes", "on rivers"],
+                    reverse_property=["on coast of", "# on coast", "# 's on coast", "on shore of", "# on shore", "# 's on shore", "on the coast of", "# on the coast", "# 's on the coast", "on the shore of", "# on the shore", "# 's on the shore"]
+                  }]
+                  #[wikidata_id="P206"]
+                  #[string_values="org.wikidata:city_located_in_or_next_to_body_of_water"],
+                  out coordinate_location: Location
+                  #_[canonical={
+                    default="property",
+                    base=["coordinate location", "position", "location", "co-ordinate location", "coordinate location", "geo", "geographic coordinate", "geographical coordinates", "gps coordinate", "gps coordinates", "gps location", "latitude", "location on earth", "location on map", "longitude", "point on a map", "point on earth", "point on the globe"],
+                    passive_verb=["geolocation", "co-ords", "coords", "geocoordinates", "geotag", "gps", "gps co-ordinate", "gps co-ordinates", "wgs 84", "wgs-84", "wgs84"],
+                    verb=["co-ordinates", "coordinates"]
+                  }]
+                  #[wikidata_id="P625"],
+                  out head_of_government: Entity(org.wikidata:human)
+                  #_[canonical={
+                    default="property",
+                    base=["head of government", "president", "chancellor", "mayor", "prime minister", "governor", "premier", "first minister", "executive power headed by", "government headed by", "head of national government"]
+                  }]
+                  #[wikidata_id="P6"],
+                  out population: Number
+                  #_[canonical={
+                    default="property",
+                    base=["population", "human population", "inhabitants"]
+                  }]
+                  #[wikidata_id="P1082"],
+                  out water_as_percent_of_area: Number
+                  #_[canonical={
+                    default="property",
+                    base=["water as percent of area", "percent of area that is water"],
+                    passive_verb=["h₂ o%"]
+                  }]
+                  #[wikidata_id="P2927"],
+                  out elevation_above_sea_level: Measure(m)
+                  #_[canonical={
+                    default="property",
+                    base=["elevation above sea level", "altitude", "height", "elevation", "elevation above mean sea level"],
+                    passive_verb=["masl", "amsl", "easl", "mamsl"]
+                  }]
+                  #[wikidata_id="P2044"],
+                  out located_in_time_zone: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["located in time zone", "timezone", "tz"],
+                    base=["time zone", "time"]
+                  }]
+                  #[wikidata_id="P421"]
+                  #[string_values="org.wikidata:city_located_in_time_zone"],
+                  out twinned_administrative_body: Array(Entity(org.wikidata:city))
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["twinned administrative bodies"],
+                    base=["twin towns", "partner cities", "partner towns", "sister cities", "sister towns", "twin cities", "twin cities"]
+                  }]
+                  #[wikidata_id="P190"],
+                  out shares_border_with: Array(Entity(org.wikidata:city))
+                  #_[canonical={
+                    default="property",
+                    base=["shares border with", "borders", "borders"],
+                    passive_verb=["adjacent to", "bordered by", "next to"]
+                  }]
+                  #[wikidata_id="P47"],
+                  out area: Measure(m2)
+                  #_[canonical={
+                    default="property",
+                    base=["area", "size", "surface", "surface area", "acreage", "total area"]
+                  }]
+                  #[wikidata_id="P2046"],
+                  out postal_code: String
+                  #_[canonical={
+                    default="property",
+                    base=["postal code", "pin code", "post code", "postal index number", "zip code"],
+                    passive_verb=["postcode", "zip+4", "zipcode"]
+                  }]
+                  #[wikidata_id="P281"]
+                  #[string_values="org.wikidata:city_postal_code"],
+                  out official_website: Entity(tt:url)
+                  #_[canonical={
+                    default="property",
+                    base=["official website", "site", "web site", "home page", "home page (official)", "homepage (official)", "official homepage", "official page", "official site", "official url", "official web site", "url (official)", "url official", "web address", "website (official)", "www site (official)", "site (official)", "site official", "website official"],
+                    passive_verb=["website", "homepage"]
+                  }]
+                  #[wikidata_id="P856"],
+                  out flag_image: Array(Entity(tt:picture))
+                  #_[canonical={
+                    default="property",
+                    base=["flag images", "image flags", "image of flags"]
+                  }]
+                  #[wikidata_id="P41"],
+                  out number_of_households: Number
+                  #_[canonical={
+                    default="property",
+                    base=["number of households", "dwellings", "households"]
+                  }]
+                  #[wikidata_id="P1538"],
+                  out image: Array(Entity(tt:picture))
+                  #_[canonical={
+                    default="property",
+                    base=["images", "graphs", "illustrations", "screen capture", "still", "portraits", "photos", "pictures", "commons images", "image capture", "image of exterior", "image on commons", "image on wikimedia commons"],
+                    passive_verb=["screenshot", "drawing", "img"]
+                  }]
+                  #[wikidata_id="P18"],
+                  out highest_point: String
+                  #_[canonical={
+                    default="property",
+                    base=["highest point", "summit", "pinnacle", "highest peak", "zenith", "elevation of highest point"],
+                    passive_verb=["extreme point highest"]
+                  }]
+                  #[wikidata_id="P610"]
+                  #[string_values="org.wikidata:city_highest_point"],
+                  out language_used: Entity(tt:iso_lang_code)
+                  #_[canonical={
+                    default="property",
+                    base=["language used", "languages used"],
+                    passive_verb=["working language", "working languages"]
+                  }]
+                  #[wikidata_id="P2936"])
+  #_[canonical="city"]
+  #_[confirmation="city"]
+  #[wikidata_subject="Q515"]
+  #[required_properties=[]]
+  #[minimal_projection=["id"]];
 }
 
 class @org.schema {
