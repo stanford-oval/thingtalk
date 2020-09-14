@@ -284,25 +284,18 @@ Picture: http://example.com/security-camera.jpg`
         displayText: null } ]
     ],
 
-    ['org.wikidata:person', {
-        P735: 'robert',
-        P1449: 'bob',
-        P1971: 2
+    ['org.wikidata:city', {
+        id: 'palo alto',
+        number_of_households: 100
     }, null,
-    ['The given name is robert.',
-     'The number of children is 2.']
+    [
+     'The number of households of palo alto is 100.']
     ],
 
-    ['sum(org.wikidata:person)', {
-        P1971: 10
+    ['sum(org.wikidata:city)', {
+        twinned_administrative_body: 10
     }, null,
-    ['The total number of children is 10.']
-    ],
-
-    ['org.wikidata:person', {
-        text: 'lol'
-    }, null,
-    ['The text is lol.']
+    ['The total twin towns is 10.']
     ],
 
     ['com.yelp:restaurant', {

@@ -5824,7 +5824,7 @@ const TEST_CASES = [
   }`]],
 
     // 64 Database query
-    [`now => [id] of @org.wikidata.person(), P735 ~= 'Bob' => notify;`,
+    [`now => [id] of @org.wikidata.city(), id =~ "palo alto" => notify;`,
     [`"use strict";
   let _t_0;
   let _t_1;
@@ -5863,8 +5863,8 @@ const TEST_CASES = [
     await __env.exitProcedure(0, null);
   }`]],
 
-    // 65 Auto apply projections to database query
-    [`now => @org.wikidata.person(), P735 ~= 'Bob' => notify;`,
+    // 65
+    [`now => @org.wikidata.city(), id =~ "palo alto" => notify;`,
     [`"use strict";
   let _t_0;
   let _t_1;
@@ -5897,50 +5897,6 @@ const TEST_CASES = [
   let _t_28;
   let _t_29;
   let _t_30;
-  let _t_31;
-  let _t_32;
-  let _t_33;
-  let _t_34;
-  let _t_35;
-  let _t_36;
-  let _t_37;
-  let _t_38;
-  let _t_39;
-  let _t_40;
-  let _t_41;
-  let _t_42;
-  let _t_43;
-  let _t_44;
-  let _t_45;
-  let _t_46;
-  let _t_47;
-  let _t_48;
-  let _t_49;
-  let _t_50;
-  let _t_51;
-  let _t_52;
-  let _t_53;
-  let _t_54;
-  let _t_55;
-  let _t_56;
-  let _t_57;
-  let _t_58;
-  let _t_59;
-  let _t_60;
-  let _t_61;
-  let _t_62;
-  let _t_63;
-  let _t_64;
-  let _t_65;
-  let _t_66;
-  let _t_67;
-  let _t_68;
-  let _t_69;
-  let _t_70;
-  let _t_71;
-  let _t_72;
-  let _t_73;
-  let _t_74;
   await __env.enterProcedure(0, null);
   try {
     try {
@@ -5954,74 +5910,30 @@ const TEST_CASES = [
           _t_4 = _t_3[0];
           _t_5 = _t_3[1];
           _t_6 = _t_5.__response;
-          _t_7 = _t_5.P735;
-          _t_8 = _t_5.P734;
-          _t_9 = _t_5.P1477;
-          _t_10 = _t_5.P1449;
-          _t_11 = _t_5.P21;
-          _t_12 = _t_5.P27;
-          _t_13 = _t_5.P569;
-          _t_14 = _t_5.P570;
-          _t_15 = _t_5.P19;
-          _t_16 = _t_5.P20;
-          _t_17 = _t_5.P1196;
-          _t_18 = _t_5.P509;
-          _t_19 = _t_5.P119;
-          _t_20 = _t_5.P18;
-          _t_21 = _t_5.P109;
-          _t_22 = _t_5.P22;
-          _t_23 = _t_5.P25;
-          _t_24 = _t_5.P3373;
-          _t_25 = _t_5.P26;
-          _t_26 = _t_5.P40;
-          _t_27 = _t_5.P1971;
-          _t_28 = _t_5.P103;
-          _t_29 = _t_5.P106;
-          _t_30 = _t_5.P108;
-          _t_31 = _t_5.P39;
-          _t_32 = _t_5.P166;
-          _t_33 = _t_5.P1411;
-          _t_34 = _t_5.P69;
-          _t_35 = _t_5.P512;
-          _t_36 = _t_5.P551;
-          _t_37 = _t_5.P937;
-          _t_38 = _t_5.P102;
-          _t_39 = _t_5.P1576;
-          _t_40 = _t_5.P172;
-          _t_41 = _t_5.P140;
-          _t_42 = _t_5.P2048;
-          _t_43 = _t_5.P2067;
-          _t_44 = _t_5.P1853;
-          _t_45 = _t_5.P1050;
-          _t_46 = _t_5.P1429;
-          _t_47 = _t_5.P552;
-          _t_48 = _t_5.P410;
-          _t_49 = _t_5.P856;
-          _t_50 = _t_5.P737;
-          _t_51 = _t_5.P641;
-          _t_52 = _t_5.P54;
-          _t_53 = _t_5.P647;
-          _t_54 = _t_5.P1618;
-          _t_55 = _t_5.P286;
-          _t_56 = _t_5.P1344;
-          _t_57 = _t_5.P1830;
-          _t_58 = _t_5.P3828;
-          _t_59 = _t_5.P136;
-          _t_60 = _t_5.P264;
-          _t_61 = _t_5.P1303;
-          _t_62 = _t_5.P184;
-          _t_63 = _t_5.P185;
-          _t_64 = _t_5.P2002;
-          _t_65 = _t_5.P2003;
-          _t_66 = _t_5.P2013;
-          _t_67 = _t_5.P2847;
-          _t_68 = _t_5.P3265;
-          _t_69 = _t_5.P2397;
-          _t_70 = _t_5.P4265;
-          _t_71 = _t_5.P4411;
-          _t_72 = _t_5.P4013;
-          _t_73 = _t_5.P3984;
-          _t_74 = _t_5.id;
+          _t_7 = _t_5.id;
+          _t_8 = _t_5.inception;
+          _t_9 = _t_5.named_after;
+          _t_10 = _t_5.continent;
+          _t_11 = _t_5.country;
+          _t_12 = _t_5.capital_of;
+          _t_13 = _t_5.located_in_the_administrative_territorial_entity;
+          _t_14 = _t_5.located_in_or_next_to_body_of_water;
+          _t_15 = _t_5.coordinate_location;
+          _t_16 = _t_5.head_of_government;
+          _t_17 = _t_5.population;
+          _t_18 = _t_5.water_as_percent_of_area;
+          _t_19 = _t_5.elevation_above_sea_level;
+          _t_20 = _t_5.located_in_time_zone;
+          _t_21 = _t_5.twinned_administrative_body;
+          _t_22 = _t_5.shares_border_with;
+          _t_23 = _t_5.area;
+          _t_24 = _t_5.postal_code;
+          _t_25 = _t_5.official_website;
+          _t_26 = _t_5.flag_image;
+          _t_27 = _t_5.number_of_households;
+          _t_28 = _t_5.image;
+          _t_29 = _t_5.highest_point;
+          _t_30 = _t_5.language_used;
           try {
             await __env.output(String(_t_4), _t_5);
           } catch(_exc_) {
@@ -6037,8 +5949,8 @@ const TEST_CASES = [
     await __env.exitProcedure(0, null);
   }`]],
 
-    // 66 Auto apply projections to database query
-    [`now => @org.wikidata.person(), P735 ~= 'Bob' => @com.twitter.post(status=P1477);`,
+    // 66
+    [`now => @org.wikidata.city(), postal_code ~= '94305' => @com.twitter.post(status=postal_code);`,
     [`"use strict";
   let _t_0;
   let _t_1;
@@ -6072,50 +5984,6 @@ const TEST_CASES = [
   let _t_29;
   let _t_30;
   let _t_31;
-  let _t_32;
-  let _t_33;
-  let _t_34;
-  let _t_35;
-  let _t_36;
-  let _t_37;
-  let _t_38;
-  let _t_39;
-  let _t_40;
-  let _t_41;
-  let _t_42;
-  let _t_43;
-  let _t_44;
-  let _t_45;
-  let _t_46;
-  let _t_47;
-  let _t_48;
-  let _t_49;
-  let _t_50;
-  let _t_51;
-  let _t_52;
-  let _t_53;
-  let _t_54;
-  let _t_55;
-  let _t_56;
-  let _t_57;
-  let _t_58;
-  let _t_59;
-  let _t_60;
-  let _t_61;
-  let _t_62;
-  let _t_63;
-  let _t_64;
-  let _t_65;
-  let _t_66;
-  let _t_67;
-  let _t_68;
-  let _t_69;
-  let _t_70;
-  let _t_71;
-  let _t_72;
-  let _t_73;
-  let _t_74;
-  let _t_75;
   await __env.enterProcedure(0, null);
   try {
     try {
@@ -6129,78 +5997,34 @@ const TEST_CASES = [
           _t_4 = _t_3[0];
           _t_5 = _t_3[1];
           _t_6 = _t_5.__response;
-          _t_7 = _t_5.P735;
-          _t_8 = _t_5.P734;
-          _t_9 = _t_5.P1477;
-          _t_10 = _t_5.P1449;
-          _t_11 = _t_5.P21;
-          _t_12 = _t_5.P27;
-          _t_13 = _t_5.P569;
-          _t_14 = _t_5.P570;
-          _t_15 = _t_5.P19;
-          _t_16 = _t_5.P20;
-          _t_17 = _t_5.P1196;
-          _t_18 = _t_5.P509;
-          _t_19 = _t_5.P119;
-          _t_20 = _t_5.P18;
-          _t_21 = _t_5.P109;
-          _t_22 = _t_5.P22;
-          _t_23 = _t_5.P25;
-          _t_24 = _t_5.P3373;
-          _t_25 = _t_5.P26;
-          _t_26 = _t_5.P40;
-          _t_27 = _t_5.P1971;
-          _t_28 = _t_5.P103;
-          _t_29 = _t_5.P106;
-          _t_30 = _t_5.P108;
-          _t_31 = _t_5.P39;
-          _t_32 = _t_5.P166;
-          _t_33 = _t_5.P1411;
-          _t_34 = _t_5.P69;
-          _t_35 = _t_5.P512;
-          _t_36 = _t_5.P551;
-          _t_37 = _t_5.P937;
-          _t_38 = _t_5.P102;
-          _t_39 = _t_5.P1576;
-          _t_40 = _t_5.P172;
-          _t_41 = _t_5.P140;
-          _t_42 = _t_5.P2048;
-          _t_43 = _t_5.P2067;
-          _t_44 = _t_5.P1853;
-          _t_45 = _t_5.P1050;
-          _t_46 = _t_5.P1429;
-          _t_47 = _t_5.P552;
-          _t_48 = _t_5.P410;
-          _t_49 = _t_5.P856;
-          _t_50 = _t_5.P737;
-          _t_51 = _t_5.P641;
-          _t_52 = _t_5.P54;
-          _t_53 = _t_5.P647;
-          _t_54 = _t_5.P1618;
-          _t_55 = _t_5.P286;
-          _t_56 = _t_5.P1344;
-          _t_57 = _t_5.P1830;
-          _t_58 = _t_5.P3828;
-          _t_59 = _t_5.P136;
-          _t_60 = _t_5.P264;
-          _t_61 = _t_5.P1303;
-          _t_62 = _t_5.P184;
-          _t_63 = _t_5.P185;
-          _t_64 = _t_5.P2002;
-          _t_65 = _t_5.P2003;
-          _t_66 = _t_5.P2013;
-          _t_67 = _t_5.P2847;
-          _t_68 = _t_5.P3265;
-          _t_69 = _t_5.P2397;
-          _t_70 = _t_5.P4265;
-          _t_71 = _t_5.P4411;
-          _t_72 = _t_5.P4013;
-          _t_73 = _t_5.P3984;
-          _t_74 = _t_5.id;
+          _t_7 = _t_5.id;
+          _t_8 = _t_5.inception;
+          _t_9 = _t_5.named_after;
+          _t_10 = _t_5.continent;
+          _t_11 = _t_5.country;
+          _t_12 = _t_5.capital_of;
+          _t_13 = _t_5.located_in_the_administrative_territorial_entity;
+          _t_14 = _t_5.located_in_or_next_to_body_of_water;
+          _t_15 = _t_5.coordinate_location;
+          _t_16 = _t_5.head_of_government;
+          _t_17 = _t_5.population;
+          _t_18 = _t_5.water_as_percent_of_area;
+          _t_19 = _t_5.elevation_above_sea_level;
+          _t_20 = _t_5.located_in_time_zone;
+          _t_21 = _t_5.twinned_administrative_body;
+          _t_22 = _t_5.shares_border_with;
+          _t_23 = _t_5.area;
+          _t_24 = _t_5.postal_code;
+          _t_25 = _t_5.official_website;
+          _t_26 = _t_5.flag_image;
+          _t_27 = _t_5.number_of_households;
+          _t_28 = _t_5.image;
+          _t_29 = _t_5.highest_point;
+          _t_30 = _t_5.language_used;
           try {
-            _t_75 = {};
-            _t_75.status = _t_9;
-            await __env.invokeAction("com.twitter", { }, "post", _t_75);
+            _t_31 = {};
+            _t_31.status = _t_24;
+            await __env.invokeAction("com.twitter", { }, "post", _t_31);
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
