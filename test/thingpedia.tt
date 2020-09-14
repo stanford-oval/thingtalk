@@ -2096,6 +2096,7 @@ class @org.wikidata
   #_[confirmation="city"]
   #[wikidata_subject="Q515"]
   #[required_properties=[]]
+  #[handle_thingtalk=true]
   #[minimal_projection=["id"]];
 }
 

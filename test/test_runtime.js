@@ -2467,7 +2467,7 @@ some alt text` }
     ],
 
     [
-    `now => @org.wikidata.person(), P735 ~= 'Bob' => notify;`,
+    `now => @org.wikidata.city(), id =~ 'palo alto' => notify;`,
     {},
     {
         'org.wikidata:query': [({ query }) => {
@@ -2478,23 +2478,23 @@ some alt text` }
     { type: 'output',
       outputType: 'org.wikidata:query',
       value: {
-        query: 'now => [id] of ((@org.wikidata.person()), P735 ~= "Bob") => notify;'
+        query: 'now => (@org.wikidata.city()), id =~ "palo alto" => notify;'
       }
     }]],
 
     [
-    `now => @org.wikidata.person(), P735 ~= 'Bob' => @com.twitter.post(status=P1477);`,
+    `now => @org.wikidata.city(), postal_code =~ '94305' => @com.twitter.post(status=postal_code);`,
     {},
     {
         'org.wikidata:query': [({ query }) => {
-            return { P1477: query.prettyprint() };
+            return { postal_code: query.prettyprint() };
         }]
     },
     [
     {
         type: 'action',
         fn: 'com.twitter:post',
-        params: { status: 'now => (@org.wikidata.person()), P735 ~= "Bob" => notify;' }
+        params: { status: 'now => (@org.wikidata.city()), postal_code =~ "94305" => notify;' }
     }]],
 ];
 

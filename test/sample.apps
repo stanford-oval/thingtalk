@@ -1366,34 +1366,34 @@ class @foo {
 // ** typecheck: expect TypeError **
 // require filter
 
-now => [id, image] of @org.wikidata.person() => notify;
+now => [id, image] of @org.wikidata.city() => notify;
 
 ====
 // ** typecheck: expect TypeError **
 // invalid output parameter
-now => [id, P18] of (@org.wikidata.person(), XXX ~= 'Bob') => notify;
+now => [id, image] of (@org.wikidata.city(), XXX =~ 'Bob') => notify;
 
 ====
 
-now => [id, P18] of (@org.wikidata.person(), P735 ~= 'Bob') => notify;
+now => [id, image] of (@org.wikidata.city(), id =~ 'palo alto') => notify;
 
 ====
 // ** typecheck: expect TypeError **
 // unique output param
 
-now => [id, P18] of (@org.wikidata.person(), (P735 ~= 'Bob' || person ~= "Bob"^^org.wikidata:human)) => notify;
+now => [id, image] of (@org.wikidata.city(), (country == "Q30"^^org.wikidata:country || id =~ 'palo alto')) => notify;
 
 ====
 
 // ** typecheck: expect TypeError **
 // unique output param
 
-now => [id, P18] of ((@org.wikidata.person(), person ~= "Bob"^^org.wikidata:human), P735 ~= 'Bob') => notify;
+now => [id, image] of ((@org.wikidata.city(), id =~ 'palo alto'), country == "Q30"^^org.wikidata:country) => notify;
 
 
 ====
 
-now => [id, P18] of (@org.wikidata.person(), (P735 ~= 'Bob' || P27 ~= "China")) => notify;
+now => [id, image] of (@org.wikidata.city(), (country == "Q30"^^org.wikidata:country || postal_code =~ "94305")) => notify;
 
 ====
 
