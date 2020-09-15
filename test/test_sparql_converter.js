@@ -34,6 +34,17 @@ const _schemaRetriever = new SchemaRetriever(
 const TEST_CASES = [
     [
         `
+    now => @org.wikidata.city() => notify;
+        `,
+        `
+    SELECT DISTINCT (?table0 as ?id) (?table0Label as ?idLabel) WHERE { 
+      ?table0 p:P31/ps:P31/wdt:P279* wd:Q515. 
+      SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. } 
+    } LIMIT 5 OFFSET 0
+    `
+    ],
+    [
+        `
     // Test for handling filters, retrieving wikidata representations of strings and projections
     now => [postal_code] of @org.wikidata.city(), id =~ "palo alto" => notify;
         `,
@@ -44,7 +55,7 @@ const TEST_CASES = [
       ?table0 wdt:P281 ?p16. 
       ?table0 p:P31/ps:P31/wdt:P279* wd:Q515. 
       SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?p16 rdfs:label ?p16Label. } 
-    } limit 5 offset 0`,
+    } LIMIT 5 OFFSET 0`,
     ],
     [
         `
@@ -56,11 +67,12 @@ const TEST_CASES = [
         `
     SELECT DISTINCT (?table0 as ?id) (?table0Label as ?idLabel) WHERE { 
       ?table0 wdt:P281 ?p16. 
-      OPTIONAL { ?p16 rdfs:label ?p23 }. FILTER (CONTAINS(lcase(?p23), '94301') || CONTAINS(lcase(?p16), '94301')) . 
+      OPTIONAL { ?p16 rdfs:label ?p23 } FILTER (CONTAINS(lcase(?p23), '94301') || CONTAINS(lcase(?p16), '94301')) . 
       ?table0 p:P31/ps:P31/wdt:P279* wd:Q515. 
       SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. } 
-    } limit 5 offset 0`,
+    } LIMIT 5 OFFSET 0`,
     ],
+
     [
         `
     // Test for handling dates within filters
@@ -72,7 +84,7 @@ const TEST_CASES = [
       FILTER (?p0 = "1894-01-01"^^xsd:dateTime). 
       ?table0 p:P31/ps:P31/wdt:P279* wd:Q515. 
       SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. } 
-      } limit 5 offset 0`,
+      } LIMIT 5 OFFSET 0`,
     ],
     [
         `
@@ -85,7 +97,7 @@ const TEST_CASES = [
       FILTER (?p11 > "4000"^^xsd:decimal). 
       ?table0 p:P31/ps:P31/wdt:P279* wd:Q515. 
       SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. } 
-    } limit 5 offset 0`,
+    } LIMIT 5 OFFSET 0`,
     ],
     [
         `
@@ -99,7 +111,7 @@ const TEST_CASES = [
       FILTER CONTAINS(lcase(?p23), 'palo alto') . 
       ?table0 p:P31/ps:P31/wdt:P279* wd:Q515. 
       SERVICE wikibase:label { bd:serviceParam wikibase:language "en".  ?table0 rdfs:label ?table0Label. } 
-    } limit 5 offset 0
+    } LIMIT 5 OFFSET 0
         `,
     ],
 
@@ -112,12 +124,12 @@ const TEST_CASES = [
         `
     SELECT DISTINCT (?table1 as ?id) (?table1Label as ?idLabel) (?table0 as ?lhs__id) (?table0Label as ?lhs__idLabel) WHERE { 
       ?table0 wdt:P281 ?p16. 
-      OPTIONAL { ?p16 rdfs:label ?p23 }. FILTER (CONTAINS(lcase(?p23), '94301') || CONTAINS(lcase(?p16), '94301')) . 
+      OPTIONAL { ?p16 rdfs:label ?p23 } FILTER (CONTAINS(lcase(?p23), '94301') || CONTAINS(lcase(?p16), '94301')) . 
       ?table1 wdt:P190 ?p37. 
       FILTER (?p37 = ?table0). ?table0 p:P31/ps:P31/wdt:P279* wd:Q515. 
       ?table1 p:P31/ps:P31/wdt:P279* wd:Q515. 
       SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table1 rdfs:label ?table1Label. ?table0 rdfs:label ?table0Label. } 
-    } limit 5 offset 0`,
+    } LIMIT 5 OFFSET 0`,
     ],
     [
         `
@@ -130,7 +142,7 @@ const TEST_CASES = [
       ?table0 wdt:P2046 ?p15. 
       ?table0 p:P31/ps:P31/wdt:P279* wd:Q515. 
       SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. } 
-    } ORDER BY desc(?p15) limit 1 offset 0
+    } ORDER BY desc(?p15) LIMIT 1 OFFSET 0
         `,
     ],
     [
@@ -144,7 +156,7 @@ const TEST_CASES = [
       ?table0 wdt:P2046 ?p15. 
       ?table0 p:P31/ps:P31/wdt:P279* wd:Q515. 
       SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. } 
-    } ORDER BY desc(?p15) limit 2 offset 2
+    } ORDER BY desc(?p15) LIMIT 2 OFFSET 2
         `,
     ],
     [
@@ -159,8 +171,8 @@ const TEST_CASES = [
       FILTER (?p3 = wd:Q30). 
       FILTER (?p0 = "1894-01-01"^^xsd:dateTime). 
       ?table0 p:P31/ps:P31/wdt:P279* wd:Q515. SERVICE wikibase:label { bd:serviceParam wikibase:language "en". ?table0 rdfs:label ?table0Label. } 
-    } limit 5 offset 0`,
-    ]
+    } LIMIT 5 OFFSET 0`,
+    ],
 
 ];
 
