@@ -21,7 +21,7 @@
 
 const assert = require('assert');
 
-const ThingTalk = require('..');
+const ThingTalk = require('../lib/index');
 const packageJson = require('../package.json');
 
 function main() {

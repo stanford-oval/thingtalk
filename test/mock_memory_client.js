@@ -18,7 +18,7 @@
 "use strict";
 
 const Q = require('q');
-const Type = require('../lib/type');
+const Type = require('../lib/type').default;
 
 class MockMemoryClient {
     constructor() {

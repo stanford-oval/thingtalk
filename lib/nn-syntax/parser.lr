@@ -19,8 +19,8 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 {
-const Ast = require('../ast');
-const { parseDate } = require('../date_utils');
+import * as Ast from '../ast';
+import { parseDate } from '../date_utils';
 }
 
 /**

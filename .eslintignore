@@ -1,1 +1,5 @@
 lib/grammar.js
+lib/nn-syntax/parser.js
+node_modules
+dist
+coverage

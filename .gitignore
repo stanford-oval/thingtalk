@@ -2,6 +2,7 @@
 .DS_Store
 node_modules/
 coverage/
+dist/
 .nyc_output/
 po/thingtalk.pot
 po/*.mo

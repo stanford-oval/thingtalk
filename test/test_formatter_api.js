@@ -22,10 +22,10 @@
 const Q = require('q');
 Q.longStackSupport = true;
 
-const SchemaRetriever = require('../lib/schema');
+const SchemaRetriever = require('../lib/schema').default;
 const assert = require('assert');
 
-const Formatter = require('../lib/runtime/formatter');
+const Formatter = require('../lib/runtime/formatter').default;
 const builtin = require('../lib/builtin/values');
 const I18n = require('../lib/i18n');
 

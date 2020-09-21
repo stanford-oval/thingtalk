@@ -23,7 +23,7 @@ const Q = require('q');
 const assert = require('assert');
 
 const AppGrammar = require('../lib/grammar_api');
-const SchemaRetriever = require('../lib/schema');
+const SchemaRetriever = require('../lib/schema').default;
 const { prettyprint } = require('../lib/prettyprint');
 
 const _mockSchemaDelegate = require('./mock_schema_delegate');

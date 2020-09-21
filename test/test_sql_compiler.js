@@ -22,7 +22,7 @@ Q.longStackSupport = true;
 const deq = require('deep-equal');
 
 const AppGrammar = require('../lib/grammar_api');
-const SqlCompiler = require('../lib/sql_compiler');
+const SqlCompiler = require('../lib/sql_compiler').default;
 const SchemaRetriever = require('../lib/schema');
 
 const _mockMemoryClient = require('./mock_memory_client');

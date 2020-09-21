@@ -23,7 +23,7 @@
 
 const assert = require('assert');
 
-const SchemaRetriever = require('../lib/schema');
+const SchemaRetriever = require('../lib/schema').default;
 const Grammar = require('../lib/grammar_api');
 const { ClassDef } = require('../lib/ast/class_def');
 

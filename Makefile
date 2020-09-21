@@ -1,6 +1,5 @@
 %.js : %.lr tools/generate-parser/*.js tools/generate-parser/grammar.js
-	node tools/generate-parser $@ $<
-	node -c $@
+	ts-node tools/generate-parser $@ $<
 
 %.js : %.pegjs
 	pegjs -o $@ $<
@@ -15,7 +14,11 @@ all = \
 	lib/grammar.js \
 	test/test_sr_parser_generator.js
 
-all: $(all)
+dist: lib lib/* lib/ast/* lib/builtin/* lib/compiler/* lib/nn-syntax/* lib/runtime/* $(all)
+	tsc --build tsconfig.json
+	touch $@
+
+all: dist
 
 lib/grammar.js : lib/grammar.pegjs
 	pegjs --allowed-start-rules input,type_ref,permission_rule -o $@ $<

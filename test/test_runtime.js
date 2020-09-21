@@ -24,10 +24,10 @@ Q.longStackSupport = true;
 const assert = require('assert');
 
 require('../lib/ast/api');
-const Compiler = require('../lib/compiler');
-const SchemaRetriever = require('../lib/schema');
+const Compiler = require('../lib/compiler').default;
+const SchemaRetriever = require('../lib/schema').default;
 
-const ExecEnvironment = require('../lib/runtime/exec_environment');
+const ExecEnvironment = require('../lib/runtime/exec_environment').default;
 const builtin = require('../lib/builtin/values');
 
 const _mockSchemaDelegate = require('./mock_schema_delegate');

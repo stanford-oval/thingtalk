@@ -20,7 +20,7 @@
 const fs = require('fs');
 
 const AppGrammar = require('../lib/grammar_api');
-const SchemaRetriever = require('../lib/schema');
+const SchemaRetriever = require('../lib/schema').default;
 
 const _mockSchemaDelegate = require('./mock_schema_delegate');
 const _mockMemoryClient = require('./mock_memory_client');
