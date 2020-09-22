@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: ts; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -18,6 +18,16 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import AstNode from './base';
+import * as Values from './values';
+import * as BK from './bookkeeping';
+import { ClassDef } from './class_def';
+import { FunctionDef, ArgumentDef } from './function_def';
+import * as Prog from './program';
+import * as Exp from './expression';
+import * as Prim from './primitive';
+import * as D from './dialogues';
+
 /**
  * Base class (interface) for traversing the AST using the visitor
  * pattern.
@@ -26,7 +36,7 @@
  * method when visiting the node.
  *
  * After that, the the node will call the appropriate {@link Ast.NodeVisitor#visit}
-*  method based on the node type. If the visit method returns true,
+ * method based on the node type. If the visit method returns true,
  * (which is the default for non-overridden methods), traversal continues
  * with children.
  *
@@ -46,18 +56,17 @@
  * ```
  *
  * @alias Ast.NodeVisitor
- * @abstract
  */
-export default class NodeVisitor {
+export default abstract class NodeVisitor {
     /**
      * Begin visiting a node.
      *
      * This is called for all nodes before calling the corresponding
      * visit method.
      *
-     * @param {Ast~Node} node - the node being entered
+     * @param node - the node being entered
      */
-    enter(node) {}
+    enter(node : AstNode) : void {}
 
     /**
      * End visiting a node.
@@ -68,414 +77,382 @@ export default class NodeVisitor {
      * This method is not called if {@link Ast.NodeVisitor#enter} or
      * visit throws an exception.
      *
-     * @param {Ast~Node} node - the node being exited
+     * @param node - the node being exited
      */
-    exit(node) {}
+    exit(node : AstNode) : void {}
 
     // values
-    visitValue(node) {
+    visitValue(node : Values.Value) : boolean {
         return true;
     }
 
     /* istanbul ignore next */
-    visitArrayValue(node) {
+    visitArrayValue(node : Values.ArrayValue) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitVarRefValue(node) {
+    visitVarRefValue(node : Values.VarRefValue) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitArrayFieldValue(node) {
+    visitArrayFieldValue(node : Values.ArrayFieldValue) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitComputationValue(node) {
+    visitComputationValue(node : Values.ComputationValue) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitFilterValue(node) {
+    visitFilterValue(node : Values.FilterValue) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitUndefinedValue(node) {
+    visitUndefinedValue(node : Values.UndefinedValue) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitContextRefValue(node) {
+    visitContextRefValue(node : Values.ContextRefValue) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitBooleanValue(node) {
+    visitBooleanValue(node : Values.BooleanValue) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitStringValue(node) {
+    visitStringValue(node : Values.StringValue) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitNumberValue(node) {
+    visitNumberValue(node : Values.NumberValue) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitMeasureValue(node) {
+    visitMeasureValue(node : Values.MeasureValue) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitCurrencyValue(node) {
+    visitCurrencyValue(node : Values.CurrencyValue) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitLocationValue(node) {
+    visitLocationValue(node : Values.LocationValue) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitDateValue(node) {
+    visitDateValue(node : Values.DateValue) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitTimeValue(node) {
+    visitTimeValue(node : Values.TimeValue) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitEntityValue(node) {
+    visitEntityValue(node : Values.EntityValue) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitEnumValue(node) {
+    visitEnumValue(node : Values.EnumValue) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitEventValue(node) {
+    visitEventValue(node : Values.EventValue) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitArgMapValue(node) {
+    visitArgMapValue(node : Values.ArgMapValue) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitObjectValue(node) {
+    visitObjectValue(node : Values.ObjectValue) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitRecurrentTimeSpecificationValue(node) {
+    visitRecurrentTimeSpecificationValue(node : Values.RecurrentTimeSpecificationValue) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitRecurrentTimeRule(node) {
+    visitRecurrentTimeRule(node : Values.RecurrentTimeRule) : boolean {
         return true;
     }
 
     // bookkeeping
 
     /* istanbul ignore next */
-    visitBookkeeping(node) {
+    visitBookkeeping(node : BK.Bookkeeping) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitSpecialBookkeepingIntent(node) {
+    visitSpecialBookkeepingIntent(node : BK.SpecialBookkeepingIntent) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitChoiceBookkeepingIntent(node) {
+    visitChoiceBookkeepingIntent(node : BK.ChoiceBookkeepingIntent) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitCommandListBookkeepingIntent(node) {
+    visitCommandListBookkeepingIntent(node : BK.CommandListBookkeepingIntent) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitAnswerBookkeepingIntent(node) {
+    visitAnswerBookkeepingIntent(node : BK.AnswerBookkeepingIntent) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitPredicateBookkeepingIntent(node) {
+    visitPredicateBookkeepingIntent(node : BK.PredicateBookkeepingIntent) : boolean {
         return true;
     }
 
     // classes
     /* istanbul ignore next */
-    visitClassDef(node) {
+    visitClassDef(node : ClassDef) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitFunctionDef(node) {
+    visitFunctionDef(node : FunctionDef) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitComputeDef(node) {
+    visitArgumentDef(node : ArgumentDef) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitArgumentDef(node) {
+    visitClassImportStmt(node : Prog.ClassImportStmt) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitClassImportStmt(node) {
+    visitMixinImportStmt(node : Prog.MixinImportStmt) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitMixinImportStmt(node) {
-        return true;
-    }
-    /* istanbul ignore next */
-    visitEntityDef(node) {
+    visitEntityDef(node : Prog.EntityDef) : boolean {
         return true;
     }
 
     // expressions
     /* istanbul ignore next */
-    visitDeviceSelector(node) {
+    visitDeviceSelector(node : Exp.DeviceSelector) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitBuiltinSelector(node) {
+    visitBuiltinSelector(node : Exp.BuiltinSelector) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitInputParam(node) {
+    visitInputParam(node : Exp.InputParam) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitInvocation(node) {
+    visitInvocation(node : Exp.Invocation) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitTrueBooleanExpression(node) {
+    visitTrueBooleanExpression(node : Exp.TrueBooleanExpression) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitFalseBooleanExpression(node) {
+    visitFalseBooleanExpression(node : Exp.FalseBooleanExpression) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitAndBooleanExpression(node) {
+    visitAndBooleanExpression(node : Exp.AndBooleanExpression) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitOrBooleanExpression(node) {
+    visitOrBooleanExpression(node : Exp.OrBooleanExpression) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitNotBooleanExpression(node) {
+    visitNotBooleanExpression(node : Exp.NotBooleanExpression) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitAtomBooleanExpression(node) {
+    visitAtomBooleanExpression(node : Exp.AtomBooleanExpression) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitExternalBooleanExpression(node) {
+    visitExternalBooleanExpression(node : Exp.ExternalBooleanExpression) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitDontCareBooleanExpression(node) {
+    visitDontCareBooleanExpression(node : Exp.DontCareBooleanExpression) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitComputeBooleanExpression(node) {
-        return true;
-    }
-    /* istanbul ignore next */
-    visitListExpression(node) {
-        return true;
-    }
-    /* istanbul ignore next */
-    visitPrimaryScalarExpression(node) {
-        return true;
-    }
-    /* istanbul ignore next */
-    visitDerivedScalarExpression(node) {
-        return true;
-    }
-    /* istanbul ignore next */
-    visitAggregationScalarExpression(node) {
-        return true;
-    }
-    /* istanbul ignore next */
-    visitFilterScalarExpression(node) {
-        return true;
-    }
-    /* istanbul ignore next */
-    visitFlattenedListScalarExpression(node) {
-        return true;
-    }
-    /* istanbul ignore next */
-    visitVarRefScalarExpression(node) {
+    visitComputeBooleanExpression(node : Exp.ComputeBooleanExpression) : boolean {
         return true;
     }
 
     // streams, tables, actions
     /* istanbul ignore next */
-    visitVarRefTable(node) {
+    visitVarRefTable(node : Prim.VarRefTable) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitInvocationTable(node) {
+    visitInvocationTable(node : Prim.InvocationTable) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitFilteredTable(node) {
+    visitFilteredTable(node : Prim.FilteredTable) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitProjectionTable(node) {
+    visitProjectionTable(node : Prim.ProjectionTable) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitComputeTable(node) {
+    visitComputeTable(node : Prim.ComputeTable) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitAliasTable(node) {
+    visitAliasTable(node : Prim.AliasTable) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitAggregationTable(node) {
+    visitAggregationTable(node : Prim.AggregationTable) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitSortedTable(node) {
+    visitSortedTable(node : Prim.SortedTable) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitIndexTable(node) {
+    visitIndexTable(node : Prim.IndexTable) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitSlicedTable(node) {
+    visitSlicedTable(node : Prim.SlicedTable) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitJoinTable(node) {
+    visitJoinTable(node : Prim.JoinTable) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitVarRefStream(node) {
+    visitVarRefStream(node : Prim.VarRefStream) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitTimerStream(node) {
+    visitTimerStream(node : Prim.TimerStream) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitAtTimerStream(node) {
+    visitAtTimerStream(node : Prim.AtTimerStream) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitMonitorStream(node) {
+    visitMonitorStream(node : Prim.MonitorStream) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitEdgeNewStream(node) {
+    visitEdgeNewStream(node : Prim.EdgeNewStream) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitEdgeFilterStream(node) {
+    visitEdgeFilterStream(node : Prim.EdgeFilterStream) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitFilteredStream(node) {
+    visitFilteredStream(node : Prim.FilteredStream) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitProjectionStream(node) {
+    visitProjectionStream(node : Prim.ProjectionStream) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitComputeStream(node) {
+    visitComputeStream(node : Prim.ComputeStream) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitAliasStream(node) {
+    visitAliasStream(node : Prim.AliasStream) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitJoinStream(node) {
+    visitJoinStream(node : Prim.JoinStream) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitVarRefAction(node) {
+    visitVarRefAction(node : Prim.VarRefAction) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitInvocationAction(node) {
+    visitInvocationAction(node : Prim.InvocationAction) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitNotifyAction(node) {
+    visitNotifyAction(node : Prim.NotifyAction) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitSpecifiedPermissionFunction(node) {
+    visitSpecifiedPermissionFunction(node : Prim.SpecifiedPermissionFunction) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitBuiltinPermissionFunction(node) {
+    visitBuiltinPermissionFunction(node : Prim.BuiltinPermissionFunction) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitClassStarPermissionFunction(node) {
+    visitClassStarPermissionFunction(node : Prim.ClassStarPermissionFunction) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitStarPermissionFunction(node) {
+    visitStarPermissionFunction(node : Prim.StarPermissionFunction) : boolean {
         return true;
     }
 
     // statements and inputs
     /* istanbul ignore next */
-    visitDeclaration(node) {
+    visitDeclaration(node : Prog.Declaration) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitAssignment(node) {
+    visitAssignment(node : Prog.Assignment) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitRule(node) {
+    visitRule(node : Prog.Rule) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitCommand(node) {
+    visitCommand(node : Prog.Command) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitOnInputChoice(node) {
+    visitOnInputChoice(node : Prog.OnInputChoice) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitDataset(node) {
+    visitDataset(node : Prog.Dataset) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitProgram(node) {
+    visitProgram(node : Prog.Program) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitPermissionRule(node) {
+    visitPermissionRule(node : Prog.PermissionRule) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitLibrary(node) {
+    visitLibrary(node : Prog.Library) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitExample(node) {
+    visitExample(node : Prog.Example) : boolean {
         return true;
     }
 
     // dialogue states
-    visitDialogueState(node) {
+    visitDialogueState(node : D.DialogueState) : boolean {
         return true;
     }
-    visitDialogueHistoryItem(node) {
+    visitDialogueHistoryItem(node : D.DialogueHistoryItem) : boolean {
         return true;
     }
-    visitDialogueHistoryResultList(node) {
+    visitDialogueHistoryResultList(node : D.DialogueHistoryResultList) : boolean {
         return true;
     }
-    visitDialogueHistoryResultItem(node) {
+    visitDialogueHistoryResultItem(node : D.DialogueHistoryResultItem) : boolean {
         return true;
     }
 }
