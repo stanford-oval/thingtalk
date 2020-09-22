@@ -14,5 +14,11 @@
         "sourceMap": true,
         "incremental": true,
         "declaration": true
+    },
+    "typedocOptions": {
+        "mode": "library",
+        "out": "doc",
+        "name": "ThingTalk",
+        "readme": "README.md"
     }
 }
