@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -18,44 +18,74 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import { BooleanExpression } from './expression';
-import { PermissionFunction } from './primitive';
+import {
+    DeviceSelector,
+    Invocation,
+    BooleanExpression
+} from './expression';
+import {
+    Table,
+    InvocationTable,
+    FilteredTable,
+    ProjectionTable,
+    AliasTable,
+    ComputeTable,
+    Stream,
+    MonitorStream,
+    FilteredStream,
+    EdgeFilterStream,
+    ProjectionStream,
+    AliasStream,
+    ComputeStream,
+    SpecifiedPermissionFunction,
+    Action,
+    InvocationAction,
+    NotifyAction,
+    PermissionFunction
+} from './primitive';
 import { Value } from './values';
 import {
     isRemoteSend,
     isRemoteReceive
 } from './remote_utils';
-import { PermissionRule } from './program';
+import {
+    Rule,
+    Command,
+    Program,
+    PermissionRule
+} from './program';
 import * as Optimizer from '../optimize';
 
-function convertPrimitiveToPermission(prim) {
+function convertPrimitiveToPermission(prim : Invocation|null) : PermissionFunction|null {
     if (prim === null || isRemoteSend(prim) || isRemoteReceive(prim))
         return PermissionFunction.Builtin;
 
-    let filter = [];
-    for (let inParam of prim.in_params) {
+    const filterargs : BooleanExpression[] = [];
+    for (const inParam of prim.in_params) {
         if (inParam.value.isUndefined)
             continue;
-        filter.push(new BooleanExpression.Atom(null, inParam.name, '==', inParam.value));
+        filterargs.push(new BooleanExpression.Atom(null, inParam.name, '==', inParam.value));
     }
-    filter = new BooleanExpression.And(null, filter);
-    return new PermissionFunction.Specified(null, prim.selector.kind, prim.channel,
+    const filter = new BooleanExpression.And(null, filterargs);
+    return new PermissionFunction.Specified(null, (prim.selector as DeviceSelector).kind, prim.channel,
         filter, prim.schema);
 }
 
-function convertTableToPermissionFunction(table) {
-    if (table.isInvocation)
+function convertTableToPermissionFunction(table : Table) : PermissionFunction|null {
+    if (table instanceof InvocationTable)
         return convertPrimitiveToPermission(table.invocation);
 
-    if (table.isFilter) {
-        let inner = convertTableToPermissionFunction(table.table);
-        if (!inner)
+    if (table instanceof FilteredTable) {
+        const inner = convertTableToPermissionFunction(table.table);
+        if (!(inner instanceof SpecifiedPermissionFunction))
             return inner;
         return new PermissionFunction.Specified(null, inner.kind, inner.channel,
             new BooleanExpression.And(null, [inner.filter, table.filter]), inner.schema);
     }
 
-    if (table.isProjection || table.isAlias || table.isCompute)
+    if (table instanceof ProjectionTable ||
+        table instanceof AliasTable ||
+        table instanceof ComputeTable)
         return convertTableToPermissionFunction(table.table);
 
     if (table.isJoin) {
@@ -67,15 +97,17 @@ function convertTableToPermissionFunction(table) {
     return null;
 }
 
-function convertStreamToPermissionFunction(stream) {
-    if (stream.isMonitor)
+function convertStreamToPermissionFunction(stream : Stream) : PermissionFunction|null {
+    if (stream instanceof MonitorStream)
         return convertTableToPermissionFunction(stream.table);
-    if (stream.isProjection || stream.isAlias || stream.isCompute)
+    if (stream instanceof ProjectionStream ||
+        stream instanceof AliasStream ||
+        stream instanceof ComputeStream)
         return convertStreamToPermissionFunction(stream.stream);
 
-    if (stream.isFilter || stream.isEdgeFilter) {
-        let inner = convertStreamToPermissionFunction(stream.stream);
-        if (!inner)
+    if (stream instanceof FilteredStream || stream instanceof EdgeFilterStream) {
+        const inner = convertStreamToPermissionFunction(stream.stream);
+        if (!(inner instanceof SpecifiedPermissionFunction))
             return inner;
         return new PermissionFunction.Specified(null, inner.kind, inner.channel,
             BooleanExpression.And(null, [inner.filter, stream.filter]), inner.schema);
@@ -90,39 +122,48 @@ function convertStreamToPermissionFunction(stream) {
     return null;
 }
 
-function convertActionToPermission(action) {
-    if (action.isInvocation)
+function convertActionToPermission(action : Action) : PermissionFunction|null {
+    if (action instanceof InvocationAction)
         return convertPrimitiveToPermission(action.invocation);
-    if (action.isNotify)
+    if (action instanceof NotifyAction)
         return PermissionFunction.Builtin;
 
     console.log(`NOT IMPLEMENTED: converting action ${action} to permission function`);
     return null;
 }
 
-export default function convertToPermissionRule(program, principal, contactName) {
-    let rule;
+export default function convertToPermissionRule(program : Program,
+                                                principal : string,
+                                                contactName : string|null) : PermissionRule|null {
     if (program.rules.length > 1) {
         console.log('NOT IMPLEMENTED: cannot support more than one rule');
         return null;
     }
-    rule = program.rules[0];
+    const rule = program.rules[0];
+    if (!(rule instanceof Rule || rule instanceof Command)) {
+        console.log('NOT IMPLEMENTED: declaration or assignment statements');
+        return null;
+    }
 
     let query = null;
-    if (rule.stream)
+    if (rule instanceof Rule)
         query = convertStreamToPermissionFunction(rule.stream);
-    else if (rule.table)
+    else if (rule instanceof Command && rule.table)
         query = convertTableToPermissionFunction(rule.table);
     else
         query = PermissionFunction.Builtin;
+    if (!query)
+        return null;
     if (rule.actions.length > 1) {
         console.log('NOT IMPLEMENTED: cannot support more than one action');
         return null;
     }
     const action = convertActionToPermission(rule.actions[0]);
-    if (query.isSpecified)
+    if (!action)
+        return null;
+    if (query instanceof SpecifiedPermissionFunction)
         query.filter = Optimizer.optimizeFilter(query.filter);
-    if (action.isSpecified)
+    if (action instanceof SpecifiedPermissionFunction)
         action.filter = Optimizer.optimizeFilter(action.filter);
 
     return new PermissionRule(null, new BooleanExpression.Atom(null,

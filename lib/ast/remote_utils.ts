@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -16,16 +16,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-function isRemoteReceive(fn) {
-    return (fn.selector.isDevice && fn.selector.kind === 'org.thingpedia.builtin.thingengine.remote' || fn.selector.kind.startsWith('__dyn_')) &&
-        fn.channel === 'receive';
-}
-function isRemoteSend(fn) {
-    return (fn.selector.isDevice && fn.selector.kind === 'org.thingpedia.builtin.thingengine.remote' || fn.selector.kind.startsWith('__dyn_')) &&
-        fn.channel === 'send';
-}
+import { Invocation, DeviceSelector } from './expression';
 
-export {
-    isRemoteSend,
-    isRemoteReceive
-};
+export function isRemoteReceive(fn : Invocation) : boolean {
+    return (fn.selector instanceof DeviceSelector &&
+        (fn.selector.kind === 'org.thingpedia.builtin.thingengine.remote' || fn.selector.kind.startsWith('__dyn_'))
+        && fn.channel === 'receive');
+}
+export function isRemoteSend(fn : Invocation) : boolean {
+    return (fn.selector instanceof DeviceSelector &&
+        (fn.selector.kind === 'org.thingpedia.builtin.thingengine.remote' || fn.selector.kind.startsWith('__dyn_'))
+        && fn.channel === 'send');
+}

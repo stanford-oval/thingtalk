@@ -1,4 +1,4 @@
-// -*- mode: ts; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -17,27 +17,6 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-
-// NOTE: we use "require()" so the module is not wrapped as ES6-compat module,
-// which means we can't write to it
-import adt = require('adt');
-
-adt.nativeClone = function nativeClone(x : any) : any {
-    if (x === null || x === undefined)
-        return x;
-    if (x instanceof adt.__Base__ || typeof x.clone === 'function')
-        return x.clone();
-    if (Array.isArray(x))
-        return x.map((el) => nativeClone(el));
-    if (x instanceof Date)
-        return new Date(x);
-    if (typeof x === 'object') {
-        const clone = {};
-        Object.assign(clone, x);
-        return clone;
-    }
-    return x;
-};
 
 /**
  * The AST namespace includes the definition of AST nodes.

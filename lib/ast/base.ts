@@ -1,4 +1,4 @@
-// -*- mode: ts; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -21,7 +21,8 @@
 import assert from 'assert';
 import NodeVisitor from './visitor';
 
-import { Invocation } from './expression';
+import type { Invocation } from './expression';
+import type { Value } from './values';
 
 /**
  * A single point in the source code input stream.
@@ -54,6 +55,14 @@ export interface SourceLocation {
 export interface SourceRange {
     start : SourceLocation;
     end : SourceLocation;
+}
+
+export type NLAnnotationMap = { [key : string] : any };
+export type AnnotationMap = { [key : string] : Value };
+
+export interface AnnotationSpec {
+    nl ?: NLAnnotationMap;
+    impl ?: AnnotationMap;
 }
 
 /**
@@ -93,10 +102,10 @@ export default abstract class Node {
      * @param {Ast.NodeVisitor} visitor - the visitor to use.
      * @abstract
      */
-    abstract visit(visitor : NodeVisitor) : boolean;
+    abstract visit(visitor : NodeVisitor) : void;
 
     /* istanbul ignore next */
-    abstract clone() : this;
+    abstract clone() : Node;
 
     /* istanbul ignore next */
     /**
@@ -106,7 +115,7 @@ export default abstract class Node {
      *
      * @returns {Ast~Node} the optimized node
      */
-    optimize() : this {
+    optimize() : Node|null {
         return this;
     }
 

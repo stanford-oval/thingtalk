@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -20,11 +20,43 @@
 
 import assert from 'assert';
 import interpolate from 'string-interp';
-import Type from '../type';
+import Type, { ArrayType, EntityType } from '../type';
 import * as I18n from '../i18n';
 import { clean } from '../utils';
 
-import { Value } from './values';
+import { Value, VarRefValue, ArrayValue, ComputationValue } from './values';
+import { Invocation, Selector, DeviceSelector, InputParam, AtomBooleanExpression }  from './expression';
+import { ArgumentDef, ExpressionSignature } from './function_def';
+
+export interface ScopeEntry {
+    type : Type;
+    value : Value;
+
+    argcanonical ?: string;
+    _prim ?: InvocationLike|null;
+    kind ?: string|null;
+    kind_canonical ?: string;
+}
+export type ScopeMap = { [key : string] : ScopeEntry };
+
+interface ExternalBooleanExpressionLike {
+    selector : Selector;
+    channel : string;
+    in_params : InputParam[];
+    schema : ExpressionSignature|null;
+}
+interface PermissionFunctionLike {
+    kind : string;
+    channel : string;
+    schema : ExpressionSignature|null;
+}
+interface VarRefLike {
+    name : string;
+    in_params : InputParam[];
+    schema : ExpressionSignature|null;
+}
+export type InvocationLike = Invocation | ExternalBooleanExpressionLike |
+    VarRefLike | PermissionFunctionLike;
 
 /**
  * The abstract representation of a slot.
@@ -35,18 +67,20 @@ import { Value } from './values';
  *
  * @alias Ast~AbstractSlot
  */
-class AbstractSlot {
+export abstract class AbstractSlot {
+    private _prim : InvocationLike|null;
+    protected _scope : ScopeMap;
+    protected _options : ScopeEntry[]|undefined;
+
     /**
      * Construct a new abstract slot.
      *
-     * @param {module.Ast:Invocation|null} prim - the primitive associated with this slot, if any
-     * @param {Object.<string, Ast.ScopeEntry>} scope - available names for parameter passing
-     * @protected
+     * @param prim - the primitive associated with this slot, if any
+     * @param scope - available names for parameter passing
      */
-    constructor(prim, scope) {
+    protected constructor(prim : InvocationLike|null, scope : ScopeMap) {
         assert(prim || prim === null);
         this._prim = prim;
-
 
         this._scope = scope;
         this._options = undefined;
@@ -54,26 +88,20 @@ class AbstractSlot {
 
     /**
      * The primitive associated with this slot, if any.
-     * @type {Ast.Invocation|null}
-     * @readonly
      */
-    get primitive() {
+    get primitive() : InvocationLike|null {
         return this._prim;
     }
     /**
      * The function argument associated with this slot, if any.
-     * @type {Ast.ArgumentDef|null}
-     * @readonly
      */
-    get arg() {
+    get arg() : ArgumentDef|null {
         return null;
     }
     /**
      * Names which are available for parameter passing into this slot.
-     * @type {Object.<string, Ast.ScopeEntry>}
-     * @readonly
      */
-    get scope() {
+    get scope() : ScopeMap {
         return this._scope;
     }
 
@@ -82,58 +110,53 @@ class AbstractSlot {
      *
      * This is the subset of {Ast~AbstractSlot#scope} whose type matches
      * that of this slot.
-     * @type {Object.<string, Ast.ScopeEntry>}
-     * @readonly
      */
-    get options() {
+    get options() : ScopeEntry[] {
         // this is computed lazily because it needs this.type, which
         // is not available in the constructor
 
         if (this._options)
             return this._options;
 
-        let options = [];
+        const options = [];
         const slotType = this.type;
-        for (let vname in this._scope) {
-            let option = this._scope[vname];
+        for (const vname in this._scope) {
+            const option = this._scope[vname];
             if (Type.isAssignable(option.type, slotType))
                 options.push(option);
         }
         return this._options = options;
     }
 
-    /* istanbul ignore next */
     /**
      * The type of this slot.
-     * @type {Type}
      */
-    get type() {
-        throw new Error('Abstract method');
-    }
-    /* istanbul ignore next */
+    abstract get type() : Type;
+
+    abstract get tag() : string;
+
     /**
      * Retrieve the question to ask the user to fill this slot.
      *
      * @param {string} locale - the locale to use
-    getPrompt(locale) {
-        throw new Error('Abstract method');
-    }
-    /* istanbul ignore next */
-    get() {
-        throw new Error('Abstract method');
-    }
-    /* istanbul ignore next */
-    set(value) {
-        throw new Error('Abstract method');
+     */
+    abstract getPrompt(locale : string) : string;
+
+    abstract get() : Value;
+
+    abstract set(value : Value) : void;
+
+    get _argcanonical() : string {
+        return '';
     }
 
-    isUndefined() {
+    isUndefined() : boolean {
         return this.get().isUndefined;
     }
-    isConcrete() {
+    isConcrete() : boolean {
         return this.get().isConcrete();
     }
-    isCompilable() {
+    isCompilable() : boolean {
         const value = this.get();
         if (value.isUndefined)
             return false;
@@ -142,7 +165,8 @@ class AbstractSlot {
 
         const valueType = value.getType();
         const slotType = this.type;
-        if (valueType.isEntity && slotType.isEntity && valueType.type === 'tt:username' && slotType.type !== 'tt:username')
+        if (valueType instanceof EntityType && slotType instanceof EntityType &&
+            valueType.type === 'tt:username' && slotType.type !== 'tt:username')
             return false;
 
         return true;
@@ -150,78 +174,92 @@ class AbstractSlot {
 }
 
 export class InputParamSlot extends AbstractSlot {
-    constructor(prim, scope, arg, slot) {
+    private _arg : ArgumentDef|null;
+    private _slot : InputParam;
+
+    constructor(prim : InvocationLike|null,
+                scope : ScopeMap,
+                arg : ArgumentDef|null,
+                slot : InputParam) {
         super(prim, scope);
         this._arg = arg;
         this._slot = slot;
     }
 
-    toString() {
+    toString() : string {
         return `InputParamSlot(${this._slot.name} : ${this.type})`;
     }
 
-    get _argcanonical() {
+    get _argcanonical() : string {
         return this._arg ? this._arg.canonical : clean(this._slot.name);
     }
 
-    get arg() {
+    get arg() : ArgumentDef|null {
         return this._arg || null;
     }
-    get type() {
+    get type() : Type {
         if (this._arg)
             return this._arg.type;
         else
             return Type.Any;
     }
-    get tag() {
+    get tag() : string {
         return `in_param.${this._slot.name}`;
     }
-    getPrompt(locale) {
+    getPrompt(locale : string) : string {
         if (this._arg && this._arg.metadata.prompt)
             return this._arg.metadata.prompt;
 
         const argcanonical = this._argcanonical;
         const _ = I18n.get(locale).gettext;
         return interpolate(_("Please tell me the ${argcanonical}."), //"
-            { argcanonical }, { locale });
+            { argcanonical }, { locale }) as string;
     }
-    get() {
+    get() : Value {
         return this._slot.value;
     }
-    set(value) {
+    set(value : Value) : void {
         this._slot.value = value;
     }
 }
 
 export class ResultSlot extends AbstractSlot {
-    constructor(prim, scope, arg, object, key) {
+    private _arg : ArgumentDef|null;
+    private _object : any;
+    private _key : string;
+
+    constructor(prim : Invocation|null,
+                scope : ScopeMap,
+                arg : ArgumentDef|null,
+                object : unknown,
+                key : string) {
         super(prim, scope);
         this._arg = arg;
         this._object = object;
         this._key = key;
     }
 
-    toString() {
+    toString() : string {
         return `ResultSlot(${this._key} : ${this.type})`;
     }
 
-    get _argcanonical() {
+    get _argcanonical() : string {
         return this._arg ? this._arg.canonical : clean(this._key);
     }
 
-    get arg() {
+    get arg() : ArgumentDef|null {
         return this._arg || null;
     }
-    get type() {
+    get type() : Type {
         if (this._arg)
             return this._arg.type;
         else
             return this.get().getType();
     }
-    get tag() {
+    get tag() : string {
         return `result.${this._key}`;
     }
-    getPrompt(locale) {
+    getPrompt(locale : string) : string {
         // should never be called, except for tests
 
         if (this._arg && this._arg.metadata.prompt)
@@ -230,76 +268,85 @@ export class ResultSlot extends AbstractSlot {
         const argcanonical = this._argcanonical;
         const _ = I18n.get(locale).gettext;
         return interpolate(_("Please tell me the ${argcanonical}."), //"
-            { argcanonical }, { locale });
+            { argcanonical }, { locale }) as string;
     }
-    get() {
+    get() : Value {
         return this._object[this._key];
     }
-    set(value) {
+    set(value : Value) : void {
         this._object[this._key] = value;
     }
 }
 
 export class DeviceAttributeSlot extends AbstractSlot {
-    constructor(prim, attr) {
+    private _slot : InputParam;
+
+    constructor(prim : Invocation|null, attr : InputParam) {
         super(prim, {});
         this._slot = attr;
         assert(this._slot.name === 'name');
     }
 
-    toString() {
+    toString() : string {
         return `DeviceAttributeSlot(${this._slot.name} : ${this.type})`;
     }
 
-    get type() {
+    get type() : Type {
         return Type.String;
     }
-    get tag() {
+    get tag() : string {
         return `attribute.${this._slot.name}`;
     }
-    getPrompt(locale) {
+    getPrompt(locale : string) : string {
         // this method should never be used, because $? does not typecheck in a device
         // attribute, but we include for completeness, and just in case
         const _ = I18n.get(locale).gettext;
         return _("Please tell me the name of the device you would like to use.");
     }
-    get() {
+    get() : Value {
         return this._slot.value;
     }
-    set(value) {
+    set(value : Value) : void {
         this._slot.value = value;
     }
 }
 
 export class FilterSlot extends AbstractSlot {
-    constructor(prim, scope, arg, filter) {
-        super(prim && prim.isPermissionRule ? null : prim, scope);
+    private _isSourceFilter : boolean;
+    private _arg : ArgumentDef|null;
+    private _filter : AtomBooleanExpression;
 
-        this._isSourceFilter = prim && prim.isPermissionRule;
+    constructor(prim : InvocationLike|null,
+                scope : ScopeMap,
+                arg : ArgumentDef|null,
+                filter : AtomBooleanExpression) {
+        super(prim, scope);
+
+        this._isSourceFilter = prim === null;
         this._arg = arg;
         this._filter = filter;
     }
 
-    toString() {
+    toString() : string {
         return `FilterSlot(${this._filter.name} ${this._filter.operator} : ${this.type})`;
     }
 
-    get _argcanonical() {
+    get _argcanonical() : string {
         return this._arg ? this._arg.canonical : clean(this._filter.name);
     }
 
     // overidde the default option handling to filter out non-sensical filters such as "x == x"
-    get options() {
+    get options() : ScopeEntry[] {
         if (this._options)
             return this._options;
-        let options = [];
+        const options = [];
 
         const slotType = this.type;
-        for (let vname in this._scope) {
-            let option = this._scope[vname];
+        for (const vname in this._scope) {
+            const option = this._scope[vname];
             if (Type.isAssignable(option.type, slotType)) {
-                if (option.value.isVarRef && option.value.name === this._filter.name &&
-                    option._prim === this._prim)
+                if (option.value instanceof VarRefValue && option.value.name === this._filter.name &&
+                    option._prim === this.primitive)
                     continue;
                 if (option.value.isEvent)
                     continue;
@@ -309,21 +356,21 @@ export class FilterSlot extends AbstractSlot {
         return this._options = options;
     }
 
-    get arg() {
+    get arg() : ArgumentDef|null {
         return this._arg || null;
     }
-    get type() {
+    get type() : Type {
         if (this._isSourceFilter) {
             switch (this._filter.operator) {
             case 'in_array':
-                return new Type.Array(Type.Entity('tt:contact'));
+                return new Type.Array(new Type.Entity('tt:contact'));
             default:
-                return Type.Entity('tt:contact');
+                return new Type.Entity('tt:contact');
             }
         } else if (this._arg) {
             switch (this._filter.operator) {
             case 'contains':
-                return this._arg.type.elem;
+                return (this._arg.type as ArrayType).elem as Type;
             case 'contains~':
                 return Type.String;
             case '~contains':
@@ -341,10 +388,10 @@ export class FilterSlot extends AbstractSlot {
             return Type.Any;
         }
     }
-    get tag() {
+    get tag() : string {
         return `filter.${this._filter.operator}.${this._isSourceFilter ? '$' : ''}${this._filter.name}`;
     }
-    getPrompt(locale) {
+    getPrompt(locale : string) : string {
         const _ = I18n.get(locale).gettext;
         if (['==', 'contains', 'in_array', '=~'].indexOf(this._filter.operator) >= 0 &&
             this._arg && this._arg.metadata.prompt)
@@ -381,18 +428,29 @@ export class FilterSlot extends AbstractSlot {
             break;
         }
 
-        return interpolate(question, { argcanonical }, { locale });
+        return interpolate(question, { argcanonical }, { locale }) as string;
     }
-    get() {
+    get() : Value {
         return this._filter.value;
     }
-    set(value) {
+    set(value : Value) : void {
         this._filter.value = value;
     }
 }
 
 export class ArrayIndexSlot extends AbstractSlot {
-    constructor(prim, scope, type, array, parent, index) {
+    private _type : Type;
+    private _array : Value[];
+    private _parent : AbstractSlot|null;
+    private _baseTag : string;
+    private _index : number;
+
+    constructor(prim : InvocationLike|null,
+                scope : ScopeMap,
+                type : Type,
+                array : Value[],
+                parent : AbstractSlot|string,
+                index : number) {
         super(prim, scope);
         this._type = type;
         this._array = array;
@@ -406,24 +464,26 @@ export class ArrayIndexSlot extends AbstractSlot {
         this._index = index;
     }
 
-    toString() {
+    toString() : string {
         return `ArrayIndexSlot([${this._index}] : ${this.type})`;
     }
 
-    get _argcanonical() {
-        return this._parent._argcanonical;
+    get _argcanonical() : string {
+        if (this._parent)
+            return this._parent._argcanonical;
+        return '';
     }
 
-    get arg() {
+    get arg() : ArgumentDef|null {
         return this._parent ? this._parent.arg : null;
     }
-    get type() {
+    get type() : Type {
         return this._type;
     }
-    get tag() {
+    get tag() : string {
         return `${this._baseTag}.${this._index}`;
     }
-    getPrompt(locale) {
+    getPrompt(locale : string) : string {
         const _ = I18n.get(locale).gettext;
 
         switch (this._baseTag) {
@@ -440,7 +500,7 @@ export class ArrayIndexSlot extends AbstractSlot {
                 two {What is the index of the ${index}nd result you would like?}\
                 few {What is the index of the ${index}rd result you would like?}\
                 other {What is the index of the ${index}th result you would like?}\
-            }"), { index: this._index+1 }, { locale });
+            }"), { index: this._index+1 }, { locale }) as string;
 
         case 'attimer.time':
             if (this._array.length === 1)
@@ -454,7 +514,7 @@ export class ArrayIndexSlot extends AbstractSlot {
                 two {What is the ${index}nd time you would like your command to run?}\
                 few {What is the ${index}rd time you would like your command to run?}\
                 other {What is the ${index}th time you would like your command to run?}\
-            }"), { index: this._index+1 }, { locale });
+            }"), { index: this._index+1 }, { locale }) as string;
 
         case 'filter.in_array.$source':
             if (this._array.length === 1)
@@ -468,7 +528,7 @@ export class ArrayIndexSlot extends AbstractSlot {
                 two {Who is the ${index}nd friend who is allowed to ask you for this command?}\
                 few {Who is the ${index}rd friend who is allowed to ask you for this command?}\
                 other {Who is the ${index}th friend who is allowed to ask you for this command?}\
-            }"), { index: this._index+1 }, { locale });
+            }"), { index: this._index+1 }, { locale }) as string;
 
         case 'compute_filter.lhs':
             if (this._array.length === 1)
@@ -482,7 +542,7 @@ export class ArrayIndexSlot extends AbstractSlot {
                 two {What is the ${index}nd value of the filter left hand side?}\
                 few {What is the ${index}rd value of the filter left hand side?}\
                 other {What is the ${index}th value of the filter left hand side?}\
-            }"), { index: this._index+1 }, { locale });
+            }"), { index: this._index+1 }, { locale }) as string;
 
         case 'compute_filter.rhs':
             if (this._array.length === 1)
@@ -496,7 +556,7 @@ export class ArrayIndexSlot extends AbstractSlot {
                 two {What is the ${index}nd value of the filter right hand side?}\
                 few {What is the ${index}rd value of the filter right hand side?}\
                 other {What is the ${index}th value of the filter right hand side?}\
-            }"), { index: this._index+1 }, { locale });
+            }"), { index: this._index+1 }, { locale }) as string;
 
         default:
             assert(this._parent);
@@ -512,19 +572,32 @@ export class ArrayIndexSlot extends AbstractSlot {
                 two {What would you like the ${index}nd ${argcanonical} to be?}\
                 few {What would you like the ${index}rd ${argcanonical} to be?}\
                 other {What would you like the ${index}th ${argcanonical} to be?}\
-            }"), { index: this._index+1, argcanonical: this._argcanonical }, { locale });
+            }"), { index: this._index+1, argcanonical: this._argcanonical }, { locale }) as string;
         }
     }
-    get() {
+    get() : Value {
         return this._array[this._index];
     }
-    set(value) {
+    set(value : Value) : void {
         this._array[this._index] = value;
     }
 }
 
 export class ComputationOperandSlot extends AbstractSlot {
-    constructor(prim, scope, type, operator, operands, parent, index) {
+    private _type : Type;
+    private _operator : string;
+    private _operands : Value[];
+    private _parent : AbstractSlot|null;
+    private _baseTag : string;
+    private _index : number;
+
+    constructor(prim : InvocationLike|null,
+                scope : ScopeMap,
+                type : Type,
+                operator : string,
+                operands : Value[],
+                parent : AbstractSlot|string,
+                index : number) {
         super(prim, scope);
         this._type = type;
         this._operator = operator;
@@ -539,24 +612,26 @@ export class ComputationOperandSlot extends AbstractSlot {
         this._index = index;
     }
 
-    toString() {
+    toString() : string {
         return `ComputationOperandSlot(${this._operator}[${this._index}] : ${this.type})`;
     }
 
-    get _argcanonical() {
-        return this._parent._argcanonical;
+    get _argcanonical() : string {
+        if (this._parent)
+            return this._parent._argcanonical;
+        return '';
     }
 
-    get arg() {
+    get arg() : ArgumentDef|null {
         return this._parent ? this._parent.arg : null;
     }
-    get type() {
+    get type() : Type {
         return this._type;
     }
-    get tag() {
+    get tag() : string {
         return `${this._baseTag}.${this._operator}.${this._index}`;
     }
-    getPrompt(locale) {
+    getPrompt(locale : string) : string {
         const _ = I18n.get(locale).gettext;
 
         // ugly but who cares
@@ -568,18 +643,28 @@ export class ComputationOperandSlot extends AbstractSlot {
             two {What is the ${index}nd operand to ${operator} you would like?}\
             few {What is the ${index}rd operand to ${operator} you would like?}\
             other {What is the ${index}th operand to ${operator} you would like?}\
-        }"), { index: this._index+1, operator: this._operator }, { locale });
+        }"), { index: this._index+1, operator: this._operator }, { locale }) as string;
     }
-    get() {
+    get() : Value {
         return this._operands[this._index];
     }
-    set(value) {
+    set(value : Value) : void {
         this._operands[this._index] = value;
     }
 }
 
 export class FieldSlot extends AbstractSlot {
-    constructor(prim, scope, type, container, baseTag, field) {
+    private _type : Type;
+    private _container : any;
+    private _tag : string;
+    private _field : string;
+
+    constructor(prim : InvocationLike|null,
+                scope : ScopeMap,
+                type : Type,
+                container : unknown,
+                baseTag : string,
+                field : string) {
         super(prim, scope);
         this._type = type;
         this._container = container;
@@ -587,18 +672,18 @@ export class FieldSlot extends AbstractSlot {
         this._field = field;
     }
 
-    toString() {
+    toString() : string {
         return `FieldSlot(${this._field} : ${this.type})`;
     }
 
-    get type() {
+    get type() : Type {
         return this._type;
     }
-    get tag() {
+    get tag() : string {
         return this._tag;
     }
 
-    getPrompt(locale) {
+    getPrompt(locale : string) : string {
         const _ = I18n.get(locale).gettext;
 
         switch (this._tag) {
@@ -625,32 +710,32 @@ export class FieldSlot extends AbstractSlot {
             // should never be hit, because all cases are covered, but who knows...
             return interpolate(_("What ${field:enum} would you like?"), {
                 field: this._field
-            });
+            }) as string;
         }
     }
-    get() {
+    get() : Value {
         return this._container[this._field];
     }
-    set(value) {
+    set(value : Value) : void {
         this._container[this._field] = value;
     }
 }
 
-export function makeScope(invocation) {
+export function makeScope(invocation : InvocationLike) : ScopeMap {
     // make out parameters available in the "scope", which puts
     // them as possible options for a later slot fill
     const schema = invocation.schema;
     if (!schema)
-        return null;
-    const scope = {};
-    for (let argname in schema.out) {
-        let argcanonical = schema.getArgCanonical(argname);
+        return {};
+    const scope : ScopeMap = {};
+    for (const argname in schema.out) {
+        const argcanonical = schema.getArgCanonical(argname);
 
-        let kind;
-        if (invocation.isVarRef)
-            kind = null;
+        let kind = null;
+        if ((invocation as Invocation).selector)
+            kind = ((invocation as Invocation).selector as DeviceSelector).kind;
         else
-            kind = invocation.selector.kind;
+            kind = null;
         scope[argname] = {
             value: new Value.VarRef(argname),
             type: schema.out[argname],
@@ -668,17 +753,17 @@ export function makeScope(invocation) {
     return scope;
 }
 
-export function* recursiveYieldArraySlots(slot) {
+export function* recursiveYieldArraySlots(slot : AbstractSlot) : Generator<AbstractSlot> {
     // despite the name, this function also handles computation
 
     yield slot;
     const value = slot.get();
-    if (value.isArray) {
-        const type = slot.type;
-        assert(type.isArray);
+    if (value instanceof ArrayValue) {
+        const type = slot.type as ArrayType;
+        assert(type instanceof ArrayType);
         for (let i = 0; i < value.value.length; i++)
-            yield* recursiveYieldArraySlots(new ArrayIndexSlot(slot.primitive, slot.scope, type.elem, value.value, slot, i));
-    } else if (value.isComputation) {
+            yield* recursiveYieldArraySlots(new ArrayIndexSlot(slot.primitive, slot.scope, type.elem as Type, value.value, slot, i));
+    } else if (value instanceof ComputationValue) {
         const overload = value.overload || [];
         if (overload.length !== value.operands.length+1)
             console.error('Missing overload on computation value: ' + value);
@@ -687,23 +772,17 @@ export function* recursiveYieldArraySlots(slot) {
     }
 }
 
-/**
- * Type used by the old slot iteration API.
- *
- * This is actually a tuple but jsdoc does not understand tuples.
- * @typedef Ast~OldSlot
- * @property {Ast.ExpressionSignature} 0 - the signature of the nearest primitive
- * @property {Ast.InputParam|Ast.BooleanExpression.Atom} 1 - the holder of the value
- * @property {Ast.Invocation} 2 - the nearest primitive
- * @property {Object.<string, Ast~SlotScopeItem>} 3 - available names for parameter passing
- * @generator
- * @deprecated Use {@link Ast~AbstractSlot} and the new slot iteration API
- */
-
-export function* iterateSlots2InputParams(prim, scope) {
-    for (let in_param of prim.in_params) {
-        const arg = prim.schema ? prim.schema.getArgument(in_param.name) : null;
+export function* iterateSlots2InputParams(prim : Invocation|VarRefLike|ExternalBooleanExpressionLike, scope : ScopeMap) : Generator<AbstractSlot, [InvocationLike, ScopeMap]> {
+    for (const in_param of prim.in_params) {
+        const arg = (prim.schema ? prim.schema.getArgument(in_param.name) : null) || null;
         yield* recursiveYieldArraySlots(new InputParamSlot(prim, scope, arg, in_param));
     }
     return [prim, makeScope(prim)];
 }
+
+/**
+ * Type used by the old slot iteration API.
+ *
+ * @deprecated Use {@link Ast~AbstractSlot} and the new slot iteration API
+ */
+export type OldSlot = [ExpressionSignature|null, (InputParam|AtomBooleanExpression|Selector), InvocationLike|null, ScopeMap];

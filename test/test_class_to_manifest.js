@@ -121,6 +121,8 @@ const TEST_CASES = [
 
     {
       kind: 'com.foo',
+      name: undefined,
+      description: undefined,
       module_type: 'org.thingpedia.v2',
       types: [],
       child_types: [],
@@ -136,6 +138,8 @@ const TEST_CASES = [
 
     {
       kind: 'com.foo',
+      name: undefined,
+      description: undefined,
       module_type: 'org.thingpedia.v2',
       types: [],
       child_types: [],
@@ -153,6 +157,8 @@ const TEST_CASES = [
 
     {
       kind: 'com.foo',
+      name: undefined,
+      description: undefined,
       module_type: 'org.thingpedia.v2',
       types: [],
       child_types: [],
@@ -170,6 +176,8 @@ const TEST_CASES = [
 
     {
       kind: 'com.foo',
+      name: undefined,
+      description: undefined,
       module_type: 'org.thingpedia.v2',
       types: [],
       child_types: [],
@@ -187,6 +195,8 @@ const TEST_CASES = [
 
     {
         kind: 'com.foo',
+        name: undefined,
+        description: undefined,
         module_type: 'org.thingpedia.v2',
         types: [],
         child_types: [],
@@ -202,6 +212,8 @@ const TEST_CASES = [
 
     {
         kind: 'com.foo',
+        name: undefined,
+        description: undefined,
         module_type: 'org.thingpedia.v2',
         types: [],
         child_types: [],
@@ -219,6 +231,8 @@ const TEST_CASES = [
 
     {
       kind: 'com.foo',
+      name: undefined,
+      description: undefined,
       module_type: 'org.thingpedia.generic_rest.v1',
       types: [],
       child_types: [],
@@ -259,6 +273,8 @@ const TEST_CASES = [
 
     {
       kind: 'org.thingpedia.bluetooth.speaker.a2dp',
+      name: undefined,
+      description: undefined,
       module_type: 'org.thingpedia.v2',
       types: ['bluetooth-uuid-0000110b-0000-1000-8000-00805f9b34fb'],
       child_types: [],
@@ -281,6 +297,8 @@ const TEST_CASES = [
 
     {
       kind: 'org.thingpedia.bluetooth.foo',
+      name: undefined,
+      description: undefined,
       module_type: 'org.thingpedia.v2',
       types: ['bluetooth-class-computer'],
       child_types: [],
@@ -303,6 +321,8 @@ const TEST_CASES = [
 
     {
       kind: 'com.lg.tv.webos2',
+      name: undefined,
+      description: undefined,
       module_type: 'org.thingpedia.v2',
       types: ['upnp-lge-com-service-webos-second-screen-1'],
       child_types: [],

@@ -1,4 +1,4 @@
-// -*- mode: ts; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -19,14 +19,14 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import AstNode from './base';
-import * as Values from './values';
-import * as BK from './bookkeeping';
-import { ClassDef } from './class_def';
-import { FunctionDef, ArgumentDef } from './function_def';
-import * as Prog from './program';
-import * as Exp from './expression';
-import * as Prim from './primitive';
-import * as D from './dialogues';
+import type * as Values from './values';
+import type * as BK from './bookkeeping';
+import type { ClassDef } from './class_def';
+import type { FunctionDef, ArgumentDef } from './function_def';
+import type * as Prog from './program';
+import type * as Exp from './expression';
+import type * as Prim from './primitive';
+import type * as D from './dialogues';
 
 /**
  * Base class (interface) for traversing the AST using the visitor

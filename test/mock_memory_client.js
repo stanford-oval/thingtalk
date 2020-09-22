@@ -46,10 +46,10 @@ const _mockMemoryClient = new MockMemoryClient();
 _mockMemoryClient.createTable('Q1', ['_timestamp', 'steps', 'col1', 'col2', 'field', 'foo', 'str1', 'str2'], [Type.Date, Type.Number, Type.Number, Type.Number, Type.Number, Type.String, Type.String, Type.String]);
 _mockMemoryClient.createTable('Q0', ['another_field', 'field1', 'field2'], [Type.Number, Type.Number, Type.Number]);
 _mockMemoryClient.createTable('Q2', ['col2'], [Type.Number]);
-_mockMemoryClient.createTable('Q3', ['col1'], [Type.Measure('C')]);
+_mockMemoryClient.createTable('Q3', ['col1'], [new Type.Measure('C')]);
 _mockMemoryClient.createTable('t', [], []);
 _mockMemoryClient.createTable('Q4', ['score'], [Type.Number]);
-_mockMemoryClient.createTable('auto+com.xkcd:get_comic:v_title:title,v_picture_url:picture_url', ['v_title', 'v_picture_url'], [Type.String, Type.Entity('tt:picture')]);
+_mockMemoryClient.createTable('auto+com.xkcd:get_comic:v_title:title,v_picture_url:picture_url', ['v_title', 'v_picture_url'], [Type.String, new Type.Entity('tt:picture')]);
 
 _mockMemoryClient._createRemoteTable('Q4', '1234', ['col1', 'col2'], [Type.String, Type.Number]);
 

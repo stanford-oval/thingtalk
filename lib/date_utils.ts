@@ -1,4 +1,4 @@
-// -*- mode: ts; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -89,21 +89,21 @@ function createEdgeDate(edge : ('start_of'|'end_of'), unit : string) : Date {
     return date;
 }
 
-function createDatePiece(year : number, month : number, day : number, time : AbsoluteTime|null) : Date {
+function createDatePiece(year : number|null, month : number|null, day : number|null, time : AbsoluteTime|null) : Date {
     // All non-supplied values to the left of the largest supplied
     // value are set to the present. All non-supplied values to the
     // right of the largest supplied value are set to the minimum.
     const date = new Date;
-    if (year > 0) {
+    if (year !== null && year > 0) {
         date.setFullYear(year);
         date.setMonth(0, 1); // 1st of Jan
         date.setHours(0, 0, 0, 0);
     }
-    if (month > 0) {
+    if (month !== null && month > 0) {
         date.setMonth(month - 1, 1);
         date.setHours(0, 0, 0, 0);
     }
-    if (day > 0) {
+    if (day !== null && day > 0) {
         date.setDate(day);
         date.setHours(0, 0, 0, 0);
     }
@@ -112,7 +112,7 @@ function createDatePiece(year : number, month : number, day : number, time : Abs
     return date;
 }
 
-function createWeekDayDate(weekday : number, time : AbsoluteTime|null) {
+function createWeekDayDate(weekday : string, time : AbsoluteTime|null) {
     const date = new Date;
 
     // FIXME: implement this
