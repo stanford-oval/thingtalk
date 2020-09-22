@@ -597,9 +597,9 @@ concat-map@0.0.1:
   integrity sha1-2Klr13/Wjfd5OnMDajug1UBdR3s=
 
 consumer-queue@^1.0.0:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/consumer-queue/-/consumer-queue-1.0.2.tgz#935c73771d8b71f0711e2b495ada152f8be8f3d6"
-  integrity sha512-wTvHKMdxSrl3nIODcFVMV5OrLyaWTYgBBsGlu+bUkaj8TyCKhb1d0F/Ahr8/rGr/cwYD1MjSrDMl1wRREuO+wg==
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/consumer-queue/-/consumer-queue-1.1.0.tgz#97d00fcab46b983f2e5b508cdb22389d30d28302"
+  integrity sha512-m8thFi9TuzuQfkPjN1Co/8tmuLYF0UvCQzzWkChQhgoamaBaWe1ZgYDS6lCOHlPtf2k/yvJX01JRP7l0As3yPA==
 
 convert-source-map@^1.7.0:
   version "1.7.0"
@@ -2115,9 +2115,9 @@ sshpk@^1.7.0:
     tweetnacl "~0.14.0"
 
 string-interp@^0.3.1:
-  version "0.3.4"
-  resolved "https://registry.yarnpkg.com/string-interp/-/string-interp-0.3.4.tgz#fcc4ccba74f70f53c67d96a9757910167eca572f"
-  integrity sha512-StKoEOGNQHqW+HLS4ixl20Umo3yHTFp3EueF+ezPBLOQZ/h7U3sEKmxYUdNsCTBSjTY5YbwPNqqFacagTzZjxA==
+  version "0.3.5"
+  resolved "https://registry.yarnpkg.com/string-interp/-/string-interp-0.3.5.tgz#7c4a739b8287ae4e03fe27369fe91748a9d30b20"
+  integrity sha512-+bHzQDrETyC/njJFHO0Kx/JWypZMxH5T/hP1XlWK2U0hWcayeFKSLfJrEPK/3jNrdbh/FzX3ZoOBV4xqzkCczA==
   dependencies:
     thingtalk-units "^0.2.0"
 

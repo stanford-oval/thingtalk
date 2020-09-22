@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -19,9 +19,17 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import Type from '../type';
-import * as fndef from '../ast/function_def';
+import { FunctionDef } from '../ast/function_def';
 
 // Definitions of ThingTalk operators
+
+interface OpImplementation {
+    op ?: string;
+    fn ?: string;
+    flip ?: boolean;
+}
+
+type OverloadResolver = (...types : Type[]) => OpImplementation;
 
 /**
  * Definition of a ThingTalk operator.
@@ -35,6 +43,10 @@ import * as fndef from '../ast/function_def';
  * @property {string} [fn] - a function in the {@link Builtin} namespace that implements this operator
  * @package
  */
+interface OpDefinition extends OpImplementation {
+    types : Array<Array<(Type | string)>>;
+    overload ? : OverloadResolver;
+}
 
 /**
  * Definitions (type signatures) of ThingTalk binary comparison operators.
@@ -42,9 +54,8 @@ import * as fndef from '../ast/function_def';
  * @alias Builtin.BinaryOps
  * @constant
  * @package
- * @type {Object.<string, Builtin.OpDefinition>}
  */
-export const BinaryOps = {
+export const BinaryOps : { [op : string] : OpDefinition } = {
     '>=': {
         types: [[Type.String, Type.String, Type.Boolean],
                 [new Type.Measure(''), new Type.Measure(''), Type.Boolean],
@@ -106,7 +117,7 @@ export const BinaryOps = {
         types: [[new Type.Array('a'), 'a', Type.Boolean],
                 [Type.RecurrentTimeSpecification, Type.Date, Type.Boolean],
                 [Type.RecurrentTimeSpecification, Type.Time, Type.Boolean]],
-        overload: (t1, t2, t3) => {
+        overload: (t1 : Type, t2 : Type, t3 : Type) : OpImplementation => {
             if (t1 === Type.RecurrentTimeSpecification)
                 return { fn: 'recurrentTimeSpecContains' };
             else
@@ -189,7 +200,7 @@ export const BinaryOps = {
  * @package
  * @type {Object.<string, Builtin.OpDefinition>}
  */
-export const UnaryOps = {
+export const UnaryOps : { [op : string] : OpDefinition } = {
     '!': {
         types: [[Type.Boolean, Type.Boolean]],
         op: '!'
@@ -216,7 +227,7 @@ export const UnaryOps = {
  * @package
  * @type {Object.<string, Builtin.OpDefinition>}
  */
-export const ScalarExpressionOps = {
+export const ScalarExpressionOps : { [op : string] : OpDefinition } = {
     '+': {
         types: [[Type.String, Type.String, Type.String],
                 [Type.Number, Type.Number, Type.Number],
@@ -224,7 +235,7 @@ export const ScalarExpressionOps = {
                 [new Type.Measure(''), new Type.Measure(''), new Type.Measure('')],
                 [Type.Date, new Type.Measure('ms'), Type.Date],
                 [Type.Time, new Type.Measure('ms'), Type.Time]],
-        overload: (t1, t2, t3) => {
+        overload: (t1 : Type, t2 : Type, t3 : Type) : OpImplementation => {
             if (t1 === Type.Date)
                 return { fn: 'dateAdd' };
             else if (t1 === Type.Time)
@@ -240,7 +251,7 @@ export const ScalarExpressionOps = {
                 [Type.Date, new Type.Measure('ms'), Type.Date],
                 [Type.Time, new Type.Measure('ms'), Type.Time]],
         op: '-',
-        overload: (t1, t2, t3) => {
+        overload: (t1 : Type, t2 : Type, t3 : Type) : OpImplementation => {
             if (t1 === Type.Date)
                 return { fn: 'dateSub' };
             else if (t1 === Type.Time)
@@ -311,7 +322,7 @@ export const ScalarExpressionOps = {
  * @package
  * @type {Object.<string, Builtin.OpDefinition>}
  */
-export const Aggregations = {
+export const Aggregations : { [op : string] : OpDefinition } = {
     'max': {
         types: [[Type.Number, Type.Number],
                 [Type.Currency, Type.Currency],
@@ -337,8 +348,10 @@ export const Aggregations = {
     }
 };
 
-function builtinFunction(name) {
-    return new fndef.FunctionDef(null, 'action', null, name, [], {}, [], {});
+function builtinFunction(name : string) : FunctionDef {
+    return new FunctionDef(null, 'action', null, name, [], {
+        is_list: false, is_monitorable: false
+    }, [], {});
 }
 /**
  * Definitions (type signatures) of builtin ThingTalk actions.
@@ -349,9 +362,8 @@ function builtinFunction(name) {
  * @alias Builtin.Actions
  * @constant
  * @package
- * @type {Object.<string, Ast.FunctionDef>}
  */
-export const Actions = {
+export const Actions : { [key : string] : FunctionDef } = {
     'notify': builtinFunction('notify'),
     'return': builtinFunction('return'),
     'save': builtinFunction('save'),
@@ -365,7 +377,6 @@ export const Actions = {
  * @alias Builtin.Queries
  * @constant
  * @package
- * @type {Object.<string, Ast.FunctionDef>}
  */
-export const Queries = {
+export const Queries : { [key : string] : FunctionDef } = {
 };

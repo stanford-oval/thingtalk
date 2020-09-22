@@ -395,7 +395,7 @@ export abstract class Value extends AstNode {
             return new Value.Location(new Location.Absolute(o.y, o.x, o.display||null));
         }
         if (type.isRecurrentTimeSpecification) {
-            const o = v as builtinRecurrentTimeRuleLike[];
+            const o = v as builtin.RecurrentTimeRuleLike[];
             return new Value.RecurrentTimeSpecification(o.map((r) => RecurrentTimeRule.fromJS(r)));
         }
         if (type.isArgMap) {
@@ -1208,16 +1208,6 @@ interface RecurrentTimeRuleLike {
     endDate : DateLike|null;
     subtract : boolean;
 }
-interface builtinRecurrentTimeRuleLike {
-    beginTime : builtin.Time;
-    endTime : builtin.Time;
-    interval : number;
-    frequency : number;
-    dayOfWeek : number|null;
-    beginDate : Date|null;
-    endDate : Date|null;
-    subtract : boolean;
-}
 
 /**
  * An AST node representing a single rule for a recurrent event.
@@ -1287,7 +1277,7 @@ export class RecurrentTimeRule extends AstNode {
         visitor.exit(this);
     }
 
-    static fromJS(v : builtinRecurrentTimeRuleLike) : RecurrentTimeRule {
+    static fromJS(v : builtin.RecurrentTimeRuleLike) : RecurrentTimeRule {
         return new RecurrentTimeRule({
             beginTime: AbsoluteTime.fromJS(v.beginTime),
             endTime: AbsoluteTime.fromJS(v.endTime),
@@ -1309,6 +1299,7 @@ export class RecurrentTimeRule extends AstNode {
             dayOfWeek: this.dayOfWeek ? ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].indexOf(this.dayOfWeek) : null,
             beginDate: this.beginDate ? normalizeDate(this.beginDate) : null,
             endDate: this.endDate ? normalizeDate(this.endDate) : null,
+            subtract: this.subtract
         });
     }
 }
@@ -1394,6 +1385,7 @@ export class EntityValue extends Value {
     }
 
     toJS() : builtin.Entity {
+        assert(this.value !== null);
         return new builtin.Entity(this.value, this.display);
     }
 

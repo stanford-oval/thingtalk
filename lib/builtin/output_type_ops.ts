@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -18,10 +18,10 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-export function combineOutputTypes(t1, t2) {
+export function combineOutputTypes(t1 : string, t2 : string) : string {
     return `${t1}+${t2}`;
 }
 
-export function aggregateOutputType(agg, t) {
+export function aggregateOutputType(agg : string, t : string) : string {
     return `${agg}(${t})`;
 }

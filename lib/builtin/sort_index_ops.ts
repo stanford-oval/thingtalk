@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -18,7 +18,9 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-function sortGeneric(array, field, reverse) {
+function sortGeneric<T, K extends keyof T>(array : Array<[T, string]>,
+                                           field : K,
+                                           reverse : boolean) : Array<[T, string]> {
     array.sort(([a, aType], [b, bType]) => {
         let result = 0;
         if (a[field] < b[field])
@@ -32,14 +34,16 @@ function sortGeneric(array, field, reverse) {
     return array;
 }
 
-export function sortasc(array, field) {
+export function sortasc<T, K extends keyof T>(array : Array<[T, string]>,
+                                              field : K) : Array<[T, string]> {
     return sortGeneric(array, field, false);
 }
-export function sortdesc(array, field) {
+export function sortdesc<T, K extends keyof T>(array : Array<[T, string]>,
+                                               field : K) : Array<[T, string]> {
     return sortGeneric(array, field, true);
 }
 
-export function sliceArray(array, base, limit) {
+export function sliceArray<T>(array : T[], base : number, limit : number) : T[] {
     if (base < -array.length || base > array.length)
         return [];
     if (base === 0) {
@@ -55,10 +59,10 @@ export function sliceArray(array, base, limit) {
         return array.slice(base-1, base-1+limit);
 }
 
-export function indexArray(array, indices) {
-    const newArray = [];
+export function indexArray<T>(array : T[], indices : number[]) : T[] {
+    const newArray : T[] = [];
 
-    for (let index of indices) {
+    for (const index of indices) {
         if (index === 0 || index > array.length || index < -array.length)
             continue;
         if (index < 0)

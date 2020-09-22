@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -22,15 +22,18 @@ import assert from 'assert';
 
 import * as Ast from '../ast';
 
-import * as BuiltinValues from './values';
-const Location = BuiltinValues.Location;
-const Entity = BuiltinValues.Entity;
-const Time = BuiltinValues.Time;
-const Currency = BuiltinValues.Currency;
+import {
+    LocationLike,
+    Location,
+    Entity,
+    Time,
+    Currency,
+    RecurrentTimeRule
+} from './values';
 
 // Implementations of the ThingTalk operators
 
-function arrayEquals(a, b) {
+function arrayEquals(a : unknown[], b : unknown[]) : boolean {
     if (a.length !== b.length)
         return false;
 
@@ -42,59 +45,59 @@ function arrayEquals(a, b) {
     return true;
 }
 
-function objectEquals(a, b) {
-    let a_props = Object.getOwnPropertyNames(a);
-    let b_props = Object.getOwnPropertyNames(b);
+function objectEquals<T1, T2>(a : T1, b : T2) : boolean {
+    const a_props = Object.getOwnPropertyNames(a) as Array<keyof T1>;
+    const b_props = Object.getOwnPropertyNames(b) as Array<keyof T2>;
 
     if (a_props.length !== b_props.length)
         return false;
 
     for (let i = 0; i < a_props.length; i ++) {
-        if (!equality(a[a_props[i]], b[a_props[i]]))
+        if (!equality(a[a_props[i]], b[a_props[i] as unknown as keyof T2]))
             return false;
     }
 
     return true;
 }
 
-export function distance(a, b) {
+export function distance(a : LocationLike, b : LocationLike) : number {
     const R = 6371000; // meters
-    let lat1 = a.y;
-    let lat2 = b.y;
-    let lon1 = a.x;
-    let lon2 = a.x;
-    function toRadians(deg) { return deg * Math.PI / 180.0; }
+    const lat1 = a.y;
+    const lat2 = b.y;
+    const lon1 = a.x;
+    const lon2 = a.x;
+    function toRadians(deg : number) { return deg * Math.PI / 180.0; }
 
     // formula courtesy of http://www.movable-type.co.uk/scripts/latlong.html
-    let φ1 = toRadians(lat1);
-    let φ2 = toRadians(lat2);
-    let Δφ = toRadians(lat2-lat1);
-    let Δλ = toRadians(lon2-lon1);
+    const φ1 = toRadians(lat1);
+    const φ2 = toRadians(lat2);
+    const Δφ = toRadians(lat2-lat1);
+    const Δλ = toRadians(lon2-lon1);
 
-    let x = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+    const x = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
             Math.cos(φ1) * Math.cos(φ2) *
             Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    let c = 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1-x));
+    const c = 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1-x));
 
     return R * c;
 }
 
-function locationEquals(a, b) {
+function locationEquals(a : LocationLike, b : LocationLike) : boolean {
     if (a === b)
         return true;
     if (a.x === b.x && a.y === b.y)
         return true;
     //console.log('Comparing locations', [a,b]);
-    let d = distance(a, b);
+    const d = distance(a, b);
     //console.log('Distance (m): ' + d.toFixed(2));
     return d <= 10000;
 }
 
-function hasValueOf(x) {
+function hasValueOf(x : unknown) : x is number|Date|Time {
     return typeof x === 'number' || x instanceof Date || x instanceof Time;
 }
 
-function editDistance(one, two) {
+function editDistance(one : (string|unknown[]), two : (string|unknown[])) : number {
     if (typeof one === 'string' && typeof two === 'string') {
         if (one === two)
             return 0;
@@ -106,14 +109,14 @@ function editDistance(one, two) {
 
     const R = one.length + 1;
     const C = two.length + 1;
-    const matrix = new Array(R * C);
+    const matrix = new Array<number>(R * C);
 
-    function set(i, j, v) {
+    function set(i : number, j : number, v : number) : void {
         assert(i * C + j < R * C);
         matrix[i * C + j] = v;
     }
 
-    function get(i, j) {
+    function get(i : number, j : number) : number {
         assert(i * C + j < R * C);
         return matrix[i * C + j];
     }
@@ -134,7 +137,7 @@ function editDistance(one, two) {
     return get(one.length, two.length);
 }
 
-export function equality(a, b) {
+export function equality(a : unknown, b : unknown) : boolean {
     if (a === b)
         return true;
     if (a === null || b === null) // they can't be both null because a !== b
@@ -155,8 +158,6 @@ export function equality(a, b) {
         return +a === +b;
     if (b instanceof Currency && typeof a === 'number')
         return +a === +b;
-    if (a.feedId !== undefined)
-        return a.feedId === b.feedId;
     if (Location.isLocation(a) && Location.isLocation(b))
         return locationEquals(a, b);
     if (Entity.isEntity(a) && Entity.isEntity(b))
@@ -165,18 +166,21 @@ export function equality(a, b) {
         return a.id === b.id;
     if (Array.isArray(a) && Array.isArray(b))
         return arrayEquals(a, b);
-    if (typeof a === 'object' && typeof b === 'object')
+    if (typeof a === 'object' && typeof b === 'object') {
+        assert(a !== null);
+        assert(b !== null);
         return objectEquals(a, b);
+    }
 
     return false;
 }
 
-export function like(a, b) {
-    if (a.display)
-        return like(a.display, b);
+export function like(a_ : unknown, b : string) : boolean {
+    if (a_ instanceof Entity && a_.display)
+        return like(a_.display, b);
 
-    if (typeof a === 'string' && typeof b === 'string') {
-        a = a.toLowerCase();
+    if (typeof a_ === 'string' && typeof b === 'string') {
+        let a = a_.toLowerCase();
         a = a.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         a = a.replace(/[\p{Mark}\p{Punctuation}\p{Separator}\p{Other}_]/ug, ' ');
         a = a.replace(/\p{White_Space}+/ug, ' ');
@@ -188,9 +192,9 @@ export function like(a, b) {
         b = b.trim();
         if (a.indexOf(b) >= 0)
             return true;
-        for (let token_b of b.split(' ')) {
+        for (const token_b of b.split(' ')) {
             let tokenFound = false;
-            for (let token_a of a.split(' ')) {
+            for (const token_a of a.split(' ')) {
                 if (token_a === token_b || (editDistance(token_a, token_b) <= 1 && token_b.length > 1)) {
                     tokenFound = true;
                     break;
@@ -204,23 +208,24 @@ export function like(a, b) {
     return false;
 }
 
-export function startsWith(a, b) {
+export function startsWith(a : unknown, b : unknown) : boolean {
     if (typeof a === 'string' && typeof b === 'string')
         return a.toLowerCase().startsWith(b.toLowerCase());
     return false;
 }
 
-export function endsWith(a, b) {
+export function endsWith(a : unknown, b : unknown) : boolean {
     if (typeof a === 'string' && typeof b === 'string')
         return a.toLowerCase().endsWith(b.toLowerCase());
     return false;
 }
 
-export function recurrentTimeSpecContains(spec, timeOrDate) {
+export function recurrentTimeSpecContains(spec : RecurrentTimeRule[],
+                                          timeOrDate : Date|Time) : boolean {
     assert(Array.isArray(spec));
 
     let contained = false;
-    for (let rule of spec) {
+    for (const rule of spec) {
         if (rule.contains(timeOrDate)) {
             if (rule.subtract)
                 contained = false;
@@ -231,75 +236,90 @@ export function recurrentTimeSpecContains(spec, timeOrDate) {
     return contained;
 }
 
-export function contains(a, b) {
+export function contains(a : unknown[], b : unknown) : boolean {
     return a.some((x) => equality(x, b));
 }
 
 // b is a substring of any element of a
-export function containsLike(a, b) {
+export function containsLike(a : unknown[], b : string) {
     return a.some((x) => like(x, b));
 }
 
 // any element of b is a substring of a
-export function inArrayLike(a, b) {
+export function inArrayLike(a : string, b : string[]) {
     return b.some((x) => like(a, x));
 }
 
-export function getTime(d) {
+export function getTime(d : Date) : Time {
     return new Time(d.getHours(), d.getMinutes(), d.getSeconds());
 }
 
-export function getCurrency(d) {
+export function getCurrency(d : number) : Currency {
     return new Currency(d, 'usd'); //Assumes that default location is USA
 }
 
 // aggregations
-export function sum(a, b) {
+export function sum(a : number, b : number) : number {
     return a + b;
 }
-export function max(a, b) {
+export function max(a : number, b : number) : number {
     return Math.max(a, b);
 }
-export function min(a, b) {
+export function min(a : number, b : number) : number {
     return Math.min(a, b);
 }
-export function argmax(value, previous) {
+export function argmax(value : number, previous : number) : boolean {
     return value > previous;
 }
-export function argmin(value, previous) {
+export function argmin(value : number, previous : number) : boolean {
     return value < previous;
 }
 
 // FIXME: replace with a faster implementation based on binary trees
 // if we care
 export class EqualitySet {
+    store : unknown[];
+
     constructor() {
         this.store = [];
     }
 
-    has(value) {
-        for (let candidate of this.store) {
+    has(value : unknown) : boolean {
+        for (const candidate of this.store) {
             if (equality(candidate, value))
                 return true;
         }
         return false;
     }
 
-    add(value) {
-        for (let candidate of this.store) {
+    add(value : unknown) : void {
+        for (const candidate of this.store) {
             if (equality(candidate, value))
                 return;
         }
         this.store.push(value);
     }
 
-    get size() {
+    get size() : number {
         return this.store.length;
     }
 }
 
-export class ArgMinMaxState {
-    constructor(op, field, base, limit) {
+type ArgMinMaxOp = (value : number, previous : number) => number;
+
+export class ArgMinMaxState<T> {
+    private _op : ArgMinMaxOp;
+    private _field : keyof T;
+    private _total : number;
+    private _filled : number;
+    private _tuples : T[];
+    private _outputTypes : string[];
+    private _base : number;
+
+    constructor(op : ArgMinMaxOp,
+                field : keyof T,
+                base : number,
+                limit : number) {
         this._op = op;
         this._field = field;
 
@@ -307,21 +327,20 @@ export class ArgMinMaxState {
         this._filled = 0;
         this._tuples = new Array(this._total);
         this._outputTypes = new Array(this._total);
-        this._values = new Array(this._total);
 
         this._base = Math.max(base-1, 0);
     }
 
-    *[Symbol.iterator]() {
+    *[Symbol.iterator]() : Generator<[string, unknown], void> {
         for (let i = this._base; i < this._filled; i++)
             yield [this._outputTypes[i], this._tuples[i]];
     }
 
-    update(tuple, outputType) {
-        const value = tuple[this._field];
+    update(tuple : T, outputType : string) : void {
+        const value = tuple[this._field] as unknown as number;
 
         for (let i = 0; i < this._filled; i++) {
-            const candidate = this._tuples[i][this._field];
+            const candidate = this._tuples[i][this._field] as unknown as number;
             if (this._op(value, candidate)) {
                 // shift everything by one
 
@@ -351,46 +370,46 @@ export class ArgMinMaxState {
     }
 }
 
-export function count(x) {
+export function count(x : unknown[]) : number {
     return x.length;
 }
 
-export function aggregateMax(array) {
+export function aggregateMax(array : number[]) : number {
     let value = -Infinity;
-    for (let element of array)
+    for (const element of array)
         value = Math.max(element, value);
     return value;
 }
-export function aggregateMin(array) {
+export function aggregateMin(array : number[]) : number {
     let value = Infinity;
-    for (let element of array)
+    for (const element of array)
         value = Math.min(element, value);
     return value;
 }
-export function aggregateSum(array) {
+export function aggregateSum(array : number[]) : number {
     let value = 0;
-    for (let element of array)
+    for (const element of array)
         value += element;
     return value;
 }
-export function aggregateAvg(array) {
+export function aggregateAvg(array : number[]) : number {
     let sum = 0;
     let count = 0;
-    for (let element of array) {
+    for (const element of array) {
         sum += element;
         count += 1;
     }
     return sum/count;
 }
-export function dateAdd(date, offset) {
+export function dateAdd(date : Date, offset : number) : Date {
     return new Date(date.getTime() + offset);
 }
-export function dateSub(date, offset) {
+export function dateSub(date : Date, offset : number) : Date {
     return new Date(date.getTime() - offset);
 }
-export function timeAdd(time, offset) {
-    return Time.fromSeconds(time + Math.round(offset/1000));
+export function timeAdd(time : Time, offset : number) : Time {
+    return Time.fromSeconds(Number(time) + Math.round(offset/1000));
 }
-export function timeSub(time, offset) {
-    return Time.fromSeconds(time - Math.round(offset/1000));
+export function timeSub(time : Time, offset : number) : Time {
+    return Time.fromSeconds(Number(time) - Math.round(offset/1000));
 }
