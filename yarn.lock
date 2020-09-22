@@ -2001,9 +2001,9 @@ text-table@^0.2.0:
   integrity sha1-f17oI66AUgfACvLfSoTsP8+lcLQ=
 
 thingtalk-units@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/thingtalk-units/-/thingtalk-units-0.2.0.tgz#b14cd56d5a2178b24c81d42c7174c8d10f1110b9"
-  integrity sha512-t2KE6EVVOxiD6qKREMxkB+sU0xb1elRWrxwyiJwA/a9LHurU5chZSGjkFdjDrtTypyfIV36yvhXQBQLrmwhFgQ==
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/thingtalk-units/-/thingtalk-units-0.2.1.tgz#2ebc5ce12344b2ac0e4a2f98c9f64e2f450aa051"
+  integrity sha512-5r7V3m1aqGOJwMEVx41udgIXLNrYJySygQIttUAlwtadArNGRt+5y3ERWCmr/kMF1Rde9h36Ps866vTRxQ7fzA==
 
 to-fast-properties@^2.0.0:
   version "2.0.0"
