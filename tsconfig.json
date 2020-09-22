@@ -8,7 +8,7 @@
         "module": "commonjs",
         "allowJs": true,
         "esModuleInterop": true,
-        "strict": false,
+        "strict": true,
         "noUnusedLocals": true,
         "outDir": "dist",
         "sourceMap": true,

@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: ts; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -21,6 +21,8 @@
 import assert from 'assert';
 import NodeVisitor from './visitor';
 
+import { Invocation } from './expression';
+
 /**
  * A single point in the source code input stream.
  *
@@ -30,6 +32,13 @@ import NodeVisitor from './visitor';
  * @property {number|undefined} column - the column number (1-based)
  * @property {number|undefined} token - the token index (0-based)
  */
+
+export interface SourceLocation {
+    offset : number|undefined;
+    line : number|undefined;
+    column : number|undefined;
+    token : number|undefined;
+}
 
 /**
  * The interval in the source code covered by a single
@@ -42,6 +51,11 @@ import NodeVisitor from './visitor';
  *           after the end of the range
  */
 
+export interface SourceRange {
+    start : SourceLocation;
+    end : SourceLocation;
+}
+
 /**
  * Base class of AST nodes.
  *
@@ -49,14 +63,15 @@ import NodeVisitor from './visitor';
  * @alias Ast~Node
  * @abstract
  */
-export default class Node {
+export default abstract class Node {
+    location : SourceRange|null;
+
     /**
      * Construct a new AST node.
      *
-     * @param {Ast~SourceRange|null} location - the position of this node
-     *        in the source code
+     * @param location - the position of this node in the source code
      */
-    constructor(location = null) {
+    constructor(location : SourceRange|null = null) {
         assert(location === null ||
             (typeof location.start === 'object' && typeof location.end === 'object'));
 
@@ -78,14 +93,10 @@ export default class Node {
      * @param {Ast.NodeVisitor} visitor - the visitor to use.
      * @abstract
      */
-    visit(visitor) {
-        throw new Error('Must be overridden');
-    }
+    abstract visit(visitor : NodeVisitor) : boolean;
 
     /* istanbul ignore next */
-    clone() {
-        throw new Error('Must be overridden');
-    }
+    abstract clone() : this;
 
     /* istanbul ignore next */
     /**
@@ -95,7 +106,7 @@ export default class Node {
      *
      * @returns {Ast~Node} the optimized node
      */
-    optimize() {
+    optimize() : this {
         return this;
     }
 
@@ -108,42 +119,41 @@ export default class Node {
      *
      * @param {boolean} includeVarRef - whether to include local function calls (VarRef nodes)
      *                                  in the iteration
-     * @return {Ast.Invocation[]}
      * @deprecated Use {@link Ast.NodeVisitor}.
      */
-    iteratePrimitives(includeVarRef) {
+    iteratePrimitives(includeVarRef : boolean) : Array<[('action'|'query'|'stream'|'filter'), Invocation]> {
         // we cannot yield from inside the visitor, so we buffer everything
-        const buffer = [];
+        const buffer : Array<[('action'|'query'|'stream'|'filter'), Invocation]> = [];
         const visitor = new class extends NodeVisitor {
-            visitVarRefAction(node) {
+            visitVarRefAction(node : any) {
                 if (includeVarRef)
                     buffer.push(['action', node]);
                 return true;
             }
-            visitInvocationAction(node) {
+            visitInvocationAction(node : any) {
                 buffer.push(['action', node.invocation]);
                 return true;
             }
-            visitVarRefTable(node) {
+            visitVarRefTable(node : any) {
                 if (includeVarRef)
                     buffer.push(['query', node]);
                 return true;
             }
-            visitInvocationTable(node) {
+            visitInvocationTable(node : any) {
                 buffer.push(['query', node.invocation]);
                 return true;
             }
-            visitVarRefStream(node) {
+            visitVarRefStream(node : any) {
                 if (includeVarRef)
                     buffer.push(['stream', node]);
                 return true;
             }
-            visitExternalBooleanExpression(node) {
+            visitExternalBooleanExpression(node : any) {
                 buffer.push(['filter', node]);
                 return true;
             }
 
-            visitDeclaration(node) {
+            visitDeclaration(node : any) {
                 // if the declaration refers to a nested scope, we don't recurse into it
                 if (node.type === 'program' || node.type === 'procedure')
                     return false;

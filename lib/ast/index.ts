@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: ts; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -22,7 +22,7 @@
 // which means we can't write to it
 import adt = require('adt');
 
-adt.nativeClone = function nativeClone(x) {
+adt.nativeClone = function nativeClone(x : any) : any {
     if (x === null || x === undefined)
         return x;
     if (x instanceof adt.__Base__ || typeof x.clone === 'function')
