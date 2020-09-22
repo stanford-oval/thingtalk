@@ -17,19 +17,10 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const adt = require('adt');
-
-const FunctionDefs = require('./function_def');
-const ClassDefs = require('./class_def');
-const Values = require('./values');
-const Expressions = require('./expression');
-const Primitives = require('./primitive');
-const Programs = require('./program');
-const Bookkeepings = require('./bookkeeping');
-const Dialogues = require('./dialogues');
-const NodeVisitor = require('./visitor');
+// NOTE: we use "require()" so the module is not wrapped as ES6-compat module,
+// which means we can't write to it
+import adt = require('adt');
 
 adt.nativeClone = function nativeClone(x) {
     if (x === null || x === undefined)
@@ -41,7 +32,7 @@ adt.nativeClone = function nativeClone(x) {
     if (x instanceof Date)
         return new Date(x);
     if (typeof x === 'object') {
-        let clone = {};
+        const clone = {};
         Object.assign(clone, x);
         return clone;
     }
@@ -53,6 +44,14 @@ adt.nativeClone = function nativeClone(x) {
  *
  * @namespace Ast
  */
-Object.assign(module.exports, FunctionDefs, ClassDefs, Values, Expressions, Primitives, Programs, Bookkeepings, Dialogues);
-module.exports.NodeVisitor = NodeVisitor;
-require('./api');
+
+export * from './function_def';
+export * from './class_def';
+export * from './values';
+export * from './expression';
+export * from './primitive';
+export * from './program';
+export * from './bookkeeping';
+export * from './dialogues';
+export { default as NodeVisitor } from './visitor';
+export * from './api';

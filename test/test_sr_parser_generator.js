@@ -1,4 +1,3 @@
-"use strict";
 
 const TERMINAL_IDS = {" 0PAD":0," 1EOF":1," 2START":2,"<":3,"==":4,"=~":5,">":6,"monitor":7,"notify":8,"num0":9,"num1":10,"param:number":11,"param:text":12,"qs0":13,"qs1":14,"thermostat.get_temp":15,"twitter.post":16,"twitter.search":17,"xkcd.get_comic":18};
 const RULE_NON_TERMINALS = [5,5,8,2,2,11,11,11,9,4,4,4,1,1,6,6,7,7,10,10,3,3,3,3,3,0];
@@ -33,4 +32,5 @@ const SEMANTIC_ACTION = [
 (($,$0,$1,str) => `text =~ ${str}`),
 (async ($, $0) => $0),
 ];
-module.exports = require('./../lib/nn-syntax/sr_parser_runtime')(TERMINAL_IDS, RULE_NON_TERMINALS, ARITY, GOTO, PARSER_ACTION, SEMANTIC_ACTION);
+import $runtime from './../lib/nn-syntax/sr_parser_runtime';
+export default $runtime(TERMINAL_IDS, RULE_NON_TERMINALS, ARITY, GOTO, PARSER_ACTION, SEMANTIC_ACTION);

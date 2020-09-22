@@ -24,7 +24,7 @@ const Q = require('q');
 Q.longStackSupport = true;
 
 const Grammar = require('../lib/grammar_api');
-const SchemaRetriever = require('../lib/schema');
+const SchemaRetriever = require('../lib/schema').default;
 
 const { prettyprint } = require('../lib/prettyprint');
 const { fromManifest, toManifest } = require('../lib/ast/api');

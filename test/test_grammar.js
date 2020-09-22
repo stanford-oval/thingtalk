@@ -20,8 +20,8 @@
 const assert = require('assert');
 const fs = require('fs');
 
-const NodeVisitor = require('../lib/ast/visitor');
-const AstNode = require('../lib/ast/base');
+const NodeVisitor = require('../lib/ast/visitor').default;
+const AstNode = require('../lib/ast/base').default;
 const { Value } = require('../lib/ast/values');
 
 const Ast = require('../lib/ast');

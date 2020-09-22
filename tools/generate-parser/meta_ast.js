@@ -29,7 +29,7 @@ class Grammar {
     }
 
     get preamble() {
-        return this.comment + '"use strict";\n' + this.initialCode;
+        return this.comment + this.initialCode;
     }
 }
 exports.Grammar = Grammar;

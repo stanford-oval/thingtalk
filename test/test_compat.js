@@ -11,7 +11,7 @@
 
 const assert = require('assert');
 
-const applyCompatibility = require('../lib/nn-syntax/compat'); //(locale, results, entities, thingtalk_version)
+const { applyCompatibility } = require('../lib/nn-syntax'); //(locale, results, entities, thingtalk_version)
 
 const TEST_CASES = [
     [

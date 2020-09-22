@@ -18,7 +18,7 @@
 "use strict";
 
 const assert = require('assert');
-const Parser = require('./test_sr_parser_generator');
+const Parser = require('./test_sr_parser_generator').default;
 
 async function main() {
     const parser = new Parser();

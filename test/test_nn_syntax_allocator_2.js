@@ -23,7 +23,7 @@ const assert = require('assert');
 const Ast = require('../lib/ast');
 const NNSyntax = require('../lib/nn-syntax');
 //const NNOutputParser = require('../lib/nn_output_parser');
-const SchemaRetriever = require('../lib/schema');
+const SchemaRetriever = require('../lib/schema').default;
 
 const _mockSchemaDelegate = require('./mock_schema_delegate');
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);

@@ -81,7 +81,8 @@ module.exports = function writeout(preamble, generator, output, outputPath) {
     for (let [,,action] of generator.rules)
         output.write(`(${action}),\n`);
     output.write(`];\n`);
-    output.write(`module.exports = require('${relativeruntimepath}')(TERMINAL_IDS, RULE_NON_TERMINALS, ARITY, GOTO, PARSER_ACTION, SEMANTIC_ACTION);\n`);
+    output.write(`import $runtime from '${relativeruntimepath}';\n`);
+    output.write(`export default $runtime(TERMINAL_IDS, RULE_NON_TERMINALS, ARITY, GOTO, PARSER_ACTION, SEMANTIC_ACTION);\n`);
     output.end();
 
     return new Promise((resolve, reject) => {

@@ -23,8 +23,8 @@ const assert = require('assert');
 
 const Grammar = require('../lib/grammar_api');
 const Ast = require('../lib/ast');
-const SchemaRetriever = require('../lib/schema');
-const Type = require('../lib/type');
+const SchemaRetriever = require('../lib/schema').default;
+const Type = require('../lib/type').default;
 
 const _mockSchemaDelegate = require('./mock_schema_delegate');
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);

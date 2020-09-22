@@ -22,7 +22,7 @@
 const assert = require('assert');
 
 const Ast = require('../lib/ast');
-const Type = require('../lib/type');
+const Type = require('../lib/type').default;
 const Builtin = require('../lib/builtin');
 
 const VALUE_TESTS = [
