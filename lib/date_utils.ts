@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: ts; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -20,8 +20,10 @@
 
 import assert from 'assert';
 
+import { DateEdge, DatePiece, WeekDayDate, AbsoluteTime } from './ast/values';
+
 const TIME_UNITS = ['ms', 's', 'min', 'h', 'day', 'week', 'mon', 'year'];
-const SET_ZERO = [(d) => {},
+const SET_ZERO : Array<(d : Date) => void> = [(d) => {},
     (d) => {
         d.setMilliseconds(0); // start of current second
     },
@@ -47,7 +49,7 @@ const SET_ZERO = [(d) => {},
         d.setMonth(0, 1); // start of current year
     }
 ];
-const ADD_ONE = [
+const ADD_ONE : Array<(d : Date) => void> = [
     (d) => {
         d.setMilliseconds(d.getMilliseconds()+1);
     },
@@ -77,7 +79,7 @@ assert(SET_ZERO.length === TIME_UNITS.length);
 assert(ADD_ONE.length === TIME_UNITS.length);
 
 
-function createEdgeDate(edge, unit) {
+function createEdgeDate(edge : ('start_of'|'end_of'), unit : string) : Date {
     const index = TIME_UNITS.indexOf(unit);
 
     const date = new Date;
@@ -87,13 +89,13 @@ function createEdgeDate(edge, unit) {
     return date;
 }
 
-function createDatePiece(year, month, day, time) {
+function createDatePiece(year : number, month : number, day : number, time : AbsoluteTime|null) : Date {
     // All non-supplied values to the left of the largest supplied
     // value are set to the present. All non-supplied values to the
     // right of the largest supplied value are set to the minimum.
     const date = new Date;
     if (year > 0) {
-        date.setYear(year);
+        date.setFullYear(year);
         date.setMonth(0, 1); // 1st of Jan
         date.setHours(0, 0, 0, 0);
     }
@@ -110,52 +112,61 @@ function createDatePiece(year, month, day, time) {
     return date;
 }
 
-function createWeekDayDate(weekday, time) {
+function createWeekDayDate(weekday : number, time : AbsoluteTime|null) {
     const date = new Date;
 
     // FIXME: implement this
     return date;
 }
 
-export function normalizeDate(value) {
+export function normalizeDate(value : Date|WeekDayDate|DateEdge|DatePiece|null) : Date {
     if (value === null)
         return new Date;
     else if (value instanceof Date)
         return value;
-    else if (value.weekday)
+    else if (value instanceof WeekDayDate)
         return createWeekDayDate(value.weekday, value.time);
-    else if (typeof value.edge === 'undefined')
+    else if (value instanceof DatePiece)
         return createDatePiece(value.year, value.month, value.day, value.time);
     else
         return createEdgeDate(value.edge, value.unit);
 }
 
-export function parseDate(form) {
+interface TokenizerDate {
+    year : number|undefined;
+    month : number|undefined;
+    day : number|undefined;
+    hour : number|undefined;
+    minute : number|undefined;
+    second : number|undefined;
+}
+
+export function parseDate(form : Date|TokenizerDate) : Date {
     if (form instanceof Date)
         return form;
 
-    let now = new Date;
+    const now = new Date;
     now.setMilliseconds(0);
 
     let year = form.year;
-    if (year < 0 || year === undefined)
+    if (year === undefined || year < 0)
         year = now.getFullYear();
     let month = form.month;
-    if (month < 0 || month === undefined)
+    if (month === undefined || month < 0)
         month = now.getMonth() + 1;
     let day = form.day;
-    if (day < 0 || day === undefined)
+    if (day === undefined || day < 0)
         day = now.getDate();
     let hour = form.hour;
-    if (hour < 0 || hour === undefined)
+    if (hour === undefined || hour < 0)
         hour = 0;
     let minute = form.minute;
-    if (minute < 0 || minute === undefined)
+    if (minute === undefined || minute < 0)
         minute = 0;
     let second = form.second;
-    if (second < 0 || second === undefined)
+    if (second === undefined || second < 0)
         second = 0;
-    let millisecond = (second - Math.floor(second))*1000;
+    const millisecond = (second - Math.floor(second))*1000;
     second = Math.floor(second);
 
     return new Date(year, month-1, day, hour, minute, second, millisecond);

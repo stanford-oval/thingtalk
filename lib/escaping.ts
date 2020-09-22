@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: ts; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -18,27 +18,14 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import { isUnaryStreamToStreamOp,
-         isUnaryTableToTableOp,
-         isUnaryStreamToTableOp,
-         isUnaryTableToStreamOp } from './utils';
-
-// Initialize the AST API
-import { notifyAction } from './ast/api';
-
-import { typeCheckFilter, typeCheckProgram, typeCheckPermissionRule } from './typecheck';
+function stringEscape(str : string) : string {
+    if (str === null || str === undefined)
+        return 'null';
+    return '"' + str.replace(/(["\\])/g, '\\$1').replace(/\n/g, '\\n').replace(/\r/g, '\\r') + '"';
+    // the following comment fixes broken syntax highlighting in GtkSourceView
+    //]/
+}
 
 export {
-    notifyAction,
-
-    // recursive utilities
-    isUnaryTableToTableOp,
-    isUnaryStreamToTableOp,
-    isUnaryStreamToStreamOp,
-    isUnaryTableToStreamOp,
-
-    // legacy API
-    typeCheckFilter,
-    typeCheckProgram,
-    typeCheckPermissionRule
+    stringEscape
 };

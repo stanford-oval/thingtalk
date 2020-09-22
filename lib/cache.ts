@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: ts; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -18,8 +18,13 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-function expired(obj, now) {
-    return obj.expires >= 0 && obj.expires < Date.now();
+interface CacheRecord<T> {
+    value : T;
+    expires : number;
+}
+
+function expired<T>(obj : CacheRecord<T>, now : number) {
+    return obj.expires >= 0 && obj.expires < now;
 }
 
 /**
@@ -27,17 +32,20 @@ function expired(obj, now) {
 
   @package
  */
-export default class Cache {
-    constructor(expiration) {
-        this.store = new Map;
+export default class Cache<K, V> {
+    private store : Map<K, CacheRecord<V>>;
+    private _expiration : number;
+
+    constructor(expiration : number) {
+        this.store = new Map<K, CacheRecord<V>>();
         this._expiration = expiration;
     }
 
-    clear() {
+    clear() : void {
         this.store.clear();
     }
 
-    delete(key) {
+    delete(key : K) : boolean {
         const obj = this.store.get(key);
         if (obj === undefined)
             return false;
@@ -47,41 +55,41 @@ export default class Cache {
         return !expired(obj, Date.now());
     }
 
-    *entries() {
+    *entries() : Generator<[K, V]> {
         const now = Date.now();
-        for (let [key, obj] of this.store.entries()) {
+        for (const [key, obj] of this.store.entries()) {
             if (expired(obj, now))
                 this.store.delete(key);
             else
                 yield [key, obj.value];
         }
     }
-    [Symbol.iterator]() {
+    [Symbol.iterator]() : Generator<[K, V]> {
         return this.entries();
     }
 
-    *keys() {
-        for (let [key,] of this.entries())
+    *keys() : Generator<K> {
+        for (const [key,] of this.entries())
             yield key;
     }
-    *values() {
-        for (let [,value] of this.entries())
+    *values() : Generator<V> {
+        for (const [,value] of this.entries())
             yield value;
     }
 
-    forEach(callback, thisArg) {
-        for (let [key, value] of this.entries())
+    forEach<T>(callback : (this : T, value : V, key : K, map : this) => void, thisArg : T) : void {
+        for (const [key, value] of this.entries())
             callback.call(thisArg, value, key, this);
     }
 
-    set(key, value, expires = this._expiration) {
+    set(key : K, value : V, expires : number = this._expiration) : void {
         this.store.set(key, {
             value,
             expires: expires >= 0 ? Date.now() + expires : -1
         });
     }
 
-    has(key) {
+    has(key : K) : boolean {
         const obj = this.store.get(key);
         if (obj === undefined)
             return false;
@@ -92,7 +100,7 @@ export default class Cache {
         return true;
     }
 
-    get(key) {
+    get(key : K) : V|undefined {
         const obj = this.store.get(key);
         if (obj === undefined)
             return undefined;

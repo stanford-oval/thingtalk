@@ -1,8 +1,8 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: ts; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
-// Copyright 2018-2019 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,14 +15,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
-// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-export class NotImplementedError extends Error {
-    constructor(construct) {
-        super('NOT IMPLEMENTED: ' + construct);
-    }
-}
+import WikidataSparqlConverter from "./wikidata_sparql";
+import { Program } from './ast/program';
 
-export class NotCompilableError extends Error {
+export function toSparql(input : Program) : string {
+    const converter = new WikidataSparqlConverter();
+    return converter.convert(input);
 }

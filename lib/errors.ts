@@ -1,8 +1,8 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: ts; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
-// Copyright 2017-2018 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2018-2019 The Board of Trustees of the Leland Stanford Junior University
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,14 +18,11 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-function stringEscape(str) {
-    if (str === null || str === undefined)
-        return 'null';
-    return '"' + str.replace(/(["\\])/g, '\\$1').replace(/\n/g, '\\n').replace(/\r/g, '\\r') + '"';
-    // the following comment fixes broken syntax highlighting in GtkSourceView
-    //]/
+export class NotImplementedError extends Error {
+    constructor(construct : string) {
+        super('NOT IMPLEMENTED: ' + construct);
+    }
 }
 
-export {
-    stringEscape
-};
+export class NotCompilableError extends Error {
+}

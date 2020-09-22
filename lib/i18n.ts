@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: ts; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -18,9 +18,16 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-const _languages = new Map;
+export interface Gettext {
+    gettext : (x : string) => string;
+    dgettext : (d : string, x : string) => string;
+    ngettext : (x1 : string, xn : string, n : number) => string;
+    dngettext : (d : string, x1 : string, xn : string, n : number) => string;
+}
 
-const _defaultGettext = {
+const _languages = new Map<string, Gettext>();
+
+const _defaultGettext : Gettext = {
     gettext(x) { return x; },
     dgettext(d, x) { return x; },
     ngettext(x1, xn, n) { return n === 1 ? x1 : xn; },
@@ -53,9 +60,9 @@ const _defaultGettext = {
  * @param {string} locale - the locale to initialize, as a BCP 47 tag
  * @param {external:Gettext} gettext - the initialized gettext instance for this locale
  */
-export function init(locale, gettext) {
+export function init(locale : string, gettext : Gettext) {
     // make a wrapper that is not object-oriented, and is bound to our domain
-    const wrappedGettext = {
+    const wrappedGettext : Gettext = {
         dgettext: gettext.dgettext.bind(gettext),
         dngettext: gettext.dngettext.bind(gettext),
         gettext: gettext.dgettext.bind(gettext, 'thingtalk'),
@@ -73,7 +80,7 @@ export function init(locale, gettext) {
  * @param {string} locale - the locale to retrieve
  * @return {external:Gettext} the gettext instance in the given locale, with loaded translations
  */
-export function get(locale) {
+export function get(locale : string) : Gettext {
     if (!locale)
         return _defaultGettext;
     locale = locale.toLowerCase();
@@ -81,7 +88,7 @@ export function get(locale) {
     for (let i = chunks.length; i >= 1; i--) {
         const candidate = chunks.slice(0, i).join('-');
         if (_languages.has(candidate))
-            return _languages.get(candidate);
+            return _languages.get(candidate) as Gettext;
     }
     return _defaultGettext;
 }
