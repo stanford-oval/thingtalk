@@ -1893,9 +1893,9 @@ sshpk@^1.7.0:
     tweetnacl "~0.14.0"
 
 string-interp@^0.3.1:
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/string-interp/-/string-interp-0.3.2.tgz#d713209fc05bcd340c96a4d428e4ede7889eb29b"
-  integrity sha512-HAFXnMl8hO4nqfi1whSVSYC7UAAYx2DqyI4yq9gtGVX4Nk6RS1M0gGhpGIHVznMvM6kxIJqADPswvRGdlIhGYA==
+  version "0.3.5"
+  resolved "https://registry.yarnpkg.com/string-interp/-/string-interp-0.3.5.tgz#7c4a739b8287ae4e03fe27369fe91748a9d30b20"
+  integrity sha512-+bHzQDrETyC/njJFHO0Kx/JWypZMxH5T/hP1XlWK2U0hWcayeFKSLfJrEPK/3jNrdbh/FzX3ZoOBV4xqzkCczA==
   dependencies:
     thingtalk-units "^0.2.0"
 
