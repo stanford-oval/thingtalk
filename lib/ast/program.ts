@@ -28,7 +28,7 @@ import Node, {
     AnnotationSpec,
 } from './base';
 import NodeVisitor from './visitor';
-import { Value } from './values';
+import { Value, ArrayValue, VarRefValue } from './values';
 import { Selector, InputParam, BooleanExpression } from './expression';
 import {
     Stream,
@@ -104,6 +104,45 @@ Statement.prototype.isOnInputChoice = false;
 Statement.prototype.isDeclaration = false;
 Statement.prototype.isDataset = false;
 Statement.prototype.isClassDef = false;
+
+function declarationLikeToProgram(self : Declaration|Example) : Program {
+    const nametoslot : { [key : string] : number } = {};
+
+    let i = 0;
+    for (const name in self.args)
+        nametoslot[name] = i++;
+
+    let program : Program;
+    if (self.type === 'action') {
+        program = new Program(null, [], [],
+            [new Statement.Command(null, null, [(self.value as Action).clone()])], null);
+    } else if (self.type === 'query') {
+        program = new Program(null, [], [],
+            [new Statement.Command(null, (self.value as Table).clone(), [Action.notifyAction()])], null);
+    } else if (self.type === 'stream') {
+        program = new Program(null, [], [],
+            [new Statement.Rule(null, (self.value as Stream).clone(), [Action.notifyAction()])], null);
+    } else {
+        program = (self.value as Program).clone();
+    }
+
+    function recursiveHandleSlot(value : Value) : void {
+        if (value instanceof VarRefValue && value.name in nametoslot) {
+            value.name = '__const_SLOT_' + nametoslot[value.name];
+        } else if (value instanceof ArrayValue) {
+            for (const v of value.value)
+                recursiveHandleSlot(v);
+        }
+    }
+
+    for (const slot of program.iterateSlots2()) {
+        if (slot instanceof Selector)
+            continue;
+        recursiveHandleSlot(slot.get());
+    }
+
+    return program;
+}
 
 type DeclarationType = ('stream'|'query'|'action'|'program'|'procedure');
 
@@ -232,6 +271,18 @@ export class Declaration extends Statement {
         Object.assign(newAnnotations, this.impl_annotations);
         return new Declaration(this.location, this.name, this.type, newArgs,
             this.value.clone(), newMetadata, newAnnotations, this.schema);
+    }
+
+    /**
+     * Convert a declaration to a program.
+     *
+     * This will create a program that invokes the same code as the declaration value,
+     * and will replace all parameters with slots.
+     *
+     * @return {Ast.Program} the new program
+     */
+    toProgram() : Program {
+        return declarationLikeToProgram(this);
     }
 }
 Declaration.prototype.isDeclaration = true;
@@ -1049,6 +1100,18 @@ export class Example extends Node {
      */
     *iterateSlots2() : Generator<Selector|AbstractSlot, void> {
         yield* this.value.iterateSlots2({});
+    }
+
+    /**
+     * Convert a dataset example to a program.
+     *
+     * This will create a program that invokes the same code as the example value,
+     * and will replace all parameters with slots.
+     *
+     * @return {Ast.Program} the new program
+     */
+    toProgram() : Program {
+        return declarationLikeToProgram(this);
     }
 }
 

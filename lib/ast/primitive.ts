@@ -1361,7 +1361,7 @@ export abstract class Action extends Node {
      * @param {string} [what=notify] - what action to create
      * @return {Ast.Action} the action node
      */
-    static notifyAction(what = 'notify') : Action {
+    static notifyAction(what = 'notify') : NotifyAction {
         return new NotifyAction(null, what, Builtin.Actions[what]);
     }
 
