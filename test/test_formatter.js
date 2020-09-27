@@ -41,7 +41,7 @@ const TEST_CASES = [
         callback: 'https://xkcd.com/1234/',
         webCallback: 'https://xkcd.com/1234/',
         displayTitle: 'Douglas Engelbart (1925-2013)',
-        displayText: undefined },
+        displayText: null },
       { type: 'picture',
         url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
       'some alt text' ]

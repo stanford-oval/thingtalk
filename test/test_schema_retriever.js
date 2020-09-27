@@ -22,6 +22,8 @@
 // Unit tests for SchemaRetriever
 
 const assert = require('assert');
+const util = require('util');
+const fs = require('fs');
 
 const SchemaRetriever = require('../lib/schema').default;
 const Grammar = require('../lib/grammar_api');
@@ -39,12 +41,12 @@ const FAKE_TWITTER = `class @com.twitter {
 }`;
 
 async function testInjectManifest() {
-    const manifest = require('./com.xkcd.json');
+    const manifest = await util.promisify(fs.readFile)(require.resolve('./com.xkcd.tt'), { encoding: 'utf8' });
 
     let schemaRetriever = new SchemaRetriever(_mockSchemaDelegate,
                                               _mockMemoryClient);
 
-    schemaRetriever.injectClass(ClassDef.fromManifest('com.xkcd', manifest));
+    schemaRetriever.injectClass(Grammar.parse(manifest).classes[0]);
 
     assert.deepStrictEqual((await schemaRetriever.getFullSchema('com.xkcd')).prettyprint(), `class @com.xkcd
 #[version=91] {
