@@ -81,6 +81,7 @@ export class Entity {
 export interface LocationLike {
     x : number;
     y : number;
+    display ?: string|null;
 }
 
 /**
