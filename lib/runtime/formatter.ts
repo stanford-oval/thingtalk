@@ -111,6 +111,7 @@ interface TextSpec {
 type FormatFunction = (value : PlainObject, hint : string, formatter : Formatter) => FormatSpecChunk|FormatSpecChunk[];
 
 type FormatSpecChunk = string | FormattedObjectSpec | TextSpec | FunctionSpec | FormatFunction;
+export type FormatSpec = FormatSpecChunk[];
 type FormattedChunk = string | FormattedObject;
 
 interface InternalFormattedChunk {

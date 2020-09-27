@@ -1030,7 +1030,7 @@ export class FunctionDef extends ExpressionSignature {
         return this._cloneInternal(this.args.map((a) => this._argmap[a]));
     }
 
-    setClass(klass : ClassDef) : void {
+    setClass(klass : ClassDef|null) : void {
         this._class = klass;
         this._setMinimalProjection();
     }

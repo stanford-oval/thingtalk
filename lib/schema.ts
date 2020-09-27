@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -23,14 +23,43 @@ import assert from 'assert';
 import Type from './type';
 import * as Grammar from './grammar_api';
 import { typeCheckClass } from './typecheck';
-import * as Ast from './ast/function_def';
+import { ClassDef } from './ast/class_def';
+import {
+    FunctionDef,
+    ArgumentDef,
+    ArgDirection
+} from './ast/function_def';
+import { Library } from './ast/program';
+import type { FormatSpec } from './runtime/formatter';
 
 import Cache from './cache';
 
-function delay(timeout) {
+function delay(timeout : number) : Promise<void> {
     return new Promise((resolve, reject) => {
         setTimeout(resolve, timeout);
     });
+}
+
+interface MemoryTable {
+    args : string[];
+    types : Type[];
+}
+
+interface TpMixinDeclaration {
+    kind : string;
+    types : string[];
+    args : string[];
+    required : boolean[];
+    is_input : boolean[];
+    facets : string[];
+}
+interface MixinDeclaration {
+    kind : string;
+    types : Type[];
+    args : string[];
+    required : boolean[];
+    is_input : boolean[];
+    facets : string[];
 }
 
 /**
@@ -40,60 +69,67 @@ function delay(timeout) {
  * @interface
  * @deprecated Long-term memory support in Almond is still experimental and APIs will change
  */
-/**
- * Retrieve the type information of a stored table
- *
- * @name MemoryClient#getSchema
- * @method
- * @param {string} table - the name of the table to retrieve
- * @return {Object}
- */
+interface MemoryClient {
+    /**
+     * Retrieve the type information of a stored table
+     *
+     * @name MemoryClient#getSchema
+     * @method
+     * @param {string} table - the name of the table to retrieve
+     * @return {Object}
+     */
+    getSchema(table : string, principal : string|null) : Promise<MemoryTable|null>;
+}
 
 /**
  * The abstract interface to access Thingpedia.
  *
  * This is the minimal interface needed by the ThingTalk library. It is usally
  * implemented by the Thingpedia SDK.
- *
- * @name AbstractThingpediaClient
- * @interface
  */
-/**
- * Retrieve the full code of a Thingpedia class.
- *
- * @name AbstractThingpediaClient#getDeviceCode
- * @method
- * @param {string} kind - the Thingpedia class identifier
- * @return {string} - the raw code of the class
- * @async
- * @abstract
- */
-/**
- * Retrieve type and metadata information for one or more Thingpedia classes.
- *
- * @name AbstractThingpediaClient#getSchema
- * @method
- * @param {string[]} kinds - the Thingpedia class identifiers to retrieve
- * @param {boolean} getMeta - whether to retrieve metadata or not
- * @return {string} - the retrieved type information, as ThingTalk classes
- * @async
- * @abstract
- */
+interface AbstractThingpediaClient {
+    /**
+     * Retrieve the full code of a Thingpedia class.
+     *
+     * @param {string} kind - the Thingpedia class identifier
+     * @return {string} - the raw code of the class
+     */
+    getDeviceCode(kind : string) : Promise<string>;
+
+    /**
+     * Retrieve type and metadata information for one or more Thingpedia classes.
+     *
+     * @param {string[]} kinds - the Thingpedia class identifiers to retrieve
+     * @param {boolean} getMeta - whether to retrieve metadata or not
+     * @return {string} - the retrieved type information, as ThingTalk classes
+     */
+    getSchemas(kinds : string[], getMeta : boolean) : Promise<string>;
+
+    getMixins() : Promise<{ [key : string] : TpMixinDeclaration }>;
+}
 
 class DummyMemoryClient {
+    _tables : Map<string, MemoryTable>
+
     constructor() {
         this._tables = new Map;
     }
 
-    getSchema(table) {
+    getSchema(table : string, principal : string|null) : Promise<MemoryTable|null> {
         return Promise.resolve(this._tables.get(table) || null);
     }
 
-    createTable(table, args, types) {
+    createTable(table : string, args : string[], types : Type[]) : Promise<void> {
         this._tables.set(table, { args: args, types: types });
         return Promise.resolve();
     }
 }
+
+type FunctionType = 'query' | 'action';
+
+type MetadataLevel = 'basic' | 'everything';
+
+type ClassMap = { [key : string] : ClassDef|Error };
 
 /**
  * Delegate object to retrieve type information and metadata from Thingpedia.
@@ -102,6 +138,24 @@ class DummyMemoryClient {
  * caching, and parsing.
  */
 export default class SchemaRetriever {
+    private _manifestCache : Map<string, Promise<ClassDef>>;
+    private _currentRequest : {
+        basic : Promise<ClassMap>|null;
+        everything : Promise<ClassMap>|null;
+    };
+    private _pendingRequests : {
+        basic : string[];
+        everything : string[];
+    };
+    private _classCache : {
+        basic : Cache<string, ClassDef|null>;
+        everything : Cache<string, ClassDef|null>;
+    };
+
+    private _thingpediaClient : AbstractThingpediaClient;
+    private _memoryClient : MemoryClient;
+    private _silent : boolean;
+
     /**
      * Construct a new schema retriever.
      *
@@ -109,24 +163,26 @@ export default class SchemaRetriever {
      * @param {MemoryClient} [mClient] - the client interface to access stored tables
      * @param {boolean} [silent=false] - whether debugging information should be printed
      */
-    constructor(tpClient, mClient, silent) {
+    constructor(tpClient : AbstractThingpediaClient,
+                mClient : MemoryClient,
+                silent = false) {
         this._manifestCache = new Map;
 
         // each of the following exists for schema (types only)
         // and metadata (types and NL annotations)
         // keyed by isMeta/useMeta
         this._currentRequest = {
-            false: null,
-            true: null
+            basic: null,
+            everything: null
         };
         this._pendingRequests = {
-            false: [],
-            true: []
+            basic: [],
+            everything: []
         };
         this._classCache = {
             // expire class caches in 24 hours (same as on-disk thingpedia caches)
-            false: new Cache(24 * 3600 * 1000),
-            true: new Cache(24 * 3600 * 1000)
+            basic: new Cache(24 * 3600 * 1000),
+            everything: new Cache(24 * 3600 * 1000)
         };
 
         this._thingpediaClient = tpClient;
@@ -139,17 +195,17 @@ export default class SchemaRetriever {
      *
      * @param {string} kind - the class identifier
      */
-    removeFromCache(kind) {
-        this._classCache[false].delete(kind);
-        this._classCache[true].delete(kind);
+    removeFromCache(kind : string) : void {
+        this._classCache.basic.delete(kind);
+        this._classCache.everything.delete(kind);
         this._manifestCache.delete(kind);
     }
     /**
      * Remove all information from all caches.
      */
-    clearCache() {
-        this._classCache[false].clear();
-        this._classCache[true].clear();
+    clearCache() : void {
+        this._classCache.basic.clear();
+        this._classCache.everything.clear();
         this._manifestCache.clear();
     }
 
@@ -161,37 +217,37 @@ export default class SchemaRetriever {
      *
      * @param {Ast.ClassDef} classDef - class definition to inject
      */
-    injectClass(classDef) {
+    injectClass(classDef : ClassDef) : void {
         // never expire explicitly injected class
-        this._classCache[false].set(classDef.kind, classDef, -1);
-        this._classCache[true].set(classDef.kind, classDef, -1);
-        this._manifestCache.set(classDef.kind, classDef);
+        this._classCache.basic.set(classDef.kind, classDef, -1);
+        this._classCache.everything.set(classDef.kind, classDef, -1);
+        this._manifestCache.set(classDef.kind, Promise.resolve(classDef));
     }
 
-    async _getManifestRequest(kind) {
+    private async _getManifestRequest(kind : string) {
         const code = await this._thingpediaClient.getDeviceCode(kind);
         const parsed = await Grammar.parseAndTypecheck(code, this);
-        assert(parsed.isMeta && parsed.classes.length > 0);
+        assert(parsed instanceof Library && parsed.classes.length > 0);
         return parsed.classes[0];
     }
 
-    _getManifest(kind) {
+    private _getManifest(kind : string) : Promise<ClassDef> {
         if (this._manifestCache.has(kind))
-            return Promise.resolve(this._manifestCache.get(kind));
+            return Promise.resolve(this._manifestCache.get(kind) as Promise<ClassDef>);
 
-        let request = this._getManifestRequest(kind);
+        const request = this._getManifestRequest(kind);
         this._manifestCache.set(kind, request);
         return request;
     }
 
-    async getFormatMetadata(kind, query) {
+    async getFormatMetadata(kind : string, query : string) : Promise<FormatSpec> {
         const classDef = await this._getManifest(kind);
         if (classDef.queries[query])
-            return classDef.queries[query].metadata.formatted || [];
+            return (classDef.queries[query].metadata.formatted as FormatSpec) || [];
         return [];
     }
 
-    async _makeRequest(isMeta) {
+    private async _makeRequest(isMeta : MetadataLevel) : Promise<ClassMap> {
         // delay the actual request so that further requests
         // in the same event loop iteration will be batched
         // toghether
@@ -207,14 +263,14 @@ export default class SchemaRetriever {
             return {};
         if (!this._silent)
             console.log(`Batched ${isMeta ? 'schema-meta' : 'schema'} request for ${pending}`);
-        const code = await this._thingpediaClient.getSchemas(pending, isMeta);
+        const code = await this._thingpediaClient.getSchemas(pending, isMeta === 'everything');
 
-        const parsed = Grammar.parse(code);
-        const result = {};
+        const parsed = Grammar.parse(code) as Library;
+        const result : ClassMap = {};
         if (!parsed)
             return result;
 
-        const missing = new Set(pending);
+        const missing = new Set<string>(pending);
 
         await Promise.all(parsed.classes.map(async (classDef) => {
             try {
@@ -227,21 +283,22 @@ export default class SchemaRetriever {
             }
         }));
         // add negative cache entry (with small 10 minute timeout) for the missing class
-        for (let kind of missing) {
+        for (const kind of missing) {
             // we add it for both with & without metadata (if the class doesn't exist it doesn't exist)
-            this._classCache[true].set(kind, null, 600 * 1000);
-            this._classCache[false].set(kind, null, 600 * 1000);
+            this._classCache.basic.set(kind, null, 600 * 1000);
+            this._classCache.everything.set(kind, null, 600 * 1000);
         }
 
         return result;
     }
-    _ensureRequest(isMeta) {
+
+    private _ensureRequest(isMeta : MetadataLevel) : void {
         if (this._currentRequest[isMeta] !== null)
             return;
         this._currentRequest[isMeta] = this._makeRequest(isMeta);
     }
 
-    async _getClass(kind, useMeta) {
+    private async _getClass(kind : string, useMeta : MetadataLevel) : Promise<ClassDef> {
         if (typeof kind !== 'string')
             throw new TypeError();
         const cached = this._classCache[useMeta].get(kind);
@@ -254,13 +311,14 @@ export default class SchemaRetriever {
         if (this._pendingRequests[useMeta].indexOf(kind) < 0)
             this._pendingRequests[useMeta].push(kind);
         this._ensureRequest(useMeta);
-        const everything = await this._currentRequest[useMeta];
+        const everything = await (this._currentRequest[useMeta] as Promise<ClassMap>);
 
         if (kind in everything) {
-            if (everything[kind] instanceof Error)
-                throw everything[kind];
+            const result = everything[kind];
+            if (result instanceof Error)
+                throw result;
             else
-                return everything[kind];
+                return result;
         } else {
             throw new TypeError('Invalid kind ' + kind);
         }
@@ -273,8 +331,8 @@ export default class SchemaRetriever {
      * @return {Ast.ClassDef} the corresponding class
      * @async
      */
-    getFullSchema(kind) {
-        return this._getClass(kind, false);
+    getFullSchema(kind : string) : Promise<ClassDef> {
+        return this._getClass(kind, 'everything');
     }
     /**
      * Return the full type information and metadata of the passed in class.
@@ -283,11 +341,11 @@ export default class SchemaRetriever {
      * @return {Ast.ClassDef} the corresponding class, including metadata
      * @async
      */
-    getFullMeta(kind) {
-        return this._getClass(kind, true);
+    getFullMeta(kind : string) : Promise<ClassDef> {
+        return this._getClass(kind, 'everything');
     }
 
-    _where(where) {
+    private _where(where : FunctionType) : ('queries'|'actions') {
         switch (where) {
             case 'query': return 'queries';
             case 'action': return 'actions';
@@ -312,11 +370,16 @@ export default class SchemaRetriever {
      * @deprecated Use {@link SchemaRetriever#getSchemaAndNames} instead
      * @async
      */
-    async getSchema(kind, functionType, name) {
+    async getSchema(kind : string,
+                    functionType : FunctionType,
+                    name : string) : Promise<Type[]> {
         return (await this.getSchemaAndNames(kind, functionType, name)).types;
     }
 
-    async _getFunction(kind, functionType, name, useMeta) {
+    private async _getFunction(kind : string,
+                               functionType : FunctionType,
+                               name : string,
+                               useMeta : MetadataLevel) : Promise<FunctionDef> {
         const where = this._where(functionType);
         const classDef = await this._getClass(kind, useMeta);
         if (!(name in classDef[where]))
@@ -340,8 +403,10 @@ export default class SchemaRetriever {
      * @return {Ast.FunctionDef} the function definition
      * @async
      */
-    getSchemaAndNames(kind, functionType, name) {
-        return this._getFunction(kind, functionType, name, false);
+    getSchemaAndNames(kind : string,
+                      functionType : FunctionType,
+                      name : string) : Promise<FunctionDef> {
+        return this._getFunction(kind, functionType, name, 'basic');
     }
 
     /**
@@ -357,39 +422,49 @@ export default class SchemaRetriever {
      * @return {Ast.FunctionDef} the function definition
      * @async
      */
-    getMeta(kind, functionType, name) {
-        return this._getFunction(kind, functionType, name, true);
+    getMeta(kind : string,
+            functionType : FunctionType,
+            name : string) : Promise<FunctionDef> {
+        return this._getFunction(kind, functionType, name, 'everything');
     }
 
-    async getMemorySchema(table, getMeta = false) {
+    async getMemorySchema(table : string, getMeta = false) : Promise<FunctionDef> {
         const resolved = await this._memoryClient.getSchema(table, null);
         if (!resolved)
             throw new TypeError(`No such table ${table}`);
         const {args:argnames, types} = resolved;
 
-        const args = [];
+        const args : ArgumentDef[] = [];
         for (let i = 0; i < types.length; i++)
-            args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, argnames[i], Type.fromString(types[i]), {}, {}));
+            args.push(new ArgumentDef(null, ArgDirection.OUT, argnames[i], Type.fromString(types[i])));
 
-        const functionDef = new Ast.FunctionDef(null, 'query',
-                                                null,
-                                                table,
-                                                [],
-                                                { is_list: true, is_monitorable: true },
-                                                args,
-                                                {});
+        const functionDef = new FunctionDef(null, 'query',
+                                            null,
+                                            table,
+                                            [],
+                                            { is_list: true, is_monitorable: true },
+                                            args,
+                                            {});
         // complete initialization of the function
         functionDef.setClass(null);
         assert(functionDef.minimal_projection);
         return functionDef;
     }
 
-    async getMixins(kind) {
+    async getMixins(kind : string) : Promise<MixinDeclaration> {
         const mixins = await this._thingpediaClient.getMixins();
         if (!(kind in mixins))
             throw new TypeError("Mixin " + kind + " not found.");
         const resolved = mixins[kind];
-        resolved.types = resolved.types.map(Type.fromString);
-        return resolved;
+
+        const parsed : MixinDeclaration = {
+            kind: resolved.kind,
+            types: resolved.types.map(Type.fromString),
+            args: resolved.args,
+            required: resolved.required,
+            is_input: resolved.is_input,
+            facets: resolved.facets
+        };
+        return parsed;
     }
 }
