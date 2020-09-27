@@ -57,19 +57,6 @@ export enum ArgDirection {
     OUT = 'out'
 }
 
-function legacyAnnotationToValue(value : any) : Value|null {
-    let v = null;
-    if (typeof value === 'string')
-        v = new Value.String(value);
-    else if (typeof value === 'boolean')
-        v = new Value.Boolean(value);
-    else if (typeof value === 'number')
-        v = new Value.Number(value);
-    else if (Array.isArray(value))
-        v = new Value.Array((value as any[]).map((elem : any) => legacyAnnotationToValue(elem) as Value));
-    return v;
-}
-
 /**
  * The definition of a function argument, with it's name, type and annotations.
  *
@@ -313,39 +300,6 @@ export class ArgumentDef extends Node {
      */
     getAnnotation(name : string) : unknown|undefined {
         return this.getImplementationAnnotation(name);
-    }
-
-    toManifest() : any {
-        const obj : ({ [key : string] : any }) = {
-            name: this.name,
-            type: prettyprintType(this.type),
-            question: this.metadata['prompt'] || '',
-            is_input: this.is_input,
-            required: this.required
-        };
-        for (const key in this.annotations)
-            obj[key] = this.annotations[key].toJS();
-        return obj;
-    }
-
-    static fromManifest(manifest : any) : ArgumentDef {
-        const is_input = manifest.is_input;
-        const required = manifest.required;
-        const direction = is_input ? (required ? ArgDirection.IN_REQ : ArgDirection.IN_OPT) : ArgDirection.OUT;
-        const name = manifest.name;
-        const type = Type.fromString(manifest.type);
-        const metadata : NLAnnotationMap = {};
-        if (manifest.question && manifest.question.length > 0) metadata.prompt = manifest.question;
-        const annotations : AnnotationMap = {};
-        for (const key in manifest) {
-            if (['is_input', 'required', 'type', 'name', 'question'].indexOf(key) >= 0)
-                continue;
-            const v = legacyAnnotationToValue(manifest[key]);
-            if (v)
-                annotations[key] = v;
-        }
-
-        return new ArgumentDef(null, direction, name, type, { nl: metadata, impl: annotations });
     }
 }
 
@@ -1304,53 +1258,5 @@ export class FunctionDef extends ExpressionSignature {
      */
     get annotations() : AnnotationMap {
         return this._impl_annotations;
-    }
-
-    toManifest() : any {
-        const interval = this.annotations['poll_interval'];
-        const obj : ({ [key : string] : any }) = {
-            args: this.args.map((a) => this._argmap[a].toManifest()),
-            canonical: this.canonical,
-            is_list: this.is_list,
-            poll_interval: this.is_monitorable ? interval.toJS() : -1,
-            confirmation: this.confirmation,
-            formatted: this.metadata.formatted || [],
-        };
-        for (const key in this.annotations) {
-            if (key === 'poll_interval')
-                continue;
-            obj[key] = this.annotations[key].toJS();
-        }
-        return obj;
-    }
-
-    static fromManifest(functionType : FunctionType, name : string, manifest : any) {
-        const args = manifest.args.map((a : any) => ArgumentDef.fromManifest(a));
-        const is_list = functionType === 'query' ? !!manifest.is_list : false;
-        const is_monitorable = functionType === 'query' ? manifest.poll_interval !== -1 : false;
-        const nl : NLAnnotationMap = {
-            canonical: manifest.canonical || '',
-            confirmation: manifest.confirmation || '',
-            confirmation_remote: manifest.confirmation_remote || '',
-        };
-        if (functionType === 'query')
-            nl.formatted = manifest.formatted;
-
-        const impl : AnnotationMap = {};
-        if (is_monitorable)
-            impl['poll_interval'] = new Value.Measure(manifest.poll_interval, 'ms');
-        for (const key in manifest) {
-            if (['args', 'is_list', 'is_monitorable', 'poll_interval',
-                 'canonical', 'confirmation', 'confirmation_remote', 'formatted'].indexOf(key) >= 0)
-                continue;
-            const v = legacyAnnotationToValue(manifest[key]);
-            if (v)
-                impl[key] = v;
-        }
-
-        if (manifest.url)
-            impl.url = new Value.String(manifest.url);
-        return new FunctionDef(null, functionType, null, name, [], { is_list, is_monitorable },
-            args, { nl, impl });
     }
 }

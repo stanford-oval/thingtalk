@@ -21,14 +21,11 @@
 import assert from 'assert';
 
 import { SourceRange, NLAnnotationMap, AnnotationMap, AnnotationSpec } from './base';
-import Type from '../type';
 import { prettyprintClassDef } from '../prettyprint';
-import { clean, cleanKind } from '../utils';
-import { Value, ArgMapValue } from './values';
-import { Selector, InputParam } from './expression';
+import { cleanKind } from '../utils';
+import { Selector } from './expression';
 import { Statement, MixinImportStmt, EntityDef } from './program';
 import { FunctionType, FunctionDef } from './function_def';
-import { extractImports, typeToHTML } from './manifest_utils';
 import { OldSlot, AbstractSlot } from './slots';
 import NodeVisitor from './visitor';
 
@@ -266,98 +263,6 @@ export class ClassDef extends Statement {
         return this.nl_annotations.canonical || cleanKind(this.kind);
     }
 
-    private _params() {
-        const params : { [key : string] : [string, string] } = {};
-        const config = this.config;
-        if (!config)
-            return params;
-        switch (config.module) {
-        case 'org.thingpedia.config.form':
-        case 'org.thingpedia.config.basic_auth':
-            if (config.in_params.length === 1) {
-                const argMap = config.in_params[0].value as ArgMapValue;
-                Object.entries(argMap.value).forEach(([name, type]) => {
-                    params[name] = [clean(name), typeToHTML(type)];
-                });
-            }
-        }
-        return params;
-    }
-
-    private _auth() : [{ [key : string] : unknown }, string[]] {
-        const auth : { [key : string] : unknown } = {};
-        const extraKinds : string[] = [];
-
-        const config = this.config as MixinImportStmt;
-        config.in_params.forEach((param) => {
-            if (param.value.isArgMap)
-                return;
-            switch (param.name) {
-            case 'device_class':
-                extraKinds.push('bluetooth-class-' + param.value.toJS());
-                break;
-            case 'uuids':
-                for (const uuid of param.value.toJS() as string[])
-                    extraKinds.push('bluetooth-uuid-' + uuid.toLowerCase());
-                break;
-            case 'search_target':
-                for (const st of param.value.toJS() as string[])
-                    extraKinds.push('upnp-' + st.toLowerCase().replace(/^urn:/, '').replace(/:/g, '-'));
-                break;
-
-            default:
-                auth[param.name] = param.value.toJS();
-            }
-        });
-        switch (config.module) {
-        case 'org.thingpedia.config.oauth2':
-            auth.type = 'oauth2';
-            break;
-        case 'org.thingpedia.config.custom_oauth':
-            auth.type = 'custom_oauth';
-            break;
-        case 'org.thingpedia.config.basic_auth':
-            auth.type = 'basic';
-            break;
-        case 'org.thingpedia.config.discovery.bluetooth':
-            auth.type = 'discovery';
-            auth.discoveryType = 'bluetooth';
-            break;
-        case 'org.thingpedia.config.discovery.upnp':
-            auth.type = 'discovery';
-            auth.discoveryType = 'upnp';
-            break;
-        case 'org.thingpedia.config.interactive':
-            auth.type = 'interactive';
-            break;
-        case 'org.thingpedia.config.builtin':
-            auth.type = 'builtin';
-            break;
-        default:
-            auth.type = 'none';
-        }
-        return [auth, extraKinds];
-    }
-
-    private _getCategory() {
-        if (this.impl_annotations.system && this.impl_annotations.system.toJS())
-            return 'system';
-        const config = this.config;
-        if (!config)
-            return 'data';
-
-        switch (config.module) {
-        case 'org.thingpedia.config.builtin':
-        case 'org.thingpedia.config.none':
-            return 'data';
-        case 'org.thingpedia.config.discovery.bluetooth':
-        case 'org.thingpedia.config.discovery.upnp':
-            return 'physical';
-        default:
-            return 'online';
-        }
-    }
-
     /**
      * The natural language annotations of the class
      *
@@ -386,90 +291,6 @@ export class ClassDef extends Statement {
      */
     getAnnotation(name : string) : unknown|undefined {
         return this.getImplementationAnnotation(name);
-    }
-
-    /**
-     * Convert the class to a manifest.
-     *
-     * @return {Object} the manifest
-     * @deprecated Manifests are deprecated and should not be used. Use .tt files instead.
-     */
-    toManifest() : any {
-        const queries : FunctionMap = {}, actions : FunctionMap = {};
-        Object.entries(this.queries).forEach(([name, query]) => queries[name] = query.toManifest());
-        Object.entries(this.actions).forEach(([name, action]) => actions[name] = action.toManifest());
-
-        const [auth, extraKinds] = this._auth();
-        const manifest = {
-            module_type: this.loader ? this.loader.module : 'org.thingpedia.v2',
-            kind: this.kind,
-            params: this._params(),
-            auth: auth,
-            queries,
-            actions,
-            version: this.annotations.version ? this.annotations.version.toJS() : undefined,
-            types: this.extends.concat(extraKinds),
-            child_types: this.annotations.child_types ? this.annotations.child_types.toJS() : [],
-            category: this._getCategory(),
-            name: undefined,
-            description: undefined
-        };
-        if (this.metadata.name) manifest.name = this.metadata.name;
-        if (this.metadata.description) manifest.description = this.metadata.description;
-        return manifest;
-    }
-
-    /**
-     * Convert a manifest to a class.
-     *
-     * @param {string} kind - the class identifier
-     * @param {Object} manifest - the manifest to convert
-     * @return {Ast.ClassDef} the converted class definition
-     * @deprecated Manifests are deprecated and should not be used. Use .tt files instead.
-     */
-    static fromManifest(kind : string, manifest : any) : ClassDef {
-        const _extends = ((manifest.types || []) as string[]).filter((t) => !t.startsWith('bluetooth-') && !t.startsWith('upnp-'));
-        const imports = extractImports(manifest);
-        const queries : FunctionMap = {};
-        const actions : FunctionMap = {};
-        const metadata : NLAnnotationMap = {};
-        if (manifest.name)
-            metadata.name = manifest.name;
-        if (manifest.description)
-            metadata.description = manifest.description;
-        const annotations : AnnotationMap = {};
-        if (manifest.child_types && manifest.child_types.length)
-            annotations.child_types = new Value.Array(manifest.child_types.map((t : string) => new Value.String(t)));
-        if (manifest.version !== undefined)
-            annotations.version = new Value.Number(manifest.version);
-        if (manifest.category === 'system')
-            annotations.system = new Value.Boolean(true);
-        Object.entries(manifest.queries).forEach(([name, query]) => queries[name] = FunctionDef.fromManifest('query', name, query));
-        Object.entries(manifest.actions).forEach(([name, action]) => actions[name] = FunctionDef.fromManifest('action', name, action));
-
-        const uuids : string[] = [], upnpSearchTarget : string[] = [];
-        let bluetoothclass : string|undefined = undefined;
-        for (const type of (manifest.types || [])) {
-            if (type.startsWith('bluetooth-uuid-'))
-                uuids.push(type.substring('bluetooth-uuid-'.length));
-            else if (type.startsWith('bluetooth-class-'))
-                bluetoothclass = type.substring('bluetooth-class-'.length);
-            else if (type.startsWith('upnp-'))
-                upnpSearchTarget.push('urn:' + type.substring('upnp-'.length));
-        }
-        const config = imports.find((i) => i.facets.includes('config'));
-        switch (config.module) {
-        case 'org.thingpedia.config.discovery.bluetooth':
-            config.in_params.push(new InputParam(null, 'uuids', Value.fromJS(new Type.Array(Type.String), uuids)));
-            if (bluetoothclass)
-                config.in_params.push(new InputParam(null, 'device_class', Value.fromJS(new Type.Enum(null), bluetoothclass)));
-            break;
-        case 'org.thingpedia.config.discovery.upnp':
-            config.in_params.push(new InputParam(null, 'search_target', Value.fromJS(new Type.Array(Type.String), upnpSearchTarget)));
-            break;
-        }
-
-        return new ClassDef(null, kind, _extends, { queries, actions, imports }, { nl: metadata, impl: annotations }, {});
     }
 }
 Statement.ClassDef = ClassDef;
