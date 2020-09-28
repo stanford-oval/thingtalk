@@ -23,7 +23,6 @@ const Q = require('q');
 Q.longStackSupport = true;
 const assert = require('assert');
 
-require('../lib/ast/api');
 const Compiler = require('../lib/compiler').default;
 const SchemaRetriever = require('../lib/schema').default;
 

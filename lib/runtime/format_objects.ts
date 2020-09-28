@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -23,7 +23,11 @@ import interpolate from 'string-interp';
 import * as I18n from '../i18n';
 import * as builtin from '../builtin/values';
 
-export function isNull(value) {
+import type Formatter from './formatter';
+type PlainObject = { [key : string] : unknown };
+type GenericFormatSpec = { [key : string] : string|null };
+
+export function isNull(value : unknown) : boolean {
     // all false-y values except false itself are "null"
     if (value === undefined || value === null || value === '' || Number.isNaN(value))
         return true;
@@ -31,7 +35,7 @@ export function isNull(value) {
     if (Array.isArray(value) && value.length === 0)
         return true;
     // invalid dates are "null"
-    if (value instanceof Date && isNaN(value))
+    if (value instanceof Date && isNaN(+value))
         return true;
     return false;
 }
@@ -43,17 +47,12 @@ export function isNull(value) {
  * function annotation.
  *
  * @alias FormatObjects~FormattedObject
- * @abstract
  */
-class FormattedObject {
+export abstract class FormattedObject {
     /**
      * A string identifying the type of this formatted object.
-     *
-     * @name FormatObjects~FormattedObject#type
-     * @member
-     * @type {string}
-     * @readonly
      */
+    abstract type : string;
 
     /**
      * Check if this formatted object is valid.
@@ -62,11 +61,9 @@ class FormattedObject {
      * valid values (not null, undefined, empty or NaN). Invalid formatted objects
      * are not displayed to the user.
      *
-     * @name FormatObjects~FormattedObject#isValid
-     * @method
-     * @abstract
      * @return {boolean} true if this formatted object is valid, false otherwise
      */
+    abstract isValid() : boolean;
 
     /**
      * Convert this formatted object to a localized string.
@@ -75,12 +72,10 @@ class FormattedObject {
      * a text-only interface. It is also suitable as a fallback for all formatting
      * objects not recognized by the application.
      *
-     * @name FormatObjects~FormattedObject#toLocaleString
-     * @method
-     * @abstract
      * @param {string} locale - the locale to localize any message into
      * @return {string} a string representation of this formatted object
      */
+    abstract toLocaleString(locale : string) : string;
 
     /**
      * Replace all placeholders in this object, using the provided structured result.
@@ -88,20 +83,29 @@ class FormattedObject {
      * @param {Formatter} formatter - the formatter to use for replacement
      * @param {Object.<string,any>} argMap - the structured ThingTalk result with the values to substitute
      */
-    replaceParameters(formatter, argMap) {
-        for (let key in this) {
+    replaceParameters(formatter : Formatter, argMap : PlainObject) : void {
+        for (const key in this) {
             if (key === 'type')
                 continue;
 
-            this[key] = formatter._replaceInString(this[key], argMap);
+            (this as unknown as GenericFormatSpec)[key] = formatter._replaceInString((this as unknown as GenericFormatSpec)[key], argMap);
         }
     }
 }
 
-function localeCompat(locale) {
+
+type GettextFunction = (key : string) => string;
+type LocaleArg = GettextFunction | string;
+
+function localeCompat(locale : LocaleArg) : [GettextFunction, string|undefined] {
     if (typeof locale === 'function')
-        return locale;
-    return I18n.get(locale).gettext;
+        return [locale, undefined];
+    return [I18n.get(locale).gettext, locale];
+}
+
+interface PictureSpec {
+    type : 'picture';
+    url : string;
 }
 
 /**
@@ -110,14 +114,17 @@ function localeCompat(locale) {
  * @alias FormatObjects~Picture
  * @extends FormatObjects~FormattedObject
  */
-class Picture extends FormattedObject {
+class Picture extends FormattedObject implements PictureSpec {
+    type : 'picture';
+    url : string;
+
     /**
      * Construct a new picture object.
      *
      * @param {Object} spec
      * @param {string} spec.url - the URL of the picture to display
      */
-    constructor(spec) {
+    constructor(spec : PictureSpec) {
         super();
 
         /**
@@ -130,16 +137,25 @@ class Picture extends FormattedObject {
         this.url = spec.url;
     }
 
-    isValid() {
+    isValid() : boolean {
         return !isNull(this.url);
     }
 
-    toLocaleString(locale) {
-        const _ = localeCompat(locale);
+    toLocaleString(locale : LocaleArg) : string {
+        const [_, localestr] = localeCompat(locale);
         return interpolate(_("Picture: ${url}"), {
             url: this.url
-        }, { locale });
+        }, { locale: localestr })||'';
     }
+}
+
+interface RDLSpec {
+    type : 'rdl';
+    callback ?: string;
+    webCallback : string;
+    displayTitle : string;
+    displayText ?: string;
+    pictureUrl ?: string;
 }
 
 /**
@@ -151,7 +167,14 @@ class Picture extends FormattedObject {
  * @alias FormatObjects~RDL
  * @extends FormatObjects~FormattedObject
  */
-class RDL extends FormattedObject {
+class RDL extends FormattedObject implements RDLSpec {
+    type : 'rdl';
+    callback : string|undefined;
+    webCallback : string;
+    displayTitle : string;
+    displayText : string|undefined;
+    pictureUrl : string|undefined;
+
     /**
      * Construct a new RDL
      *
@@ -165,7 +188,7 @@ class RDL extends FormattedObject {
      * @param {string} [spec.callback] - a different link target, to use on plaforms where deep-linking is allowed (e.g. Android)
      * @param {string} [spec.pictureUrl] - a picture associated with this link
      */
-    constructor(spec) {
+    constructor(spec : RDLSpec) {
         super();
 
         /**
@@ -182,7 +205,7 @@ class RDL extends FormattedObject {
         this.pictureUrl = spec.pictureUrl;
     }
 
-    replaceParameters(formatter, argMap) {
+    replaceParameters(formatter : Formatter, argMap : PlainObject) : void {
         super.replaceParameters(formatter, argMap);
         if (!this.webCallback && this.callback)
             this.webCallback = this.callback;
@@ -198,17 +221,24 @@ class RDL extends FormattedObject {
             this.pictureUrl = undefined;
     }
 
-    isValid() {
+    isValid() : boolean {
         return !isNull(this.webCallback);
     }
 
-    toLocaleString(locale) {
-        const _ = localeCompat(locale);
+    toLocaleString(locale : LocaleArg) : string {
+        const [_, localestr] = localeCompat(locale);
         return interpolate(_("Link: ${title} <${link}>"), {
             title: this.displayTitle,
             link: this.webCallback
-        }, { locale });
+        }, { locale: localestr })||'';
     }
+}
+
+interface MapFOSpec {
+    type : 'map';
+    lat : number;
+    lon : number;
+    display ?: string;
 }
 
 /**
@@ -223,7 +253,12 @@ class RDL extends FormattedObject {
  * @alias FormatObjects~MapFO
  * @extends FormatObjects~FormattedObject
  */
-class MapFO extends FormattedObject {
+class MapFO extends FormattedObject implements MapFOSpec {
+    type : 'map';
+    lat : number;
+    lon : number;
+    display : string|undefined;
+
     /**
      * Construct a new map format object.
      *
@@ -232,7 +267,7 @@ class MapFO extends FormattedObject {
      * @param {string|number} spec.lon - longitude; this can be a string with placeholders, or a number
      * @param {string} [spec.display] - a label for the pin (the name of the location being selected)
      */
-    constructor(spec) {
+    constructor(spec : MapFOSpec) {
         super();
 
         /**
@@ -247,22 +282,27 @@ class MapFO extends FormattedObject {
         this.display = spec.display;
     }
 
-    replaceParameters(formatter, argMap) {
+    replaceParameters(formatter : Formatter, argMap : PlainObject) : void {
         super.replaceParameters(formatter, argMap);
         this.lat = Number(this.lat);
         this.lon = Number(this.lon);
     }
 
-    isValid() {
+    isValid() : boolean {
         return !isNull(this.lat) && !isNull(this.lon);
     }
 
-    toLocaleString(locale) {
-        const _ = localeCompat(locale);
+    toLocaleString(locale : LocaleArg) : string {
+        const [_, localestr] = localeCompat(locale);
         return interpolate(_("Location: ${location}"), {
             location: new builtin.Location(this.lat, this.lon, this.display)
-        }, { locale });
+        }, { locale: localestr })||'';
     }
+}
+
+interface SoundEffectSpec {
+    type : 'sound';
+    name : string;
 }
 
 /**
@@ -271,7 +311,10 @@ class MapFO extends FormattedObject {
  * @alias FormatObjects~SoundEffect
  * @extends FormatObjects~FormattedObject
 */
-class SoundEffect extends FormattedObject {
+class SoundEffect extends FormattedObject implements SoundEffectSpec {
+    type : 'sound';
+    name : string;
+
     /**
      * Construct a new sound effect object.
      *
@@ -279,7 +322,7 @@ class SoundEffect extends FormattedObject {
      * @param {string} spec.name - the name of the sound, from the {@link http://0pointer.de/public/sound-theme-spec.html|Freedesktop Sound Theme Spec}
      *                             (with a couple Almond-specific extensions)
      */
-    constructor(spec) {
+    constructor(spec : SoundEffectSpec) {
         super();
 
         /**
@@ -292,16 +335,21 @@ class SoundEffect extends FormattedObject {
         this.name = spec.name;
     }
 
-    isValid() {
+    isValid() : boolean {
         return !isNull(this.name);
     }
 
-    toLocaleString(locale) {
-        const _ = localeCompat(locale);
+    toLocaleString(locale : LocaleArg) : string {
+        const [_, localestr] = localeCompat(locale);
         return interpolate(_("Sound effect: ${name}"), {
             name: this.name
-        }, { locale });
+        }, { locale: localestr })||'';
     }
+}
+
+interface MediaSpec {
+    type : 'media';
+    url : string;
 }
 
 /**
@@ -310,7 +358,10 @@ class SoundEffect extends FormattedObject {
  * @alias FormatObjects~Media
  * @extends FormatObjects~FormattedObject
 */
-class Media extends FormattedObject {
+class Media extends FormattedObject implements MediaSpec {
+    type : 'media';
+    url : string;
+
     /**
      * Construct a new media object.
      *
@@ -321,7 +372,7 @@ class Media extends FormattedObject {
      * @param {Object} spec
      * @param {string} spec.url - the URL of the music/video to display
      */
-    constructor(spec) {
+    constructor(spec : MediaSpec) {
         super();
 
         /**
@@ -334,16 +385,20 @@ class Media extends FormattedObject {
         this.url = spec.url;
     }
 
-    isValid() {
+    isValid() : boolean {
         return !isNull(this.url);
     }
 
-    toLocaleString(locale) {
-        const _ = localeCompat(locale);
+    toLocaleString(locale : LocaleArg) : string {
+        const [_, localestr] = localeCompat(locale);
         return interpolate(_("Media: ${url}"), {
             url: this.url
-        }, { locale });
+        }, { locale: localestr })||'';
     }
+}
+
+export interface FormattedObjectClass {
+    new (obj : FormattedObjectSpec) : FormattedObject;
 }
 
 export const FORMAT_TYPES = {
@@ -353,3 +408,10 @@ export const FORMAT_TYPES = {
     'sound': SoundEffect,
     'media': Media,
 };
+
+export type FormattedObjectSpec =
+    PictureSpec |
+    RDLSpec |
+    MapFOSpec |
+    SoundEffectSpec |
+    MediaSpec;

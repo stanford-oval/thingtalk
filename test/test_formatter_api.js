@@ -162,7 +162,7 @@ function main() {
     });
     assert.strictEqual(bad, undefined);
     assert.strictEqual(JSON.stringify(pic), '{"type":"picture","url":"one"}');
-    assert.strictEqual(JSON.stringify(rdl), '{"type":"rdl","callback":"one","webCallback":"one","displayTitle":"two"}');
+    assert.strictEqual(JSON.stringify(rdl), '{"type":"rdl","callback":"one","webCallback":"one","displayTitle":"two","displayText":null}');
 
     const [rdl2] = formatter.format([
         { type: 'rdl', webCallback: '${v1}', displayTitle: '${v4}', displayText: '${v3}' }
@@ -247,9 +247,9 @@ function main() {
         v5: new builtin.Location(47, 11, "Somewhere")
     });
 
-    assert.strictEqual(JSON.stringify(map1), '{"type":"map","lat":1,"lon":2}');
-    assert.strictEqual(JSON.stringify(map2), '{"type":"map","lat":47,"lon":11}');
-    assert.strictEqual(JSON.stringify(map3), '{"type":"map","lat":47,"lon":11}');
+    assert.strictEqual(JSON.stringify(map1), '{"type":"map","lat":1,"lon":2,"display":null}');
+    assert.strictEqual(JSON.stringify(map2), '{"type":"map","lat":47,"lon":11,"display":null}');
+    assert.strictEqual(JSON.stringify(map3), '{"type":"map","lat":47,"lon":11,"display":null}');
     assert.strictEqual(JSON.stringify(sound), '{"type":"sound","name":"message-new-instant"}');
     assert.strictEqual(JSON.stringify(media), '{"type":"media","url":"three?y=1.0&x=2.0"}');
 
@@ -278,7 +278,7 @@ function main() {
         {type: "map", lat: "${location.lat}", lon: "${location.lon}"},
     ], {
         location: new builtin.Location(-90, 0, 'South pole')
-    })), '[{"type":"map","lat":-90,"lon":0},{"type":"map","lat":-90,"lon":0}]');
+    })), '[{"type":"map","lat":-90,"lon":0,"display":null},{"type":"map","lat":-90,"lon":0,"display":null}]');
 }
 module.exports = main;
 if (!module.parent)

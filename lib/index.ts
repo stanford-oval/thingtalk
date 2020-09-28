@@ -26,7 +26,6 @@ import * as Grammar from './grammar_api';
 import ExecEnvironment from './runtime/exec_environment';
 import Type from './type';
 import SchemaRetriever from './schema';
-import * as Generate from './generate';
 import * as Describe from './describe';
 import Formatter from './runtime/formatter';
 import PermissionChecker from './permission_checker';
@@ -61,7 +60,6 @@ export {
     SchemaRetriever,
 
     // Helper modules to manipulate ASTs
-    Generate,
     Describe,
 
     // Policy support

@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -19,8 +19,9 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import * as Grammar from './grammar';
-// Initialize the AST API
-import './ast/api';
+import * as Ast from './ast';
+import type SchemaRetriever from './schema';
+import type Type from './type';
 
 /**
  * APIs to parse surface-syntax ThingTalk code.
@@ -35,7 +36,7 @@ import './ast/api';
  * @param {string} code - the ThingTalk code to parse
  * @return {Ast.Input} the parsed program, library or permission rule
  */
-export function parse(code) {
+export function parse(code : string) : Ast.Input {
     // workaround grammar bug with // comments at the end of input
     return Grammar.parse(code + '\n');
 }
@@ -52,9 +53,10 @@ export function parse(code) {
  * @return {Ast.Input} the parsed program, library or permission rule
  * @async
  */
-export function parseAndTypecheck(code, schemaRetriever, useMeta = false) {
+export function parseAndTypecheck(code : string,
+                                  schemaRetriever : SchemaRetriever, useMeta = false) : Promise<Ast.Input> {
     // workaround grammar bug with // comments at the end of input
-    let ast = Grammar.parse(code + '\n');
+    const ast = Grammar.parse(code + '\n');
     return ast.typecheck(schemaRetriever, useMeta);
 }
 
@@ -64,7 +66,7 @@ export function parseAndTypecheck(code, schemaRetriever, useMeta = false) {
  * @param {string} typeStr - the ThingTalk type reference to parse
  * @return {Type} the type object
  */
-export function parseType(typeStr) {
+export function parseType(typeStr : string) : Type {
     return Grammar.parse(typeStr, { startRule: 'type_ref' });
 }
 
@@ -75,6 +77,7 @@ export function parseType(typeStr) {
  * @return {Ast.PermissionRule} the parsed permission rule
  * @deprecated use {@link Grammar.parse}
  */
-export function parsePermissionRule(code) {
+export function parsePermissionRule(code : string) : Ast.PermissionRule {
     return Grammar.parse(code, { startRule: 'permission_rule' });
 }
+

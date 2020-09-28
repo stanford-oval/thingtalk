@@ -2,7 +2,7 @@
 //
 // This file is part of ThingTalk
 //
-// Copyright 2017-2018 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2018 The Board of Trustees of the Leland Stanford Junior University
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,27 +18,10 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import { isUnaryStreamToStreamOp,
-         isUnaryTableToTableOp,
-         isUnaryStreamToTableOp,
-         isUnaryTableToStreamOp } from './utils';
+export function combineOutputTypes(t1 : string, t2 : string) : string {
+    return `${t1}+${t2}`;
+}
 
-// Initialize the AST API
-import { notifyAction } from './ast/api';
-
-import { typeCheckFilter, typeCheckProgram, typeCheckPermissionRule } from './typecheck';
-
-export {
-    notifyAction,
-
-    // recursive utilities
-    isUnaryTableToTableOp,
-    isUnaryStreamToTableOp,
-    isUnaryStreamToStreamOp,
-    isUnaryTableToStreamOp,
-
-    // legacy API
-    typeCheckFilter,
-    typeCheckProgram,
-    typeCheckPermissionRule
-};
+export function aggregateOutputType(agg : string, t : string) : string {
+    return `${agg}(${t})`;
+}

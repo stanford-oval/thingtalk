@@ -18,7 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-function stringEscape(str : string) : string {
+function stringEscape(str : string|null|undefined) : string {
     if (str === null || str === undefined)
         return 'null';
     return '"' + str.replace(/(["\\])/g, '\\$1').replace(/\n/g, '\\n').replace(/\r/g, '\\r') + '"';

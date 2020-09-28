@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -24,17 +24,25 @@ import AsyncQueue from 'consumer-queue';
 import { combineOutputTypes } from './output_type_ops';
 import { equality } from './primitive_ops';
 
+import type ExecEnvironment from '../runtime/exec_environment';
+
 // Library helpers used by the compiled TT code
 
-function tupleEquals(a, b, keys) {
-    for (let key of keys) {
+interface MonitorTupleLike {
+    __timestamp : number;
+}
+
+function tupleEquals<T, K extends keyof T>(a : T, b : T, keys : K[]) : boolean {
+    for (const key of keys) {
         if (!equality(a[key], b[key]))
             return false;
     }
     return true;
 }
 
-export function isNewTuple(state, tuple, keys) {
+export function isNewTuple<T extends MonitorTupleLike, K extends keyof T>(state : T[]|null,
+                                                                          tuple : T,
+                                                                          keys : K[]) : boolean {
     if (state === null)
         return true;
 
@@ -44,7 +52,7 @@ export function isNewTuple(state, tuple, keys) {
             tlast = state[i].__timestamp;
         else if (tprevious === undefined && state[i].__timestamp < tlast)
             tprevious = state[i].__timestamp;
-        else if (state[i].__timestamp < tprevious)
+        else if (tprevious !== undefined && state[i].__timestamp < tprevious)
             break;
     }
     if (tuple.__timestamp === tlast)
@@ -61,7 +69,7 @@ export function isNewTuple(state, tuple, keys) {
     return true;
 }
 
-export function addTuple(state, tuple) {
+export function addTuple<T extends MonitorTupleLike>(state : T[]|null, tuple : T) : T[] {
     if (state === null)
         return [tuple];
     state.push(tuple);
@@ -74,10 +82,11 @@ export function addTuple(state, tuple) {
             tlast = state[i].__timestamp;
         else if (tprevious === undefined && state[i].__timestamp < tlast)
             tprevious = state[i].__timestamp;
-        else if (state[i].__timestamp < tprevious)
+        else if (tprevious !== undefined && state[i].__timestamp < tprevious)
             break;
     }
     if (i >= 0) {
+        assert(tprevious !== undefined);
         assert(state[i].__timestamp < tprevious);
         state = state.slice(i+1);
     }
@@ -85,27 +94,32 @@ export function addTuple(state, tuple) {
     return state;
 }
 
-export function streamUnion(lhs, rhs) {
-    let queue = new AsyncQueue();
+type ResultT<T> = [string, T];
 
-    let currentLeft = null;
-    let currentRight = null;
+type EmitFunction<T> = (type : string, value : T) => void;
+type Stream<T> = (emit : EmitFunction<T>) => Promise<void>;
+
+export function streamUnion<T>(lhs : Stream<T>, rhs : Stream<T>) : AsyncQueue<IteratorResult<ResultT<T>, void>> {
+    const queue = new AsyncQueue<IteratorResult<ResultT<T>, void>>();
+
+    let currentLeft : ResultT<T>|null = null;
+    let currentRight : ResultT<T>|null = null;
     let doneLeft = false;
     let doneRight = false;
     function emit() {
         if (currentLeft === null || currentRight === null)
             return;
-        let [leftType, leftValue] = currentLeft;
-        let [rightType, rightValue] = currentRight;
-        let newValue = {};
+        const [leftType, leftValue] = currentLeft;
+        const [rightType, rightValue] = currentRight;
+        const newValue = {} as T;
         Object.assign(newValue, leftValue);
         Object.assign(newValue, rightValue);
-        let newType = combineOutputTypes(leftType, rightType);
+        const newType = combineOutputTypes(leftType, rightType);
         queue.push({ value: [newType, newValue], done: false });
     }
     function checkDone() {
         if (doneLeft && doneRight)
-            queue.push({ done: true });
+            queue.push({ value: undefined, done: true });
     }
 
     lhs((...v) => {
@@ -127,21 +141,24 @@ export function streamUnion(lhs, rhs) {
     return queue;
 }
 
-function accumulateStream(stream) {
-    let into = [];
+function accumulateStream<T>(stream : Stream<T>) : Promise<Array<ResultT<T>>> {
+    const into : Array<ResultT<T>> = [];
 
-    return stream((...v) => {
-        into.push(v);
+    return stream((type : string, value : T) => {
+        into.push([type, value]);
     }).then(() => into);
 }
 
-class DelayedIterator {
-    constructor(promise) {
+class DelayedIterator<T> implements AsyncIterator<T> {
+    private _promise : Promise<Iterator<T>>;
+    private _iterator : Iterator<T>|null;
+
+    constructor(promise : Promise<Iterator<T>>) {
         this._promise = promise;
         this._iterator = null;
     }
 
-    next() {
+    next() : Promise<IteratorResult<T>> {
         if (this._iterator !== null)
             return Promise.resolve(this._iterator.next());
         return this._promise.then((iterator) => {
@@ -151,20 +168,20 @@ class DelayedIterator {
     }
 }
 
-export function tableCrossJoin(lhs, rhs) {
+export function tableCrossJoin<T>(lhs : Stream<T>, rhs : Stream<T>) : AsyncIterator<ResultT<T>, void> {
     return new DelayedIterator(Promise.all([
         accumulateStream(lhs),
         accumulateStream(rhs)
     ]).then(([left, right]) => {
-        return (function*() {
-            for (let l of left) {
-                for (let r of right) {
-                    let [leftType, leftValue] = l;
-                    let [rightType, rightValue] = r;
-                    let newValue = {};
+        return (function*() : Generator<ResultT<T>, void> {
+            for (const l of left) {
+                for (const r of right) {
+                    const [leftType, leftValue] = l;
+                    const [rightType, rightValue] = r;
+                    const newValue = {} as T;
                     Object.assign(newValue, leftValue);
                     Object.assign(newValue, rightValue);
-                    let newType = combineOutputTypes(leftType, rightType);
+                    const newType = combineOutputTypes(leftType, rightType);
                     yield [newType, newValue];
                 }
             }
@@ -172,14 +189,18 @@ export function tableCrossJoin(lhs, rhs) {
     }));
 }
 
-export function invokeStreamVarRef(env, varref, ...args) {
-    let queue = new AsyncQueue();
+type StreamFunction<T> = (env : ExecEnvironment, emit : EmitFunction<T>, ...args : any[]) => Promise<void>;
 
-    function emit(...value) {
-        queue.push({ value, done: false });
+export function invokeStreamVarRef<T>(env : ExecEnvironment,
+                                      varref : StreamFunction<T>,
+                                      ...args : any[]) : AsyncQueue<IteratorResult<ResultT<T>, void>> {
+    const queue = new AsyncQueue<IteratorResult<ResultT<T>, void>>();
+
+    function emit(type : string, value : T) {
+        queue.push({ value: [type, value], done: false });
     }
     varref(env, emit, ...args).then(() => {
-        queue.push({ done: true });
+        queue.push({ value: undefined, done: true });
     }).catch((err) => {
         queue.cancelWait(err);
     });

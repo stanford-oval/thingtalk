@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -18,27 +18,38 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import vm from 'vm';
+import assert from 'assert';
+import * as vm from 'vm';
 import interpolate from 'string-interp';
 
 import { clean } from '../utils';
-import { Location } from '../builtin/values';
-import { FORMAT_TYPES, isNull } from './format_objects';
+import { Location, LocationLike } from '../builtin/values';
+import {
+    FORMAT_TYPES,
+    FormattedObjectSpec,
+    FormattedObject,
+    FormattedObjectClass,
+    isNull
+} from './format_objects';
+import { EntityType } from '../type';
 import * as I18n from '../i18n';
 
-function compileCode(code) {
+import type { FunctionDef } from '../ast/function_def';
+import type SchemaRetriever from '../schema';
+
+function compileCode(code : string) : FormatFunction {
     return vm.runInNewContext(code);
 }
 
-function isPlainObject(value) {
-    return typeof value === 'object' &&
+function isPlainObject(value : unknown) : value is { [key : string] : unknown } {
+    return typeof value === 'object' && value !== null &&
         (Object.getPrototypeOf(value) === null ||
          Object.getPrototypeOf(value) === Object.prototype);
 }
 
 // Heuristics for default formatting, coming from Brassau
 
-const HARDCODED_OUTPUT_PARAM_IMPORTANCE = {
+const HARDCODED_OUTPUT_PARAM_IMPORTANCE : { [key : string] : number } = {
     id: 100, // ID should be first
 
     video_id: 50,
@@ -55,7 +66,7 @@ const HARDCODED_OUTPUT_PARAM_IMPORTANCE = {
 
     name: -100, // name duplicates ID
 };
-const OUTPUT_PARAM_IMPORTANCE_BY_TYPE = {
+const OUTPUT_PARAM_IMPORTANCE_BY_TYPE : { [key : string] : number } = {
     'Entity(tt:picture)': 20,
     'Entity(tt:email_address)': 12,
     'Entity(tt:phone_number)': 12,
@@ -86,6 +97,29 @@ const OUTPUT_PARAM_IMPORTANCE_BY_TYPE = {
  * @namespace
  */
 
+type PlainObject = { [key : string] : unknown };
+
+interface FunctionSpec {
+    type : 'code';
+    code : string;
+}
+interface TextSpec {
+    type : 'text';
+    text : string;
+}
+
+type FormatFunction = (value : PlainObject, hint : string, formatter : Formatter) => FormatSpecChunk|FormatSpecChunk[];
+
+type FormatSpecChunk = string | FormattedObjectSpec | TextSpec | FunctionSpec | FormatFunction;
+export type FormatSpec = FormatSpecChunk[];
+type FormattedChunk = string | FormattedObject;
+
+interface InternalFormattedChunk {
+    formatted : FormattedChunk;
+    isPrefix : boolean;
+    importance : number;
+}
+
 /**
  * An object that is able to convert structured ThingTalk results
  * into something suitable for display to the user.
@@ -93,6 +127,10 @@ const OUTPUT_PARAM_IMPORTANCE_BY_TYPE = {
  * @extends FormatUtils
  */
 export default class Formatter extends interpolate.Formatter {
+    private _schemas : SchemaRetriever;
+    private _interp : (template : string, args : any) => string;
+    private _ : (key : string) => string;
+
     /**
      * Construct a new formatter.
      *
@@ -101,22 +139,25 @@ export default class Formatter extends interpolate.Formatter {
      * @param {SchemaRetriever} schemaRetriever - the interface to access Thingpedia for formatting information
      * @param {Gettext} [gettext] - gettext instance; this is optional if {@link I18n.init} has been called
      */
-    constructor(locale, timezone, schemaRetriever, gettext = I18n.get(locale)) {
+    constructor(locale : string,
+                timezone : string,
+                schemaRetriever : SchemaRetriever,
+                gettext : I18n.Gettext = I18n.get(locale)) {
         super(locale, timezone);
         this._schemas = schemaRetriever;
-        this._interp = (string, args) => interpolate(string, args, { locale, timezone });
+        this._interp = (string, args) => interpolate(string, args, { locale, timezone })||'';
 
         // we cannot assume gettext is prebound here, if the user passes it here instead
         // of calling I18n.init
         this._ = gettext.dgettext.bind(gettext, 'thingtalk');
     }
 
-    _displayKey(key, functionDef) {
+    private _displayKey(key : string, functionDef : FunctionDef|null) : string {
         let buf = '';
-        let split = key.split(/\./g);
+        const split = key.split(/\./g);
         let first = true;
 
-        for (let part of split) {
+        for (const part of split) {
             if (first) {
                 buf = this._displayKeyPart(part, functionDef);
                 first = false;
@@ -131,7 +172,7 @@ export default class Formatter extends interpolate.Formatter {
         return buf;
     }
 
-    _displayKeyPart(key, functionDef) {
+    private _displayKeyPart(key : string, functionDef : FunctionDef|null) : string {
         if (functionDef === null)
             return clean(key);
 
@@ -143,14 +184,17 @@ export default class Formatter extends interpolate.Formatter {
             return 'address';
         }
 
-        if (functionDef.hasArgument(key))
-            return functionDef.getArgCanonical(key);
+        if (functionDef.hasArgument(key)) {
+            const canonical = functionDef.getArgCanonical(key);
+            if (canonical)
+                return canonical;
+        }
         return clean(key);
     }
 
-    _replaceInString(str, argMap) {
+    _replaceInString(str : unknown, argMap : PlainObject) : string|null {
         if (typeof str !== 'string')
-            return undefined;
+            return null;
 
         const replaced = interpolate(str, argMap, {
             locale: this._locale,
@@ -162,14 +206,14 @@ export default class Formatter extends interpolate.Formatter {
         return replaced;
     }
 
-    async _getFunctionDef(outputType) {
+    private async _getFunctionDef(outputType : string|null) : Promise<FunctionDef|null> {
         if (outputType === null)
             return null;
         const [kind, function_name] = outputType.split(':');
         return this._schemas.getMeta(kind, 'query', function_name);
     }
 
-    _getArgImportance(fullArgName, functionDef) {
+    private _getArgImportance(fullArgName : string, functionDef : FunctionDef|null) : number {
         const dot = fullArgName.lastIndexOf('.');
         const argname = fullArgName.substring(dot+1, fullArgName.length);
 
@@ -191,7 +235,11 @@ export default class Formatter extends interpolate.Formatter {
         return 0;
     }
 
-    _formatFallbackValue(key, value, functionDef, outputPrefix, importanceOffset) {
+    private _formatFallbackValue(key : string,
+                                 value : unknown,
+                                 functionDef : FunctionDef|null,
+                                 outputPrefix : string,
+                                 importanceOffset : number) : InternalFormattedChunk[] {
         if (value === null || value === undefined)
             return [];
 
@@ -208,7 +256,7 @@ export default class Formatter extends interpolate.Formatter {
 
             // if it's an array, iterate all of the elements
             const keyDisplay = this._displayKey(key, functionDef);
-            const result = [];
+            const result : InternalFormattedChunk[] = [];
 
             const importance = importanceOffset + this._getArgImportance(key, functionDef);
 
@@ -244,15 +292,23 @@ export default class Formatter extends interpolate.Formatter {
                         locale: this._locale,
                         timezone: this._timezone,
                         nullReplacement: this._("N/A")
-                    }),
+                    })||'',
+                    isPrefix: false,
                     importance
                 }];
             }
             if (arg) {
-
                 // do a type-based display if we can
-                if (arg.type.isEntity && arg.type.type === 'tt:picture')
-                    return [{ formatted: new (FORMAT_TYPES.picture)({ url: value }), importance }];
+                if (arg.type instanceof EntityType && arg.type.type === 'tt:picture') {
+                    return [{
+                        formatted: new (FORMAT_TYPES.picture)({
+                            type: 'picture',
+                            url: value as string
+                        }),
+                        isPrefix: false,
+                        importance
+                    }];
+                }
             }
 
             return [{
@@ -264,14 +320,19 @@ export default class Formatter extends interpolate.Formatter {
                     timezone: this._timezone,
                     nullReplacement: this._("N/A")
                 }),
+                isPrefix: false,
                 importance
             }];
         }
     }
 
-    _formatFallbackObject(outputValue, functionDef, keyPrefix = '', outputPrefix = '', importanceOffset = 0.0) {
-        let keyCount = 0, projectionKey, hasId = false;
-        for (let key in outputValue) {
+    private _formatFallbackObject(outputValue : PlainObject,
+                                  functionDef : FunctionDef|null,
+                                  keyPrefix = '',
+                                  outputPrefix = '',
+                                  importanceOffset = 0.0) : InternalFormattedChunk[] {
+        let keyCount = 0, projectionKey = '', hasId = false;
+        for (const key in outputValue) {
             if (key === 'id') {
                 hasId = true;
             } else {
@@ -295,17 +356,19 @@ export default class Formatter extends interpolate.Formatter {
                     timezone: this._timezone,
                     nullReplacement: this._("N/A")
                 }),
+                isPrefix: false,
                 importance
             }];
         }
 
         const result = [];
-        for (let key in outputValue)
+        for (const key in outputValue)
             result.push(...this._formatFallbackValue(keyPrefix + key, outputValue[key], functionDef, outputPrefix, importanceOffset));
         return result;
     }
 
-    async _formatFallback(outputValue, outputType) {
+    private async _formatFallback(outputValue : PlainObject,
+                                  outputType : string|null) : Promise<FormattedChunk[]> {
         const functionDef = await this._getFunctionDef(outputType);
 
         // iterate the whole result to collect how to display, and each
@@ -328,7 +391,9 @@ export default class Formatter extends interpolate.Formatter {
         return output.map((out) => out.formatted);
     }
 
-    async _formatAggregation(outputValue, operator, outputType) {
+    private async _formatAggregation(outputValue : PlainObject,
+                                     operator : string,
+                                     outputType : string) : Promise<string[]> {
         if (operator === 'count' && Object.prototype.hasOwnProperty.call(outputValue, 'count')) {
             return [this._interp(this._("${count:plural:\
                 one {I found ${count} result.}\
@@ -370,7 +435,9 @@ export default class Formatter extends interpolate.Formatter {
         })];
     }
 
-    async formatForType(outputType, outputValue, hint) {
+    async formatForType(outputType : string,
+                        outputValue : PlainObject,
+                        hint : string) : Promise<string|FormattedChunk[]> {
         // apply masquerading for @remote.receive
         // outputValue[0..2] are the input parameters (principal, programId and flow)
         // outputValue[3] is the real underlying output type, and outputValue.slice(4)
@@ -378,26 +445,21 @@ export default class Formatter extends interpolate.Formatter {
         if (outputType === 'org.thingpedia.builtin.thingengine.remote:receive')
             outputType = String(outputValue.__kindChannel);
 
-        // Handle builtin:get_commands specially
-        if (outputType === 'org.thingpedia.builtin.thingengine.builtin:get_commands')
-            return { type: 'program', program: outputValue.program };
-
-
         if (outputType === null)
-            return await this._formatFallback(outputValue, null);
+            return this._formatFallback(outputValue, null);
 
         // for now, ignore multiple output types
         if (outputType.indexOf('+') >= 0) {
-            let types = outputType.split('+');
+            const types = outputType.split('+');
             outputType = types[types.length-1];
         }
 
         const aggregation = /^([a-zA-Z]+)\(([^)]+)\)$/.exec(outputType);
         if (aggregation !== null)
-            return await this._formatAggregation(outputValue, aggregation[1], aggregation[2]);
+            return this._formatAggregation(outputValue, aggregation[1], aggregation[2]);
 
-        let [kind, function_name] = outputType.split(':');
-        const metadata = await this._schemas.getFormatMetadata(kind, function_name);
+        const [kind, function_name] = outputType.split(':');
+        const metadata : FormatSpecChunk[] = await this._schemas.getFormatMetadata(kind, function_name);
         if (metadata.length) {
             const formatted = this.format(metadata, outputValue, hint);
             // if formatting returned nothing (due to killing all elements from the format spec)
@@ -410,29 +472,36 @@ export default class Formatter extends interpolate.Formatter {
         }
     }
 
-    _toFormatObjects(codeResult) {
+    private _toFormatObjects(codeResult : FormatSpecChunk|FormatSpecChunk[]) : Array<FormattedChunk|null> {
+        let chunks : FormatSpecChunk[];
         if (!Array.isArray(codeResult))
-            codeResult = [codeResult];
-        return codeResult.map((r) => {
-            if (r === null || typeof f !== 'object')
+            chunks = [codeResult];
+        else
+            chunks = codeResult;
+        return chunks.map((r) => {
+            assert(typeof r !== 'function');
+            if (r === null || typeof r !== 'object')
                 return r;
             if (r.type === 'text')
                 return r.text;
 
-            const formatType = FORMAT_TYPES[r.type];
+            const formatType = FORMAT_TYPES[r.type as keyof typeof FORMAT_TYPES] as FormattedObjectClass;
             if (!formatType) {
                 console.log(`WARNING: unrecognized format type ${r.type}`);
                 return null;
             }
-            const obj = new formatType(r);
+            const obj = new formatType(r as FormattedObjectSpec);
             if (!obj.isValid())
                 return null;
             return obj;
         });
     }
 
-    format(formatspec, argMap, hint) {
-        return this._applyHint(formatspec.map((f, i) => {
+    format(formatspec : FormatSpecChunk[],
+           argMap : PlainObject,
+           hint : string) : string|FormattedChunk[] {
+
+        const formatted : Array<Array<FormattedChunk|null>|FormattedChunk|null> = formatspec.map((f : FormatSpecChunk, i : number) : Array<FormattedChunk|null>|FormattedChunk|null => {
             if (typeof f === 'function')
                 return this._toFormatObjects(f(argMap, hint, this));
             if (typeof f === 'string')
@@ -444,12 +513,12 @@ export default class Formatter extends interpolate.Formatter {
             if (f.type === 'text')
                 return this._replaceInString(f.text, argMap);
             if (f.type === 'code') {
-                let compiled = compileCode('(' + f.code + ')');
+                const compiled = compileCode('(' + f.code + ')');
                 formatspec[i] = compiled;
                 return this._toFormatObjects(compiled(argMap, hint, this));
             }
 
-            const formatType = FORMAT_TYPES[f.type];
+            const formatType = FORMAT_TYPES[f.type as keyof typeof FORMAT_TYPES] as FormattedObjectClass;
             if (!formatType) {
                 console.log(`WARNING: unrecognized format type ${f.type}`);
                 return null;
@@ -461,32 +530,33 @@ export default class Formatter extends interpolate.Formatter {
                 return null;
 
             return obj;
-        }), hint);
+        });
+        return this._applyHint(formatted, hint);
     }
 
-    _normalize(formatted) {
+    private _normalize(formatted : Array<Array<FormattedChunk|null>|FormattedChunk|null>) : FormattedChunk[] {
         // filter out null/undefined in the array
-        let filtered = formatted.filter((formatted) => !isNull(formatted));
+        const filtered = formatted.filter((formatted) => !isNull(formatted)) as Array<FormattedChunk[]|FormattedChunk>;
         // flatten formatted (returning array in function causes nested array)
-        return [].concat.apply([], filtered);
+        const empty : FormattedChunk[] = [];
+        return empty.concat(...filtered);
     }
 
-    _applyHint(formatted, hint) {
-        formatted = this._normalize(formatted);
+    private _applyHint(formatted : Array<Array<FormattedChunk|null>|FormattedChunk|null>, hint : string) : string|FormattedChunk[] {
+        const normalized = this._normalize(formatted);
 
         if (hint === 'string') {
-            formatted = formatted.map((x) => {
+            return normalized.map((x) => {
                 if (typeof x !== 'object')
                     return this.anyToString(x);
                 return x.toLocaleString(this._locale);
-            });
-            return formatted.join('\n');
+            }).join('\n');
         } else {
-            return formatted;
+            return normalized;
         }
     }
 
-    anyToString(o) {
+    anyToString(o : unknown) : string {
         if (Array.isArray(o))
             return (o.map(this.anyToString, this).join(', '));
         else if (Location.isLocation(o))
@@ -506,7 +576,7 @@ export default class Formatter extends interpolate.Formatter {
      * @return {string} the formatted location
      * @deprecated Use {@link Builtin.Location#toLocaleString} instead.
      */
-    locationToString(loc) {
+    locationToString(loc : LocationLike) : string {
         return new Location(loc.y, loc.x, loc.display).toLocaleString(this._locale);
     }
 }
