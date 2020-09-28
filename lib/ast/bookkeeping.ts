@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -20,11 +20,13 @@
 
 import assert from 'assert';
 
-import Node from './base';
+import Node, { SourceRange } from './base';
+import NodeVisitor from './visitor';
 import { Input } from './program';
 import { Value } from './values';
 import { BooleanExpression } from './expression';
 import * as Typechecking from '../typecheck';
+import SchemaRetriever from '../schema';
 
 /**
  * A ThingTalk input that drives the dialog.
@@ -39,15 +41,17 @@ import * as Typechecking from '../typecheck';
  * @alias Ast.Input.Bookkeeping
  * @extends Ast.Input
  */
-class Bookkeeping extends Input {
+export class Bookkeeping extends Input {
+    intent : BookkeepingIntent;
+
     /**
      * Construct a new bookkeeping input.
      *
-     * @param {Ast~SourceRange|null} location - the position of this node
+     * @param location - the position of this node
      *        in the source code
-     * @param {Ast.BookkeepingIntent} intent - the current intent
+     * @param intent - the current intent
      */
-    constructor(location, intent) {
+    constructor(location : SourceRange|null, intent : BookkeepingIntent) {
         super(location);
 
         /**
@@ -59,22 +63,20 @@ class Bookkeeping extends Input {
         this.intent = intent;
     }
 
-    visit(visitor) {
+    visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitBookkeeping(this))
             this.intent.visit(visitor);
         visitor.exit(this);
     }
 
-    clone() {
+    clone() : Bookkeeping {
         return new Bookkeeping(this.location, this.intent.clone());
     }
 
-    *iterateSlots() {}
-    *iterateSlots2() {}
-
-    typecheck(schemas, getMeta = false) {
-        return Typechecking.typeCheckBookkeeping(this.intent, schemas, getMeta).then(() => this);
+    async typecheck(schemas : SchemaRetriever, getMeta = false) : Promise<this> {
+        await Typechecking.typeCheckBookkeeping(this.intent, schemas, getMeta);
+        return this;
     }
 }
 Input.Bookkeeping = Bookkeeping;
@@ -86,7 +88,7 @@ Bookkeeping.prototype.isBookkeeping = true;
  * @alias Ast.BookkeepingSpecialTypes
  * @type {string[]}
  */
-const BookkeepingSpecialTypes = [
+export const BookkeepingSpecialTypes = [
     'yes',
     'no',
     'failed',
@@ -110,10 +112,26 @@ const BookkeepingSpecialTypes = [
  * this class.
  *
  * @alias Ast.BookkeepingIntent
- * @extends Ast~Node
  */
-class BookkeepingIntent extends Node {
+export abstract class BookkeepingIntent extends Node {
+    static Special : any;
+    isSpecial ! : boolean;
+    static CommandList : any;
+    isCommandList ! : boolean;
+    static Choice : any;
+    isChoice ! : boolean;
+    static Answer : any;
+    isAnswer ! : boolean;
+    static Predicate : any;
+    isPredicate ! : boolean;
+
+    abstract clone() : BookkeepingIntent;
 }
+BookkeepingIntent.prototype.isSpecial = false;
+BookkeepingIntent.prototype.isCommandList = false;
+BookkeepingIntent.prototype.isChoice = false;
+BookkeepingIntent.prototype.isAnswer = false;
+BookkeepingIntent.prototype.isPredicate = false;
 
 /**
  * A special bookkeeping command.
@@ -124,15 +142,17 @@ class BookkeepingIntent extends Node {
  * @alias Ast.BookkeepingIntent.Special
  * @extends Ast.BookkeepingIntent
  */
-class SpecialBookkeepingIntent extends BookkeepingIntent {
+export class SpecialBookkeepingIntent extends BookkeepingIntent {
+    type : string;
+
     /**
      * Construct a new special command.
      *
-     * @param {Ast~SourceRange|null} location - the position of this node
+     * @param location - the position of this node
      *        in the source code
-     * @param {string} type - the command type (one of {@link Ast.BookkeepingSpecialTypes})
+     * @param type - the command type (one of {@link Ast.BookkeepingSpecialTypes})
      */
-    constructor(location, type) {
+    constructor(location : SourceRange|null, type : string) {
         super(location);
 
         assert(typeof type === 'string');
@@ -143,13 +163,13 @@ class SpecialBookkeepingIntent extends BookkeepingIntent {
         this.type = type;
     }
 
-    visit(visitor) {
+    visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         visitor.visitSpecialBookkeepingIntent(this);
         visitor.exit(this);
     }
 
-    clone() {
+    clone() : SpecialBookkeepingIntent {
         return new SpecialBookkeepingIntent(this.location, this.type);
     }
 }
@@ -164,7 +184,9 @@ BookkeepingIntent.Special = SpecialBookkeepingIntent;
  * @alias Ast.BookkeepingIntent.Choice
  * @extends Ast.BookkeepingIntent
  */
-class ChoiceBookkeepingIntent extends BookkeepingIntent {
+export class ChoiceBookkeepingIntent extends BookkeepingIntent {
+    value : number;
+
     /**
      * Construct a new choice command.
      *
@@ -172,7 +194,7 @@ class ChoiceBookkeepingIntent extends BookkeepingIntent {
      *        in the source code
      * @param {number} value - the choice index
      */
-    constructor(location, value) {
+    constructor(location : SourceRange|null, value : number) {
         super(location);
 
         assert(typeof value === 'number');
@@ -183,13 +205,13 @@ class ChoiceBookkeepingIntent extends BookkeepingIntent {
         this.value = value;
     }
 
-    visit(visitor) {
+    visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         visitor.visitChoiceBookkeepingIntent(this);
         visitor.exit(this);
     }
 
-    clone() {
+    clone() : ChoiceBookkeepingIntent {
         return new ChoiceBookkeepingIntent(this.location, this.value);
     }
 }
@@ -204,16 +226,19 @@ BookkeepingIntent.Choice = ChoiceBookkeepingIntent;
  * @alias Ast.BookkeepingIntent.CommandList
  * @extends Ast.BookkeepingIntent
  */
-class CommandListBookkeepingIntent extends BookkeepingIntent {
+export class CommandListBookkeepingIntent extends BookkeepingIntent {
+    device : Value;
+    category : string;
+
     /**
      * Construct a new command list command.
      *
-     * @param {Ast~SourceRange|null} location - the position of this node
+     * @param location - the position of this node
      *        in the source code
-     * @param {Ast.Value} device - the device to ask for (an `Entity` or `Undefined` value)
-     * @param {string} category - the Thingpedia (sub)category to ask for
+     * @param device - the device to ask for (an `Entity` or `Undefined` value)
+     * @param category - the Thingpedia (sub)category to ask for
      */
-    constructor(location, device, category) {
+    constructor(location : SourceRange|null, device : Value, category : string) {
         super(location);
 
         assert(device instanceof Value);
@@ -231,14 +256,14 @@ class CommandListBookkeepingIntent extends BookkeepingIntent {
         this.category = category;
     }
 
-    visit(visitor) {
+    visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitCommandListBookkeepingIntent(this))
             this.device.visit(visitor);
         visitor.exit(this);
     }
 
-    clone() {
+    clone() : CommandListBookkeepingIntent {
         return new CommandListBookkeepingIntent(this.location, this.device, this.category);
     }
 }
@@ -253,15 +278,16 @@ BookkeepingIntent.CommandList = CommandListBookkeepingIntent;
  * @alias Ast.BookkeepingIntent.Answer
  * @extends Ast.BookkeepingIntent
  */
-class AnswerBookkeepingIntent extends BookkeepingIntent {
+export class AnswerBookkeepingIntent extends BookkeepingIntent {
+    value : Value;
+
     /**
      * Construct a new answer command.
      *
-     * @param {Ast~SourceRange|null} location - the position of this node
-     *        in the source code
-     * @param {Ast.Value} value - the answer value
+     * @param location - the position of this node in the source code
+     * @param value - the answer value
      */
-    constructor(location, value) {
+    constructor(location : SourceRange|null, value : Value) {
         super(location);
 
         assert(value instanceof Value);
@@ -272,14 +298,14 @@ class AnswerBookkeepingIntent extends BookkeepingIntent {
         this.value = value;
     }
 
-    visit(visitor) {
+    visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitAnswerBookkeepingIntent(this))
             this.value.visit(visitor);
         visitor.exit(this);
     }
 
-    clone() {
+    clone() : AnswerBookkeepingIntent {
         return new AnswerBookkeepingIntent(this.location, this.value);
     }
 }
@@ -294,15 +320,16 @@ BookkeepingIntent.Answer = AnswerBookkeepingIntent;
  * @deprecated Predicates cannot be typechecked in isolation, and should be replaced with
  *             contextual commands instead.
  */
-class PredicateBookkeepingIntent extends BookkeepingIntent {
+export class PredicateBookkeepingIntent extends BookkeepingIntent {
+    predicate : BooleanExpression;
+
     /**
      * Construct a new answer command.
      *
-     * @param {Ast~SourceRange|null} location - the position of this node
-     *        in the source code
-     * @param {Ast.BooleanExpression} predicate - the predicate to add
+     * @param location - the position of this node in the source code
+     * @param predicate - the predicate to add
      */
-    constructor(location, predicate) {
+    constructor(location : SourceRange|null, predicate : BooleanExpression) {
         super(location);
 
         assert(predicate instanceof BooleanExpression);
@@ -313,21 +340,16 @@ class PredicateBookkeepingIntent extends BookkeepingIntent {
         this.predicate = predicate;
     }
 
-    visit(visitor) {
+    visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitPredicateBookkeepingIntent(this))
             this.predicate.visit(visitor);
         visitor.exit(this);
     }
 
-    clone() {
+    clone() : PredicateBookkeepingIntent {
         return new PredicateBookkeepingIntent(this.location, this.predicate);
     }
 }
 PredicateBookkeepingIntent.prototype.isPredicate = true;
 BookkeepingIntent.Predicate = PredicateBookkeepingIntent;
-
-export {
-    BookkeepingSpecialTypes,
-    BookkeepingIntent
-};

@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -20,17 +20,33 @@
 
 import assert from 'assert';
 
-import AstNode from './base';
-import { Input, Statement } from './program';
+import AstNode, { SourceRange } from './base';
+import { Input, Statement, Rule, Command } from './program';
 import * as Optimizer from '../optimize';
 import * as Typechecking from '../typecheck';
 import { prettyprintStatement, prettyprintHistoryItem } from '../prettyprint';
-import { Value } from './values';
+import { Selector, DeviceSelector, Invocation } from './expression';
+import { Value, NumberValue } from './values';
+import { ExpressionSignature } from './function_def';
 import NodeVisitor from './visitor';
-import { ResultSlot, recursiveYieldArraySlots } from './slots';
+import {
+    OldSlot,
+    AbstractSlot,
+    ResultSlot,
+    recursiveYieldArraySlots
+} from './slots';
+import type SchemaRetriever from '../schema';
+
+type ResultMap = { [key : string] : Value };
+type RawResultMap = { [key : string] : unknown };
 
 export class DialogueHistoryResultItem extends AstNode {
-    constructor(location, value, raw = null) {
+    value : ResultMap;
+    raw : RawResultMap|null;
+
+    constructor(location : SourceRange|null,
+                value : ResultMap,
+                raw : RawResultMap|null = null) {
         super(location);
 
         assert(typeof value === 'object');
@@ -40,29 +56,29 @@ export class DialogueHistoryResultItem extends AstNode {
         this.raw = raw;
     }
 
-    clone() {
-        const newValue = {};
+    clone() : DialogueHistoryResultItem {
+        const newValue : ResultMap = {};
         Object.assign(newValue, this.value);
         return new DialogueHistoryResultItem(this.location, newValue, this.raw);
     }
 
-    visit(visitor) {
+    visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitDialogueHistoryResultItem(this)) {
-            for (let key in this.value)
+            for (const key in this.value)
                 this.value[key].visit(visitor);
         }
         visitor.exit(this);
     }
 
-    *iterateSlots2(schema) {
-        for (let key in this.value) {
-            let arg = schema ? schema.getArgument(key) : null;
+    *iterateSlots2(schema : ExpressionSignature|null) : Generator<Selector|AbstractSlot, void> {
+        for (const key in this.value) {
+            const arg = (schema ? schema.getArgument(key) : null) || null;
             yield* recursiveYieldArraySlots(new ResultSlot(null, {}, arg, this.value, key));
         }
     }
 
-    equals(other) {
+    equals(other : DialogueHistoryResultItem) : boolean {
         const keys = Object.keys(this.value).sort();
         const otherkeys = Object.keys(other.value).sort();
         if (keys.length !== otherkeys.length)
@@ -77,10 +93,10 @@ export class DialogueHistoryResultItem extends AstNode {
     }
 }
 
-function setEquals(set1, set2) {
+function setEquals<T>(set1 : Set<T>, set2 : Set<T>) : boolean {
     if (set1.size !== set2.size)
         return false;
-    for (let el of set1) {
+    for (const el of set1) {
         if (!set2.has(el))
             return false;
     }
@@ -95,14 +111,23 @@ function setEquals(set1, set2) {
  * @alias Ast.DialogueHistoryResultList
  */
 export class DialogueHistoryResultList extends AstNode {
-    constructor(location, results, count, more = false, error = null) {
+    results : DialogueHistoryResultItem[];
+    count : Value;
+    more : boolean;
+    error : Value|null;
+
+    constructor(location : SourceRange|null,
+                results : DialogueHistoryResultItem[],
+                count : Value,
+                more = false,
+                error : Value|null = null) {
         super(location);
         assert(Array.isArray(results));
         assert(count instanceof Value);
         // either count is not a number (it's a __const_ token) or it's at least as many as the results we see
-        assert(!count.isNumber || count.value >= results.length);
+        assert(!(count instanceof NumberValue) || count.value >= results.length);
         // at least one results is always presented, unless there are truly no results
-        assert(results.length > 0 || (count.isNumber && count.value === 0));
+        assert(results.length > 0 || (count instanceof NumberValue && count.value === 0));
         assert(typeof more === 'boolean');
 
         this.results = results;
@@ -111,14 +136,14 @@ export class DialogueHistoryResultList extends AstNode {
         this.error = error;
     }
 
-    clone() {
+    clone() : DialogueHistoryResultList {
         return new DialogueHistoryResultList(this.location, this.results.map((r) => r.clone()), this.count.clone(), this.more, this.error);
     }
 
-    visit(visitor) {
+    visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitDialogueHistoryResultList(this)) {
-            for (let result of this.results)
+            for (const result of this.results)
                 result.visit(visitor);
             if (this.error)
                 this.error.visit(visitor);
@@ -126,16 +151,22 @@ export class DialogueHistoryResultList extends AstNode {
         visitor.exit(this);
     }
 
-    *iterateSlots2(schema) {
-        for (let result of this.results)
+    *iterateSlots2(schema : ExpressionSignature|null) : Generator<Selector|AbstractSlot, void> {
+        for (const result of this.results)
             yield* result.iterateSlots2(schema);
     }
 
-    equals(other) {
+    equals(other : DialogueHistoryResultList) : boolean {
         if (this === other)
             return true;
         if (this.more === other.more || !this.count.equals(other.count))
             return false;
+        if (this.error !== other.error) {
+            if (!this.error || !other.error)
+                return false;
+            if (!this.error.equals(other.error))
+                return false;
+        }
 
         if (this.results.length !== other.results.length)
             return false;
@@ -147,6 +178,9 @@ export class DialogueHistoryResultList extends AstNode {
     }
 }
 
+export type ConfirmationState = 'proposed' | 'accepted' | 'confirmed';
+type ExecutableStatement = Rule | Command;
+
 /**
  * A single item in the dialogue state. Consists of a program and optionally
  * the results from that program.
@@ -154,7 +188,14 @@ export class DialogueHistoryResultList extends AstNode {
  * @alias Ast.DialogueHistoryItem
  */
 export class DialogueHistoryItem extends AstNode {
-    constructor(location, stmt, results, confirm) {
+    stmt : ExecutableStatement;
+    results : DialogueHistoryResultList|null;
+    confirm : ConfirmationState;
+
+    constructor(location : SourceRange|null,
+                stmt : ExecutableStatement,
+                results : DialogueHistoryResultList|null,
+                confirm : ConfirmationState|boolean) {
         super(location);
         assert(stmt instanceof Statement);
         assert(results === null || results instanceof DialogueHistoryResultList);
@@ -167,12 +208,13 @@ export class DialogueHistoryItem extends AstNode {
         this.confirm = confirm;
     }
 
-    _getFunctions() {
+    private _getFunctions() {
         const functions = new Set;
         const visitor = new class extends NodeVisitor {
-            visitInvocation(invocation) {
+            visitInvocation(invocation : Invocation) {
                 assert(invocation.selector.isDevice);
-                functions.add('call:' + invocation.selector.kind + ':' + invocation.channel);
+                functions.add('call:' + (invocation.selector as DeviceSelector).kind
+                    + ':' + invocation.channel);
                 return false;
             }
         };
@@ -180,15 +222,15 @@ export class DialogueHistoryItem extends AstNode {
         return functions;
     }
 
-    prettyprint(prefix = '') {
+    prettyprint(prefix = '') : string {
         return prettyprintHistoryItem(this, prefix);
     }
 
-    compatible(other) {
+    compatible(other : DialogueHistoryItem) : boolean {
         return setEquals(this._getFunctions(), other._getFunctions());
     }
 
-    equals(other) {
+    equals(other : DialogueHistoryItem) : boolean {
         if (this === other)
             return true;
         if (this.confirm !== other.confirm)
@@ -199,21 +241,14 @@ export class DialogueHistoryItem extends AstNode {
         if (prettyprintStatement(this.stmt) !== prettyprintStatement(other.stmt))
             return false;
 
-        if ((this.results !== null) !== (other.results !== null))
+        if (this.results === other.results)
+            return true;
+        if (this.results === null || other.results === null)
             return false;
-        if (this.results === null)
-            return false;
-
-        if (this.results.length !== other.results.length)
-            return false;
-        for (let i = 0; i < this.results.length; i++) {
-            if (!this.results[i].equals(other.results[i]))
-                return false;
-        }
-        return true;
+        return this.results.equals(other.results);
     }
 
-    optimize() {
+    optimize() : this|null {
         const newStmt = Optimizer.optimizeRule(this.stmt);
         if (newStmt === null)
             return null;
@@ -221,11 +256,11 @@ export class DialogueHistoryItem extends AstNode {
         return this;
     }
 
-    clone() {
+    clone() : DialogueHistoryItem {
         return new DialogueHistoryItem(this.location, this.stmt.clone(), this.results ? this.results.clone() : null, this.confirm);
     }
 
-    visit(visitor) {
+    visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitDialogueHistoryItem(this)) {
             this.stmt.visit(visitor);
@@ -235,16 +270,18 @@ export class DialogueHistoryItem extends AstNode {
         visitor.exit(this);
     }
 
-    *iterateSlots() {
+    *iterateSlots() : Generator<OldSlot, void> {
         yield* this.stmt.iterateSlots();
         // no slots in a HistoryResult
     }
-    *iterateSlots2() {
+    *iterateSlots2() : Generator<Selector|AbstractSlot, void> {
         yield* this.stmt.iterateSlots2();
         if (this.results === null)
             return;
 
-        let stmtSchema = this.stmt.isCommand && this.stmt.actions.every((a) => a.isNotify) ? this.stmt.table.schema : null;
+        const stmtSchema = this.stmt instanceof Command &&
+            this.stmt.actions.every((a) => a.isNotify) &&
+            this.stmt.table ? this.stmt.table.schema : null;
         yield* this.results.iterateSlots2(stmtSchema);
     }
 }
@@ -262,7 +299,18 @@ export class DialogueHistoryItem extends AstNode {
  * @alias Ast.DialogueState
  */
 export class DialogueState extends Input {
-    constructor(location, policy, dialogueAct, dialogueActParam, history) {
+    policy : string;
+    dialogueAct : string;
+    dialogueActParam : string[]|null;
+    history : DialogueHistoryItem[];
+
+    private _current : DialogueHistoryItem|null;
+
+    constructor(location : SourceRange|null,
+                policy : string,
+                dialogueAct : string,
+                dialogueActParam : string[]|string|null,
+                history : DialogueHistoryItem[]) {
         super(location);
         assert(typeof policy === 'string');
         assert(typeof dialogueAct === 'string');
@@ -282,46 +330,48 @@ export class DialogueState extends Input {
      * @type {Ast.DialogueHistoryItem}
      * @readonly
      */
-    get current() {
+    get current() : DialogueHistoryItem|null {
         return this._current;
     }
 
-    updateCurrent() {
-        for (let item of this.history) {
+    private updateCurrent() {
+        for (const item of this.history) {
             if (item.results !== null)
                 this._current = item;
         }
     }
 
-    optimize() {
-        this.history = this.history.map((prog) => prog.optimize()).filter((prog) => prog !== null);
+    optimize() : this {
+        this.history = this.history.map((prog) => prog.optimize())
+            .filter((prog) => prog !== null) as DialogueHistoryItem[];
         return this;
     }
 
-    clone() {
+    clone() : DialogueState {
         return new DialogueState(this.location, this.policy, this.dialogueAct, this.dialogueActParam,
             this.history.map((item) => item.clone()));
     }
 
-    typecheck(schemas, getMeta = false) {
-        return Typechecking.typeCheckDialogue(this, schemas, getMeta).then(() => this);
+    async typecheck(schemas : SchemaRetriever, getMeta = false) : Promise<this> {
+        await Typechecking.typeCheckDialogue(this, schemas, getMeta);
+        return this;
     }
 
-    visit(visitor) {
+    visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitDialogueState(this)) {
-            for (let item of this.history)
+            for (const item of this.history)
                 item.visit(visitor);
         }
         visitor.exit(this);
     }
 
-    *iterateSlots() {
-        for (let item of this.history)
+    *iterateSlots() : Generator<OldSlot, void> {
+        for (const item of this.history)
             yield* item.iterateSlots();
     }
-    *iterateSlots2() {
-        for (let item of this.history)
+    *iterateSlots2() : Generator<Selector|AbstractSlot, void> {
+        for (const item of this.history)
             yield* item.iterateSlots2();
     }
 }

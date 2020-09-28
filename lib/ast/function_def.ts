@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -20,18 +20,28 @@
 
 import assert from 'assert';
 
-import Node from './base';
-import Type from '../type';
+import Node, {
+    SourceRange,
+    NLAnnotationMap,
+    AnnotationMap,
+    AnnotationSpec,
+} from './base';
+import Type, { TypeMap, ArrayType, CompoundType } from '../type';
 import { prettyprintType, prettyprintAnnotations } from '../prettyprint';
 import { Value } from './values';
+import { ClassDef } from './class_def';
+import NodeVisitor from './visitor';
 import { clean } from '../utils';
 
 // Class and function definitions
 
-function makeIndex(args) {
-    let index = {};
+type ArgIndexMap = { [key : string] : number };
+type ArgMap = { [key : string] : ArgumentDef };
+
+function makeIndex(args : string[]) : ArgIndexMap {
+    const index : ArgIndexMap = {};
     let i = 0;
-    for (let a of args)
+    for (const a of args)
         index[a] = i++;
     return index;
 }
@@ -39,16 +49,15 @@ function makeIndex(args) {
 /**
  * The direction of a function argument (parameter).
  *
- * @enum
  * @alias Ast.ArgDirection
  */
-export const ArgDirection = {
-    IN_REQ: 'in req',
-    IN_OPT: 'in opt',
-    OUT: 'out'
-};
+export enum ArgDirection {
+    IN_REQ = 'in req',
+    IN_OPT = 'in opt',
+    OUT = 'out'
+}
 
-function legacyAnnotationToValue(value) {
+function legacyAnnotationToValue(value : any) : Value|null {
     let v = null;
     if (typeof value === 'string')
         v = new Value.String(value);
@@ -57,7 +66,7 @@ function legacyAnnotationToValue(value) {
     else if (typeof value === 'number')
         v = new Value.Number(value);
     else if (Array.isArray(value))
-        v = new Value.Array(value.map((elem) => legacyAnnotationToValue(elem)));
+        v = new Value.Array((value as any[]).map((elem : any) => legacyAnnotationToValue(elem) as Value));
     return v;
 }
 
@@ -70,19 +79,31 @@ function legacyAnnotationToValue(value) {
  * @extends Ast~Node
  */
 export class ArgumentDef extends Node {
+    direction : ArgDirection|null;
+    name : string;
+    type : Type;
+    nl_annotations : NLAnnotationMap;
+    impl_annotations : AnnotationMap;
+    is_input : boolean;
+    required : boolean;
+    unique : boolean;
+
     /**
      * Construct a new argument definition.
      *
-     * @param {Ast~SourceRange|null} location - the position of this node
-     *        in the source code
-     * @param {Ast.ArgDirection|null} direction - the direction of the argument, or null for a struct field
-     * @param {string} name - the argument name
-     * @param {Type} type - the argument type
-     * @param {Object.<string, Object>} annotations - annotations of the argument
-     * @param {Object.<string, any>} [annotations.nl={}] - natural-language annotations (translatable annotations)
-     * @param {Object.<string, Ast.Value>} [annotations.impl={}] - implementation annotations
+     * @param location - the position of this node in the source code
+     * @param direction - the direction of the argument, or null for a struct field
+     * @param name - the argument name
+     * @param type - the argument type
+     * @param annotations - annotations of the argument
+     * @param [annotations.nl={}] - natural-language annotations (translatable annotations)
+     * @param [annotations.impl={}] - implementation annotations
      */
-    constructor(location, direction, name, type, annotations = {}) {
+    constructor(location : SourceRange|null,
+                direction : ArgDirection|null,
+                name : string,
+                type : Type,
+                annotations : AnnotationSpec = {}) {
         super(location);
 
         /**
@@ -96,13 +117,13 @@ export class ArgumentDef extends Node {
          * @type {boolean}
          * @readonly
          */
-        this.is_input = direction ? direction !== ArgDirection.OUT : undefined;
+        this.is_input = direction ? direction !== ArgDirection.OUT : true;
         /**
          * Whether this argument is required.
          * @type {boolean}
          * @readonly
          */
-        this.required = direction ? direction === ArgDirection.IN_REQ : undefined;
+        this.required = direction ? direction === ArgDirection.IN_REQ : true;
         /**
          * The argument name.
          * @type {string}
@@ -124,47 +145,48 @@ export class ArgumentDef extends Node {
          */
         this.impl_annotations = annotations.impl || {};
 
-        this.unique = this.impl_annotations.unique && this.impl_annotations.unique.isBoolean && this.impl_annotations.unique.value === true;
-        if (this.direction && type.isCompound)
+        this.unique = this.impl_annotations.unique && this.impl_annotations.unique.isBoolean && this.impl_annotations.unique.toJS() === true;
+        if (this.direction && type instanceof CompoundType)
             this._updateFields(type);
-        if (this.type.isArray && this.type.elem.isCompound)
-            this._flattenCompoundArray(this);
+        if (this.type instanceof ArrayType && this.type.elem instanceof CompoundType)
+            this._flattenCompoundArray();
     }
 
-    _updateFields(type) {
-        for (let field in type.fields) {
+    private _updateFields(type : CompoundType) {
+        for (const field in type.fields) {
             const argumentDef = type.fields[field];
             argumentDef.direction = this.direction;
             argumentDef.is_input = this.is_input;
             argumentDef.required = this.required;
 
-            if (argumentDef.type.isCompound)
+            if (argumentDef.type instanceof CompoundType)
                 this._updateFields(argumentDef.type);
-            if (argumentDef.type.isArray && argumentDef.type.elem.isCompound)
+            if (argumentDef.type instanceof ArrayType && argumentDef.type.elem instanceof CompoundType)
                 this._updateFields(argumentDef.type.elem);
         }
     }
 
     // if a parameter is an array of compounds, flatten the compound
-    _flattenCompoundArray(arg) {
-        assert(arg.type.isArray && arg.type.elem.isCompound);
-        for (let [name, field] of this._iterateCompoundArrayFields(arg.type.elem))
-            arg.type.elem.fields[name] = field;
+    private _flattenCompoundArray() {
+        assert(this.type instanceof ArrayType && this.type.elem instanceof CompoundType);
+
+        const compoundType = this.type.elem as CompoundType;
+        for (const [name, field] of this._iterateCompoundArrayFields(compoundType))
+            compoundType.fields[name] = field;
     }
 
     // iteratively flatten compound fields inside an array
-    *_iterateCompoundArrayFields(compound, prefix='') {
-        for (let fname in compound.fields) {
-            let field = compound.fields[fname].clone();
+    private*_iterateCompoundArrayFields(compound : CompoundType, prefix = '') : Generator<[string, ArgumentDef], void> {
+        for (const fname in compound.fields) {
+            const field = compound.fields[fname].clone();
             yield [prefix + fname, field];
 
-            if (field.type.isCompound)
+            if (field.type instanceof CompoundType)
                 yield *this._iterateCompoundArrayFields(field.type, `${prefix}${fname}.`);
 
-            if (field.type.isArray && field.type.elem.isCompound)
-                this._flattenCompoundArray(field);
+            if (field.type instanceof ArrayType && field.type.elem instanceof CompoundType)
+                field._flattenCompoundArray();
         }
-
     }
 
      /**
@@ -177,8 +199,8 @@ export class ArgumentDef extends Node {
      * @type {string}
      * @readonly
      */
-    get canonical() {
-        let canonical = this.nl_annotations.canonical;
+    get canonical() : string {
+        const canonical = this.nl_annotations.canonical;
         if (typeof canonical === 'string')
             return canonical;
         if (typeof canonical === 'object') {
@@ -199,7 +221,7 @@ export class ArgumentDef extends Node {
      * @return {any|undefined} the annotation normalized value, or `undefined` if the
      *         annotation is not present
      */
-    getImplementationAnnotation(name) {
+    getImplementationAnnotation(name : string) : unknown|undefined {
         if (Object.prototype.hasOwnProperty.call(this.impl_annotations, name))
             return this.impl_annotations[name].toJS();
         else
@@ -213,7 +235,7 @@ export class ArgumentDef extends Node {
      * @return {any|undefined} the annotation value, or `undefined` if the
      *         annotation is not present
      */
-    getNaturalLanguageAnnotation(name) {
+    getNaturalLanguageAnnotation(name : string) : unknown|undefined {
         if (Object.prototype.hasOwnProperty.call(this.nl_annotations, name))
             return this.nl_annotations[name];
         else
@@ -225,7 +247,7 @@ export class ArgumentDef extends Node {
      *
      * @return {Ast.ArgumentDef} the new instance
      */
-    clone() {
+    clone() : ArgumentDef {
         const nl = {};
         Object.assign(nl, this.nl_annotations);
         const impl = {};
@@ -234,7 +256,7 @@ export class ArgumentDef extends Node {
         return new ArgumentDef(this.location, this.direction, this.name, this.type, { nl, impl });
     }
 
-    visit(visitor) {
+    visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         visitor.visitArgumentDef(this);
         visitor.exit(this);
@@ -246,7 +268,7 @@ export class ArgumentDef extends Node {
      * @param {string} [prefix] - an optional prefix to apply when printing the type
      * @return {string} - the ThingTalk code that corresponds to this argument definition
      */
-    toString(prefix = '') {
+    toString(prefix = '') : string {
         return `${this.direction} ${this.name}: ${prettyprintType(this.type, prefix)}${prettyprintAnnotations(this, prefix, true)}`;
     }
 
@@ -256,7 +278,7 @@ export class ArgumentDef extends Node {
      * @param {string} [prefix] - prefix each output line with this string (for indentation)
      * @return {string} the prettyprinted code
      */
-    prettyprint(prefix = '') {
+    prettyprint(prefix = '') : string {
         return `${prefix}${this}`;
     }
 
@@ -267,7 +289,7 @@ export class ArgumentDef extends Node {
      * @readonly
      * @deprecated metadata is deprecated and should not be used. Use {@link Ast.ArgumentDef#nl_annotations} instead.
      */
-    get metadata() {
+    get metadata() : NLAnnotationMap {
         return this.nl_annotations;
     }
 
@@ -277,7 +299,7 @@ export class ArgumentDef extends Node {
      * @readonly
      * @deprecated annotations is deprecated and should not be used. Use {@link Ast.ArgumentDef#impl_annotations} instead.
      */
-    get annotations() {
+    get annotations() : AnnotationMap {
         return this.impl_annotations;
     }
 
@@ -289,36 +311,33 @@ export class ArgumentDef extends Node {
      *         annotation is not present
      * @deprecated getAnnotation is deprecated and should not be used. Use {@link Ast.ArgumentDef#getImplementationAnnotation} instead.
      */
-    getAnnotation(name) {
-        if (Object.prototype.hasOwnProperty.call(this.annotations, name))
-            return this.annotations[name].toJS();
-        else
-            return undefined;
+    getAnnotation(name : string) : unknown|undefined {
+        return this.getImplementationAnnotation(name);
     }
 
-    toManifest() {
-        const obj = {
+    toManifest() : any {
+        const obj : ({ [key : string] : any }) = {
             name: this.name,
             type: prettyprintType(this.type),
             question: this.metadata['prompt'] || '',
             is_input: this.is_input,
             required: this.required
         };
-        for (let key in this.annotations)
+        for (const key in this.annotations)
             obj[key] = this.annotations[key].toJS();
         return obj;
     }
 
-    static fromManifest(manifest) {
-        let is_input = manifest.is_input;
-        let required = manifest.required;
-        let direction = is_input ? (required ? ArgDirection.IN_REQ : ArgDirection.IN_OPT) : ArgDirection.OUT;
-        let name = manifest.name;
-        let type = Type.fromString(manifest.type);
-        let metadata = {};
+    static fromManifest(manifest : any) : ArgumentDef {
+        const is_input = manifest.is_input;
+        const required = manifest.required;
+        const direction = is_input ? (required ? ArgDirection.IN_REQ : ArgDirection.IN_OPT) : ArgDirection.OUT;
+        const name = manifest.name;
+        const type = Type.fromString(manifest.type);
+        const metadata : NLAnnotationMap = {};
         if (manifest.question && manifest.question.length > 0) metadata.prompt = manifest.question;
-        let annotations = {};
-        for (let key in manifest) {
+        const annotations : AnnotationMap = {};
+        for (const key in manifest) {
             if (['is_input', 'required', 'type', 'name', 'question'].indexOf(key) >= 0)
                 continue;
             const v = legacyAnnotationToValue(manifest[key]);
@@ -337,6 +356,18 @@ export class ArgumentDef extends Node {
  * @return {boolean} whether the argument passes the filter
  * @callback Ast~ArgumentFilterCallback
  */
+type ArgumentFilterCallback = (arg : ArgumentDef) => boolean;
+
+export type FunctionType = 'stream' | 'query' | 'action';
+
+interface ExpressionSignatureConstructorOptions {
+    is_list ?: boolean;
+    is_monitorable ?: boolean;
+    require_filter ?: boolean;
+    default_projection ?: string[];
+    minimal_projection ?: string[];
+    no_filter ?: boolean;
+}
 
 /**
  * The signature (functional type) of a ThingTalk expression, either a query,
@@ -351,29 +382,56 @@ export class ArgumentDef extends Node {
  * @extends Ast~Node
  */
 export class ExpressionSignature extends Node {
+    kind_type : 'other';
+
+    protected _functionType : FunctionType;
+    protected _args : string[];
+    protected _types : Type[];
+    protected _argmap : ArgMap;
+    protected _index : ArgIndexMap;
+    protected _inReq : TypeMap;
+    protected _inOpt : TypeMap;
+    protected _out : TypeMap;
+    argcanonicals : string[];
+    questions : string[];
+
+    is_list : boolean;
+    is_monitorable : boolean;
+    require_filter : boolean;
+    default_projection : string[];
+    minimal_projection : string[]|undefined;
+    no_filter : boolean;
+
+    protected _extends : string[];
+    protected _class : ClassDef|null;
+
     /**
      * Construct a new expression signature.
      *
      * Client code should not construct {@link Ast.ExpressionSignature},
      * and should prefer constructing {@link Ast.FunctionDef} instead.
      *
-     * @param {Ast~SourceRange|null} location - the position of this node
-     *        in the source code
-     * @param {string} functionType - the signature type (`stream`, `query` or `action`)
-     * @param {Ast.ClassDef|null} klass - the class definition the signature belongs to
-     * @param {string[]|null} _extends - signature definitions that are extended by this definition
-     * @param {Ast.ArgumentDef[]} args - the arguments in this signature
-     * @param {Object.<string, any>} options - additional options of the signature
-     * @param {boolean} [options.is_list=false] - whether this signature defines a `list` query function
-     * @param {boolean} [options.is_monitorable=false] - whether this signature defines a `monitorable` query function
-     * @param {boolean} [options.require_filter=false] - whether this expression must be filtered to typecheck correctly
-     * @param {string[]} [options.default_projection=[]] - list of argument names that are applied as projection to this function
+     * @param location - the position of this node in the source code
+     * @param functionType - the signature type (`stream`, `query` or `action`)
+     * @param klass - the class definition the signature belongs to
+     * @param _extends - signature definitions that are extended by this definition
+     * @param args - the arguments in this signature
+     * @param options - additional options of the signature
+     * @param [options.is_list=false] - whether this signature defines a `list` query function
+     * @param [options.is_monitorable=false] - whether this signature defines a `monitorable` query function
+     * @param [options.require_filter=false] - whether this expression must be filtered to typecheck correctly
+     * @param [options.default_projection=[]] - list of argument names that are applied as projection to this function
      *                                                     when no other projection is present
-     * @param {string[]} [options.minimal_projection=[]] - list of argument names that are always present in any result from this function
-     * @param {boolean} [options.no_filter=false] - whether filtering is allowed on expressions with this signature
+     * @param [options.minimal_projection=[]] - list of argument names that are always present in any result from this function
+     * @param [options.no_filter=false] - whether filtering is allowed on expressions with this signature
      * @package
      */
-    constructor(location, functionType, klass, _extends, args, options) {
+    constructor(location : SourceRange|null,
+                functionType : FunctionType,
+                klass : ClassDef|null,
+                _extends : string[],
+                args : ArgumentDef[],
+                options : ExpressionSignatureConstructorOptions) {
         super(location);
 
         // ignored, for compat only
@@ -389,6 +447,7 @@ export class ExpressionSignature extends Node {
         this._inReq = {};
         this._inOpt = {};
         this._out = {};
+        this._index = {};
 
         /**
          * The canonical forms of arguments defined by this expression signature.
@@ -442,6 +501,10 @@ export class ExpressionSignature extends Node {
         this._class = klass;
     }
 
+    visit(visitor : NodeVisitor) : void {
+        throw new Error('Unimplemented method');
+    }
+
     /**
      * The names of the arguments defined by this expression signature.
      *
@@ -450,24 +513,24 @@ export class ExpressionSignature extends Node {
      * @type {string[]}
      * @readonly
      */
-    get args() {
+    get args() : string[] {
         return this._args;
     }
 
-    removeDefaultProjection() {
+    removeDefaultProjection() : void {
         this.default_projection = [];
     }
 
-    removeMinimalProjection() {
+    removeMinimalProjection() : void {
         this.minimal_projection = [];
     }
 
-    _loadArguments(args) {
+    private _loadArguments(args : ArgumentDef[]) {
         this._args = this._args.concat(args.map((a) => a.name));
         this._types = this._types.concat(args.map((a) => a.type));
         this._index = makeIndex(this._args);
 
-        for (let arg of args) {
+        for (const arg of args) {
             if (arg.is_input && arg.required)
                 this._inReq[arg.name] = arg.type;
             else if (arg.is_input)
@@ -476,7 +539,7 @@ export class ExpressionSignature extends Node {
                 this._out[arg.name] = arg.type;
         }
 
-        for (let arg of args) {
+        for (const arg of args) {
             this.argcanonicals.push(arg.canonical);
             this.questions.push(arg.metadata.question || arg.metadata.prompt || '');
             this._argmap[arg.name] = arg;
@@ -484,18 +547,18 @@ export class ExpressionSignature extends Node {
 
     }
 
-    _flattenCompoundArguments(args) {
+    private _flattenCompoundArguments(args : ArgumentDef[]) : ArgumentDef[] {
         let flattened = args;
         const existed = args.map((a) => a.name);
-        for (let arg of args)
+        for (const arg of args)
             flattened = flattened.concat(this._flattenCompoundArgument(existed, arg));
         return flattened;
     }
 
-    _flattenCompoundArgument(existed, arg) {
+    private _flattenCompoundArgument(existed : string[], arg : ArgumentDef) {
         let flattened = existed.includes(arg.name) ? [] : [arg];
-        if (arg.type.isCompound) {
-            for (let f in arg.type.fields) {
+        if (arg.type instanceof CompoundType) {
+            for (const f in arg.type.fields) {
                 const a = arg.type.fields[f].clone();
                 a.name = arg.name + '.' + a.name;
                 flattened = flattened.concat(this._flattenCompoundArgument(existed, a));
@@ -512,12 +575,12 @@ export class ExpressionSignature extends Node {
      * @param {string} arg - the argument name
      * @return {boolean} `true` if the argument is present on this or a parent signature
      */
-    hasArgument(arg) {
+    hasArgument(arg : string) : boolean {
         if (arg in this._argmap)
             return true;
         if (this.extends.length > 0) {
-            for (let fname of this.extends) {
-                const f = this.class.getFunction(this.functionType, fname);
+            for (const fname of this.extends) {
+                const f = this.class!.getFunction(this.functionType, fname) as FunctionDef;
                 if (f.hasArgument(arg))
                     return true;
             }
@@ -534,12 +597,12 @@ export class ExpressionSignature extends Node {
      * @return {Ast.ArgumentDef|undefined} the argument definition, or `undefined`
      *         if the argument does not exist
      */
-    getArgument(arg) {
+    getArgument(arg : string) : ArgumentDef|undefined {
         if (arg in this._argmap)
             return this._argmap[arg];
         if (this.extends.length > 0) {
-            for (let fname of this.extends) {
-                const f = this.class.getFunction(this.functionType, fname);
+            for (const fname of this.extends) {
+                const f = this.class!.getFunction(this.functionType, fname) as FunctionDef;
                 if (f.hasArgument(arg))
                     return f.getArgument(arg);
             }
@@ -557,12 +620,12 @@ export class ExpressionSignature extends Node {
      * @return {Type|undefined} the argument type, or `undefined`
      *         if the argument does not exist
      */
-    getArgType(arg) {
+    getArgType(arg : string) : Type|undefined {
         if (arg in this._argmap)
             return this._argmap[arg].type;
         if (this.extends.length > 0) {
-            for (let fname of this.extends) {
-                const f = this.class.getFunction(this.functionType, fname);
+            for (const fname of this.extends) {
+                const f = this.class!.getFunction(this.functionType, fname) as FunctionDef;
                 if (f.hasArgument(arg))
                     return f.getArgType(arg);
             }
@@ -580,12 +643,12 @@ export class ExpressionSignature extends Node {
      * @return {string|undefined} the argument's canonical form, or `undefined`
      *         if the argument does not exist
      */
-    getArgCanonical(arg) {
+    getArgCanonical(arg : string) : string|undefined {
         if (arg in this._argmap)
             return this._argmap[arg].canonical;
         if (this.extends.length > 0) {
-            for (let fname of this.extends) {
-                const f = this.class.getFunction(this.functionType, fname);
+            for (const fname of this.extends) {
+                const f = this.class!.getFunction(this.functionType, fname) as FunctionDef;
                 if (f.hasArgument(arg))
                     return f.getArgCanonical(arg);
             }
@@ -603,12 +666,12 @@ export class ExpressionSignature extends Node {
      * @return {Object.<string,any>|undefined} the argument's metadata, or `undefined`
      *         if the argument does not exist
      */
-    getArgMetadata(arg) {
+    getArgMetadata(arg : string) : NLAnnotationMap|undefined {
         if (arg in this._argmap)
             return this._argmap[arg].metadata;
         if (this.extends.length > 0) {
-            for (let fname of this.extends) {
-                const f = this.class.getFunction(this.functionType, fname);
+            for (const fname of this.extends) {
+                const f = this.class!.getFunction(this.functionType, fname) as FunctionDef;
                 if (f.hasArgument(arg))
                     return f.getArgMetadata(arg);
             }
@@ -626,12 +689,12 @@ export class ExpressionSignature extends Node {
      * @return {boolean|undefined} whether the argument is an input, or `undefined`
      *         if the argument does not exist
      */
-    isArgInput(arg) {
+    isArgInput(arg : string) : boolean|undefined {
         if (arg in this._argmap)
             return this._argmap[arg].is_input;
         if (this.extends.length > 0) {
-            for (let fname of this.extends) {
-                const f = this.class.getFunction(this.functionType, fname);
+            for (const fname of this.extends) {
+                const f = this.class!.getFunction(this.functionType, fname) as FunctionDef;
                 if (f.hasArgument(arg))
                     return f.isArgInput(arg);
             }
@@ -649,12 +712,12 @@ export class ExpressionSignature extends Node {
      * @return {boolean|undefined} whether the argument is required, or `undefined`
      *         if the argument does not exist
      */
-    isArgRequired(arg) {
+    isArgRequired(arg : string) : boolean|undefined {
         if (arg in this._argmap)
             return this._argmap[arg].required;
         if (this.extends.length > 0) {
-            for (let fname of this.extends) {
-                const f = this.class.getFunction(this.functionType, fname);
+            for (const fname of this.extends) {
+                const f = this.class!.getFunction(this.functionType, fname) as FunctionDef;
                 if (f.hasArgument(arg))
                     return f.isArgRequired(arg);
             }
@@ -670,8 +733,8 @@ export class ExpressionSignature extends Node {
      * @param {Set} [returned=new Set] - a set of returned argument names to avoid duplicates
      * @yields {Ast.ArgumentDef}
      */
-    *iterateArguments(returned = new Set) {
-        for (let arg of this.args) {
+    *iterateArguments(returned = new Set<string>()) : Generator<ArgumentDef, void> {
+        for (const arg of this.args) {
             if (!returned.has(arg)) {
                 returned.add(arg);
                 yield this._argmap[arg];
@@ -680,16 +743,16 @@ export class ExpressionSignature extends Node {
         if (this.extends.length > 0) {
             if (!this.class)
                 throw new Error(`Class information missing from the function definition.`);
-            for (let fname of this.extends)
-                yield *this.class.getFunction(this.functionType, fname).iterateArguments(returned);
+            for (const fname of this.extends)
+                yield *this.class.getFunction(this.functionType, fname)!.iterateArguments(returned);
         }
     }
 
     /**
      * Check if this expression signature has any input arguments.
      */
-    hasAnyInputArg() {
-        for (let arg of this.iterateArguments()) {
+    hasAnyInputArg() : boolean {
+        for (const arg of this.iterateArguments()) {
             if (arg.is_input)
                 return true;
         }
@@ -699,8 +762,8 @@ export class ExpressionSignature extends Node {
     /**
      * Check if this expression signature has any output arguments.
      */
-    hasAnyOutputArg() {
-        for (let arg of this.iterateArguments()) {
+    hasAnyOutputArg() : boolean {
+        for (const arg of this.iterateArguments()) {
             if (!arg.is_input)
                 return true;
         }
@@ -708,7 +771,7 @@ export class ExpressionSignature extends Node {
     }
 
     // extract arguments from base functions
-    _flattenSubFunctionArguments() {
+    private _flattenSubFunctionArguments() {
         return Array.from(this.iterateArguments());
     }
 
@@ -725,7 +788,8 @@ export class ExpressionSignature extends Node {
      * @return {Ast.ExpressionSignature} a clone of this signature, with a new
      *         set of arguments.
      */
-    _cloneInternal(args, flattened=false) {
+    protected _cloneInternal(args : ArgumentDef[],
+                             flattened=false) : ExpressionSignature {
         return new ExpressionSignature(
             this.location,
             this.functionType,
@@ -737,7 +801,7 @@ export class ExpressionSignature extends Node {
                 is_monitorable: this.is_monitorable,
                 require_filter: this.require_filter,
                 default_projection: this.default_projection.slice(),
-                minimal_projection: this.minimal_projection.slice(),
+                minimal_projection: this.minimal_projection ? this.minimal_projection.slice() : undefined,
                 no_filter: this.no_filter
             });
     }
@@ -747,7 +811,7 @@ export class ExpressionSignature extends Node {
      *
      * @return {Ast.ExpressionSignature} a clone of this signature
      */
-    clone() {
+    clone() : ExpressionSignature {
         return this._cloneInternal(this.args.map((a) => this._argmap[a]));
     }
 
@@ -757,10 +821,10 @@ export class ExpressionSignature extends Node {
      * This method does not mutate the instance, it returns a new instance with
      * the added argument.
      *
-     * @param {Ast.ArgumentDef} toAdd - the argument to add
-     * @return {Ast.ExpressionSignature} a clone of this signature with a new argument
+     * @param toAdd - the argument to add
+     * @return a clone of this signature with a new argument
      */
-    addArguments(toAdd) {
+    addArguments(toAdd : ArgumentDef[]) : ExpressionSignature {
         const args = this.args.map((a) => this._argmap[a]);
         args.push(...toAdd);
         return this._cloneInternal(args);
@@ -775,7 +839,7 @@ export class ExpressionSignature extends Node {
      * @param {string} arg - the name of the argument to remove
      * @return {Ast.ExpressionSignature} a clone of this signature with one fewer argument
      */
-    removeArgument(arg) {
+    removeArgument(arg : string) : ExpressionSignature {
         if (arg in this._argmap) {
             const args = this.args.filter((a) => a !== arg).map((a) => this._argmap[a]);
             return this._cloneInternal(args);
@@ -797,7 +861,7 @@ export class ExpressionSignature extends Node {
      * @param {Ast~ArgumentFilterCallback} filter - a filter callback
      * @return {Ast.ExpressionSignature} a clone of this signature
      */
-    filterArguments(filter) {
+    filterArguments(filter : ArgumentFilterCallback) : ExpressionSignature {
         const args = this._flattenSubFunctionArguments().filter(filter);
         return this._cloneInternal(args, true);
     }
@@ -807,7 +871,7 @@ export class ExpressionSignature extends Node {
      * @type {string}
      * @readonly
      */
-    get functionType() {
+    get functionType() : FunctionType {
         return this._functionType;
     }
 
@@ -816,7 +880,7 @@ export class ExpressionSignature extends Node {
      * @type {string[]}
      * @readonly
      */
-    get extends() {
+    get extends() : string[] {
         return this._extends;
     }
 
@@ -826,7 +890,7 @@ export class ExpressionSignature extends Node {
      * @type {Ast.ClassDef|null}
      * @readonly
      */
-    get class() {
+    get class() : ClassDef|null {
         return this._class;
     }
 
@@ -842,11 +906,11 @@ export class ExpressionSignature extends Node {
      *             function inheritance is used, and not particularly useful.
      *             Use {@link Ast.ExpressionSignature#iterateArguments} instead.
      */
-    get types() {
+    get types() : Type[] {
         if (this.extends.length === 0)
             return this._types;
         const types = [];
-        for (let arg of this.iterateArguments())
+        for (const arg of this.iterateArguments())
             types.push(arg.type);
         return types;
     }
@@ -860,11 +924,11 @@ export class ExpressionSignature extends Node {
      *             function inheritance is used.
      *             Use {@link Ast.ExpressionSignature#iterateArguments} instead.
      */
-    get inReq() {
+    get inReq() : TypeMap {
         if (this.extends.length === 0)
             return this._inReq;
-        const args = {};
-        for (let arg of this.iterateArguments()) {
+        const args : TypeMap = {};
+        for (const arg of this.iterateArguments()) {
             if (arg.required)
                 args[arg.name] = arg.type;
         }
@@ -880,11 +944,11 @@ export class ExpressionSignature extends Node {
      *             function inheritance is used.
      *             Use {@link Ast.ExpressionSignature#iterateArguments} instead.
      */
-    get inOpt() {
+    get inOpt() : TypeMap {
         if (this.extends.length === 0)
             return this._inOpt;
-        const args = {};
-        for (let arg of this.iterateArguments()) {
+        const args : TypeMap = {};
+        for (const arg of this.iterateArguments()) {
             if (arg.is_input && !arg.required)
                 args[arg.name] = arg.type;
         }
@@ -900,11 +964,11 @@ export class ExpressionSignature extends Node {
      *             function inheritance is used.
      *             Use {@link Ast.ExpressionSignature#iterateArguments} instead.
      */
-    get out() {
+    get out() : TypeMap {
         if (this.extends.length === 0)
             return this._out;
-        const args = {};
-        for (let arg of this.iterateArguments()) {
+        const args : TypeMap = {};
+        for (const arg of this.iterateArguments()) {
             if (!arg.is_input)
                 args[arg.name] = arg.type;
         }
@@ -918,11 +982,16 @@ export class ExpressionSignature extends Node {
      * @readonly
      * @deprecated This property is deprecated and will not work properly for functions with inheritance
      */
-    get index() {
+    get index() : ArgIndexMap {
         if (this.extends.length === 0)
             return this._index;
         throw new Error(`The index API for functions is deprecated and cannot be used with function inheritance`);
     }
+}
+
+interface FunctionQualifiers {
+    is_list : boolean;
+    is_monitorable : boolean;
 }
 
 /**
@@ -934,7 +1003,7 @@ export class ExpressionSignature extends Node {
  * Function definitions are semi-immutable: you should not modify a function definition
  * received from outside. Instead, you should call {@link Ast.FunctionDef#clone}
  * to create a new instance you can modify. This includes modifying metadata and annotations
- * throw the {@link Ast.FunctionDef#metadata} and {@link Ast.FunctionDef#annotations}
+ * through the {@link Ast.FunctionDef#metadata} and {@link Ast.FunctionDef#annotations}
  * properties. Failure to call {@link Ast.FunctionDef#clone} will result in obsure
  * type checking errors.
  *
@@ -942,12 +1011,16 @@ export class ExpressionSignature extends Node {
  * @extends Ast.ExpressionSignature
  */
 export class FunctionDef extends ExpressionSignature {
+    private _name : string;
+    private _qualifiers : FunctionQualifiers;
+    private _nl_annotations : NLAnnotationMap;
+    private _impl_annotations : AnnotationMap;
+
     /**
      * Construct a new function definition.
      *
-     * @param {Ast~SourceRange|null} location - the position of this node
-     *        in the source code
-     * @param {string} functionType - the function type (`stream`, `query` or `action`)
+     * @param location - the position of this node in the source code
+     * @param functionType - the function type (`stream`, `query` or `action`)
      * @param {Ast.ClassDef|null} klass - the class that the function belongs to
      * @param {string} name - the function name
      * @param {string[]|null} _extends - functions that are extended by this definition
@@ -959,25 +1032,32 @@ export class FunctionDef extends ExpressionSignature {
      * @param {Object.<string, any>} [annotations.nl={}] - natural language annotations of the function (translatable annotations)
      * @param {Object.<string, Ast.Value>} [annotations.impl={}]- implementation annotations
      */
-    constructor(location, functionType, klass, name, _extends, qualifiers, args, annotations) {
+    constructor(location : SourceRange|null,
+                functionType : FunctionType,
+                klass : ClassDef|null,
+                name : string,
+                _extends : string[],
+                qualifiers : FunctionQualifiers,
+                args : ArgumentDef[],
+                annotations : AnnotationSpec) {
         // load up options for function signature from qualifiers and annotations
-        const options = {};
+        const options : ExpressionSignatureConstructorOptions = {};
         options.is_list = qualifiers.is_list || false;
         options.is_monitorable = qualifiers.is_monitorable || false;
 
         if (annotations.impl) {
             if ('require_filter' in annotations.impl)
-                options.require_filter = annotations.impl.require_filter.value;
+                options.require_filter = annotations.impl.require_filter.toJS() as boolean;
             else
                 options.require_filter = false;
             if ('default_projection' in annotations.impl && annotations.impl.default_projection.isArray)
-                options.default_projection = annotations.impl.default_projection.toJS();
+                options.default_projection = annotations.impl.default_projection.toJS() as string[];
             else
                 options.default_projection = [];
 
             options.minimal_projection = undefined;
             if ('minimal_projection' in annotations.impl && annotations.impl.minimal_projection.isArray)
-                options.minimal_projection = annotations.impl.minimal_projection.toJS();
+                options.minimal_projection = annotations.impl.minimal_projection.toJS() as string[];
         }
 
         super(location, functionType, klass, _extends, args, options);
@@ -992,22 +1072,26 @@ export class FunctionDef extends ExpressionSignature {
             this._setMinimalProjection();
     }
 
-    setClass(klass) {
+    clone() : FunctionDef {
+        return this._cloneInternal(this.args.map((a) => this._argmap[a]));
+    }
+
+    setClass(klass : ClassDef) : void {
         this._class = klass;
         this._setMinimalProjection();
     }
 
-    removeDefaultProjection() {
+    removeDefaultProjection() : void {
         this.default_projection = [];
         delete this._impl_annotations.default_projection;
     }
 
-    removeMinimalProjection() {
+    removeMinimalProjection() : void {
         this.minimal_projection = [];
         delete this._impl_annotations.minimal_projection;
     }
 
-    _setMinimalProjection() {
+    private _setMinimalProjection() {
         if (this.minimal_projection === undefined) {
             if (this.hasArgument('id')) {
                 this.minimal_projection = ['id'];
@@ -1020,7 +1104,7 @@ export class FunctionDef extends ExpressionSignature {
         if (this.default_projection.length > 0) {
             // if default_projection is specified, all minimally present
             // arguments must be part of it
-            for (let arg of this.minimal_projection)
+            for (const arg of this.minimal_projection)
                 assert(this.default_projection.includes(arg));
         }
     }
@@ -1030,7 +1114,7 @@ export class FunctionDef extends ExpressionSignature {
      * @type {string}
      * @readonly
      */
-    get name() {
+    get name() : string {
         return this._name;
     }
 
@@ -1040,7 +1124,7 @@ export class FunctionDef extends ExpressionSignature {
      * @type {Object.<string,any>}
      * @readonly
      */
-    get nl_annotations() {
+    get nl_annotations() : NLAnnotationMap {
         return this._nl_annotations;
     }
     /**
@@ -1049,7 +1133,7 @@ export class FunctionDef extends ExpressionSignature {
      * @readonly
      *
      */
-    get impl_annotations() {
+    get impl_annotations() : AnnotationMap {
         return this._impl_annotations;
     }
 
@@ -1060,7 +1144,7 @@ export class FunctionDef extends ExpressionSignature {
      * @return {any|undefined} the annotation normalized value, or `undefined` if the
      *         annotation is not present
      */
-    getImplementationAnnotation(name) {
+    getImplementationAnnotation(name : string) : unknown|undefined {
         if (Object.prototype.hasOwnProperty.call(this.impl_annotations, name))
             return this.impl_annotations[name].toJS();
         else
@@ -1074,7 +1158,7 @@ export class FunctionDef extends ExpressionSignature {
      * @return {any|undefined} the annotation value, or `undefined` if the
      *         annotation is not present
      */
-    getNaturalLanguageAnnotation(name) {
+    getNaturalLanguageAnnotation(name : string) : unknown|undefined {
         if (Object.prototype.hasOwnProperty.call(this.nl_annotations, name))
             return this.nl_annotations[name];
         else
@@ -1087,15 +1171,15 @@ export class FunctionDef extends ExpressionSignature {
      * @param {string} [prefix] - prefix each output line with this string (for indentation)
      * @return {string} the prettyprinted code
      */
-    toString(prefix = '') {
-        let annotations = prettyprintAnnotations(this);
+    toString(prefix = '') : string {
+        const annotations = prettyprintAnnotations(this);
 
         const extendclause = this._extends.length > 0 ? ` extends ${this._extends.join(', ')}` : '';
         const firstline = `${prefix}${this.is_monitorable ? 'monitorable ' : ''}${this.is_list ? 'list ' : ''}${this.functionType} ${this.name}${extendclause}`;
         // skip arguments flattened from compound param
         const args = this.args.filter((a) => !a.includes('.'));
 
-        let padding = ' '.repeat(firstline.length+1);
+        const padding = ' '.repeat(firstline.length+1);
         if (args.length === 0)
             return `${firstline}()${annotations};`;
         if (args.length === 1)
@@ -1116,14 +1200,14 @@ export class FunctionDef extends ExpressionSignature {
      * @param {string} [prefix] - prefix each output line with this string (for indentation)
      * @return {string} the prettyprinted code
      */
-    prettyprint(prefix = '') {
+    prettyprint(prefix = '') : string {
         return this.toString(prefix);
     }
 
-    visit(visitor) {
+    visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitFunctionDef(this)) {
-            for (let arg of this.args)
+            for (const arg of this.args)
                 this._argmap[arg].visit(visitor);
         }
         visitor.exit(this);
@@ -1138,7 +1222,7 @@ export class FunctionDef extends ExpressionSignature {
      * @type {string}
      * @readonly
      */
-    get canonical() {
+    get canonical() : string|undefined {
         return this.nl_annotations.canonical;
     }
 
@@ -1151,18 +1235,18 @@ export class FunctionDef extends ExpressionSignature {
      * @type {string|undefined}
      * @readonly
      */
-    get confirmation() {
+    get confirmation() : string|undefined {
         return this.nl_annotations.confirmation;
     }
 
-    _cloneInternal(args, flattened=false) {
+    _cloneInternal(args : ArgumentDef[], flattened = false) : FunctionDef {
         // clone qualifiers
-        const qualifiers = Object.assign({}, this._qualifiers);
+        const qualifiers : FunctionQualifiers = Object.assign({}, this._qualifiers);
 
         // clone annotations
-        const nl = {};
+        const nl : NLAnnotationMap = {};
         Object.assign(nl, this.nl_annotations);
-        const impl = {};
+        const impl : AnnotationMap = {};
         Object.assign(impl, this.impl_annotations);
         const annotations = { nl, impl };
 
@@ -1175,15 +1259,13 @@ export class FunctionDef extends ExpressionSignature {
 
     /**
      * Iterate all bases of this function (including indirect bases)
-     *
-     * @yields {Ast.FunctionDef}
      */
-    *iterateBaseFunctions() {
+    *iterateBaseFunctions() : Generator<string, void> {
         yield this.name;
         if (this.extends.length > 0) {
             if (!this.class)
                 throw new Error(`Class information missing from the function definition.`);
-            for (let fname of this.extends) {
+            for (const fname of this.extends) {
                 const f = this.class.getFunction(this.functionType, fname);
                 if (!f)
                     throw new TypeError(`Parent function ${fname} not found`);
@@ -1200,11 +1282,8 @@ export class FunctionDef extends ExpressionSignature {
      *         annotation is not present
      * @deprecated getAnnotation is deprecated and should not be used. Use {@link Ast.FunctionDef#getImplementationAnnotation} instead.
      */
-    getAnnotation(name) {
-        if (Object.prototype.hasOwnProperty.call(this.annotations, name))
-            return this.annotations[name].toJS();
-        else
-            return undefined;
+    getAnnotation(name : string) : unknown|undefined {
+        return this.getImplementationAnnotation(name);
     }
 
     /**
@@ -1214,7 +1293,7 @@ export class FunctionDef extends ExpressionSignature {
      * @readonly
      * @deprecated metadata is deprecated and should not be used. Use {@link Ast.FunctionDef#nl_annotations} instead.
      */
-    get metadata() {
+    get metadata() : NLAnnotationMap {
         return this._nl_annotations;
     }
     /**
@@ -1223,14 +1302,13 @@ export class FunctionDef extends ExpressionSignature {
      * @readonly
      * @deprecated annotations is deprecated and should not be used. Use {@link Ast.FunctionDef#impl_annotations} instead.
      */
-    get annotations() {
+    get annotations() : AnnotationMap {
         return this._impl_annotations;
     }
 
-
-    toManifest() {
-        let interval = this.annotations['poll_interval'];
-        const obj = {
+    toManifest() : any {
+        const interval = this.annotations['poll_interval'];
+        const obj : ({ [key : string] : any }) = {
             args: this.args.map((a) => this._argmap[a].toManifest()),
             canonical: this.canonical,
             is_list: this.is_list,
@@ -1238,7 +1316,7 @@ export class FunctionDef extends ExpressionSignature {
             confirmation: this.confirmation,
             formatted: this.metadata.formatted || [],
         };
-        for (let key in this.annotations) {
+        for (const key in this.annotations) {
             if (key === 'poll_interval')
                 continue;
             obj[key] = this.annotations[key].toJS();
@@ -1246,11 +1324,11 @@ export class FunctionDef extends ExpressionSignature {
         return obj;
     }
 
-    static fromManifest(functionType, name, manifest) {
-        let args = manifest.args.map((a) => ArgumentDef.fromManifest(a));
-        let is_list = functionType === 'query' ? !!manifest.is_list : false;
-        let is_monitorable = functionType === 'query' ? manifest.poll_interval !== -1 : false;
-        let nl = {
+    static fromManifest(functionType : FunctionType, name : string, manifest : any) {
+        const args = manifest.args.map((a : any) => ArgumentDef.fromManifest(a));
+        const is_list = functionType === 'query' ? !!manifest.is_list : false;
+        const is_monitorable = functionType === 'query' ? manifest.poll_interval !== -1 : false;
+        const nl : NLAnnotationMap = {
             canonical: manifest.canonical || '',
             confirmation: manifest.confirmation || '',
             confirmation_remote: manifest.confirmation_remote || '',
@@ -1258,10 +1336,10 @@ export class FunctionDef extends ExpressionSignature {
         if (functionType === 'query')
             nl.formatted = manifest.formatted;
 
-        let impl = {};
+        const impl : AnnotationMap = {};
         if (is_monitorable)
             impl['poll_interval'] = new Value.Measure(manifest.poll_interval, 'ms');
-        for (let key in manifest) {
+        for (const key in manifest) {
             if (['args', 'is_list', 'is_monitorable', 'poll_interval',
                  'canonical', 'confirmation', 'confirmation_remote', 'formatted'].indexOf(key) >= 0)
                 continue;

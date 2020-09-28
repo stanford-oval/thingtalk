@@ -34,13 +34,13 @@
     "coveralls": "^3.0.0",
     "deep-equal": "^2.0.1",
     "eslint": "^7.1.0",
-    "jsdoc": "^3.6.3",
     "nyc": "^15.0.0",
     "pegjs": "~0.10.0",
     "q": "^1.5.1",
     "seedrandom": "^3.0.0",
     "source-map-support": "^0.5.19",
     "ts-node": "^9.0.0",
+    "typedoc": "^0.19.2",
     "typescript": "^4.0.3"
   },
   "scripts": {
@@ -50,7 +50,7 @@
     "test": "nyc ts-node ./test/test_all",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "prepare": "make",
-    "doc": "jsdoc -c jsdoc.json --readme README.md --package package.json --verbose -r index.js lib/"
+    "doc": "typedoc lib/index.ts"
   },
   "nyc": {
     "extends": "@istanbuljs/nyc-config-typescript",

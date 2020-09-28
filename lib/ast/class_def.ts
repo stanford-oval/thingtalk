@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -20,49 +20,85 @@
 
 import assert from 'assert';
 
+import { SourceRange, NLAnnotationMap, AnnotationMap, AnnotationSpec } from './base';
 import Type from '../type';
 import { prettyprintClassDef } from '../prettyprint';
 import { clean, cleanKind } from '../utils';
-import { Value } from './values';
-import { InputParam } from './expression';
-import { Statement } from './program';
-import { FunctionDef } from './function_def';
-import { getString, extractImports, typeToHTML } from './manifest_utils';
+import { Value, ArgMapValue } from './values';
+import { Selector, InputParam } from './expression';
+import { Statement, MixinImportStmt, EntityDef } from './program';
+import { FunctionType, FunctionDef } from './function_def';
+import { extractImports, typeToHTML } from './manifest_utils';
+import { OldSlot, AbstractSlot } from './slots';
+import NodeVisitor from './visitor';
 
 // Class definitions
+
+type FunctionMap = { [key : string] : FunctionDef };
+
+interface ClassMemberSpec {
+    imports ?: MixinImportStmt[];
+    entities ?: EntityDef[];
+    queries ?: FunctionMap;
+    actions ?: FunctionMap;
+}
+
+interface ClassConstructOptions {
+    is_abstract ?: boolean;
+}
 
 /**
  * The definition of a ThingTalk class.
  *
- * @extends {Ast.Statement}
  * @alias Ast.ClassDef
  */
 export class ClassDef extends Statement {
+    name : string;
+    kind : string;
+    extends : string[];
+    imports : MixinImportStmt[];
+    entities : EntityDef[];
+    queries : FunctionMap;
+    actions : FunctionMap;
+    nl_annotations : NLAnnotationMap;
+    impl_annotations : AnnotationMap;
+
+    /**
+     * If the class is an abstract class.
+     */
+    readonly is_abstract : boolean;
+
     /**
      * Construct a new class definition.
      *
-     * @param {Ast~SourceRange|null} location - the position of this node
-     *        in the source code
-     * @param {string} kind - the class identifier in Thingpedia
-     * @param {Ast.ClassDef[]|null} _extends - parent classes (if any)
-     * @param {Object.<string, any>} members - the class members including queries, actions, entities, imports
-     * @param {Ast.ImportStmt[]} [members.imports=[]] - import statements in this class
-     * @param {Ast.EntityDef[]} [members.entities=[]] - entity declarations in this class
-     * @param {Object.<string, Ast.FunctionDef>} [members.queries={}] - query functions in this class
-     * @param {Object.<string, Ast.FunctionDef>} [members.actions={}] - action functions in this class
-     * @param {Object<string, Object>} annotations - annotations of the class
-     * @param {Object.<string, any>} [annotations.nl={}] - natural language annotations of the class (translatable annotations)
-     * @param {Object.<string, Ast.Value>} [annotations.impl={}] - implementation annotations of the class
-     * @param {Object<string, any>} options - additional options for the class
-     * @param {boolean} [options.is_abstract=false] - `true` if this is an abstract class which has no implementation
+     * @param location - the position of this node in the source code
+     * @param kind - the class identifier in Thingpedia
+     * @param _extends - parent classes (if any)
+     * @param members - the class members including queries, actions, entities, imports
+     * @param [members.imports=[]] - import statements in this class
+     * @param [members.entities=[]] - entity declarations in this class
+     * @param [members.queries={}] - query functions in this class
+     * @param [members.actions={}] - action functions in this class
+     * @param annotations - annotations of the class
+     * @param [annotations.nl={}] - natural language annotations of the class (translatable annotations)
+     * @param [annotations.impl={}] - implementation annotations of the class
+     * @param options - additional options for the class
+     * @param [options.is_abstract=false] - `true` if this is an abstract class which has no implementation
      */
-    constructor(location, kind, _extends, members, annotations, options) {
+    constructor(location : SourceRange|null,
+                kind : string,
+                _extends : string[]|null,
+                members : ClassMemberSpec,
+                annotations : AnnotationSpec,
+                options ?: ClassConstructOptions) {
         super(location);
         this.name = kind;
         this.kind = kind;
 
         // load parent classes
         assert(_extends === null || Array.isArray(_extends));
+        if (_extends === null)
+            _extends = [];
         this.extends = _extends;
 
         // load class members
@@ -73,38 +109,41 @@ export class ClassDef extends Statement {
         this._adjustParentPointers();
 
         // load annotations
-        for (let annotationType of ['nl', 'impl']) {
-            if (annotationType in annotations)
-                assert(typeof annotations[annotationType] === 'object');
-        }
+        assert(typeof annotations.nl === 'undefined' ||
+               typeof annotations.nl === 'object');
+        assert(typeof annotations.impl === 'undefined' ||
+               typeof annotations.impl === 'object');
         this.nl_annotations = annotations.nl || {};
         this.impl_annotations = annotations.impl || {};
 
         // load additional options
-        this._options = options;
+        this.is_abstract = !!(options && options.is_abstract);
     }
 
-    visit(visitor) {
+    *iterateSlots() : Generator<OldSlot, void> {
+    }
+    *iterateSlots2() : Generator<Selector|AbstractSlot, void> {
+    }
+
+    visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitClassDef(this)) {
-            for (let import_ of this.imports)
+            for (const import_ of this.imports)
                 import_.visit(visitor);
-            for (let entity of this.entities)
+            for (const entity of this.entities)
                 entity.visit(visitor);
-            for (let query in this.queries)
+            for (const query in this.queries)
                 this.queries[query].visit(visitor);
-            for (let action in this.actions)
+            for (const action in this.actions)
                 this.actions[action].visit(visitor);
         }
         visitor.exit(this);
     }
 
-    *iterateSlots() {}
-
-    _adjustParentPointers() {
-        for (let name in this.queries)
+    private _adjustParentPointers() {
+        for (const name in this.queries)
             this.queries[name].setClass(this);
-        for (let name in this.actions)
+        for (const name in this.actions)
             this.actions[name].setClass(this);
     }
 
@@ -116,7 +155,7 @@ export class ClassDef extends Statement {
      * @return {module.Ast.FunctionDef|undefined} the function definition, or `undefined`
      *         if the function does not exist
      */
-    getFunction(type, name) {
+    getFunction(type : FunctionType, name : string) : FunctionDef|undefined {
         if (type === 'query')
             return this.queries[name];
         if (type === 'action')
@@ -131,7 +170,7 @@ export class ClassDef extends Statement {
      * @return {any|undefined} the annotation normalized value, or `undefined` if the
      *         annotation is not present
      */
-    getImplementationAnnotation(name) {
+    getImplementationAnnotation(name : string) : unknown|undefined {
         if (Object.prototype.hasOwnProperty.call(this.impl_annotations, name))
             return this.impl_annotations[name].toJS();
         else
@@ -145,7 +184,7 @@ export class ClassDef extends Statement {
      * @return {any|undefined} the annotation value, or `undefined` if the
      *         annotation is not present
      */
-    getNaturalLanguageAnnotation(name) {
+    getNaturalLanguageAnnotation(name : string) : unknown|undefined {
         if (Object.prototype.hasOwnProperty.call(this.nl_annotations, name))
             return this.nl_annotations[name];
         else
@@ -158,7 +197,7 @@ export class ClassDef extends Statement {
      * @param {string} [prefix] - prefix each output line with this string (for indentation)
      * @return {string} the prettyprinted code
      */
-    prettyprint(prefix = '') {
+    prettyprint(prefix = '') : string {
         return prettyprintClassDef(this, prefix);
     }
 
@@ -167,28 +206,28 @@ export class ClassDef extends Statement {
      *
      * @return {Ast.ClassDef} the cloned class definition
      */
-    clone() {
+    clone() : ClassDef {
         // clone members
         const imports = this.imports.map((i) => i.clone());
         const entities = this.entities.map((e) => e.clone());
-        const queries = {};
-        const actions = {};
-        for (let name in this.queries)
+        const queries : FunctionMap = {};
+        const actions : FunctionMap = {};
+        for (const name in this.queries)
             queries[name] = this.queries[name].clone();
-        for (let name in this.actions)
+        for (const name in this.actions)
             actions[name] = this.actions[name].clone();
         const members = { imports, entities, queries, actions };
 
         // clone annotations
-        const nl = {};
+        const nl : NLAnnotationMap = {};
         Object.assign(nl, this.nl_annotations);
-        const impl = {};
+        const impl : AnnotationMap = {};
         Object.assign(impl, this.impl_annotations);
         const annotations = { nl, impl };
 
         // clone other options
         const options = {
-            is_abstract: this._options.is_abstract || false
+            is_abstract: this.is_abstract
         };
 
         return new ClassDef(this.location, this.kind, this.extends, members, annotations, options);
@@ -200,7 +239,7 @@ export class ClassDef extends Statement {
      * @type {Ast.ImportStmt|undefined}
      * @readonly
      */
-    get loader() {
+    get loader() : MixinImportStmt|undefined {
         return this.imports.find((i) => i.facets.includes('loader'));
     }
 
@@ -210,7 +249,7 @@ export class ClassDef extends Statement {
      * @type {Ast.ImportStmt|undefined}
      * @readonly
      */
-    get config() {
+    get config() : MixinImportStmt|undefined {
         return this.imports.find((i) => i.facets.includes('config'));
     }
 
@@ -223,22 +262,12 @@ export class ClassDef extends Statement {
      * @type {string}
      * @readonly
      */
-    get canonical() {
+    get canonical() : string {
         return this.nl_annotations.canonical || cleanKind(this.kind);
     }
 
-    /**
-     * If the class is an abstract class.
-     *
-     * @type {string}
-     * @readonly
-     */
-    get is_abstract() {
-        return this._options && this._options.is_abstract ? this._options.is_abstract : false;
-    }
-
-    _params() {
-        let params = {};
+    private _params() {
+        const params : { [key : string] : [string, string] } = {};
         const config = this.config;
         if (!config)
             return params;
@@ -246,7 +275,7 @@ export class ClassDef extends Statement {
         case 'org.thingpedia.config.form':
         case 'org.thingpedia.config.basic_auth':
             if (config.in_params.length === 1) {
-                let argMap = config.in_params[0].value;
+                const argMap = config.in_params[0].value as ArgMapValue;
                 Object.entries(argMap.value).forEach(([name, type]) => {
                     params[name] = [clean(name), typeToHTML(type)];
                 });
@@ -255,11 +284,11 @@ export class ClassDef extends Statement {
         return params;
     }
 
-    _auth() {
-        let auth = {};
-        let extraKinds = [];
+    private _auth() : [{ [key : string] : unknown }, string[]] {
+        const auth : { [key : string] : unknown } = {};
+        const extraKinds : string[] = [];
 
-        const config = this.config;
+        const config = this.config as MixinImportStmt;
         config.in_params.forEach((param) => {
             if (param.value.isArgMap)
                 return;
@@ -268,11 +297,11 @@ export class ClassDef extends Statement {
                 extraKinds.push('bluetooth-class-' + param.value.toJS());
                 break;
             case 'uuids':
-                for (let uuid of param.value.toJS())
+                for (const uuid of param.value.toJS() as string[])
                     extraKinds.push('bluetooth-uuid-' + uuid.toLowerCase());
                 break;
             case 'search_target':
-                for (let st of param.value.toJS())
+                for (const st of param.value.toJS() as string[])
                     extraKinds.push('upnp-' + st.toLowerCase().replace(/^urn:/, '').replace(/:/g, '-'));
                 break;
 
@@ -310,7 +339,7 @@ export class ClassDef extends Statement {
         return [auth, extraKinds];
     }
 
-    _getCategory() {
+    private _getCategory() {
         if (this.impl_annotations.system && this.impl_annotations.system.toJS())
             return 'system';
         const config = this.config;
@@ -332,22 +361,18 @@ export class ClassDef extends Statement {
     /**
      * The natural language annotations of the class
      *
-     * @type {Object.<string, Ast.Value>}
-     * @readonly
      * @deprecated metadata is deprecated. Use nl_annotations instead.
      */
-    get metadata() {
+    get metadata() : NLAnnotationMap {
         return this.nl_annotations;
     }
 
     /**
      * The implementation annotations of the class
      *
-     * @type {Object.<string, any>}
-     * @readonly
      * @deprecated annotations is deprecated. Use impl_annotations instead.
      */
-    get annotations() {
+    get annotations() : AnnotationMap {
         return this.impl_annotations;
     }
 
@@ -359,11 +384,8 @@ export class ClassDef extends Statement {
      *         annotation is not present
      * @deprecated getAnnotation is deprecated and should not be used. Use {@link Ast.ClassDef#getImplementationAnnotation} instead.
      */
-    getAnnotation(name) {
-        if (Object.prototype.hasOwnProperty.call(this.annotations, name))
-            return this.annotations[name].toJS();
-        else
-            return undefined;
+    getAnnotation(name : string) : unknown|undefined {
+        return this.getImplementationAnnotation(name);
     }
 
     /**
@@ -372,23 +394,25 @@ export class ClassDef extends Statement {
      * @return {Object} the manifest
      * @deprecated Manifests are deprecated and should not be used. Use .tt files instead.
      */
-    toManifest() {
-        let [queries, actions] = [{}, {}];
+    toManifest() : any {
+        const queries : FunctionMap = {}, actions : FunctionMap = {};
         Object.entries(this.queries).forEach(([name, query]) => queries[name] = query.toManifest());
         Object.entries(this.actions).forEach(([name, action]) => actions[name] = action.toManifest());
 
-        let [auth, extraKinds] = this._auth();
-        let manifest = {
+        const [auth, extraKinds] = this._auth();
+        const manifest = {
             module_type: this.loader ? this.loader.module : 'org.thingpedia.v2',
             kind: this.kind,
             params: this._params(),
             auth: auth,
             queries,
             actions,
-            version: this.annotations.version ? this.annotations.version.value : undefined,
-            types: (this.extends || []).concat(extraKinds),
-            child_types: this.annotations.child_types ? this.annotations.child_types.value.map((v) => getString(v)) : [],
-            category: this._getCategory()
+            version: this.annotations.version ? this.annotations.version.toJS() : undefined,
+            types: this.extends.concat(extraKinds),
+            child_types: this.annotations.child_types ? this.annotations.child_types.toJS() : [],
+            category: this._getCategory(),
+            name: undefined,
+            description: undefined
         };
         if (this.metadata.name) manifest.name = this.metadata.name;
         if (this.metadata.description) manifest.description = this.metadata.description;
@@ -403,19 +427,19 @@ export class ClassDef extends Statement {
      * @return {Ast.ClassDef} the converted class definition
      * @deprecated Manifests are deprecated and should not be used. Use .tt files instead.
      */
-    static fromManifest(kind, manifest) {
-        let _extends = (manifest.types || []).filter((t) => !t.startsWith('bluetooth-') && !t.startsWith('upnp-'));
-        let imports = extractImports(manifest);
-        let queries = {};
-        let actions = {};
-        let metadata = {};
+    static fromManifest(kind : string, manifest : any) : ClassDef {
+        const _extends = ((manifest.types || []) as string[]).filter((t) => !t.startsWith('bluetooth-') && !t.startsWith('upnp-'));
+        const imports = extractImports(manifest);
+        const queries : FunctionMap = {};
+        const actions : FunctionMap = {};
+        const metadata : NLAnnotationMap = {};
         if (manifest.name)
             metadata.name = manifest.name;
         if (manifest.description)
             metadata.description = manifest.description;
-        let annotations = {};
+        const annotations : AnnotationMap = {};
         if (manifest.child_types && manifest.child_types.length)
-            annotations.child_types = new Value.Array(manifest.child_types.map((t) => new Value.String(t)));
+            annotations.child_types = new Value.Array(manifest.child_types.map((t : string) => new Value.String(t)));
         if (manifest.version !== undefined)
             annotations.version = new Value.Number(manifest.version);
         if (manifest.category === 'system')
@@ -423,8 +447,9 @@ export class ClassDef extends Statement {
         Object.entries(manifest.queries).forEach(([name, query]) => queries[name] = FunctionDef.fromManifest('query', name, query));
         Object.entries(manifest.actions).forEach(([name, action]) => actions[name] = FunctionDef.fromManifest('action', name, action));
 
-        let uuids = [], upnpSearchTarget = [], bluetoothclass = undefined;
-        for (let type of (manifest.types || [])) {
+        const uuids : string[] = [], upnpSearchTarget : string[] = [];
+        let bluetoothclass : string|undefined = undefined;
+        for (const type of (manifest.types || [])) {
             if (type.startsWith('bluetooth-uuid-'))
                 uuids.push(type.substring('bluetooth-uuid-'.length));
             else if (type.startsWith('bluetooth-class-'))
@@ -435,12 +460,12 @@ export class ClassDef extends Statement {
         const config = imports.find((i) => i.facets.includes('config'));
         switch (config.module) {
         case 'org.thingpedia.config.discovery.bluetooth':
-            config.in_params.push(new InputParam(null, 'uuids', Value.fromJS(Type.Array(Type.String), uuids)));
+            config.in_params.push(new InputParam(null, 'uuids', Value.fromJS(new Type.Array(Type.String), uuids)));
             if (bluetoothclass)
-                config.in_params.push(new InputParam(null, 'device_class', Value.fromJS(Type.Enum(null), bluetoothclass)));
+                config.in_params.push(new InputParam(null, 'device_class', Value.fromJS(new Type.Enum(null), bluetoothclass)));
             break;
         case 'org.thingpedia.config.discovery.upnp':
-            config.in_params.push(new InputParam(null, 'search_target', Value.fromJS(Type.Array(Type.String), upnpSearchTarget)));
+            config.in_params.push(new InputParam(null, 'search_target', Value.fromJS(new Type.Array(Type.String), upnpSearchTarget)));
             break;
         }
 
@@ -449,5 +474,3 @@ export class ClassDef extends Statement {
 }
 Statement.ClassDef = ClassDef;
 ClassDef.prototype.isClassDef = true;
-
-
