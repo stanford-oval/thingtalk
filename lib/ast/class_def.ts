@@ -167,9 +167,9 @@ export class ClassDef extends Statement {
      * @return {any|undefined} the annotation normalized value, or `undefined` if the
      *         annotation is not present
      */
-    getImplementationAnnotation(name : string) : unknown|undefined {
+    getImplementationAnnotation<T>(name : string) : T|undefined {
         if (Object.prototype.hasOwnProperty.call(this.impl_annotations, name))
-            return this.impl_annotations[name].toJS();
+            return this.impl_annotations[name].toJS() as T;
         else
             return undefined;
     }
@@ -181,9 +181,9 @@ export class ClassDef extends Statement {
      * @return {any|undefined} the annotation value, or `undefined` if the
      *         annotation is not present
      */
-    getNaturalLanguageAnnotation(name : string) : unknown|undefined {
+    getNaturalLanguageAnnotation<T>(name : string) : T|undefined {
         if (Object.prototype.hasOwnProperty.call(this.nl_annotations, name))
-            return this.nl_annotations[name];
+            return this.nl_annotations[name] as T;
         else
             return undefined;
     }
@@ -289,8 +289,8 @@ export class ClassDef extends Statement {
      *         annotation is not present
      * @deprecated getAnnotation is deprecated and should not be used. Use {@link Ast.ClassDef#getImplementationAnnotation} instead.
      */
-    getAnnotation(name : string) : unknown|undefined {
-        return this.getImplementationAnnotation(name);
+    getAnnotation<T>(name : string) : T|undefined {
+        return this.getImplementationAnnotation<T>(name);
     }
 }
 Statement.ClassDef = ClassDef;

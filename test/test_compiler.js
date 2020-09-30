@@ -581,17 +581,19 @@ const TEST_CASES = [
   let _t_1;
   let _t_2;
   let _t_3;
+  let _t_4;
   try {
     _t_1 = new Array(1);
     _t_2 = new __builtin.Time(12, 30, 0);
     _t_1[0] = _t_2;
     _t_0 = await __env.invokeAtTimer(_t_1, null);
+    _t_3 = null;
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
-        _t_3 = _iter_tmp.value;
+        _t_4 = _iter_tmp.value;
         try {
-          await __env.output(null, _t_3);
+          await __env.output(String(_t_3), _t_4);
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -611,20 +613,22 @@ const TEST_CASES = [
   let _t_3;
   let _t_4;
   let _t_5;
+  let _t_6;
   try {
     _t_1 = new Array(1);
     _t_2 = new __builtin.Time(12, 30, 0);
     _t_1[0] = _t_2;
     _t_0 = await __env.invokeAtTimer(_t_1, null);
+    _t_3 = null;
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
-        _t_3 = _iter_tmp.value;
+        _t_4 = _iter_tmp.value;
         try {
-          _t_4 = {};
-          _t_5 = "lol";
-          _t_4.status = _t_5;
-          await __env.invokeAction("com.twitter", { }, "post", _t_4);
+          _t_5 = {};
+          _t_6 = "lol";
+          _t_5.status = _t_6;
+          await __env.invokeAction("com.twitter", { }, "post", _t_5);
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -642,16 +646,18 @@ const TEST_CASES = [
   let _t_1;
   let _t_2;
   let _t_3;
+  let _t_4;
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
     _t_0 = await __env.invokeTimer(_t_1, _t_2, null);
+    _t_3 = null;
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
-        _t_3 = _iter_tmp.value;
+        _t_4 = _iter_tmp.value;
         try {
-          await __env.output(null, _t_3);
+          await __env.output(String(_t_3), _t_4);
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -671,19 +677,21 @@ const TEST_CASES = [
   let _t_3;
   let _t_4;
   let _t_5;
+  let _t_6;
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
     _t_0 = await __env.invokeTimer(_t_1, _t_2, null);
+    _t_3 = null;
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
-        _t_3 = _iter_tmp.value;
+        _t_4 = _iter_tmp.value;
         try {
-          _t_4 = {};
-          _t_5 = "lol";
-          _t_4.status = _t_5;
-          await __env.invokeAction("com.twitter", { }, "post", _t_4);
+          _t_5 = {};
+          _t_6 = "lol";
+          _t_5.status = _t_6;
+          await __env.invokeAction("com.twitter", { }, "post", _t_5);
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -1578,26 +1586,28 @@ const TEST_CASES = [
   let _t_8;
   let _t_9;
   let _t_10;
+  let _t_11;
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 10000;
     _t_0 = await __env.invokeTimer(_t_1, _t_2, null);
+    _t_3 = null;
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
-        _t_3 = _iter_tmp.value;
+        _t_4 = _iter_tmp.value;
         try {
-          _t_4 = {};
-          _t_5 = new __builtin.Entity("1234", null);
-          _t_4.__principal = _t_5;
-          _t_6 = __env.program_id;
-          _t_4.__program_id = _t_6;
-          _t_7 = 0;
-          _t_4.__flow = _t_7;
-          _t_4.__kindChannel = null;
-          _t_8 = 10000;
-          _t_4.interval = _t_8;
-          await __env.invokeAction("org.thingpedia.builtin.thingengine.remote", { }, "send", _t_4);
+          _t_5 = {};
+          _t_6 = new __builtin.Entity("1234", null);
+          _t_5.__principal = _t_6;
+          _t_7 = __env.program_id;
+          _t_5.__program_id = _t_7;
+          _t_8 = 0;
+          _t_5.__flow = _t_8;
+          _t_5.__kindChannel = _t_3;
+          _t_9 = 10000;
+          _t_5.interval = _t_9;
+          await __env.invokeAction("org.thingpedia.builtin.thingengine.remote", { }, "send", _t_5);
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -1608,9 +1618,9 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke timer", _exc_);
   }
   try {
-    _t_9 = new __builtin.Entity("1234", null);
-    _t_10 = 0;
-    await __env.sendEndOfFlow(_t_9, _t_10);
+    _t_10 = new __builtin.Entity("1234", null);
+    _t_11 = 0;
+    await __env.sendEndOfFlow(_t_10, _t_11);
   } catch(_exc_) {
     __env.reportError("Failed to signal end-of-flow", _exc_);
   }`]],
@@ -2271,56 +2281,60 @@ const TEST_CASES = [
   let _t_23;
   let _t_24;
   let _t_25;
+  let _t_26;
+  let _t_27;
   try {
     _t_1 = new Array(1);
     _t_2 = new __builtin.Time(20, 10, 0);
     _t_1[0] = _t_2;
     _t_0 = await __env.invokeAtTimer(_t_1, null);
+    _t_3 = null;
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
-        _t_3 = _iter_tmp.value;
+        _t_4 = _iter_tmp.value;
         try {
-          _t_4 = {};
-          _t_5 = await __env.invokeQuery("com.thecatapi", { id: "com.thecatapi", }, "get", _t_4, { projection: ["picture_url"] });
-          _t_6 = _t_5[Symbol.iterator]();
+          _t_5 = {};
+          _t_6 = await __env.invokeQuery("com.thecatapi", { id: "com.thecatapi", }, "get", _t_5, { projection: ["picture_url"] });
+          _t_7 = _t_6[Symbol.iterator]();
           {
-            let _iter_tmp = await _t_6.next();
+            let _iter_tmp = await _t_7.next();
             while (!_iter_tmp.done) {
-              _t_7 = _iter_tmp.value;
-              _t_8 = _t_7[0];
-              _t_9 = _t_7[1];
-              _t_10 = _t_9.count;
-              _t_11 = _t_9.__response;
-              _t_12 = _t_9.image_id;
-              _t_13 = _t_9.picture_url;
-              _t_14 = _t_9.link;
-              _t_15 = {};
-              _t_15.count = _t_10;
-              _t_15.__response = _t_11;
-              _t_15.image_id = _t_12;
-              _t_15.picture_url = _t_13;
-              _t_15.link = _t_14;
-              _t_16 = _t_15.count;
-              _t_17 = _t_15.__response;
-              _t_18 = _t_15.image_id;
-              _t_19 = _t_15.picture_url;
-              _t_20 = _t_15.link;
+              _t_8 = _iter_tmp.value;
+              _t_9 = _t_8[0];
+              _t_10 = _t_8[1];
+              _t_11 = _t_10.count;
+              _t_12 = _t_10.__response;
+              _t_13 = _t_10.image_id;
+              _t_14 = _t_10.picture_url;
+              _t_15 = _t_10.link;
+              _t_16 = __builtin.combineOutputTypes(_t_3, _t_9);
+              _t_17 = {};
+              _t_17.count = _t_11;
+              _t_17.__response = _t_12;
+              _t_17.image_id = _t_13;
+              _t_17.picture_url = _t_14;
+              _t_17.link = _t_15;
+              _t_18 = _t_17.count;
+              _t_19 = _t_17.__response;
+              _t_20 = _t_17.image_id;
+              _t_21 = _t_17.picture_url;
+              _t_22 = _t_17.link;
               try {
-                _t_21 = {};
-                _t_22 = new __builtin.Entity("xxxx", null);
-                _t_21.to = _t_22;
-                _t_23 = "xxx";
-                _t_21.subject = _t_23;
-                _t_24 = "xxx";
-                _t_21.message = _t_24;
-                _t_25 = String (_t_19);
-                _t_21.picture_url = _t_25;
-                await __env.invokeAction("com.gmail", { id: "xxxx", }, "send_picture", _t_21);
+                _t_23 = {};
+                _t_24 = new __builtin.Entity("xxxx", null);
+                _t_23.to = _t_24;
+                _t_25 = "xxx";
+                _t_23.subject = _t_25;
+                _t_26 = "xxx";
+                _t_23.message = _t_26;
+                _t_27 = String (_t_21);
+                _t_23.picture_url = _t_27;
+                await __env.invokeAction("com.gmail", { id: "xxxx", }, "send_picture", _t_23);
               } catch(_exc_) {
                 __env.reportError("Failed to invoke action", _exc_);
               }
-              _iter_tmp = await _t_6.next();
+              _iter_tmp = await _t_7.next();
             }
           }
         } catch(_exc_) {
@@ -2443,70 +2457,74 @@ const TEST_CASES = [
   let _t_31;
   let _t_32;
   let _t_33;
+  let _t_34;
+  let _t_35;
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
     _t_0 = await __env.invokeTimer(_t_1, _t_2, null);
+    _t_3 = null;
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
-        _t_3 = _iter_tmp.value;
+        _t_4 = _iter_tmp.value;
         try {
-          _t_4 = {};
-          _t_5 = new Array(1);
-          _t_6 = new Array(3);
-          _t_7 = "text";
+          _t_5 = {};
+          _t_6 = new Array(1);
+          _t_7 = new Array(3);
+          _t_8 = "text";
+          _t_7[0] = _t_8;
+          _t_9 = "=~";
+          _t_7[1] = _t_9;
+          _t_10 = "lol";
+          _t_7[2] = _t_10;
           _t_6[0] = _t_7;
-          _t_8 = "=~";
-          _t_6[1] = _t_8;
-          _t_9 = "lol";
-          _t_6[2] = _t_9;
-          _t_5[0] = _t_6;
-          _t_10 = await __env.invokeQuery("com.twitter", { }, "search", _t_4, { projection: ["count", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"], filter: _t_5 });
-          _t_11 = _t_10[Symbol.iterator]();
+          _t_11 = await __env.invokeQuery("com.twitter", { }, "search", _t_5, { projection: ["count", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"], filter: _t_6 });
+          _t_12 = _t_11[Symbol.iterator]();
           {
-            let _iter_tmp = await _t_11.next();
+            let _iter_tmp = await _t_12.next();
             while (!_iter_tmp.done) {
-              _t_12 = _iter_tmp.value;
-              _t_13 = _t_12[0];
-              _t_14 = _t_12[1];
-              _t_15 = _t_14.count;
-              _t_16 = _t_14.__response;
-              _t_17 = _t_14.text;
-              _t_18 = _t_14.hashtags;
-              _t_19 = _t_14.urls;
-              _t_20 = _t_14.author;
-              _t_21 = _t_14.in_reply_to;
-              _t_22 = _t_14.tweet_id;
-              _t_24 = "lol";
-              _t_23 = __builtin.like(_t_17, _t_24);
-              if (_t_23) {
-                _t_25 = {};
-                _t_25.count = _t_15;
-                _t_25.__response = _t_16;
-                _t_25.text = _t_17;
-                _t_25.hashtags = _t_18;
-                _t_25.urls = _t_19;
-                _t_25.author = _t_20;
-                _t_25.in_reply_to = _t_21;
-                _t_25.tweet_id = _t_22;
-                _t_26 = _t_25.count;
-                _t_27 = _t_25.__response;
-                _t_28 = _t_25.text;
-                _t_29 = _t_25.hashtags;
-                _t_30 = _t_25.urls;
-                _t_31 = _t_25.author;
-                _t_32 = _t_25.in_reply_to;
-                _t_33 = _t_25.tweet_id;
+              _t_13 = _iter_tmp.value;
+              _t_14 = _t_13[0];
+              _t_15 = _t_13[1];
+              _t_16 = _t_15.count;
+              _t_17 = _t_15.__response;
+              _t_18 = _t_15.text;
+              _t_19 = _t_15.hashtags;
+              _t_20 = _t_15.urls;
+              _t_21 = _t_15.author;
+              _t_22 = _t_15.in_reply_to;
+              _t_23 = _t_15.tweet_id;
+              _t_25 = "lol";
+              _t_24 = __builtin.like(_t_18, _t_25);
+              if (_t_24) {
+                _t_26 = __builtin.combineOutputTypes(_t_3, _t_14);
+                _t_27 = {};
+                _t_27.count = _t_16;
+                _t_27.__response = _t_17;
+                _t_27.text = _t_18;
+                _t_27.hashtags = _t_19;
+                _t_27.urls = _t_20;
+                _t_27.author = _t_21;
+                _t_27.in_reply_to = _t_22;
+                _t_27.tweet_id = _t_23;
+                _t_28 = _t_27.count;
+                _t_29 = _t_27.__response;
+                _t_30 = _t_27.text;
+                _t_31 = _t_27.hashtags;
+                _t_32 = _t_27.urls;
+                _t_33 = _t_27.author;
+                _t_34 = _t_27.in_reply_to;
+                _t_35 = _t_27.tweet_id;
                 try {
-                  await __env.output(String(_t_13), _t_25);
+                  await __env.output(String(_t_26), _t_27);
                 } catch(_exc_) {
                   __env.reportError("Failed to invoke action", _exc_);
                 }
               } else {
 
               }
-              _iter_tmp = await _t_11.next();
+              _iter_tmp = await _t_12.next();
             }
           }
         } catch(_exc_) {
@@ -2633,48 +2651,52 @@ const TEST_CASES = [
   let _t_19;
   let _t_20;
   let _t_21;
+  let _t_22;
+  let _t_23;
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
     _t_0 = await __env.invokeTimer(_t_1, _t_2, null);
+    _t_3 = null;
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
-        _t_3 = _iter_tmp.value;
-        _t_4 = 0;
+        _t_4 = _iter_tmp.value;
+        _t_5 = 0;
         try {
-          _t_5 = {};
-          _t_6 = "dogs";
-          _t_5.query = _t_6;
-          _t_7 = await __env.invokeQuery("com.bing", { }, "web_search", _t_5, { projection: [] });
-          _t_8 = _t_7[Symbol.iterator]();
+          _t_6 = {};
+          _t_7 = "dogs";
+          _t_6.query = _t_7;
+          _t_8 = await __env.invokeQuery("com.bing", { }, "web_search", _t_6, { projection: [] });
+          _t_9 = _t_8[Symbol.iterator]();
           {
-            let _iter_tmp = await _t_8.next();
+            let _iter_tmp = await _t_9.next();
             while (!_iter_tmp.done) {
-              _t_9 = _iter_tmp.value;
-              _t_10 = _t_9[0];
-              _t_11 = _t_9[1];
-              _t_12 = _t_11.__response;
-              _t_13 = _t_11.title;
-              _t_14 = _t_11.description;
-              _t_15 = _t_11.link;
-              _t_16 = 1;
-              _t_4 = _t_4 + _t_16;
-              _iter_tmp = await _t_8.next();
+              _t_10 = _iter_tmp.value;
+              _t_11 = _t_10[0];
+              _t_12 = _t_10[1];
+              _t_13 = _t_12.__response;
+              _t_14 = _t_12.title;
+              _t_15 = _t_12.description;
+              _t_16 = _t_12.link;
+              _t_17 = 1;
+              _t_5 = _t_5 + _t_17;
+              _iter_tmp = await _t_9.next();
             }
           }
         } catch(_exc_) {
           __env.reportError("Failed to invoke query", _exc_);
         }
-        _t_18 = "count";
-        _t_17 = __builtin.aggregateOutputType(_t_18, _t_10);
-        _t_19 = {};
-        _t_19.count = _t_4;
+        _t_19 = "count";
+        _t_18 = __builtin.aggregateOutputType(_t_19, _t_11);
         _t_20 = {};
-        _t_20.count = _t_4;
-        _t_21 = _t_20.count;
+        _t_20.count = _t_5;
+        _t_21 = __builtin.combineOutputTypes(_t_3, _t_18);
+        _t_22 = {};
+        _t_22.count = _t_5;
+        _t_23 = _t_22.count;
         try {
-          await __env.output(String(_t_17), _t_20);
+          await __env.output(String(_t_21), _t_22);
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -2719,54 +2741,58 @@ const TEST_CASES = [
   let _t_26;
   let _t_27;
   let _t_28;
+  let _t_29;
+  let _t_30;
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
     _t_0 = await __env.invokeTimer(_t_1, _t_2, null);
+    _t_3 = null;
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
-        _t_3 = _iter_tmp.value;
-        _t_4 = new __builtin.EqualitySet();
+        _t_4 = _iter_tmp.value;
+        _t_5 = new __builtin.EqualitySet();
         try {
-          _t_5 = {};
-          _t_6 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_5, { projection: ["mime_type"] });
-          _t_7 = _t_6[Symbol.iterator]();
+          _t_6 = {};
+          _t_7 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_6, { projection: ["mime_type"] });
+          _t_8 = _t_7[Symbol.iterator]();
           {
-            let _iter_tmp = await _t_7.next();
+            let _iter_tmp = await _t_8.next();
             while (!_iter_tmp.done) {
-              _t_8 = _iter_tmp.value;
-              _t_9 = _t_8[0];
-              _t_10 = _t_8[1];
-              _t_11 = _t_10.order_by;
-              _t_12 = _t_10.__response;
-              _t_13 = _t_10.file_id;
-              _t_14 = _t_10.file_name;
-              _t_15 = _t_10.mime_type;
-              _t_16 = _t_10.description;
-              _t_17 = _t_10.starred;
-              _t_18 = _t_10.created_time;
-              _t_19 = _t_10.modified_time;
-              _t_20 = _t_10.file_size;
-              _t_21 = _t_10.last_modified_by;
-              _t_22 = _t_10.link;
-              _t_4.add(_t_10);
-              _iter_tmp = await _t_7.next();
+              _t_9 = _iter_tmp.value;
+              _t_10 = _t_9[0];
+              _t_11 = _t_9[1];
+              _t_12 = _t_11.order_by;
+              _t_13 = _t_11.__response;
+              _t_14 = _t_11.file_id;
+              _t_15 = _t_11.file_name;
+              _t_16 = _t_11.mime_type;
+              _t_17 = _t_11.description;
+              _t_18 = _t_11.starred;
+              _t_19 = _t_11.created_time;
+              _t_20 = _t_11.modified_time;
+              _t_21 = _t_11.file_size;
+              _t_22 = _t_11.last_modified_by;
+              _t_23 = _t_11.link;
+              _t_5.add(_t_11);
+              _iter_tmp = await _t_8.next();
             }
           }
         } catch(_exc_) {
           __env.reportError("Failed to invoke query", _exc_);
         }
-        _t_24 = "count";
-        _t_23 = __builtin.aggregateOutputType(_t_24, _t_9);
-        _t_25 = {};
-        _t_26 = _t_4.size;
-        _t_25.mime_type = _t_26;
-        _t_27 = {};
-        _t_27.mime_type = _t_26;
-        _t_28 = _t_27.mime_type;
+        _t_25 = "count";
+        _t_24 = __builtin.aggregateOutputType(_t_25, _t_10);
+        _t_26 = {};
+        _t_27 = _t_5.size;
+        _t_26.mime_type = _t_27;
+        _t_28 = __builtin.combineOutputTypes(_t_3, _t_24);
+        _t_29 = {};
+        _t_29.mime_type = _t_27;
+        _t_30 = _t_29.mime_type;
         try {
-          await __env.output(String(_t_23), _t_27);
+          await __env.output(String(_t_28), _t_29);
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -2813,57 +2839,61 @@ const TEST_CASES = [
   let _t_28;
   let _t_29;
   let _t_30;
+  let _t_31;
+  let _t_32;
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
     _t_0 = await __env.invokeTimer(_t_1, _t_2, null);
+    _t_3 = null;
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
-        _t_3 = _iter_tmp.value;
+        _t_4 = _iter_tmp.value;
+        _t_6 = 0;
         _t_5 = 0;
-        _t_4 = 0;
         try {
-          _t_6 = {};
-          _t_7 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_6, { projection: ["file_size"] });
-          _t_8 = _t_7[Symbol.iterator]();
+          _t_7 = {};
+          _t_8 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_7, { projection: ["file_size"] });
+          _t_9 = _t_8[Symbol.iterator]();
           {
-            let _iter_tmp = await _t_8.next();
+            let _iter_tmp = await _t_9.next();
             while (!_iter_tmp.done) {
-              _t_9 = _iter_tmp.value;
-              _t_10 = _t_9[0];
-              _t_11 = _t_9[1];
-              _t_12 = _t_11.order_by;
-              _t_13 = _t_11.__response;
-              _t_14 = _t_11.file_id;
-              _t_15 = _t_11.file_name;
-              _t_16 = _t_11.mime_type;
-              _t_17 = _t_11.description;
-              _t_18 = _t_11.starred;
-              _t_19 = _t_11.created_time;
-              _t_20 = _t_11.modified_time;
-              _t_21 = _t_11.file_size;
-              _t_22 = _t_11.last_modified_by;
-              _t_23 = _t_11.link;
-              _t_24 = 1;
-              _t_4 = _t_4 + _t_24;
-              _t_5 = _t_5 + _t_21;
-              _iter_tmp = await _t_8.next();
+              _t_10 = _iter_tmp.value;
+              _t_11 = _t_10[0];
+              _t_12 = _t_10[1];
+              _t_13 = _t_12.order_by;
+              _t_14 = _t_12.__response;
+              _t_15 = _t_12.file_id;
+              _t_16 = _t_12.file_name;
+              _t_17 = _t_12.mime_type;
+              _t_18 = _t_12.description;
+              _t_19 = _t_12.starred;
+              _t_20 = _t_12.created_time;
+              _t_21 = _t_12.modified_time;
+              _t_22 = _t_12.file_size;
+              _t_23 = _t_12.last_modified_by;
+              _t_24 = _t_12.link;
+              _t_25 = 1;
+              _t_5 = _t_5 + _t_25;
+              _t_6 = _t_6 + _t_22;
+              _iter_tmp = await _t_9.next();
             }
           }
         } catch(_exc_) {
           __env.reportError("Failed to invoke query", _exc_);
         }
-        _t_26 = "avg";
-        _t_25 = __builtin.aggregateOutputType(_t_26, _t_10);
-        _t_27 = {};
-        _t_28 = _t_5 / _t_4;
-        _t_27.file_size = _t_28;
-        _t_29 = {};
-        _t_29.file_size = _t_28;
-        _t_30 = _t_29.file_size;
+        _t_27 = "avg";
+        _t_26 = __builtin.aggregateOutputType(_t_27, _t_11);
+        _t_28 = {};
+        _t_29 = _t_6 / _t_5;
+        _t_28.file_size = _t_29;
+        _t_30 = __builtin.combineOutputTypes(_t_3, _t_26);
+        _t_31 = {};
+        _t_31.file_size = _t_29;
+        _t_32 = _t_31.file_size;
         try {
-          await __env.output(String(_t_25), _t_29);
+          await __env.output(String(_t_30), _t_31);
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -2907,53 +2937,57 @@ const TEST_CASES = [
   let _t_25;
   let _t_26;
   let _t_27;
+  let _t_28;
+  let _t_29;
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
     _t_0 = await __env.invokeTimer(_t_1, _t_2, null);
+    _t_3 = null;
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
-        _t_3 = _iter_tmp.value;
-        _t_4 = -Infinity;
+        _t_4 = _iter_tmp.value;
+        _t_5 = -Infinity;
         try {
-          _t_5 = {};
-          _t_6 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_5, { projection: ["file_size"] });
-          _t_7 = _t_6[Symbol.iterator]();
+          _t_6 = {};
+          _t_7 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_6, { projection: ["file_size"] });
+          _t_8 = _t_7[Symbol.iterator]();
           {
-            let _iter_tmp = await _t_7.next();
+            let _iter_tmp = await _t_8.next();
             while (!_iter_tmp.done) {
-              _t_8 = _iter_tmp.value;
-              _t_9 = _t_8[0];
-              _t_10 = _t_8[1];
-              _t_11 = _t_10.order_by;
-              _t_12 = _t_10.__response;
-              _t_13 = _t_10.file_id;
-              _t_14 = _t_10.file_name;
-              _t_15 = _t_10.mime_type;
-              _t_16 = _t_10.description;
-              _t_17 = _t_10.starred;
-              _t_18 = _t_10.created_time;
-              _t_19 = _t_10.modified_time;
-              _t_20 = _t_10.file_size;
-              _t_21 = _t_10.last_modified_by;
-              _t_22 = _t_10.link;
-              _t_4 = __builtin.max(_t_4, _t_20);
-              _iter_tmp = await _t_7.next();
+              _t_9 = _iter_tmp.value;
+              _t_10 = _t_9[0];
+              _t_11 = _t_9[1];
+              _t_12 = _t_11.order_by;
+              _t_13 = _t_11.__response;
+              _t_14 = _t_11.file_id;
+              _t_15 = _t_11.file_name;
+              _t_16 = _t_11.mime_type;
+              _t_17 = _t_11.description;
+              _t_18 = _t_11.starred;
+              _t_19 = _t_11.created_time;
+              _t_20 = _t_11.modified_time;
+              _t_21 = _t_11.file_size;
+              _t_22 = _t_11.last_modified_by;
+              _t_23 = _t_11.link;
+              _t_5 = __builtin.max(_t_5, _t_21);
+              _iter_tmp = await _t_8.next();
             }
           }
         } catch(_exc_) {
           __env.reportError("Failed to invoke query", _exc_);
         }
-        _t_24 = "max";
-        _t_23 = __builtin.aggregateOutputType(_t_24, _t_9);
-        _t_25 = {};
-        _t_25.file_size = _t_4;
+        _t_25 = "max";
+        _t_24 = __builtin.aggregateOutputType(_t_25, _t_10);
         _t_26 = {};
-        _t_26.file_size = _t_4;
-        _t_27 = _t_26.file_size;
+        _t_26.file_size = _t_5;
+        _t_27 = __builtin.combineOutputTypes(_t_3, _t_24);
+        _t_28 = {};
+        _t_28.file_size = _t_5;
+        _t_29 = _t_28.file_size;
         try {
-          await __env.output(String(_t_23), _t_26);
+          await __env.output(String(_t_27), _t_28);
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -3334,93 +3368,97 @@ const TEST_CASES = [
   let _t_49;
   let _t_50;
   let _t_51;
+  let _t_52;
+  let _t_53;
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
     _t_0 = await __env.invokeTimer(_t_1, _t_2, null);
+    _t_3 = null;
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
-        _t_3 = _iter_tmp.value;
-        _t_4 = false;
-        _t_5 = -Infinity;
+        _t_4 = _iter_tmp.value;
+        _t_5 = false;
+        _t_6 = -Infinity;
         try {
-          _t_8 = {};
-          _t_9 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_8, { projection: ["file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "file_size", "order_by", "last_modified_by", "link"], sort: ["file_size", "desc"], limit: 1 });
-          _t_10 = _t_9[Symbol.iterator]();
+          _t_9 = {};
+          _t_10 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_9, { projection: ["file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "file_size", "order_by", "last_modified_by", "link"], sort: ["file_size", "desc"], limit: 1 });
+          _t_11 = _t_10[Symbol.iterator]();
           {
-            let _iter_tmp = await _t_10.next();
+            let _iter_tmp = await _t_11.next();
             while (!_iter_tmp.done) {
-              _t_11 = _iter_tmp.value;
-              _t_12 = _t_11[0];
-              _t_13 = _t_11[1];
-              _t_14 = _t_13.order_by;
-              _t_15 = _t_13.__response;
-              _t_16 = _t_13.file_id;
-              _t_17 = _t_13.file_name;
-              _t_18 = _t_13.mime_type;
-              _t_19 = _t_13.description;
-              _t_20 = _t_13.starred;
-              _t_21 = _t_13.created_time;
-              _t_22 = _t_13.modified_time;
-              _t_23 = _t_13.file_size;
-              _t_24 = _t_13.last_modified_by;
-              _t_25 = _t_13.link;
-              _t_26 = _t_5 < _t_23;
-              if (_t_26) {
-                _t_5 = _t_23;
-                _t_6 = _t_13;
-                _t_7 = _t_12;
-                _t_4 = true;
+              _t_12 = _iter_tmp.value;
+              _t_13 = _t_12[0];
+              _t_14 = _t_12[1];
+              _t_15 = _t_14.order_by;
+              _t_16 = _t_14.__response;
+              _t_17 = _t_14.file_id;
+              _t_18 = _t_14.file_name;
+              _t_19 = _t_14.mime_type;
+              _t_20 = _t_14.description;
+              _t_21 = _t_14.starred;
+              _t_22 = _t_14.created_time;
+              _t_23 = _t_14.modified_time;
+              _t_24 = _t_14.file_size;
+              _t_25 = _t_14.last_modified_by;
+              _t_26 = _t_14.link;
+              _t_27 = _t_6 < _t_24;
+              if (_t_27) {
+                _t_6 = _t_24;
+                _t_7 = _t_14;
+                _t_8 = _t_13;
+                _t_5 = true;
               } else {
 
               }
-              _iter_tmp = await _t_10.next();
+              _iter_tmp = await _t_11.next();
             }
           }
         } catch(_exc_) {
           __env.reportError("Failed to invoke query", _exc_);
         }
-        if (_t_4) {
-          _t_27 = _t_6.order_by;
-          _t_28 = _t_6.__response;
-          _t_29 = _t_6.file_id;
-          _t_30 = _t_6.file_name;
-          _t_31 = _t_6.mime_type;
-          _t_32 = _t_6.description;
-          _t_33 = _t_6.starred;
-          _t_34 = _t_6.created_time;
-          _t_35 = _t_6.modified_time;
-          _t_36 = _t_6.file_size;
-          _t_37 = _t_6.last_modified_by;
-          _t_38 = _t_6.link;
-          _t_39 = {};
-          _t_39.order_by = _t_27;
-          _t_39.__response = _t_28;
-          _t_39.file_id = _t_29;
-          _t_39.file_name = _t_30;
-          _t_39.mime_type = _t_31;
-          _t_39.description = _t_32;
-          _t_39.starred = _t_33;
-          _t_39.created_time = _t_34;
-          _t_39.modified_time = _t_35;
-          _t_39.file_size = _t_36;
-          _t_39.last_modified_by = _t_37;
-          _t_39.link = _t_38;
-          _t_40 = _t_39.order_by;
-          _t_41 = _t_39.__response;
-          _t_42 = _t_39.file_id;
-          _t_43 = _t_39.file_name;
-          _t_44 = _t_39.mime_type;
-          _t_45 = _t_39.description;
-          _t_46 = _t_39.starred;
-          _t_47 = _t_39.created_time;
-          _t_48 = _t_39.modified_time;
-          _t_49 = _t_39.file_size;
-          _t_50 = _t_39.last_modified_by;
-          _t_51 = _t_39.link;
+        if (_t_5) {
+          _t_28 = _t_7.order_by;
+          _t_29 = _t_7.__response;
+          _t_30 = _t_7.file_id;
+          _t_31 = _t_7.file_name;
+          _t_32 = _t_7.mime_type;
+          _t_33 = _t_7.description;
+          _t_34 = _t_7.starred;
+          _t_35 = _t_7.created_time;
+          _t_36 = _t_7.modified_time;
+          _t_37 = _t_7.file_size;
+          _t_38 = _t_7.last_modified_by;
+          _t_39 = _t_7.link;
+          _t_40 = __builtin.combineOutputTypes(_t_3, _t_8);
+          _t_41 = {};
+          _t_41.order_by = _t_28;
+          _t_41.__response = _t_29;
+          _t_41.file_id = _t_30;
+          _t_41.file_name = _t_31;
+          _t_41.mime_type = _t_32;
+          _t_41.description = _t_33;
+          _t_41.starred = _t_34;
+          _t_41.created_time = _t_35;
+          _t_41.modified_time = _t_36;
+          _t_41.file_size = _t_37;
+          _t_41.last_modified_by = _t_38;
+          _t_41.link = _t_39;
+          _t_42 = _t_41.order_by;
+          _t_43 = _t_41.__response;
+          _t_44 = _t_41.file_id;
+          _t_45 = _t_41.file_name;
+          _t_46 = _t_41.mime_type;
+          _t_47 = _t_41.description;
+          _t_48 = _t_41.starred;
+          _t_49 = _t_41.created_time;
+          _t_50 = _t_41.modified_time;
+          _t_51 = _t_41.file_size;
+          _t_52 = _t_41.last_modified_by;
+          _t_53 = _t_41.link;
           try {
-            await __env.output(String(_t_7), _t_39);
+            await __env.output(String(_t_40), _t_41);
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
@@ -3491,93 +3529,97 @@ const TEST_CASES = [
   let _t_49;
   let _t_50;
   let _t_51;
+  let _t_52;
+  let _t_53;
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
     _t_0 = await __env.invokeTimer(_t_1, _t_2, null);
+    _t_3 = null;
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
-        _t_3 = _iter_tmp.value;
-        _t_4 = false;
-        _t_5 = Infinity;
+        _t_4 = _iter_tmp.value;
+        _t_5 = false;
+        _t_6 = Infinity;
         try {
-          _t_8 = {};
-          _t_9 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_8, { projection: ["file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "file_size", "order_by", "last_modified_by", "link"], sort: ["file_size", "asc"], limit: 1 });
-          _t_10 = _t_9[Symbol.iterator]();
+          _t_9 = {};
+          _t_10 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_9, { projection: ["file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "file_size", "order_by", "last_modified_by", "link"], sort: ["file_size", "asc"], limit: 1 });
+          _t_11 = _t_10[Symbol.iterator]();
           {
-            let _iter_tmp = await _t_10.next();
+            let _iter_tmp = await _t_11.next();
             while (!_iter_tmp.done) {
-              _t_11 = _iter_tmp.value;
-              _t_12 = _t_11[0];
-              _t_13 = _t_11[1];
-              _t_14 = _t_13.order_by;
-              _t_15 = _t_13.__response;
-              _t_16 = _t_13.file_id;
-              _t_17 = _t_13.file_name;
-              _t_18 = _t_13.mime_type;
-              _t_19 = _t_13.description;
-              _t_20 = _t_13.starred;
-              _t_21 = _t_13.created_time;
-              _t_22 = _t_13.modified_time;
-              _t_23 = _t_13.file_size;
-              _t_24 = _t_13.last_modified_by;
-              _t_25 = _t_13.link;
-              _t_26 = _t_5 > _t_23;
-              if (_t_26) {
-                _t_5 = _t_23;
-                _t_6 = _t_13;
-                _t_7 = _t_12;
-                _t_4 = true;
+              _t_12 = _iter_tmp.value;
+              _t_13 = _t_12[0];
+              _t_14 = _t_12[1];
+              _t_15 = _t_14.order_by;
+              _t_16 = _t_14.__response;
+              _t_17 = _t_14.file_id;
+              _t_18 = _t_14.file_name;
+              _t_19 = _t_14.mime_type;
+              _t_20 = _t_14.description;
+              _t_21 = _t_14.starred;
+              _t_22 = _t_14.created_time;
+              _t_23 = _t_14.modified_time;
+              _t_24 = _t_14.file_size;
+              _t_25 = _t_14.last_modified_by;
+              _t_26 = _t_14.link;
+              _t_27 = _t_6 > _t_24;
+              if (_t_27) {
+                _t_6 = _t_24;
+                _t_7 = _t_14;
+                _t_8 = _t_13;
+                _t_5 = true;
               } else {
 
               }
-              _iter_tmp = await _t_10.next();
+              _iter_tmp = await _t_11.next();
             }
           }
         } catch(_exc_) {
           __env.reportError("Failed to invoke query", _exc_);
         }
-        if (_t_4) {
-          _t_27 = _t_6.order_by;
-          _t_28 = _t_6.__response;
-          _t_29 = _t_6.file_id;
-          _t_30 = _t_6.file_name;
-          _t_31 = _t_6.mime_type;
-          _t_32 = _t_6.description;
-          _t_33 = _t_6.starred;
-          _t_34 = _t_6.created_time;
-          _t_35 = _t_6.modified_time;
-          _t_36 = _t_6.file_size;
-          _t_37 = _t_6.last_modified_by;
-          _t_38 = _t_6.link;
-          _t_39 = {};
-          _t_39.order_by = _t_27;
-          _t_39.__response = _t_28;
-          _t_39.file_id = _t_29;
-          _t_39.file_name = _t_30;
-          _t_39.mime_type = _t_31;
-          _t_39.description = _t_32;
-          _t_39.starred = _t_33;
-          _t_39.created_time = _t_34;
-          _t_39.modified_time = _t_35;
-          _t_39.file_size = _t_36;
-          _t_39.last_modified_by = _t_37;
-          _t_39.link = _t_38;
-          _t_40 = _t_39.order_by;
-          _t_41 = _t_39.__response;
-          _t_42 = _t_39.file_id;
-          _t_43 = _t_39.file_name;
-          _t_44 = _t_39.mime_type;
-          _t_45 = _t_39.description;
-          _t_46 = _t_39.starred;
-          _t_47 = _t_39.created_time;
-          _t_48 = _t_39.modified_time;
-          _t_49 = _t_39.file_size;
-          _t_50 = _t_39.last_modified_by;
-          _t_51 = _t_39.link;
+        if (_t_5) {
+          _t_28 = _t_7.order_by;
+          _t_29 = _t_7.__response;
+          _t_30 = _t_7.file_id;
+          _t_31 = _t_7.file_name;
+          _t_32 = _t_7.mime_type;
+          _t_33 = _t_7.description;
+          _t_34 = _t_7.starred;
+          _t_35 = _t_7.created_time;
+          _t_36 = _t_7.modified_time;
+          _t_37 = _t_7.file_size;
+          _t_38 = _t_7.last_modified_by;
+          _t_39 = _t_7.link;
+          _t_40 = __builtin.combineOutputTypes(_t_3, _t_8);
+          _t_41 = {};
+          _t_41.order_by = _t_28;
+          _t_41.__response = _t_29;
+          _t_41.file_id = _t_30;
+          _t_41.file_name = _t_31;
+          _t_41.mime_type = _t_32;
+          _t_41.description = _t_33;
+          _t_41.starred = _t_34;
+          _t_41.created_time = _t_35;
+          _t_41.modified_time = _t_36;
+          _t_41.file_size = _t_37;
+          _t_41.last_modified_by = _t_38;
+          _t_41.link = _t_39;
+          _t_42 = _t_41.order_by;
+          _t_43 = _t_41.__response;
+          _t_44 = _t_41.file_id;
+          _t_45 = _t_41.file_name;
+          _t_46 = _t_41.mime_type;
+          _t_47 = _t_41.description;
+          _t_48 = _t_41.starred;
+          _t_49 = _t_41.created_time;
+          _t_50 = _t_41.modified_time;
+          _t_51 = _t_41.file_size;
+          _t_52 = _t_41.last_modified_by;
+          _t_53 = _t_41.link;
           try {
-            await __env.output(String(_t_7), _t_39);
+            await __env.output(String(_t_40), _t_41);
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
@@ -3823,83 +3865,87 @@ const TEST_CASES = [
   let _t_37;
   let _t_38;
   let _t_39;
+  let _t_40;
+  let _t_41;
   try {
     _t_1 = new Array(1);
     _t_2 = new __builtin.Time(7, 30, 0);
     _t_1[0] = _t_2;
     _t_0 = await __env.invokeAtTimer(_t_1, null);
+    _t_3 = null;
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
-        _t_3 = _iter_tmp.value;
-        _t_4 = 2;
-        _t_5 = false;
-        _t_6 = 0;
+        _t_4 = _iter_tmp.value;
+        _t_5 = 2;
+        _t_6 = false;
+        _t_7 = 0;
         try {
-          _t_7 = {};
-          _t_8 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_7, { projection: ["file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "file_size", "order_by", "last_modified_by", "link"], limit: 2 });
-          _t_9 = _t_8[Symbol.iterator]();
+          _t_8 = {};
+          _t_9 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_8, { projection: ["file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "file_size", "order_by", "last_modified_by", "link"], limit: 2 });
+          _t_10 = _t_9[Symbol.iterator]();
           {
-            let _iter_tmp = await _t_9.next();
+            let _iter_tmp = await _t_10.next();
             while (!_iter_tmp.done) {
-              _t_10 = _iter_tmp.value;
-              _t_11 = _t_10[0];
-              _t_12 = _t_10[1];
-              _t_13 = _t_12.order_by;
-              _t_14 = _t_12.__response;
-              _t_15 = _t_12.file_id;
-              _t_16 = _t_12.file_name;
-              _t_17 = _t_12.mime_type;
-              _t_18 = _t_12.description;
-              _t_19 = _t_12.starred;
-              _t_20 = _t_12.created_time;
-              _t_21 = _t_12.modified_time;
-              _t_22 = _t_12.file_size;
-              _t_23 = _t_12.last_modified_by;
-              _t_24 = _t_12.link;
-              _t_25 = 1;
-              _t_6 = _t_6 + _t_25;
-              _t_26 = _t_4 == _t_6;
-              if (_t_26) {
-                _t_5 = true;
+              _t_11 = _iter_tmp.value;
+              _t_12 = _t_11[0];
+              _t_13 = _t_11[1];
+              _t_14 = _t_13.order_by;
+              _t_15 = _t_13.__response;
+              _t_16 = _t_13.file_id;
+              _t_17 = _t_13.file_name;
+              _t_18 = _t_13.mime_type;
+              _t_19 = _t_13.description;
+              _t_20 = _t_13.starred;
+              _t_21 = _t_13.created_time;
+              _t_22 = _t_13.modified_time;
+              _t_23 = _t_13.file_size;
+              _t_24 = _t_13.last_modified_by;
+              _t_25 = _t_13.link;
+              _t_26 = 1;
+              _t_7 = _t_7 + _t_26;
+              _t_27 = _t_5 == _t_7;
+              if (_t_27) {
+                _t_6 = true;
                 break;
               } else {
 
               }
-              _iter_tmp = await _t_9.next();
+              _iter_tmp = await _t_10.next();
             }
           }
         } catch(_exc_) {
           __env.reportError("Failed to invoke query", _exc_);
         }
-        if (_t_5) {
-          _t_27 = {};
-          _t_27.order_by = _t_13;
-          _t_27.__response = _t_14;
-          _t_27.file_id = _t_15;
-          _t_27.file_name = _t_16;
-          _t_27.mime_type = _t_17;
-          _t_27.description = _t_18;
-          _t_27.starred = _t_19;
-          _t_27.created_time = _t_20;
-          _t_27.modified_time = _t_21;
-          _t_27.file_size = _t_22;
-          _t_27.last_modified_by = _t_23;
-          _t_27.link = _t_24;
-          _t_28 = _t_27.order_by;
-          _t_29 = _t_27.__response;
-          _t_30 = _t_27.file_id;
-          _t_31 = _t_27.file_name;
-          _t_32 = _t_27.mime_type;
-          _t_33 = _t_27.description;
-          _t_34 = _t_27.starred;
-          _t_35 = _t_27.created_time;
-          _t_36 = _t_27.modified_time;
-          _t_37 = _t_27.file_size;
-          _t_38 = _t_27.last_modified_by;
-          _t_39 = _t_27.link;
+        if (_t_6) {
+          _t_28 = __builtin.combineOutputTypes(_t_3, _t_12);
+          _t_29 = {};
+          _t_29.order_by = _t_14;
+          _t_29.__response = _t_15;
+          _t_29.file_id = _t_16;
+          _t_29.file_name = _t_17;
+          _t_29.mime_type = _t_18;
+          _t_29.description = _t_19;
+          _t_29.starred = _t_20;
+          _t_29.created_time = _t_21;
+          _t_29.modified_time = _t_22;
+          _t_29.file_size = _t_23;
+          _t_29.last_modified_by = _t_24;
+          _t_29.link = _t_25;
+          _t_30 = _t_29.order_by;
+          _t_31 = _t_29.__response;
+          _t_32 = _t_29.file_id;
+          _t_33 = _t_29.file_name;
+          _t_34 = _t_29.mime_type;
+          _t_35 = _t_29.description;
+          _t_36 = _t_29.starred;
+          _t_37 = _t_29.created_time;
+          _t_38 = _t_29.modified_time;
+          _t_39 = _t_29.file_size;
+          _t_40 = _t_29.last_modified_by;
+          _t_41 = _t_29.link;
           try {
-            await __env.output(String(_t_11), _t_27);
+            await __env.output(String(_t_28), _t_29);
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
@@ -4835,7 +4881,7 @@ const TEST_CASES = [
     }
   } finally {
     await __env.exitProcedure(0, null);
-  }`, `  "use strict";
+  }`, `"use strict";
   let _t_0;
   let _t_1;
   let _t_2;
@@ -4857,46 +4903,50 @@ const TEST_CASES = [
   let _t_18;
   let _t_19;
   let _t_20;
+  let _t_21;
+  let _t_22;
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
     _t_0 = await __env.invokeTimer(_t_1, _t_2, null);
+    _t_3 = null;
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
-        _t_3 = _iter_tmp.value;
-        _t_4 = await __env.readState(0);
-        _t_5 = _t_4[Symbol.iterator]();
+        _t_4 = _iter_tmp.value;
+        _t_5 = await __env.readState(0);
+        _t_6 = _t_5[Symbol.iterator]();
         {
-          let _iter_tmp = await _t_5.next();
+          let _iter_tmp = await _t_6.next();
           while (!_iter_tmp.done) {
-            _t_6 = _iter_tmp.value;
-            _t_7 = _t_6[0];
-            _t_8 = _t_6[1];
-            _t_9 = _t_8.__response;
-            _t_10 = _t_8.image_id;
-            _t_11 = _t_8.picture_url;
-            _t_12 = _t_8.link;
-            _t_13 = {};
-            _t_13.__response = _t_9;
-            _t_13.image_id = _t_10;
-            _t_13.picture_url = _t_11;
-            _t_13.link = _t_12;
-            _t_14 = _t_13.__response;
-            _t_15 = _t_13.image_id;
-            _t_16 = _t_13.picture_url;
-            _t_17 = _t_13.link;
+            _t_7 = _iter_tmp.value;
+            _t_8 = _t_7[0];
+            _t_9 = _t_7[1];
+            _t_10 = _t_9.__response;
+            _t_11 = _t_9.image_id;
+            _t_12 = _t_9.picture_url;
+            _t_13 = _t_9.link;
+            _t_14 = __builtin.combineOutputTypes(_t_3, _t_8);
+            _t_15 = {};
+            _t_15.__response = _t_10;
+            _t_15.image_id = _t_11;
+            _t_15.picture_url = _t_12;
+            _t_15.link = _t_13;
+            _t_16 = _t_15.__response;
+            _t_17 = _t_15.image_id;
+            _t_18 = _t_15.picture_url;
+            _t_19 = _t_15.link;
             try {
-              _t_18 = {};
-              _t_19 = "cat";
-              _t_18.caption = _t_19;
-              _t_20 = String (_t_16);
-              _t_18.picture_url = _t_20;
-              await __env.invokeAction("com.twitter", { }, "post_picture", _t_18);
+              _t_20 = {};
+              _t_21 = "cat";
+              _t_20.caption = _t_21;
+              _t_22 = String (_t_18);
+              _t_20.picture_url = _t_22;
+              await __env.invokeAction("com.twitter", { }, "post_picture", _t_20);
             } catch(_exc_) {
               __env.reportError("Failed to invoke action", _exc_);
             }
-            _iter_tmp = await _t_5.next();
+            _iter_tmp = await _t_6.next();
           }
         }
         _iter_tmp = await _t_0.next();
@@ -5693,7 +5743,7 @@ const TEST_CASES = [
     }
   } finally {
     await __env.exitProcedure(0, "p1");
-  }`, `  "use strict";
+  }`, `"use strict";
   let _t_0;
   let _t_1;
   let _t_2;
@@ -5705,27 +5755,29 @@ const TEST_CASES = [
   let _t_8;
   let _t_9;
   let _t_10;
+  let _t_11;
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
     _t_0 = await __env.invokeTimer(_t_1, _t_2, null);
+    _t_3 = null;
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
-        _t_3 = _iter_tmp.value;
+        _t_4 = _iter_tmp.value;
         try {
-          _t_4 = __scope.p1;
-          _t_5 = "title one";
-          _t_6 = await __builtin.invokeStreamVarRef(__env, _t_4, _t_5);
+          _t_5 = __scope.p1;
+          _t_6 = "title one";
+          _t_7 = await __builtin.invokeStreamVarRef(__env, _t_5, _t_6);
           {
-            let _iter_tmp = await _t_6.next();
+            let _iter_tmp = await _t_7.next();
             while (!_iter_tmp.done) {
-              _t_7 = _iter_tmp.value;
-              _t_8 = _t_7[0];
-              _t_9 = _t_7[1];
-              _t_10 = _t_9.__response;
-              await __env.output(String(_t_8), _t_9);
-              _iter_tmp = await _t_6.next();
+              _t_8 = _iter_tmp.value;
+              _t_9 = _t_8[0];
+              _t_10 = _t_8[1];
+              _t_11 = _t_10.__response;
+              await __env.output(String(_t_9), _t_10);
+              _iter_tmp = await _t_7.next();
             }
           }
         } catch(_exc_) {
@@ -5748,6 +5800,7 @@ const TEST_CASES = [
   let _t_4;
   let _t_5;
   let _t_6;
+  let _t_7;
   try {
     _t_1 = new Array(2);
     _t_2 = new __builtin.Time(9, 0, 0);
@@ -5755,15 +5808,16 @@ const TEST_CASES = [
     _t_3 = new __builtin.Time(15, 0, 0);
     _t_1[1] = _t_3;
     _t_0 = await __env.invokeAtTimer(_t_1, null);
+    _t_4 = null;
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
-        _t_4 = _iter_tmp.value;
+        _t_5 = _iter_tmp.value;
         try {
-          _t_5 = {};
-          _t_6 = "it's 9am or 3pm";
-          _t_5.message = _t_6;
-          await __env.invokeAction("org.thingpedia.builtin.thingengine.builtin", { }, "say", _t_5);
+          _t_6 = {};
+          _t_7 = "it's 9am or 3pm";
+          _t_6.message = _t_7;
+          await __env.invokeAction("org.thingpedia.builtin.thingengine.builtin", { }, "say", _t_6);
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -6046,17 +6100,19 @@ const TEST_CASES = [
   let _t_2;
   let _t_3;
   let _t_4;
+  let _t_5;
   try {
     _t_1 = new Date(XNOWX);
     _t_2 = 3600000;
     _t_3 = 3;
     _t_0 = await __env.invokeTimer(_t_1, _t_2, _t_3);
+    _t_4 = null;
     {
       let _iter_tmp = await _t_0.next();
       while (!_iter_tmp.done) {
-        _t_4 = _iter_tmp.value;
+        _t_5 = _iter_tmp.value;
         try {
-          await __env.output(null, _t_4);
+          await __env.output(String(_t_4), _t_5);
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -8596,7 +8652,7 @@ const TEST_CASES = [
     _t_8 = new Array(0);
     try {
       _t_9 = {};
-      _t_10 = await __env.invokeQuery("com.spotify2", { }, "song", _t_9, { projection: ["id", "artists", "album", "genres", "release_date", "popularity", "energy", "danceability"], sort: ["popularity", "desc"], limit: 1 });
+      _t_10 = await __env.invokeQuery("com.spotify2", { }, "song", _t_9, { projection: ["id", "artists", "album", "genres", "release_date", "popularity", "energy", "danceability"], sort: ["popularity", "desc"] });
       _t_11 = _t_10[Symbol.iterator]();
       {
         let _iter_tmp = await _t_11.next();

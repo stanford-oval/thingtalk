@@ -24,6 +24,7 @@
  * @namespace Ast
  */
 
+export { default as Node } from './base';
 export * from './function_def';
 export * from './class_def';
 export * from './values';

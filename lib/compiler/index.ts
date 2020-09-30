@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -18,10 +18,12 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import assert from 'assert';
 import * as Grammar from '../grammar';
 import { typeCheckProgram } from '../typecheck';
 import { NotCompilableError, NotImplementedError } from '../errors';
 import * as Ast from '../ast';
+import { TypeMap } from '../type';
 
 import * as JSIr from './jsir';
 import { compileStatementToOp, compileStreamToOps, compileTableToOps } from './ast-to-ops';
@@ -29,9 +31,22 @@ import { QueryInvocationHints } from './ops';
 import { getDefaultProjection } from './utils';
 import OpCompiler from './ops-to-jsir';
 import Scope from './scope';
+import type ExecEnvironment from '../runtime/exec_environment';
+import type SchemaRetriever from '../schema';
 
-class CompiledProgram {
-    constructor(states, command, rules) {
+export interface CompiledStatement {
+    (env : ExecEnvironment) : Promise<void>;
+}
+
+export class CompiledProgram {
+    hasTrigger : boolean;
+    states : number;
+    command : CompiledStatement|string|null;
+    rules : Array<CompiledStatement|string>;
+
+    constructor(states : number,
+                command : CompiledStatement|string|null,
+                rules : Array<CompiledStatement|string>) {
         this.hasTrigger = rules.length > 0;
 
         this.states = states;
@@ -40,10 +55,30 @@ class CompiledProgram {
     }
 }
 
+type TopLevelScope = {
+    [key : string] : CompiledStatement|string
+};
+
+interface StatementCompileOptions {
+    hasAnyStream : boolean;
+    forProcedure : boolean;
+}
+
 export default class AppCompiler {
-    constructor(schemaRetriever, testMode) {
+    private _testMode : boolean;
+    private _declarations : Scope;
+    private _toplevelscope : TopLevelScope;
+
+    private _schemaRetriever : SchemaRetriever;
+    private _nextStateVar : number;
+    private _nextProcId : number;
+
+    private _astVars : Ast.Node[];
+
+    constructor(schemaRetriever : SchemaRetriever,
+                testMode = false) {
         this._testMode = testMode;
-        this._declarations = null;
+        this._declarations = new Scope;
         this._toplevelscope = {};
 
         this._schemaRetriever = schemaRetriever;
@@ -53,41 +88,32 @@ export default class AppCompiler {
         this._astVars = [];
     }
 
-    compileCode(code) {
+    compileCode(code : string) : Promise<CompiledProgram> {
         return this.compileProgram(Grammar.parse(code));
     }
 
-    _allocState() {
+    _allocState() : number {
         return this._nextStateVar++;
     }
 
-    _allocAst(v) {
+    _allocAst(v : Ast.Node) : number {
         this._astVars.push(v);
         return this._astVars.length-1;
     }
 
-    _getDeclaration(name) {
-        return this._declarations.get(name);
-    }
-
-    _getCurrentScope() {
-        let flatscope = {};
-        for (let [name, value] of this._declarations) {
-            if (value.type === 'declaration')
-                flatscope[name] = value.code;
-        }
-        return flatscope;
-    }
-
-    _declareArguments(args, scope, irBuilder) {
+    private _declareArguments(args : TypeMap,
+                              scope : Scope,
+                              irBuilder : JSIr.IRBuilder) {
         const compiledArgs = [];
 
-        for (let name in args) {
+        for (const name in args) {
             const reg = irBuilder.allocArgument();
             scope.set(name, {
                 type: 'scalar',
                 tt_type: args[name],
-                register: reg
+                register: reg,
+                direction: 'input',
+                isInVarScopeNames: false
             });
             compiledArgs.push(name);
         }
@@ -95,28 +121,34 @@ export default class AppCompiler {
         return compiledArgs;
     }
 
-    _compileDeclarationFunction(decl, parentIRBuilder) {
+    private _compileDeclarationFunction(decl : Ast.Declaration,
+                                        parentIRBuilder : JSIr.IRBuilder|null) : void {
         const irBuilder = new JSIr.IRBuilder(parentIRBuilder ? parentIRBuilder.nextRegister : 0, ['__emit']);
 
         const functionScope = new Scope(this._declarations);
         const args = this._declareArguments(decl.args, functionScope, irBuilder);
-        const opCompiler = new OpCompiler(this, functionScope, irBuilder);
+        const opCompiler = new OpCompiler(this, functionScope, irBuilder, false);
         let op;
 
-        const hints = new QueryInvocationHints(new Set(getDefaultProjection(decl.schema)));
+        const schema = decl.schema;
+        assert(schema);
+        const hints = new QueryInvocationHints(new Set(getDefaultProjection(schema)));
 
         switch (decl.type) {
         case 'query':
+            assert(decl.value instanceof Ast.Table);
             op = compileTableToOps(decl.value, [], hints);
             opCompiler.compileQueryDeclaration(op);
             break;
 
         case 'stream':
+            assert(decl.value instanceof Ast.Stream);
             op = compileStreamToOps(decl.value, hints);
             opCompiler.compileStreamDeclaration(op);
             break;
 
         case 'action':
+            assert(decl.value instanceof Ast.Action);
             opCompiler.compileActionDeclaration(decl.value);
             break;
         }
@@ -131,18 +163,19 @@ export default class AppCompiler {
             code = null;
         } else {
             register = null;
-            code = this._testMode ? irBuilder.codegen() : irBuilder.compile(this._toplevelscope);
+            code = this._testMode ? irBuilder.codegen() : irBuilder.compile(this._toplevelscope, this._astVars);
             this._toplevelscope[decl.name] = code;
         }
 
         this._declarations.set(decl.name, {
             type: 'declaration',
-            args, code, register,
-            schema: decl.schema,
+            args, code, register, schema,
         });
     }
 
-    _compileAssignment(assignment, irBuilder, { hasAnyStream, forProcedure}) {
+    private _compileAssignment(assignment : Ast.Assignment,
+                               irBuilder : JSIr.IRBuilder,
+                               { hasAnyStream, forProcedure } : StatementCompileOptions) {
         const opCompiler = new OpCompiler(this, this._declarations, irBuilder, forProcedure);
 
         // at the top level, assignments can be referred to by streams, so
@@ -155,21 +188,27 @@ export default class AppCompiler {
         let register;
 
         if (assignment.isAction) {
+            assert(assignment.value instanceof Ast.InvocationTable ||
+                   assignment.value instanceof Ast.VarRefTable);
             register = opCompiler.compileActionAssignment(assignment.value, isPersistent);
         } else {
-            const hints = new QueryInvocationHints(new Set(getDefaultProjection(assignment.value.schema)));
+            const schema = assignment.value.schema;
+            assert(schema);
+            const hints = new QueryInvocationHints(new Set(getDefaultProjection(schema)));
             const tableop = compileTableToOps(assignment.value, [], hints);
             register = opCompiler.compileAssignment(tableop, isPersistent);
         }
 
+        const schema = assignment.schema;
+        assert(schema);
         this._declarations.set(assignment.name, {
             type: 'assignment',
-            isPersistent, register,
-            schema: assignment.schema
+            isPersistent, register, schema
         });
     }
 
-    _compileProcedure(decl, parentIRBuilder) {
+    private _compileProcedure(decl : Ast.Declaration,
+                              parentIRBuilder : JSIr.IRBuilder|null) {
         const saveScope = this._declarations;
 
         const irBuilder = new JSIr.IRBuilder(parentIRBuilder ? parentIRBuilder.nextRegister : 0, ['__emit']);
@@ -184,6 +223,7 @@ export default class AppCompiler {
         const args = this._declareArguments(decl.args, procedureScope, irBuilder);
         this._declarations = procedureScope;
 
+        assert(decl.value instanceof Ast.Program);
         this._compileInScope(decl.value, decl.value.rules, irBuilder, {
             hasAnyStream: false,
             forProcedure: true
@@ -199,12 +239,13 @@ export default class AppCompiler {
             code = null;
         } else {
             register = null;
-            code = this._testMode ? irBuilder.codegen() : irBuilder.compile(this._toplevelscope);
+            code = this._testMode ? irBuilder.codegen() : irBuilder.compile(this._toplevelscope, this._astVars);
             this._toplevelscope[decl.name] = code;
         }
 
         this._declarations = saveScope;
 
+        assert(decl.schema);
         this._declarations.set(decl.name, {
             type: 'procedure',
             args, code, register,
@@ -212,28 +253,33 @@ export default class AppCompiler {
         });
     }
 
-    _doCompileStatement(stmt, irBuilder, forProcedure) {
+    private _doCompileStatement(stmt : Ast.Rule|Ast.Command,
+                                irBuilder : JSIr.IRBuilder,
+                                forProcedure : boolean) {
         const opCompiler = new OpCompiler(this, this._declarations, irBuilder, forProcedure);
-        let ruleop = compileStatementToOp(stmt);
+        const ruleop = compileStatementToOp(stmt);
         opCompiler.compileStatement(ruleop);
     }
 
-    _compileRule(rule) {
+    private _compileRule(rule : Ast.Rule|Ast.Command) : string|CompiledStatement {
         // each rule goes into its own JS function
         const irBuilder = new JSIr.IRBuilder();
-        this._doCompileStatement(rule, irBuilder);
+        this._doCompileStatement(rule, irBuilder, false);
 
-        return this._testMode ? irBuilder.codegen() : irBuilder.compile(this._toplevelscope);
+        return this._testMode ? irBuilder.codegen() : irBuilder.compile(this._toplevelscope, this._astVars);
     }
 
-    _compileInScope(program, stmts, irBuilder, { hasAnyStream, forProcedure }) {
-        for (let decl of program.declarations) {
+    private _compileInScope(program : Ast.Program,
+                            stmts : Ast.ExecutableStatement[],
+                            irBuilder : JSIr.IRBuilder|null,
+                            { hasAnyStream, forProcedure } : StatementCompileOptions) {
+        for (const decl of program.declarations) {
             if (['stream', 'query', 'action'].indexOf(decl.type) >= 0)
-                this._declarations[decl.name] = this._compileDeclarationFunction(decl, irBuilder);
+                this._compileDeclarationFunction(decl, irBuilder);
             else if (decl.type === 'procedure')
                 this._compileProcedure(decl, irBuilder);
             else
-                throw new NotImplementedError(decl);
+                throw new NotImplementedError(String(decl));
         }
 
         if (stmts.length === 0)
@@ -249,26 +295,29 @@ export default class AppCompiler {
                 new JSIr.ExitProcedure(procid)
             );
         }
-        
+
         for (let i = 0; i < stmts.length; i++) {
             // if this is not the first statement, clear the get cache before running it
             if (i !== 0)
                 irBuilder.add(new JSIr.ClearGetCache());
-            if (stmts[i].isAssignment)
-                this._compileAssignment(stmts[i], irBuilder, { hasAnyStream, forProcedure });
+
+            const stmt = stmts[i];
+            if (stmt instanceof Ast.Assignment)
+                this._compileAssignment(stmt, irBuilder, { hasAnyStream, forProcedure });
             else
-                this._doCompileStatement(stmts[i], irBuilder, forProcedure);
+                this._doCompileStatement(stmt, irBuilder, forProcedure);
         }
 
         return irBuilder;
     }
 
-    _verifyCompilable(program) {
+    private _verifyCompilable(program : Ast.Program) {
         if (program.principal !== null)
             throw new NotCompilableError(`Remote programs cannot be compiled, they must be sent to a different runtime instead`);
 
-        for (let slot of program.iterateSlots2()) {
+        for (const slot of program.iterateSlots2()) {
             if (slot instanceof Ast.Selector) {
+                assert(slot instanceof Ast.DeviceSelector);
                 if (slot.principal !== null)
                     throw new NotCompilableError(`Remote primitives cannot be compiled, they must be lowered and sent to a different runtime instead`);
                 continue;
@@ -278,16 +327,16 @@ export default class AppCompiler {
         }
     }
 
-    async compileProgram(program) {
+    async compileProgram(program : Ast.Program) : Promise<CompiledProgram> {
         await typeCheckProgram(program, this._schemaRetriever);
         this._verifyCompilable(program);
 
-        const compiledRules = [];
-        const immediate = [];
-        const rules = [];
+        const compiledRules : Array<string|CompiledStatement> = [];
+        const immediate : Array<Ast.Assignment|Ast.Command> = [];
+        const rules : Ast.Rule[] = [];
 
-        for (let stmt of program.rules) {
-            if (stmt.isAssignment || stmt.isCommand)
+        for (const stmt of program.rules) {
+            if (stmt instanceof Ast.Assignment || stmt instanceof Ast.Command)
                 immediate.push(stmt);
             else
                 rules.push(stmt);
@@ -307,7 +356,7 @@ export default class AppCompiler {
         } else {
             compiledCommand = null;
         }
-        for (let rule of rules)
+        for (const rule of rules)
             compiledRules.push(this._compileRule(rule));
 
         return new CompiledProgram(this._nextStateVar, compiledCommand, compiledRules);

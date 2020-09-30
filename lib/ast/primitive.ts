@@ -1361,7 +1361,7 @@ export abstract class Action extends Node {
      * @param {string} [what=notify] - what action to create
      * @return {Ast.Action} the action node
      */
-    static notifyAction(what = 'notify') : NotifyAction {
+    static notifyAction(what : keyof typeof Builtin.Actions = 'notify') : NotifyAction {
         return new NotifyAction(null, what, Builtin.Actions[what]);
     }
 
@@ -1523,7 +1523,7 @@ Action.Invocation.prototype.isInvocation = true;
  * @extends Ast.Action
  */
 export class NotifyAction extends Action {
-    name : string;
+    name : keyof typeof Builtin.Actions;
     invocation : Invocation;
 
     /**
@@ -1534,11 +1534,11 @@ export class NotifyAction extends Action {
      * @param schema - type signature of this action
      */
     constructor(location : SourceRange|null,
-                name : string,
+                name : keyof typeof Builtin.Actions,
                 schema : ExpressionSignature|null) {
         super(location, schema || Builtin.Actions[name]);
 
-        assert(typeof name === 'string');
+        assert(['notify', 'return', 'save'].includes(name));
         this.name = name;
 
         // compatibility interface

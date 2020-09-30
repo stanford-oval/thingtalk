@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -21,7 +21,7 @@
 import assert from 'assert';
 
 import * as Ast from '../ast';
-import Type from '../type';
+import Type, { ArrayType, CompoundType } from '../type';
 import * as Builtin from '../builtin/defs';
 
 import * as JSIr from './jsir';
@@ -32,12 +32,27 @@ import {
     compileEvent,
     isRemoteSend,
     readResultKey,
-    getExpressionParameters
+    getExpressionParameters,
+    EventType
 } from './utils';
-import Scope from './scope';
+import Scope, { DeclarationScopeEntry, ProcedureScopeEntry } from './scope';
+import type AppCompiler from './index';
+import * as Ops from './ops';
+
+type ArgMap = { [key : string] : JSIr.Register };
 
 export default class OpCompiler {
-    constructor(compiler, globalScope, irBuilder, forProcedure) {
+    private _compiler : AppCompiler;
+    private _irBuilder : JSIr.IRBuilder;
+    private _forProcedure : boolean;
+    private _globalScope : Scope;
+    private _currentScope : Scope;
+    private _varScopeNames : string[];
+
+    constructor(compiler : AppCompiler,
+                globalScope : Scope,
+                irBuilder : JSIr.IRBuilder,
+                forProcedure : boolean) {
         this._compiler = compiler;
         this._irBuilder = irBuilder;
         this._forProcedure = forProcedure;
@@ -45,93 +60,89 @@ export default class OpCompiler {
         this._globalScope = globalScope;
         this._currentScope = new Scope(globalScope);
         this._varScopeNames = [];
-        this._versions = {};
-        this._retryLoopLabel = undefined;
     }
 
-    _compileTpFunctionCall(ast) {
+    private _compileTpFunctionCall(ast : Ast.Invocation|Ast.ExternalBooleanExpression) : [string, JSIr.AttributeMap, string] {
         if (!ast.__effectiveSelector) {
             // __effectiveSelector is used to turn dynamically declared classes for @remote
             // into just @remote
             console.error('WARNING: TypeCheck must set __effectiveSelector');
-            ast.__effectiveSelector = ast.selector;
+            ast.__effectiveSelector = ast.selector as Ast.DeviceSelector;
         }
 
-        const attributes = {};
+        const attributes : JSIr.AttributeMap = {};
         if (ast.__effectiveSelector.id)
             attributes.id = ast.__effectiveSelector.id;
         // NOTE: "all" has no effect on the compiler, it only affects the dialog agent
         // whether it should slot-fill id or not
         // (in the future, this should probably be represented as id=$? like everywhere else...)
 
-        for (let attr of ast.__effectiveSelector.attributes) {
+        for (const attr of ast.__effectiveSelector.attributes) {
             // attr.value cannot be a parameter passing in a program, so it's safe to call toJS here
             attributes[attr.name] = attr.value.toJS();
         }
         return [ast.__effectiveSelector.kind, attributes, ast.channel];
     }
 
-    _allocState() {
+    private _allocState() {
         return this._compiler._allocState();
     }
 
-    _compileOneInputParam(args, ast, inParam) {
+    private _compileOneInputParam(args : JSIr.Register,
+                                  ast : Ast.Invocation|Ast.ExternalBooleanExpression,
+                                  inParam : Ast.InputParam) {
         let reg = this.compileValue(inParam.value, this._currentScope);
-        let ptype = ast.schema.inReq[inParam.name] || ast.schema.inOpt[inParam.name];
+        const schema = ast.schema;
+        assert(schema);
+        const ptype = schema.inReq[inParam.name] || schema.inOpt[inParam.name];
         reg = compileCast(this._irBuilder, reg, typeForValue(inParam.value, this._currentScope), ptype);
         this._irBuilder.add(new JSIr.SetKey(args, inParam.name, reg));
         return reg;
     }
 
-    _compileInputParams(ast, extra_in_params = []) {
-        let args = this._irBuilder.allocRegister();
+    private _compileInputParams(ast : Ast.Invocation|Ast.ExternalBooleanExpression,
+                                extra_in_params : Ast.InputParam[] = []) : [ArgMap, JSIr.Register] {
+        const args = this._irBuilder.allocRegister();
         this._irBuilder.add(new JSIr.CreateObject(args));
 
-        let argmap = {};
-        for (let inParam of ast.in_params)
+        const argmap : ArgMap = {};
+        for (const inParam of ast.in_params)
             argmap[inParam.name] = this._compileOneInputParam(args, ast, inParam);
-        for (let inParam of extra_in_params)
+        for (const inParam of extra_in_params)
             argmap[inParam.name] = this._compileOneInputParam(args, ast, inParam);
         return [argmap, args];
     }
 
-    _compileAggregation(ast) {
-        if (ast.aggregation) {
-            let agg = this._irBuilder.allocRegister();
-            this._irBuilder.add(new JSIr.CreateAggregation(ast.aggregation, agg));
-            return agg;
-        }
-        return null;
-    }
-
-    _compileIterateQuery(list) {
-        let iterator = this._irBuilder.allocRegister();
+    private _compileIterateQuery(list : JSIr.Register) : JSIr.Register {
+        const iterator = this._irBuilder.allocRegister();
         this._irBuilder.add(new JSIr.Iterator(iterator, list));
 
-        let deviceAndResult = this._irBuilder.allocRegister();
-        let loop = new JSIr.AsyncWhileLoop(deviceAndResult, iterator);
+        const deviceAndResult = this._irBuilder.allocRegister();
+        const loop = new JSIr.AsyncWhileLoop(deviceAndResult, iterator);
         this._irBuilder.add(loop);
         this._irBuilder.pushBlock(loop.body);
 
         return deviceAndResult;
     }
 
-    _compileFilterValue(expr, currentScope) {
+    private _compileFilterValue(expr : Ast.FilterValue,
+                                currentScope : Scope) {
         const array = this.compileValue(expr.value, currentScope);
 
         const result = this._irBuilder.allocRegister();
         const element = this._irBuilder.allocRegister();
 
-        assert(expr.type.isArray);
+        assert(expr.type instanceof ArrayType);
         const elementtype = expr.type.elem;
+        assert(elementtype instanceof Type);
 
         const filterop = new JSIr.ArrayFilterExpression(result, element, array);
         this._irBuilder.add(filterop);
         this._irBuilder.pushBlock(filterop.body);
 
         const newScope = new Scope(currentScope.parent);
-        if (elementtype.isCompound) {
-            for (let field in elementtype.fields) {
+        if (elementtype instanceof CompoundType) {
+            for (const field in elementtype.fields) {
                 if (field.indexOf('.') >= 0)
                     continue;
                 readResultKey(this._irBuilder, newScope, element, field, field, elementtype.fields[field].type, false);
@@ -139,7 +150,7 @@ export default class OpCompiler {
         } else {
             newScope.set('value', {
                 type: 'scalar',
-                reg: element,
+                register: element,
                 tt_type: elementtype,
                 direction: 'output',
                 isInVarScopeNames: false,
@@ -153,60 +164,67 @@ export default class OpCompiler {
         return result;
     }
 
-    _compileScalarExpression(ast, scope) {
+    private _compileScalarExpression(ast : Ast.ComputationValue,
+                                     scope : Scope) {
         const args = ast.operands.map((op) => this.compileValue(op, scope));
         const result = this._irBuilder.allocRegister();
 
-        let scalarOp = Builtin.ScalarExpressionOps[ast.op];
-        if (typeof scalarOp.overload === 'function')
-            scalarOp = scalarOp.overload(...ast.overload);
+        const opdef = Builtin.ScalarExpressionOps[ast.op];
+        let opimpl : Builtin.OpImplementation = opdef;
+        if (typeof opdef.overload === 'function')
+            opimpl = opdef.overload(...(ast.overload as Type[]));
 
-        if (scalarOp.op)
-            this._irBuilder.add(new JSIr.BinaryOp(args[0], args[1], scalarOp.op, result));
+        if (opimpl.op)
+            this._irBuilder.add(new JSIr.BinaryOp(args[0], args[1], opimpl.op, result));
         else
-            this._irBuilder.add(new JSIr.FunctionOp(scalarOp.fn, result, ...args));
+            this._irBuilder.add(new JSIr.FunctionOp(opimpl.fn as string, result, ...args));
         return result;
     }
 
-    _compileComparison(ast, op, lhs, rhs, into) {
-        let binaryOp = Builtin.BinaryOps[op];
-        if (typeof binaryOp.overload === 'function')
-            binaryOp = binaryOp.overload(...ast.overload);
+    private _compileComparison(ast : Ast.AtomBooleanExpression|Ast.ComputeBooleanExpression,
+                               op : keyof typeof Builtin.BinaryOps,
+                               lhs : JSIr.Register,
+                               rhs : JSIr.Register,
+                               into : JSIr.Register) {
+        const opdef = Builtin.BinaryOps[op];
+        let opimpl : Builtin.OpImplementation = opdef;
+        if (typeof opdef.overload === 'function')
+            opimpl = opdef.overload(...(ast.overload as Type[]));
 
-        if (binaryOp.op)
-            this._irBuilder.add(new JSIr.BinaryOp(lhs, rhs, binaryOp.op, into));
-        else if (binaryOp.flip)
-            this._irBuilder.add(new JSIr.BinaryFunctionOp(rhs, lhs, binaryOp.fn, into));
+        if (opimpl.op)
+            this._irBuilder.add(new JSIr.BinaryOp(lhs, rhs, opimpl.op, into));
+        else if (opimpl.flip)
+            this._irBuilder.add(new JSIr.BinaryFunctionOp(rhs, lhs, opimpl.fn as string, into));
         else
-            this._irBuilder.add(new JSIr.BinaryFunctionOp(lhs, rhs, binaryOp.fn, into));
+            this._irBuilder.add(new JSIr.BinaryFunctionOp(lhs, rhs, opimpl.fn as string, into));
     }
 
-    compileValue(ast, scope) {
-        if (ast.isUndefined)
+    compileValue(ast : Ast.Value, scope : Scope) : JSIr.Register {
+        if (ast instanceof Ast.UndefinedValue)
             throw new Error('Invalid undefined value, should have been slot-filled');
-        if (ast.isEvent)
-            return compileEvent(this._irBuilder, scope, ast.name);
-        if (ast.isVarRef)
+        if (ast instanceof Ast.EventValue)
+            return compileEvent(this._irBuilder, scope, ast.name as EventType);
+        if (ast instanceof Ast.VarRefValue)
             return getRegister(ast.name, scope);
 
-        if (ast.isComputation)
+        if (ast instanceof Ast.ComputationValue)
             return this._compileScalarExpression(ast, scope);
-        if (ast.isFilter)
+        if (ast instanceof Ast.FilterValue)
             return this._compileFilterValue(ast, scope);
-        if (ast.isArrayField) {
+        if (ast instanceof Ast.ArrayFieldValue) {
             const array = this.compileValue(ast.value, scope);
             const result = this._irBuilder.allocRegister();
             this._irBuilder.add(new JSIr.MapAndReadField(result, array, ast.field));
             return result;
         }
 
-        if (ast.isContextRef) {
-            let reg = this._irBuilder.allocRegister();
+        if (ast instanceof Ast.ContextRefValue) {
+            const reg = this._irBuilder.allocRegister();
             this._irBuilder.add(new JSIr.LoadContext(ast, reg));
             return reg;
         }
 
-        if (ast.isArray) {
+        if (ast instanceof Ast.ArrayValue) {
             const array = this._irBuilder.allocRegister();
             this._irBuilder.add(new JSIr.CreateTuple(ast.value.length, array));
 
@@ -218,102 +236,114 @@ export default class OpCompiler {
             return array;
         }
 
-        let reg = this._irBuilder.allocRegister();
+        const reg = this._irBuilder.allocRegister();
         this._irBuilder.add(new JSIr.LoadConstant(ast, reg));
         return reg;
     }
 
-    _compileFilter(ast, currentScope) {
-        return (function recursiveHelper(expr) {
-            let cond = this._irBuilder.allocRegister();
-            if (expr.isTrue || expr.isDontCare) {
-                this._irBuilder.add(new JSIr.LoadConstant(new Ast.Value.Boolean(true), cond));
-            } else if (expr.isFalse) {
-                this._irBuilder.add(new JSIr.LoadConstant(new Ast.Value.Boolean(false), cond));
-            } else if (expr.isAnd) {
-                this._irBuilder.add(new JSIr.LoadConstant(new Ast.Value.Boolean(true), cond));
-                for (let op of expr.operands) {
-                    let opv = recursiveHelper.call(this, op);
-                    this._irBuilder.add(new JSIr.BinaryOp(cond, opv, '&&', cond));
-                }
-            } else if (expr.isOr) {
-                this._irBuilder.add(new JSIr.LoadConstant(new Ast.Value.Boolean(false), cond));
-                for (let op of expr.operands) {
-                    let opv = recursiveHelper.call(this, op);
-                    this._irBuilder.add(new JSIr.BinaryOp(cond, opv, '||', cond));
-                }
-            } else if (expr.isNot) {
-                const op = recursiveHelper.call(this, expr.expr);
-                this._irBuilder.add(new JSIr.UnaryOp(op, '!', cond));
-            } else if (expr.isExternal) {
-                this._irBuilder.add(new JSIr.LoadConstant(new Ast.Value.Boolean(false), cond));
-
-                let tryCatch = new JSIr.TryCatch("Failed to invoke get-predicate query");
-                this._irBuilder.add(tryCatch);
-                this._irBuilder.pushBlock(tryCatch.try);
-
-                assert(expr.selector.isDevice);
-                let [kind, attrs, fname] = this._compileTpFunctionCall(expr);
-                let list = this._irBuilder.allocRegister();
-                let [argmap, args] = this._compileInputParams(expr);
-                const hints = { projection: Array.from(getExpressionParameters(expr.filter, expr.schema)) };
-                this._irBuilder.add(new JSIr.InvokeQuery(kind, attrs, fname, list, args, hints));
-
-                let typeAndResult = this._compileIterateQuery(list);
-                let [, result] = this._readTypeResult(typeAndResult);
-
-                let nestedScope = new Scope(this._globalScope);
-                for (let name in argmap) {
-                    nestedScope.set(name, {
-                        type: 'scalar',
-                        tt_type: expr.schema.inReq[name] || expr.schema.inOpt[name],
-                        register: argmap[name]
-                    });
-                }
-                for (let outParam in expr.schema.out) {
-                    let reg = this._irBuilder.allocRegister();
-                    this._irBuilder.add(new JSIr.GetKey(result, outParam, reg));
-                    nestedScope.set(outParam, {
-                        type: 'scalar',
-                        tt_type: expr.schema.out[outParam],
-                        register: reg
-                    });
-                }
-                let ok = this._compileFilter(expr.filter, nestedScope);
-                let ifStmt = new JSIr.IfStatement(ok);
-                this._irBuilder.add(ifStmt);
-                this._irBuilder.pushBlock(ifStmt.iftrue);
-                this._irBuilder.add(new JSIr.LoadConstant(new Ast.Value.Boolean(true), cond));
-                this._irBuilder.add(new JSIr.Break());
-                this._irBuilder.popBlock();
-
-                this._irBuilder.popBlock(); // for-of
-                this._irBuilder.popBlock(); // try-catch
-            } else if (expr.isCompute) {
-                let lhs = this.compileValue(expr.lhs, currentScope);
-                let op = expr.operator;
-                lhs = compileCast(this._irBuilder, lhs, expr.lhs.type, expr.overload[0]);
-                let rhs = this.compileValue(expr.rhs, currentScope);
-                rhs = compileCast(this._irBuilder, rhs, typeForValue(expr.rhs, currentScope), expr.overload[1]);
-                this._compileComparison(expr, op, lhs, rhs, cond);
-                cond = compileCast(this._irBuilder, cond, expr.overload[2], Type.Boolean);
-            } else if (expr.isAtom) {
-                let op = expr.operator;
-                let { tt_type:lhsType, register:lhs } = currentScope.get(expr.name);
-                lhs = compileCast(this._irBuilder, lhs, lhsType, expr.overload[0]);
-                let rhs = this.compileValue(expr.value, currentScope);
-                rhs = compileCast(this._irBuilder, rhs, typeForValue(expr.value, currentScope), expr.overload[1]);
-                this._compileComparison(expr, op, lhs, rhs, cond);
-                cond = compileCast(this._irBuilder, cond, expr.overload[2], Type.Boolean);
-            } else {
-                throw new Error('Unsupported boolean expression ' + expr);
+    private _compileFilter(expr : Ast.BooleanExpression, currentScope : Scope) {
+        let cond = this._irBuilder.allocRegister();
+        if (expr === Ast.BooleanExpression.True ||
+            expr instanceof Ast.DontCareBooleanExpression) {
+            this._irBuilder.add(new JSIr.LoadConstant(new Ast.Value.Boolean(true), cond));
+        } else if (expr === Ast.BooleanExpression.False) {
+            this._irBuilder.add(new JSIr.LoadConstant(new Ast.Value.Boolean(false), cond));
+        } else if (expr instanceof Ast.AndBooleanExpression) {
+            this._irBuilder.add(new JSIr.LoadConstant(new Ast.Value.Boolean(true), cond));
+            for (const op of expr.operands) {
+                const opv = this._compileFilter(op, currentScope);
+                this._irBuilder.add(new JSIr.BinaryOp(cond, opv, '&&', cond));
             }
-            return cond;
-        }).call(this, ast);
+        } else if (expr instanceof Ast.OrBooleanExpression) {
+            this._irBuilder.add(new JSIr.LoadConstant(new Ast.Value.Boolean(false), cond));
+            for (const op of expr.operands) {
+                const opv = this._compileFilter(op, currentScope);
+                this._irBuilder.add(new JSIr.BinaryOp(cond, opv, '||', cond));
+            }
+        } else if (expr instanceof Ast.NotBooleanExpression) {
+            const op = this._compileFilter(expr.expr, currentScope);
+            this._irBuilder.add(new JSIr.UnaryOp(op, '!', cond));
+        } else if (expr instanceof Ast.ExternalBooleanExpression) {
+            this._irBuilder.add(new JSIr.LoadConstant(new Ast.Value.Boolean(false), cond));
+
+            const tryCatch = new JSIr.TryCatch("Failed to invoke get-predicate query");
+            this._irBuilder.add(tryCatch);
+            this._irBuilder.pushBlock(tryCatch.try);
+
+            assert(expr.selector.isDevice);
+            const [kind, attrs, fname] = this._compileTpFunctionCall(expr);
+            const list = this._irBuilder.allocRegister();
+            const [argmap, args] = this._compileInputParams(expr);
+            const schema = expr.schema as Ast.ExpressionSignature;
+
+            const hints = { projection: Array.from(getExpressionParameters(expr.filter, schema)) };
+            this._irBuilder.add(new JSIr.InvokeQuery(kind, attrs, fname, list, args, hints));
+
+            const typeAndResult = this._compileIterateQuery(list);
+            const [, result] = this._readTypeResult(typeAndResult);
+
+            const nestedScope = new Scope(this._globalScope);
+            for (const name in argmap) {
+                nestedScope.set(name, {
+                    type: 'scalar',
+                    tt_type: schema.inReq[name] || schema.inOpt[name],
+                    register: argmap[name],
+                    direction: 'input',
+                    isInVarScopeNames: false
+                });
+            }
+            for (const outParam in schema.out) {
+                const reg = this._irBuilder.allocRegister();
+                this._irBuilder.add(new JSIr.GetKey(result, outParam, reg));
+                nestedScope.set(outParam, {
+                    type: 'scalar',
+                    tt_type: schema.out[outParam],
+                    register: reg,
+                    direction: 'output',
+                    isInVarScopeNames: false
+                });
+            }
+            const ok = this._compileFilter(expr.filter, nestedScope);
+            const ifStmt = new JSIr.IfStatement(ok);
+            this._irBuilder.add(ifStmt);
+            this._irBuilder.pushBlock(ifStmt.iftrue);
+            this._irBuilder.add(new JSIr.LoadConstant(new Ast.Value.Boolean(true), cond));
+            this._irBuilder.add(new JSIr.Break());
+            this._irBuilder.popBlock();
+
+            this._irBuilder.popBlock(); // for-of
+            this._irBuilder.popBlock(); // try-catch
+        } else if (expr instanceof Ast.ComputeBooleanExpression) {
+            const overload = expr.overload as Type[];
+            let lhs = this.compileValue(expr.lhs, currentScope);
+            const op = expr.operator;
+            lhs = compileCast(this._irBuilder, lhs, typeForValue(expr.lhs, currentScope), overload[0]);
+            let rhs = this.compileValue(expr.rhs, currentScope);
+            rhs = compileCast(this._irBuilder, rhs, typeForValue(expr.rhs, currentScope), overload[1]);
+            this._compileComparison(expr, op , lhs, rhs, cond);
+            cond = compileCast(this._irBuilder, cond, overload[2], Type.Boolean);
+        } else if (expr instanceof Ast.AtomBooleanExpression) {
+            const op = expr.operator;
+            const overload = expr.overload as Type[];
+            const scopeEntry = currentScope.get(expr.name);
+            assert(scopeEntry.type === 'scalar');
+            const { tt_type:lhsType, register:lhs } = scopeEntry;
+            assert(lhsType);
+            const castedlhs = compileCast(this._irBuilder, lhs, lhsType, overload[0]);
+            const rhs = this.compileValue(expr.value, currentScope);
+            const castedrhs = compileCast(this._irBuilder, rhs, typeForValue(expr.value, currentScope), overload[1]);
+            this._compileComparison(expr, op, castedlhs, castedrhs, cond);
+            cond = compileCast(this._irBuilder, cond, overload[2], Type.Boolean);
+        } else {
+            throw new Error('Unsupported boolean expression ' + expr);
+        }
+        return cond;
     }
 
-    _setInvocationOutputs(schema, argmap, typeAndResult) {
-        let [outputType, result] = this._readTypeResult(typeAndResult);
+    private _setInvocationOutputs(schema : Ast.ExpressionSignature,
+                                  argmap : ArgMap,
+                                  typeAndResult : JSIr.Register) {
+        const [outputType, result] = this._readTypeResult(typeAndResult);
 
         this._currentScope = new Scope(this._globalScope);
         this._varScopeNames = [];
@@ -321,30 +351,30 @@ export default class OpCompiler {
             type: 'scalar',
             tt_type: null,
             direction: 'special',
-            register: outputType
+            register: outputType,
+            isInVarScopeNames: false
         });
         this._currentScope.set('$output', {
             type: 'scalar',
             tt_type: null,
             direction: 'special',
-            register: result
+            register: result,
+            isInVarScopeNames: false
         });
 
-        if (argmap) {
-            for (let arg in argmap) {
-                this._currentScope.set(arg, {
-                    type: 'scalar',
-                    tt_type: schema.inReq[arg] || schema.inOpt[arg],
-                    register: argmap[arg],
-                    direction: 'input',
-                    isInVarScopeNames: false
-                });
-                // note: input parameters && __result do not participate in varScopeNames (which is used to
-                // compare tuples for equality in monitor())
-            }
+        for (const arg in argmap) {
+            this._currentScope.set(arg, {
+                type: 'scalar',
+                tt_type: schema.inReq[arg] || schema.inOpt[arg],
+                register: argmap[arg],
+                direction: 'input',
+                isInVarScopeNames: false
+            });
+            // note: input parameters && __result do not participate in varScopeNames (which is used to
+            // compare tuples for equality in monitor())
         }
 
-        for (let outArg of schema.iterateArguments()) {
+        for (const outArg of schema.iterateArguments()) {
             if (outArg.direction !== Ast.ArgDirection.IN_OPT || outArg.name in argmap)
                 continue;
             if (outArg.name.indexOf('.') >= 0)
@@ -357,9 +387,9 @@ export default class OpCompiler {
         // if the schema has an explicit __response argument (which is the case for @remote stuff
         // which needs to carry over __response), we do not override it here
         if (!schema.hasArgument('__response'))
-            readResultKey(this._irBuilder, this._currentScope, result, '__response', '__response', Type.String);
+            readResultKey(this._irBuilder, this._currentScope, result, '__response', '__response', Type.String, false);
 
-        for (let outArg of schema.iterateArguments()) {
+        for (const outArg of schema.iterateArguments()) {
             if (outArg.direction !== Ast.ArgDirection.OUT)
                 continue;
             if (outArg.name.indexOf('.') >= 0)
@@ -369,42 +399,46 @@ export default class OpCompiler {
         }
     }
 
-    _compileInvokeSubscribe(streamop) {
-        let tryCatch = new JSIr.TryCatch("Failed to invoke trigger");
+    private _compileInvokeSubscribe(streamop : Ops.InvokeSubscribeStreamOp) {
+        const tryCatch = new JSIr.TryCatch("Failed to invoke trigger");
         this._irBuilder.add(tryCatch);
         this._irBuilder.pushBlock(tryCatch.try);
 
-        let [kind, attrs, fname] = this._compileTpFunctionCall(streamop.invocation);
-        let [argmap, argmapreg] = this._compileInputParams(streamop.invocation);
+        const [kind, attrs, fname] = this._compileTpFunctionCall(streamop.invocation);
+        const [argmap, argmapreg] = this._compileInputParams(streamop.invocation);
         const hints = this._compileInvocationHints(streamop.invocation, streamop.hints);
 
-        let iterator = this._irBuilder.allocRegister();
+        const iterator = this._irBuilder.allocRegister();
         this._irBuilder.add(new JSIr.InvokeMonitor(kind, attrs, fname, iterator, argmapreg, hints));
 
-        let result = this._irBuilder.allocRegister();
-        let loop = new JSIr.AsyncWhileLoop(result, iterator);
+        const result = this._irBuilder.allocRegister();
+        const loop = new JSIr.AsyncWhileLoop(result, iterator);
         this._irBuilder.add(loop);
         this._irBuilder.pushBlock(loop.body);
 
-        this._setInvocationOutputs(streamop.invocation.schema, argmap, result);
+        this._setInvocationOutputs(streamop.invocation.schema as Ast.ExpressionSignature,
+            argmap, result);
     }
 
-    _compileTimer(streamop) {
-        let tryCatch = new JSIr.TryCatch("Failed to invoke timer");
+    private _compileTimer(streamop : Ops.TimerStreamOp) {
+        const tryCatch = new JSIr.TryCatch("Failed to invoke timer");
         this._irBuilder.add(tryCatch);
         this._irBuilder.pushBlock(tryCatch.try);
 
-        let iterator = this._irBuilder.allocRegister();
-        let base = this.compileValue(streamop.base, this._currentScope);
-        let interval = this.compileValue(streamop.interval, this._currentScope);
+        const iterator = this._irBuilder.allocRegister();
+        const base = this.compileValue(streamop.base, this._currentScope);
+        const interval = this.compileValue(streamop.interval, this._currentScope);
         let frequency = null;
         if (streamop.frequency !== null)
             frequency = this.compileValue(streamop.frequency, this._currentScope);
 
         this._irBuilder.add(new JSIr.InvokeTimer(iterator, base, interval, frequency));
 
-        let result = this._irBuilder.allocRegister();
-        let loop = new JSIr.AsyncWhileLoop(result, iterator);
+        const outputType = this._irBuilder.allocRegister();
+        this._irBuilder.add(new JSIr.LoadConstant(null, outputType));
+
+        const result = this._irBuilder.allocRegister();
+        const loop = new JSIr.AsyncWhileLoop(result, iterator);
         this._irBuilder.add(loop);
         this._irBuilder.pushBlock(loop.body);
 
@@ -412,28 +446,30 @@ export default class OpCompiler {
         this._currentScope.set('$outputType', {
             type: 'scalar',
             tt_type: null,
-            register: null,
+            register: outputType,
             direction: 'special',
+            isInVarScopeNames: false
         });
         this._currentScope.set('$output', {
             type: 'scalar',
             tt_type: null,
             register: result,
             direction: 'special',
+            isInVarScopeNames: false
         });
     }
 
-    _compileAtTimer(streamop) {
-        let tryCatch = new JSIr.TryCatch("Failed to invoke at-timer");
+    private _compileAtTimer(streamop : Ops.AtTimerStreamOp) {
+        const tryCatch = new JSIr.TryCatch("Failed to invoke at-timer");
         this._irBuilder.add(tryCatch);
         this._irBuilder.pushBlock(tryCatch.try);
 
-        let iterator = this._irBuilder.allocRegister();
-        let timeArray = this._irBuilder.allocRegister();
+        const iterator = this._irBuilder.allocRegister();
+        const timeArray = this._irBuilder.allocRegister();
 
         this._irBuilder.add(new JSIr.CreateTuple(streamop.time.length, timeArray));
         for (let i = 0; i < streamop.time.length; i++) {
-            let time = this.compileValue(streamop.time[i], this._currentScope);
+            const time = this.compileValue(streamop.time[i], this._currentScope);
             this._irBuilder.add(new JSIr.SetIndex(timeArray, i, time));
         }
 
@@ -442,8 +478,11 @@ export default class OpCompiler {
             expiration_date = this.compileValue(streamop.expiration_date, this._currentScope);
         this._irBuilder.add(new JSIr.InvokeAtTimer(iterator, timeArray, expiration_date));
 
-        let result = this._irBuilder.allocRegister();
-        let loop = new JSIr.AsyncWhileLoop(result, iterator);
+        const outputType = this._irBuilder.allocRegister();
+        this._irBuilder.add(new JSIr.LoadConstant(null, outputType));
+
+        const result = this._irBuilder.allocRegister();
+        const loop = new JSIr.AsyncWhileLoop(result, iterator);
         this._irBuilder.add(loop);
         this._irBuilder.pushBlock(loop.body);
 
@@ -451,19 +490,22 @@ export default class OpCompiler {
         this._currentScope.set('$outputType', {
             type: 'scalar',
             tt_type: null,
-            register: null,
+            register: outputType,
             direction: 'special',
+            isInVarScopeNames: false
         });
         this._currentScope.set('$output', {
             type: 'scalar',
             tt_type: null,
             register: result,
             direction: 'special',
+            isInVarScopeNames: false
         });
     }
 
-    _compileInvocationHints(invocation, hints) {
-        if (!invocation.schema.is_list) {
+    private _compileInvocationHints(invocation : Ast.Invocation,
+                                    hints : Ops.QueryInvocationHints) {
+        if (!invocation.schema!.is_list) {
             // if the invocation is not a list, filter, sort and limit are not applicable
             return {
                 projection: [...hints.projection],
@@ -475,13 +517,13 @@ export default class OpCompiler {
 
         const optimized = hints.filter.optimize();
 
-        let clauses = [];
-        if (optimized.isAnd)
+        let clauses : Ast.BooleanExpression[] = [];
+        if (optimized instanceof Ast.AndBooleanExpression)
             clauses = optimized.operands;
         else
             clauses = [optimized];
 
-        let toCompile = clauses.filter((c) => c.isAtom);
+        const toCompile = clauses.filter((c : Ast.BooleanExpression) => c instanceof Ast.AtomBooleanExpression) as Ast.AtomBooleanExpression[];
         if (toCompile.length === 0) {
             return {
                 projection: [...hints.projection],
@@ -500,7 +542,7 @@ export default class OpCompiler {
                 new Ast.Value.String(clause.name),
                 new Ast.Value.String(clause.operator),
                 clause.value
-            ]));
+            ]), this._currentScope);
             this._irBuilder.add(new JSIr.SetIndex(filterArray, i, clauseTuple));
         }
 
@@ -512,36 +554,39 @@ export default class OpCompiler {
         };
     }
 
-    _compileInvokeGet(tableop) {
-        let tryCatch = new JSIr.TryCatch("Failed to invoke query");
+    private _compileInvokeGet(tableop : Ops.InvokeGetTableOp) {
+        const tryCatch = new JSIr.TryCatch("Failed to invoke query");
         this._irBuilder.add(tryCatch);
         this._irBuilder.pushBlock(tryCatch.try);
 
-        let [kind, attrs, fname] = this._compileTpFunctionCall(tableop.invocation);
-        let [argmap, argmapreg] = this._compileInputParams(tableop.invocation, tableop.extra_in_params);
+        const [kind, attrs, fname] = this._compileTpFunctionCall(tableop.invocation);
+        const [argmap, argmapreg] = this._compileInputParams(tableop.invocation, tableop.extra_in_params);
         const hints = this._compileInvocationHints(tableop.invocation, tableop.hints);
-        let list = this._irBuilder.allocRegister();
+        const list = this._irBuilder.allocRegister();
         this._irBuilder.add(new JSIr.InvokeQuery(kind, attrs, fname, list, argmapreg, hints));
 
-        let result = this._compileIterateQuery(list);
-        this._setInvocationOutputs(tableop.invocation.schema, argmap, result);
+        const result = this._compileIterateQuery(list);
+        this._setInvocationOutputs(tableop.invocation.schema as Ast.ExpressionSignature,
+            argmap, result);
     }
 
-    _compileVarRefInputParams(decl, in_params) {
-        let in_argmap = {};
-        for (let inParam of in_params) {
+    private _compileVarRefInputParams(decl : DeclarationScopeEntry|ProcedureScopeEntry,
+                                      in_params : Ast.InputParam[]) {
+        const in_argmap : ArgMap = {};
+        for (const inParam of in_params) {
             let reg = this.compileValue(inParam.value, this._currentScope);
-            let ptype = decl.schema.getArgType(inParam.name);
+            const ptype = decl.schema.getArgType(inParam.name);
+            assert(ptype);
             reg = compileCast(this._irBuilder, reg, typeForValue(inParam.value, this._currentScope), ptype);
             in_argmap[inParam.name] = reg;
         }
 
-        return decl.args.map((arg) => in_argmap[arg]);
+        return decl.args.map((arg : string) => in_argmap[arg]);
     }
 
-    _compileInvokeGenericVarRef(op) {
-        let decl = this._currentScope.get(op.name);
-        assert(decl.type !== 'scalar');
+    private _compileInvokeGenericVarRef(op : Ops.InvokeVarRefTableOp|Ops.InvokeVarRefStreamOp|Ast.VarRefAction|Ast.VarRefTable) {
+        const decl = this._currentScope.get(op.name);
+        assert(decl.type === 'declaration' || decl.type === 'procedure');
         let fnreg;
         if (decl.register !== null) {
             fnreg = decl.register;
@@ -550,24 +595,25 @@ export default class OpCompiler {
             this._irBuilder.add(new JSIr.GetScope(op.name, fnreg));
         }
 
-        let args = this._compileVarRefInputParams(decl, op.in_params);
-        let iterator = this._irBuilder.allocRegister();
+        const args = this._compileVarRefInputParams(decl, op.in_params);
+        const iterator = this._irBuilder.allocRegister();
         // all of stream, query and action invoke as stream, because of the lazy evaluation of query
         this._irBuilder.add(new JSIr.InvokeStreamVarRef(fnreg, iterator, args));
 
-        let result = this._irBuilder.allocRegister();
-        let loop = new JSIr.AsyncWhileLoop(result, iterator);
+        const result = this._irBuilder.allocRegister();
+        const loop = new JSIr.AsyncWhileLoop(result, iterator);
         this._irBuilder.add(loop);
         this._irBuilder.pushBlock(loop.body);
-        this._setInvocationOutputs(decl.schema, null, result);
+        this._setInvocationOutputs(decl.schema, {}, result);
     }
 
-    _compileInvokeTableVarRef(tableop) {
-        let decl = this._currentScope.get(tableop.name);
+    private _compileInvokeTableVarRef(tableop : Ops.InvokeVarRefTableOp) {
+        const decl = this._currentScope.get(tableop.name);
         assert(decl.type !== 'scalar');
+        assert(decl.type !== 'procedure');
 
         if (decl.type === 'declaration') {
-            let tryCatch = new JSIr.TryCatch("Failed to invoke query");
+            const tryCatch = new JSIr.TryCatch("Failed to invoke query");
             this._irBuilder.add(tryCatch);
             this._irBuilder.pushBlock(tryCatch.try);
 
@@ -578,44 +624,48 @@ export default class OpCompiler {
             let list;
             if (decl.isPersistent) {
                 list = this._irBuilder.allocRegister();
-                this._irBuilder.add(new JSIr.InvokeReadState(list, decl.register));
+                const state = decl.register;
+                assert(state !== null);
+                this._irBuilder.add(new JSIr.InvokeReadState(list, state));
             } else {
                 list = decl.register;
             }
+            assert(list !== null);
 
-            let result = this._compileIterateQuery(list);
-            this._setInvocationOutputs(decl.schema, null, result);
+            const result = this._compileIterateQuery(list);
+            this._setInvocationOutputs(decl.schema, {}, result);
         }
     }
 
-    _compileInvokeStreamVarRef(streamop) {
-        let tryCatch = new JSIr.TryCatch("Failed to invoke stream");
+    private _compileInvokeStreamVarRef(streamop : Ops.InvokeVarRefStreamOp) {
+        const tryCatch = new JSIr.TryCatch("Failed to invoke stream");
         this._irBuilder.add(tryCatch);
         this._irBuilder.pushBlock(tryCatch.try);
 
         this._compileInvokeGenericVarRef(streamop);
     }
 
-    _compileInvokeOutput() {
+    private _compileInvokeOutput() {
         if (this._forProcedure)
             this._irBuilder.add(new JSIr.InvokeEmit(getRegister('$outputType', this._currentScope), getRegister('$output', this._currentScope)));
         else
             this._irBuilder.add(new JSIr.InvokeOutput(getRegister('$outputType', this._currentScope), getRegister('$output', this._currentScope)));
     }
 
-    _compileInvokeAction(action) {
-        let [kind, attrs, fname] = this._compileTpFunctionCall(action.invocation);
-        let [argmap, args] = this._compileInputParams(action.invocation);
+    private _compileInvokeAction(action : Ast.InvocationAction|Ast.InvocationTable) {
+        const [kind, attrs, fname] = this._compileTpFunctionCall(action.invocation);
+        const [argmap, args] = this._compileInputParams(action.invocation);
 
         // for compatibility with existing actions that return nothing or random stuff (usually
         // an HTTP response), we ignore the return value of actions that are declared without
         // output parameters
-        if (action.schema.hasAnyOutputArg()) {
-            let list = this._irBuilder.allocRegister();
+        if (action.schema!.hasAnyOutputArg()) {
+            const list = this._irBuilder.allocRegister();
             this._irBuilder.add(new JSIr.InvokeAction(kind, attrs, fname, list, args));
 
-            let result = this._compileIterateQuery(list);
-            this._setInvocationOutputs(action.schema, argmap, result);
+            const result = this._compileIterateQuery(list);
+            this._setInvocationOutputs(action.schema as Ast.ExpressionSignature,
+                argmap, result);
 
             return true;
         } else {
@@ -624,12 +674,12 @@ export default class OpCompiler {
         }
     }
 
-    _compileAction(ast) {
-        let tryCatch = new JSIr.TryCatch("Failed to invoke action");
+    private _compileAction(ast : Ast.Action) {
+        const tryCatch = new JSIr.TryCatch("Failed to invoke action");
         this._irBuilder.add(tryCatch);
         this._irBuilder.pushBlock(tryCatch.try);
 
-        if (ast.isNotify) {
+        if (ast instanceof Ast.NotifyAction) {
             if (ast.name === 'return')
                 throw new TypeError('return must be lowered before execution, use Generate.lowerReturn');
             assert(ast.name === 'notify');
@@ -639,10 +689,11 @@ export default class OpCompiler {
             const stack = this._irBuilder.saveStackState();
 
             let hasResult;
-            if (ast.isVarRef) {
+            if (ast instanceof Ast.VarRefAction) {
                 this._compileInvokeGenericVarRef(ast);
                 hasResult = true;
             } else {
+                assert(ast instanceof Ast.InvocationAction);
                 hasResult = this._compileInvokeAction(ast);
             }
 
@@ -656,49 +707,49 @@ export default class OpCompiler {
         this._irBuilder.popBlock();
     }
 
-    _compileStreamFilter(streamop) {
+    private _compileStreamFilter(streamop : Ops.FilterStreamOp) {
         this._compileStream(streamop.stream);
 
-        let filter = this._compileFilter(streamop.filter, this._currentScope);
+        const filter = this._compileFilter(streamop.filter, this._currentScope);
 
-        let ifStmt = new JSIr.IfStatement(filter);
+        const ifStmt = new JSIr.IfStatement(filter);
         this._irBuilder.add(ifStmt);
         this._irBuilder.pushBlock(ifStmt.iftrue);
     }
 
-    _compileTableFilter(tableop) {
+    private _compileTableFilter(tableop : Ops.FilterTableOp) {
         this._compileTable(tableop.table);
 
-        let filter = this._compileFilter(tableop.filter, this._currentScope);
+        const filter = this._compileFilter(tableop.filter, this._currentScope);
 
-        let ifStmt = new JSIr.IfStatement(filter);
+        const ifStmt = new JSIr.IfStatement(filter);
         this._irBuilder.add(ifStmt);
         this._irBuilder.pushBlock(ifStmt.iftrue);
     }
 
-    _compileProjection(proj) {
-        let newScope = new Scope(this._globalScope);
+    private _compileProjection(proj : Ops.ProjectionPointWiseOp) {
+        const newScope = new Scope(this._globalScope);
 
-        let newOutput = this._irBuilder.allocRegister();
+        const newOutput = this._irBuilder.allocRegister();
         this._irBuilder.add(new JSIr.CreateObject(newOutput));
 
         // we need to create new objects for arguments of compound type
         // track them as we create them
-        let newCompounds = new Set;
+        const newCompounds = new Set;
 
         // copy-over input parameters
-        for (let [name, value] of this._currentScope) {
-            if (value.direction !== 'input')
+        for (const [name, value] of this._currentScope) {
+            if (value.type !== 'scalar' || value.direction !== 'input')
                 continue;
             this._irBuilder.add(new JSIr.SetKey(newOutput, name, value.register));
         }
 
-        for (let name of proj.args) {
+        for (const name of proj.args) {
             if (name.indexOf('.') >= 0) {
                 const parts = name.split('.');
                 // for all parts except the last one, create an object if needed
                 for (let i = 0; i < parts.length-1; i++) {
-                    let partKey = parts.slice(0, i+1).join('.');
+                    const partKey = parts.slice(0, i+1).join('.');
                     if (newCompounds.has(partKey))
                         continue;
                     newCompounds.add(partKey);
@@ -708,7 +759,8 @@ export default class OpCompiler {
                 }
             }
 
-            let value = this._currentScope.get(name);
+            const value = this._currentScope.get(name);
+            assert(value.type === 'scalar');
             this._irBuilder.add(new JSIr.SetKey(newOutput, name, value.register));
             newScope.set(name, value);
         }
@@ -719,15 +771,16 @@ export default class OpCompiler {
             tt_type: null,
             register: newOutput,
             direction: 'special',
+            isInVarScopeNames: false
         });
 
         this._currentScope = newScope;
-        this._varScopeNames = proj.args;
+        this._varScopeNames = Array.from(proj.args);
     }
 
-    _compileCompute(compute) {
+    private _compileCompute(compute : Ops.ComputePointWiseOp) {
         const computeresult = this.compileValue(compute.expression, this._currentScope);
-        const type = compute.expression.type;
+        const type = compute.expression.getType();
 
         this._irBuilder.add(new JSIr.SetKey(getRegister('$output', this._currentScope),
             compute.alias, computeresult));
@@ -736,33 +789,34 @@ export default class OpCompiler {
             type: 'scalar',
             register: computeresult,
             tt_type: type,
+            direction: 'output',
             isInVarScopeNames: false
         });
     }
 
-    _compileStreamMap(streamop) {
+    private _compileStreamMap(streamop : Ops.MapStreamOp) {
         this._compileStream(streamop.stream);
 
-        if (streamop.op.isProjection)
+        if (streamop.op instanceof Ops.ProjectionPointWiseOp)
             this._compileProjection(streamop.op);
-        else if (streamop.op.isCompute)
+        else if (streamop.op instanceof Ops.ComputePointWiseOp)
             this._compileCompute(streamop.op);
         else
             throw new TypeError();
     }
 
-    _compileTableMap(tableop) {
+    private _compileTableMap(tableop : Ops.MapTableOp) {
         this._compileTable(tableop.table);
 
-        if (tableop.op.isProjection)
+        if (tableop.op instanceof Ops.ProjectionPointWiseOp)
             this._compileProjection(tableop.op);
-        else if (tableop.op.isCompute)
+        else if (tableop.op instanceof Ops.ComputePointWiseOp)
             this._compileCompute(tableop.op);
         else
             throw new TypeError();
     }
 
-    _compileTableReduce(tableop) {
+    private _compileTableReduce(tableop : Ops.ReduceTableOp) {
         const state = tableop.op.init(this._irBuilder, this._currentScope, this);
 
         const here = this._irBuilder.saveStackState();
@@ -776,44 +830,44 @@ export default class OpCompiler {
             tableop.op.finish(state, this._irBuilder, this._currentScope, this._varScopeNames);
     }
 
-    _compileStreamEdgeNew(streamop) {
-        let state = this._irBuilder.allocRegister();
-        let stateId = this._allocState();
+    private _compileStreamEdgeNew(streamop : Ops.EdgeNewStreamOp) {
+        const state = this._irBuilder.allocRegister();
+        const stateId = this._allocState();
 
         this._irBuilder.add(new JSIr.InvokeReadState(state, stateId));
 
         this._compileStream(streamop.stream);
 
-        let isNewTuple = this._irBuilder.allocRegister();
+        const isNewTuple = this._irBuilder.allocRegister();
         this._irBuilder.add(new JSIr.CheckIsNewTuple(isNewTuple, state, getRegister('$output', this._currentScope),
                             this._varScopeNames));
 
-        let newState = this._irBuilder.allocRegister();
+        const newState = this._irBuilder.allocRegister();
         this._irBuilder.add(new JSIr.AddTupleToState(newState, state, getRegister('$output', this._currentScope)));
 
         this._irBuilder.add(new JSIr.InvokeWriteState(newState, stateId));
         this._irBuilder.add(new JSIr.Copy(newState, state));
 
-        let ifStmt = new JSIr.IfStatement(isNewTuple);
+        const ifStmt = new JSIr.IfStatement(isNewTuple);
         this._irBuilder.add(ifStmt);
         this._irBuilder.pushBlock(ifStmt.iftrue);
     }
 
-    _compileStreamEdgeFilter(streamop) {
-        let stateId = this._allocState();
+    private _compileStreamEdgeFilter(streamop : Ops.EdgeFilterStreamOp) {
+        const stateId = this._allocState();
 
         this._compileStream(streamop.stream);
 
-        let state = this._irBuilder.allocRegister();
+        const state = this._irBuilder.allocRegister();
         this._irBuilder.add(new JSIr.InvokeReadState(state, stateId));
 
-        let filter = this._compileFilter(streamop.filter, this._currentScope);
+        const filter = this._compileFilter(streamop.filter, this._currentScope);
 
         // only write the new state if different from the old one (to avoid
         // repeated writes)
-        let different = this._irBuilder.allocRegister();
+        const different = this._irBuilder.allocRegister();
         this._irBuilder.add(new JSIr.BinaryOp(filter, state, '!==', different));
-        let ifDifferent = new JSIr.IfStatement(different);
+        const ifDifferent = new JSIr.IfStatement(different);
         this._irBuilder.add(ifDifferent);
         this._irBuilder.pushBlock(ifDifferent.iftrue);
         this._irBuilder.add(new JSIr.InvokeWriteState(filter, stateId));
@@ -824,15 +878,14 @@ export default class OpCompiler {
         this._irBuilder.add(new JSIr.UnaryOp(state, '!', state));
         this._irBuilder.add(new JSIr.BinaryOp(filter, state, '&&', filter));
 
-        let ifStmt = new JSIr.IfStatement(filter);
+        const ifStmt = new JSIr.IfStatement(filter);
         this._irBuilder.add(ifStmt);
         this._irBuilder.pushBlock(ifStmt.iftrue);
     }
 
-    _readTypeResult(typeAndResult) {
-        let outputType, result;
-        outputType = this._irBuilder.allocRegister();
-        result = this._irBuilder.allocRegister();
+    private _readTypeResult(typeAndResult : JSIr.Register) : [JSIr.Register, JSIr.Register] {
+        const outputType = this._irBuilder.allocRegister();
+        const result = this._irBuilder.allocRegister();
 
         this._irBuilder.add(new JSIr.GetIndex(typeAndResult, 0, outputType));
         this._irBuilder.add(new JSIr.GetIndex(typeAndResult, 1, result));
@@ -840,31 +893,22 @@ export default class OpCompiler {
         return [outputType, result];
     }
 
-    _mergeResults(lhsScope, rhsScope) {
-        let newOutputType;
+    private _mergeResults(lhsScope : Scope, rhsScope : Scope) : [JSIr.Register, JSIr.Register] {
         const lhsOutputType = getRegister('$outputType', lhsScope);
         const rhsOutputType = getRegister('$outputType', rhsScope);
 
-        if (lhsOutputType !== null && rhsOutputType !== null) {
-            newOutputType = this._irBuilder.allocRegister();
-            this._irBuilder.add(new JSIr.BinaryFunctionOp(lhsOutputType, rhsOutputType, 'combineOutputTypes', newOutputType));
-        } else if (lhsOutputType !== null) {
-            newOutputType = lhsOutputType;
-        } else if (rhsOutputType !== null) {
-            newOutputType = rhsOutputType;
-        } else {
-            newOutputType = null;
-        }
+        const newOutputType = this._irBuilder.allocRegister();
+        this._irBuilder.add(new JSIr.BinaryFunctionOp(lhsOutputType, rhsOutputType, 'combineOutputTypes', newOutputType));
 
-        let newResult = this._irBuilder.allocRegister();
+        const newResult = this._irBuilder.allocRegister();
         this._irBuilder.add(new JSIr.CreateObject(newResult));
 
-        for (let outParam of rhsScope.ownKeys()) {
+        for (const outParam of rhsScope.ownKeys()) {
             if (outParam.startsWith('$'))
                 continue;
             this._irBuilder.add(new JSIr.SetKey(newResult, outParam, getRegister(outParam, rhsScope)));
         }
-        for (let outParam of lhsScope.ownKeys()) {
+        for (const outParam of lhsScope.ownKeys()) {
             if (outParam.startsWith('$') || rhsScope.hasOwnKey(outParam))
                 continue;
             this._irBuilder.add(new JSIr.SetKey(newResult, outParam, getRegister(outParam, lhsScope)));
@@ -873,47 +917,56 @@ export default class OpCompiler {
         return [newOutputType, newResult];
     }
 
-    _mergeScopes(lhsScope, rhsScope, outputType, result) {
+    private _mergeScopes(lhsScope : Scope, rhsScope : Scope,
+                         outputType : JSIr.Register, result : JSIr.Register) {
         this._currentScope = new Scope(this._globalScope);
         this._currentScope.set('$outputType', {
             type: 'scalar',
             tt_type: null,
-            register: outputType
+            register: outputType,
+            direction: 'special',
+            isInVarScopeNames: false
         });
         this._currentScope.set('$output', {
             type: 'scalar',
             tt_type: null,
-            register: result
+            register: result,
+            direction: 'special',
+            isInVarScopeNames: false
         });
         this._varScopeNames = [];
 
-        for (let outParam of rhsScope.ownKeys()) {
+        for (const outParam of rhsScope.ownKeys()) {
             if (outParam.startsWith('$'))
                 continue;
-            let reg = this._irBuilder.allocRegister();
+            const reg = this._irBuilder.allocRegister();
             this._irBuilder.add(new JSIr.GetKey(result, outParam, reg));
 
             const currentScopeObj = rhsScope.get(outParam);
+            assert(currentScopeObj.type === 'scalar');
             this._currentScope.set(outParam, {
                 type: 'scalar',
                 tt_type: currentScopeObj.tt_type,
+                direction: currentScopeObj.direction,
                 register: reg,
                 isInVarScopeNames: currentScopeObj.isInVarScopeNames
             });
             if (currentScopeObj.isInVarScopeNames)
                 this._varScopeNames.push(outParam);
         }
-        for (let outParam of lhsScope.ownKeys()) {
+        for (const outParam of lhsScope.ownKeys()) {
             if (outParam.startsWith('$'))
                 continue;
             if (rhsScope.hasOwnKey(outParam))
                 continue;
-            let reg = this._irBuilder.allocRegister();
+            const reg = this._irBuilder.allocRegister();
             this._irBuilder.add(new JSIr.GetKey(result, outParam, reg));
             const currentScopeObj = lhsScope.get(outParam);
+            assert(currentScopeObj.type === 'scalar');
             this._currentScope.set(outParam, {
                 type: 'scalar',
                 tt_type: currentScopeObj.tt_type,
+                direction: currentScopeObj.direction,
                 register: reg,
                 isInVarScopeNames: currentScopeObj.isInVarScopeNames
             });
@@ -922,23 +975,23 @@ export default class OpCompiler {
         }
     }
 
-    _compileStreamUnion(streamop) {
+    private _compileStreamUnion(streamop : Ops.UnionStreamOp) {
         // compile the two streams to two generator expressions, and then pass
         // them to a builtin which will do the right thing
 
-        let lhs = this._irBuilder.allocRegister();
-        let lhsbody = new JSIr.AsyncFunctionExpression(lhs);
+        const lhs = this._irBuilder.allocRegister();
+        const lhsbody = new JSIr.AsyncFunctionExpression(lhs);
         this._irBuilder.add(lhsbody);
         let upto = this._irBuilder.pushBlock(lhsbody.body);
 
         this._compileStream(streamop.lhs);
         this._irBuilder.add(new JSIr.InvokeEmit(getRegister('$outputType', this._currentScope), getRegister('$output', this._currentScope)));
 
-        let lhsScope = this._currentScope;
+        const lhsScope = this._currentScope;
         this._irBuilder.popTo(upto);
 
-        let rhs = this._irBuilder.allocRegister();
-        let rhsbody = new JSIr.AsyncFunctionExpression(rhs);
+        const rhs = this._irBuilder.allocRegister();
+        const rhsbody = new JSIr.AsyncFunctionExpression(rhs);
 
         this._irBuilder.add(rhsbody);
         upto = this._irBuilder.pushBlock(rhsbody.body);
@@ -946,57 +999,57 @@ export default class OpCompiler {
         this._compileStream(streamop.rhs);
         this._irBuilder.add(new JSIr.InvokeEmit(getRegister('$outputType', this._currentScope), getRegister('$output', this._currentScope)));
 
-        let rhsScope = this._currentScope;
+        const rhsScope = this._currentScope;
         this._irBuilder.popTo(upto);
 
-        let iterator = this._irBuilder.allocRegister();
+        const iterator = this._irBuilder.allocRegister();
         this._irBuilder.add(new JSIr.BinaryFunctionOp(lhs, rhs, 'streamUnion', iterator));
 
-        let typeAndResult = this._irBuilder.allocRegister();
-        let loop = new JSIr.AsyncWhileLoop(typeAndResult, iterator);
+        const typeAndResult = this._irBuilder.allocRegister();
+        const loop = new JSIr.AsyncWhileLoop(typeAndResult, iterator);
         this._irBuilder.add(loop);
         this._irBuilder.pushBlock(loop.body);
 
-        let [outputType, result] = this._readTypeResult(typeAndResult);
+        const [outputType, result] = this._readTypeResult(typeAndResult);
         this._mergeScopes(lhsScope, rhsScope, outputType, result);
     }
 
-    _compileStreamJoin(streamop) {
-        if (streamop.stream.isNow) {
+    private _compileStreamJoin(streamop : Ops.JoinStreamOp) {
+        if (streamop.stream === Ops.StreamOp.Now) {
             this._compileTable(streamop.table);
             return;
         }
 
         this._compileStream(streamop.stream);
 
-        let streamScope = this._currentScope;
+        const streamScope = this._currentScope;
 
         this._compileTable(streamop.table);
 
-        let tableScope = this._currentScope;
+        const tableScope = this._currentScope;
 
-        let [outputType, result] = this._mergeResults(streamScope, tableScope);
+        const [outputType, result] = this._mergeResults(streamScope, tableScope);
         this._mergeScopes(streamScope, tableScope, outputType, result);
     }
 
-    _compileStreamInvokeTable(streamop) {
-        let state = this._irBuilder.allocRegister();
-        let stateId = this._allocState();
+    private _compileStreamInvokeTable(streamop : Ops.InvokeTableStreamOp) {
+        const state = this._irBuilder.allocRegister();
+        const stateId = this._allocState();
 
         this._irBuilder.add(new JSIr.InvokeReadState(state, stateId));
 
         this._compileStream(streamop.stream);
 
-        let timestamp = this._irBuilder.allocRegister();
+        const timestamp = this._irBuilder.allocRegister();
         this._irBuilder.add(new JSIr.GetKey(getRegister('$output', this._currentScope), '__timestamp', timestamp));
 
-        let isOldTimestamp = this._irBuilder.allocRegister();
+        const isOldTimestamp = this._irBuilder.allocRegister();
         this._irBuilder.add(new JSIr.BinaryOp(timestamp, state, '<=', isOldTimestamp));
 
-        let isNewTimestamp = this._irBuilder.allocRegister();
+        const isNewTimestamp = this._irBuilder.allocRegister();
         this._irBuilder.add(new JSIr.UnaryOp(isOldTimestamp, '!', isNewTimestamp));
 
-        let ifStmt = new JSIr.IfStatement(isNewTimestamp);
+        const ifStmt = new JSIr.IfStatement(isNewTimestamp);
         this._irBuilder.add(ifStmt);
         this._irBuilder.pushBlock(ifStmt.iftrue);
 
@@ -1007,53 +1060,53 @@ export default class OpCompiler {
         this._compileTable(streamop.table);
     }
 
-    _compileStream(streamop) {
-        if (streamop.isNow)
+    private _compileStream(streamop : Ops.StreamOp) {
+        if (streamop === Ops.StreamOp.Now)
             return;
 
-        if (streamop.isInvokeVarRef)
+        if (streamop instanceof Ops.InvokeVarRefStreamOp)
             this._compileInvokeStreamVarRef(streamop);
-        else if (streamop.isInvokeSubscribe)
+        else if (streamop instanceof Ops.InvokeSubscribeStreamOp)
             this._compileInvokeSubscribe(streamop);
-        else if (streamop.isInvokeTable)
+        else if (streamop instanceof Ops.InvokeTableStreamOp)
             this._compileStreamInvokeTable(streamop);
-        else if (streamop.isTimer)
+        else if (streamop instanceof Ops.TimerStreamOp)
             this._compileTimer(streamop);
-        else if (streamop.isAtTimer)
+        else if (streamop instanceof Ops.AtTimerStreamOp)
             this._compileAtTimer(streamop);
-        else if (streamop.isFilter)
+        else if (streamop instanceof Ops.FilterStreamOp)
             this._compileStreamFilter(streamop);
-        else if (streamop.isMap)
+        else if (streamop instanceof Ops.MapStreamOp)
             this._compileStreamMap(streamop);
-        else if (streamop.isEdgeNew)
+        else if (streamop instanceof Ops.EdgeNewStreamOp)
             this._compileStreamEdgeNew(streamop);
-        else if (streamop.isEdgeFilter)
+        else if (streamop instanceof Ops.EdgeFilterStreamOp)
             this._compileStreamEdgeFilter(streamop);
-        else if (streamop.isUnion)
+        else if (streamop instanceof Ops.UnionStreamOp)
             this._compileStreamUnion(streamop);
-        else if (streamop.isJoin)
+        else if (streamop instanceof Ops.JoinStreamOp)
             this._compileStreamJoin(streamop);
         else
             throw new TypeError();
     }
 
-    _compileTableCrossJoin(tableop) {
+    private _compileTableCrossJoin(tableop : Ops.CrossJoinTableOp) {
         // compile the two tables to two generator expressions, and then pass
         // them to a builtin which will compute the cross join
 
-        let lhs = this._irBuilder.allocRegister();
-        let lhsbody = new JSIr.AsyncFunctionExpression(lhs);
+        const lhs = this._irBuilder.allocRegister();
+        const lhsbody = new JSIr.AsyncFunctionExpression(lhs);
         this._irBuilder.add(lhsbody);
         let upto = this._irBuilder.pushBlock(lhsbody.body);
 
         this._compileTable(tableop.lhs);
         this._irBuilder.add(new JSIr.InvokeEmit(getRegister('$outputType', this._currentScope), getRegister('$output', this._currentScope)));
 
-        let lhsScope = this._currentScope;
+        const lhsScope = this._currentScope;
         this._irBuilder.popTo(upto);
 
-        let rhs = this._irBuilder.allocRegister();
-        let rhsbody = new JSIr.AsyncFunctionExpression(rhs);
+        const rhs = this._irBuilder.allocRegister();
+        const rhsbody = new JSIr.AsyncFunctionExpression(rhs);
 
         this._irBuilder.add(rhsbody);
         upto = this._irBuilder.pushBlock(rhsbody.body);
@@ -1061,43 +1114,44 @@ export default class OpCompiler {
         this._compileTable(tableop.rhs);
         this._irBuilder.add(new JSIr.InvokeEmit(getRegister('$outputType', this._currentScope), getRegister('$output', this._currentScope)));
 
-        let rhsScope = this._currentScope;
+        const rhsScope = this._currentScope;
         this._irBuilder.popTo(upto);
 
-        let iterator = this._irBuilder.allocRegister();
+        const iterator = this._irBuilder.allocRegister();
         this._irBuilder.add(new JSIr.BinaryFunctionOp(lhs, rhs, 'tableCrossJoin', iterator));
 
-        let typeAndResult = this._irBuilder.allocRegister();
-        let loop = new JSIr.AsyncWhileLoop(typeAndResult, iterator);
+        const typeAndResult = this._irBuilder.allocRegister();
+        const loop = new JSIr.AsyncWhileLoop(typeAndResult, iterator);
         this._irBuilder.add(loop);
         this._irBuilder.pushBlock(loop.body);
 
-        let [outputType, result] = this._readTypeResult(typeAndResult);
+        const [outputType, result] = this._readTypeResult(typeAndResult);
         this._mergeScopes(lhsScope, rhsScope, outputType, result);
     }
 
-    _compileTableNestedLoopJoin(tableop) {
+    private _compileTableNestedLoopJoin(tableop : Ops.NestedLoopJoinTableOp) {
         this._compileTable(tableop.lhs);
 
-        let lhsScope = this._currentScope;
+        const lhsScope = this._currentScope;
 
         this._compileTable(tableop.rhs);
 
-        let rhsScope = this._currentScope;
+        const rhsScope = this._currentScope;
 
-        let [outputType, result] = this._mergeResults(lhsScope, rhsScope);
+        const [outputType, result] = this._mergeResults(lhsScope, rhsScope);
         this._mergeScopes(lhsScope, rhsScope, outputType, result);
     }
 
-    _compileDatabaseQuery(tableop) {
-        let tryCatch = new JSIr.TryCatch("Failed to invoke query");
+    private _compileDatabaseQuery(tableop : Ops.TableOp) {
+        const tryCatch = new JSIr.TryCatch("Failed to invoke query");
         this._irBuilder.add(tryCatch);
         this._irBuilder.pushBlock(tryCatch.try);
 
-        let kind = tableop.device.kind;
-        let attrs = tableop.device.id ? { id: tableop.device.id } : {};
-        let list = this._irBuilder.allocRegister();
-        let query = new Ast.Input.Program(
+        assert(tableop.device);
+        const kind = tableop.device.kind;
+        const attrs = tableop.device.id ? { id: tableop.device.id } : {};
+        const list = this._irBuilder.allocRegister();
+        const query = new Ast.Input.Program(
             null /* location */,
             [],
             [],
@@ -1111,94 +1165,97 @@ export default class OpCompiler {
         this._irBuilder.add(new JSIr.GetASTObject(astId, astReg));
         this._irBuilder.add(new JSIr.InvokeDBQuery(kind, attrs, list, astReg));
 
-        let result = this._compileIterateQuery(list);
-        this._setInvocationOutputs(tableop.ast.schema, {}, result);
+        const result = this._compileIterateQuery(list);
+        this._setInvocationOutputs(tableop.ast.schema as Ast.ExpressionSignature,
+            {}, result);
     }
 
-    _compileTable(tableop) {
+    private _compileTable(tableop : Ops.TableOp) {
         if (tableop.handle_thingtalk)
             this._compileDatabaseQuery(tableop);
-        else if (tableop.isInvokeVarRef)
+        else if (tableop instanceof Ops.InvokeVarRefTableOp)
             this._compileInvokeTableVarRef(tableop);
-        else if (tableop.isReadResult)
-            this._compileReadResult(tableop);
-        else if (tableop.isInvokeGet)
+        else if (tableop instanceof Ops.InvokeGetTableOp)
             this._compileInvokeGet(tableop);
-        else if (tableop.isFilter)
+        else if (tableop instanceof Ops.FilterTableOp)
             this._compileTableFilter(tableop);
-        else if (tableop.isMap)
+        else if (tableop instanceof Ops.MapTableOp)
             this._compileTableMap(tableop);
-        else if (tableop.isReduce)
+        else if (tableop instanceof Ops.ReduceTableOp)
             this._compileTableReduce(tableop);
-        else if (tableop.isCrossJoin)
+        else if (tableop instanceof Ops.CrossJoinTableOp)
             this._compileTableCrossJoin(tableop);
-        else if (tableop.isNestedLoopJoin)
+        else if (tableop instanceof Ops.NestedLoopJoinTableOp)
             this._compileTableNestedLoopJoin(tableop);
         else
             throw new TypeError();
     }
 
-    _compileEndOfFlow(action) {
-        if (!action.isInvocation || !action.invocation.selector.isDevice || !isRemoteSend(action.invocation))
+    private _compileEndOfFlow(action : Ast.Action) {
+        if (!(action instanceof Ast.InvocationAction) ||
+            !action.invocation.selector.isDevice || !isRemoteSend(action.invocation))
             return;
 
-        let tryCatch = new JSIr.TryCatch("Failed to signal end-of-flow");
+        const tryCatch = new JSIr.TryCatch("Failed to signal end-of-flow");
 
         this._irBuilder.add(tryCatch);
         this._irBuilder.pushBlock(tryCatch.try);
 
         let principal, flow;
-        for (let inParam of action.invocation.in_params) {
+        for (const inParam of action.invocation.in_params) {
             if (inParam.name !== '__principal' && inParam.name !== '__flow')
                 continue;
-            let reg = this.compileValue(inParam.value, this._currentScope);
+            const reg = this.compileValue(inParam.value, this._currentScope);
             if (inParam.name === '__flow')
                 flow = reg;
             else
                 principal = reg;
         }
+        assert(principal !== undefined);
+        assert(flow !== undefined);
         this._irBuilder.add(new JSIr.SendEndOfFlow(principal, flow));
 
         this._irBuilder.popBlock();
     }
 
-    compileStatement(ruleop) {
+    compileStatement(ruleop : Ops.RuleOp) : void {
         this._compileStream(ruleop.stream);
-        for (let action of ruleop.actions)
+        for (const action of ruleop.actions)
             this._compileAction(action);
 
         this._irBuilder.popAll();
 
-        for (let action of ruleop.actions)
+        for (const action of ruleop.actions)
             this._compileEndOfFlow(action);
     }
 
-    compileStreamDeclaration(streamop) {
+    compileStreamDeclaration(streamop : Ops.StreamOp) : void {
         this._compileStream(streamop);
         this._irBuilder.add(new JSIr.InvokeEmit(getRegister('$outputType', this._currentScope), getRegister('$output', this._currentScope)));
 
         this._irBuilder.popAll();
     }
 
-    compileQueryDeclaration(tableop) {
+    compileQueryDeclaration(tableop : Ops.TableOp) : void {
         this._compileTable(tableop);
         this._irBuilder.add(new JSIr.InvokeEmit(getRegister('$outputType', this._currentScope), getRegister('$output', this._currentScope)));
 
         this._irBuilder.popAll();
     }
 
-    compileActionDeclaration(action) {
+    compileActionDeclaration(action : Ast.Action) : void {
         this._compileAction(action);
         this._irBuilder.popAll();
     }
 
-    compileActionAssignment(action, isPersistent) {
-        let register = this._irBuilder.allocRegister();
+    compileActionAssignment(action : Ast.InvocationTable|Ast.VarRefTable,
+                            isPersistent : boolean) : JSIr.Register {
+        const register = this._irBuilder.allocRegister();
         let stateId;
         this._irBuilder.add(new JSIr.CreateTuple(0, register));
 
         let hasResult;
-        if (action.isVarRef) {
+        if (action instanceof Ast.VarRefTable) {
             this._compileInvokeGenericVarRef(action);
             hasResult = true;
         } else {
@@ -1208,7 +1265,7 @@ export default class OpCompiler {
         // an action assignment without a result does not make much sense, but it typechecks,
         // so we allow it, and interpret it to be an empty array
         if (hasResult) {
-            let resultAndTypeTuple = this._irBuilder.allocRegister();
+            const resultAndTypeTuple = this._irBuilder.allocRegister();
             this._irBuilder.add(new JSIr.CreateTuple(2, resultAndTypeTuple));
             this._irBuilder.add(new JSIr.SetIndex(resultAndTypeTuple, 0, getRegister('$outputType', this._currentScope)));
             this._irBuilder.add(new JSIr.SetIndex(resultAndTypeTuple, 1, getRegister('$output', this._currentScope)));
@@ -1227,13 +1284,13 @@ export default class OpCompiler {
         }
     }
 
-    compileAssignment(tableop, isPersistent) {
-        let register = this._irBuilder.allocRegister();
+    compileAssignment(tableop : Ops.TableOp, isPersistent : boolean) : JSIr.Register {
+        const register = this._irBuilder.allocRegister();
         let stateId;
         this._irBuilder.add(new JSIr.CreateTuple(0, register));
 
         this._compileTable(tableop);
-        let resultAndTypeTuple = this._irBuilder.allocRegister();
+        const resultAndTypeTuple = this._irBuilder.allocRegister();
         this._irBuilder.add(new JSIr.CreateTuple(2, resultAndTypeTuple));
         this._irBuilder.add(new JSIr.SetIndex(resultAndTypeTuple, 0, getRegister('$outputType', this._currentScope)));
         this._irBuilder.add(new JSIr.SetIndex(resultAndTypeTuple, 1, getRegister('$output', this._currentScope)));

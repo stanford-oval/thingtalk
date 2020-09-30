@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -24,13 +24,14 @@ import { NotImplementedError } from '../errors';
 import { getScalarExpressionName } from '../utils';
 
 import { PointWiseOp, StreamOp, TableOp, RuleOp, QueryInvocationHints } from './ops';
+import * as Ops from './ops';
 // YES there are two different modules called utils
 // because of course
 import { getDefaultProjection, getExpressionParameters } from './utils';
-import ReduceOp from './reduceop';
+import ReduceOp, { SimpleAggregationType } from './reduceop';
 
-function sameDevice(lhs, rhs) {
-    assert(lhs.isDevice && rhs.isDevice);
+function sameDevice(lhs : Ast.Selector, rhs : Ast.Selector) : boolean {
+    assert(lhs instanceof Ast.DeviceSelector && rhs instanceof Ast.DeviceSelector);
     if (lhs.kind !== rhs.kind)
         return false;
     if (lhs.id !== rhs.id)
@@ -41,25 +42,25 @@ function sameDevice(lhs, rhs) {
 }
 
 
-function addAll(set, values) {
+function addAll<T>(set : Set<T>, values : Iterable<T>) : Set<T> {
     for (const v of values)
         set.add(v);
     return set;
 }
 
-function setIntersect(one, two) {
-    const intersection = new Set;
-    for (let el of one) {
+function setIntersect<T>(one : Set<T>, two : Set<T>) : Set<T> {
+    const intersection = new Set<T>();
+    for (const el of one) {
         if (two.has(el))
             intersection.add(el);
     }
     return intersection;
 }
 
-function addMinimalProjection(args, schema) {
-    args = new Set(args);
-    addAll(args, schema.minimal_projection);
-    return args;
+function addMinimalProjection(args : Iterable<string>, schema : Ast.ExpressionSignature) : Set<string> {
+    const argset = new Set<string>(args);
+    addAll(argset, schema.minimal_projection as string[]);
+    return argset;
 }
 
 /**
@@ -69,20 +70,21 @@ function addMinimalProjection(args, schema) {
  * thorough handling of filters and projections, which also affects
  * the JS compiled code.
  */
-function restrictHintsForJoin(hints, schema) {
+function restrictHintsForJoin(hints : QueryInvocationHints,
+                              schema : Ast.ExpressionSignature) : QueryInvocationHints {
     // start with a clean slate (no sort, no index)
     const clone = new QueryInvocationHints(new Set);
-    for (let arg of hints.projection) {
+    for (const arg of hints.projection) {
         if (schema.hasArgument(arg))
             clone.projection.add(arg);
     }
-    clone.filter = (function recursiveHelper(expr) {
+    clone.filter = (function recursiveHelper(expr : Ast.BooleanExpression) {
         if (expr.isTrue || expr.isFalse)
             return expr;
-        if (expr.isDontCare) // dont care about dontcares
+        if (expr instanceof Ast.DontCareBooleanExpression) // dont care about dontcares
             return Ast.BooleanExpression.True;
 
-        if (expr.isAtom) {
+        if (expr instanceof Ast.AtomBooleanExpression) {
             // bail (convert to `true`) if:
             // - the filter left-hand-side is not defined in this branch of the join
             // - or any part of the right-hand-side uses a parameter not defined in this
@@ -91,8 +93,8 @@ function restrictHintsForJoin(hints, schema) {
             if (!schema.hasArgument(expr.name))
                 return Ast.BooleanExpression.True;
 
-            const pnames = getExpressionParameters(expr.value);
-            for (let pname of pnames) {
+            const pnames = getExpressionParameters(expr.value, schema);
+            for (const pname of pnames) {
                 if (!schema.hasArgument(pname))
                     return Ast.BooleanExpression.True;
             }
@@ -108,29 +110,34 @@ function restrictHintsForJoin(hints, schema) {
 }
 
 // compile a table that is being monitored to a stream
-function compileMonitorTableToOps(table, hints) {
-    if (table.isVarRef ||
-        table.isAlias)
-        throw new NotImplementedError(table);
+function compileMonitorTableToOps(table : Ast.Table,
+                                  hints : QueryInvocationHints) : StreamOp {
+    if (table instanceof Ast.VarRefTable ||
+        table instanceof Ast.AliasTable)
+        throw new NotImplementedError(String(table));
 
-    if (table.isInvocation) {
+    if (table instanceof Ast.InvocationTable) {
         // subscribe is optimistic, we still need EdgeNew
         return new StreamOp.EdgeNew(
             new StreamOp.InvokeSubscribe(table.invocation, table, hints),
             table
         );
-    } else if (table.isFilter) {
+    } else if (table instanceof Ast.FilteredTable) {
+        const schema = table.schema;
+        assert(schema);
         const hintsclone = hints.clone();
-        addAll(hintsclone.projection, getExpressionParameters(table.filter, table.schema));
+        addAll(hintsclone.projection, getExpressionParameters(table.filter, schema));
         hintsclone.filter = new Ast.BooleanExpression.And(null, [table.filter, hints.filter]);
         return new StreamOp.Filter(
             compileMonitorTableToOps(table.table, hintsclone),
             table.filter,
             table
         );
-    } else if (table.isProjection) {
+    } else if (table instanceof Ast.ProjectionTable) {
+        const schema = table.schema;
+        assert(schema);
         // see note in stream.isProjection later
-        const effective = setIntersect(hints.projection, addMinimalProjection(table.args, table.schema));
+        const effective = setIntersect(hints.projection, addMinimalProjection(table.args, schema));
         const hintsclone = hints.clone();
         hintsclone.projection = effective;
 
@@ -145,26 +152,28 @@ function compileMonitorTableToOps(table, hints) {
             ),
             table
         );
-    } else if (table.isSort || table.isIndex || table.isSlice) {
+    } else if (table instanceof Ast.SortedTable || table instanceof Ast.IndexTable || table instanceof Ast.SlicedTable) {
         // sort, index and slice have no effect on monitor
         //
         // XXX is this correct?
-        return compileMonitorTableToOps(table);
-    } else if (table.isCompute) {
+        return compileMonitorTableToOps(table, hints);
+    } else if (table instanceof Ast.ComputeTable) {
+        const schema = table.schema;
+        assert(schema);
         const hintsclone = hints.clone();
-        addAll(hintsclone.projection, getExpressionParameters(table.expression, table.schema));
+        addAll(hintsclone.projection, getExpressionParameters(table.expression, schema));
         // note the "edge new" operation here, because
         // the projection might cause fewer values to
         // be new
         return new StreamOp.EdgeNew(
             new StreamOp.Map(
                 compileMonitorTableToOps(table.table, hintsclone),
-                new PointWiseOp.Compute(table.expression),
+                new PointWiseOp.Compute(table.expression, table.alias || getScalarExpressionName(table.expression)),
                 table
             ),
             table
         );
-    } else if (table.isAggregation) {
+    } else if (table instanceof Ast.AggregationTable) {
         // discard the hints entirely across aggregation
         const newHints = new QueryInvocationHints(table.field === '*' ? new Set([]) : new Set([table.field]));
 
@@ -179,13 +188,18 @@ function compileMonitorTableToOps(table, hints) {
             compileTableToOps(table, [], newHints),
             table
         ), table);
-    } else if (table.isJoin) {
+    } else if (table instanceof Ast.JoinTable) {
+        const lhsschema = table.lhs.schema;
+        assert(lhsschema);
+        const rhsschema = table.rhs.schema;
+        assert(rhsschema);
+
         if (table.in_params.length === 0) {
             // if there is no parameter passing, we can individually monitor
             // the two tables and return the union
             return new StreamOp.EdgeNew(new StreamOp.Union(
-                compileMonitorTableToOps(table.lhs, restrictHintsForJoin(hints, table.lhs.schema)),
-                compileMonitorTableToOps(table.rhs, restrictHintsForJoin(hints, table.rhs.schema)),
+                compileMonitorTableToOps(table.lhs, restrictHintsForJoin(hints, lhsschema)),
+                compileMonitorTableToOps(table.rhs, restrictHintsForJoin(hints, rhsschema)),
                 table),
                 table
             );
@@ -195,7 +209,7 @@ function compileMonitorTableToOps(table, hints) {
             // right hand side
             // this is VERY MESSY
             // so it's not implemented
-            throw new NotImplementedError(table);
+            throw new NotImplementedError(String(table));
         }
     } else {
         throw new TypeError();
@@ -204,44 +218,51 @@ function compileMonitorTableToOps(table, hints) {
 
 // compile a TT stream to a stream op and zero or more
 // tableops
-function compileStreamToOps(stream, hints) {
-    if (stream.isAlias)
-        throw new NotImplementedError(stream);
+function compileStreamToOps(stream : Ast.Stream,
+                            hints : QueryInvocationHints) : StreamOp {
+    if (stream instanceof Ast.AliasStream)
+        throw new NotImplementedError(String(stream));
 
-    if (stream.isVarRef) {
+    if (stream instanceof Ast.VarRefStream) {
         return new StreamOp.InvokeVarRef(stream.name, stream.in_params, stream, hints);
-    } else if (stream.isTimer) {
+    } else if (stream instanceof Ast.TimerStream) {
         return new StreamOp.Timer(stream.base, stream.interval, stream.frequency, stream);
-    } else if (stream.isAtTimer) {
+    } else if (stream instanceof Ast.AtTimerStream) {
         return new StreamOp.AtTimer(stream.time, stream.expiration_date, stream);
-    } else if (stream.isMonitor) {
+    } else if (stream instanceof Ast.MonitorStream) {
+        const schema = stream.schema;
+        assert(schema);
         const hintsclone = hints.clone();
         // if we're monitoring on specific fields, we can project on those fields
         // otherwise, we need to project on all output parameters
         if (stream.args)
             addAll(hintsclone.projection, stream.args);
         else
-            addAll(hintsclone.projection, Object.keys(stream.schema.out));
+            addAll(hintsclone.projection, Object.keys(schema.out));
         return compileMonitorTableToOps(stream.table, hintsclone);
-    } else if (stream.isEdgeNew) {
-        let op = compileStreamToOps(stream.stream);
-        return new StreamOp.EdgeNew(op, op.ast);
-    } else if (stream.isEdgeFilter) {
+    } else if (stream instanceof Ast.EdgeNewStream) {
+        const op = compileStreamToOps(stream.stream, hints);
+        return new StreamOp.EdgeNew(op, stream);
+    } else if (stream instanceof Ast.EdgeFilterStream) {
+        const schema = stream.schema;
+        assert(schema);
         const hintsclone = hints.clone();
-        addAll(hintsclone.projection, getExpressionParameters(stream.filter, stream.schema));
+        addAll(hintsclone.projection, getExpressionParameters(stream.filter, schema));
         // NOTE: we don't lower the filter here, because if the subscribe applies the filter,
         // we don't notice the edge
         //
         // we do it for StreamFilter, because Filter(Monitor) === Monitor(Filter)
-        let op = compileStreamToOps(stream.stream, hintsclone);
-        return new StreamOp.EdgeFilter(op, stream.filter, op.ast);
-    } else if (stream.isFilter) {
+        const op = compileStreamToOps(stream.stream, hintsclone);
+        return new StreamOp.EdgeFilter(op, stream.filter, stream);
+    } else if (stream instanceof Ast.FilteredStream) {
+        const schema = stream.schema;
+        assert(schema);
         const hintsclone = hints.clone();
-        addAll(hintsclone.projection, getExpressionParameters(stream.filter, stream.schema));
+        addAll(hintsclone.projection, getExpressionParameters(stream.filter, schema));
         hintsclone.filter = new Ast.BooleanExpression.And(null, [stream.filter, hints.filter]);
-        let op = compileStreamToOps(stream.stream, hintsclone);
-        return new StreamOp.Filter(op, stream.filter, op.ast);
-    } else if (stream.isProjection) {
+        const op = compileStreamToOps(stream.stream, hintsclone);
+        return new StreamOp.Filter(op, stream.filter, stream);
+    } else if (stream instanceof Ast.ProjectionStream) {
         // NOTE: there is a tricky case of nested projection that looks like
         // Projection(Filter(Projection(x, [a, b, c]), use(c)), [a, b])
         //
@@ -249,38 +270,51 @@ function compileStreamToOps(stream, hints) {
         // the projection, it won't be just a hint. Yet, it is ok
         // because all parameters that are used by the filter are added to the
         // projection hint.
-        const effective = setIntersect(hints.projection, addMinimalProjection(stream.args, stream.schema));
+        const schema = stream.schema;
+        assert(schema);
+        const effective = setIntersect(hints.projection, addMinimalProjection(stream.args, schema));
         const hintsclone = hints.clone();
         hintsclone.projection = effective;
-        let op = compileStreamToOps(stream.stream, hintsclone);
-        return new StreamOp.Map(op, new PointWiseOp.Projection([...effective]), op.ast);
-    } else if (stream.isCompute) {
+        const op = compileStreamToOps(stream.stream, hintsclone);
+        return new StreamOp.Map(op, new PointWiseOp.Projection(effective), stream);
+    } else if (stream instanceof Ast.ComputeStream) {
         const hintsclone = hints.clone();
-        addAll(hintsclone.projection, getExpressionParameters(stream.filter, stream.schema));
-        let op = compileStreamToOps(stream.stream, hintsclone);
+        const schema = stream.schema;
+        assert(schema);
+        addAll(hintsclone.projection, getExpressionParameters(stream.expression, schema));
+        const op = compileStreamToOps(stream.stream, hintsclone);
         return new StreamOp.Map(op, new PointWiseOp.Compute(stream.expression,
-            stream.alias || getScalarExpressionName(stream.expression)), op.ast);
-    } else if (stream.isJoin) {
-        let streamOp = compileStreamToOps(stream.stream, restrictHintsForJoin(hints, stream.stream.schema));
-        let tableOp = compileTableToOps(stream.table, stream.in_params, restrictHintsForJoin(hints, stream.table.schema));
+            stream.alias || getScalarExpressionName(stream.expression)), stream);
+    } else if (stream instanceof Ast.JoinStream) {
+        const streamschema = stream.stream.schema;
+        assert(streamschema);
+        const tableschema = stream.table.schema;
+        assert(tableschema);
+        const streamOp = compileStreamToOps(stream.stream, restrictHintsForJoin(hints, streamschema));
+        const tableOp = compileTableToOps(stream.table, stream.in_params, restrictHintsForJoin(hints, tableschema));
         return new StreamOp.Join(streamOp, tableOp, stream);
     } else {
         throw new TypeError();
     }
 }
 
-function compileTableToOps(table, extra_in_params, hints) {
-    if (table.isAlias)
-        throw new NotImplementedError(table);
+function compileTableToOps(table : Ast.Table,
+                           extra_in_params : Ast.InputParam[],
+                           hints : QueryInvocationHints) : TableOp {
+    if (table instanceof Ast.AliasTable)
+        throw new NotImplementedError(String(table));
 
-    if (table.isVarRef) {
+    if (table instanceof Ast.VarRefTable) {
         const compiled = new TableOp.InvokeVarRef(table.name, table.in_params.concat(extra_in_params), table, hints);
         compiled.device = null;
         compiled.handle_thingtalk = false;
         return compiled;
-    } else if (table.isInvocation) {
+    } else if (table instanceof Ast.InvocationTable) {
         const device = table.invocation.selector;
-        const handle_thingtalk = table.schema.annotations['handle_thingtalk'] ? table.schema.annotations['handle_thingtalk'].value : false;
+        assert(device instanceof Ast.DeviceSelector);
+        const schema = table.schema;
+        assert(schema instanceof Ast.FunctionDef);
+        const handle_thingtalk = !!schema.getImplementationAnnotation<boolean>('handle_thingtalk');
         return new TableOp.InvokeGet(
             table.invocation,
             extra_in_params,
@@ -289,9 +323,11 @@ function compileTableToOps(table, extra_in_params, hints) {
             table,
             hints
         );
-    } else if (table.isFilter) {
+    } else if (table instanceof Ast.FilteredTable) {
         const hintsclone = hints.clone();
-        addAll(hintsclone.projection, getExpressionParameters(table.filter, table.schema));
+        const schema = table.schema;
+        assert(schema);
+        addAll(hintsclone.projection, getExpressionParameters(table.filter, schema));
         hintsclone.filter = new Ast.BooleanExpression.And(null, [table.filter, hints.filter]);
         const compiled = compileTableToOps(table.table, extra_in_params, hintsclone);
         return new TableOp.Filter(
@@ -301,9 +337,11 @@ function compileTableToOps(table, extra_in_params, hints) {
             compiled.handle_thingtalk,
             table
         );
-    } else if (table.isProjection) {
+    } else if (table instanceof Ast.ProjectionTable) {
+        const schema = table.schema;
+        assert(schema);
         // see note above (for stream.isProjection) for this operation
-        const effective = setIntersect(hints.projection, addMinimalProjection(table.args, table.schema));
+        const effective = setIntersect(hints.projection, addMinimalProjection(table.args, schema));
         const hintsclone = hints.clone();
         hintsclone.projection = effective;
 
@@ -315,9 +353,11 @@ function compileTableToOps(table, extra_in_params, hints) {
             compiled.handle_thingtalk,
             table
         );
-    } else if (table.isCompute) {
+    } else if (table instanceof Ast.ComputeTable) {
         const hintsclone = hints.clone();
-        addAll(hintsclone.projection, getExpressionParameters(table.expression, table.schema));
+        const schema = table.schema;
+        assert(schema);
+        addAll(hintsclone.projection, getExpressionParameters(table.expression, schema));
         const compiled = compileTableToOps(table.table, extra_in_params, hintsclone);
         return new TableOp.Map(
             compiled,
@@ -327,19 +367,21 @@ function compileTableToOps(table, extra_in_params, hints) {
             compiled.handle_thingtalk,
             table
         );
-    } else if (table.isAggregation) {
+    } else if (table instanceof Ast.AggregationTable) {
         // discard the hints entirely across aggregation
         const newHints = new QueryInvocationHints(table.field === '*' ? new Set([]) : new Set([table.field]));
 
+        const schema = table.schema;
+        assert(schema);
         let reduceop;
         if (table.operator === 'count' && table.field === '*')
             reduceop = new ReduceOp.Count;
         else if (table.operator === 'count')
             reduceop = new ReduceOp.CountDistinct(table.field);
         else if (table.operator === 'avg')
-            reduceop = new ReduceOp.Average(table.field, table.schema.out[table.field]);
+            reduceop = new ReduceOp.Average(table.field, schema.out[table.field]);
         else
-            reduceop = new ReduceOp.SimpleAggregation(table.operator, table.field, table.schema.out[table.field]);
+            reduceop = new ReduceOp.SimpleAggregation(table.operator as SimpleAggregationType, table.field, schema.out[table.field]);
 
         const compiled = compileTableToOps(table.table, extra_in_params, newHints);
         return new TableOp.Reduce(
@@ -349,26 +391,30 @@ function compileTableToOps(table, extra_in_params, hints) {
             compiled.handle_thingtalk,
             table
         );
-    } else if (table.isIndex && table.indices.length === 1 && table.indices[0].isNumber && table.table.isSort) {
+    } else if (table instanceof Ast.IndexTable &&
+               table.indices.length === 1 && table.indices[0] instanceof Ast.NumberValue &&
+               table.table instanceof Ast.SortedTable) {
         const hintsclone = hints.clone();
 
         // convert sort followed by a single index into argminmax
+        const index = table.indices[0] as Ast.NumberValue;
+        const inner = table.table as Ast.SortedTable;
         let reduceop;
-        if (table.indices[0].value === 1 || table.indices[0].value === -1) {
+        if (index.value === 1 || index.value === -1) {
             // common case of simple argmin/argmax
-            let argminmaxop;
-            if ((table.indices[0].value === 1 && table.table.direction === 'asc') ||
-                (table.indices[0].value === -1 && table.table.direction === 'desc'))
+            let argminmaxop : 'argmin' | 'argmax';
+            if ((index.value === 1 && inner.direction === 'asc') ||
+                (index.value === -1 && inner.direction === 'desc'))
                 argminmaxop = 'argmin';
             else
                 argminmaxop = 'argmax';
 
             hintsclone.limit = 1;
-            hintsclone.sort = [table.table.field, table.table.direction];
-            reduceop = new ReduceOp.SimpleArgMinMax(argminmaxop, table.table.field);
+            hintsclone.sort = [inner.field, inner.direction];
+            reduceop = new ReduceOp.SimpleArgMinMax(argminmaxop, inner.field);
         } else {
-            let argminmaxop;
-            if (table.table.direction === 'asc')
+            let argminmaxop : 'argmin' | 'argmax';
+            if (inner.direction === 'asc')
                 argminmaxop = 'argmin';
             else
                 argminmaxop = 'argmax';
@@ -378,12 +424,12 @@ function compileTableToOps(table, extra_in_params, hints) {
             //
             // NOTE: for correct operation, devices which implement hints MUST NOT
             // implement "limit" without implementing "sort"
-            hintsclone.limit = table.indices[0].toJS();
-            hintsclone.sort = [table.table.field, table.table.direction];
-            reduceop = new ReduceOp.ComplexArgMinMax(argminmaxop, table.table.field, table.indices[0], new Ast.Value.Number(1));
+            hintsclone.limit = index.toJS();
+            hintsclone.sort = [inner.field, inner.direction];
+            reduceop = new ReduceOp.ComplexArgMinMax(argminmaxop, inner.field, index, new Ast.Value.Number(1));
         }
 
-        const compiled = compileTableToOps(table.table.table, extra_in_params, hintsclone);
+        const compiled = compileTableToOps(inner.table, extra_in_params, hintsclone);
         return new TableOp.Reduce(
             compiled,
             reduceop,
@@ -391,14 +437,15 @@ function compileTableToOps(table, extra_in_params, hints) {
             compiled.handle_thingtalk,
             table
         );
-    } else if (table.isSlice && table.table.isSort) {
+    } else if (table instanceof Ast.SlicedTable && table.table instanceof Ast.SortedTable) {
+        const inner = table.table as Ast.SortedTable;
         // convert sort followed by a single slice into argminmax
-        let argminmaxop;
-        if (table.table.direction === 'asc')
+        let argminmaxop : 'argmin' | 'argmax';
+        if (inner.direction === 'asc')
             argminmaxop = 'argmin';
         else
             argminmaxop = 'argmax';
-        let reduceop = new ReduceOp.ComplexArgMinMax(argminmaxop, table.table.field, table.base, table.limit);
+        const reduceop = new ReduceOp.ComplexArgMinMax(argminmaxop, inner.field, table.base, table.limit);
 
         const hintsclone = hints.clone();
         // across a slice, the limit hint becomes the base value + the limit value, if known,
@@ -407,11 +454,14 @@ function compileTableToOps(table, extra_in_params, hints) {
         //
         // NOTE: for correct operation, devices which implement hints MUST NOT
         // implement "limit" without implementing "sort"
-        hintsclone.limit = table.base.isNumber && table.limit.isNumber ?
-            (table.base.toJS() - 1 + table.limit.toJS()) : undefined;
-        hintsclone.sort = [table.table.field, table.table.direction];
+        const base = table.base;
+        const limit = table.limit;
 
-        const compiled = compileTableToOps(table.table.table, extra_in_params, hintsclone);
+        hintsclone.limit = base instanceof Ast.NumberValue && limit instanceof Ast.NumberValue ?
+            (base.toJS() - 1 + limit.toJS()) : undefined;
+        hintsclone.sort = [inner.field, inner.direction];
+
+        const compiled = compileTableToOps(inner.table, extra_in_params, hintsclone);
         return new TableOp.Reduce(
             compiled,
             reduceop,
@@ -419,7 +469,7 @@ function compileTableToOps(table, extra_in_params, hints) {
             compiled.handle_thingtalk,
             table
         );
-    } else if (table.isSort) {
+    } else if (table instanceof Ast.SortedTable) {
         const hintsclone = hints.clone();
         hintsclone.sort = [table.field, table.direction];
         const compiled = compileTableToOps(table.table, extra_in_params, hintsclone);
@@ -430,14 +480,18 @@ function compileTableToOps(table, extra_in_params, hints) {
             compiled.handle_thingtalk,
             table
         );
-    } else if (table.isIndex && table.indices.length === 1 && table.indices[0].isNumber && table.indices[0].value > 0) {
+    } else if (table instanceof Ast.IndexTable &&
+               table.indices.length === 1 &&
+               table.indices[0] instanceof Ast.NumberValue &&
+               (table.indices[0] as Ast.NumberValue).value > 0) {
         // across an index, the limit hint becomes the index value, if known,
         // (so an index [3] would fetch 3 elements)
         //
         // NOTE: for correct operation, devices which implement hints MUST NOT
         // implement "limit" without implementing "sort"
+        const index = table.indices[0] as Ast.NumberValue;
         const hintsclone = hints.clone();
-        hintsclone.limit = table.indices[0].toJS();
+        hintsclone.limit = index.toJS();
         const compiled = compileTableToOps(table.table, extra_in_params, hintsclone);
         if (compiled instanceof TableOp.Reduce) {
             // simple index doesn't work if the inner table is a reduce, because
@@ -452,16 +506,16 @@ function compileTableToOps(table, extra_in_params, hints) {
         } else {
             return new TableOp.Reduce(
                 compiled,
-                new ReduceOp.SimpleIndex(table.indices[0]),
+                new ReduceOp.SimpleIndex(index),
                 compiled.device,
                 compiled.handle_thingtalk,
                 table
             );
         }
-    } else if (table.isIndex) {
+    } else if (table instanceof Ast.IndexTable) {
         // if the index is not constant, we just discard it
         const hintsclone = hints.clone();
-        hintsclone.index = undefined;
+        hintsclone.limit = undefined;
         const compiled = compileTableToOps(table.table, extra_in_params, hintsclone);
         return new TableOp.Reduce(
             compiled,
@@ -470,7 +524,7 @@ function compileTableToOps(table, extra_in_params, hints) {
             compiled.handle_thingtalk,
             table
         );
-    } else if (table.isSlice) {
+    } else if (table instanceof Ast.SlicedTable) {
         const hintsclone = hints.clone();
         // across a slice, the limit hint becomes the base value + the limit value, if known,
         // (so a slice [2:3] would fetch 4 elements, and then discard the first one)
@@ -478,8 +532,11 @@ function compileTableToOps(table, extra_in_params, hints) {
         //
         // NOTE: for correct operation, devices which implement hints MUST NOT
         // implement "limit" without implementing "sort"
-        hintsclone.limit = table.base.isNumber && table.limit.isNumber ?
-            (table.base.toJS() - 1 + table.limit.toJS()) : undefined;
+        const base = table.base;
+        const limit = table.limit;
+
+        hintsclone.limit = base instanceof Ast.NumberValue && limit instanceof Ast.NumberValue ?
+            (base.toJS() - 1 + limit.toJS()) : undefined;
 
         const compiled = compileTableToOps(table.table, extra_in_params, hintsclone);
         return new TableOp.Reduce(
@@ -489,11 +546,16 @@ function compileTableToOps(table, extra_in_params, hints) {
             compiled.handle_thingtalk,
             table
         );
-    } else if (table.isJoin) {
+    } else if (table instanceof Ast.JoinTable) {
+        const lhsschema = table.lhs.schema;
+        assert(lhsschema);
+        const rhsschema = table.rhs.schema;
+        assert(rhsschema);
+
         if (table.in_params.length === 0) {
-            const lhs = compileTableToOps(table.lhs, extra_in_params, restrictHintsForJoin(hints, table.lhs.schema));
-            const rhs = compileTableToOps(table.rhs, extra_in_params, restrictHintsForJoin(hints, table.rhs.schema));
-            let invocation = null;
+            const lhs = compileTableToOps(table.lhs, extra_in_params, restrictHintsForJoin(hints, lhsschema));
+            const rhs = compileTableToOps(table.rhs, extra_in_params, restrictHintsForJoin(hints, rhsschema));
+            let invocation : Ast.DeviceSelector|null = null;
             let handle_thingtalk = false;
             if (lhs.device && rhs.device) {
                 invocation = sameDevice(lhs.device, rhs.device) ? lhs.device : null;
@@ -502,21 +564,25 @@ function compileTableToOps(table, extra_in_params, hints) {
 
             return new TableOp.CrossJoin(lhs, rhs, invocation, handle_thingtalk, table);
         } else {
-            let lhs_in_params = [];
-            let rhs_in_params = [];
-            for (let in_param of extra_in_params) {
-                if (in_param.name in table.lhs.schema.inReq ||
-                    in_param.name in table.lhs.schema.inOpt)
+            const lhs_in_params = [];
+            const rhs_in_params = [];
+            for (const in_param of extra_in_params) {
+                if (in_param.name in lhsschema.inReq ||
+                    in_param.name in lhsschema.inOpt)
                     lhs_in_params.push(in_param);
-                if (in_param.name in table.rhs.schema.inReq ||
-                    in_param.name in table.rhs.schema.inOpt)
+                if (in_param.name in rhsschema.inReq ||
+                    in_param.name in rhsschema.inOpt)
                     rhs_in_params.push(in_param);
             }
 
-            const lhs = compileTableToOps(table.lhs, lhs_in_params, restrictHintsForJoin(hints, table.lhs.schema));
-            const rhs = compileTableToOps(table.rhs, rhs_in_params.concat(table.in_params), restrictHintsForJoin(hints, table.rhs.schema));
-            const device = sameDevice(lhs.device, rhs.device) ? lhs.device : null;
-            const handle_thingtalk = sameDevice(lhs.device, rhs.device) ? lhs.handle_thingtalk && rhs.handle_thingtalk : false;
+            const lhs = compileTableToOps(table.lhs, lhs_in_params, restrictHintsForJoin(hints, lhsschema));
+            const rhs = compileTableToOps(table.rhs, rhs_in_params.concat(table.in_params), restrictHintsForJoin(hints, rhsschema));
+            let device : Ast.DeviceSelector|null = null;
+            let handle_thingtalk = false;
+            if (lhs.device && rhs.device) {
+                device = sameDevice(lhs.device, rhs.device) ? lhs.device : null;
+                handle_thingtalk = sameDevice(lhs.device, rhs.device) ? lhs.handle_thingtalk && rhs.handle_thingtalk : false;
+            }
 
             return new TableOp.NestedLoopJoin(lhs, rhs, device, handle_thingtalk, table);
         }
@@ -525,56 +591,65 @@ function compileTableToOps(table, extra_in_params, hints) {
     }
 }
 
-function optimizeStreamOp(streamop, hasOutputAction) {
+function optimizeStreamOp(streamop : StreamOp, hasOutputAction : boolean) : StreamOp {
     // optimize edgenew of edgenew
-    if (streamop.isEdgeNew && streamop.stream.isEdgeNew)
-        return optimizeStreamOp(streamop.stream);
+    if (streamop instanceof Ops.EdgeNewStreamOp && streamop.stream instanceof Ops.EdgeNewStreamOp)
+        return optimizeStreamOp(streamop.stream, hasOutputAction);
 
     // remove projection if there is no "notify;"
-    if (!hasOutputAction && streamop.isMap && streamop.op.isProjection)
+    if (!hasOutputAction && streamop instanceof Ops.MapStreamOp &&
+        streamop.op instanceof Ops.ProjectionPointWiseOp)
         return optimizeStreamOp(streamop.stream, hasOutputAction);
 
     // optimize projection of projection
-    if (streamop.isMap && streamop.op.isProjection &&
-        streamop.stream.isMap && streamop.stream.op.isProjection) {
-        // bypass the inner projection, as the outer one subsumes it
-        streamop.stream = optimizeStreamOp(streamop.stream.stream, hasOutputAction);
-        return streamop;
+    if (streamop instanceof Ops.MapStreamOp && streamop.op instanceof Ops.ProjectionPointWiseOp) {
+        const inner = streamop.stream;
+        if (inner instanceof Ops.MapStreamOp && inner.op instanceof Ops.ProjectionPointWiseOp) {
+            // bypass the inner projection, as the outer one subsumes it
+            streamop.stream = optimizeStreamOp(inner.stream, hasOutputAction);
+            return streamop;
+        }
     }
 
-    if (streamop.isInvokeTable || streamop.isJoin) {
+    if (streamop instanceof Ops.InvokeTableStreamOp ||
+        streamop instanceof Ops.JoinStreamOp) {
         streamop.stream = optimizeStreamOp(streamop.stream, hasOutputAction);
         streamop.table = optimizeTableOp(streamop.table, hasOutputAction);
         return streamop;
     }
 
-    if (streamop.stream) {
+    if (Ops.isUnaryStreamOp(streamop)) {
         streamop.stream = optimizeStreamOp(streamop.stream, hasOutputAction);
         return streamop;
     }
 
     return streamop;
 }
-function optimizeTableOp(tableop, hasOutputAction) {
+function optimizeTableOp(tableop : TableOp, hasOutputAction : boolean) : TableOp {
     // remove projection if there is no "notify;"
-    if (!hasOutputAction && tableop.isMap && tableop.op.isProjection)
+    if (!hasOutputAction && tableop instanceof Ops.MapTableOp &&
+        tableop.op instanceof Ops.ProjectionPointWiseOp)
         return optimizeTableOp(tableop.table, hasOutputAction);
 
     // optimize projection of projection
-    if (tableop.isMap && tableop.op.isProjection &&
-        tableop.table.isMap && tableop.table.op.isProjection) {
-        // bypass the inner projection, as the outer one subsumes it
-        tableop.table = optimizeTableOp(tableop.table.table, hasOutputAction);
-        return tableop;
+    if (tableop instanceof Ops.MapTableOp && tableop.op instanceof Ops.ProjectionPointWiseOp) {
+        const inner = tableop.table;
+        if (inner instanceof Ops.MapTableOp &&
+            inner.op instanceof Ops.ProjectionPointWiseOp) {
+            // bypass the inner projection, as the outer one subsumes it
+            tableop.table = optimizeTableOp(inner.table, hasOutputAction);
+            return tableop;
+        }
     }
 
-    if (tableop.isCrossJoin || tableop.isNestedLoopJoin) {
+    if (tableop instanceof Ops.CrossJoinTableOp ||
+        tableop instanceof Ops.NestedLoopJoinTableOp) {
         tableop.lhs = optimizeTableOp(tableop.lhs, hasOutputAction);
         tableop.rhs = optimizeTableOp(tableop.rhs, hasOutputAction);
         return tableop;
     }
 
-    if (tableop.table) {
+    if (Ops.isUnaryTableOp(tableop)) {
         tableop.table = optimizeTableOp(tableop.table, hasOutputAction);
         return tableop;
     }
@@ -582,8 +657,8 @@ function optimizeTableOp(tableop, hasOutputAction) {
     return tableop;
 }
 
-function getStatementSchema(statement) {
-    if (statement.isRule)
+function getStatementSchema(statement : Ast.Rule|Ast.Command) : Ast.ExpressionSignature|null {
+    if (statement instanceof Ast.Rule)
         return statement.stream.schema;
     else if (statement.table)
         return statement.table.schema;
@@ -592,33 +667,34 @@ function getStatementSchema(statement) {
 }
 
 // compile a rule/command statement to a RuleOp
-function compileStatementToOp(statement) {
-    let statementSchema = getStatementSchema(statement);
+function compileStatementToOp(statement : Ast.Rule|Ast.Command) : RuleOp {
+    const statementSchema = getStatementSchema(statement);
 
-    let hasDefaultProjection = statementSchema && statementSchema.default_projection && statementSchema.default_projection.length > 0;
-    let default_projection = getDefaultProjection(statementSchema);
-    let projection = new Set;
+    const hasDefaultProjection = statementSchema && statementSchema.default_projection && statementSchema.default_projection.length > 0;
+    const default_projection = getDefaultProjection(statementSchema);
+    const projection = new Set<string>();
 
     let hasOutputAction = false;
     if (statementSchema) {
-        statement.actions.forEach((action) => {
-            if (action.isNotify) {
+        statement.actions.forEach((action : Ast.Action) => {
+            if (action instanceof Ast.NotifyAction) {
                 hasOutputAction = true;
                 addAll(projection, default_projection);
-            } else if (action.isInvocation) {
-                action.invocation.in_params.forEach((p) => {
-                    addAll(projection, getExpressionParameters(p.value, statementSchema));
+            } else if (action instanceof Ast.InvocationAction) {
+                action.invocation.in_params.forEach((p : Ast.InputParam) => {
+                    addAll(projection, getExpressionParameters(p.value, statementSchema as Ast.ExpressionSignature));
                 });
             } else {
-                action.in_params.forEach((p) => {
-                    addAll(projection, getExpressionParameters(p.value, statementSchema));
+                assert(action instanceof Ast.VarRefAction);
+                action.in_params.forEach((p : Ast.InputParam) => {
+                    addAll(projection, getExpressionParameters(p.value, statementSchema as Ast.ExpressionSignature));
                 });
             }
         });
     }
 
     let streamop;
-    if (statement.isRule) {
+    if (statement instanceof Ast.Rule) {
         streamop = compileStreamToOps(statement.stream, new QueryInvocationHints(projection));
         // if there is no #[default_projection] annotation, we don't bother with a projection operation,
         // the result will contain the right parameters already
@@ -634,7 +710,7 @@ function compileStatementToOp(statement) {
         // if there is no #[default_projection] annotation, we don't bother with a projection operation,
         // the result will contain the right parameters already
         if (hasDefaultProjection) {
-            let newtable = new Ast.Table.Projection(null, statement.table, [...projection], statement.table.schema);
+            const newtable = new Ast.Table.Projection(null, statement.table, [...projection], statement.table.schema);
             tableop = new TableOp.Map(
                 tableop,
                 new PointWiseOp.Projection(projection),

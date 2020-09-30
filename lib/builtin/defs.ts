@@ -23,7 +23,7 @@ import { FunctionDef } from '../ast/function_def';
 
 // Definitions of ThingTalk operators
 
-interface OpImplementation {
+export interface OpImplementation {
     op ?: string;
     fn ?: string;
     flip ?: boolean;
@@ -43,7 +43,7 @@ type OverloadResolver = (...types : Type[]) => OpImplementation;
  * @property {string} [fn] - a function in the {@link Builtin} namespace that implements this operator
  * @package
  */
-interface OpDefinition extends OpImplementation {
+export interface OpDefinition extends OpImplementation {
     types : Array<Array<(Type | string)>>;
     overload ? : OverloadResolver;
 }
@@ -363,7 +363,7 @@ function builtinFunction(name : string) : FunctionDef {
  * @constant
  * @package
  */
-export const Actions : { [key : string] : FunctionDef } = {
+export const Actions = {
     'notify': builtinFunction('notify'),
     'return': builtinFunction('return'),
     'save': builtinFunction('save'),
@@ -378,5 +378,5 @@ export const Actions : { [key : string] : FunctionDef } = {
  * @constant
  * @package
  */
-export const Queries : { [key : string] : FunctionDef } = {
+export const Queries = {
 };

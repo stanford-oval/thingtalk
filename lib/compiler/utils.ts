@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -21,17 +21,21 @@
 import assert from 'assert';
 import * as Builtin from '../builtin/defs';
 import NodeVisitor from '../ast/visitor';
+import * as Ast from '../ast';
+import Type, { EntityType, CompoundType } from '../type';
 
 import * as JSIr from './jsir';
 import Scope from './scope';
 
-function getRegister(name, scope) {
+function getRegister(name : string, scope : Scope) : JSIr.Register {
     const decl = scope.get(name);
-    assert.strictEqual(decl.type, 'scalar');
+    assert(decl.type === 'scalar');
     return decl.register;
 }
 
-function compileEvent(irBuilder, scope, name) {
+export type EventType = 'type' | 'program_id' | 'title' | 'body' | null;
+
+function compileEvent(irBuilder : JSIr.IRBuilder, scope : Scope, name : EventType) : JSIr.Register {
     let reg;
     if (name === 'type') {
         return getRegister('$outputType', scope);
@@ -39,37 +43,44 @@ function compileEvent(irBuilder, scope, name) {
         reg = irBuilder.allocRegister();
         irBuilder.add(new JSIr.GetEnvironment('program_id', reg));
     } else {
-        let hint = name ? 'string-' + name : 'string';
+        const hint = name ? 'string-' + name : 'string';
         reg = irBuilder.allocRegister();
         irBuilder.add(new JSIr.FormatEvent(hint, getRegister('$outputType', scope), getRegister('$output', scope), reg));
     }
     return reg;
 }
 
-function typeForValue(ast, scope) {
-    if (ast.isVarRef) {
+function typeForValue(ast : Ast.Value, scope : Scope) : Type {
+    if (ast instanceof Ast.VarRefValue) {
         const decl = scope.get(ast.name);
-        assert.strictEqual(decl.type, 'scalar');
+        assert(decl.type === 'scalar');
+        assert(decl.tt_type);
         return decl.tt_type;
     } else {
         return ast.getType();
     }
 }
 
-function compileUnaryOp(irBuilder, op, arg, into) {
-    let unaryOp = Builtin.UnaryOps[op];
+function compileUnaryOp(irBuilder : JSIr.IRBuilder,
+                        op : keyof typeof Builtin.UnaryOps,
+                        arg : JSIr.Register,
+                        into : JSIr.Register) : void {
+    const unaryOp = Builtin.UnaryOps[op];
     if (unaryOp.op)
         irBuilder.add(new JSIr.UnaryOp(arg, unaryOp.op, into));
     else
         irBuilder.add(new JSIr.UnaryOp(arg, '__builtin.' + unaryOp.fn, into));
 }
 
-function compileCast(irBuilder, reg, type, toType) {
+function compileCast(irBuilder : JSIr.IRBuilder,
+                     reg : JSIr.Register,
+                     type : Type,
+                     toType : Type) : JSIr.Register {
     if (type.equals(toType)) {
-        if (type.isEntity && (type.type === 'tt:hashtag' || type.type === 'tt:username' || type.type === 'tt:picture')) {
+        if (type instanceof EntityType && (type.type === 'tt:hashtag' || type.type === 'tt:username' || type.type === 'tt:picture')) {
             // for compatibility with the ton of devices that take inputs of these types, we auto-cast to string,
             // this is ok because these types don't really need .display that much
-            let casted = irBuilder.allocRegister();
+            const casted = irBuilder.allocRegister();
             irBuilder.add(new JSIr.UnaryOp(reg, 'String', casted));
             return casted;
         }
@@ -77,19 +88,19 @@ function compileCast(irBuilder, reg, type, toType) {
     }
 
     if (toType.isString) {
-        let casted = irBuilder.allocRegister();
+        const casted = irBuilder.allocRegister();
         irBuilder.add(new JSIr.UnaryOp(reg, 'String', casted));
         return casted;
     }
 
     if (type.isDate && toType.isTime) {
-        let casted = irBuilder.allocRegister();
+        const casted = irBuilder.allocRegister();
         compileUnaryOp(irBuilder, 'get_time', reg, casted);
         return casted;
     }
 
     if (type.isNumber && toType.isCurrency) {
-        let casted = irBuilder.allocRegister();
+        const casted = irBuilder.allocRegister();
         compileUnaryOp(irBuilder, 'get_currency', reg, casted);
         return casted;
     }
@@ -97,8 +108,10 @@ function compileCast(irBuilder, reg, type, toType) {
     return reg;
 }
 
-function isRemoteSend(fn) {
-    return (fn.selector.kind === 'org.thingpedia.builtin.thingengine.remote' || fn.selector.kind.startsWith('__dyn_')) &&
+function isRemoteSend(fn : Ast.Invocation) : boolean {
+    const selector = fn.selector as Ast.DeviceSelector;
+
+    return (selector.kind === 'org.thingpedia.builtin.thingengine.remote' || selector.kind.startsWith('__dyn_')) &&
         fn.channel === 'send';
 }
 
@@ -108,8 +121,14 @@ function isRemoteSend(fn) {
  * This function handles nested compound types correctly, by checking that
  * the object is not null/undefined before reading.
  */
-function readResultKey(irBuilder, currentScope, result, key, fullName, type, isInVarScopeNames) {
-    let reg = irBuilder.allocRegister();
+function readResultKey(irBuilder : JSIr.IRBuilder,
+                       currentScope : Scope,
+                       result : JSIr.Register,
+                       key : string,
+                       fullName : string,
+                       type : Type|null,
+                       isInVarScopeNames : boolean) : void {
+    const reg = irBuilder.allocRegister();
     irBuilder.add(new JSIr.GetKey(result, key, reg));
 
     currentScope.set(fullName, {
@@ -120,15 +139,15 @@ function readResultKey(irBuilder, currentScope, result, key, fullName, type, isI
         isInVarScopeNames
     });
 
-    if (type.isCompound) {
-        let ifStmt = new JSIr.IfStatement(reg);
+    if (type instanceof CompoundType) {
+        const ifStmt = new JSIr.IfStatement(reg);
         irBuilder.add(ifStmt);
         irBuilder.pushBlock(ifStmt.iftrue);
 
-        for (let field in type.fields) {
+        for (const field in type.fields) {
             if (field.indexOf('.') >= 0)
                 continue;
-            let fieldtype = type.fields[field].type;
+            const fieldtype = type.fields[field].type;
             readResultKey(irBuilder, currentScope, reg, field, fullName + '.' + field, fieldtype, false);
         }
         irBuilder.popBlock();
@@ -144,8 +163,11 @@ function readResultKey(irBuilder, currentScope, result, key, fullName, type, isI
  *
  * @internal
  */
-function readScopeVariables(irBuilder, currentScope, outputType, resultReg) {
-    let newScope = new Scope(currentScope.parent);
+function readScopeVariables(irBuilder : JSIr.IRBuilder,
+                            currentScope : Scope,
+                            outputType : JSIr.Register,
+                            resultReg : JSIr.Register) : Scope {
+    const newScope = new Scope(currentScope.parent);
     newScope.set('$outputType', {
         type: 'scalar',
         tt_type: null,
@@ -161,7 +183,7 @@ function readScopeVariables(irBuilder, currentScope, outputType, resultReg) {
         isInVarScopeNames: false
     });
 
-    for (let name of currentScope.ownKeys()) {
+    for (const name of currentScope.ownKeys()) {
         if (name.startsWith('$'))
             continue;
 
@@ -170,6 +192,7 @@ function readScopeVariables(irBuilder, currentScope, outputType, resultReg) {
             continue;
 
         const currentScopeObj = currentScope.get(name);
+        assert(currentScopeObj.type === 'scalar');
         readResultKey(irBuilder, newScope, resultReg, name, name,
             currentScopeObj.tt_type, currentScopeObj.isInVarScopeNames);
     }
@@ -177,7 +200,7 @@ function readScopeVariables(irBuilder, currentScope, outputType, resultReg) {
     return newScope;
 }
 
-function getDefaultProjection(schema) {
+function getDefaultProjection(schema : Ast.ExpressionSignature|null) : string[] {
     if (!schema)
         return [];
 
@@ -186,8 +209,8 @@ function getDefaultProjection(schema) {
 
     // if no #[default_projection] is specified, then we project all
     // arguments
-    let projection = [];
-    for (let arg of schema.iterateArguments())
+    const projection = [];
+    for (const arg of schema.iterateArguments())
         projection.push(arg.name);
     return projection;
 }
@@ -201,22 +224,23 @@ function getDefaultProjection(schema) {
  * used as a hint to the query function (which otherwise would have to return everything),
  * and I think the slight loss in performance is acceptable to keep the code complexity low.
  */
-function getExpressionParameters(filter, schema) {
-    const names = new Set;
-    filter.visit(new class extends NodeVisitor {
-        visitValue(value) {
-            if (value.isVarRef && schema.hasArgument(value.name))
+function getExpressionParameters(expression : Ast.Node,
+                                 schema : Ast.ExpressionSignature) : Set<string> {
+    const names = new Set<string>();
+    expression.visit(new class extends NodeVisitor {
+        visitVarRefValue(value : Ast.VarRefValue) {
+            if (schema.hasArgument(value.name))
                 names.add(value.name);
             return true;
         }
 
-        visitAtomBooleanExpression(atom) {
+        visitAtomBooleanExpression(atom : Ast.AtomBooleanExpression) {
             if (schema.hasArgument(atom.name))
                 names.add(atom.name);
             return true;
         }
 
-        visitDontCareBooleanExpression(atom) {
+        visitDontCareBooleanExpression(atom : Ast.DontCareBooleanExpression) {
             if (schema.hasArgument(atom.name))
                 names.add(atom.name);
             return true;
