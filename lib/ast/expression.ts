@@ -416,14 +416,14 @@ export abstract class BooleanExpression extends Node {
      * @param {SchemaRetriever} schemas - schema retriever object to retrieve Thingpedia information
      * @param {Object.<string,Ast.ClassDef>} classes - additional locally defined classes, overriding Thingpedia
      * @param {boolean} [useMeta=false] - retreive natural language metadata during typecheck
-     * @alias Ast.BooleanExpression#typecheck
      */
-    typecheck(schema : ExpressionSignature,
-              scope : null,
-              schemas : SchemaRetriever,
-              classes : { [key : string] : ClassDef },
-              useMeta : boolean) : Promise<this> {
-        return Typechecking.typeCheckFilter(this, schema, scope, schemas, classes, useMeta);
+    async typecheck(schema : ExpressionSignature,
+                    scope : null,
+                    schemas : SchemaRetriever,
+                    classes : { [key : string] : ClassDef },
+                    useMeta : boolean) : Promise<this> {
+        await Typechecking.typeCheckFilter(this, schema, undefined, schemas, classes, useMeta);
+        return this;
     }
 
     /**

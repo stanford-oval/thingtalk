@@ -21,8 +21,19 @@
 import assert from 'assert';
 import NodeVisitor from './visitor';
 
-import type { Invocation } from './expression';
+import type {
+    Invocation,
+    ExternalBooleanExpression
+} from './expression';
 import type { Value } from './values';
+import type { Declaration } from './program';
+import type {
+    InvocationAction,
+    VarRefAction,
+    InvocationTable,
+    VarRefTable,
+    VarRefStream
+} from './primitive';
 
 /**
  * A single point in the source code input stream.
@@ -64,6 +75,12 @@ export interface AnnotationSpec {
     nl ?: NLAnnotationMap;
     impl ?: AnnotationMap;
 }
+
+export type Primitive = Invocation |
+    VarRefTable |
+    VarRefAction |
+    VarRefStream |
+    ExternalBooleanExpression;
 
 /**
  * Base class of AST nodes.
@@ -130,39 +147,39 @@ export default abstract class Node {
      *                                  in the iteration
      * @deprecated Use {@link Ast.NodeVisitor}.
      */
-    iteratePrimitives(includeVarRef : boolean) : Array<[('action'|'query'|'stream'|'filter'), Invocation]> {
+    iteratePrimitives(includeVarRef : boolean) : Array<[('action'|'query'|'stream'|'filter'), Primitive]> {
         // we cannot yield from inside the visitor, so we buffer everything
-        const buffer : Array<[('action'|'query'|'stream'|'filter'), Invocation]> = [];
+        const buffer : Array<[('action'|'query'|'stream'|'filter'), Primitive]> = [];
         const visitor = new class extends NodeVisitor {
-            visitVarRefAction(node : any) {
+            visitVarRefAction(node : VarRefAction) {
                 if (includeVarRef)
                     buffer.push(['action', node]);
                 return true;
             }
-            visitInvocationAction(node : any) {
+            visitInvocationAction(node : InvocationAction) {
                 buffer.push(['action', node.invocation]);
                 return true;
             }
-            visitVarRefTable(node : any) {
+            visitVarRefTable(node : VarRefTable) {
                 if (includeVarRef)
                     buffer.push(['query', node]);
                 return true;
             }
-            visitInvocationTable(node : any) {
+            visitInvocationTable(node : InvocationTable) {
                 buffer.push(['query', node.invocation]);
                 return true;
             }
-            visitVarRefStream(node : any) {
+            visitVarRefStream(node : VarRefStream) {
                 if (includeVarRef)
                     buffer.push(['stream', node]);
                 return true;
             }
-            visitExternalBooleanExpression(node : any) {
+            visitExternalBooleanExpression(node : ExternalBooleanExpression) {
                 buffer.push(['filter', node]);
                 return true;
             }
 
-            visitDeclaration(node : any) {
+            visitDeclaration(node : Declaration) {
                 // if the declaration refers to a nested scope, we don't recurse into it
                 if (node.type === 'program' || node.type === 'procedure')
                     return false;

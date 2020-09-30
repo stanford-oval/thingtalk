@@ -412,13 +412,15 @@ export class AggregationTable extends Table {
     field : string;
     operator : string;
     alias : string|null;
+    overload : Type[]|null;
 
     constructor(location : SourceRange|null,
                 table : Table,
                 field : string,
                 operator : string,
                 alias : string|null,
-                schema : ExpressionSignature|null) {
+                schema : ExpressionSignature|null,
+                overload : Type[]|null = null) {
         super(location, schema);
 
         assert(table instanceof Table);
@@ -432,6 +434,8 @@ export class AggregationTable extends Table {
 
         assert(alias === null || typeof alias === 'string');
         this.alias = alias;
+
+        this.overload = overload;
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -448,7 +452,8 @@ export class AggregationTable extends Table {
             this.field,
             this.operator,
             this.alias,
-            this.schema ? this.schema.clone() : null
+            this.schema ? this.schema.clone() : null,
+            this.overload
         );
     }
 
@@ -491,7 +496,7 @@ export class SortedTable extends Table {
         visitor.exit(this);
     }
 
-    clone() : SortedTable{
+    clone() : SortedTable {
         return new SortedTable(
             this.location,
             this.table.clone(),

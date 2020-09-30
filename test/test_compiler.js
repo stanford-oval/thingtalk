@@ -402,6 +402,8 @@ const TEST_CASES = [
   let _t_19;
   let _t_20;
   let _t_21;
+  let _t_22;
+  let _t_23;
   _t_0 = await __env.readState(0);
   try {
     _t_1 = {};
@@ -433,8 +435,10 @@ const TEST_CASES = [
         await __env.writeState(0, _t_19);
         _t_0 = _t_19;
         if (_t_18) {
-          _t_21 = new __builtin.Entity("HillaryClinton", null);
-          _t_20 = __builtin.equality(_t_15, _t_21);
+          _t_21 = String (_t_15);
+          _t_22 = new __builtin.Entity("HillaryClinton", null);
+          _t_23 = String (_t_22);
+          _t_20 = __builtin.equality(_t_21, _t_23);
           if (_t_20) {
             try {
               await __env.output(String(_t_9), _t_10);

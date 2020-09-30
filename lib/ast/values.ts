@@ -26,6 +26,7 @@ import { normalizeDate } from '../date_utils';
 import AstNode from './base';
 import NodeVisitor from './visitor';
 import { BooleanExpression } from './expression';
+import type { ArgumentDef } from './function_def';
 
 import * as builtin from '../builtin/values';
 
@@ -659,8 +660,12 @@ export class ArrayFieldValue extends Value {
     value : Value;
     field : string;
     type : Type|null;
+    arg : ArgumentDef|null;
 
-    constructor(value : Value, field : string, type : Type|null = null) {
+    constructor(value : Value,
+                field : string,
+                type : Type|null = null,
+                arg : ArgumentDef|null = null) {
         super(null);
         assert(value instanceof Value);
         this.value = value;
@@ -668,6 +673,7 @@ export class ArrayFieldValue extends Value {
         this.field = field;
         assert(type === null || type instanceof Type);
         this.type = type;
+        this.arg = arg;
     }
 
     toString() : string {
@@ -675,7 +681,7 @@ export class ArrayFieldValue extends Value {
     }
 
     clone() : ArrayFieldValue {
-        return new ArrayFieldValue(this.value.clone(), this.field, this.type);
+        return new ArrayFieldValue(this.value.clone(), this.field, this.type, this.arg);
     }
 
     equals(other : Value) : boolean {

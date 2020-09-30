@@ -20,6 +20,7 @@
 
 import * as TTUnits from 'thingtalk-units';
 
+import type * as Ast from './ast';
 import * as Grammar from './grammar';
 
 function normalizeUnit(unit : string) : string {
@@ -323,9 +324,11 @@ export class ArrayType extends Type {
 Type.Array = ArrayType;
 ArrayType.prototype.isArray = true;
 
+type FieldMap = { [key : string] : Ast.ArgumentDef };
+
 export class CompoundType extends Type {
     constructor(public name : string|null,
-                public fields : any) { // FIXME
+                public fields : FieldMap) {
         super();
     }
 
@@ -336,9 +339,20 @@ export class CompoundType extends Type {
     }
 
     equals(other : Type) : boolean {
-        return other instanceof CompoundType &&
-            this.name === other.name &&
-            arrayEquals(Object.keys(this.fields), Object.keys(other.fields));
+        if (!(other instanceof CompoundType))
+            return false;
+        if (this.name !== other.name)
+            return false;
+
+        if (Object.keys(this.fields).length !== Object.keys(other.fields).length)
+            return false;
+        for (const f in this.fields) {
+            if (!(f in other.fields))
+                return false;
+            if (!this.fields[f].type.equals(other.fields[f].type))
+                return false;
+        }
+        return true;
     }
 }
 Type.Compound = CompoundType;
