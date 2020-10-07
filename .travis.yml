@@ -10,13 +10,10 @@ before_install:
 - wget https://almond-static.stanford.edu/test-data/cvc4-1.6-x86_64-linux-opt -O cvc4/cvc4
 - chmod +x cvc4/cvc4
 - export PATH="`pwd`/cvc4:$PATH"
-- yarn global add greenkeeper-lockfile@1
-before_script: greenkeeper-lockfile-update
-after_script: greenkeeper-lockfile-upload
 script:
-- yarn lint
-- TZ="America/Los_Angeles" yarn test
-after_success: yarn run coverage
+- npm run lint
+- TZ="America/Los_Angeles" npm run test
+after_success: npm run coverage
 env:
   global:
   - COVERALLS_PARALLEL=true
