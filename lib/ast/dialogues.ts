@@ -27,7 +27,7 @@ import * as Typechecking from '../typecheck';
 import { prettyprintStatement, prettyprintHistoryItem } from '../prettyprint';
 import { Selector, DeviceSelector, Invocation } from './expression';
 import { Value, NumberValue } from './values';
-import { ExpressionSignature } from './function_def';
+import { ExpressionSignature, FunctionDef } from './function_def';
 import NodeVisitor from './visitor';
 import {
     OldSlot,
@@ -228,6 +228,44 @@ export class DialogueHistoryItem extends AstNode {
 
     compatible(other : DialogueHistoryItem) : boolean {
         return setEquals(this._getFunctions(), other._getFunctions());
+    }
+
+    isExecutable() : boolean {
+        let hasUndefined = false;
+        const visitor = new class extends NodeVisitor {
+            visitInvocation(invocation : Invocation) {
+                const schema = invocation.schema;
+                assert(schema instanceof FunctionDef);
+                const requireEither = schema.getAnnotation<string[][]>('require_either');
+                if (requireEither) {
+                    const params = new Set<string>();
+                    for (const in_param of invocation.in_params)
+                        params.add(in_param.name);
+
+                    for (const requirement of requireEither) {
+                        let satisfied = false;
+                        for (const option of requirement) {
+                            if (params.has(option)) {
+                                satisfied = true;
+                                break;
+                            }
+                        }
+                        if (!satisfied)
+                            hasUndefined = true;
+                    }
+                }
+
+                return true;
+            }
+
+            visitValue(value : Value) {
+                if (value.isUndefined)
+                    hasUndefined = true;
+                return true;
+            }
+        };
+        this.stmt.visit(visitor);
+        return !hasUndefined;
     }
 
     equals(other : DialogueHistoryItem) : boolean {

@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -18,21 +18,16 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-export function makeIndex(args) {
-    let index = {};
-    let i = 0;
-    for (let a of args)
-        index[a] = i++;
-    return index;
-}
+import * as Ast from './ast';
+import type SchemaRetriever from './schema';
 
-export function clean(name) {
+export function clean(name : string) : string {
     if (/^[vwgp]_/.test(name))
         name = name.substr(2);
     return name.replace(/_/g, ' ').replace(/([^A-Z ])([A-Z])/g, '$1 $2').toLowerCase();
 }
 
-export function cleanKind(kind) {
+export function cleanKind(kind : string) : string {
     // thingengine.phone -> phone
     if (kind.startsWith('org.thingpedia.builtin.thingengine.'))
         kind = kind.substr('org.thingpedia.builtin.thingengine.'.length);
@@ -58,14 +53,10 @@ export function cleanKind(kind) {
     return clean(kind);
 }
 
-// this regexp is similar to the one in runtime/formatter.js, but it does not allow '%' as an option
-// FIXME: unify
-const PARAM_REGEX = /\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_]+))?})/;
-
-export function* split(pattern, regexp) {
+export function* split(pattern : string, regexp : string|RegExp) : Generator<string|string[], void> {
     // a split that preserves capturing parenthesis
 
-    let clone = new RegExp(regexp, 'g');
+    const clone = new RegExp(regexp, 'g');
     let match = clone.exec(pattern);
 
     let i = 0;
@@ -80,24 +71,25 @@ export function* split(pattern, regexp) {
         yield pattern.substring(i, pattern.length);
 }
 
-export function getScalarExpressionName(ast) {
-    if (ast.isVarRef)
+export function getScalarExpressionName(ast : Ast.Value) : string {
+    if (ast instanceof Ast.VarRefValue)
         return ast.name;
-    if (ast.isComputation && /^[a-zA-Z0-9]+$/.test(ast.op))
+    if (ast instanceof Ast.ComputationValue && /^[a-zA-Z0-9]+$/.test(ast.op))
         return ast.op;
-    else if (ast.isFilter || ast.isArrayField)
+    else if (ast instanceof Ast.FilterValue || ast instanceof Ast.ArrayFieldValue)
         return getScalarExpressionName(ast.value);
     else
         return 'result';
 }
 
-export function splitParams(utterance) {
-    return Array.from(split(utterance, PARAM_REGEX));
-}
-
-export function getSchemaForSelector(schemaRetriever, type, name, schemaType, getMeta = false, classes = {}) {
+export function getSchemaForSelector(schemaRetriever : SchemaRetriever,
+                                     type : string,
+                                     name : string,
+                                     schemaType : 'query' | 'action',
+                                     getMeta = false,
+                                     classes : { [key : string] : Ast.ClassDef } = {}) : Promise<Ast.FunctionDef> {
     if (type in classes) {
-        let where = schemaRetriever._where(schemaType);
+        const where = schemaRetriever._where(schemaType);
         if (!classes[type][where][name])
             throw new TypeError("Schema " + type + " has no " + where + " " + name);
         return Promise.resolve(classes[type][where][name]);
@@ -108,7 +100,11 @@ export function getSchemaForSelector(schemaRetriever, type, name, schemaType, ge
         return schemaRetriever.getSchemaAndNames(type, schemaType, name);
 }
 
-export function isUnaryTableToTableOp(table) {
+interface UnaryTableToTableOp extends Ast.Table {
+    table : Ast.Table;
+}
+
+export function isUnaryTableToTableOp(table : Ast.Table) : table is UnaryTableToTableOp {
     return table.isFilter ||
         table.isProjection ||
         table.isCompute ||
@@ -118,10 +114,20 @@ export function isUnaryTableToTableOp(table) {
         table.isIndex ||
         table.isSlice;
 }
-export function isUnaryStreamToTableOp(table) {
+
+interface UnaryStreamToTableOp extends Ast.Table {
+    stream : Ast.Stream;
+}
+
+export function isUnaryStreamToTableOp(table : Ast.Table) : table is UnaryStreamToTableOp {
     return false;
 }
-export function isUnaryStreamToStreamOp(stream) {
+
+interface UnaryStreamToStreamOp extends Ast.Stream {
+    stream : Ast.Stream;
+}
+
+export function isUnaryStreamToStreamOp(stream : Ast.Stream) : stream is UnaryStreamToStreamOp {
     return stream.isEdgeNew ||
         stream.isEdgeFilter ||
         stream.isFilter ||
@@ -129,6 +135,11 @@ export function isUnaryStreamToStreamOp(stream) {
         stream.isCompute ||
         stream.isAlias;
 }
-export function isUnaryTableToStreamOp(stream) {
+
+interface UnaryTableToStreamOp extends Ast.Stream {
+    table : Ast.Table;
+}
+
+export function isUnaryTableToStreamOp(stream : Ast.Stream) : stream is UnaryTableToStreamOp {
     return stream.isMonitor;
 }

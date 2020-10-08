@@ -26,6 +26,7 @@ import { ClassDef } from './class_def';
 import { ExpressionSignature } from './function_def';
 import { Value } from './values';
 
+import Type from '../type';
 import { prettyprintFilterExpression } from '../prettyprint';
 import * as Typechecking from '../typecheck';
 import * as Optimizer from '../optimize';
@@ -253,6 +254,7 @@ export class Invocation extends Node {
     channel : string;
     in_params : InputParam[];
     schema : ExpressionSignature|null;
+    __effectiveSelector : DeviceSelector|null = null;
 
     /**
      * Construct a new invocation.
@@ -414,14 +416,14 @@ export abstract class BooleanExpression extends Node {
      * @param {SchemaRetriever} schemas - schema retriever object to retrieve Thingpedia information
      * @param {Object.<string,Ast.ClassDef>} classes - additional locally defined classes, overriding Thingpedia
      * @param {boolean} [useMeta=false] - retreive natural language metadata during typecheck
-     * @alias Ast.BooleanExpression#typecheck
      */
-    typecheck(schema : ExpressionSignature,
-              scope : null,
-              schemas : SchemaRetriever,
-              classes : { [key : string] : ClassDef },
-              useMeta : boolean) : Promise<this> {
-        return Typechecking.typeCheckFilter(this, schema, scope, schemas, classes, useMeta);
+    async typecheck(schema : ExpressionSignature,
+                    scope : null,
+                    schemas : SchemaRetriever,
+                    classes : { [key : string] : ClassDef },
+                    useMeta : boolean) : Promise<this> {
+        await Typechecking.typeCheckFilter(this, schema, undefined, schemas, classes, useMeta);
+        return this;
     }
 
     /**
@@ -616,6 +618,7 @@ export class AtomBooleanExpression extends BooleanExpression {
     name : string;
     operator : string;
     value : Value;
+    overload : Type[]|null;
 
     /**
      * Construct a new atom boolean expression.
@@ -628,7 +631,8 @@ export class AtomBooleanExpression extends BooleanExpression {
     constructor(location : SourceRange|null,
                 name : string,
                 operator : string,
-                value : Value) {
+                value : Value,
+                overload : Type[]|null) {
         super(location);
 
         assert(typeof name === 'string');
@@ -654,6 +658,8 @@ export class AtomBooleanExpression extends BooleanExpression {
           * @readonly
           */
         this.value = value;
+
+        this.overload = overload;
     }
 
     equals(other : BooleanExpression) : boolean {
@@ -673,7 +679,10 @@ export class AtomBooleanExpression extends BooleanExpression {
     clone() : AtomBooleanExpression {
         return new AtomBooleanExpression(
             this.location,
-            this.name, this.operator, this.value.clone()
+            this.name,
+            this.operator,
+            this.value.clone(),
+            this.overload
         );
     }
 
@@ -769,6 +778,7 @@ export class ExternalBooleanExpression extends BooleanExpression {
     in_params : InputParam[];
     filter : BooleanExpression;
     schema : ExpressionSignature|null;
+    __effectiveSelector : DeviceSelector|null = null;
 
     /**
      * Construct a new external boolean expression.
@@ -1008,6 +1018,7 @@ export class ComputeBooleanExpression extends BooleanExpression {
     lhs : Value;
     operator : string;
     rhs : Value;
+    overload : Type[]|null;
 
     /**
      * Construct a new compute boolean expression.
@@ -1021,7 +1032,8 @@ export class ComputeBooleanExpression extends BooleanExpression {
     constructor(location : SourceRange|null,
                 lhs : Value,
                 operator : string,
-                rhs : Value) {
+                rhs : Value,
+                overload : Type[]|null = null) {
         super(location);
 
         assert(lhs instanceof Value);
@@ -1050,6 +1062,8 @@ export class ComputeBooleanExpression extends BooleanExpression {
          * @readonly
          */
         this.rhs = rhs;
+
+        this.overload = overload;
     }
 
     equals(other : BooleanExpression) : boolean {
@@ -1073,7 +1087,8 @@ export class ComputeBooleanExpression extends BooleanExpression {
             this.location,
             this.lhs.clone(),
             this.operator,
-            this.rhs.clone()
+            this.rhs.clone(),
+            this.overload
         );
     }
 

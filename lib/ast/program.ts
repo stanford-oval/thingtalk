@@ -723,6 +723,8 @@ Input.prototype.isPermissionRule = false;
 Input.prototype.isMeta = false;
 Input.prototype.isDialogueState = false;
 
+export type ExecutableStatement = Assignment | Rule | Command;
+
 /**
  * An executable ThingTalk program (containing at least one executable
  * statement).
@@ -733,7 +735,7 @@ Input.prototype.isDialogueState = false;
 export class Program extends Input {
     classes : ClassDef[];
     declarations : Declaration[];
-    rules : Statement[];
+    rules : ExecutableStatement[];
     principal : Value|null;
     oninputs : OnInputChoice[];
 
@@ -751,7 +753,7 @@ export class Program extends Input {
     constructor(location : SourceRange|null,
                 classes : ClassDef[],
                 declarations : Declaration[],
-                rules : Statement[],
+                rules : ExecutableStatement[],
                 principal : Value|null = null,
                 oninputs : OnInputChoice[] = []) {
         super(location);

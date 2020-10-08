@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -20,113 +20,149 @@
 
 import assert from 'assert';
 import * as Builtin from '../builtin';
+import * as Ast from '../ast';
 import { stringEscape } from '../escaping';
+import type ExecEnvironment from '../runtime/exec_environment';
 
 // A register-based IR for ThingTalk to JS
 // Typed like ThingTalk
 
+interface Instruction {
+    codegen(prefix : string) : string;
+}
+type Register = number;
+
 // A sequence of instructions
 class Block {
+    private _instructions : Instruction[];
+
     constructor() {
         this._instructions = [];
     }
 
-    add(instr) {
+    add(instr : Instruction) {
         this._instructions.push(instr);
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return this._instructions.map((i) => i.codegen(prefix)).join('\n');
     }
 }
 
 class Copy {
-    constructor(what, into) {
+    private _what : Register;
+    private _into : Register;
+
+    constructor(what : Register, into : Register) {
         this._what = what;
         this._into = into;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return `${prefix}_t_${this._into} = _t_${this._what};`;
     }
 }
 
 class CreateTuple {
-    constructor(size, into) {
+    private _size : number;
+    private _into : Register;
+
+    constructor(size : number, into : Register) {
         this._size = size;
         this._into = into;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return prefix + '_t_' + this._into + ' = new Array(' + this._size + ');';
     }
 }
 
 class CreateObject {
-    constructor(into) {
+    private _into : Register;
+
+    constructor(into : Register) {
         this._into = into;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return `${prefix}_t_${this._into} = {};`;
     }
 }
 
 class SetIndex {
-    constructor(tuple, idx, value) {
+    private _tuple : Register;
+    private _idx : number;
+    private _value : Register;
+
+    constructor(tuple : Register, idx : number, value : Register) {
         this._tuple = tuple;
         this._idx = idx;
         this._value = value;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return prefix + '_t_' + this._tuple + '[' + this._idx + '] = _t_' + this._value + ';';
     }
 }
 
 class GetIndex {
-    constructor(tuple, idx, into) {
+    private _tuple : Register;
+    private _idx : number;
+    private _into : Register;
+
+    constructor(tuple : Register, idx : number, into : Register) {
         this._tuple = tuple;
         this._idx = idx;
         this._into = into;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return prefix + '_t_' + this._into + ' = _t_' + this._tuple + '[' + this._idx + '];';
     }
 }
 
 class GetASTObject {
-    constructor(idx, into) {
+    private _idx : number;
+    private _into : Register;
+
+    constructor(idx : number, into : Register) {
         this._idx = idx;
         this._into = into;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return prefix + '_t_' + this._into + ' = __ast[' + this._idx + '];';
     }
 }
 
 class GetKey {
-    constructor(object, key, into) {
+    private _object : Register;
+    private _key : string;
+    private _into : Register;
+
+    constructor(object : Register, key : string, into : Register) {
         this._object = object;
         this._key = key;
         this._into = into;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return `${prefix}_t_${this._into} = _t_${this._object}.${this._key};`;
     }
 }
 
 class SetKey {
-    constructor(object, key, value) {
+    private _object : Register;
+    private _key : string;
+    private _value : Register|null;
+
+    constructor(object : Register, key : string, value : Register|null) {
         this._object = object;
         this._key = key;
         this._value = value;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         if (this._value === null)
             return `${prefix}_t_${this._object}.${this._key} = null;`;
         else
@@ -135,134 +171,179 @@ class SetKey {
 }
 
 class GetVariable {
-    constructor(variable, into) {
+    private _variable : string;
+    private _into : Register;
+
+    constructor(variable : string, into : Register) {
         this._variable = variable;
         this._into = into;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return prefix + '_t_' + this._into + ' = __env._scope.' + this._variable + ';';
     }
 }
 
 class GetEnvironment {
-    constructor(variable, into) {
+    private _variable : string;
+    private _into : Register;
+
+    constructor(variable : string, into : Register) {
         this._variable = variable;
         this._into = into;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return `${prefix}_t_${this._into} = __env.${this._variable};`;
     }
 }
 
 class GetScope {
-    constructor(name, into) {
+    private _name : string;
+    private _into : Register;
+
+    constructor(name : string, into : Register) {
         this._name = name;
         this._into = into;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return `${prefix}_t_${this._into} = __scope.${this._name};`;
     }
 }
 
 class Iterator {
-    constructor(into, iterable) {
+    private _into : Register;
+    private _iterable : Register;
+
+    constructor(into : Register, iterable : Register) {
         this._iterable = iterable;
         this._into = into;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return `${prefix}_t_${this._into} = _t_${this._iterable}[Symbol.iterator]();`;
     }
 }
 
-function anyToJS(js) {
+interface ToJSSource {
+    toJSSource() : string;
+}
+
+function hasJSSource(x : unknown) : x is ToJSSource {
+    return typeof x === 'object' && x !== null && 'toJSSource' in x;
+}
+
+function anyToJS(js : unknown) : string {
     if (Array.isArray(js))
         return '[' + js.map(anyToJS).join(', ') + ']';
     if (typeof js === 'string')
         return stringEscape(js);
-    if (js.toJSSource)
+    if (hasJSSource(js))
         return js.toJSSource();
     if (js instanceof Date)
         return `new Date(${js.getTime()})`;
     return String(js);
 }
 
-function valueToJSSource(value) {
+function valueToJSSource(value : Ast.Value|null) : string {
     if (value === null)
         return 'null';
-    let js = value.toJS();
+    const js = value.toJS();
     return anyToJS(js);
 }
 
 class LoadConstant {
-    constructor(constant, into) {
+    private _constant : Ast.Value|null;
+    private _into : Register;
+
+    constructor(constant : Ast.Value|null, into : Register) {
         this._constant = constant;
         this._into = into;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return prefix + '_t_' + this._into + ' = ' + valueToJSSource(this._constant) + ';';
     }
 }
 
 class LoadContext {
-    constructor(context, into) {
+    private _context : Ast.ContextRefValue;
+    private _into : Register;
+
+    constructor(context : Ast.ContextRefValue, into : Register) {
         this._context = context;
         this._into = into;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return prefix + '_t_' + this._into + ` = await __env.loadContext("${this._context.name}", "${this._context.type.toString()}");`;
     }
 }
 
 class LoadBuiltin {
-    constructor(builtin, into) {
+    private _builtin : string;
+    private _into : Register;
+
+    constructor(builtin : string, into : Register) {
         this._builtin = builtin;
         this._into = into;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return prefix + '_t_' + this._into + ' = __builtin.' + this._builtin + ';';
     }
 }
 
 class NewObject {
-    constructor(classname, into, ...args) {
+    private _class : string;
+    private _into : Register;
+    private _args : Register[];
+
+    constructor(classname : string, into : Register, ...args : Register[]) {
         this._class = classname;
         this._into = into;
         this._args = args;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return `${prefix}_t_${this._into} = new __builtin.${this._class}(${this._args.map((a) => '_t_' + a).join(', ')});`;
     }
 }
 
 class MapAndReadField {
-    constructor(into, array, field) {
+    private _into : Register;
+    private _array : Register;
+    private _field : string;
+
+    constructor(into : Register, array : Register, field : string) {
         this._into = into;
         this._array = array;
         this._field = field;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return `${prefix}_t_${this._into} = _t_${this._array}.map(($) => $.${this._field});`;
     }
 }
 
 class FormatEvent {
-    constructor(hint, outputType, output, into) {
+    private _hint : string;
+    private _outputType : Register;
+    private _output : Register;
+    private _into : Register;
+
+    constructor(hint : string,
+                outputType : Register,
+                output : Register,
+                into : Register) {
         this._hint = hint;
         this._outputType = outputType;
         this._output = output;
         this._into = into;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         if (this._outputType === null)
             return `${prefix}_t_${this._into} = await __env.formatEvent(null, _t_${this._output}, ${stringEscape(this._hint)});`;
         else
@@ -271,122 +352,165 @@ class FormatEvent {
 }
 
 class BinaryFunctionOp {
-    constructor(a, b, fn, into) {
+    private _a : Register;
+    private _b : Register;
+    private _fn : string;
+    private _into : Register;
+
+    constructor(a : Register, b : Register, fn : string, into : Register) {
         this._a = a;
         this._b = b;
         this._fn = fn;
         this._into = into;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return `${prefix}_t_${this._into} = __builtin.${this._fn}(_t_${this._a}, _t_${this._b});`;
     }
 }
 
 class VoidFunctionOp {
-    constructor(fn, ...args) {
+    private _fn : string;
+    private _args : Register[];
+
+    constructor(fn : string, ...args : Register[]) {
         this._fn = fn;
         this._args = args;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return `${prefix}__builtin.${this._fn}(${this._args.map((a) => '_t_' + a).join(', ')});`;
     }
 }
 
 class FunctionOp {
-    constructor(fn, into, ...args) {
+    private _fn : string;
+    private _into : Register;
+    private _args : Register[];
+
+    constructor(fn : string, into : Register, ...args : Register[]) {
         this._fn = fn;
         this._into = into;
         this._args = args;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return `${prefix}_t_${this._into} = __builtin.${this._fn}(${this._args.map((a) => '_t_' + a).join(', ')});`;
     }
 }
 
 class BinaryOp {
-    constructor(a, b, op, into) {
+    private _a : Register;
+    private _b : Register;
+    private _op : string;
+    private _into : Register;
+
+    constructor(a : Register, b : Register, op : string, into : Register) {
         this._a = a;
         this._b = b;
         this._op = op;
         this._into = into;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return prefix + '_t_' + this._into + ' = ' + '_t_' + this._a + ' ' + this._op + ' ' + '_t_' + this._b + ';';
     }
 }
 
 class UnaryOp {
-    constructor(v, op, into) {
+    private _v : Register;
+    private _op : string;
+    private _into : Register;
+
+    constructor(v : Register, op : string, into : Register) {
         this._v = v;
         this._op = op;
         this._into = into;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return prefix + '_t_' + this._into + ' = ' + this._op + ' (' + '_t_' + this._v + ');';
     }
 }
 
 class UnaryMethodOp {
-    constructor(obj, v, op) {
+    private _obj : Register;
+    private _v : Register;
+    private _op : string;
+
+    constructor(obj : Register, v : Register, op : string) {
         this._obj = obj;
         this._v = v;
         this._op = op;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return `${prefix}_t_${this._obj}.${this._op}(_t_${this._v});`;
     }
 }
 
 class BinaryMethodOp {
-    constructor(obj, a, b, op) {
+    private _obj : Register;
+    private _a : Register;
+    private _b : Register;
+    private _op : string;
+
+    constructor(obj : Register, a : Register, b : Register, op : string) {
         this._obj = obj;
         this._a = a;
         this._b = b;
         this._op = op;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return `${prefix}_t_${this._obj}.${this._op}(_t_${this._a}, _t_${this._b});`;
     }
 }
 
-function objectToJS(obj) {
+function objectToJS(obj : { [key : string] : unknown }) : string {
     let buffer = '{ ';
-    for (let key in obj)
+    for (const key in obj)
         buffer += `${key}: ${anyToJS(obj[key])}, `;
     buffer += '}';
     return buffer;
 }
 
 class EnterProcedure {
-    constructor(procid, procname) {
+    private _procid : number;
+    private _procname : string|null;
+
+    constructor(procid : number, procname : string|null = null) {
         this._procid = procid;
         this._procname = procname;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return `${prefix}await __env.enterProcedure(${this._procid}, ${stringEscape(this._procname)});`;
     }
 }
 
 class ExitProcedure {
-    constructor(procid, procname) {
+    private _procid : number;
+    private _procname : string|null;
+
+    constructor(procid : number, procname : string|null = null) {
         this._procid = procid;
         this._procname = procname;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return `${prefix}await __env.exitProcedure(${this._procid}, ${stringEscape(this._procname)});`;
     }
 }
 
-function invocationHintsToJS(hints) {
+interface QueryInvocationHints {
+    projection : string[];
+    filter ?: Register;
+    sort ?: [string, 'asc' | 'desc'];
+    limit ?: number;
+}
+
+function invocationHintsToJS(hints : QueryInvocationHints) : string {
     let buffer = `{ projection: [${hints.projection.map(stringEscape).join(', ')}]`;
     if (hints.filter !== undefined)
         buffer += `, filter: _t_${hints.filter}`;
@@ -398,8 +522,22 @@ function invocationHintsToJS(hints) {
     return buffer;
 }
 
+export type AttributeMap = { [key : string] : unknown };
+
 class InvokeMonitor {
-    constructor(kind, attrs, fname, into, args, hints) {
+    private _kind : string;
+    private _attrs : AttributeMap;
+    private _fname : string;
+    private _into : Register;
+    private _args : Register;
+    private _hints : QueryInvocationHints;
+
+    constructor(kind : string,
+                attrs : { [key : string] : unknown },
+                fname : string,
+                into : Register,
+                args : Register,
+                hints : QueryInvocationHints) {
         this._kind = kind;
         this._attrs = attrs;
         this._fname = fname;
@@ -408,21 +546,26 @@ class InvokeMonitor {
         this._hints = hints;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         const hints = invocationHintsToJS(this._hints);
         return `${prefix}_t_${this._into} = await __env.invokeMonitor(${stringEscape(this._kind)}, ${objectToJS(this._attrs)}, ${stringEscape(this._fname)}, _t_${this._args}, ${hints});`;
     }
 }
 
 class InvokeTimer {
-    constructor(into, base, interval, frequency) {
+    private _into : Register;
+    private _base : Register;
+    private _interval : Register;
+    private _frequency : Register|null;
+
+    constructor(into : Register, base : Register, interval : Register, frequency : Register|null) {
         this._into = into;
         this._base = base;
         this._interval = interval;
         this._frequency = frequency;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         if (this._frequency)
             return `${prefix}_t_${this._into} = await __env.invokeTimer(_t_${this._base}, _t_${this._interval}, _t_${this._frequency});`;
         return `${prefix}_t_${this._into} = await __env.invokeTimer(_t_${this._base}, _t_${this._interval}, null);`;
@@ -430,13 +573,17 @@ class InvokeTimer {
 }
 
 class InvokeAtTimer {
-    constructor(into, time, expiration_date) {
+    private _into : Register;
+    private _time : Register;
+    private _expiration_date : Register|null;
+
+    constructor(into : Register, time : Register, expiration_date : Register|null) {
         this._into = into;
         this._time = time;
         this._expiration_date = expiration_date;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         if (this._expiration_date)
             return `${prefix}_t_${this._into} = await __env.invokeAtTimer(_t_${this._time}, _t_${this._expiration_date});`;
         return `${prefix}_t_${this._into} = await __env.invokeAtTimer(_t_${this._time}, null);`;
@@ -444,7 +591,19 @@ class InvokeAtTimer {
 }
 
 class InvokeQuery {
-    constructor(kind, attrs, fname, into, args, hints) {
+    private _kind : string;
+    private _attrs : AttributeMap;
+    private _fname : string;
+    private _into : Register;
+    private _args : Register;
+    private _hints : QueryInvocationHints;
+
+    constructor(kind : string,
+                attrs : AttributeMap,
+                fname : string,
+                into : Register,
+                args : Register,
+                hints : QueryInvocationHints) {
         this._kind = kind;
         this._attrs = attrs;
         this._fname = fname;
@@ -453,39 +612,61 @@ class InvokeQuery {
         this._hints = hints;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         const hints = invocationHintsToJS(this._hints);
         return `${prefix}_t_${this._into} = await __env.invokeQuery(${stringEscape(this._kind)}, ${objectToJS(this._attrs)}, ${stringEscape(this._fname)}, _t_${this._args}, ${hints});`;
     }
 }
 
 class InvokeDBQuery {
-    constructor(kind, attrs, into, query) {
+    private _kind : string;
+    private _attrs : AttributeMap;
+    private _into : Register;
+    private _query : Register;
+
+    constructor(kind : string,
+                attrs : AttributeMap,
+                into : Register,
+                query : Register) {
         this._kind = kind;
         this._attrs = attrs;
         this._into = into;
         this._query = query;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return `${prefix}_t_${this._into} = await __env.invokeDBQuery(${stringEscape(this._kind)}, ${objectToJS(this._attrs)}, _t_${this._query});`;
     }
 }
 
 class InvokeStreamVarRef {
-    constructor(name, into, args) {
+    private _name : Register;
+    private _into : Register;
+    private _args : Register[];
+
+    constructor(name : Register, into : Register, args : Register[]) {
         this._name = name;
         this._into = into;
         this._args = args;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return `${prefix}_t_${this._into} = await __builtin.invokeStreamVarRef(__env, _t_${this._name}${this._args.map((a) => ', _t_' + a).join('')});`;
     }
 }
 
 class InvokeAction {
-    constructor(kind, attrs, fname, into, args) {
+    private _kind : string;
+    private _attrs : AttributeMap;
+    private _fname : string;
+    private _into : Register;
+    private _args : Register;
+
+    constructor(kind : string,
+                attrs : AttributeMap,
+                fname : string,
+                into : Register,
+                args : Register) {
         this._kind = kind;
         this._attrs = attrs;
         this._fname = fname;
@@ -493,117 +674,147 @@ class InvokeAction {
         this._args = args;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return `${prefix}_t_${this._into} = await __env.invokeAction(${stringEscape(this._kind)}, ${objectToJS(this._attrs)}, ${stringEscape(this._fname)}, _t_${this._args});`;
     }
 }
 
 class InvokeVoidAction {
-    constructor(kind, attrs, fname, args) {
+    private _kind : string;
+    private _attrs : AttributeMap;
+    private _fname : string;
+    private _args : Register;
+
+    constructor(kind : string,
+                attrs : AttributeMap,
+                fname : string,
+                args : Register) {
         this._kind = kind;
         this._attrs = attrs;
         this._fname = fname;
         this._args = args;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return `${prefix}await __env.invokeAction(${stringEscape(this._kind)}, ${objectToJS(this._attrs)}, ${stringEscape(this._fname)}, _t_${this._args});`;
     }
 }
 
 class InvokeOutput {
-    constructor(outputType, output) {
+    private _outputType : Register;
+    private _output : Register;
+
+    constructor(outputType : Register, output : Register) {
         this._outputType = outputType;
         this._output = output;
     }
 
-    codegen(prefix) {
-        if (this._outputType === null)
-            return `${prefix}await __env.output(null, _t_${this._output});`;
-        else
-            return `${prefix}await __env.output(String(_t_${this._outputType}), _t_${this._output});`;
+    codegen(prefix : string) : string {
+        return `${prefix}await __env.output(String(_t_${this._outputType}), _t_${this._output});`;
     }
 }
 
 class InvokeReadState {
-    constructor(into, stateId) {
+    private _into : Register;
+    private _stateId : number;
+
+    constructor(into : Register, stateId : number) {
         this._into = into;
         this._stateId = stateId;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return `${prefix}_t_${this._into} = await __env.readState(${this._stateId});`;
     }
 }
 
 class InvokeWriteState {
-    constructor(state, stateId) {
+    private _state : Register;
+    private _stateId : number;
+
+    constructor(state : Register, stateId : number) {
         this._state = state;
         this._stateId = stateId;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return `${prefix}await __env.writeState(${this._stateId}, _t_${this._state});`;
     }
 }
 
 class CheckIsNewTuple {
-    constructor(into, state, tuple, keys) {
+    private _into : Register;
+    private _state : Register;
+    private _tuple : Register;
+    private _keys : string[];
+
+    constructor(into : Register, state : Register, tuple : Register, keys : string[]) {
         this._into = into;
         this._state = state;
         this._tuple = tuple;
         this._keys = keys;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return `${prefix}_t_${this._into} = __builtin.isNewTuple(_t_${this._state}, _t_${this._tuple}, [${
             this._keys.map(stringEscape).join(', ')}]);`;
     }
 }
 
 class AddTupleToState {
-    constructor(into, state, tuple) {
+    private _into : Register;
+    private _state : Register;
+    private _tuple : Register;
+
+    constructor(into : Register, state : Register, tuple : Register) {
         this._into = into;
         this._state = state;
         this._tuple = tuple;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return `${prefix}_t_${this._into} = __builtin.addTuple(_t_${this._state}, _t_${this._tuple});`;
     }
 }
 
 class SendEndOfFlow {
-    constructor(principal, flow) {
+    private _principal : Register;
+    private _flow : Register;
+
+    constructor(principal : Register, flow : Register) {
         this._principal = principal;
         this._flow = flow;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return `${prefix}await __env.sendEndOfFlow(_t_${this._principal}, _t_${this._flow});`;
     }
 }
 
 class ClearGetCache {
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return prefix + '__env.clearGetCache();';
     }
 }
 
 class Break {
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return prefix + 'break;';
     }
 }
 
 class IfStatement {
-    constructor(cond) {
+    private _cond : Register;
+    iftrue : Block;
+    iffalse : Block;
+
+    constructor(cond : Register) {
         this._cond = cond;
         this.iftrue = new Block;
         this.iffalse = new Block;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return prefix + 'if (_t_' + this._cond + ') {\n' +
             this.iftrue.codegen(prefix + '  ') + '\n'
             + prefix + '} else {\n' +
@@ -613,13 +824,17 @@ class IfStatement {
 }
 
 class ForOfStatement {
-    constructor(into, iterable) {
+    private _into : Register;
+    private _iterable : Register;
+    body : Block;
+
+    constructor(into : Register, iterable : Register) {
         this._into = into;
         this._iterable = iterable;
         this.body = new Block;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return prefix + 'for (_t_' + this._into + ' of _t_' + this._iterable + ') {\n' +
             this.body.codegen(prefix + '  ') + '\n'
             + prefix + '}';
@@ -627,13 +842,17 @@ class ForOfStatement {
 }
 
 class AsyncWhileLoop {
-    constructor(into, iterator) {
+    private _into : Register;
+    private _iterator : Register;
+    body : Block;
+
+    constructor(into : Register, iterator : Register) {
         this._into = into;
         this._iterator = iterator;
         this.body = new Block;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return prefix + '{\n' +
             prefix + '  let _iter_tmp = await _t_' + this._iterator + '.next();\n' +
             prefix + '  while (!_iter_tmp.done) {\n' +
@@ -646,12 +865,15 @@ class AsyncWhileLoop {
 }
 
 class AsyncFunctionExpression {
-    constructor(into) {
+    private _into : Register;
+    body : Block;
+
+    constructor(into : Register) {
         this._into = into;
         this.body = new Block;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return prefix + `_t_${this._into} = async function(__emit) {\n` +
             this.body.codegen(prefix + '  ') + '\n' +
             prefix + '}';
@@ -660,14 +882,19 @@ class AsyncFunctionExpression {
 
 
 class ArrayFilterExpression {
-    constructor(into, element, array) {
+    private _into : Register;
+    private _element : Register;
+    private _array : Register;
+    body : Block;
+
+    constructor(into : Register, element : Register, array : Register) {
         this._into = into;
         this._element = element;
         this._array = array;
         this.body = new Block;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return prefix + `_t_${this._into} = _t_${this._array}.filter((_t_${this._element}) => {\n` +
             this.body.codegen(prefix + '  ') + '\n' +
             prefix + '});';
@@ -675,33 +902,41 @@ class ArrayFilterExpression {
 }
 
 class AsyncFunctionDeclaration {
-    constructor(into, body) {
+    private _into : Register;
+    private _body : IRBuilder;
+
+    constructor(into : Register, body : IRBuilder) {
         this._into = into;
         this._body = body;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return `${prefix}_t_${this._into} = ${this._body.codegenFunction(prefix)};`;
     }
 }
 
 class InvokeEmit {
-    constructor(...values) {
+    private _values : Register[];
+
+    constructor(...values : Register[]) {
         this._values = values;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return `${prefix}__emit(${this._values.map((v) => '_t_' + v).join(', ')});`;
     }
 }
 
 class LabeledLoop {
-    constructor(label) {
+    private _label : string;
+    body : Block;
+
+    constructor(label : string) {
         this._label = label;
         this.body = new Block;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return prefix + `_l_${this._label}: while (true) {\n` +
             this.body.codegen(prefix + '  ') + '\n' +
             prefix + '}';
@@ -709,32 +944,39 @@ class LabeledLoop {
 }
 
 class LabeledBreak {
-    constructor(label) {
+    private _label : string;
+
+    constructor(label : string) {
         this._label = label;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return `${prefix}break _l_${this._label};`;
     }
 }
 
 class LabeledContinue {
-    constructor(label) {
+    private _label : string;
+
+    constructor(label : string) {
         this._label = label;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return `${prefix}continue _l_${this._label};`;
     }
 }
 
 class TryCatch {
-    constructor(message) {
+    private _message : string;
+    try : Block;
+
+    constructor(message : string) {
         this._message = message;
         this.try = new Block;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return prefix + 'try {\n' +
         this.try.codegen(prefix + '  ') + '\n' +
         prefix + '} catch(_exc_) {\n' +
@@ -744,16 +986,22 @@ class TryCatch {
 }
 
 class ReturnValue {
-    constructor(value) {
+    private _value : Register;
+
+    constructor(value : Register) {
         this._value = value;
     }
 
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         return prefix + `return _t_${this._value};`;
     }
 }
 
 class RootBlock extends Block {
+    private _temps : Register[];
+    private _beginHook : Instruction|null;
+    private _endHook : Instruction|null;
+
     constructor() {
         super();
         this._temps = [];
@@ -761,17 +1009,17 @@ class RootBlock extends Block {
         this._endHook = null;
     }
 
-    setBeginEndHooks(beginHook, endHook) {
+    setBeginEndHooks(beginHook : Instruction|null, endHook : Instruction|null) : void {
         this._beginHook = beginHook;
         this._endHook = endHook;
     }
 
-    declare(reg) {
+    declare(reg : Register) : void {
         this._temps.push(reg);
     }
-    codegen(prefix) {
+    codegen(prefix : string) : string {
         let buffer = `${prefix}  "use strict";\n`;
-        for (let t of this._temps)
+        for (const t of this._temps)
             buffer += `${prefix}  let _t_${t};\n`;
         if (this._beginHook) {
             buffer += this._beginHook.codegen(prefix + '  ');
@@ -792,10 +1040,23 @@ class RootBlock extends Block {
     }
 }
 
+type RegisterRange = [Register, Register];
+
+type TopLevelScope = { [key : string] : unknown };
+
 // eslint-disable-next-line prefer-arrow-callback
 const AsyncFunction = Object.getPrototypeOf(async function() {}).constructor;
 class IRBuilder {
-    constructor(baseRegister = 0, extraArgs = []) {
+    private _extraArgs : string[];
+    private _nArgs : number;
+    private _baseRegister : Register;
+    private _nextRegister : Register;
+    private _skipRegisterRanges : RegisterRange[];
+    private _nextLabel : number;
+    private _root : RootBlock;
+    private _blockStack : Block[];
+
+    constructor(baseRegister = 0, extraArgs : string[] = []) {
         this._extraArgs = extraArgs;
         this._nArgs = 0;
         this._baseRegister = baseRegister;
@@ -807,24 +1068,24 @@ class IRBuilder {
         this._blockStack = [this._root];
     }
 
-    setBeginEndHooks(beginHook, endHook) {
+    setBeginEndHooks(beginHook : Instruction|null, endHook : Instruction|null) : void {
         this._root.setBeginEndHooks(beginHook, endHook);
     }
 
-    get registerRange() {
+    get registerRange() : RegisterRange {
         return [this._baseRegister, this._nextRegister];
     }
 
-    get nextRegister() {
+    get nextRegister() : Register {
         return this._nextRegister;
     }
 
-    skipRegisterRange(range) {
+    skipRegisterRange(range : RegisterRange) : void {
         this._skipRegisterRanges.push(range);
         this._nextRegister = range[1];
     }
 
-    codegen(prefix = '') {
+    codegen(prefix = '') : string {
         let nextSkipPos = 0;
         let nextSkip = nextSkipPos >= this._skipRegisterRanges.length ? null : this._skipRegisterRanges[nextSkipPos];
 
@@ -840,7 +1101,7 @@ class IRBuilder {
         }
         return this._root.codegen(prefix);
     }
-    codegenFunction(prefix = '') {
+    codegenFunction(prefix = '') : string {
         const args = ['__env', ...this._extraArgs];
         for (let i = 0; i < this._nArgs; i++)
             args.push('_t_' + (this._baseRegister + i));
@@ -848,60 +1109,61 @@ class IRBuilder {
         return `async function(${args.join(', ')}) {\n${this.codegen(prefix)}\n${prefix}}`;
     }
 
-    compile(scope, asts) {
-        let code = this.codegen();
+    compile(scope : TopLevelScope, asts : Ast.Node[]) : (x : ExecEnvironment) => Promise<void> {
+        const code = this.codegen();
         const args = ['__builtin', '__scope', '__ast', '__env', ...this._extraArgs];
         for (let i = 0; i < this._nArgs; i++)
             args.push('_t_' + i);
 
-        let f = new AsyncFunction(...args, code);
+        const f = new AsyncFunction(...args, code);
         return f.bind(null, Builtin, scope, asts);
     }
 
-    get _currentBlock() {
+    private get _currentBlock() : Block {
         return this._blockStack[this._blockStack.length-1];
     }
 
-    allocRegister() {
-        let reg = this._nextRegister++;
+    allocRegister() : Register {
+        const reg = this._nextRegister++;
         return reg;
     }
-    allocArgument() {
+    allocArgument() : Register {
         assert(this._baseRegister + this._nArgs === this._nextRegister);
-        let reg = this._nextRegister++;
+        const reg = this._nextRegister++;
         this._nArgs++;
         return reg;
     }
-    allocLabel() {
-        let lbl = this._nextLabel++;
+    allocLabel() : number {
+        const lbl = this._nextLabel++;
         return lbl;
     }
-    pushBlock(block) {
-        let now = this._blockStack.length;
+    pushBlock(block : Block) : number {
+        const now = this._blockStack.length;
         this._blockStack.push(block);
         return now;
     }
-    popBlock() {
+    popBlock() : void {
         this._blockStack.pop();
         if (this._blockStack.length === 0)
             throw new Error('Invalid pop');
     }
-    saveStackState() {
+    saveStackState() : number {
         return this._blockStack.length;
     }
-    popTo(upto) {
+    popTo(upto : number) : void {
         this._blockStack.length = upto;
     }
-    popAll() {
+    popAll() : void {
         this._blockStack.length = 0;
         this._blockStack[0] = this._root;
     }
-    add(instr) {
+    add(instr : Instruction) : void {
         this._currentBlock.add(instr);
     }
 }
 
 export {
+    Register,
     IRBuilder,
     IfStatement,
     Copy,

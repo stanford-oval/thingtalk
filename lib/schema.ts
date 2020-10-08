@@ -164,7 +164,7 @@ export default class SchemaRetriever {
      * @param {boolean} [silent=false] - whether debugging information should be printed
      */
     constructor(tpClient : AbstractThingpediaClient,
-                mClient : MemoryClient,
+                mClient ?: MemoryClient,
                 silent = false) {
         this._manifestCache = new Map;
 
@@ -274,7 +274,7 @@ export default class SchemaRetriever {
 
         await Promise.all(parsed.classes.map(async (classDef) => {
             try {
-                await typeCheckClass(classDef, this, {}, isMeta, true);
+                await typeCheckClass(classDef, this, {}, isMeta === 'everything', true);
                 this._classCache[isMeta].set(classDef.kind, classDef);
                 result[classDef.kind] = classDef;
                 missing.delete(classDef.kind);
@@ -345,7 +345,7 @@ export default class SchemaRetriever {
         return this._getClass(kind, 'everything');
     }
 
-    private _where(where : FunctionType) : ('queries'|'actions') {
+    _where(where : FunctionType) : ('queries'|'actions') {
         switch (where) {
             case 'query': return 'queries';
             case 'action': return 'actions';

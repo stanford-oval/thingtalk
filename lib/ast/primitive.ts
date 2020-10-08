@@ -412,13 +412,15 @@ export class AggregationTable extends Table {
     field : string;
     operator : string;
     alias : string|null;
+    overload : Type[]|null;
 
     constructor(location : SourceRange|null,
                 table : Table,
                 field : string,
                 operator : string,
                 alias : string|null,
-                schema : ExpressionSignature|null) {
+                schema : ExpressionSignature|null,
+                overload : Type[]|null = null) {
         super(location, schema);
 
         assert(table instanceof Table);
@@ -432,6 +434,8 @@ export class AggregationTable extends Table {
 
         assert(alias === null || typeof alias === 'string');
         this.alias = alias;
+
+        this.overload = overload;
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -448,7 +452,8 @@ export class AggregationTable extends Table {
             this.field,
             this.operator,
             this.alias,
-            this.schema ? this.schema.clone() : null
+            this.schema ? this.schema.clone() : null,
+            this.overload
         );
     }
 
@@ -491,7 +496,7 @@ export class SortedTable extends Table {
         visitor.exit(this);
     }
 
-    clone() : SortedTable{
+    clone() : SortedTable {
         return new SortedTable(
             this.location,
             this.table.clone(),
@@ -1361,7 +1366,7 @@ export abstract class Action extends Node {
      * @param {string} [what=notify] - what action to create
      * @return {Ast.Action} the action node
      */
-    static notifyAction(what = 'notify') : NotifyAction {
+    static notifyAction(what : keyof typeof Builtin.Actions = 'notify') : NotifyAction {
         return new NotifyAction(null, what, Builtin.Actions[what]);
     }
 
@@ -1523,7 +1528,7 @@ Action.Invocation.prototype.isInvocation = true;
  * @extends Ast.Action
  */
 export class NotifyAction extends Action {
-    name : string;
+    name : keyof typeof Builtin.Actions;
     invocation : Invocation;
 
     /**
@@ -1534,11 +1539,11 @@ export class NotifyAction extends Action {
      * @param schema - type signature of this action
      */
     constructor(location : SourceRange|null,
-                name : string,
+                name : keyof typeof Builtin.Actions,
                 schema : ExpressionSignature|null) {
         super(location, schema || Builtin.Actions[name]);
 
-        assert(typeof name === 'string');
+        assert(['notify', 'return', 'save'].includes(name));
         this.name = name;
 
         // compatibility interface

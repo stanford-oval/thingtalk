@@ -18,7 +18,11 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-export function combineOutputTypes(t1 : string, t2 : string) : string {
+export function combineOutputTypes(t1 : string|null, t2 : string|null) : string {
+    if (t1 === null)
+        return t2||'';
+    if (t2 === null)
+        return t1;
     return `${t1}+${t2}`;
 }
 
