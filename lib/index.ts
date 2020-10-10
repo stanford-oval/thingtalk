@@ -21,7 +21,7 @@
 import * as Units from 'thingtalk-units';
 
 import * as Ast from './ast';
-import Compiler from './compiler';
+import Compiler, { CompiledProgram } from './compiler';
 import * as Grammar from './grammar_api';
 import ExecEnvironment from './runtime/exec_environment';
 import Type from './type';
@@ -55,6 +55,7 @@ export {
 
     // Compiler and runtime
     Compiler,
+    CompiledProgram,
     ExecEnvironment,
     Formatter,
     SchemaRetriever,

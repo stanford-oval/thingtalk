@@ -29,7 +29,13 @@ import {
     SequentialEntityAllocator,
 } from './entity-retriever';
 import {
-    EntityMap
+    MeasureEntity,
+    LocationEntity,
+    TimeEntity,
+    GenericEntity,
+    DateEntity,
+    EntityMap,
+    AnyEntity
 } from './entities';
 import applyCompatibility from './compat';
 
@@ -102,5 +108,11 @@ export {
     UnsynthesizableError,
     AbstractEntityRetriever,
     EntityRetriever,
-    EntityMap
+    EntityMap,
+    MeasureEntity,
+    LocationEntity,
+    TimeEntity,
+    GenericEntity,
+    DateEntity,
+    AnyEntity
 };

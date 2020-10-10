@@ -136,9 +136,9 @@ interface TokenizerDate {
     year : number|undefined;
     month : number|undefined;
     day : number|undefined;
-    hour : number|undefined;
-    minute : number|undefined;
-    second : number|undefined;
+    hour ?: number|undefined;
+    minute ?: number|undefined;
+    second ?: number|undefined;
 }
 
 export function parseDate(form : Date|TokenizerDate) : Date {

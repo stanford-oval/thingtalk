@@ -64,7 +64,7 @@ export default abstract class ExecEnvironment {
     }
 
     /* istanbul ignore next */
-    get program_id() : string {
+    get program_id() : builtin.Entity {
         throw new Error('Must be overridden');
     }
 

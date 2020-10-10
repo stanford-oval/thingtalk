@@ -147,6 +147,8 @@ export default abstract class Node {
      *                                  in the iteration
      * @deprecated Use {@link Ast.NodeVisitor}.
      */
+    iteratePrimitives(includeVarRef : false) : Array<[('action'|'query'|'stream'|'filter'), Invocation|ExternalBooleanExpression]>;
+    iteratePrimitives(includeVarRef : boolean) : Array<[('action'|'query'|'stream'|'filter'), Primitive]>;
     iteratePrimitives(includeVarRef : boolean) : Array<[('action'|'query'|'stream'|'filter'), Primitive]> {
         // we cannot yield from inside the visitor, so we buffer everything
         const buffer : Array<[('action'|'query'|'stream'|'filter'), Primitive]> = [];
