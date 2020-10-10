@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -18,6 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as Ast from '../ast';
 import Parser from './parser';
 import Lexer from './lexer';
 import ToNNConverter from './tonn_converter';
@@ -25,8 +26,11 @@ import { UnsynthesizableError } from './errors';
 import {
     AbstractEntityRetriever,
     EntityRetriever,
-    SequentialEntityAllocator
+    SequentialEntityAllocator,
 } from './entity-retriever';
+import {
+    EntityMap
+} from './entities';
 import applyCompatibility from './compat';
 
 /**
@@ -45,13 +49,19 @@ import applyCompatibility from './compat';
  * @return {Ast.Input} - the parsed program
  * @alias NNSyntax.toNN
  */
-function fromNN(sequence, entities) {
-    let parser = new Parser();
+function fromNN(sequence : Iterable<string>, entities : EntityMap) : Ast.Input {
+    const parser = new Parser();
     return parser.parse({
         [Symbol.iterator]() {
             return new Lexer(sequence, entities);
         }
-    });
+    }) as unknown as Ast.Input;
+}
+
+interface SerializeOptions {
+    allocateEntities ?: boolean;
+    explicitStrings ?: boolean;
+    typeAnnotations ?: boolean;
 }
 
 /**
@@ -72,22 +82,16 @@ function fromNN(sequence, entities) {
  * @param {boolean} options.typeAnnotations - include type annotations for parameters
  * @alias NNSyntax.toNN
  */
-function toNN(program, sentence, entities, options = {}) {
-    // for backward compatibility with the old API
-    if (!entities) {
-        entities = sentence;
-        sentence = '';
-    }
-
-    let entityRetriever;
+function toNN(program : Ast.Input, sentence : string[], entities : EntityMap|AbstractEntityRetriever, options : SerializeOptions = {}) : string[] {
+    let entityRetriever : AbstractEntityRetriever;
     if (options.allocateEntities)
-        entityRetriever = new SequentialEntityAllocator(entities, options.explicitStrings);
+        entityRetriever = new SequentialEntityAllocator(entities as EntityMap, options.explicitStrings);
     else if (entities instanceof AbstractEntityRetriever)
         entityRetriever = entities;
     else
         entityRetriever = new EntityRetriever(sentence, entities);
 
-    let converter = new ToNNConverter(sentence, entityRetriever, options.typeAnnotations);
+    const converter = new ToNNConverter(sentence, entityRetriever, options.typeAnnotations);
     return converter.toNN(program);
 }
 
@@ -97,5 +101,6 @@ export {
     applyCompatibility,
     UnsynthesizableError,
     AbstractEntityRetriever,
-    EntityRetriever
+    EntityRetriever,
+    EntityMap
 };
