@@ -19,8 +19,15 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 {
+import assert from 'assert';
 import * as Ast from '../ast';
 import { parseDate } from '../date_utils';
+
+type DialogueHistoryAnnotation =
+      { key : 'results', value : Ast.DialogueHistoryResultItem[] }
+    | { key : 'error', value : Ast.Value }
+    | { key : 'count', value : Ast.Value }
+    | { key : 'more', value : true };
 }
 
 /**
@@ -68,7 +75,7 @@ import { parseDate } from '../date_utils';
  * - the overall number of rules affects the breadth of reduces
  */
 
-input = {
+input : Ast.Input = {
     program;
     'bookkeeping' 'special' s:SPECIAL => new Ast.Input.Bookkeeping(null, new Ast.BookkeepingIntent.Special(null, s.value));
     'bookkeeping' 'answer' c:value => new Ast.Input.Bookkeeping(null, new Ast.BookkeepingIntent.Answer(null, c));
@@ -82,13 +89,13 @@ input = {
     dialogue_state;
 }
 
-literal_integer = {
+literal_integer : number = {
     '0' => 0;
     '1' => 1;
     n:LITERAL_INTEGER => n.value;
 }
 
-command_category = {
+command_category : string = {
     'online' => 'online';
     'physical' => 'physical';
     'data' => 'data';
@@ -101,7 +108,7 @@ command_category = {
     'service' => 'service';
 }
 
-dialogue_state = {
+dialogue_state : Ast.DialogueState = {
     '$dialogue' dialogueAct:FUNCTION ';' history:dialogue_history_item_list => {
         return new Ast.DialogueState(null, dialogueAct.value.kind, dialogueAct.value.channel, null, history);
     };
@@ -117,7 +124,7 @@ dialogue_state = {
     };
 }
 
-dialogue_history_item_list = {
+dialogue_history_item_list : Ast.DialogueHistoryItem[] = {
     item:dialogue_history_item => [item];
     list:dialogue_history_item_list item:dialogue_history_item => {
         list.push(item);
@@ -125,7 +132,7 @@ dialogue_history_item_list = {
     };
 }
 
-dialogue_history_item = {
+dialogue_history_item : Ast.DialogueHistoryItem = {
     rule:rule ';' => new Ast.DialogueHistoryItem(null, rule, null, 'accepted');
 
     // note: the syntax here is very hard-coded because we don't want the AST
@@ -138,37 +145,37 @@ dialogue_history_item = {
     rule:rule '#[' 'confirm' '=' venum:ENUM ']' ';' => new Ast.DialogueHistoryItem(null, rule, null, venum.value);
 }
 
-dialogue_result_annotation_list = {
+dialogue_result_annotation_list : Array<DialogueHistoryAnnotation> = {
     ann:dialogue_result_annotation => [ann];
 
     list:dialogue_result_annotation_list ann:dialogue_result_annotation => list.concat([ann]);
 }
 
-dialogue_result_annotation_bag = {
+dialogue_result_annotation_bag : Ast.DialogueHistoryResultList = {
     list:dialogue_result_annotation_list => {
         let results, _error, more, count;
 
-        for (let [key, value] of list) {
-            switch (key) {
+        for (let annot of list) {
+            switch (annot.key) {
             case 'results':
                 if (results !== undefined)
                     return $.error(`Duplicate history annotation #[results]`);
-                results = value;
+                results = annot.value;
                 break;
             case 'error':
                 if (_error !== undefined)
                     return $.error(`Duplicate history annotation #[results]`);
-                _error = value;
+                _error = annot.value;
                 break;
             case 'more':
                 if (more !== undefined)
                     return $.error(`Duplicate history annotation #[more]`);
-                more = value;
+                more = annot.value;
                 break;
             case 'count':
                 if (count !== undefined)
                     return $.error(`Duplicate history annotation #[count]`);
-                count = value;
+                count = annot.value;
                 break;
             }
         }
@@ -181,19 +188,19 @@ dialogue_result_annotation_bag = {
     };
 }
 
-dialogue_result_annotation = {
-    '#[' 'results' '=' results:dialogue_result_list ']' => ['results', results];
-    '#[' 'count' '=' count:value ']' => ['count', count];
-    '#[' 'more' '=' 'true' ']' => ['more', true];
-    '#[' 'error' '=' error:value ']' => ['error', error];
+dialogue_result_annotation : DialogueHistoryAnnotation = {
+    '#[' 'results' '=' results:dialogue_result_list ']' => ({ key: 'results', value: results });
+    '#[' 'count' '=' count:value ']' => ({ key: 'count', value: count });
+    '#[' 'more' '=' 'true' ']' => ({ key: 'more', value: true });
+    '#[' 'error' '=' error:value ']' => ({ key: 'error', value: error });
 }
 
-dialogue_result_list = {
+dialogue_result_list : Ast.DialogueHistoryResultItem[] = {
     '[' ']' => [];
     '[' list:dialogue_result_list_nonempty ']' => list;
 }
 
-dialogue_result_list_nonempty = {
+dialogue_result_list_nonempty : Ast.DialogueHistoryResultItem[] = {
     value:object_literal_value => [new Ast.DialogueHistoryResultItem(null, value.value)];
     list:dialogue_result_list ',' value:object_literal_value => {
         list.push(new Ast.DialogueHistoryResultItem(null, value.value));
@@ -201,14 +208,14 @@ dialogue_result_list_nonempty = {
     };
 }
 
-program = {
+program : Ast.Program = {
     rule:rule => new Ast.Program(null, [], [], [rule], null);
     'executor' '=' user:value ':' rule => {
         return new Ast.Program(null, [], [], [rule], user);
     };
 }
 
-policy = {
+policy : Ast.PermissionRule = {
     'true' ':' policy:policy_body => policy;
     user:filter ':' policy:policy_body => {
         const clone = policy.clone();
@@ -217,7 +224,7 @@ policy = {
     };
 }
 
-policy_body = {
+policy_body : Ast.PermissionRule = {
     'now' '=>' action:policy_fn => {
         return new Ast.PermissionRule(null, Ast.BooleanExpression.True, Ast.PermissionFunction.Builtin, action);
     };
@@ -229,37 +236,39 @@ policy_body = {
     };
 }
 
-policy_fn = {
+policy_fn : Ast.PermissionFunction = {
     '*' => Ast.PermissionFunction.Star;
     klass:CLASS_STAR => new Ast.PermissionFunction.ClassStar(null, klass.value);
     fn:FUNCTION => new Ast.PermissionFunction.Specified(null, fn.value.kind, fn.value.channel, Ast.BooleanExpression.True, null);
     fn:FUNCTION 'filter' filter => new Ast.PermissionFunction.Specified(null, fn.value.kind, fn.value.channel, filter, null);
 }
 
-rule = {
+rule : Ast.Rule|Ast.Command = {
     stream '=>' action => new Ast.Statement.Rule(null, stream, [action]);
     'now' '=>' table '=>' action => new Ast.Statement.Command(null, table, [action]);
     'now' '=>' action => new Ast.Statement.Command(null, null, [action]);
 
     rule 'on' pp:param_passing => {
         rule = rule.clone();
-        rule.actions[0].invocation.in_params.push(pp);
+        const action = rule.actions[0];
+        assert(action instanceof Ast.Action.Invocation);
+        action.invocation.in_params.push(pp);
         return rule;
     };
 }
 
-aggr_op = {
+aggr_op : ('min'|'max'|'sum'|'avg') = {
     'min' => 'min';
     'max' => 'max';
     'sum' => 'sum';
     'avg' => 'avg';
 }
 
-scalar_op = {
+scalar_op : 'distance' = {
     'distance' => 'distance';
 }
 
-table = {
+table : Ast.Table = {
     call => new Ast.Table.Invocation(null, call, null);
     '(' table ')' 'filter' filter => {
         return new Ast.Table.Filter(null, table, filter, table.schema);
@@ -281,7 +290,7 @@ table = {
     table_join;
 }
 
-table_join = {
+table_join : Ast.JoinTable = {
     '(' t1:table ')' 'join' '(' t2:table ')' => new Ast.Table.Join(null, t1, t2, [], null);
     join:table_join 'on' pp:param_passing => {
         join = join.clone();
@@ -290,11 +299,11 @@ table_join = {
     };
 }
 
-stream = {
+stream : Ast.Stream = {
     'timer' 'base' '=' base:value ',' 'interval' '=' interval:value => new Ast.Stream.Timer(null, base, interval, null, null);
     'timer' 'base' '=' base:value ',' 'interval' '=' interval:value ',' 'frequency' '=' frequency:value => new Ast.Stream.Timer(null, base, interval, frequency, null);
-    'attimer' 'time' '=' time:value => new Ast.Stream.AtTimer(null, time.isArray ? time.value : [time], null, null);
-    'attimer' 'time' '=' time:value ',' 'expiration_date' '=' expiration_date:value => new Ast.Stream.AtTimer(null, time.isArray ? time.value : [time], expiration_date, null);
+    'attimer' 'time' '=' time:value => new Ast.Stream.AtTimer(null, time instanceof Ast.ArrayValue ? time.value : [time], null, null);
+    'attimer' 'time' '=' time:value ',' 'expiration_date' '=' expiration_date:value => new Ast.Stream.AtTimer(null, time instanceof Ast.ArrayValue ? time.value : [time], expiration_date, null);
 
     'monitor' '(' table ')' => new Ast.Stream.Monitor(null, table, null, null);
     'monitor' '(' table ')' 'on' 'new' pname:out_param => {
@@ -319,7 +328,7 @@ stream = {
     stream_join;
 }
 
-stream_join = {
+stream_join : Ast.JoinStream = {
     '(' stream ')' '=>' '(' table ')' => new Ast.Stream.Join(null, stream, table, [], null);
     '(' stream ')' 'join' '(' table ')' => new Ast.Stream.Join(null, stream, table, [], null);
     join:stream_join 'on' pp:param_passing => {
@@ -329,23 +338,24 @@ stream_join = {
     };
 }
 
-action = {
+action : Ast.NotifyAction|Ast.InvocationAction = {
     'notify' => new Ast.Action.Notify(null, 'notify', null);
     'return' => new Ast.Action.Notify(null, 'return', null);
     call => new Ast.Action.Invocation(null, call, null);
 }
 
-selector = {
+selector : [Ast.DeviceSelector, string] = {
     fn:FUNCTION => [new Ast.Selector.Device(null, fn.value.kind, null, null), fn.value.channel];
 
     selector attr:device_attribute => {
         const [sel,] = selector;
         if (attr.name === 'id') {
             sel.id = String(attr.value.toJS());
-            if (attr.value.display)
-                sel.attributes.push(new Ast.InputParam(null, 'name', new Ast.Value.String(attr.value.display)));
+            const value = attr.value;
+            if (value instanceof Ast.EntityValue && value.display)
+                sel.attributes.push(new Ast.InputParam(null, 'name', new Ast.Value.String(value.display)));
         } else if (attr.name === 'all') {
-            sel.all = attr.value.toJS();
+            sel.all = attr.value.toJS() as boolean;
         } else {
             sel.attributes.push(attr);
         }
@@ -353,11 +363,11 @@ selector = {
     };
 }
 
-device_attribute = {
+device_attribute : Ast.InputParam = {
     pname:ATTRIBUTE_NAME '=' v:value => new Ast.InputParam(null, pname.value, v);
 }
 
-call = {
+call : Ast.Invocation = {
     selector => {
         const [sel, chan] = selector;
         return new Ast.Invocation(null, sel, chan, [], null);
@@ -369,16 +379,16 @@ call = {
     };
 }
 
-param_passing = {
+param_passing : Ast.InputParam = {
     pname:PARAM_NAME '=' out_param => new Ast.InputParam(null, pname.value, out_param);
     pname:PARAM_NAME '=' 'event' => new Ast.InputParam(null, pname.value, new Ast.Value.Event(null));
 }
 
-const_param = pname:PARAM_NAME '=' v:value => new Ast.InputParam(null, pname.value, v);
+const_param : Ast.InputParam = pname:PARAM_NAME '=' v:value => new Ast.InputParam(null, pname.value, v);
 
-out_param = pname:PARAM_NAME => new Ast.Value.VarRef(pname.value);
+out_param : Ast.VarRefValue = pname:PARAM_NAME => new Ast.Value.VarRef(pname.value);
 
-out_param_list = {
+out_param_list : Ast.VarRefValue[] = {
     pname:out_param => [pname];
     list:out_param_list ',' pname:out_param => list.concat(pname);
 }
@@ -391,29 +401,29 @@ out_param_list = {
 // "condition and this or that and foo or bar"
 // to be read as
 // "condition and (this or that) and (foo or bar)"
-filter = {
+filter : Ast.BooleanExpression = {
     or_filter;
     f1:filter 'and' f2:or_filter => new Ast.BooleanExpression.And(null, [f1, f2]);
 }
 
-or_filter = {
+or_filter : Ast.BooleanExpression = {
     unary_filter;
     f1:or_filter 'or' f2:unary_filter => new Ast.BooleanExpression.Or(null, [f1, f2]);
 }
 
-unary_filter = {
+unary_filter : Ast.BooleanExpression = {
     atom_filter;
     'not' f:atom_filter => new Ast.BooleanExpression.Not(null, f);
 }
 
-atom_filter = {
+atom_filter : Ast.BooleanExpression = {
     'true' pname:PARAM_NAME => new Ast.BooleanExpression.DontCare(null, pname.value);
 
     pname:PARAM_NAME op:comparison_op rhs:value => {
         return new Ast.BooleanExpression.Atom(null, pname.value, op, rhs);
     };
     lhs:non_ambiguous_value op:comparison_op rhs:value => {
-        if (lhs.isVarRef)
+        if (lhs instanceof Ast.VarRefValue)
             return new Ast.BooleanExpression.Atom(null, lhs.name, op, rhs);
         else
             return new Ast.BooleanExpression.Compute(null, lhs, op, rhs);
@@ -469,7 +479,7 @@ scalar_expression = {
 }
 */
 
-operand_list = {
+operand_list : Ast.Value[] = {
     value => [value];
     list:operand_list ',' value => {
         list.push(value);
@@ -477,7 +487,7 @@ operand_list = {
     };
 }
 
-comparison_op = {
+comparison_op : string = {
     '==';
     '>=';
     '<=';
@@ -499,42 +509,42 @@ comparison_op = {
 // and the `PARAM_NAME of ...` value (array field) and the `PARAM_NAME of ...` table (projection)
 // we need to force certain expressions not to be constants or raw PARAM_NAMEs
 // to do that, we need to duplicate the grammar
-non_ambiguous_value = {
+non_ambiguous_value : Ast.Value = {
     nc_add_expr;
 }
 
-nc_add_expr = {
+nc_add_expr : Ast.Value= {
     nc_mul_expr;
 
     lhs:nc_add_expr '+' rhs:nc_mul_expr => new Ast.Value.Computation('+', [lhs, rhs]);
     lhs:nc_add_expr '-' rhs:nc_mul_expr => new Ast.Value.Computation('-', [lhs, rhs]);
 }
-nc_mul_expr = {
+nc_mul_expr : Ast.Value = {
     nc_exp_expr;
 
     lhs:nc_mul_expr '*' rhs:nc_exp_expr => new Ast.Value.Computation('*', [lhs, rhs]);
     lhs:nc_mul_expr '/' rhs:nc_exp_expr => new Ast.Value.Computation('/', [lhs, rhs]);
     lhs:nc_mul_expr '%' rhs:nc_exp_expr => new Ast.Value.Computation('%', [lhs, rhs]);
 }
-nc_exp_expr = {
+nc_exp_expr : Ast.Value = {
     nc_array_field_value;
 
     lhs:nc_exp_expr '**' rhs:nc_array_field_value => new Ast.Value.Computation('**', [lhs, rhs]);
 }
 
-nc_array_field_value = {
+nc_array_field_value : Ast.Value = {
     field:PARAM_NAME 'of' value:nc_filter_value => new Ast.Value.ArrayField(value, field.value);
 
     nc_filter_value;
 }
 
-nc_filter_value = {
+nc_filter_value : Ast.Value = {
     nc_primary_value;
 
     value:nc_primary_value 'filter' '{' filter '}' => new Ast.Value.Filter(value, filter);
 }
 
-nc_primary_value = {
+nc_primary_value : Ast.Value = {
     // if we introduce a level of parenthesis, the ambiguity caused by "true"/"false"
     // goes away and we can use constants too
     '(' value ')' => value;
@@ -546,77 +556,77 @@ nc_primary_value = {
     object_literal_value;
 }
 
-primary_value = {
+primary_value : Ast.Value = {
     nc_primary_value;
     var_ref_value;
     constant_value;
 }
 
 
-value = {
+value : Ast.Value = {
     add_expr;
 }
 
-add_expr = {
+add_expr : Ast.Value = {
     mul_expr;
 
     lhs:add_expr '+' rhs:mul_expr => new Ast.Value.Computation('+', [lhs, rhs]);
     lhs:add_expr '-' rhs:mul_expr => new Ast.Value.Computation('-', [lhs, rhs]);
 }
-mul_expr = {
+mul_expr : Ast.Value = {
     exp_expr;
 
     lhs:mul_expr '*' rhs:exp_expr => new Ast.Value.Computation('*', [lhs, rhs]);
     lhs:mul_expr '/' rhs:exp_expr => new Ast.Value.Computation('/', [lhs, rhs]);
     lhs:mul_expr '%' rhs:exp_expr => new Ast.Value.Computation('%', [lhs, rhs]);
 }
-exp_expr = {
+exp_expr : Ast.Value = {
     array_field_value;
 
     lhs:exp_expr '**' rhs:array_field_value => new Ast.Value.Computation('**', [lhs, rhs]);
 }
 
-array_field_value = {
+array_field_value : Ast.Value = {
     field:PARAM_NAME 'of' value:filter_value => new Ast.Value.ArrayField(value, field.value);
 
     filter_value;
 }
 
-filter_value = {
+filter_value : Ast.Value = {
     primary_value;
 
     value:primary_value 'filter' '{' filter '}' => new Ast.Value.Filter(value, filter);
 }
 
-scalar_function = {
+scalar_function : Ast.ComputationValue = {
     op:scalar_op '(' operand_list ')' => new Ast.Value.Computation(op, operand_list);
     op:aggr_op '(' value ')' => new Ast.Value.Computation(op, [value]);
     'count' '(' value ')' => new Ast.Value.Computation('count', [value]);
 }
 
-undefined_value = {
+undefined_value : Ast.UndefinedValue = {
     'undefined' => new Ast.Value.Undefined(true);
 }
 
-var_ref_value = {
+var_ref_value : Ast.VarRefValue = {
     out_param;
 }
 
-context_value = {
+context_value : Ast.ContextRefValue = {
     ctx:CONTEXT_REF => new Ast.Value.ContextRef(ctx.value.name, ctx.value.type);
 }
 
-array_value = {
+array_value : Ast.ArrayValue = {
     '[' ']' => new Ast.Value.Array([]);
     '[' values:array_literal_values ']' => new Ast.Value.Array(values);
 }
 
-object_literal_value = {
+object_literal_value : Ast.ObjectValue = {
     '{' '}' => new Ast.Value.Object({});
     '{' values:object_literal_entry_list '}' => new Ast.Value.Object(values);
 }
 
-object_literal_entry_list = {
+object_literal_entry_list : { [key : string] : Ast.Value } = {
     name:PARAM_NAME '=' value:value => ({ [name.value]: value });
     obj:object_literal_entry_list ',' name:PARAM_NAME '=' value:value => {
         obj[name.value] = value;
@@ -624,38 +634,36 @@ object_literal_entry_list = {
     };
 }
 
-constant_RecurrentTimeSpecification = {
+constant_RecurrentTimeSpecification : Ast.Value = {
     'new' 'RecurrentTimeSpecification' '(' rules:recurrent_time_rule_list ')' =>
         new Ast.Value.RecurrentTimeSpecification(rules);
 }
 
-recurrent_time_rule_list = {
+recurrent_time_rule_list : Ast.RecurrentTimeRule[] = {
     first:recurrent_time_rule => [first];
 
     head:recurrent_time_rule_list ',' tail:recurrent_time_rule => head.concat([tail]);
 }
 
-recurrent_time_rule = {
+recurrent_time_rule : Ast.RecurrentTimeRule = {
     '{' list:recurrent_time_item_list '}' => {
         const obj : { [key : string] : unknown } = {};
         for (let item of list) {
-            if (obj[item[0]]) {
-                $.error(`Duplicate recurrent time rule key ${item[0]}`);
-                return null;
-            }
+            if (obj[item[0]])
+                return $.error(`Duplicate recurrent time rule key ${item[0]}`);
             obj[item[0]] = item[1];
         }
         return new Ast.RecurrentTimeRule(obj as any);
     };
 }
 
-recurrent_time_item_list = {
+recurrent_time_item_list : Array<[string, any]> = {
     first:recurrent_time_item => [first];
 
     head:recurrent_time_item_list ',' tail:recurrent_time_item => head.concat([tail]);
 }
 
-recurrent_time_item = {
+recurrent_time_item : [string, any] = {
     'beginDate' '=' v:absolute_or_edge_date => ['beginDate', v.value];
     'endDate' '=' v:absolute_or_edge_date => ['endDate', v.value];
 
@@ -667,11 +675,11 @@ recurrent_time_item = {
 
     'dayOfWeek' '=' v:ENUM => ['dayOfWeek', v.value];
 
-    'subtract' '=' 'true' => ['subtract', 'true'];
-    'subtract' '=' 'false' => ['subtract', 'false'];
+    'subtract' '=' 'true' => ['subtract', true];
+    'subtract' '=' 'false' => ['subtract', false];
 }
 
-constant_value = {
+constant_value : Ast.Value = {
     constant_Boolean;
     constant_String;
     constant_Measure;
@@ -695,51 +703,51 @@ constant_value = {
     slot:SLOT => (slot.value === undefined ? new Ast.Value.Undefined(true) : slot.value);
 }
 
-array_literal_values = {
+array_literal_values : Ast.Value[] = {
     value => [value];
     array:array_literal_values ',' v:value => array.concat([v]);
 }
 
-constant_Boolean = {
+constant_Boolean : Ast.BooleanValue = {
     'true' => new Ast.Value.Boolean(true);
     'false' => new Ast.Value.Boolean(false);
 }
 
-constant_String = {
+constant_String : Ast.StringValue = {
     '""' => new Ast.Value.String('');
     str:QUOTED_STRING => new Ast.Value.String(str.value);
     '"' str:word_list '"' => new Ast.Value.String(str);
 }
 
-word_list = {
+word_list : string = {
     word:WORD => word.value;
     list:word_list word:WORD => list + ' ' + word.value;
 }
 
-literal_number = {
+literal_number : number = {
     num:NUMBER => num.value;
     num:LITERAL_INTEGER => num.value;
     '1' => 1;
     '0' => 0;
 }
 
-constant_Measure = {
+constant_Measure : Ast.MeasureValue = {
     num:literal_number unit:UNIT => new Ast.Value.Measure(num, unit.value);
     tok:MEASURE => new Ast.Value.Measure(tok.value.value, tok.value.unit);
     tok:DURATION => new Ast.Value.Measure(tok.value.value, tok.value.unit);
 }
 
-constant_Number = {
+constant_Number : Ast.NumberValue = {
     num:literal_number => new Ast.Value.Number(num);
     '-' num:literal_number => new Ast.Value.Number(-num);
 }
 
-constant_Currency = {
+constant_Currency : Ast.CurrencyValue = {
     tok:CURRENCY => new Ast.Value.Currency(tok.value.value, tok.value.unit);
     'new' 'Currency' '(' num:literal_number ',' unit:UNIT ')' => new Ast.Value.Currency(num, unit.value);
     num:literal_number tok:CURRENCY_CODE => new Ast.Value.Currency(num, tok.value);
 }
-constant_Location = {
+constant_Location : Ast.LocationValue = {
     'location:current_location' => new Ast.Value.Location(new Ast.Location.Relative('current_location'));
     'location:home' => new Ast.Value.Location(new Ast.Location.Relative('home'));
     'location:work' => new Ast.Value.Location(new Ast.Location.Relative('work'));
@@ -759,7 +767,7 @@ constant_Location = {
 
 // Note that while keeping digits in ranges [0-23],[0-59],[0-59] is not enforced
 // here, it is enforced in tonn_converter, rendering it unnecessary to do so here
-absolute_time = {
+absolute_time : Ast.TimeValue = {
     time:TIME => new Ast.Value.Time(new Ast.Time.Absolute(time.value.hour, time.value.minute, time.value.second||0));
     time:LITERAL_TIME => {
         let tokens = time.value.split(':');
@@ -767,7 +775,7 @@ absolute_time = {
     };
 }
 
-constant_Time = {
+constant_Time : Ast.TimeValue = {
     absolute_time;
 
     'time:morning' => new Ast.Value.Time(new Ast.Time.Relative('morning'));
@@ -776,14 +784,14 @@ constant_Time = {
 
 // start_of/end_of with less than 1h are not supported
 // (they don't make sense)
-constant_Date = {
+constant_Date : Ast.DateValue = {
     'now' => new Ast.Value.Date(null);
     'new' 'Date' '(' ')' => new Ast.Value.Date(null);
 
     absolute_or_edge_date;
 }
 
-absolute_or_edge_date = {
+absolute_or_edge_date : Ast.DateValue = {
     'new' 'Date' '(' year:constant_Number ',' month:constant_Number ',' day:constant_Number ')' => {
         const d = new Date;
         d.setFullYear(year.value);
@@ -855,9 +863,9 @@ absolute_or_edge_date = {
 // luinet expands this into the various enums in the right
 // place for a parameter (as the meaning of an enum changes according
 // to the parameter anyway)
-constant_Enum = venum:ENUM => new Ast.Value.Enum(venum.value);
+constant_Enum : Ast.EnumValue = venum:ENUM => new Ast.Value.Enum(venum.value);
 
-constant_Entity__unknown = {
+constant_Entity__unknown : Ast.EntityValue = {
     entity:GENERIC_ENTITY => new Ast.Value.Entity(entity.value.value, entity.value.type, entity.value.display);
     '"' str:word_list '"' type:ENTITY_TYPE => {
         if (type.value === 'tt:hashtag' || type.value === 'tt:username')
@@ -867,12 +875,12 @@ constant_Entity__unknown = {
     };
 }
 
-constant_Entity__tt__username      = entity:USERNAME      => new Ast.Value.Entity(entity.value, 'tt:username', null);
-constant_Entity__tt__hashtag       = entity:HASHTAG       => new Ast.Value.Entity(entity.value, 'tt:hashtag', null);
-constant_Entity__tt__url           = entity:URL           => new Ast.Value.Entity(entity.value, 'tt:url', null);
-constant_Entity__tt__phone_number  = entity:PHONE_NUMBER  => new Ast.Value.Entity(entity.value, 'tt:phone_number', null);
-constant_Entity__tt__email_address = entity:EMAIL_ADDRESS => new Ast.Value.Entity(entity.value, 'tt:email_address', null);
-constant_Entity__tt__path_name     = entity:PATH_NAME     => new Ast.Value.Entity(entity.value, 'tt:path_name', null);
-constant_Entity__tt__device        = entity:DEVICE        => new Ast.Value.Entity(entity.value, 'tt:device', null);
-constant_Entity__tt__function      = entity:FUNCTION      => new Ast.Value.Entity(entity.value.kind + ':' + entity.value.channel, 'tt:function', null);
-constant_Entity__tt__picture       = entity:PICTURE       => new Ast.Value.Entity(entity.value, 'tt:picture', null);
+constant_Entity__tt__username      : Ast.EntityValue = entity:USERNAME      => new Ast.Value.Entity(entity.value, 'tt:username', null);
+constant_Entity__tt__hashtag       : Ast.EntityValue = entity:HASHTAG       => new Ast.Value.Entity(entity.value, 'tt:hashtag', null);
+constant_Entity__tt__url           : Ast.EntityValue = entity:URL           => new Ast.Value.Entity(entity.value, 'tt:url', null);
+constant_Entity__tt__phone_number  : Ast.EntityValue = entity:PHONE_NUMBER  => new Ast.Value.Entity(entity.value, 'tt:phone_number', null);
+constant_Entity__tt__email_address : Ast.EntityValue = entity:EMAIL_ADDRESS => new Ast.Value.Entity(entity.value, 'tt:email_address', null);
+constant_Entity__tt__path_name     : Ast.EntityValue = entity:PATH_NAME     => new Ast.Value.Entity(entity.value, 'tt:path_name', null);
+constant_Entity__tt__device        : Ast.EntityValue = entity:DEVICE        => new Ast.Value.Entity(entity.value, 'tt:device', null);
+constant_Entity__tt__function      : Ast.EntityValue = entity:FUNCTION      => new Ast.Value.Entity(entity.value.kind + ':' + entity.value.channel, 'tt:function', null);
+constant_Entity__tt__picture       : Ast.EntityValue = entity:PICTURE       => new Ast.Value.Entity(entity.value, 'tt:picture', null);

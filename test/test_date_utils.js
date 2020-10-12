@@ -20,7 +20,7 @@
 const assert = require('assert');
 
 const { parseDate, normalizeDate } = require('../lib/date_utils');
-const { DateEdge, DatePiece, Time } = require('../lib/ast');
+const { DateEdge, DatePiece, Time, Value } = require('../lib/ast');
 
 function test(value, expected) {
     expected = parseDate(expected);
@@ -111,7 +111,7 @@ function main() {
     eleven_thirty.setMinutes(30);
     eleven_thirty.setSeconds(0);
     eleven_thirty.setMilliseconds(0);
-    test(new DatePiece(null, null, 25, new Time.Absolute(11, 30, 0)), eleven_thirty);
+    test(new DatePiece(null, null, 25, new Value.Time(new Time.Absolute(11, 30, 0))), eleven_thirty);
 }
 module.exports = main;
 if (!module.parent)

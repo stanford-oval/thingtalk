@@ -145,9 +145,9 @@ export class DatePiece {
     year : number|null;
     month : number|null;
     day : number|null;
-    time : AbsoluteTime|null;
+    time : TimeValue|null;
 
-    constructor(year : number|null, month : number|null, day : number|null, time : AbsoluteTime|null) {
+    constructor(year : number|null, month : number|null, day : number|null, time : TimeValue|null) {
         assert((year !== null && year >= 0) || (month !== null && month > 0) || (day !== null && day > 0));
         assert(year === null || month === null || day === null);
         this.year = year;
@@ -184,9 +184,9 @@ export type WeekDay = ('monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday
 export class WeekDayDate {
     isWeekDayDate = true;
     weekday : WeekDay;
-    time : AbsoluteTime|null;
+    time : TimeValue|null;
 
-    constructor(weekday : WeekDay, time : AbsoluteTime|null) {
+    constructor(weekday : WeekDay, time : TimeValue|null) {
         assert(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].includes(weekday));
         this.weekday = weekday;
         this.time = time;

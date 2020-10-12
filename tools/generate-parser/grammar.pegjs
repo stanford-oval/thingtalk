@@ -67,12 +67,13 @@ Statement
   = NonTerminalDeclaration
 
 NonTerminalDeclaration
-  = name:Identifier __ '=' __ block:RuleBlock { return new Ast.NonTerminalStmt(name, block); }
-  / name:Identifier __ '=' __ rule:Rule {
+  = name:Identifier __ type:(':' __ CodeNoEqual)? '=' __ block:RuleBlock {
+    return new Ast.NonTerminalStmt(name, type ? type[2].trim() : undefined, block); }
+  / name:Identifier __ type:(':' __ CodeNoEqual)? '=' __ rule:Rule {
     if (Array.isArray(rule))
-      return new Ast.NonTerminalStmt(name, rule);
+      return new Ast.NonTerminalStmt(name, type ? type[2].trim() : undefined, rule);
     else
-      return new Ast.NonTerminalStmt(name, [rule]);
+      return new Ast.NonTerminalStmt(name, type ? type[2].trim() : undefined, [rule]);
   }
 
 RuleBlock = '{' __ rules:(Rule __)* '}' {
@@ -118,6 +119,7 @@ RuleHeadPart
 
 CodeNoSemicolon = $(StringLiteral / SingleLineComment / MultiLineComment / (![{}()\[\];] SourceCharacter)+ / '{' Code '}' / '(' Code ')' / '[' Code ']')*
 CodeNoComma = $(StringLiteral / SingleLineComment / MultiLineComment / (![{}()\[\],] SourceCharacter)+ / '{' Code '}' / '(' Code ')' / '[' Code ']')*
+CodeNoEqual = $(StringLiteral / SingleLineComment / MultiLineComment / (![{}()\[\]=] SourceCharacter)+ / '{' Code '}' / '(' Code ')' / '[' Code ']')*
 Code = $(StringLiteral / SingleLineComment / MultiLineComment / (![{}()\[\]] SourceCharacter)+ / '{' Code '}' / '(' Code ')' / '[' Code ']')*
 
 /* ---- Lexical Grammar ----- */

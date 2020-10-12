@@ -50,38 +50,56 @@ function readall(stream : stream.Readable) : Promise<Buffer> {
     });
 }
 
-function handleRule(rule : Ast.Rule) : ProcessedRule {
+type TypeMap = { [key : string] : string };
+
+function handleRule(rule : Ast.Rule,
+                    typeMap : TypeMap) : ProcessedRule {
     const head = rule.head.map((h) => h.getGeneratorInput());
 
     const bodyArgs = ['$ : $runtime.ParserInterface'];
     let i = 0;
     for (const headPart of rule.head) {
+        if (headPart instanceof Ast.RuleHeadPart.NonTerminal && typeMap[headPart.category])
+            headPart.type = typeMap[headPart.category];
+
         if (headPart.name)
             bodyArgs.push(headPart.name + ': ' + headPart.type);
         else
             bodyArgs.push(`$${i++} : ` + headPart.type);
     }
 
-    const action = `(${bodyArgs}) : ${rule.type} => ${rule.bodyCode}`;
+    const action = `(${bodyArgs.join(', ')}) : ${rule.type} => ${rule.bodyCode}`;
     return [head, action];
 }
 
 async function processFile(filename : string,
-                           grammar : ProcessedGrammar) : Promise<Ast.Grammar> {
+                           grammar : ProcessedGrammar) : Promise<[Ast.Grammar, TypeMap]> {
     const fileStream = fs.createReadStream(filename);
     const input = (await readall(fileStream)).toString('utf8');
     const parsed = Grammar.parse(input);
     assert(parsed instanceof Ast.Grammar);
 
+    const typeMap : TypeMap = {};
+    for (const statement of parsed.statements) {
+        if (statement.type !== undefined) {
+            if (typeMap[statement.name] !== undefined &&
+                typeMap[statement.name] !== statement.type)
+                throw new Error(`Conflicting type declaration for ${statement.name}`);
+            typeMap[statement.name] = statement.type;
+        }
+    }
+
     for (const statement of parsed.statements) {
         if (!grammar[statement.name])
             grammar[statement.name] = [];
 
-        for (const rule of statement.rules)
-            grammar[statement.name].push(handleRule(rule));
+        for (const rule of statement.rules) {
+            rule.type = typeMap[statement.name] || 'any';
+            grammar[statement.name].push(handleRule(rule, typeMap));
+        }
     }
 
-    return parsed;
+    return [parsed, typeMap];
 }
 
 async function main() {
@@ -89,9 +107,9 @@ async function main() {
     const input = process.argv[3];
 
     const grammar : ProcessedGrammar = {};
-    let firstFile;
+    let firstFile, typeMap : TypeMap;
     try {
-        firstFile = await processFile(path.resolve(input), grammar);
+        [firstFile, typeMap] = await processFile(path.resolve(input), grammar);
     } catch(e) {
         if (e.location) {
             console.error(`Syntax error at line ${e.location.start.line} column ${e.location.start.column}: ${e.message}`);
@@ -101,7 +119,7 @@ async function main() {
         }
     }
 
-    const generator = new SLRParserGenerator(grammar, 'input');
-    await writeout(firstFile.preamble, generator, fs.createWriteStream(output), output);
+    const generator = new SLRParserGenerator(grammar, 'input', typeMap['input'] || 'any');
+    await writeout(firstFile.preamble, generator, fs.createWriteStream(output), output, typeMap['input'] || 'any');
 }
 main();

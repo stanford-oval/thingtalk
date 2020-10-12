@@ -33,6 +33,7 @@ export class Grammar {
 
 export class NonTerminalStmt {
     constructor(public name : string,
+                public type : string|undefined,
                 public rules : Rule[]) {
     }
 }
@@ -89,12 +90,17 @@ class TerminalRuleHead extends RuleHeadPart {
 }
 RuleHeadPart.Terminal = TerminalRuleHead;
 
+function stringEscape(str : string) : string {
+    return '"' + str.replace(/(["\\])/g, '\\$1').replace(/\n/g, '\\n').replace(/\r/g, '\\r') + '"';
+}
+
 class StringLiteralRuleHead extends RuleHeadPart {
-    type = 'string';
+    type : string;
 
     constructor(public value : string) {
         super();
         this.isStringLiteral = true;
+        this.type = stringEscape(value);
     }
 
     get name() {
