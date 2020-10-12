@@ -65,20 +65,15 @@ InitialCodeBlock = '{' code:Code '}' { return code; }
 
 Statement
   = NonTerminalDeclaration
-  / ImportStmt
 
 NonTerminalDeclaration
-  = name:Identifier __ '=' __ block:RuleBlock { return new Ast.Statement.NonTerminal(name, block); }
+  = name:Identifier __ '=' __ block:RuleBlock { return new Ast.NonTerminalStmt(name, block); }
   / name:Identifier __ '=' __ rule:Rule {
     if (Array.isArray(rule))
-      return new Ast.Statement.NonTerminal(name, rule);
+      return new Ast.NonTerminalStmt(name, rule);
     else
-      return new Ast.Statement.NonTerminal(name, [rule]);
+      return new Ast.NonTerminalStmt(name, [rule]);
   }
-
-ImportStmt = ImportToken __ what:StringLiteral __ ';' {
-  return new Ast.Statement.Import(what);
-}
 
 RuleBlock = '{' __ rules:(Rule __)* '}' {
     const out = [];

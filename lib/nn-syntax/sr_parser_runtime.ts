@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -24,10 +24,35 @@
 
 const EOF_TOKEN = ' 1EOF';
 
-function findExpected(actions, terminalIds) {
-    let ret = [];
-    for (let tokenId in actions) {
-        for (let term in terminalIds) {
+const enum ParserAction {
+    Accept = 0,
+    Shift = 1,
+    Reduce = 2
+}
+
+export type ActionTable = { [key : number] : { [key : number] : [ParserAction, number] } };
+export type GotoTable = { [key : number] : { [key : number] : number } };
+export type SymbolTable = { [key : string] : number };
+
+export interface ParserInterface {
+    error(msg : string) : never;
+}
+
+type SemanticAction = ($ : ParserInterface, ...args : any[]) => any;
+
+interface ParserConfig {
+    TERMINAL_IDS : SymbolTable;
+    RULE_NON_TERMINALS : number[];
+    ARITY : number[];
+    GOTO : GotoTable;
+    PARSER_ACTION : ActionTable;
+    SEMANTIC_ACTION : SemanticAction[];
+}
+
+function findExpected(actions : { [key : number] : [ParserAction, number] }, terminalIds : SymbolTable) : string[] {
+    const ret = [];
+    for (const tokenId in actions) {
+        for (const term in terminalIds) {
             if (terminalIds[term] === Number(tokenId)) {
                 ret.push(term);
                 break;
@@ -38,35 +63,41 @@ function findExpected(actions, terminalIds) {
 }
 
 class ThingTalkSyntaxError extends Error {
-    constructor(message, location) {
+    constructor(message : string, public location : number|null = null) {
         super(message);
-        this.location = location || null;
     }
 }
 
-export default function(TERMINAL_IDS, RULE_NON_TERMINALS, ARITY, GOTO, PARSER_ACTION, SEMANTIC_ACTION) {
+interface Parser<RootType> {
+    parse(sequence : Iterable<string|TokenWrapper<unknown>>) : RootType;
+}
+
+export interface ParserConstructor<RootType> {
+    new() : Parser<RootType>;
+}
+
+export interface TokenWrapper<T> {
+    token : string;
+    value : T;
+    location ?: number;
+}
+
+export function createParser<RootType>({ TERMINAL_IDS, RULE_NON_TERMINALS, ARITY, GOTO, PARSER_ACTION, SEMANTIC_ACTION } : ParserConfig) : ParserConstructor<RootType> {
     return class ShiftReduceParser {
-        constructor() {
-        }
-
-        get numRules() {
-            return RULE_NON_TERMINALS.length;
-        }
-
-        _helper(sequence, applySemanticAction) {
+        private _helper(sequence : Iterable<string|TokenWrapper<any>>, applySemanticAction : boolean) : [number[], RootType] {
             const iterator = sequence[Symbol.iterator]();
 
             let state = 0;
-            let stack = [0];
-            let results = [null];
-            let output = [];
-            let currentLocation = null;
+            const stack : number[] = [0];
+            const results : any[] = [null];
+            const output : number[] = [];
+            let currentLocation : number|null = null;
             let { done, value:nextToken } = iterator.next();
             if (!done)
                 currentLocation = nextToken.location || null;
 
             const $ = {
-                error(msg) {
+                error(msg : string) {
                     throw new ThingTalkSyntaxError(msg, currentLocation);
                 }
             };
@@ -74,16 +105,16 @@ export default function(TERMINAL_IDS, RULE_NON_TERMINALS, ARITY, GOTO, PARSER_AC
             for (;;) {
                 if (done)
                     nextToken = EOF_TOKEN;
-                let nextTokenId = TERMINAL_IDS[String(nextToken)];
+                const nextTokenId = TERMINAL_IDS[String(nextToken)];
 
                 if (!(nextTokenId in PARSER_ACTION[state]))
                     throw new ThingTalkSyntaxError(`Parse error: unexpected token ${nextToken} in state ${state}, expected ${findExpected(PARSER_ACTION[state], TERMINAL_IDS)}`, currentLocation);
-                let [action, param] = PARSER_ACTION[state][nextTokenId];
+                const [action, param] = PARSER_ACTION[state][nextTokenId];
 
-                if (action === 0) // accept
+                if (action === ParserAction.Accept) // accept
                     return [output, results[1]];
 
-                if (action === 1) { // shift
+                if (action === ParserAction.Shift) { // shift
                     state = param;
                     stack.push(state);
                     results.push(nextToken);
@@ -91,19 +122,19 @@ export default function(TERMINAL_IDS, RULE_NON_TERMINALS, ARITY, GOTO, PARSER_AC
                     if (!done)
                         currentLocation = nextToken.location || null;
                 } else { // reduce
-                    let ruleId = param;
+                    const ruleId = param;
                     output.push(ruleId);
-                    let arity = ARITY[ruleId];
-                    let args = results.slice(results.length-arity, results.length);
+                    const arity = ARITY[ruleId];
+                    const args = results.slice(results.length-arity, results.length);
                     stack.length -= arity;
                     results.length -= arity;
                     state = stack[stack.length-1];
-                    let lhs = RULE_NON_TERMINALS[ruleId];
-                    let nextState = GOTO[state][lhs];
+                    const lhs = RULE_NON_TERMINALS[ruleId];
+                    const nextState = GOTO[state][lhs];
                     state = nextState;
                     stack.push(nextState);
                     if (applySemanticAction) {
-                        let action = SEMANTIC_ACTION[ruleId];
+                        const action = SEMANTIC_ACTION[ruleId];
                         results.push(action($, ...args));
                     } else {
                         results.push(null);
@@ -112,13 +143,13 @@ export default function(TERMINAL_IDS, RULE_NON_TERMINALS, ARITY, GOTO, PARSER_AC
             }
         }
 
-        parse(sequence) {
-            let [, ast] = this._helper(sequence, true);
+        parse(sequence : Iterable<string|TokenWrapper<any>>) : RootType {
+            const [, ast] = this._helper(sequence, true);
             return ast;
         }
 
-        getReduceSequence(sequence) {
-            let [reduces, ] = this._helper(sequence, false);
+        getReduceSequence(sequence : Iterable<string|TokenWrapper<any>>) : number[] {
+            const [reduces, ] = this._helper(sequence, false);
             return reduces;
         }
     };

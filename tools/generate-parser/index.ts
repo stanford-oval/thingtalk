@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -17,19 +17,26 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
 process.on('unhandledRejection', (up) => { throw up; });
 
-const fs = require('fs');
-const path = require('path');
+import assert from 'assert';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as stream from 'stream';
 
-const Grammar = require('./grammar');
-const SLRParserGenerator = require('./slr_generator');
+import * as Grammar from './grammar';
+import * as Ast from './meta_ast';
+import {
+    SLRParserGenerator,
+    ProcessedRule,
+    ProcessedGrammar
+} from './slr_generator';
+import writeout from './javascript';
 
-function readall(stream) {
+function readall(stream : stream.Readable) : Promise<Buffer> {
     return new Promise((resolve, reject) => {
-        const buffers = [];
+        const buffers : Buffer[] = [];
         let total = 0;
         stream.on('data', (buf) => {
             buffers.push(buf);
@@ -43,59 +50,48 @@ function readall(stream) {
     });
 }
 
-
-
-function handleRule(rule) {
+function handleRule(rule : Ast.Rule) : ProcessedRule {
     const head = rule.head.map((h) => h.getGeneratorInput());
 
-    const bodyArgs = ['$'];
+    const bodyArgs = ['$ : $runtime.ParserInterface'];
     let i = 0;
-    for (let headPart of rule.head) {
+    for (const headPart of rule.head) {
         if (headPart.name)
-            bodyArgs.push(headPart.name);
+            bodyArgs.push(headPart.name + ': ' + headPart.type);
         else
-            bodyArgs.push(`$${i++}`);
+            bodyArgs.push(`$${i++} : ` + headPart.type);
     }
 
-    const action = `(${bodyArgs}) => ${rule.bodyCode}`;
+    const action = `(${bodyArgs}) : ${rule.type} => ${rule.bodyCode}`;
     return [head, action];
 }
 
-async function processFile(filename, grammar, isTopLevel) {
+async function processFile(filename : string,
+                           grammar : ProcessedGrammar) : Promise<Ast.Grammar> {
     const fileStream = fs.createReadStream(filename);
     const input = (await readall(fileStream)).toString('utf8');
     const parsed = Grammar.parse(input);
+    assert(parsed instanceof Ast.Grammar);
 
-    if (!isTopLevel && parsed.initialCode.trim())
-        console.error(`warning: ignored initial code block in imported file`);
+    for (const statement of parsed.statements) {
+        if (!grammar[statement.name])
+            grammar[statement.name] = [];
 
-    for (let statement of parsed.statements) {
-        if (statement.isImport) {
-            await processFile(path.resolve(path.dirname(filename), statement.what), grammar, false);
-        } else if (statement.isNonTerminal) {
-            if (!grammar[statement.name])
-                grammar[statement.name] = [];
-
-            for (let rule of statement.rules)
-                grammar[statement.name].push(handleRule(rule));
-        }
+        for (const rule of statement.rules)
+            grammar[statement.name].push(handleRule(rule));
     }
 
     return parsed;
 }
 
-const TARGET_LANGUAGE = {
-    'javascript': require('./javascript'),
-};
-
 async function main() {
     const output = process.argv[2];
     const input = process.argv[3];
 
-    const grammar = {};
+    const grammar : ProcessedGrammar = {};
     let firstFile;
     try {
-        firstFile = await processFile(path.resolve(input), grammar, true);
+        firstFile = await processFile(path.resolve(input), grammar);
     } catch(e) {
         if (e.location) {
             console.error(`Syntax error at line ${e.location.start.line} column ${e.location.start.column}: ${e.message}`);
@@ -106,6 +102,6 @@ async function main() {
     }
 
     const generator = new SLRParserGenerator(grammar, 'input');
-    await TARGET_LANGUAGE['javascript'](firstFile.preamble, generator, fs.createWriteStream(output), output);
+    await writeout(firstFile.preamble, generator, fs.createWriteStream(output), output);
 }
 main();

@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -106,14 +106,14 @@ dialogue_state = {
         return new Ast.DialogueState(null, dialogueAct.value.kind, dialogueAct.value.channel, null, history);
     };
     '$dialogue' dialogueAct:FUNCTION pnames:out_param_list ';' history:dialogue_history_item_list => {
-        return new Ast.DialogueState(null, dialogueAct.value.kind, dialogueAct.value.channel, pnames.map((p) => p.name), history);
+        return new Ast.DialogueState(null, dialogueAct.value.kind, dialogueAct.value.channel, pnames.map((p : Ast.VarRefValue) => p.name), history);
     };
 
     '$dialogue' dialogueAct:FUNCTION ';' => {
         return new Ast.DialogueState(null, dialogueAct.value.kind, dialogueAct.value.channel, null, []);
     };
     '$dialogue' dialogueAct:FUNCTION pnames:out_param_list ';' => {
-        return new Ast.DialogueState(null, dialogueAct.value.kind, dialogueAct.value.channel, pnames.map((p) => p.name), []);
+        return new Ast.DialogueState(null, dialogueAct.value.kind, dialogueAct.value.channel, pnames.map((p : Ast.VarRefValue) => p.name), []);
     };
 }
 
@@ -274,7 +274,7 @@ table = {
     '(' table ')' '[' indices:array_literal_values ']'       => new Ast.Table.Index(null, table, indices, null);
     '(' table ')' '[' base:value ':' delta:value ']'    => new Ast.Table.Slice(null, table, base, delta, null);
 
-    '[' pnames:out_param_list ']' 'of' '(' table ')'          => new Ast.Table.Projection(null, table, pnames.map((p) => p.name), null);
+    '[' pnames:out_param_list ']' 'of' '(' table ')'          => new Ast.Table.Projection(null, table, pnames.map((p : Ast.VarRefValue) => p.name), null);
 
     'compute' expr:non_ambiguous_value 'of' '(' table ')'       => new Ast.Table.Compute(null, table, expr, null, null);
 
@@ -302,7 +302,7 @@ stream = {
     };
 
     'monitor' '(' table ')' 'on' 'new' '[' pnames:out_param_list ']' => {
-        return new Ast.Stream.Monitor(null, table, pnames.map((p) => p.name), null);
+        return new Ast.Stream.Monitor(null, table, pnames.map((p : Ast.VarRefValue) => p.name), null);
     };
 
     'edge' '(' stream ')' 'on' filter => {
@@ -312,7 +312,7 @@ stream = {
     // edge on true is the equivalent of "only once"
     'edge' '(' stream ')' 'on' 'true' => new Ast.Stream.EdgeFilter(null, stream, Ast.BooleanExpression.True, null);
 
-    '[' pnames:out_param_list ']' 'of' '(' stream ')'          => new Ast.Stream.Projection(null, stream, pnames.map((p) => p.name), null);
+    '[' pnames:out_param_list ']' 'of' '(' stream ')'          => new Ast.Stream.Projection(null, stream, pnames.map((p : Ast.VarRefValue) => p.name), null);
 
     'compute' expr:non_ambiguous_value 'of' '(' stream ')'       => new Ast.Stream.Compute(null, stream, expr, null, null);
 
@@ -637,7 +637,7 @@ recurrent_time_rule_list = {
 
 recurrent_time_rule = {
     '{' list:recurrent_time_item_list '}' => {
-        const obj = {};
+        const obj : { [key : string] : unknown } = {};
         for (let item of list) {
             if (obj[item[0]]) {
                 $.error(`Duplicate recurrent time rule key ${item[0]}`);
@@ -645,7 +645,7 @@ recurrent_time_rule = {
             }
             obj[item[0]] = item[1];
         }
-        return new Ast.RecurrentTimeRule(obj);
+        return new Ast.RecurrentTimeRule(obj as any);
     };
 }
 

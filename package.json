@@ -45,7 +45,7 @@
   "scripts": {
     "update-pot": "xgettext -f po/POTFILES -x po/POTFILES.skip -o po/${npm_package_name}.pot --from-code UTF-8 --package-name ${npm_package_name} --package-version ${npm_package_version}",
     "update-po": "for i in po/*.po ; do msgmerge -U $i po/${npm_package_name}.pot ; done",
-    "lint": "eslint --ext .js,.jsx,.ts,.tsx ./lib",
+    "lint": "eslint --ext .js,.jsx,.ts,.tsx ./lib ./tools",
     "test": "nyc ts-node ./test/test_all",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "prepare": "make",

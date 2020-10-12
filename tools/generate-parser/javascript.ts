@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -17,50 +17,62 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const path = require('path');
+import * as stream from 'stream';
+import * as path from 'path';
+import * as slr from './slr_generator';
 
-module.exports = function writeout(preamble, generator, output, outputPath) {
+const enum ParserAction {
+    Accept = 0,
+    Shift = 1,
+    Reduce = 2
+}
+type ActionTable = Array<{ [key : number] : [ParserAction, number] }>;
+type GotoTable = Array<{ [key : number] : number }>;
+
+export default function writeout(preamble : string,
+                                 generator : slr.SLRParserGenerator,
+                                 output : stream.Writable,
+                                 outputPath : string) {
     const runtimePath = require.resolve('../../lib/nn-syntax/sr_parser_runtime');
     const runtimedir = path.relative(path.dirname(outputPath),
                                      path.dirname(runtimePath));
     const relativeruntimepath = './' + path.join(runtimedir, 'sr_parser_runtime');
 
-    const TERMINAL_IDS = {};
+    const TERMINAL_IDS : { [key : string] : number } = {};
     for (let i = 0; i < generator.terminals.length; i++)
         TERMINAL_IDS[generator.terminals[i]] = i;
 
-    const NON_TERMINAL_IDS = {};
+    const NON_TERMINAL_IDS : { [key : string] : number } = {};
     for (let i = 0; i < generator.nonTerminals.length; i++)
         NON_TERMINAL_IDS[generator.nonTerminals[i]] = i;
 
-    const RULE_NON_TERMINALS = [];
+    const RULE_NON_TERMINALS : number[] = [];
     for (let i = 0; i < generator.rules.length; i++) {
-        let [lhs,,] = generator.rules[i];
+        const [lhs,,] = generator.rules[i];
         RULE_NON_TERMINALS[i] = NON_TERMINAL_IDS[lhs];
     }
 
-    const GOTO_TABLE = [];
+    const GOTO_TABLE : GotoTable = [];
     for (let i = 0; i < generator.gotoTable.length; i++) {
         GOTO_TABLE[i] = {};
-        for (let nonterm in generator.gotoTable[i]) {
-            let nextState = generator.gotoTable[i][nonterm];
+        for (const nonterm in generator.gotoTable[i]) {
+            const nextState = generator.gotoTable[i][nonterm];
             GOTO_TABLE[i][NON_TERMINAL_IDS[nonterm]] = nextState;
         }
     }
 
-    const ACTION_TABLE = [];
+    const ACTION_TABLE : ActionTable = [];
     let foundAccept = false;
     for (let i = 0; i < generator.actionTable.length; i++) {
         ACTION_TABLE[i] = {};
-        for (let term in generator.actionTable[i]) {
-            let [action, param] = generator.actionTable[i][term];
+        for (const term in generator.actionTable[i]) {
+            const [action, param] = generator.actionTable[i][term];
             if (action === 'accept')
                 foundAccept = true;
 
             if (action === 'accept')
-                ACTION_TABLE[i][TERMINAL_IDS[term]] = [0];
+                ACTION_TABLE[i][TERMINAL_IDS[term]] = [0, 0];
             else if (action === 'shift')
                 ACTION_TABLE[i][TERMINAL_IDS[term]] = [1, param];
             else if (action === 'reduce')
@@ -72,21 +84,21 @@ module.exports = function writeout(preamble, generator, output, outputPath) {
 
     output.write(preamble);
     output.write('\n');
-    output.write(`const TERMINAL_IDS = ${JSON.stringify(TERMINAL_IDS)};\n`);
-    output.write(`const RULE_NON_TERMINALS = ${JSON.stringify(RULE_NON_TERMINALS)};\n`);
-    output.write(`const ARITY = ${JSON.stringify(generator.rules.map(([,rhs,]) => rhs.length))};\n`);
-    output.write(`const GOTO = ${JSON.stringify(GOTO_TABLE)};\n`);
-    output.write(`const PARSER_ACTION = ${JSON.stringify(ACTION_TABLE)};\n`);
+    output.write(`const TERMINAL_IDS : $runtime.SymbolTable = ${JSON.stringify(TERMINAL_IDS)};\n`);
+    output.write(`const RULE_NON_TERMINALS : number[] = ${JSON.stringify(RULE_NON_TERMINALS)};\n`);
+    output.write(`const ARITY : number[] = ${JSON.stringify(generator.rules.map(([,rhs,]) => rhs.length))};\n`);
+    output.write(`const GOTO : $runtime.GotoTable = ${JSON.stringify(GOTO_TABLE)};\n`);
+    output.write(`const PARSER_ACTION : $runtime.ActionTable = ${JSON.stringify(ACTION_TABLE)};\n`);
     output.write(`const SEMANTIC_ACTION = [\n`);
-    for (let [,,action] of generator.rules)
+    for (const [,,action] of generator.rules)
         output.write(`(${action}),\n`);
     output.write(`];\n`);
-    output.write(`import $runtime from '${relativeruntimepath}';\n`);
-    output.write(`export default $runtime(TERMINAL_IDS, RULE_NON_TERMINALS, ARITY, GOTO, PARSER_ACTION, SEMANTIC_ACTION);\n`);
+    output.write(`import * as $runtime from '${relativeruntimepath}';\n`);
+    output.write(`export default $runtime.createParser({ TERMINAL_IDS, RULE_NON_TERMINALS, ARITY, GOTO, PARSER_ACTION, SEMANTIC_ACTION });\n`);
     output.end();
 
     return new Promise((resolve, reject) => {
         output.on('finish', resolve);
         output.on('error', reject);
     });
-};
+}

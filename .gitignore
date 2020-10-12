@@ -12,11 +12,11 @@ smt/
 yarn-error.log
 
 lib/grammar.js
-lib/nn-syntax/parser.js
+lib/nn-syntax/parser.ts
 
 tools/meta-sentence-generator/grammar.js
 tools/generate-parser/grammar.js
-test/test_sr_parser_generator.js
+test/test_sr_parser_generator.ts
 
 # json doc
 /out

@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -17,65 +17,55 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const slr = require('./slr_generator');
+import * as slr from './slr_generator';
 
-class Grammar {
-    constructor(comment, initialCode, statements) {
-        this.comment = comment;
-        this.initialCode = initialCode;
-        this.statements = statements;
+export class Grammar {
+    constructor(public comment : string,
+                public initialCode : string,
+                public statements : NonTerminalStmt[]) {
     }
 
     get preamble() {
         return this.comment + this.initialCode;
     }
 }
-exports.Grammar = Grammar;
 
-class Statement {}
-exports.Statement = Statement;
-
-class NonTerminalStmt extends Statement {
-    constructor(name, rules) {
-        super();
-
-        this.isNonTerminal = true;
-        this.name = name;
-        this.rules = rules;
+export class NonTerminalStmt {
+    constructor(public name : string,
+                public rules : Rule[]) {
     }
 }
-Statement.NonTerminal = NonTerminalStmt;
 
-class Import extends Statement {
-    constructor(what) {
-        super();
+export class Rule {
+    type = 'any';
 
-        this.isImport = true;
-        this.what = what;
+    constructor(public head : RuleHeadPart[],
+                public bodyCode : string) {
     }
 }
-Statement.Import = Import;
 
-class Rule {
-    constructor(head, body) {
-        this.head = head;
-        this.bodyCode = body;
-    }
+export abstract class RuleHeadPart {
+    static NonTerminal : typeof NonTerminalRuleHead;
+    static Terminal : typeof TerminalRuleHead;
+    static StringLiteral : typeof StringLiteralRuleHead;
+
+    isNonTerminal = false;
+    isTerminal = false;
+    isStringLiteral = false;
+
+    abstract name : string|null;
+    abstract type : string;
+    abstract getGeneratorInput() : slr.NonTerminal|slr.Terminal;
 }
-exports.Rule = Rule;
-
-class RuleHeadPart {}
-exports.RuleHeadPart = RuleHeadPart;
 
 class NonTerminalRuleHead extends RuleHeadPart {
-    constructor(name, category) {
-        super();
+    type = 'any';
 
+    constructor(public name : string,
+                public category : string) {
+        super();
         this.isNonTerminal = true;
-        this.name = name;
-        this.category = category;
     }
 
     getGeneratorInput() {
@@ -85,12 +75,12 @@ class NonTerminalRuleHead extends RuleHeadPart {
 RuleHeadPart.NonTerminal = NonTerminalRuleHead;
 
 class TerminalRuleHead extends RuleHeadPart {
-    constructor(name, category) {
-        super();
+    type = '$runtime.TokenWrapper<any>';
 
+    constructor(public name : string,
+                public category : string) {
+        super();
         this.isTerminal = true;
-        this.name = name;
-        this.category = category;
     }
 
     getGeneratorInput() {
@@ -100,11 +90,11 @@ class TerminalRuleHead extends RuleHeadPart {
 RuleHeadPart.Terminal = TerminalRuleHead;
 
 class StringLiteralRuleHead extends RuleHeadPart {
-    constructor(value) {
-        super();
+    type = 'string';
 
+    constructor(public value : string) {
+        super();
         this.isStringLiteral = true;
-        this.value = value;
     }
 
     get name() {
