@@ -208,10 +208,22 @@
   resolved "https://registry.yarnpkg.com/@istanbuljs/schema/-/schema-0.1.2.tgz#26520bf09abe4a5644cd5414e37125a8954241dd"
   integrity sha512-tsAQNx32a8CoFhjhijUIhI4kccIAgmGhy8LZMZgGfmXcpMbPRUqn5LWmgRttILi6yeGmBJd2xsPkFMs0PzgPCw==
 
+"@types/byline@^4.2.32":
+  version "4.2.32"
+  resolved "https://registry.yarnpkg.com/@types/byline/-/byline-4.2.32.tgz#9d35ec15968056118548412ee24c2c3026c997dc"
+  integrity sha512-qtlm/J6XOO9p+Ep/ZB5+mCFEDhzWDDHWU4a1eReN7lkPZXW9rkloq2jcAhvKKmlO5tL2GSvKROb+PTsNVhBiyQ==
+  dependencies:
+    "@types/node" "*"
+
 "@types/color-name@^1.1.1":
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/@types/color-name/-/color-name-1.1.1.tgz#1c1261bbeaa10a8055bbc5d8ab84b7b2afc846a0"
   integrity sha512-rr+OQyAjxze7GgWrSaJwydHStIhHq2lvY3BOC2Mj7KnzI7XK0Uw1TOOdI9lDoajEbSWLiYgoo4f1R51erQfhPQ==
+
+"@types/node@*":
+  version "14.11.8"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-14.11.8.tgz#fe2012f2355e4ce08bca44aeb3abbb21cf88d33f"
+  integrity sha512-KPcKqKm5UKDkaYPTuXSx8wEP7vE9GnuaXIZKijwRYcePpZFDVuy2a57LarFKiORbHOuTOOwYzxVxcUzsh2P2Pw==
 
 acorn-jsx@^5.2.0:
   version "5.3.1"
@@ -1848,11 +1860,12 @@ slice-ansi@^2.1.0:
     astral-regex "^1.0.0"
     is-fullwidth-code-point "^2.0.0"
 
-smtlib@^0.1.1:
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/smtlib/-/smtlib-0.1.1.tgz#7aae56f12d14e3e370ffc8d1c5c8e4fe01bae950"
-  integrity sha1-eq5W8S0U4+Nw/8jRxcjk/gG66VA=
+smtlib@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/smtlib/-/smtlib-1.0.0.tgz#a3071b490be7b711859170f3bec9101b7b9b511c"
+  integrity sha512-0gIun6ucwFsUzwLsoLKiTPgElcUQUtqVgfwwRn0zjHBiwAP9mrpzLLiekwJitZiACDGLOOVcy607SxKhYmm0+Q==
   dependencies:
+    "@types/byline" "^4.2.32"
     byline "^5.0.0"
 
 source-map@^0.5.0:
