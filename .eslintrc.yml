@@ -18,10 +18,12 @@ rules:
   no-lonely-if: off
   arrow-body-style: off
   require-yield: off
+  '@typescript-eslint/no-non-null-assertion': off
+  '@typescript-eslint/no-explicit-any': off
 
   # temporary until migration is complete
   '@typescript-eslint/no-this-alias': off
-  '@typescript-eslint/no-explicit-any': off
+  '@typescript-eslint/explicit-module-boundary-types': off
 
   # correctness checks
   strict:
