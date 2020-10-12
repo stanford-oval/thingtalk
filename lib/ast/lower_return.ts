@@ -28,7 +28,6 @@ import {
 import {
     ArgumentDef,
     ArgDirection,
-    ExpressionSignature,
     FunctionDef
 } from './function_def';
 import {
@@ -71,7 +70,7 @@ function makeSendSchema(sendFrom : Stream|Table) : FunctionDef {
         new ArgumentDef(null, ArgDirection.IN_REQ, '__kindChannel', new Type.Entity('tt:function')),
         new ArgumentDef(null, ArgDirection.IN_OPT, '__response', Type.String)
     ];
-    for (const arg of (sendFrom.schema as ExpressionSignature).iterateArguments()) {
+    for (const arg of sendFrom.schema!.iterateArguments()) {
         if (arg.is_input)
             continue;
         args.push(new ArgumentDef(null, ArgDirection.IN_REQ, arg.name, arg.type));
@@ -86,7 +85,7 @@ function makeReceiveSchema(receiveFrom : Stream|Table) : FunctionDef {
         new ArgumentDef(null, ArgDirection.OUT, '__kindChannel', new Type.Entity('tt:function')),
         new ArgumentDef(null, ArgDirection.OUT, '__response', Type.String)
     ];
-    for (const arg of (receiveFrom.schema as ExpressionSignature).iterateArguments()) {
+    for (const arg of receiveFrom.schema!.iterateArguments()) {
         if (arg.is_input)
             continue;
         args.push(new ArgumentDef(null, ArgDirection.OUT, arg.name, arg.type));
@@ -138,7 +137,7 @@ function lowerReturnAction(state : ConversionState,
         new InputParam(null, '__flow', new Value.Number(token)),
         new InputParam(null, '__kindChannel', new Value.Event('type'))
     ];
-    for (const arg of (lastPrimitive.schema as ExpressionSignature).iterateArguments()) {
+    for (const arg of lastPrimitive.schema!.iterateArguments()) {
         if (arg.is_input)
             continue;
         sendInputs.push(new InputParam(null, arg.name, new Value.VarRef(arg.name)));

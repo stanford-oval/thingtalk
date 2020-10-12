@@ -682,12 +682,12 @@ function compileStatementToOp(statement : Ast.Rule|Ast.Command) : RuleOp {
                 addAll(projection, default_projection);
             } else if (action instanceof Ast.InvocationAction) {
                 action.invocation.in_params.forEach((p : Ast.InputParam) => {
-                    addAll(projection, getExpressionParameters(p.value, statementSchema as Ast.ExpressionSignature));
+                    addAll(projection, getExpressionParameters(p.value, statementSchema!));
                 });
             } else {
                 assert(action instanceof Ast.VarRefAction);
                 action.in_params.forEach((p : Ast.InputParam) => {
-                    addAll(projection, getExpressionParameters(p.value, statementSchema as Ast.ExpressionSignature));
+                    addAll(projection, getExpressionParameters(p.value, statementSchema!));
                 });
             }
         });
