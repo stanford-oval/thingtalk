@@ -20,7 +20,8 @@
 
 import Type from '../type';
 
-import { AnyEntity, GenericEntity, EntityMap } from './entities';
+import { SourceRange } from '../utils/source_locations';
+import { AnyEntity, GenericEntity, EntityMap, EntityResolver } from '../entities';
 
 interface FunctionToken {
     kind : string;
@@ -41,9 +42,25 @@ interface GenericEntityToken {
 type TokenValue = AnyEntity | GenericEntityToken | FunctionToken | ContextRefToken;
 
 class TokenWrapper {
+    location : SourceRange;
+
     constructor(public token : string,
                 public value : TokenValue,
-                public location ?: number) {
+                location ?: number) {
+        this.location = {
+            start: {
+                offset: 0,
+                line: 0,
+                column: 0,
+                token: location
+            },
+            end: {
+                offset: 0,
+                line: 0,
+                column: 0,
+                token: location
+            }
+        };
     }
 
     toString() : string {
@@ -56,17 +73,16 @@ function isEntity(token : string) : boolean {
     return /^[A-Z]+_/.test(token);
 }
 
-type EntityFunction = (key : string, lastparam : string|null, lastfunction : string|null, unit : string|null) => AnyEntity;
 
-export default class SequenceLexer implements Iterator<TokenWrapper|string> {
+export default class SequenceLexer implements Iterator<TokenWrapper> {
     private _sequence : string[];
-    private _entities : EntityFunction;
+    private _entities : EntityResolver;
     private _i : number;
     private _lastfunction : string|null;
     private _lastparam : string|null;
     private _instring : boolean;
 
-    constructor(sequence : Iterable<string>, entities : EntityFunction|EntityMap) {
+    constructor(sequence : Iterable<string>, entities : EntityResolver|EntityMap) {
         if (Array.isArray(sequence))
             this._sequence = sequence;
         else
@@ -91,7 +107,7 @@ export default class SequenceLexer implements Iterator<TokenWrapper|string> {
         this._instring = false;
     }
 
-    next() : IteratorResult<TokenWrapper|string> {
+    next() : IteratorResult<TokenWrapper> {
         if (this._i >= this._sequence.length)
             return { done: true, value: undefined };
 
@@ -167,6 +183,9 @@ export default class SequenceLexer implements Iterator<TokenWrapper|string> {
         } else if (next.startsWith('^^')) {
             next = new TokenWrapper('ENTITY_TYPE', token.substring('^^'.length));
         }
+
+        if (typeof next === 'string')
+            next = new TokenWrapper(next, next);
         return { done: false, value: next };
     }
 }

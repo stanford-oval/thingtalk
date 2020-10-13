@@ -18,10 +18,18 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import * as Grammar from './grammar';
 import * as Ast from './ast';
 import type SchemaRetriever from './schema';
 import type Type from './type';
+
+// the old grammar
+import * as Grammar from './grammar';
+
+// the new grammar
+import Parser from './new-syntax/parser';
+import { surfaceLexer } from './new-syntax/lexer';
+import { nnLexer } from './new-syntax/nn-lexer';
+import { EntityMap, EntityResolver } from './entities';
 
 /**
  * APIs to parse surface-syntax ThingTalk code.
@@ -30,15 +38,28 @@ import type Type from './type';
  * @alias Grammar
  */
 
+export enum SyntaxType {
+    Legacy = 0,
+    Normal = 1,
+    Tokenized = 2
+}
+
 /**
  * Parse a string into a ThingTalk {@link Ast}
  *
  * @param {string} code - the ThingTalk code to parse
  * @return {Ast.Input} the parsed program, library or permission rule
  */
-export function parse(code : string) : Ast.Input {
-    // workaround grammar bug with // comments at the end of input
-    return Grammar.parse(code + '\n');
+export function parse(code : string, syntaxType : SyntaxType.Tokenized, entities : EntityMap|EntityResolver) : Ast.Input;
+export function parse(code : string, syntaxType ?: SyntaxType) : Ast.Input;
+export function parse(code : string, syntaxType : SyntaxType = SyntaxType.Legacy, entities ?: EntityMap|EntityResolver) : Ast.Input {
+    if (syntaxType === SyntaxType.Tokenized)
+        return new Parser().parse(nnLexer(code.split(' '), entities!));
+    else if (syntaxType === SyntaxType.Normal)
+        return new Parser().parse(surfaceLexer(code));
+    else
+        // workaround grammar bug with // comments at the end of input
+        return Grammar.parse(code + '\n');
 }
 
 /**
@@ -54,9 +75,16 @@ export function parse(code : string) : Ast.Input {
  * @async
  */
 export function parseAndTypecheck(code : string,
-                                  schemaRetriever : SchemaRetriever, useMeta = false) : Promise<Ast.Input> {
+                                  schemaRetriever : SchemaRetriever,
+                                  useMeta = false,
+                                  syntaxType : SyntaxType = SyntaxType.Legacy,
+                                  entities ?: EntityMap|EntityResolver) : Promise<Ast.Input> {
     // workaround grammar bug with // comments at the end of input
-    const ast = Grammar.parse(code + '\n');
+    let ast;
+    if (syntaxType === SyntaxType.Tokenized)
+        ast = parse(code + '\n', syntaxType, entities!);
+    else
+        ast = parse(code + '\n', syntaxType);
     return ast.typecheck(schemaRetriever, useMeta);
 }
 

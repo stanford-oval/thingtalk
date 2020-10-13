@@ -44,6 +44,9 @@ import {
     InvocationLike
 } from './slots';
 
+import { TokenStream } from '../new-syntax/tokenstream';
+import List from '../utils/list';
+
 /**
  * Base class of all expressions that select a device.
  *
@@ -113,6 +116,42 @@ export class DeviceSelector extends Selector {
         this.attributes = attributes;
 
         this.all = all;
+    }
+
+    toSource() : TokenStream {
+        if (this.id === null && !this.all && this.attributes.length === 0)
+            return List.singleton('@' + this.kind);
+
+        this.attributes.sort((p1, p2) => {
+            if (p1.name < p2.name)
+                return -1;
+            if (p1.name > p2.name)
+                return 1;
+            return 0;
+        });
+
+        const attributes : TokenStream[] = [];
+        if (this.all) {
+            attributes.push(List.concat('all', '=', 'true'));
+        } else if (this.id && this.id !== this.kind) {
+            // note: we omit the device ID if it is identical to the kind (which indicates there can only be
+            // one device of this type in the system)
+            // this reduces the amount of stuff we have to encode/predict for the common cases
+
+            const name = this.attributes.find((attr) => attr.name === 'name');
+            const id = new Value.Entity(this.id, 'tt:device_id', name ? name.value.toJS() as string : null);
+            attributes.push(List.concat('id', '=', id.toSource()));
+        }
+
+        for (const attr of this.attributes) {
+            if (attr.value.isUndefined)
+                continue;
+            if (attr.name === 'name' && this.id)
+                continue;
+
+            attributes.push(List.concat(attr.name, '=', attr.value.toSource()));
+        }
+        return List.concat('@' + this.kind, '(', List.join(attributes, ','), ')');
     }
 
     clone() : DeviceSelector {
@@ -228,6 +267,10 @@ export class InputParam extends Node {
         visitor.exit(this);
     }
 
+    toSource() : TokenStream {
+        return List.concat(this.name, '=', this.value.toSource());
+    }
+
     clone() : InputParam {
         return new InputParam(this.location, this.name, this.value.clone());
     }
@@ -305,6 +348,11 @@ export class Invocation extends Node {
          * @type {Ast.ExpressionSignature|null}
          */
         this.schema = schema;
+    }
+
+    toSource() : TokenStream {
+        return List.concat(this.selector.toSource(), '.', this.channel,
+            '(', List.join(this.in_params.map((ip) => ip.toSource()), ','), ')');
     }
 
     clone() : Invocation {

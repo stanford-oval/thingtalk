@@ -1,0 +1,147 @@
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingTalk
+//
+// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+
+{
+import assert from 'assert';
+import * as Ast from '../ast';
+//import { parseDate } from '../date_utils';
+import { KEYWORDS, FORBIDDEN_KEYWORDS } from './keywords';
+
+/*type DialogueHistoryAnnotation =
+      { key : 'results', value : Ast.DialogueHistoryResultItem[] }
+    | { key : 'error', value : Ast.Value }
+    | { key : 'count', value : Ast.Value }
+    | { key : 'more', value : true };
+*/
+
+function makeInput($ : $runtime.ParserInterface, toplevelstatements : Array<Ast.ClassDef|Ast.Dataset>, otherstatements : Ast.Statement[], annotations : Ast.AnnotationSpec) {
+    const classes : Ast.ClassDef[] = [];
+    const datasets : Ast.Dataset[] = [];
+    const declarations : Ast.Declaration[] = [];
+    const executable : Ast.ExecutableStatement[] = [];
+
+    for (const stmt of toplevelstatements) {
+        if (stmt instanceof Ast.ClassDef)
+            classes.push(stmt);
+        else if (stmt instanceof Ast.Dataset)
+            datasets.push(stmt);
+    }
+
+    if (datasets.length > 0) {
+        if (otherstatements.length > 0)
+            $.error(`Cannot mix dataset with ThingTalk statements other than class`);
+        return new Ast.Library($.location, classes, datasets);
+    }
+    if (classes.length > 0 && otherstatements.length === 0)
+        return new Ast.Library($.location, classes, datasets);
+
+    for (const stmt of otherstatements) {
+        if (stmt instanceof Ast.Declaration) {
+            declarations.push(stmt);
+        } else {
+            assert(stmt instanceof Ast.Rule || stmt instanceof Ast.Command || stmt instanceof Ast.Assignment);
+            executable.push(stmt);
+        }
+    }
+
+    return new Ast.Program($.location, classes, declarations, executable);
+}
+
+function isIdentifier(name : string) {
+    return /^[A-Za-z_][A-Za-z0-9_]*$/.test(name) && !KEYWORDS.has(name) && !FORBIDDEN_KEYWORDS.has(name);
+}
+}
+
+input : Ast.Input = {
+    stmts:statement_list => makeInput($, [], stmts, {});
+}
+
+statement_list : Ast.Statement[] = {
+    stmt:statement => [stmt];
+
+    list:statement_list stmt:statement => {
+        list.push(stmt);
+        return list;
+    };
+}
+
+statement : Ast.Statement = {
+    table:table '=>' 'notify' ';' => new Ast.Statement.Command($.location, table, [Ast.Action.notifyAction()]);
+    table:table '=>' action:action ';' => new Ast.Statement.Command($.location, table, [action]);
+    action:action ';' => new Ast.Statement.Command($.location, null, [action]);
+}
+
+table : Ast.Table = {
+    fn:thingpedia_call => new Ast.Table.Invocation($.location, fn, null);
+}
+
+action : Ast.Action = {
+    fn:thingpedia_call => new Ast.Action.Invocation($.location, fn, null);
+}
+
+thingpedia_call = {
+    name:CLASS_OR_FUNCTION_REF in_params:in_param_list => {
+        const lastDot = name.value.lastIndexOf('.');
+        const className = name.value.substring(0, lastDot);
+        const functionName = name.value.substring(lastDot+1);
+
+        // we check that the function name is a valid identifier because the lexer will greedly parse through things
+        // that are not identifiers but are allowed in the class name
+        if (!isIdentifier(functionName))
+            $.error(`${name.value} is not a valid function name`);
+        return new Ast.Invocation($.location, new Ast.DeviceSelector($.location, className, null, null), functionName, in_params, null);
+    };
+
+    className:CLASS_OR_FUNCTION_REF device_params:in_param_list '.' functionName:IDENTIFIER in_params:in_param_list => {
+        let id : string|null = null, all = false, other = [];
+        for (const attr of device_params) {
+            if (attr.name === 'id') {
+                id = String(attr.value.toJS());
+                const value = attr.value;
+                if (value instanceof Ast.EntityValue && value.display)
+                    other.push(new Ast.InputParam($.location, 'name', new Ast.Value.String(value.display)));
+            } else if (attr.name === 'all') {
+                all = !!attr.value.toJS();
+            } else {
+                other.push(attr);
+            }
+        }
+        const selector = new Ast.DeviceSelector($.location, className.value, id, null, other, all);
+        return new Ast.Invocation($.location, selector, functionName.value, in_params, null);
+    };
+}
+
+in_param_list : Ast.InputParam[] = {
+    '(' ')' => [];
+    '(' in_param_list_nonempty ')' => in_param_list_nonempty;
+}
+
+in_param_list_nonempty : Ast.InputParam[] = {
+    in_param => [in_param];
+    in_param_list_nonempty ',' in_param => in_param_list_nonempty.concat([in_param]);
+}
+
+in_param : Ast.InputParam = {
+    name:IDENTIFIER '=' value => new Ast.InputParam($.location, name.value, value);
+}
+
+value = {
+    str:QUOTED_STRING => new Ast.Value.String(str.value);
+}

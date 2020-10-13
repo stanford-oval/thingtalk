@@ -43,6 +43,9 @@ import Type from '../type';
 import NodeVisitor from './visitor';
 import * as Builtin from '../builtin/defs';
 
+import { TokenStream } from '../new-syntax/tokenstream';
+import List from '../utils/list';
+
 /**
  * The base class of all ThingTalk query expressions.
  *
@@ -135,6 +138,10 @@ export class VarRefTable extends Table {
         this.in_params = in_params;
     }
 
+    toSource() : TokenStream {
+        return List.concat(this.name, '(', List.join(this.in_params.map((ip) => ip.toSource()), ','), ')');
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitVarRefTable(this)) {
@@ -176,6 +183,10 @@ export class InvocationTable extends Table {
 
         assert(invocation instanceof Invocation);
         this.invocation = invocation;
+    }
+
+    toSource() : TokenStream {
+        return this.invocation.toSource();
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -775,6 +786,10 @@ export class VarRefStream extends Stream {
 
         assert(Array.isArray(in_params));
         this.in_params = in_params;
+    }
+
+    toSource() : TokenStream {
+        return List.concat(this.name, '(', List.join(this.in_params.map((ip) => ip.toSource()), ','), ')');
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -1433,6 +1448,10 @@ export class VarRefAction extends Action {
         this.in_params = in_params;
     }
 
+    toSource() : TokenStream {
+        return List.concat(this.name, '(', List.join(this.in_params.map((ip) => ip.toSource()), ','), ')');
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitVarRefAction(this)) {
@@ -1495,6 +1514,10 @@ export class InvocationAction extends Action {
         this.invocation = invocation;
     }
 
+    toSource() : TokenStream {
+        return this.invocation.toSource();
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitInvocationAction(this))
@@ -1548,6 +1571,10 @@ export class NotifyAction extends Action {
 
         // compatibility interface
         this.invocation = new Invocation(null, Selector.Builtin, name, [], this.schema);
+    }
+
+    toSource() : TokenStream {
+        return List.singleton(this.name);
     }
 
     visit(visitor : NodeVisitor) : void {

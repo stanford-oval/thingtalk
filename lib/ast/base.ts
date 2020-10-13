@@ -34,39 +34,19 @@ import type {
     VarRefTable,
     VarRefStream
 } from './primitive';
+import {
+    SourceRange,
+    SourceLocation
+} from '../utils/source_locations';
 
-/**
- * A single point in the source code input stream.
- *
- * @typedef {Object} Ast~SourceLocation
- * @property {number|undefined} offset - the character position in the stream (0-based)
- * @property {number|undefined} line - the line number (1-based)
- * @property {number|undefined} column - the column number (1-based)
- * @property {number|undefined} token - the token index (0-based)
- */
+import { TokenStream } from '../new-syntax/tokenstream';
+import { prettyprint } from '../new-syntax/pretty';
 
-export interface SourceLocation {
-    offset : number|undefined;
-    line : number|undefined;
-    column : number|undefined;
-    token : number|undefined;
-}
-
-/**
- * The interval in the source code covered by a single
- * token or source code span.
- *
- * @typedef {Object} Ast~SourceRange
- * @property {Ast~SourceLocation} start - the beginning of the range
- *           (index of the first character)
- * @property {Ast~SourceLocation} end - the end of the range, immediately
- *           after the end of the range
- */
-
-export interface SourceRange {
-    start : SourceLocation;
-    end : SourceLocation;
-}
+// reexport those types for the benefit of ThingTalk API consumers
+export {
+    SourceRange,
+    SourceLocation
+};
 
 export type NLAnnotationMap = { [key : string] : any };
 export type AnnotationMap = { [key : string] : Value };
@@ -111,20 +91,16 @@ export default abstract class Node {
         this.location = location;
     }
 
-    /* istanbul ignore next */
     /**
      * Traverse the current subtree using the visitor pattern.
      * See {@link Ast.NodeVisitor} for details and example usage.
      *
      * @param {Ast.NodeVisitor} visitor - the visitor to use.
-     * @abstract
      */
     abstract visit(visitor : NodeVisitor) : void;
 
-    /* istanbul ignore next */
     abstract clone() : Node;
 
-    /* istanbul ignore next */
     /**
      * Optimize this AST node.
      *
@@ -134,6 +110,23 @@ export default abstract class Node {
      */
     optimize() : Node|null {
         return this;
+    }
+
+    /* istanbul ignore next */
+    /**
+     * Convert this AST node to a sequence of tokens.
+     */
+    toSource() : TokenStream {
+        // this method should be abstract but that would break everything
+        throw new Error('not implemented');
+    }
+
+    // TODO: rename to prettyprint() when the new syntax becomes the default
+    /**
+     * Convert this AST node to a normalized surface form in ThingTalk.
+     */
+    prettyprint2() {
+        return prettyprint(this.toSource());
     }
 
     /**

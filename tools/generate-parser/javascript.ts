@@ -35,7 +35,7 @@ export default function writeout(preamble : string,
                                  output : stream.Writable,
                                  outputPath : string,
                                  rootType : string) {
-    const runtimePath = require.resolve('../../lib/nn-syntax/sr_parser_runtime');
+    const runtimePath = require.resolve('../../lib/utils/sr_parser_runtime');
     const runtimedir = path.relative(path.dirname(outputPath),
                                      path.dirname(runtimePath));
     const relativeruntimepath = './' + path.join(runtimedir, 'sr_parser_runtime');

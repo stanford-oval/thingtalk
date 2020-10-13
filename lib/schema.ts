@@ -32,7 +32,7 @@ import {
 import { Library } from './ast/program';
 import type { FormatSpec } from './runtime/formatter';
 
-import Cache from './cache';
+import Cache from './utils/cache';
 
 function delay(timeout : number) : Promise<void> {
     return new Promise((resolve, reject) => {

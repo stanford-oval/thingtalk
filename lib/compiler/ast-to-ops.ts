@@ -20,7 +20,7 @@
 
 import assert from 'assert';
 import * as Ast from '../ast';
-import { NotImplementedError } from '../errors';
+import { NotImplementedError } from '../utils/errors';
 import { getScalarExpressionName } from '../utils';
 
 import { PointWiseOp, StreamOp, TableOp, RuleOp, QueryInvocationHints } from './ops';

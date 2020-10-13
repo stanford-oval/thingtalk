@@ -21,7 +21,7 @@
 {
 import assert from 'assert';
 import * as Ast from '../ast';
-import { parseDate } from '../date_utils';
+import { parseDate } from '../utils/date_utils';
 
 type DialogueHistoryAnnotation =
       { key : 'results', value : Ast.DialogueHistoryResultItem[] }
@@ -31,29 +31,11 @@ type DialogueHistoryAnnotation =
 }
 
 /**
- * Differences with the actual NN Grammar (as written in
- * almond-nnparser/grammar/thingtalk.py):
- *
- * - almond-nnparser's grammar distinguishes $get and $do, while
- *   while this one uses just $call
- *   almond-nnparser can do that because it knows the full list of
- *   gets and dos (and knows that they don't interset), whereas here
- *   we have a single FUNCTION token
- * - almond-nnparser's grammar is typed around parameter types and
- *   constants, this one is not because otherwise it would be too unwieldly
- *   to write
- * - almond-nnparser uses different terminals for <entity>_i because
- *   it autogenerates the grammar; this grammar uses a single terminal
- *   <entity> plus a lexical analysis step because I was too lazy to write
- *   down all cases by hand
- *
  * Missing features, compared with full TT:
  * - single statement
- * - no complex selectors
- * - no remote primitives (yet)
  * - no declarations
  * - no alias (in aggregate and as a table/stream operator)
- * - no compute
+ * - limited compute
  *
  * Differences with full TT:
  * - all filter operators are infix
@@ -63,26 +45,16 @@ type DialogueHistoryAnnotation =
  * - enum choices are prefixed with enum:
  * - units are prefixed with unit:
  * - relative locations are prefixed with location:
- *
- * What to keep in mind when writing the grammar:
- * - shifts are cheap, reduces are expensive
- * - adding more symbols to a rule only increases the number of shifts
- * - adding more non-terminals to the grammar increases the number of
- *   reduces
- * - splitting a rule into multiple non-terminals increases the number of
- *   reduces
- * - the breadth of reduces matters too
- * - the overall number of rules affects the breadth of reduces
  */
 
 input : Ast.Input = {
     program;
-    'bookkeeping' 'special' s:SPECIAL => new Ast.Input.Bookkeeping(null, new Ast.BookkeepingIntent.Special(null, s.value));
-    'bookkeeping' 'answer' c:value => new Ast.Input.Bookkeeping(null, new Ast.BookkeepingIntent.Answer(null, c));
-    'bookkeeping' 'filter' f:filter => new Ast.Input.Bookkeeping(null, new Ast.BookkeepingIntent.Predicate(null, f));
-    'bookkeeping' 'category' c:command_category => new Ast.Input.Bookkeeping(null, new Ast.BookkeepingIntent.CommandList(null, new Ast.Value.Undefined(true), c));
-    'bookkeeping' 'commands' c:command_category d:constant_Entity__tt__device => new Ast.Input.Bookkeeping(null, new Ast.BookkeepingIntent.CommandList(null, d, c));
-    'bookkeeping' 'choice' n:literal_integer => new Ast.Input.Bookkeeping(null, new Ast.BookkeepingIntent.Choice(null, n));
+    'bookkeeping' 'special' s:SPECIAL => new Ast.Input.Bookkeeping($.location, new Ast.BookkeepingIntent.Special($.location, s.value));
+    'bookkeeping' 'answer' c:value => new Ast.Input.Bookkeeping($.location, new Ast.BookkeepingIntent.Answer($.location, c));
+    'bookkeeping' 'filter' f:filter => new Ast.Input.Bookkeeping($.location, new Ast.BookkeepingIntent.Predicate($.location, f));
+    'bookkeeping' 'category' c:command_category => new Ast.Input.Bookkeeping($.location, new Ast.BookkeepingIntent.CommandList($.location, new Ast.Value.Undefined(true), c));
+    'bookkeeping' 'commands' c:command_category d:constant_Entity__tt__device => new Ast.Input.Bookkeeping($.location, new Ast.BookkeepingIntent.CommandList(null, d, c));
+    'bookkeeping' 'choice' n:literal_integer => new Ast.Input.Bookkeeping($.location, new Ast.BookkeepingIntent.Choice($.location, n));
 
     'policy' p:policy => p;
 
@@ -110,17 +82,17 @@ command_category : string = {
 
 dialogue_state : Ast.DialogueState = {
     '$dialogue' dialogueAct:FUNCTION ';' history:dialogue_history_item_list => {
-        return new Ast.DialogueState(null, dialogueAct.value.kind, dialogueAct.value.channel, null, history);
+        return new Ast.DialogueState($.location, dialogueAct.value.kind, dialogueAct.value.channel, null, history);
     };
     '$dialogue' dialogueAct:FUNCTION pnames:out_param_list ';' history:dialogue_history_item_list => {
-        return new Ast.DialogueState(null, dialogueAct.value.kind, dialogueAct.value.channel, pnames.map((p : Ast.VarRefValue) => p.name), history);
+        return new Ast.DialogueState($.location, dialogueAct.value.kind, dialogueAct.value.channel, pnames.map((p : Ast.VarRefValue) => p.name), history);
     };
 
     '$dialogue' dialogueAct:FUNCTION ';' => {
-        return new Ast.DialogueState(null, dialogueAct.value.kind, dialogueAct.value.channel, null, []);
+        return new Ast.DialogueState($.location, dialogueAct.value.kind, dialogueAct.value.channel, null, []);
     };
     '$dialogue' dialogueAct:FUNCTION pnames:out_param_list ';' => {
-        return new Ast.DialogueState(null, dialogueAct.value.kind, dialogueAct.value.channel, pnames.map((p : Ast.VarRefValue) => p.name), []);
+        return new Ast.DialogueState($.location, dialogueAct.value.kind, dialogueAct.value.channel, pnames.map((p : Ast.VarRefValue) => p.name), []);
     };
 }
 
@@ -133,16 +105,16 @@ dialogue_history_item_list : Ast.DialogueHistoryItem[] = {
 }
 
 dialogue_history_item : Ast.DialogueHistoryItem = {
-    rule:rule ';' => new Ast.DialogueHistoryItem(null, rule, null, 'accepted');
+    rule:rule ';' => new Ast.DialogueHistoryItem($.location, rule, null, 'accepted');
 
     // note: the syntax here is very hard-coded because we don't want the AST
     // to be generic, otherwise it's hard to manipulate
 
     // results
-    rule:rule results:dialogue_result_annotation_bag ';' => new Ast.DialogueHistoryItem(null, rule, results, 'confirmed');
+    rule:rule results:dialogue_result_annotation_bag ';' => new Ast.DialogueHistoryItem($.location, rule, results, 'confirmed');
 
     // confirm
-    rule:rule '#[' 'confirm' '=' venum:ENUM ']' ';' => new Ast.DialogueHistoryItem(null, rule, null, venum.value);
+    rule:rule '#[' 'confirm' '=' venum:ENUM ']' ';' => new Ast.DialogueHistoryItem($.location, rule, null, venum.value);
 }
 
 dialogue_result_annotation_list : Array<DialogueHistoryAnnotation> = {
@@ -184,7 +156,7 @@ dialogue_result_annotation_bag : Ast.DialogueHistoryResultList = {
         if (count === undefined)
             count = new Ast.Value.Number(results.length);
 
-        return new Ast.DialogueHistoryResultList(null, results, count, more, _error);
+        return new Ast.DialogueHistoryResultList($.location, results, count, more, _error);
     };
 }
 
@@ -201,7 +173,7 @@ dialogue_result_list : Ast.DialogueHistoryResultItem[] = {
 }
 
 dialogue_result_list_nonempty : Ast.DialogueHistoryResultItem[] = {
-    value:object_literal_value => [new Ast.DialogueHistoryResultItem(null, value.value)];
+    value:object_literal_value => [new Ast.DialogueHistoryResultItem($.location, value.value)];
     list:dialogue_result_list ',' value:object_literal_value => {
         list.push(new Ast.DialogueHistoryResultItem(null, value.value));
         return list;
@@ -209,7 +181,7 @@ dialogue_result_list_nonempty : Ast.DialogueHistoryResultItem[] = {
 }
 
 program : Ast.Program = {
-    rule:rule => new Ast.Program(null, [], [], [rule], null);
+    rule:rule => new Ast.Program($.location, [], [], [rule], null);
     'executor' '=' user:value ':' rule => {
         return new Ast.Program(null, [], [], [rule], user);
     };
@@ -226,27 +198,27 @@ policy : Ast.PermissionRule = {
 
 policy_body : Ast.PermissionRule = {
     'now' '=>' action:policy_fn => {
-        return new Ast.PermissionRule(null, Ast.BooleanExpression.True, Ast.PermissionFunction.Builtin, action);
+        return new Ast.PermissionRule($.location, Ast.BooleanExpression.True, Ast.PermissionFunction.Builtin, action);
     };
     query:policy_fn '=>' 'notify' => {
-        return new Ast.PermissionRule(null, Ast.BooleanExpression.True, query, Ast.PermissionFunction.Builtin);
+        return new Ast.PermissionRule($.location, Ast.BooleanExpression.True, query, Ast.PermissionFunction.Builtin);
     };
     query:policy_fn '=>' action:policy_fn => {
-        return new Ast.PermissionRule(null, Ast.BooleanExpression.True, query, action);
+        return new Ast.PermissionRule($.location, Ast.BooleanExpression.True, query, action);
     };
 }
 
 policy_fn : Ast.PermissionFunction = {
     '*' => Ast.PermissionFunction.Star;
-    klass:CLASS_STAR => new Ast.PermissionFunction.ClassStar(null, klass.value);
-    fn:FUNCTION => new Ast.PermissionFunction.Specified(null, fn.value.kind, fn.value.channel, Ast.BooleanExpression.True, null);
-    fn:FUNCTION 'filter' filter => new Ast.PermissionFunction.Specified(null, fn.value.kind, fn.value.channel, filter, null);
+    klass:CLASS_STAR => new Ast.PermissionFunction.ClassStar($.location, klass.value);
+    fn:FUNCTION => new Ast.PermissionFunction.Specified($.location, fn.value.kind, fn.value.channel, Ast.BooleanExpression.True, null);
+    fn:FUNCTION 'filter' filter => new Ast.PermissionFunction.Specified($.location, fn.value.kind, fn.value.channel, filter, null);
 }
 
 rule : Ast.Rule|Ast.Command = {
-    stream '=>' action => new Ast.Statement.Rule(null, stream, [action]);
-    'now' '=>' table '=>' action => new Ast.Statement.Command(null, table, [action]);
-    'now' '=>' action => new Ast.Statement.Command(null, null, [action]);
+    stream '=>' action => new Ast.Statement.Rule($.location, stream, [action]);
+    'now' '=>' table '=>' action => new Ast.Statement.Command($.location, table, [action]);
+    'now' '=>' action => new Ast.Statement.Command($.location, null, [action]);
 
     rule 'on' pp:param_passing => {
         rule = rule.clone();
@@ -269,29 +241,29 @@ scalar_op : 'distance' = {
 }
 
 table : Ast.Table = {
-    call => new Ast.Table.Invocation(null, call, null);
+    call => new Ast.Table.Invocation($.location, call, null);
     '(' table ')' 'filter' filter => {
-        return new Ast.Table.Filter(null, table, filter, table.schema);
+        return new Ast.Table.Filter($.location, table, filter, table.schema);
     };
 
-    'aggregate' op:aggr_op pname:PARAM_NAME 'of' '(' table ')' => new Ast.Table.Aggregation(null, table, pname.value, op, null, null);
-    'aggregate' 'count' 'of' '(' table ')'                     => new Ast.Table.Aggregation(null, table, '*', 'count', null, null);
-    'aggregate' 'count' pname:PARAM_NAME 'of' '(' table ')'    => new Ast.Table.Aggregation(null, table, pname.value, 'count', null, null);
+    'aggregate' op:aggr_op pname:PARAM_NAME 'of' '(' table ')' => new Ast.Table.Aggregation($.location, table, pname.value, op, null, null);
+    'aggregate' 'count' 'of' '(' table ')'                     => new Ast.Table.Aggregation($.location, table, '*', 'count', null, null);
+    'aggregate' 'count' pname:PARAM_NAME 'of' '(' table ')'    => new Ast.Table.Aggregation($.location, table, pname.value, 'count', null, null);
 
-    'sort' pname:PARAM_NAME 'asc' 'of' '(' table ')'           => new Ast.Table.Sort(null, table, pname.value, 'asc', null);
-    'sort' pname:PARAM_NAME 'desc' 'of' '(' table ')'          => new Ast.Table.Sort(null, table, pname.value, 'desc', null);
-    '(' table ')' '[' indices:array_literal_values ']'       => new Ast.Table.Index(null, table, indices, null);
-    '(' table ')' '[' base:value ':' delta:value ']'    => new Ast.Table.Slice(null, table, base, delta, null);
+    'sort' pname:PARAM_NAME 'asc' 'of' '(' table ')'           => new Ast.Table.Sort($.location, table, pname.value, 'asc', null);
+    'sort' pname:PARAM_NAME 'desc' 'of' '(' table ')'          => new Ast.Table.Sort($.location, table, pname.value, 'desc', null);
+    '(' table ')' '[' indices:array_literal_values ']'       => new Ast.Table.Index($.location, table, indices, null);
+    '(' table ')' '[' base:value ':' delta:value ']'    => new Ast.Table.Slice($.location, table, base, delta, null);
 
-    '[' pnames:out_param_list ']' 'of' '(' table ')'          => new Ast.Table.Projection(null, table, pnames.map((p : Ast.VarRefValue) => p.name), null);
+    '[' pnames:out_param_list ']' 'of' '(' table ')'          => new Ast.Table.Projection($.location, table, pnames.map((p : Ast.VarRefValue) => p.name), null);
 
-    'compute' expr:non_ambiguous_value 'of' '(' table ')'       => new Ast.Table.Compute(null, table, expr, null, null);
+    'compute' expr:non_ambiguous_value 'of' '(' table ')'       => new Ast.Table.Compute($.location, table, expr, null, null);
 
     table_join;
 }
 
 table_join : Ast.JoinTable = {
-    '(' t1:table ')' 'join' '(' t2:table ')' => new Ast.Table.Join(null, t1, t2, [], null);
+    '(' t1:table ')' 'join' '(' t2:table ')' => new Ast.Table.Join($.location, t1, t2, [], null);
     join:table_join 'on' pp:param_passing => {
         join = join.clone();
         join.in_params.push(pp);
@@ -300,37 +272,37 @@ table_join : Ast.JoinTable = {
 }
 
 stream : Ast.Stream = {
-    'timer' 'base' '=' base:value ',' 'interval' '=' interval:value => new Ast.Stream.Timer(null, base, interval, null, null);
-    'timer' 'base' '=' base:value ',' 'interval' '=' interval:value ',' 'frequency' '=' frequency:value => new Ast.Stream.Timer(null, base, interval, frequency, null);
-    'attimer' 'time' '=' time:value => new Ast.Stream.AtTimer(null, time instanceof Ast.ArrayValue ? time.value : [time], null, null);
-    'attimer' 'time' '=' time:value ',' 'expiration_date' '=' expiration_date:value => new Ast.Stream.AtTimer(null, time instanceof Ast.ArrayValue ? time.value : [time], expiration_date, null);
+    'timer' 'base' '=' base:value ',' 'interval' '=' interval:value => new Ast.Stream.Timer($.location, base, interval, null, null);
+    'timer' 'base' '=' base:value ',' 'interval' '=' interval:value ',' 'frequency' '=' frequency:value => new Ast.Stream.Timer($.location, base, interval, frequency, null);
+    'attimer' 'time' '=' time:value => new Ast.Stream.AtTimer($.location, time instanceof Ast.ArrayValue ? time.value : [time], null, null);
+    'attimer' 'time' '=' time:value ',' 'expiration_date' '=' expiration_date:value => new Ast.Stream.AtTimer($.location, time instanceof Ast.ArrayValue ? time.value : [time], expiration_date, null);
 
-    'monitor' '(' table ')' => new Ast.Stream.Monitor(null, table, null, null);
+    'monitor' '(' table ')' => new Ast.Stream.Monitor($.location, table, null, null);
     'monitor' '(' table ')' 'on' 'new' pname:out_param => {
-        return new Ast.Stream.Monitor(null, table, [pname.name], null);
+        return new Ast.Stream.Monitor($.location, table, [pname.name], null);
     };
 
     'monitor' '(' table ')' 'on' 'new' '[' pnames:out_param_list ']' => {
-        return new Ast.Stream.Monitor(null, table, pnames.map((p : Ast.VarRefValue) => p.name), null);
+        return new Ast.Stream.Monitor($.location, table, pnames.map((p : Ast.VarRefValue) => p.name), null);
     };
 
     'edge' '(' stream ')' 'on' filter => {
-        return new Ast.Stream.EdgeFilter(null, stream, filter, null);
+        return new Ast.Stream.EdgeFilter($.location, stream, filter, null);
     };
 
     // edge on true is the equivalent of "only once"
-    'edge' '(' stream ')' 'on' 'true' => new Ast.Stream.EdgeFilter(null, stream, Ast.BooleanExpression.True, null);
+    'edge' '(' stream ')' 'on' 'true' => new Ast.Stream.EdgeFilter($.location, stream, Ast.BooleanExpression.True, null);
 
-    '[' pnames:out_param_list ']' 'of' '(' stream ')'          => new Ast.Stream.Projection(null, stream, pnames.map((p : Ast.VarRefValue) => p.name), null);
+    '[' pnames:out_param_list ']' 'of' '(' stream ')'          => new Ast.Stream.Projection($.location, stream, pnames.map((p : Ast.VarRefValue) => p.name), null);
 
-    'compute' expr:non_ambiguous_value 'of' '(' stream ')'       => new Ast.Stream.Compute(null, stream, expr, null, null);
+    'compute' expr:non_ambiguous_value 'of' '(' stream ')'       => new Ast.Stream.Compute($.location, stream, expr, null, null);
 
     stream_join;
 }
 
 stream_join : Ast.JoinStream = {
-    '(' stream ')' '=>' '(' table ')' => new Ast.Stream.Join(null, stream, table, [], null);
-    '(' stream ')' 'join' '(' table ')' => new Ast.Stream.Join(null, stream, table, [], null);
+    '(' stream ')' '=>' '(' table ')' => new Ast.Stream.Join($.location, stream, table, [], null);
+    '(' stream ')' 'join' '(' table ')' => new Ast.Stream.Join($.location, stream, table, [], null);
     join:stream_join 'on' pp:param_passing => {
         join = join.clone();
         join.in_params.push(pp);
@@ -339,13 +311,13 @@ stream_join : Ast.JoinStream = {
 }
 
 action : Ast.NotifyAction|Ast.InvocationAction = {
-    'notify' => new Ast.Action.Notify(null, 'notify', null);
-    'return' => new Ast.Action.Notify(null, 'return', null);
-    call => new Ast.Action.Invocation(null, call, null);
+    'notify' => new Ast.Action.Notify($.location, 'notify', null);
+    'return' => new Ast.Action.Notify($.location, 'return', null);
+    call => new Ast.Action.Invocation($.location, call, null);
 }
 
 selector : [Ast.DeviceSelector, string] = {
-    fn:FUNCTION => [new Ast.Selector.Device(null, fn.value.kind, null, null), fn.value.channel];
+    fn:FUNCTION => [new Ast.Selector.Device($.location, fn.value.kind, null, null), fn.value.channel];
 
     selector attr:device_attribute => {
         const [sel,] = selector;
@@ -364,13 +336,13 @@ selector : [Ast.DeviceSelector, string] = {
 }
 
 device_attribute : Ast.InputParam = {
-    pname:ATTRIBUTE_NAME '=' v:value => new Ast.InputParam(null, pname.value, v);
+    pname:ATTRIBUTE_NAME '=' v:value => new Ast.InputParam($.location, pname.value, v);
 }
 
 call : Ast.Invocation = {
     selector => {
         const [sel, chan] = selector;
-        return new Ast.Invocation(null, sel, chan, [], null);
+        return new Ast.Invocation($.location, sel, chan, [], null);
     };
     inv:call ip:const_param => {
         inv = inv.clone();
@@ -380,11 +352,11 @@ call : Ast.Invocation = {
 }
 
 param_passing : Ast.InputParam = {
-    pname:PARAM_NAME '=' out_param => new Ast.InputParam(null, pname.value, out_param);
-    pname:PARAM_NAME '=' 'event' => new Ast.InputParam(null, pname.value, new Ast.Value.Event(null));
+    pname:PARAM_NAME '=' out_param => new Ast.InputParam($.location, pname.value, out_param);
+    pname:PARAM_NAME '=' 'event' => new Ast.InputParam($.location, pname.value, new Ast.Value.Event(null));
 }
 
-const_param : Ast.InputParam = pname:PARAM_NAME '=' v:value => new Ast.InputParam(null, pname.value, v);
+const_param : Ast.InputParam = pname:PARAM_NAME '=' v:value => new Ast.InputParam($.location, pname.value, v);
 
 out_param : Ast.VarRefValue = pname:PARAM_NAME => new Ast.Value.VarRef(pname.value);
 
@@ -403,33 +375,33 @@ out_param_list : Ast.VarRefValue[] = {
 // "condition and (this or that) and (foo or bar)"
 filter : Ast.BooleanExpression = {
     or_filter;
-    f1:filter 'and' f2:or_filter => new Ast.BooleanExpression.And(null, [f1, f2]);
+    f1:filter 'and' f2:or_filter => new Ast.BooleanExpression.And($.location, [f1, f2]);
 }
 
 or_filter : Ast.BooleanExpression = {
     unary_filter;
-    f1:or_filter 'or' f2:unary_filter => new Ast.BooleanExpression.Or(null, [f1, f2]);
+    f1:or_filter 'or' f2:unary_filter => new Ast.BooleanExpression.Or($.location, [f1, f2]);
 }
 
 unary_filter : Ast.BooleanExpression = {
     atom_filter;
-    'not' f:atom_filter => new Ast.BooleanExpression.Not(null, f);
+    'not' f:atom_filter => new Ast.BooleanExpression.Not($.location, f);
 }
 
 atom_filter : Ast.BooleanExpression = {
-    'true' pname:PARAM_NAME => new Ast.BooleanExpression.DontCare(null, pname.value);
+    'true' pname:PARAM_NAME => new Ast.BooleanExpression.DontCare($.location, pname.value);
 
     pname:PARAM_NAME op:comparison_op rhs:value => {
-        return new Ast.BooleanExpression.Atom(null, pname.value, op, rhs);
+        return new Ast.BooleanExpression.Atom($.location, pname.value, op, rhs);
     };
     lhs:non_ambiguous_value op:comparison_op rhs:value => {
         if (lhs instanceof Ast.VarRefValue)
-            return new Ast.BooleanExpression.Atom(null, lhs.name, op, rhs);
+            return new Ast.BooleanExpression.Atom($.location, lhs.name, op, rhs);
         else
-            return new Ast.BooleanExpression.Compute(null, lhs, op, rhs);
+            return new Ast.BooleanExpression.Compute($.location, lhs, op, rhs);
     };
     fn:call '{' filter '}' => {
-        return new Ast.BooleanExpression.External(null, fn.selector, fn.channel, fn.in_params, filter, null);
+        return new Ast.BooleanExpression.External($.location, fn.selector, fn.channel, fn.in_params, filter, null);
     };
 }
 

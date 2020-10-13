@@ -21,7 +21,7 @@
 import assert from 'assert';
 import * as Grammar from '../grammar';
 import { typeCheckProgram } from '../typecheck';
-import { NotCompilableError, NotImplementedError } from '../errors';
+import { NotCompilableError, NotImplementedError } from '../utils/errors';
 import * as Ast from '../ast';
 import { TypeMap } from '../type';
 

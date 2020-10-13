@@ -50,7 +50,7 @@
 
 {
   const Ast = require('./meta_ast');
-  const { stringEscape } = require('../../lib/escaping');
+  const { stringEscape } = require('../../lib/utils/escaping');
 
   function take(array, idx) {
       return array.map(function(v) { return v[idx]; });

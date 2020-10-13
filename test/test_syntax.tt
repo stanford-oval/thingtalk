@@ -1,0 +1,14 @@
+// -* mode: js -*-
+
+// an action
+@com.twitter.post();
+
+====
+
+// a query
+@com.twitter.home_timeline() => notify;
+
+====
+
+// query + action
+@com.twitter.home_timeline() => @com.twitter.post();

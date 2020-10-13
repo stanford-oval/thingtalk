@@ -23,7 +23,7 @@ import * as util from 'util';
 
 import * as Ast from '../ast';
 
-import { parseDate } from '../date_utils';
+import { parseDate } from '../utils/date_utils';
 import {
     EntityMap,
     MeasureEntity,
@@ -32,9 +32,9 @@ import {
     DateEntity,
     GenericEntity,
     AnyEntity
-} from './entities';
+} from '../entities';
 
-import List from './list';
+import List from '../utils/list';
 
 // convert AST values to on-the-wire entities, as returned by almond-tokenizer
 // the two are mostly the same, except for some weird historical stuff where

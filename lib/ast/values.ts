@@ -22,7 +22,7 @@ import assert from 'assert';
 import * as Units from 'thingtalk-units';
 
 import Type, { TypeMap, EntityType, MeasureType, ArrayType } from '../type';
-import { normalizeDate } from '../date_utils';
+import { normalizeDate } from '../utils/date_utils';
 import AstNode from './base';
 import NodeVisitor from './visitor';
 import { BooleanExpression } from './expression';
@@ -31,11 +31,11 @@ import type { ArgumentDef } from './function_def';
 import * as builtin from '../builtin/values';
 
 export abstract class Location {
-    static Absolute : any;
+    static Absolute : typeof AbsoluteLocation;
     isAbsolute ! : boolean;
-    static Relative : any;
+    static Relative : typeof RelativeLocation;
     isRelative ! : boolean;
-    static Unresolved : any;
+    static Unresolved : typeof UnresolvedLocation;
     isUnresolved ! : boolean;
 
     abstract clone() : Location;
@@ -199,9 +199,9 @@ export class WeekDayDate {
 }
 
 export abstract class Time {
-    static Absolute : any;
+    static Absolute : typeof AbsoluteTime;
     isAbsolute ! : boolean;
-    static Relative : any;
+    static Relative : typeof RelativeTime;
     isRelative ! : boolean;
 
     abstract clone() : Time;

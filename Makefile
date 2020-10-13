@@ -11,6 +11,7 @@ all = \
 	$(patsubst %.po,%.mo,$(wildcard po/*.po)) \
 	tools/generate-parser/grammar.js \
 	lib/nn-syntax/parser.ts \
+	lib/new-syntax/parser.ts \
 	lib/grammar.js \
 	test/test_sr_parser_generator.ts
 

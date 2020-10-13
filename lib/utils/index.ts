@@ -18,8 +18,8 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import * as Ast from './ast';
-import type SchemaRetriever from './schema';
+import * as Ast from '../ast';
+import type SchemaRetriever from '../schema';
 
 export function clean(name : string) : string {
     if (/^[vwgp]_/.test(name))

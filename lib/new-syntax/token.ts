@@ -2,7 +2,7 @@
 //
 // This file is part of ThingTalk
 //
-// Copyright 2018-2019 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2019-2020 The Board of Trustees of the Leland Stanford Junior University
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,11 +18,32 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-export class NotImplementedError extends Error {
-    constructor(construct : string) {
-        super('NOT IMPLEMENTED: ' + construct);
-    }
+import { SourceRange } from '../utils/source_locations';
+import {
+    AnyEntity
+} from '../entities';
+import Type from '../type';
+
+interface ContextRefToken {
+    name : string;
+    type : Type;
 }
 
-export class NotCompilableError extends Error {
+interface GenericEntityToken {
+    name : string;
+    value : string;
+    type : string;
+}
+
+type TokenValue = AnyEntity | GenericEntityToken | ContextRefToken;
+
+export class Token {
+    constructor(public token : string,
+                public location : SourceRange,
+                public value : TokenValue|null) {
+    }
+
+    toString() : string {
+        return this.token;
+    }
 }

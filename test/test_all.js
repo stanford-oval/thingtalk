@@ -41,6 +41,7 @@ seq([
     ('./test_compound_type'),
     ('./test_prettyprint'),
     ('./test_grammar'),
+    ('./test_new_grammar'),
     ('./test_optimize'),
     ('./test_typecheck'),
     ('./test_sparql_converter'),

@@ -18,7 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import * as Ast from '../ast';
+import * as Ast from './ast';
 
 export interface MeasureEntity {
     unit : string;
@@ -60,3 +60,24 @@ export type AnyEntity =
     undefined;
 
 export type EntityMap = { [key : string] : AnyEntity };
+export type EntityResolver = (key : string, lastparam : string|null, lastfunction : string|null, unit : string|null) => AnyEntity;
+
+export type EntityType =
+    'QUOTED_STRING' | 'NUMBER' | 'MEASURE' | 'LOCATION' | 'DATE' | 'TIME' | 'CURRENCY'
+    | 'PICTURE' | 'USERNAME' | 'HASHTAG' | 'URL' | 'PHONE_NUMBER' | 'EMAIL_ADDRESS' | 'PATH_NAME'
+    | 'GENERIC_ENTITY' | 'SLOT'
+
+export type StringLikeEntityType =
+    'QUOTED_STRING' | 'PICTURE' | 'USERNAME' | 'HASHTAG' | 'URL' | 'PHONE_NUMBER' | 'EMAIL_ADDRESS' | 'PATH_NAME';
+
+export type TypeOfEntity<K extends EntityType> =
+    K extends StringLikeEntityType ? string :
+    K extends 'NUMBER' ? number :
+    K extends 'MEASURE'|'CURRENCY' ? MeasureEntity :
+    K extends 'LOCATION' ? LocationEntity :
+    K extends 'DATE' ? (Date|DateEntity) :
+    K extends 'TIME' ? TimeEntity :
+    K extends 'GENERIC_ENTITY' ? GenericEntity :
+    K extends 'SLOT' ? (Ast.Value|undefined)
+    : never;
+

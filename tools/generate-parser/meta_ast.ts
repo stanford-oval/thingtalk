@@ -19,6 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import * as slr from './slr_generator';
+import { stringEscape } from '../../lib/utils/escaping';
 
 export class Grammar {
     constructor(public comment : string,
@@ -89,10 +90,6 @@ class TerminalRuleHead extends RuleHeadPart {
     }
 }
 RuleHeadPart.Terminal = TerminalRuleHead;
-
-function stringEscape(str : string) : string {
-    return '"' + str.replace(/(["\\])/g, '\\$1').replace(/\n/g, '\\n').replace(/\r/g, '\\r') + '"';
-}
 
 class StringLiteralRuleHead extends RuleHeadPart {
     type : string;

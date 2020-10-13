@@ -20,7 +20,7 @@
 
 import assert from 'assert';
 
-import { DateEdge, DatePiece, WeekDayDate, AbsoluteTime } from './ast/values';
+import { DateEdge, DatePiece, WeekDayDate, AbsoluteTime } from '../ast/values';
 
 const TIME_UNITS = ['ms', 's', 'min', 'h', 'day', 'week', 'mon', 'year'];
 const SET_ZERO : Array<(d : Date) => void> = [(d) => {},

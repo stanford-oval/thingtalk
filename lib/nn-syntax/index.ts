@@ -36,7 +36,7 @@ import {
     DateEntity,
     EntityMap,
     AnyEntity
-} from './entities';
+} from '../entities';
 import applyCompatibility from './compat';
 
 /**

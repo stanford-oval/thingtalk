@@ -22,6 +22,9 @@
 // This is the runtime component of tools/generate_parser.js
 // (and expects tables generated in the form of tools/generate_parser.js)
 
+import { SourceRange } from './source_locations';
+import { ThingTalkSyntaxError } from './errors';
+
 const EOF_TOKEN = ' 1EOF';
 
 const enum ParserAction {
@@ -35,6 +38,7 @@ export type GotoTable = { [key : number] : { [key : number] : number } };
 export type SymbolTable = { [key : string] : number };
 
 export interface ParserInterface {
+    location : SourceRange|null;
     error(msg : string) : never;
 }
 
@@ -62,14 +66,8 @@ function findExpected(actions : { [key : number] : [ParserAction, number] }, ter
     return ret;
 }
 
-class ThingTalkSyntaxError extends Error {
-    constructor(message : string, public location : number|null = null) {
-        super(message);
-    }
-}
-
 interface Parser<RootType> {
-    parse(sequence : Iterable<string|TokenWrapper<unknown>>) : RootType;
+    parse(sequence : Iterable<TokenWrapper<unknown>>) : RootType;
 }
 
 export interface ParserConstructor<RootType> {
@@ -79,24 +77,57 @@ export interface ParserConstructor<RootType> {
 export interface TokenWrapper<T> {
     token : string;
     value : T;
-    location ?: number;
+    location : SourceRange|null;
+}
+
+function mergeRanges(l1 : SourceRange|null, l2 : SourceRange|null) : SourceRange|null {
+    if (l1 === null)
+        return l2;
+    if (l2 === null)
+        return l1;
+
+    return {
+        start: {
+            offset: Math.min(l1.start.offset, l2.start.offset),
+            line: Math.min(l1.start.line, l2.start.line),
+            column: Math.min(l1.start.column, l2.start.column),
+            token: Math.min(l1.start.token!, l2.start.token!),
+        },
+        end: {
+            offset: Math.max(l1.end.offset, l2.end.offset),
+            line: Math.max(l1.end.line, l2.end.line),
+            column: Math.max(l1.end.column, l2.end.column),
+            token: Math.max(l1.end.token!, l2.end.token!),
+        }
+    };
 }
 
 export function createParser<RootType>({ TERMINAL_IDS, RULE_NON_TERMINALS, ARITY, GOTO, PARSER_ACTION, SEMANTIC_ACTION } : ParserConfig) : ParserConstructor<RootType> {
     return class ShiftReduceParser {
-        private _helper(sequence : Iterable<string|TokenWrapper<any>>, applySemanticAction : boolean) : [number[], RootType] {
+        private _helper(sequence : Iterable<TokenWrapper<any>>, applySemanticAction : boolean) : [number[], RootType] {
             const iterator = sequence[Symbol.iterator]();
 
             let state = 0;
             const stack : number[] = [0];
             const results : any[] = [null];
             const output : number[] = [];
-            let currentLocation : number|null = null;
+            const locations : Array<SourceRange|null> = [null];
+            let currentLocation : SourceRange|null = null;
+            let tokenno = 0;
+
             let { done, value:nextToken } = iterator.next();
-            if (!done)
-                currentLocation = nextToken.location || null;
+            if (!done) {
+                currentLocation = nextToken.location;
+                if (currentLocation) {
+                    currentLocation.start.token = tokenno;
+                    currentLocation.end.token = tokenno + 1;
+                }
+                tokenno++;
+            }
 
             const $ = {
+                location: currentLocation,
+
                 error(msg : string) {
                     throw new ThingTalkSyntaxError(msg, currentLocation);
                 }
@@ -119,13 +150,20 @@ export function createParser<RootType>({ TERMINAL_IDS, RULE_NON_TERMINALS, ARITY
                     stack.push(state);
                     results.push(nextToken);
                     ({ done, value:nextToken } = iterator.next());
-                    if (!done)
-                        currentLocation = nextToken.location || null;
+                    if (!done) {
+                        currentLocation = nextToken.location;
+                        if (currentLocation) {
+                            currentLocation.start.token = tokenno;
+                            currentLocation.end.token = tokenno + 1;
+                        }
+                        tokenno++;
+                    }
                 } else { // reduce
                     const ruleId = param;
                     output.push(ruleId);
                     const arity = ARITY[ruleId];
                     const args = results.slice(results.length-arity, results.length);
+                    const locs = locations.slice(locations.length-arity, locations.length);
                     stack.length -= arity;
                     results.length -= arity;
                     state = stack[stack.length-1];
@@ -135,6 +173,12 @@ export function createParser<RootType>({ TERMINAL_IDS, RULE_NON_TERMINALS, ARITY
                     stack.push(nextState);
                     if (applySemanticAction) {
                         const action = SEMANTIC_ACTION[ruleId];
+
+                        let ruleLocation : SourceRange|null = null;
+                        for (const loc of locs)
+                            ruleLocation = mergeRanges(ruleLocation, loc);
+
+                        $.location = ruleLocation;
                         results.push(action($, ...args));
                     } else {
                         results.push(null);
@@ -143,12 +187,12 @@ export function createParser<RootType>({ TERMINAL_IDS, RULE_NON_TERMINALS, ARITY
             }
         }
 
-        parse(sequence : Iterable<string|TokenWrapper<any>>) : RootType {
+        parse(sequence : Iterable<TokenWrapper<any>>) : RootType {
             const [, ast] = this._helper(sequence, true);
             return ast;
         }
 
-        getReduceSequence(sequence : Iterable<string|TokenWrapper<any>>) : number[] {
+        getReduceSequence(sequence : Iterable<TokenWrapper<any>>) : number[] {
             const [reduces, ] = this._helper(sequence, false);
             return reduces;
         }

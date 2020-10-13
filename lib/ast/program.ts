@@ -55,6 +55,9 @@ import convertToPermissionRule from './convert_to_permission_rule';
 import lowerReturn, { Messaging } from './lower_return';
 import SchemaRetriever from '../schema';
 
+import { TokenStream } from '../new-syntax/tokenstream';
+import List from '../utils/list';
+
 /**
  * The base class of all AST nodes that represent complete ThingTalk
  * statements.
@@ -462,6 +465,14 @@ export class Command extends Statement {
         this.actions = actions;
     }
 
+    toSource() {
+        assert(this.actions.length === 1);
+        if (this.table)
+            return List.concat(this.table.toSource(), '=>', this.actions[0].toSource(), ';');
+        else
+            return List.concat(this.actions[0].toSource(), ';');
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitCommand(this)) {
@@ -772,6 +783,17 @@ export class Program extends Input {
         this.principal = principal;
         assert(Array.isArray(oninputs));
         this.oninputs = oninputs;
+    }
+
+    toSource() : TokenStream {
+        let input : TokenStream = List.Nil;
+        for (const classdef of this.classes)
+            input = List.concat(input, classdef.toSource());
+        for (const decl of this.declarations)
+            input = List.concat(input, decl.toSource());
+        for (const stmt of this.rules)
+            input = List.concat(input, stmt.toSource());
+        return input;
     }
 
     visit(visitor : NodeVisitor) : void {
