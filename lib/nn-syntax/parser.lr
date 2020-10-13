@@ -317,7 +317,7 @@ action : Ast.NotifyAction|Ast.InvocationAction = {
 }
 
 selector : [Ast.DeviceSelector, string] = {
-    fn:FUNCTION => [new Ast.Selector.Device($.location, fn.value.kind, null, null), fn.value.channel];
+    fn:FUNCTION => [new Ast.DeviceSelector($.location, fn.value.kind, null, null), fn.value.channel];
 
     selector attr:device_attribute => {
         const [sel,] = selector;

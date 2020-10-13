@@ -234,10 +234,6 @@ export default abstract class NodeVisitor {
         return true;
     }
     /* istanbul ignore next */
-    visitBuiltinSelector(node : Exp.BuiltinSelector) : boolean {
-        return true;
-    }
-    /* istanbul ignore next */
     visitInputParam(node : Exp.InputParam) : boolean {
         return true;
     }

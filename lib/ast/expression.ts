@@ -48,35 +48,14 @@ import { TokenStream } from '../new-syntax/tokenstream';
 import List from '../utils/list';
 
 /**
- * Base class of all expressions that select a device.
+ * An expression that maps to one or more devices in Thingpedia.
  *
  * Selectors correspond to the `@`-device part of the ThingTalk code,
  * up to but not including the function name.
  *
- * @alias Ast.Selector
- * @extends Ast~Node
- * @property {boolean} isDevice - true if this is an instance of {@link Ast.Selector.Device}
- * @property {boolean} isBuiltin - true if this is {@link Ast.Selector.Builtin}
+ * @alias Ast.DeviceSelector
  */
-export abstract class Selector extends Node {
-    static Device : any;
-    isDevice ! : boolean;
-    static Builtin : any;
-    isBuiltin ! : boolean;
-
-    abstract clone() : Selector;
-    abstract equals(other : Selector) : boolean;
-}
-Selector.prototype.isDevice = false;
-Selector.prototype.isBuiltin = false;
-
-/**
- * A selector that maps to one or more devices in Thingpedia.
- *
- * @alias Ast.Selector.Device
- * @extends Ast.Selector
- */
-export class DeviceSelector extends Selector {
+export class DeviceSelector extends Node {
     kind : string;
     id : string|null;
     principal : null;
@@ -159,7 +138,7 @@ export class DeviceSelector extends Selector {
         return new DeviceSelector(this.location, this.kind, this.id, this.principal, attributes, this.all);
     }
 
-    equals(other : Selector) : boolean {
+    equals(other : DeviceSelector) : boolean {
         return other instanceof DeviceSelector &&
             this.kind === other.kind &&
             this.id === other.id &&
@@ -180,43 +159,6 @@ export class DeviceSelector extends Selector {
         return `Device(${this.kind}, ${this.id ? this.id : ''}, )`;
     }
 }
-DeviceSelector.prototype.isDevice = true;
-Selector.Device = DeviceSelector;
-
-export class BuiltinSelector extends Selector {
-    constructor() {
-        super(null);
-    }
-
-    clone() : BuiltinSelector {
-        return this;
-    }
-
-    equals(other : Selector) : boolean {
-        return this === other;
-    }
-
-    visit(visitor : NodeVisitor) : void {
-        visitor.enter(this);
-        visitor.visitBuiltinSelector(this);
-        visitor.exit(this);
-    }
-
-    toString() : string {
-        return 'Builtin';
-    }
-}
-BuiltinSelector.prototype.isBuiltin = true;
-
-/**
- * A selector that maps the builtin `notify`, `return` and `save` functions.
- *
- * This is a singleton, not a class.
- *
- * @alias Ast.Selector.Builtin
- * @readonly
- */
-Selector.Builtin = new BuiltinSelector();
 
 /**
  * AST node corresponding to an input parameter passed to a function.
@@ -293,7 +235,7 @@ export class InputParam extends Node {
  */
 export class Invocation extends Node {
     isInvocation = true;
-    selector : Selector;
+    selector : DeviceSelector;
     channel : string;
     in_params : InputParam[];
     schema : ExpressionSignature|null;
@@ -303,24 +245,22 @@ export class Invocation extends Node {
      * Construct a new invocation.
      *
      * @param location - the position of this node in the source code
-     * @param {Ast.Selector} selector - the selector choosing where the function is invoked
+     * @param {Ast.DeviceSelector} selector - the selector choosing where the function is invoked
      * @param {string} channel - the function name
      * @param {Ast.InputParam[]} in_params - input parameters passed to the function
      * @param {Ast.ExpressionSignature|null} schema - type signature of the invoked function
      * @property {boolean} isInvocation - true
      */
     constructor(location : SourceRange|null,
-                selector : Selector,
+                selector : DeviceSelector,
                 channel : string,
                 in_params : InputParam[],
                 schema : ExpressionSignature|null) {
         super(location);
 
-        assert(selector instanceof Selector);
+        assert(selector instanceof DeviceSelector);
         /**
          * The selector choosing where the function is invoked.
-         * @type {Ast.Selector}
-         * @readonly
          */
         this.selector = selector;
 
@@ -399,7 +339,7 @@ export class Invocation extends Node {
      * @param {Object.<string, Ast~SlotScopeItem>} scope - available names for parameter passing
      * @yields {Ast~AbstractSlot}
      */
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike, ScopeMap]> {
         if (this.selector instanceof DeviceSelector) {
             for (const attr of this.selector.attributes)
                 yield new DeviceAttributeSlot(this, attr);
@@ -506,7 +446,7 @@ export abstract class BooleanExpression extends Node {
      */
     abstract iterateSlots2(schema : ExpressionSignature|null,
                            prim : InvocationLike|null,
-                           scope : ScopeMap) : Generator<Selector|AbstractSlot, void>;
+                           scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void>;
 }
 BooleanExpression.prototype.isAnd = false;
 BooleanExpression.prototype.isOr = false;
@@ -588,7 +528,7 @@ export class AndBooleanExpression extends BooleanExpression {
 
     *iterateSlots2(schema : ExpressionSignature|null,
                    prim : InvocationLike|null,
-                   scope : ScopeMap) : Generator<Selector|AbstractSlot, void> {
+                   scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
         for (const op of this.operands)
             yield* op.iterateSlots2(schema, prim, scope);
     }
@@ -650,7 +590,7 @@ export class OrBooleanExpression extends BooleanExpression {
 
     *iterateSlots2(schema : ExpressionSignature|null,
                    prim : InvocationLike|null,
-                   scope : ScopeMap) : Generator<Selector|AbstractSlot, void> {
+                   scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
         for (const op of this.operands)
             yield* op.iterateSlots2(schema, prim, scope);
     }
@@ -746,7 +686,7 @@ export class AtomBooleanExpression extends BooleanExpression {
 
     *iterateSlots2(schema : ExpressionSignature|null,
                    prim : InvocationLike|null,
-                   scope : ScopeMap) : Generator<Selector|AbstractSlot, void> {
+                   scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
         const arg = (schema ? schema.getArgument(this.name) : null) || null;
         yield* recursiveYieldArraySlots(new FilterSlot(prim, scope, arg, this));
     }
@@ -803,7 +743,7 @@ export class NotBooleanExpression extends BooleanExpression {
 
     *iterateSlots2(schema : ExpressionSignature|null,
                    prim : InvocationLike|null,
-                   scope : ScopeMap) : Generator<Selector|AbstractSlot, void> {
+                   scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
         yield* this.expr.iterateSlots2(schema, prim, scope);
     }
 }
@@ -821,7 +761,7 @@ BooleanExpression.Not.prototype.isNot = true;
  * @extends Ast.BooleanExpression
  */
 export class ExternalBooleanExpression extends BooleanExpression {
-    selector : Selector;
+    selector : DeviceSelector;
     channel : string;
     in_params : InputParam[];
     filter : BooleanExpression;
@@ -838,18 +778,16 @@ export class ExternalBooleanExpression extends BooleanExpression {
      * @param {Ast.ExpressionSignature|null} schema - type signature of the invoked function
      */
     constructor(location : SourceRange|null,
-                selector : Selector,
+                selector : DeviceSelector,
                 channel : string,
                 in_params : InputParam[],
                 filter : BooleanExpression,
                 schema : ExpressionSignature|null) {
         super(location);
 
-        assert(selector instanceof Selector);
+        assert(selector instanceof DeviceSelector);
         /**
          * The selector choosing where the function is invoked.
-         * @type {Ast.Selector}
-         * @readonly
          */
         this.selector = selector;
 
@@ -929,7 +867,7 @@ export class ExternalBooleanExpression extends BooleanExpression {
 
     *iterateSlots2(schema : ExpressionSignature|null,
                    prim : InvocationLike|null,
-                   scope : ScopeMap) : Generator<Selector|AbstractSlot, void> {
+                   scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
         yield this.selector;
         yield* iterateSlots2InputParams(this, scope);
         yield* this.filter.iterateSlots2(this.schema, this, makeScope(this));
@@ -972,7 +910,7 @@ export class DontCareBooleanExpression extends BooleanExpression {
     }
     *iterateSlots2(schema : ExpressionSignature|null,
                    prim : InvocationLike|null,
-                   scope : ScopeMap) : Generator<Selector|AbstractSlot, void> {
+                   scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
     }
 }
 BooleanExpression.DontCare = DontCareBooleanExpression;
@@ -1003,7 +941,7 @@ export class TrueBooleanExpression extends BooleanExpression {
     }
     *iterateSlots2(schema : ExpressionSignature|null,
                    prim : InvocationLike|null,
-                   scope : ScopeMap) : Generator<Selector|AbstractSlot, void> {
+                   scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
     }
 }
 TrueBooleanExpression.prototype.isTrue = true;
@@ -1042,7 +980,7 @@ export class FalseBooleanExpression extends BooleanExpression {
     }
     *iterateSlots2(schema : ExpressionSignature|null,
                    prim : InvocationLike|null,
-                   scope : ScopeMap) : Generator<Selector|AbstractSlot, void> {
+                   scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
     }
 }
 FalseBooleanExpression.prototype.isFalse = true;
@@ -1148,7 +1086,7 @@ export class ComputeBooleanExpression extends BooleanExpression {
 
     *iterateSlots2(schema : ExpressionSignature|null,
                    prim : InvocationLike|null,
-                   scope : ScopeMap) : Generator<Selector|AbstractSlot, void> {
+                   scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
         yield* recursiveYieldArraySlots(new FieldSlot(prim, scope, this.lhs.getType(), this, 'compute_filter', 'lhs'));
         yield* recursiveYieldArraySlots(new FieldSlot(prim, scope, this.rhs.getType(), this, 'compute_filter', 'rhs'));
     }

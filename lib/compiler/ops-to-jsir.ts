@@ -270,7 +270,6 @@ export default class OpCompiler {
             this._irBuilder.add(tryCatch);
             this._irBuilder.pushBlock(tryCatch.try);
 
-            assert(expr.selector.isDevice);
             const [kind, attrs, fname] = this._compileTpFunctionCall(expr);
             const list = this._irBuilder.allocRegister();
             const [argmap, args] = this._compileInputParams(expr);
@@ -1189,7 +1188,7 @@ export default class OpCompiler {
 
     private _compileEndOfFlow(action : Ast.Action) {
         if (!(action instanceof Ast.InvocationAction) ||
-            !action.invocation.selector.isDevice || !isRemoteSend(action.invocation))
+            !isRemoteSend(action.invocation))
             return;
 
         const tryCatch = new JSIr.TryCatch("Failed to signal end-of-flow");

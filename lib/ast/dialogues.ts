@@ -25,7 +25,7 @@ import { Input, Statement, Rule, Command } from './program';
 import * as Optimizer from '../optimize';
 import * as Typechecking from '../typecheck';
 import { prettyprintStatement, prettyprintHistoryItem } from '../prettyprint';
-import { Selector, DeviceSelector, Invocation } from './expression';
+import { DeviceSelector, Invocation } from './expression';
 import { Value, NumberValue } from './values';
 import { ExpressionSignature, FunctionDef } from './function_def';
 import NodeVisitor from './visitor';
@@ -71,7 +71,7 @@ export class DialogueHistoryResultItem extends AstNode {
         visitor.exit(this);
     }
 
-    *iterateSlots2(schema : ExpressionSignature|null) : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2(schema : ExpressionSignature|null) : Generator<DeviceSelector|AbstractSlot, void> {
         for (const key in this.value) {
             const arg = (schema ? schema.getArgument(key) : null) || null;
             yield* recursiveYieldArraySlots(new ResultSlot(null, {}, arg, this.value, key));
@@ -151,7 +151,7 @@ export class DialogueHistoryResultList extends AstNode {
         visitor.exit(this);
     }
 
-    *iterateSlots2(schema : ExpressionSignature|null) : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2(schema : ExpressionSignature|null) : Generator<DeviceSelector|AbstractSlot, void> {
         for (const result of this.results)
             yield* result.iterateSlots2(schema);
     }
@@ -212,9 +212,7 @@ export class DialogueHistoryItem extends AstNode {
         const functions = new Set;
         const visitor = new class extends NodeVisitor {
             visitInvocation(invocation : Invocation) {
-                assert(invocation.selector.isDevice);
-                functions.add('call:' + (invocation.selector as DeviceSelector).kind
-                    + ':' + invocation.channel);
+                functions.add(`call:${invocation.selector.kind}:${invocation.channel}`);
                 return false;
             }
         };
@@ -312,7 +310,7 @@ export class DialogueHistoryItem extends AstNode {
         yield* this.stmt.iterateSlots();
         // no slots in a HistoryResult
     }
-    *iterateSlots2() : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
         yield* this.stmt.iterateSlots2();
         if (this.results === null)
             return;
@@ -408,7 +406,7 @@ export class DialogueState extends Input {
         for (const item of this.history)
             yield* item.iterateSlots();
     }
-    *iterateSlots2() : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
         for (const item of this.history)
             yield* item.iterateSlots2();
     }

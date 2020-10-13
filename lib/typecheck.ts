@@ -154,7 +154,7 @@ function loadNotifyAction(name : string) : Ast.FunctionDef {
 }
 
 interface InvocationLike {
-    selector : Ast.Selector;
+    selector : Ast.DeviceSelector;
     channel : string;
 }
 type ClassMap = { [key : string] : Ast.ClassDef };
@@ -164,7 +164,6 @@ function loadSchema(schemas : SchemaRetriever,
                     prim : InvocationLike,
                     primType : 'action' | 'query',
                     useMeta : boolean) : Promise<Ast.FunctionDef> {
-    assert(prim.selector instanceof Ast.DeviceSelector);
     return Utils.getSchemaForSelector(schemas, prim.selector.kind, prim.channel, primType, useMeta, classes);
 }
 
@@ -711,7 +710,7 @@ async function typeCheckInputArgs(ast : Ast.Primitive|Ast.JoinStream|Ast.JoinTab
                 const classdef = classes[ast.selector.kind];
 
                 if (classdef.extends.length > 0 && classdef.extends.length === 1 && classdef.extends[0] === 'org.thingpedia.builtin.thingengine.remote')
-                    ast.__effectiveSelector = new Ast.Selector.Device(ast.selector.location, 'org.thingpedia.builtin.thingengine.remote', ast.selector.id, ast.selector.principal, ast.selector.attributes.slice());
+                    ast.__effectiveSelector = new Ast.DeviceSelector(ast.selector.location, 'org.thingpedia.builtin.thingengine.remote', ast.selector.id, ast.selector.principal, ast.selector.attributes.slice());
                 else
                     ast.__effectiveSelector = ast.selector;
             } else {

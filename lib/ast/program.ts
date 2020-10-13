@@ -29,7 +29,7 @@ import Node, {
 } from './base';
 import NodeVisitor from './visitor';
 import { Value, ArrayValue, VarRefValue } from './values';
-import { Selector, InputParam, BooleanExpression } from './expression';
+import { DeviceSelector, InputParam, BooleanExpression } from './expression';
 import {
     Stream,
     Table,
@@ -93,7 +93,7 @@ export abstract class Statement extends Node {
     /**
      * Iterate all slots (scalar value nodes) in this statement.
      */
-    abstract iterateSlots2() : Generator<Selector|AbstractSlot, void>;
+    abstract iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void>;
 
     /**
      * Clone this statement.
@@ -139,7 +139,7 @@ function declarationLikeToProgram(self : Declaration|Example) : Program {
     }
 
     for (const slot of program.iterateSlots2()) {
-        if (slot instanceof Selector)
+        if (slot instanceof DeviceSelector)
             continue;
         recursiveHandleSlot(slot.get());
     }
@@ -255,7 +255,7 @@ export class Declaration extends Statement {
 
         yield* this.value.iterateSlots({});
     }
-    *iterateSlots2() : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
         // if the declaration refers to a nested scope, we don't need to
         // slot fill it now
         if (this.type === 'program' || this.type === 'procedure')
@@ -364,7 +364,7 @@ export class Assignment extends Statement {
     *iterateSlots() : Generator<OldSlot, void> {
         yield* this.value.iterateSlots({});
     }
-    *iterateSlots2() : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
         yield* this.value.iterateSlots2({});
     }
 
@@ -421,7 +421,7 @@ export class Rule extends Statement {
         for (const action of this.actions)
             yield* action.iterateSlots(scope);
     }
-    *iterateSlots2() : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
         const [,scope] = yield* this.stream.iterateSlots2({});
         for (const action of this.actions)
             yield* action.iterateSlots2(scope);
@@ -465,7 +465,7 @@ export class Command extends Statement {
         this.actions = actions;
     }
 
-    toSource() {
+    toSource() : TokenStream {
         assert(this.actions.length === 1);
         if (this.table)
             return List.concat(this.table.toSource(), '=>', this.actions[0].toSource(), ';');
@@ -491,7 +491,7 @@ export class Command extends Statement {
         for (const action of this.actions)
             yield* action.iterateSlots(scope);
     }
-    *iterateSlots2() : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
         let scope = {};
         if (this.table)
             [,scope] = yield* this.table.iterateSlots2({});
@@ -572,7 +572,7 @@ export class OnInputChoice extends Statement {
         for (const action of this.actions)
             yield* action.iterateSlots(scope);
     }
-    *iterateSlots2() : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
         let scope = {};
         if (this.table)
             [,scope] = yield* this.table.iterateSlots2({});
@@ -662,7 +662,7 @@ export class Dataset extends Statement {
         for (const ex of this.examples)
             yield* ex.iterateSlots();
     }
-    *iterateSlots2() : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
         for (const ex of this.examples)
             yield* ex.iterateSlots2();
     }
@@ -703,7 +703,7 @@ export abstract class Input extends Node {
 
     *iterateSlots() : Generator<OldSlot, void> {
     }
-    *iterateSlots2() : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
     }
 
     optimize() : Input|null {
@@ -821,7 +821,7 @@ export class Program extends Input {
         for (const oninput of this.oninputs)
             yield* oninput.iterateSlots();
     }
-    *iterateSlots2() : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
         if (this.principal !== null)
             yield* recursiveYieldArraySlots(new FieldSlot(null, {}, new Type.Entity('tt:contact'), this, 'program', 'principal'));
         for (const decl of this.declarations)
@@ -923,7 +923,7 @@ export class PermissionRule extends Input {
         const [,scope] = yield* this.query.iterateSlots({});
         yield* this.action.iterateSlots(scope);
     }
-    *iterateSlots2() : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
         yield* this.principal.iterateSlots2(null, null, {});
 
         const [,scope] = yield* this.query.iterateSlots2({});
@@ -986,7 +986,7 @@ export class Library extends Input {
         for (const dataset of this.datasets)
             yield* dataset.iterateSlots();
     }
-    *iterateSlots2() : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
         for (const dataset of this.datasets)
             yield* dataset.iterateSlots2();
     }
@@ -1127,7 +1127,7 @@ export class Example extends Node {
      * @generator
      * @yields {Ast~AbstractSlot}
      */
-    *iterateSlots2() : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
         yield* this.value.iterateSlots2({});
     }
 

@@ -30,8 +30,7 @@ import * as Ops from './ops';
 import { getDefaultProjection, getExpressionParameters } from './utils';
 import ReduceOp, { SimpleAggregationType } from './reduceop';
 
-function sameDevice(lhs : Ast.Selector, rhs : Ast.Selector) : boolean {
-    assert(lhs instanceof Ast.DeviceSelector && rhs instanceof Ast.DeviceSelector);
+function sameDevice(lhs : Ast.DeviceSelector, rhs : Ast.DeviceSelector) : boolean {
     if (lhs.kind !== rhs.kind)
         return false;
     if (lhs.id !== rhs.id)

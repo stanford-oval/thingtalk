@@ -23,7 +23,7 @@ import assert from 'assert';
 import { SourceRange, NLAnnotationMap, AnnotationMap, AnnotationSpec } from './base';
 import { prettyprintClassDef } from '../prettyprint';
 import { cleanKind } from '../utils';
-import { Selector } from './expression';
+import { DeviceSelector } from './expression';
 import { Statement, MixinImportStmt, EntityDef } from './program';
 import { FunctionType, FunctionDef } from './function_def';
 import { OldSlot, AbstractSlot } from './slots';
@@ -119,7 +119,7 @@ export class ClassDef extends Statement {
 
     *iterateSlots() : Generator<OldSlot, void> {
     }
-    *iterateSlots2() : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
     }
 
     visit(visitor : NodeVisitor) : void {

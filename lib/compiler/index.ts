@@ -316,8 +316,7 @@ export default class AppCompiler {
             throw new NotCompilableError(`Remote programs cannot be compiled, they must be sent to a different runtime instead`);
 
         for (const slot of program.iterateSlots2()) {
-            if (slot instanceof Ast.Selector) {
-                assert(slot instanceof Ast.DeviceSelector);
+            if (slot instanceof Ast.DeviceSelector) {
                 if (slot.principal !== null)
                     throw new NotCompilableError(`Remote primitives cannot be compiled, they must be lowered and sent to a different runtime instead`);
                 continue;

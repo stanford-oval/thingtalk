@@ -23,7 +23,7 @@ import Node, { SourceRange } from './base';
 import { ExpressionSignature } from './function_def';
 import {
     Invocation,
-    Selector,
+    DeviceSelector,
     InputParam,
     BooleanExpression
 } from './expression';
@@ -107,7 +107,7 @@ export abstract class Table extends Node {
      *
      * @param scope - available names for parameter passing
      */
-    abstract iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]>;
+    abstract iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]>;
 }
 Table.prototype.isVarRef = false;
 Table.prototype.isInvocation = false;
@@ -166,7 +166,7 @@ export class VarRefTable extends Table {
         return [this, makeScope(this)];
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         return yield* iterateSlots2InputParams(this, scope);
     }
 }
@@ -207,7 +207,7 @@ export class InvocationTable extends Table {
         return yield* this.invocation.iterateSlots(scope);
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         return yield* this.invocation.iterateSlots2(scope);
     }
 }
@@ -255,7 +255,7 @@ export class FilteredTable extends Table {
         return [prim, newScope];
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         const [prim, newScope] = yield* this.table.iterateSlots2(scope);
         yield* this.filter.iterateSlots2(this.table.schema, prim, newScope);
         return [prim, newScope];
@@ -304,7 +304,7 @@ export class ProjectionTable extends Table {
         return [prim, newScope];
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         const [prim, nestedScope] = yield* this.table.iterateSlots2(scope);
         const newScope : ScopeMap = {};
         for (const name of this.args)
@@ -365,7 +365,7 @@ export class ComputeTable extends Table {
         return yield* this.table.iterateSlots(scope);
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         const [prim, innerScope] = yield* this.table.iterateSlots2(scope);
         yield* recursiveYieldArraySlots(new FieldSlot(prim, innerScope, this.type as Type, this, 'compute', 'expression'));
         return [prim, innerScope];
@@ -411,7 +411,7 @@ export class AliasTable extends Table {
         return yield* this.table.iterateSlots(scope);
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         return yield* this.table.iterateSlots2(scope);
     }
 }
@@ -472,7 +472,7 @@ export class AggregationTable extends Table {
         return yield* this.table.iterateSlots(scope);
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         return yield* this.table.iterateSlots2(scope);
     }
 }
@@ -521,7 +521,7 @@ export class SortedTable extends Table {
         return yield* this.table.iterateSlots(scope);
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         return yield* this.table.iterateSlots2(scope);
     }
 }
@@ -568,7 +568,7 @@ export class IndexTable extends Table {
         return yield* this.table.iterateSlots(scope);
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         const [prim, innerScope] = yield* this.table.iterateSlots2(scope);
         for (let i = 0; i < this.indices.length; i++)
             yield* recursiveYieldArraySlots(new ArrayIndexSlot(prim, innerScope, Type.Number, this.indices, 'table.index', i));
@@ -624,7 +624,7 @@ export class SlicedTable extends Table {
         return yield* this.table.iterateSlots(scope);
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         const [prim, innerScope] = yield* this.table.iterateSlots2(scope);
         yield* recursiveYieldArraySlots(new FieldSlot(prim, innerScope, Type.Number, this, 'slice', 'base'));
         yield* recursiveYieldArraySlots(new FieldSlot(prim, innerScope, Type.Number, this, 'slice', 'limit'));
@@ -685,7 +685,7 @@ export class JoinTable extends Table {
         return [null, newScope];
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         const [, leftScope] = yield* this.lhs.iterateSlots2(scope);
         const [, rightScope] = yield* this.rhs.iterateSlots2(scope);
         const newScope : ScopeMap = {};
@@ -757,7 +757,7 @@ export abstract class Stream extends Node {
      *
      * @param scope - available names for parameter passing
      */
-    abstract iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]>;
+    abstract iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]>;
 }
 Stream.prototype.isVarRef = false;
 Stream.prototype.isTimer = false;
@@ -816,7 +816,7 @@ export class VarRefStream extends Stream {
         return [this, makeScope(this)];
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         return yield* iterateSlots2InputParams(this, scope);
     }
 }
@@ -871,7 +871,7 @@ export class TimerStream extends Stream {
         return [null, {}];
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         // no primitive here
         yield* recursiveYieldArraySlots(new FieldSlot(null, scope, Type.Date, this, 'timer', 'base'));
         yield* recursiveYieldArraySlots(new FieldSlot(null, scope, new Type.Measure('ms'), this, 'timer', 'interval'));
@@ -923,7 +923,7 @@ export class AtTimerStream extends Stream {
         return [null, {}];
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         for (let i = 0; i < this.time.length; i++)
             yield* recursiveYieldArraySlots(new ArrayIndexSlot(null, scope, Type.Time, this.time, 'attimer.time', i));
         if (this.expiration_date !== null)
@@ -971,7 +971,7 @@ export class MonitorStream extends Stream {
         return yield* this.table.iterateSlots(scope);
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         return yield* this.table.iterateSlots2(scope);
     }
 }
@@ -1009,7 +1009,7 @@ export class EdgeNewStream extends Stream {
         return yield* this.stream.iterateSlots(scope);
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         return yield* this.stream.iterateSlots2(scope);
     }
 }
@@ -1057,7 +1057,7 @@ export class EdgeFilterStream extends Stream {
         return [prim, newScope];
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         const [prim, newScope] = yield* this.stream.iterateSlots2(scope);
         yield* this.filter.iterateSlots2(this.stream.schema, prim, newScope);
         return [prim, newScope];
@@ -1107,7 +1107,7 @@ export class FilteredStream extends Stream {
         return [prim, newScope];
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         const [prim, newScope] = yield* this.stream.iterateSlots2(scope);
         yield* this.filter.iterateSlots2(this.stream.schema, prim, newScope);
         return [prim, newScope];
@@ -1157,7 +1157,7 @@ export class ProjectionStream extends Stream {
         return [prim, newScope];
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         const [prim, nestedScope] = yield* this.stream.iterateSlots2(scope);
         const newScope : ScopeMap = {};
         for (const name of this.args)
@@ -1218,7 +1218,7 @@ export class ComputeStream extends Stream {
         return yield* this.stream.iterateSlots(scope);
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         const [prim, innerScope] = yield* this.stream.iterateSlots2(scope);
         yield* recursiveYieldArraySlots(new FieldSlot(prim, innerScope, this.type as Type, this, 'compute', 'expression'));
         return [prim, innerScope];
@@ -1264,7 +1264,7 @@ export class AliasStream extends Stream {
         return yield* this.stream.iterateSlots(scope);
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         return yield* this.stream.iterateSlots2(scope);
     }
 }
@@ -1322,7 +1322,7 @@ export class JoinStream extends Stream {
         return [null, newScope];
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         const [, leftScope] = yield* this.stream.iterateSlots2(scope);
         const [, rightScope] = yield* this.table.iterateSlots2(scope);
         const newScope = {};
@@ -1400,7 +1400,7 @@ export abstract class Action extends Node {
      *
      * @param scope - available names for parameter passing
      */
-    abstract iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, void>;
+    abstract iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void>;
 }
 Action.prototype.isVarRef = false;
 Action.prototype.isInvocation = false;
@@ -1479,7 +1479,7 @@ export class VarRefAction extends Action {
             yield [this.schema, in_param, this, scope];
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
         yield* iterateSlots2InputParams(this, scope);
     }
 }
@@ -1537,7 +1537,7 @@ export class InvocationAction extends Action {
         yield* this.invocation.iterateSlots(scope);
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
         yield* this.invocation.iterateSlots2(scope);
     }
 }
@@ -1552,7 +1552,6 @@ Action.Invocation.prototype.isInvocation = true;
  */
 export class NotifyAction extends Action {
     name : keyof typeof Builtin.Actions;
-    invocation : Invocation;
 
     /**
      * Construct a new notify action.
@@ -1568,9 +1567,6 @@ export class NotifyAction extends Action {
 
         assert(['notify', 'return', 'save'].includes(name));
         this.name = name;
-
-        // compatibility interface
-        this.invocation = new Invocation(null, Selector.Builtin, name, [], this.schema);
     }
 
     toSource() : TokenStream {
@@ -1593,7 +1589,7 @@ export class NotifyAction extends Action {
     *iterateSlots(scope : ScopeMap) : Generator<OldSlot, void> {
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
     }
 }
 Action.Notify = NotifyAction;
@@ -1623,7 +1619,7 @@ export abstract class PermissionFunction extends Node {
         return [null, {}];
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         return [null, {}];
     }
 }
@@ -1697,7 +1693,7 @@ export class SpecifiedPermissionFunction extends PermissionFunction {
         return [this, makeScope(this)];
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike, ScopeMap]> {
         yield* this.filter.iterateSlots2(this.schema, this, scope);
         return [this, makeScope(this)];
     }

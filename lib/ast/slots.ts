@@ -25,7 +25,7 @@ import * as I18n from '../i18n';
 import { clean } from '../utils';
 
 import { Value, VarRefValue, ArrayValue, ComputationValue } from './values';
-import { Invocation, Selector, DeviceSelector, InputParam, AtomBooleanExpression }  from './expression';
+import { Invocation, DeviceSelector, InputParam, AtomBooleanExpression }  from './expression';
 import { ArgumentDef, ExpressionSignature } from './function_def';
 
 export interface ScopeEntry {
@@ -40,7 +40,7 @@ export interface ScopeEntry {
 export type ScopeMap = { [key : string] : ScopeEntry };
 
 interface ExternalBooleanExpressionLike {
-    selector : Selector;
+    selector : DeviceSelector;
     channel : string;
     in_params : InputParam[];
     schema : ExpressionSignature|null;
@@ -733,7 +733,7 @@ export function makeScope(invocation : InvocationLike) : ScopeMap {
 
         let kind = null;
         if ((invocation as Invocation).selector)
-            kind = ((invocation as Invocation).selector as DeviceSelector).kind;
+            kind = (invocation as Invocation).selector.kind;
         else
             kind = null;
         scope[argname] = {
@@ -785,4 +785,4 @@ export function* iterateSlots2InputParams(prim : Invocation|VarRefLike|ExternalB
  *
  * @deprecated Use {@link Ast~AbstractSlot} and the new slot iteration API
  */
-export type OldSlot = [ExpressionSignature|null, (InputParam|AtomBooleanExpression|Selector), InvocationLike|null, ScopeMap];
+export type OldSlot = [ExpressionSignature|null, (InputParam|AtomBooleanExpression|DeviceSelector), InvocationLike|null, ScopeMap];

@@ -31,7 +31,7 @@ import {
     FunctionDef
 } from './function_def';
 import {
-    Selector,
+    DeviceSelector,
     Invocation,
     InputParam
 } from './expression';
@@ -145,7 +145,7 @@ function lowerReturnAction(state : ConversionState,
 
     const newAction = new Action.Invocation(action.location,
         new Invocation(action.location,
-            new Selector.Device(action.location, localClass.name, null, null),
+            new DeviceSelector(action.location, localClass.name, null, null),
             'send',
             sendInputs,
             sendSchema),
@@ -161,7 +161,7 @@ function lowerReturnAction(state : ConversionState,
         new Table.Invocation(
             null,
             new Invocation(null,
-                new Selector.Device(null, toSendClass.name, null, null),
+                new DeviceSelector(null, toSendClass.name, null, null),
                 'receive', receiveInputs, receiveSchema),
         receiveSchema),
     null, receiveSchema);
