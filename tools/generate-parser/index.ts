@@ -59,11 +59,18 @@ function handleRule(rule : Ast.Rule,
     const bodyArgs = ['$ : $runtime.ParserInterface'];
     let i = 0;
     for (const headPart of rule.head) {
-        if (headPart instanceof Ast.RuleHeadPart.NonTerminal && typeMap[headPart.category])
+        if (headPart instanceof Ast.RuleHeadPart.Terminal) {
+            if (typeMap[headPart.category])
+                headPart.type = typeMap[headPart.category];
+            else
+                console.log(`WARNING: undeclared terminal ${headPart.category}`);
+        }
+        if (headPart instanceof Ast.RuleHeadPart.NonTerminal
+            && typeMap[headPart.category])
             headPart.type = typeMap[headPart.category];
 
         if (headPart.name)
-            bodyArgs.push(headPart.name + ': ' + headPart.type);
+            bodyArgs.push(headPart.name + ' : ' + headPart.type);
         else
             bodyArgs.push(`$${i++} : ` + headPart.type);
     }
@@ -90,12 +97,14 @@ async function processFile(filename : string,
     }
 
     for (const statement of parsed.statements) {
-        if (!grammar[statement.name])
-            grammar[statement.name] = [];
+        if (statement instanceof Ast.NonTerminalStmt) {
+            if (!grammar[statement.name])
+                grammar[statement.name] = [];
 
-        for (const rule of statement.rules) {
-            rule.type = typeMap[statement.name] || 'any';
-            grammar[statement.name].push(handleRule(rule, typeMap));
+            for (const rule of statement.rules) {
+                rule.type = typeMap[statement.name] || 'any';
+                grammar[statement.name].push(handleRule(rule, typeMap));
+            }
         }
     }
 

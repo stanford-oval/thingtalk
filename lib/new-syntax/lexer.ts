@@ -120,6 +120,8 @@ export function* surfaceLexer(input : string) : IterableIterator<Token> {
     const CLASSNAME = /@[A-Za-z_][A-Za-z0-9_-]*(?:\.[A-Za-z_][A-Za-z0-9_-]*)*/y;
     const ENTITYNAME = /\^\^[A-Za-z_][A-Za-z0-9_-]*(?:\.[A-Za-z_][A-Za-z0-9_-]*)*:[A-Za-z_][A-Za-z0-9_]*/y;
 
+    const TILDE_OPERATOR = /~[A-Za-z_][A-Za-z0-9_]*|[A-Za-z_][A-Za-z0-9_]*~/y;
+
     // HACK: for compatibility with Thingpedia, we need to recognize Entity(...) type references without
     // the ^^ marker
     const OLD_ENTITY_REFERENCE = /Entity\([A-Za-z_][A-Za-z0-9_-]*(?:\.[A-Za-z_][A-Za-z0-9_-]*)*:[A-Za-z_][A-Za-z0-9_]*\)/y;
@@ -213,11 +215,18 @@ export function* surfaceLexer(input : string) : IterableIterator<Token> {
         if (oldEntityName) {
             const end = makeLocation();
 
-            yield new Token('Entity', { start, end }, null);
-            yield new Token( '(', { start, end }, null);
-            yield new Token('ENTITY_NAME', { start, end },
+            yield Token.make('Entity', { start, end }, null);
+            yield Token.make( '(', { start, end }, null);
+            yield Token.make('ENTITY_NAME', { start, end },
                 oldEntityName.substring('Entity('.length, oldEntityName.length-1));
-            yield new Token(')', { start, end }, null);
+            yield Token.make(')', { start, end }, null);
+            continue;
+        }
+
+        const tildeOp = consume(TILDE_OPERATOR);
+        if (tildeOp) {
+            const end = makeLocation();
+            yield Token.make(tildeOp, { start, end }, null);
             continue;
         }
 
@@ -229,9 +238,9 @@ export function* surfaceLexer(input : string) : IterableIterator<Token> {
                 throw new ThingTalkSyntaxError(`Forbidden token ${identifier}`, { start, end });
 
             if (KEYWORDS.has(identifier) || CONTEXTUAL_KEYWORDS.has(identifier))
-                yield new Token(identifier, { start, end }, null);
+                yield Token.make(identifier, { start, end }, null);
             else
-                yield new Token('IDENTIFIER', { start, end }, identifier);
+                yield Token.make('IDENTIFIER', { start, end }, identifier);
 
             continue;
         }
@@ -241,9 +250,9 @@ export function* surfaceLexer(input : string) : IterableIterator<Token> {
             const end = makeLocation();
 
             if (DOLLAR_KEYWORDS.has(dollarident))
-                yield new Token(dollarident, { start, end }, null);
+                yield Token.make(dollarident, { start, end }, null);
             else
-                yield new Token('DOLLARIDENTIFIER', { start, end }, dollarident.substring(1));
+                yield Token.make('DOLLARIDENTIFIER', { start, end }, dollarident.substring(1));
             continue;
         }
 
@@ -252,7 +261,7 @@ export function* surfaceLexer(input : string) : IterableIterator<Token> {
             const end = makeLocation();
 
             // eat the @ at the beginning
-            yield new Token('CLASS_OR_FUNCTION_REF', { start, end }, className.substring(1));
+            yield Token.make('CLASS_OR_FUNCTION_REF', { start, end }, className.substring(1));
             continue;
         }
 
@@ -261,7 +270,7 @@ export function* surfaceLexer(input : string) : IterableIterator<Token> {
             const end = makeLocation();
 
             // eat the ^^ at the beginning
-            yield new Token('ENTITY_NAME', { start, end }, entityName.substring(2));
+            yield Token.make('ENTITY_NAME', { start, end }, entityName.substring(2));
             continue;
         }
 
@@ -272,7 +281,7 @@ export function* surfaceLexer(input : string) : IterableIterator<Token> {
             const range = { start, end };
             // eat the opening/closing quote
             const string = unescape(stringLiteral.substring(1, stringLiteral.length-1), range);
-            yield new Token('QUOTED_STRING', range, string);
+            yield Token.make('QUOTED_STRING', range, string);
             continue;
         }
 
@@ -301,14 +310,14 @@ export function* surfaceLexer(input : string) : IterableIterator<Token> {
                 * (negative ? -1 : 1);
 
             const end = makeLocation();
-            yield new Token('NUMBER', { start, end }, value);
+            yield Token.make('NUMBER', { start, end }, value);
             continue;
         } else {
             const decimal = consume(DECIMAL_LITERAL);
 
             if (decimal) {
                 const end = makeLocation();
-                yield new Token('NUMBER', { start, end }, parseFloat(decimal));
+                yield Token.make('NUMBER', { start, end }, parseFloat(decimal));
                 continue;
             }
         }
@@ -316,7 +325,7 @@ export function* surfaceLexer(input : string) : IterableIterator<Token> {
         const punct = consume(PUNCTUATOR);
         if (punct) {
             const end = makeLocation();
-            yield new Token(punct, { start, end }, null);
+            yield Token.make(punct, { start, end }, null);
             continue;
         }
 
@@ -328,6 +337,6 @@ export function* surfaceLexer(input : string) : IterableIterator<Token> {
         offset += 1;
         column += 1;
         const end = makeLocation();
-        yield new Token(char, { start, end }, null);
+        yield Token.make(char, { start, end }, null);
     }
 }

@@ -825,7 +825,7 @@ async function typeCheckStream(ast : Ast.Stream,
         scope.addAll(ast.schema.out);
     } else if (ast instanceof Ast.MonitorStream) {
         await typeCheckTable(ast.table, schemas, scope, classes, useMeta);
-        ast.schema = ast.table.schema;
+        ast.schema = ast.table.schema!.asType('stream');
         await typeCheckMonitor(ast);
     } else if (ast instanceof Ast.EdgeNewStream) {
         await typeCheckStream(ast.stream, schemas, scope, classes, useMeta);

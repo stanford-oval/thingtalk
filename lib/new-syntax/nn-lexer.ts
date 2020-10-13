@@ -20,17 +20,17 @@
 
 import * as assert from 'assert';
 
-import { AnyEntity, EntityMap, EntityResolver, GenericEntity, MeasureEntity } from '../entities';
+import { EntityType, EntityMap, EntityResolver, GenericEntity, MeasureEntity } from '../entities';
 import { SourceRange, SourceLocation } from '../utils/source_locations';
 import { ThingTalkSyntaxError } from '../utils/errors';
 import { DOLLAR_KEYWORDS, FORBIDDEN_KEYWORDS, KEYWORDS } from './keywords';
-import { Token } from './token';
+import { Token, TypeOfToken } from './token';
 
 const DECIMAL_LITERAL = /^-?(?:(?:0|[1-9][0-9]*)\.[0-9]*(?:[eE][+-]?[0-9]+)?|\.[0-9]+(?:[eE][+-]?[0-9]+)?|(?:0|[1-9][0-9]*)(?:[eE][+-]?[0-9]+)?)$/;
 const IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
 function isEntity(token : string) {
-    return /^(?:QUOTED_STRING|NUMBER|CURRENCY|TIME|DATE|LOCATION|USERNAME|HASHTAG|URL|PHONE_NUMBER|EMAIL_ADDRESS|PATH_NAME|PICTURE|GENERIC_ENTITY)_/.test(token);
+    return /^(?:QUOTED_STRING|NUMBER|CURRENCY|TIME|DATE|LOCATION|USERNAME|HASHTAG|URL|PHONE_NUMBER|EMAIL_ADDRESS|PATH_NAME|PICTURE|GENERIC_ENTITY|SLOT)_/.test(token);
 }
 
 function isIdentifier(token : string) {
@@ -129,11 +129,11 @@ export function* nnLexer(input : Iterable<string>,
                 line: 1,
                 token: i+1
             };
-            yield new Token('QUOTED_STRING', { start, end }, languagePack.detokenizeSentence(words));
+            yield Token.make('QUOTED_STRING', { start, end }, languagePack.detokenizeSentence(words));
         } else if (FORBIDDEN_KEYWORDS.has(next)) {
             throw new ThingTalkSyntaxError(`Use of forbidden token ${next}`, makeLocation());
         } else if (DECIMAL_LITERAL.test(next)) {
-            yield new Token('NUMBER', makeLocation(), parseFloat(next));
+            yield Token.make('NUMBER', makeLocation(), parseFloat(next));
         } else if (isEntity(next)) {
             // check if we have a unit next, to pass to the entity retriever
             let unit : string|null = null;
@@ -145,25 +145,26 @@ export function* nnLexer(input : Iterable<string>,
             const entityType = next.substring(0, next.lastIndexOf('_'));
             if (entityType.startsWith('GENERIC_ENTITY_')) {
                 const generic = entity as GenericEntity;
-                yield new Token('GENERIC_ENTITY', makeLocation(), {
+                yield Token.make('GENERIC_ENTITY', makeLocation(), {
                     value: generic.value,
                     display: generic.display,
                     type: entityType.substring('GENERIC_ENTITY_'.length)
                 });
             } else if (entityType.startsWith('MEASURE_')) {
-                yield new Token('MEASURE', makeLocation(), entity as MeasureEntity);
+                yield Token.make('MEASURE', makeLocation(), entity as MeasureEntity);
             } else {
-                yield new Token(entityType, makeLocation(), entity as AnyEntity);
+                yield Token.make(entityType as Exclude<EntityType, 'GENERIC_ENTITY'|'MEASURE'>,
+                    makeLocation(), entity as TypeOfToken<Exclude<EntityType, 'GENERIC_ENTITY'|'MEASURE'>>);
             }
         } else if (next.startsWith('@')) {
-            yield new Token('CLASS_OR_FUNCTION_REF', makeLocation(), next.substring(1));
+            yield Token.make('CLASS_OR_FUNCTION_REF', makeLocation(), next.substring(1));
         } else if (next.startsWith('$')) {
             if (DOLLAR_KEYWORDS.has(next))
-                yield new Token(next, makeLocation(), null);
+                yield Token.make(next, makeLocation(), null);
             else
-                yield new Token('DOLLARIDENTIFIER', makeLocation(), next.substring(1));
+                yield Token.make('DOLLARIDENTIFIER', makeLocation(), next.substring(1));
         } else if (next.startsWith('^^')) {
-            yield new Token('ENTITY_NAME', makeLocation(), next.substring(2));
+            yield Token.make('ENTITY_NAME', makeLocation(), next.substring(2));
         }
     }
 }

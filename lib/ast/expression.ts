@@ -46,6 +46,10 @@ import {
 
 import { TokenStream } from '../new-syntax/tokenstream';
 import List from '../utils/list';
+import {
+    SyntaxPriority,
+    addParenthesis
+} from './syntax_priority';
 
 /**
  * An expression that maps to one or more devices in Thingpedia.
@@ -429,6 +433,8 @@ export abstract class BooleanExpression extends Node {
         return Optimizer.optimizeFilter(this);
     }
 
+    abstract get priority() : SyntaxPriority;
+
     abstract clone() : BooleanExpression;
     abstract equals(other : BooleanExpression) : boolean;
 
@@ -498,6 +504,14 @@ export class AndBooleanExpression extends BooleanExpression {
         this.operands = operands;
     }
 
+    get priority() : SyntaxPriority {
+        return SyntaxPriority.And;
+    }
+
+    toSource() : TokenStream {
+        return List.join(this.operands.map((op) => addParenthesis(this.priority, op.priority, op.toSource())), '&&');
+    }
+
     equals(other : BooleanExpression) : boolean {
         return other instanceof AndBooleanExpression &&
             arrayEquals(this.operands, other.operands);
@@ -560,6 +574,14 @@ export class OrBooleanExpression extends BooleanExpression {
         this.operands = operands;
     }
 
+    get priority() : SyntaxPriority {
+        return SyntaxPriority.Or;
+    }
+
+    toSource() : TokenStream {
+        return List.join(this.operands.map((op) => addParenthesis(this.priority, op.priority, op.toSource())), '||');
+    }
+
     equals(other : BooleanExpression) : boolean {
         return other instanceof OrBooleanExpression &&
             arrayEquals(this.operands, other.operands);
@@ -597,6 +619,9 @@ export class OrBooleanExpression extends BooleanExpression {
 }
 BooleanExpression.Or = OrBooleanExpression;
 BooleanExpression.Or.prototype.isOr = true;
+
+const INFIX_COMPARISON_OPERATORS = new Set(['==', '>=', '<=', '>', '<', '=~', '~=']);
+
 /**
  * A comparison expression (predicate atom)
  * @alias Ast.BooleanExpression.Atom
@@ -648,6 +673,19 @@ export class AtomBooleanExpression extends BooleanExpression {
         this.value = value;
 
         this.overload = overload;
+    }
+
+    get priority() : SyntaxPriority {
+        return INFIX_COMPARISON_OPERATORS.has(this.operator) ? SyntaxPriority.Comp : SyntaxPriority.Primary;
+    }
+
+    toSource() : TokenStream {
+        if (INFIX_COMPARISON_OPERATORS.has(this.operator)) {
+            return List.concat(this.name, this.operator,
+                addParenthesis(SyntaxPriority.Add, this.value.priority, this.value.toSource()));
+        } else {
+            return List.concat(this.operator, '(', this.name, ',', this.value.toSource(), ')');
+        }
     }
 
     equals(other : BooleanExpression) : boolean {
@@ -717,6 +755,14 @@ export class NotBooleanExpression extends BooleanExpression {
          * @readonly
          */
         this.expr = expr;
+    }
+
+    get priority() : SyntaxPriority {
+        return SyntaxPriority.Not;
+    }
+
+    toSource() : TokenStream {
+        return List.concat('!', addParenthesis(this.priority, this.expr.priority, this.expr.toSource()));
     }
 
     equals(other : BooleanExpression) : boolean {
@@ -824,6 +870,14 @@ export class ExternalBooleanExpression extends BooleanExpression {
         this.schema = schema;
     }
 
+    get priority() : SyntaxPriority {
+        return SyntaxPriority.Primary;
+    }
+
+    toSource() : TokenStream {
+        throw new Error('not implemented yet');
+    }
+
     toString() : string {
         return `External(${this.selector}, ${this.channel}, ${this.in_params}, ${this.filter})`;
     }
@@ -890,6 +944,14 @@ export class DontCareBooleanExpression extends BooleanExpression {
         this.name = name;
     }
 
+    get priority() : SyntaxPriority {
+        return SyntaxPriority.Primary;
+    }
+
+    toSource() : TokenStream {
+        return List.concat('true', '(', this.name, ')');
+    }
+
     equals(other : BooleanExpression) : boolean {
         return other instanceof DontCareBooleanExpression && this.name === other.name;
     }
@@ -919,6 +981,14 @@ DontCareBooleanExpression.prototype.isDontCare = true;
 export class TrueBooleanExpression extends BooleanExpression {
     constructor() {
         super(null);
+    }
+
+    get priority() : SyntaxPriority {
+        return SyntaxPriority.Primary;
+    }
+
+    toSource() : TokenStream {
+        return List.singleton('true');
     }
 
     equals(other : BooleanExpression) : boolean {
@@ -958,6 +1028,14 @@ BooleanExpression.True = new TrueBooleanExpression();
 export class FalseBooleanExpression extends BooleanExpression {
     constructor() {
         super(null);
+    }
+
+    get priority() : SyntaxPriority {
+        return SyntaxPriority.Primary;
+    }
+
+    toSource() : TokenStream {
+        return List.singleton('false');
     }
 
     equals(other : BooleanExpression) : boolean {
@@ -1050,6 +1128,21 @@ export class ComputeBooleanExpression extends BooleanExpression {
         this.rhs = rhs;
 
         this.overload = overload;
+    }
+
+    get priority() : SyntaxPriority {
+        return INFIX_COMPARISON_OPERATORS.has(this.operator) ? SyntaxPriority.Comp : SyntaxPriority.Primary;
+    }
+
+    toSource() : TokenStream {
+        if (INFIX_COMPARISON_OPERATORS.has(this.operator)) {
+            return List.concat(
+                addParenthesis(SyntaxPriority.Add, this.lhs.priority, this.lhs.toSource()),
+                this.operator,
+                addParenthesis(SyntaxPriority.Add, this.rhs.priority, this.rhs.toSource()));
+        } else {
+            return List.concat(this.operator, '(', this.lhs.toSource(), ',', this.rhs.toSource(), ')');
+        }
     }
 
     equals(other : BooleanExpression) : boolean {

@@ -20,6 +20,7 @@ rules:
   require-yield: off
   '@typescript-eslint/no-non-null-assertion': off
   '@typescript-eslint/no-explicit-any': off
+  '@typescript-eslint/no-namespace': off
 
   # temporary until migration is complete
   '@typescript-eslint/no-this-alias': off

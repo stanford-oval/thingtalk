@@ -478,6 +478,7 @@ export class AggregationTable extends Table {
 }
 Table.Aggregation = AggregationTable;
 Table.Aggregation.prototype.isAggregation = true;
+
 export class SortedTable extends Table {
     table : Table;
     field : string;

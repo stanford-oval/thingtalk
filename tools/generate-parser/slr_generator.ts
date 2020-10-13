@@ -665,14 +665,20 @@ export class SLRParserGenerator {
                 const [lhs,,] = this.rules[ruleId];
                 for (const term of this.terminals) {
                     if (this._followSets.get(lhs)!.has(term)) {
-                        if (term in this.actionTable[itemSet.info.id] && !strictArrayEquals(this.actionTable[itemSet.info.id][term], ['reduce', ruleId])) {
+                        const existing = this.actionTable[itemSet.info.id][term];
+                        if (existing) {
+                            if (strictArrayEquals(existing, ['reduce', ruleId]))
+                                continue;
 
                             const printed = new Set<number>();
                             this._recursivePrintItemSet(itemSet.info.id, printed);
-
-                            throw new Error("Conflict for state " + itemSet.info.id + " terminal " + term + " want " + ["reduce", ruleId] + " have " + this.actionTable[itemSet.info.id][term]);
+                            if (existing[0] === 'shift')
+                                console.log(`WARNING: ignored shift-reduce conflict at state ${itemSet.info.id} terminal ${term} want ${["reduce", ruleId]} have ${existing}`);
+                            else
+                                throw new Error(`Conflict for state ${itemSet.info.id} terminal ${term} want ${["reduce", ruleId]} have ${existing}`);
+                        } else {
+                            this.actionTable[itemSet.info.id][term] = ['reduce', ruleId];
                         }
-                        this.actionTable[itemSet.info.id][term] = ['reduce', ruleId];
                     }
                 }
             }

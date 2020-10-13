@@ -54,6 +54,9 @@ import * as Optimizer from '../optimize';
 import convertToPermissionRule from './convert_to_permission_rule';
 import lowerReturn, { Messaging } from './lower_return';
 import SchemaRetriever from '../schema';
+import type {
+    ExpressionStatement
+} from './program2';
 
 import { TokenStream } from '../new-syntax/tokenstream';
 import List from '../utils/list';
@@ -81,6 +84,8 @@ export abstract class Statement extends Node {
     isDataset ! : boolean;
     static ClassDef : typeof ClassDef;
     isClassDef ! : boolean;
+    static Expression : typeof ExpressionStatement;
+    isExpression ! : boolean;
 
     /**
      * Iterate all slots (scalar value nodes) in this statement.
@@ -107,6 +112,7 @@ Statement.prototype.isOnInputChoice = false;
 Statement.prototype.isDeclaration = false;
 Statement.prototype.isDataset = false;
 Statement.prototype.isClassDef = false;
+Statement.prototype.isExpression = false;
 
 function declarationLikeToProgram(self : Declaration|Example) : Program {
     const nametoslot : { [key : string] : number } = {};
@@ -692,6 +698,8 @@ export abstract class Input extends Node {
     isBookkeeping ! : boolean;
     static Program : any;
     isProgram ! : boolean;
+    static Program2 : any;
+    isProgram2 ! : boolean;
     static Library : any;
     isLibrary ! : boolean;
     static PermissionRule : any;
@@ -734,6 +742,7 @@ export abstract class Input extends Node {
 }
 Input.prototype.isBookkeeping = false;
 Input.prototype.isProgram = false;
+Input.prototype.isProgram2 = false;
 Input.prototype.isLibrary = false;
 Input.prototype.isPermissionRule = false;
 Input.prototype.isMeta = false;

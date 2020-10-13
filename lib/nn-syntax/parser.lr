@@ -117,7 +117,7 @@ dialogue_history_item : Ast.DialogueHistoryItem = {
     rule:rule '#[' 'confirm' '=' venum:ENUM ']' ';' => new Ast.DialogueHistoryItem($.location, rule, null, venum.value);
 }
 
-dialogue_result_annotation_list : Array<DialogueHistoryAnnotation> = {
+dialogue_result_annotation_list : DialogueHistoryAnnotation[] = {
     ann:dialogue_result_annotation => [ann];
 
     list:dialogue_result_annotation_list ann:dialogue_result_annotation => list.concat([ann]);
@@ -127,7 +127,7 @@ dialogue_result_annotation_bag : Ast.DialogueHistoryResultList = {
     list:dialogue_result_annotation_list => {
         let results, _error, more, count;
 
-        for (let annot of list) {
+        for (const annot of list) {
             switch (annot.key) {
             case 'results':
                 if (results !== undefined)
@@ -620,7 +620,7 @@ recurrent_time_rule_list : Ast.RecurrentTimeRule[] = {
 recurrent_time_rule : Ast.RecurrentTimeRule = {
     '{' list:recurrent_time_item_list '}' => {
         const obj : { [key : string] : unknown } = {};
-        for (let item of list) {
+        for (const item of list) {
             if (obj[item[0]])
                 return $.error(`Duplicate recurrent time rule key ${item[0]}`);
             obj[item[0]] = item[1];
@@ -742,7 +742,7 @@ constant_Location : Ast.LocationValue = {
 absolute_time : Ast.TimeValue = {
     time:TIME => new Ast.Value.Time(new Ast.Time.Absolute(time.value.hour, time.value.minute, time.value.second||0));
     time:LITERAL_TIME => {
-        let tokens = time.value.split(':');
+        const tokens = time.value.split(':');
         return new Ast.Value.Time(new Ast.Time.Absolute(parseInt(tokens[0]), parseInt(tokens[1]), parseInt(tokens[2])));
     };
 }

@@ -45,7 +45,7 @@ export class ConstantToken<K extends EntityType, V> {
 // this differs from regular generic entity because it has a type
 interface GenericEntity {
     type : string;
-    value : string;
+    value : string|null;
     display ?: string|null;
 }
 

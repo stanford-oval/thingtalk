@@ -19,28 +19,68 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import { SourceRange } from '../utils/source_locations';
-import {
-    AnyEntity
-} from '../entities';
+import * as Ast from '../ast';
 import Type from '../type';
+import {
+    AnyEntity,
+    MeasureEntity,
+    TimeEntity,
+    LocationEntity,
+    DateEntity,
+} from '../entities';
 
-interface ContextRefToken {
-    name : string;
-    type : Type;
+interface FunctionToken {
+    kind : string;
+    channel : string;
 }
 
 interface GenericEntityToken {
-    name : string;
-    value : string;
+    value : string|null;
     type : string;
+    display ?: string|null;
 }
 
-type TokenValue = AnyEntity | GenericEntityToken | ContextRefToken;
+type TokenValue = AnyEntity | GenericEntityToken;
+
+interface TokenTypes {
+    CLASS_OR_FUNCTION_REF : string;
+    SLOT : Ast.Value|undefined;
+    QUOTED_STRING : string;
+    NUMBER : number;
+    MEASURE : MeasureEntity;
+    CURRENCY : MeasureEntity;
+    DURATION : MeasureEntity;
+    LOCATION : LocationEntity;
+    DATE : Date|DateEntity;
+    TIME : TimeEntity;
+    GENERIC_ENTITY : GenericEntityToken;
+    ENTITY_NAME : string;
+    USERNAME : string;
+    HASHTAG : string;
+    URL : string;
+    PHONE_NUMBER : string;
+    EMAIL_ADDRESS : string;
+    PATH_NAME : string;
+    DEVICE : string;
+    FUNCTION : FunctionToken;
+    PICTURE : string;
+    TYPE_ANNOT : Type;
+    IDENTIFIER : string;
+    DOLLARIDENTIFIER : string;
+}
+
+export type TypeOfToken<K extends keyof TokenTypes> = TokenTypes[K];
 
 export class Token {
-    constructor(public token : string,
-                public location : SourceRange,
-                public value : TokenValue|null) {
+    private constructor(public token : string,
+                        public location : SourceRange,
+                        public value : TokenValue|null) {
+    }
+
+    static make<K extends string>(token : K,
+                                  location : SourceRange,
+                                  value : (K extends keyof TokenTypes ? TypeOfToken<K> : null)) {
+        return new Token(token, location, value);
     }
 
     toString() : string {

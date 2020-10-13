@@ -21,41 +21,37 @@
 export const KEYWORDS = new Set<string>([
     // keywords shared with JavaScript
     'class',
-    'const',
     'extends',
-    'if',
     'import',
     'in',
-    'for',
     'let',
     'of',
-    'switch',
-    'with',
     'new',
     'null',
     'true',
     'false',
     'enum',
 
-    // AlmondScript-specific keywords
+    // ThingTalk-specific keywords
     'abstract',
-    'aggregate',
-    'bookkeeping',
+    'as',
     'dataset',
+    'filter',
     'mixin',
+    'monitor',
     'notify',
+    'now',
     'out',
     'opt',
     'req',
     'sort',
-    'until',
-    'when',
 
     // keywords and reserved words from JavaScript are reserved for future extensions
     'await',
     'break',
     'case',
     'catch',
+    'const',
     'continue',
     'debugger',
     'default',
@@ -63,7 +59,9 @@ export const KEYWORDS = new Set<string>([
     'do',
     'export',
     'finally',
+    'for',
     'function',
+    'if',
     'implements',
     'instanceof',
     'interface',
@@ -74,6 +72,7 @@ export const KEYWORDS = new Set<string>([
     'return',
     'static',
     'super',
+    'switch',
     'this',
     'throw',
     'try',
@@ -81,13 +80,18 @@ export const KEYWORDS = new Set<string>([
     'var',
     'void',
     'while',
+    'with',
     'yield',
 
     // reserved words from ThingTalk
-    'join',
+    // (these are the keywords in old ThingTalk, which are reserved in new
+    // ThingTalk so we can convert back to the old syntax)
+    'aggregate',
+    'bookkeeping',
+    'compute',
     'edge',
-    'now',
-    'as',
+    'join',
+    'oninput',
 
     // all ThingTalk type names are keywords
     'Any',
@@ -148,6 +152,20 @@ export const CONTEXTUAL_KEYWORDS = new Set<string>([
     // sort descriptors
     'asc',
     'desc',
+
+    // comparison, aggregation, and scalar operators
+    'starts_with',
+    'ends_with',
+    'prefix_of',
+    'suffix_of',
+    'contains',
+    'in_array',
+    'min',
+    'max',
+    'sum',
+    'avg',
+    'count',
+    'distance',
 ]);
 
 export const DOLLAR_KEYWORDS = new Set<string>([
@@ -158,8 +176,9 @@ export const DOLLAR_KEYWORDS = new Set<string>([
     '$location',
     '$now',
     '$program_id',
+    '$result',
     '$self',
     '$start_of',
-    '$type',
+    '$time',
     '$undefined'
 ]);

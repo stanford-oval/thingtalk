@@ -24,7 +24,9 @@ import type * as BK from './bookkeeping';
 import type { ClassDef } from './class_def';
 import type { FunctionDef, ArgumentDef } from './function_def';
 import type * as Prog from './program';
+import type * as Prog2 from './program2';
 import type * as Exp from './expression';
+import type * as Exp2 from './expression2';
 import type * as Prim from './primitive';
 import type * as D from './dialogues';
 
@@ -396,6 +398,52 @@ export default abstract class NodeVisitor {
         return true;
     }
 
+    // new-style expressions
+    /* istanbul ignore next */
+    visitFunctionCallExpression(node : Exp2.FunctionCallExpression) : boolean {
+        return true;
+    }
+    /* istanbul ignore next */
+    visitInvocationExpression(node : Exp2.InvocationExpression) : boolean {
+        return true;
+    }
+    /* istanbul ignore next */
+    visitMonitorExpression(node : Exp2.MonitorExpression) : boolean {
+        return true;
+    }
+    /* istanbul ignore next */
+    visitFilterExpression(node : Exp2.FilterExpression) : boolean {
+        return true;
+    }
+    /* istanbul ignore next */
+    visitProjectionExpression(node : Exp2.ProjectionExpression) : boolean {
+        return true;
+    }
+    /* istanbul ignore next */
+    visitAliasExpression(node : Exp2.AliasExpression) : boolean {
+        return true;
+    }
+    /* istanbul ignore next */
+    visitAggregationExpression(node : Exp2.AggregationExpression) : boolean {
+        return true;
+    }
+    /* istanbul ignore next */
+    visitSortExpression(node : Exp2.SortExpression) : boolean {
+        return true;
+    }
+    /* istanbul ignore next */
+    visitIndexExpression(node : Exp2.IndexExpression) : boolean {
+        return true;
+    }
+    /* istanbul ignore next */
+    visitSliceExpression(node : Exp2.SliceExpression) : boolean {
+        return true;
+    }
+    /* istanbul ignore next */
+    visitChainExpression(node : Exp2.ChainExpression) : boolean {
+        return true;
+    }
+
     // statements and inputs
     /* istanbul ignore next */
     visitDeclaration(node : Prog.Declaration) : boolean {
@@ -426,6 +474,10 @@ export default abstract class NodeVisitor {
         return true;
     }
     /* istanbul ignore next */
+    visitProgram2(node : Prog2.Program2) : boolean {
+        return true;
+    }
+    /* istanbul ignore next */
     visitPermissionRule(node : Prog.PermissionRule) : boolean {
         return true;
     }
@@ -435,6 +487,10 @@ export default abstract class NodeVisitor {
     }
     /* istanbul ignore next */
     visitExample(node : Prog.Example) : boolean {
+        return true;
+    }
+    /* istanbul ignore next */
+    visitExpressionStatement(node : Prog2.ExpressionStatement) : boolean {
         return true;
     }
 

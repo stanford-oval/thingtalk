@@ -3,12 +3,30 @@
 // an action
 @com.twitter.post();
 
-====
-
 // a query
-@com.twitter.home_timeline() => notify;
-
-====
+@com.twitter.home_timeline();
 
 // query + action
 @com.twitter.home_timeline() => @com.twitter.post();
+
+====
+
+// a stream
+monitor (@com.twitter.home_timeline());
+
+// stream + action
+monitor (@com.twitter.home_timeline()) => @com.twitter.post();
+
+// streams that monitors only specific fields
+monitor (text of @com.twitter.home_timeline());
+monitor (text, author of @com.twitter.home_timeline());
+
+// not quite the same thing: also project things
+monitor ([text, author] of @com.twitter.home_timeline());
+
+====
+
+// filters
+@com.twitter.home_timeline() filter text =~ "foo";
+@com.twitter.home_timeline() filter contains(hashtags, "foo"^^tt:hashtag);
+@com.twitter.home_timeline() filter contains~(hashtags, "foo");

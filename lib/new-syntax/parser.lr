@@ -21,8 +21,11 @@
 {
 import assert from 'assert';
 import * as Ast from '../ast';
-//import { parseDate } from '../date_utils';
+import Type from '../type';
 import { KEYWORDS, FORBIDDEN_KEYWORDS } from './keywords';
+import { TypeOfToken } from './token';
+
+import { parseDate } from '../utils/date_utils';
 
 /*type DialogueHistoryAnnotation =
       { key : 'results', value : Ast.DialogueHistoryResultItem[] }
@@ -35,7 +38,7 @@ function makeInput($ : $runtime.ParserInterface, toplevelstatements : Array<Ast.
     const classes : Ast.ClassDef[] = [];
     const datasets : Ast.Dataset[] = [];
     const declarations : Ast.Declaration[] = [];
-    const executable : Ast.ExecutableStatement[] = [];
+    const executable : Ast.ExecutableStatement2[] = [];
 
     for (const stmt of toplevelstatements) {
         if (stmt instanceof Ast.ClassDef)
@@ -56,18 +59,68 @@ function makeInput($ : $runtime.ParserInterface, toplevelstatements : Array<Ast.
         if (stmt instanceof Ast.Declaration) {
             declarations.push(stmt);
         } else {
-            assert(stmt instanceof Ast.Rule || stmt instanceof Ast.Command || stmt instanceof Ast.Assignment);
+            assert(stmt instanceof Ast.ExpressionStatement || stmt instanceof Ast.Assignment);
             executable.push(stmt);
         }
     }
 
-    return new Ast.Program($.location, classes, declarations, executable);
+    return new Ast.Program2($.location, classes, declarations, executable, annotations);
 }
 
 function isIdentifier(name : string) {
     return /^[A-Za-z_][A-Za-z0-9_]*$/.test(name) && !KEYWORDS.has(name) && !FORBIDDEN_KEYWORDS.has(name);
 }
+
+/*
+interface FunctionCall {
+    name : string;
+    in_params : Ast.InputParams[];
 }
+
+function checkInputParams<T extends string>($ : $runtime.ParserInterface, fc : FunctionCall, expected : T[], required : T[]) : { [key : T] : Ast.Value } {
+    const out : { [key : T] : Ast.Value } = {};
+    for (let in_param of fc.in_params) {
+        if (!expected.includes(in_param.name))
+            return $.error(`Invalid parameter ${in_param.name} to builtin function ${fc.name}`);
+        if (in_param.name in out)
+            return $.error(`Duplicate parameter ${in_param.name} to builtin function ${fc.name}`);
+        out[in_param.name] = in_param.value;
+    }
+    for (let expect of required) {
+        if (!(expect in out))
+            return $.error(`Missing parameter ${expect} to builtin function ${fc.name}`);
+    }
+    return out;
+}
+*/
+}
+
+terminal CLASS_OR_FUNCTION_REF : TypeOfToken<'CLASS_OR_FUNCTION_REF'>;
+terminal SLOT : TypeOfToken<'SLOT'>;
+terminal QUOTED_STRING : TypeOfToken<'QUOTED_STRING'>;
+terminal NUMBER : TypeOfToken<'NUMBER'>;
+terminal MEASURE : TypeOfToken<'MEASURE'>;
+terminal DURATION : TypeOfToken<'DURATION'>;
+terminal CURRENCY : TypeOfToken<'CURRENCY'>;
+terminal LOCATION : TypeOfToken<'LOCATION'>;
+terminal TIME : TypeOfToken<'TIME'>;
+terminal DATE : TypeOfToken<'DATE'>;
+terminal GENERIC_ENTITY : TypeOfToken<'GENERIC_ENTITY'>;
+terminal ENTITY_NAME : TypeOfToken<'ENTITY_NAME'>;
+terminal USERNAME : TypeOfToken<'USERNAME'>;
+terminal HASHTAG : TypeOfToken<'HASHTAG'>;
+terminal URL : TypeOfToken<'URL'>;
+terminal PHONE_NUMBER : TypeOfToken<'PHONE_NUMBER'>;
+terminal EMAIL_ADDRESS : TypeOfToken<'EMAIL_ADDRESS'>;
+terminal PATH_NAME : TypeOfToken<'PATH_NAME'>;
+terminal DEVICE : TypeOfToken<'DEVICE'>;
+terminal FUNCTION : TypeOfToken<'FUNCTION'>;
+terminal PICTURE : TypeOfToken<'PICTURE'>;
+terminal TYPE_ANNOT : TypeOfToken<'TYPE_ANNOT'>;
+terminal IDENTIFIER : TypeOfToken<'IDENTIFIER'>;
+terminal DOLLARIDENTIFIER : TypeOfToken<'DOLLARIDENTIFIER'>;
+terminal ENTITY_NAME : TypeOfToken<'ENTITY_NAME'>;
+
 
 input : Ast.Input = {
     stmts:statement_list => makeInput($, [], stmts, {});
@@ -83,20 +136,205 @@ statement_list : Ast.Statement[] = {
 }
 
 statement : Ast.Statement = {
-    table:table '=>' 'notify' ';' => new Ast.Statement.Command($.location, table, [Ast.Action.notifyAction()]);
-    table:table '=>' action:action ';' => new Ast.Statement.Command($.location, table, [action]);
-    action:action ';' => new Ast.Statement.Command($.location, null, [action]);
+    expr:chain_expression ';' => new Ast.Statement.Expression($.location, expr);
+
+    // redundant forms for compatibility
+    'now' '=>' expr:chain_expression ';' => new Ast.Statement.Expression($.location, expr);
 }
 
-table : Ast.Table = {
-    fn:thingpedia_call => new Ast.Table.Invocation($.location, fn, null);
+chain_expression : Ast.ChainExpression = {
+    list:chain_expression_list => new Ast.ChainExpression($.location, list, null);
+
+    // redundant forms for compatibility
+    list:chain_expression_list '=>' 'notify' => new Ast.ChainExpression($.location, list, null);
 }
 
-action : Ast.Action = {
-    fn:thingpedia_call => new Ast.Action.Invocation($.location, fn, null);
+// A note on the priority of expressions:
+//
+// The order, from least to highest priority, is
+//
+// - chain
+// - projections/computation
+// - filters
+// - alias
+// - index/slice
+// - sort/aggregate/monitor/function call/invocation/parenthesis
+//
+// so for example:
+// ```
+// [foo, bar] of @com.foo() filter foo > 5
+// ```
+// parses as
+// ```
+// [foo, bar] of ((@com.foo()) filter foo > 5)
+// ```
+// (this is DIFFERENT from Old ThingTalk - but the same after optimization!)
+//
+// ```
+// [foo, bar] of @com.foo(), foo > 5
+// ```
+// parses as
+// ```
+// [foo, bar] of ((@com.foo()) filter foo > 5)
+// ```
+//
+// ```
+// [foo, bar] of @com.foo() as lol
+// ```
+// parses as
+// ```
+// [foo, bar] of ((@com.foo()) as lol)
+// ```
+//
+// ```
+// [foo, bar] of [foo, bar, baz] of @com.foo()
+// ```
+// parses as
+// ```
+// [foo, bar] of ([foo, bar, baz] of (@com.foo()))
+// ```
+//
+// ```
+// @com.foo() as lol filter foo > 5
+// ```
+// parses as
+// ```
+// ((@com.foo() as lol) filter foo > 5
+// ```
+//
+// ```
+// @com.foo() as lol, foo > 5
+// ```
+// parses as
+// ```
+// ((@com.foo() as lol) filter foo > 5
+// ```
+//
+// ```
+// @com.foo() filter foo > 5 as lol
+// ```
+// is not valid
+//
+// ```
+// @com.foo(), foo > 5 as lol
+// ```
+// is not valid
+//
+// ```
+// @com.foo() filter foo > 5[1]
+// ```
+// is not valid
+//
+// ```
+// @com.foo() as foo > 5[1]
+// ```
+// is not valid
+//
+// ```
+// sort(@com.foo()) as foo
+// ```
+// parses as
+// ```
+// (sort(@com.foo())) as foo
+// ```
+
+chain_expression_list : Ast.Expression[] = {
+    expr:projection_expression => [expr];
+
+    list:chain_expression_list '=>' expr:projection_expression => {
+        list.push(expr);
+        return list;
+    };
 }
 
-thingpedia_call = {
+projection_expression : Ast.Expression = {
+    filter_expression;
+
+    '[' args:projection_param_list ']' 'of' expr:projection_expression => {
+        const names : string[] = [], computations : Ast.Value[] = [],
+            aliases : Array<string|null> = [];
+        for (const [value, alias] of args) {
+            if (value instanceof Ast.VarRefValue &&
+                (alias === null && alias === value.name)) {
+                names.push(value.name);
+            } else {
+                computations.push(value);
+                aliases.push(alias);
+            }
+        }
+        return new Ast.ProjectionExpression($.location, expr, names, computations, aliases, null);
+    };
+}
+
+projection_param_list : Array<[Ast.Value, string|null]> = {
+    p:projection_param => [p];
+
+    list:projection_param_list ',' p:projection_param => {
+        list.push(p);
+        return list;
+    };
+}
+
+projection_param : [Ast.Value, string|null] = {
+    v:value => [v, null];
+
+    v:value 'as' alias:variable_name => [v, alias];
+}
+
+filter_expression : Ast.Expression = {
+    alias_expression;
+
+    expr:filter_expression ',' filter:or_filter
+        => new Ast.FilterExpression($.location, expr, filter, null);
+    expr:filter_expression 'filter' filter:or_filter
+        => new Ast.FilterExpression($.location, expr, filter, null);
+}
+
+alias_expression : Ast.Expression = {
+    index_slice_expression;
+
+    expr:alias_expression 'as' name:variable_name =>
+        new Ast.AliasExpression($.location, expr, name, null);
+}
+
+index_slice_expression : Ast.Expression = {
+    primary_expression;
+
+    expr:primary_expression '[' begin:value ':' count:value ']'
+        => new Ast.SliceExpression($.location, expr, begin, count, null);
+    expr:primary_expression '[' indices:array_literal_values ']'
+        => new Ast.IndexExpression($.location, expr, indices, null);
+}
+
+primary_expression : Ast.Expression = {
+    'sort' '(' spec:sort_specifier 'of' expr:chain_expression ')'
+        => new Ast.SortExpression($.location, expr, spec[0], spec[1], null);
+
+    /*'aggregate' '(' op:aggr_op name:variable_name 'of' expr:chain_expression ')'
+        => new Ast.AggregationExpression($.location, expr, op, name, null);
+    'aggregate' '(' 'count' 'of' expr:chain_expression ')'
+        => new Ast.AggregationExpression($.location, expr, 'count', '*', null);
+    */
+
+    op:aggr_op '(' name:variable_name 'of' expr:chain_expression ')'
+        => new Ast.AggregationExpression($.location, expr, op, name, null);
+    'count' '(' expr:chain_expression ')'
+        => new Ast.AggregationExpression($.location, expr, 'count', '*', null);
+
+    'monitor' '(' expr:chain_expression ')'
+        => new Ast.MonitorExpression($.location, expr, null, null);
+
+    'monitor' '(' args:variable_name_list 'of' expr:chain_expression ')'
+        => new Ast.MonitorExpression($.location, expr, args, null);
+
+    name:udf_function_name in_params:in_param_list
+        => new Ast.FunctionCallExpression($.location, name, in_params, null);
+
+    call:thingpedia_call
+        => new Ast.InvocationExpression($.location, call, null);
+}
+
+thingpedia_call : Ast.Invocation = {
     name:CLASS_OR_FUNCTION_REF in_params:in_param_list => {
         const lastDot = name.value.lastIndexOf('.');
         const className = name.value.substring(0, lastDot);
@@ -105,11 +343,11 @@ thingpedia_call = {
         // we check that the function name is a valid identifier because the lexer will greedly parse through things
         // that are not identifiers but are allowed in the class name
         if (!isIdentifier(functionName))
-            $.error(`${name.value} is not a valid function name`);
+            $.error(`${name.value} is not a valid function name`); //`
         return new Ast.Invocation($.location, new Ast.DeviceSelector($.location, className, null, null), functionName, in_params, null);
     };
 
-    className:CLASS_OR_FUNCTION_REF device_params:in_param_list '.' functionName:IDENTIFIER in_params:in_param_list => {
+    className:CLASS_OR_FUNCTION_REF device_params:in_param_list '.' functionName:function_name in_params:in_param_list => {
         let id : string|null = null, all = false, other = [];
         for (const attr of device_params) {
             if (attr.name === 'id') {
@@ -124,7 +362,7 @@ thingpedia_call = {
             }
         }
         const selector = new Ast.DeviceSelector($.location, className.value, id, null, other, all);
-        return new Ast.Invocation($.location, selector, functionName.value, in_params, null);
+        return new Ast.Invocation($.location, selector, functionName, in_params, null);
     };
 }
 
@@ -139,9 +377,714 @@ in_param_list_nonempty : Ast.InputParam[] = {
 }
 
 in_param : Ast.InputParam = {
-    name:IDENTIFIER '=' value => new Ast.InputParam($.location, name.value, value);
+    name:variable_name '=' value => new Ast.InputParam($.location, name, value);
 }
 
-value = {
-    str:QUOTED_STRING => new Ast.Value.String(str.value);
+sort_specifier_list : Array<[string, 'asc'|'desc']> = {
+    sort_specifier => [sort_specifier];
+    sort_specifier_list ',' sort_specifier => sort_specifier_list.concat([sort_specifier]);
+}
+
+sort_specifier : [string, 'asc'|'desc'] = {
+    name:variable_name => [name, 'asc'];
+    name:variable_name 'asc' => [name, 'asc'];
+    name:variable_name 'desc' => [name, 'desc'];
+}
+
+or_filter : Ast.BooleanExpression = {
+    and_filter;
+    f1:or_filter '||' f2:and_filter => new Ast.BooleanExpression.Or($.location, [f1, f2]);
+}
+
+and_filter : Ast.BooleanExpression = {
+    unary_filter;
+    f1:and_filter '&&' f2:unary_filter => new Ast.BooleanExpression.And($.location, [f1, f2]);
+}
+
+unary_filter : Ast.BooleanExpression = {
+    comparison_filter;
+
+    atom_filter;
+    '!' f:atom_filter => new Ast.BooleanExpression.Not($.location, f);
+}
+
+// filter values cause a lot of ambiguity
+//
+//
+// a filter value followed by a '+' operator could be interpreted as adding to the
+// whole filter value or adding to operand of the filter
+//
+// we solve the ambiguity as if the "filter" keyword takes priority
+// that is
+// ```
+// a filter b > c + d
+// ```
+// is parsed as
+// ```
+// (a filter b > c) + d
+// ```
+//
+// a value in the RHS of a comparison followed by "filter" could be
+// a nested filter expression or a filter value
+//
+// the ambiguous example is:
+// ```
+// @com.foo() filter b > c filter f(...)
+// ```
+// we interpret that as:
+// ```
+// ((@com.foo() filter b > c) filter f(...))
+// ```
+//
+// a value in the LHS of a comparison containing filter also causes ambiguity
+
+comparison_filter : Ast.BooleanExpression = {
+    /*pname:variable_name op:comparison_op rhs:add_expr =>
+        new Ast.BooleanExpression.Atom($.location, pname, op, rhs);*/
+    lhs:add_expr op:comparison_op rhs:add_expr => {
+        if (lhs instanceof Ast.VarRefValue)
+            return new Ast.BooleanExpression.Atom($.location, lhs.name, op, rhs);
+        else
+            return new Ast.BooleanExpression.Compute($.location, lhs, op, rhs);
+    };
+}
+
+non_ambiguous_unary_filter : Ast.BooleanExpression = {
+    non_ambiguous_comparison_filter;
+
+    atom_filter;
+    '!' f:atom_filter => new Ast.BooleanExpression.Not($.location, f);
+}
+
+non_ambiguous_comparison_filter : Ast.BooleanExpression = {
+    /*pname:variable_name op:comparison_op rhs:primary_value =>
+        new Ast.BooleanExpression.Atom($.location, pname, op, rhs);*/
+    lhs:add_expr op:comparison_op rhs:primary_value => {
+        if (lhs instanceof Ast.VarRefValue)
+            return new Ast.BooleanExpression.Atom($.location, lhs.name, op, rhs);
+        else
+            return new Ast.BooleanExpression.Compute($.location, lhs, op, rhs);
+    };
+}
+
+comparison_op : string = {
+    '==';
+    '>=';
+    '<=';
+    '=~';
+    '~=';
+}
+
+function_like_comparison_op : string = {
+    'starts_with';
+    'ends_with';
+    'prefix_of';
+    'suffix_of';
+    'contains';
+    'contains~';
+    '~contains';
+    'in_array';
+    'in_array~';
+    '~in_array';
+}
+
+aggr_op : ('min'|'max'|'sum'|'avg') = {
+    'min';
+    'max';
+    'sum';
+    'avg';
+}
+
+scalar_op : 'distance' = {
+    'distance' => 'distance';
+}
+
+atom_filter : Ast.BooleanExpression = {
+    '(' filter:or_filter ')' => filter;
+
+    'true' '(' pname:variable_name ')' => new Ast.BooleanExpression.DontCare($.location, pname);
+
+    op:function_like_comparison_op '(' lhs:value ',' rhs:value ')' => {
+        if (lhs instanceof Ast.VarRefValue)
+            return new Ast.BooleanExpression.Atom($.location, lhs.name, op, rhs);
+        else
+            return new Ast.BooleanExpression.Compute($.location, lhs, op, rhs);
+    };
+
+    // TODO subqueries
+}
+
+primary_value : Ast.Value = {
+    '(' value ')' => value;
+
+    scalar_function;
+    undefined_value;
+    context_value;
+    object_literal_value;
+    array_value;
+    constant_value;
+    var_ref_value;
+    event_value;
+}
+
+var_ref_value : Ast.VarRefValue = {
+    name:variable_name => new Ast.Value.VarRef(name);
+}
+
+value : Ast.Value = {
+    array_field_value;
+}
+
+array_field_value : Ast.Value = {
+    field:variable_name 'of' value:filter_value => new Ast.Value.ArrayField(value, field);
+
+    filter_value;
+}
+
+filter_value : Ast.Value = {
+    add_expr;
+
+    value:add_expr 'filter' filter:non_ambiguous_unary_filter => new Ast.Value.Filter(value, filter);
+}
+
+add_expr : Ast.Value = {
+    mul_expr;
+
+    lhs:add_expr '+' rhs:mul_expr => new Ast.Value.Computation('+', [lhs, rhs]);
+    lhs:add_expr '-' rhs:mul_expr => new Ast.Value.Computation('-', [lhs, rhs]);
+}
+mul_expr : Ast.Value = {
+    exp_expr;
+
+    lhs:mul_expr '*' rhs:exp_expr => new Ast.Value.Computation('*', [lhs, rhs]);
+    lhs:mul_expr '/' rhs:exp_expr => new Ast.Value.Computation('/', [lhs, rhs]);
+    lhs:mul_expr '%' rhs:exp_expr => new Ast.Value.Computation('%', [lhs, rhs]);
+}
+exp_expr : Ast.Value = {
+    primary_value;
+
+    lhs:exp_expr '**' rhs:primary_value => new Ast.Value.Computation('**', [lhs, rhs]);
+}
+
+scalar_function : Ast.ComputationValue = {
+    op:scalar_op '(' operands:array_literal_values ')' => new Ast.Value.Computation(op, operands);
+    op:aggr_op '(' operands:array_literal_values ')' => new Ast.Value.Computation(op, operands);
+    'count' '(' operands:array_literal_values ')' => new Ast.Value.Computation('count', operands);
+}
+
+undefined_value : Ast.UndefinedValue = {
+    '$undefined' => new Ast.Value.Undefined(true);
+    '$?' => new Ast.Value.Undefined(true);
+}
+
+event_value : Ast.EventValue = {
+    '$result' => new Ast.Value.Event(null);
+    '$program_id' => new Ast.Value.Event('program_id');
+}
+
+context_value : Ast.ContextRefValue = {
+    '$context' '.' name:variable_name type:type_ref => new Ast.Value.ContextRef(name, type);
+}
+
+array_value : Ast.ArrayValue = {
+    '[' ']' => new Ast.Value.Array([]);
+    '[' values:array_literal_values ']' => new Ast.Value.Array(values);
+}
+
+object_literal_value : Ast.ObjectValue = {
+    '{' '}' => new Ast.Value.Object({});
+    '{' values:object_literal_entry_list '}' => new Ast.Value.Object(values);
+}
+
+object_literal_entry_list : { [key : string] : Ast.Value } = {
+    name:variable_name '=' value:value => ({ [name]: value });
+    obj:object_literal_entry_list ',' name:variable_name '=' value:value => {
+        obj[name] = value;
+        return obj;
+    };
+}
+
+constant_RecurrentTimeSpecification : Ast.Value = {
+    'new' 'RecurrentTimeSpecification' '(' rules:recurrent_time_rule_list ')' =>
+        new Ast.Value.RecurrentTimeSpecification(rules);
+}
+
+recurrent_time_rule_list : Ast.RecurrentTimeRule[] = {
+    first:recurrent_time_rule => [first];
+
+    head:recurrent_time_rule_list ',' tail:recurrent_time_rule => head.concat([tail]);
+}
+
+recurrent_time_rule : Ast.RecurrentTimeRule = {
+    '{' list:recurrent_time_item_list '}' => {
+        const obj : { [key : string] : unknown } = {};
+        for (const item of list) {
+            if (obj[item[0]])
+                return $.error(`Duplicate recurrent time rule key ${item[0]}`);
+            obj[item[0]] = item[1];
+        }
+        return new Ast.RecurrentTimeRule(obj as any);
+    };
+}
+
+recurrent_time_item_list : Array<[string, any]> = {
+    first:recurrent_time_item => [first];
+
+    head:recurrent_time_item_list ',' tail:recurrent_time_item => head.concat([tail]);
+}
+
+recurrent_time_item : [string, any] = {
+    // FIXME these are not keywords
+    'beginDate' '=' v:absolute_or_edge_date => ['beginDate', v.value];
+    'endDate' '=' v:absolute_or_edge_date => ['endDate', v.value];
+
+    'beginTime' '=' v:absolute_time => ['beginTime', v.value];
+    'endTime' '=' v:absolute_time => ['endTime', v.value];
+
+    'frequency' '=' v:literal_number => ['frequency', v];
+    'interval' '=' v:constant_Measure => ['interval', v];
+
+    'dayOfWeek' '=' v:enum_literal => ['dayOfWeek', v];
+
+    'subtract' '=' 'true' => ['subtract', true];
+    'subtract' '=' 'false' => ['subtract', false];
+}
+
+constant_value : Ast.Value = {
+    constant_Boolean;
+    constant_String;
+    constant_Measure;
+    constant_Number;
+    constant_Currency;
+    constant_Location;
+    constant_Date;
+    constant_Time;
+    constant_Entity__unknown;
+    constant_Entity__tt__username;
+    constant_Entity__tt__hashtag;
+    constant_Entity__tt__phone_number;
+    constant_Entity__tt__email_address;
+    constant_Entity__tt__path_name;
+    constant_Entity__tt__url;
+    constant_Entity__tt__device;
+    constant_Entity__tt__function;
+    constant_Entity__tt__picture;
+    constant_Enum;
+    constant_RecurrentTimeSpecification;
+    constant_ArgMap;
+    slot:SLOT => (slot.value === undefined ? new Ast.Value.Undefined(true) : slot.value);
+}
+
+array_literal_values : Ast.Value[] = {
+    value => [value];
+    array:array_literal_values ',' v:value => array.concat([v]);
+}
+
+constant_Boolean : Ast.BooleanValue = {
+    'true' => new Ast.Value.Boolean(true);
+    'false' => new Ast.Value.Boolean(false);
+}
+
+any_string : string = {
+    '""' => '';
+    str:QUOTED_STRING => str.value;
+}
+
+constant_String : Ast.StringValue = {
+    str:any_string => new Ast.Value.String(str);
+}
+
+literal_number : number = {
+    num:NUMBER => num.value;
+    '1' => 1;
+    '0' => 0;
+}
+
+any_number : number = {
+    num:literal_number => num;
+    '-' num:literal_number => -num;
+}
+
+constant_Measure : Ast.MeasureValue = {
+    tok:MEASURE => new Ast.Value.Measure(tok.value.value, tok.value.unit);
+    tok:DURATION => new Ast.Value.Measure(tok.value.value, tok.value.unit);
+
+    num:any_number unit:unit_name => new Ast.Value.Measure(num, unit);
+}
+
+constant_Number : Ast.NumberValue = {
+    num:any_number => new Ast.Value.Number(num);
+}
+
+constant_Currency : Ast.CurrencyValue = {
+    tok:CURRENCY => new Ast.Value.Currency(tok.value.value, tok.value.unit);
+
+    num:any_number tok:DOLLARIDENTIFIER => new Ast.Value.Currency(num, tok.value);
+}
+
+constant_Location : Ast.LocationValue = {
+    loc:LOCATION => new Ast.Value.Location(new Ast.Location.Absolute(loc.value.latitude, loc.value.longitude, loc.value.display||null));
+
+    '$location' '.' name:variable_name => new Ast.Value.Location(new Ast.Location.Relative(name));
+
+    'new' 'Location' '(' lat:any_number ',' lon:any_number ',' display:any_string ')' => {
+        return new Ast.Value.Location(new Ast.Location.Absolute(lat, lon, display));
+    };
+    'new' 'Location' '(' lat:any_number ',' lon:any_number ')' => {
+        return new Ast.Value.Location(new Ast.Location.Absolute(lat, lon, null));
+    };
+    'new' 'Location' '(' name:any_string ')' => {
+        return new Ast.Value.Location(new Ast.Location.Unresolved(name));
+    };
+}
+
+// Note that while keeping digits in ranges [0-23],[0-59],[0-59] is not enforced
+// here, it is enforced in tonn_converter, rendering it unnecessary to do so here
+absolute_time : Ast.TimeValue = {
+    time:TIME => new Ast.Value.Time(new Ast.Time.Absolute(time.value.hour, time.value.minute, time.value.second||0));
+
+    'new' 'Time' '(' hour:any_number ',' minute:any_number ',' second:any_number ')'
+        => new Ast.Value.Time(new Ast.Time.Absolute(hour, minute, second));
+    'new' 'Time' '(' hour:any_number ',' minute:any_number ',' ')'
+        => new Ast.Value.Time(new Ast.Time.Absolute(hour, minute, 0));
+    'new' 'Time' '(' hour:any_number ',' minute:any_number ')'
+        => new Ast.Value.Time(new Ast.Time.Absolute(hour, minute, 0));
+}
+
+constant_Time : Ast.TimeValue = {
+    absolute_time;
+
+    '$time' '.' name:variable_name => new Ast.Value.Time(new Ast.Time.Relative(name));
+}
+
+// start_of/end_of with less than 1h are not supported
+// (they don't make sense)
+constant_Date : Ast.DateValue = {
+    'now' => new Ast.Value.Date(null);
+    '$now' => new Ast.Value.Date(null);
+    'new' 'Date' '(' ')' => new Ast.Value.Date(null);
+
+    absolute_or_edge_date;
+}
+
+absolute_or_edge_date : Ast.DateValue = {
+    abs:DATE => new Ast.Value.Date(parseDate(abs.value));
+
+    'new' 'Date' '(' year:constant_Number ',' month:constant_Number ',' day:constant_Number ')' => {
+        const d = new Date;
+        d.setFullYear(year.value);
+        d.setMonth(month.value-1);
+        d.setDate(day.value);
+        d.setHours(0);
+        d.setMinutes(0);
+        d.setSeconds(0);
+        d.setMilliseconds(0);
+        return new Ast.Value.Date(d);
+    };
+    'new' 'Date' '(' year:constant_Number ',' month:constant_Number ',' day:constant_Number ','
+                     hours:constant_Number ',' minutes:constant_Number ',' seconds:constant_Number ')' => {
+        const d = new Date;
+        d.setFullYear(year.value);
+        d.setMonth(month.value-1);
+        d.setDate(day.value);
+        d.setHours(hours.value);
+        d.setMinutes(minutes.value);
+        d.setSeconds(seconds.value);
+        d.setMilliseconds(0);
+        return new Ast.Value.Date(d);
+    };
+    'new' 'Date' '(' unix:constant_Number ')' => {
+        const d = new Date;
+        d.setTime(unix.value);
+        return new Ast.Value.Date(d);
+    };
+    'new' 'Date' '(' iso:any_string ')' => {
+        return new Ast.Value.Date(new Date(iso));
+    };
+
+    'new' 'Date' '(' year:constant_Number ',' ',' ',' ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(year.value, null, null, null));
+    };
+    'new' 'Date' '(' ',' month:constant_Number ',' ',' ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(null, month.value, null, null));
+    };
+    'new' 'Date' '(' ',' ',' day:constant_Number ',' ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(null, null, day.value, null));
+    };
+    'new' 'Date' '(' year:constant_Number ',' month:constant_Number ',' ',' ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(year.value, month.value, null, null));
+    };
+    'new' 'Date' '(' ',' month:constant_Number ',' day:constant_Number ',' ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(null, month.value, day.value, null));
+    };
+    'new' 'Date' '(' ',' ',' day:constant_Number ',' time:constant_Time ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(null, null, day.value, time));
+    };
+    'new' 'Date' '(' ',' month:constant_Number ',' day:constant_Number ',' time:constant_Time ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(null, month.value, day.value, time));
+    };
+    'new' 'Date' '(' weekday:enum_literal ')' => {
+        const d = new Ast.WeekDayDate(weekday.value, null);
+        return new Ast.Value.Date(d);
+    };
+    'new' 'Date' '(' weekday:enum_literal ',' time:constant_Time ')' => {
+        const d = new Ast.WeekDayDate(weekday.value, time);
+        return new Ast.Value.Date(d);
+    };
+
+    '$start_of' '(' unit:unit_name ')' => new Ast.Value.Date(new Ast.DateEdge('start_of', unit));
+    '$end_of' '(' unit:unit_name ')' => new Ast.Value.Date(new Ast.DateEdge('end_of', unit));
+}
+
+constant_Enum : Ast.EnumValue = {
+    v:enum_literal => new Ast.Value.Enum(v);
+}
+
+enum_literal = {
+    'enum' '(' venum:identifier_or_keyword ')' => venum;
+    'enum' venum:identifier_or_keyword => venum;
+}
+
+constant_Entity__unknown : Ast.EntityValue = {
+    'null' entity:ENTITY_NAME '(' display:any_string ')'
+        => new Ast.Value.Entity(null, entity.value, display);
+
+    str:any_string entity:ENTITY_NAME '(' display:any_string ')'
+        => new Ast.Value.Entity(str, entity.value, display);
+    str:any_string entity:ENTITY_NAME
+        => new Ast.Value.Entity(str, entity.value, null);
+
+    entity:GENERIC_ENTITY => new Ast.Value.Entity(entity.value.value, entity.value.type, entity.value.display);
+}
+
+constant_Entity__tt__username      : Ast.EntityValue = entity:USERNAME      => new Ast.Value.Entity(entity.value, 'tt:username', null);
+constant_Entity__tt__hashtag       : Ast.EntityValue = entity:HASHTAG       => new Ast.Value.Entity(entity.value, 'tt:hashtag', null);
+constant_Entity__tt__url           : Ast.EntityValue = entity:URL           => new Ast.Value.Entity(entity.value, 'tt:url', null);
+constant_Entity__tt__phone_number  : Ast.EntityValue = entity:PHONE_NUMBER  => new Ast.Value.Entity(entity.value, 'tt:phone_number', null);
+constant_Entity__tt__email_address : Ast.EntityValue = entity:EMAIL_ADDRESS => new Ast.Value.Entity(entity.value, 'tt:email_address', null);
+constant_Entity__tt__path_name     : Ast.EntityValue = entity:PATH_NAME     => new Ast.Value.Entity(entity.value, 'tt:path_name', null);
+constant_Entity__tt__device        : Ast.EntityValue = entity:DEVICE        => new Ast.Value.Entity(entity.value, 'tt:device', null);
+constant_Entity__tt__function      : Ast.EntityValue = entity:FUNCTION      => new Ast.Value.Entity(entity.value.kind + ':' + entity.value.channel, 'tt:function', null);
+constant_Entity__tt__picture       : Ast.EntityValue = entity:PICTURE       => new Ast.Value.Entity(entity.value, 'tt:picture', null);
+
+constant_ArgMap : Ast.ArgMapValue = {
+    'new' 'ArgMap' '(' ')' => new Ast.Value.ArgMap({});
+    'new' 'ArgMap' '(' argmap_list ')' => new Ast.Value.ArgMap(argmap_list);
+}
+
+argmap_list : { [key : string] : Type } = {
+    name:variable_name type:type_annot => ({ [name]: type });
+
+    list:argmap_list ',' name:variable_name type:type_annot => {
+        list[name] = type;
+        return list;
+    };
+}
+
+type_annot : Type = {
+    ':' type_ref => type_ref;
+    type:TYPE_ANNOT => type.value;
+}
+
+type_ref : Type = {
+    // Any & Invalid are explicitly excluded here
+    'ArgMap' => Type.ArgMap;
+    'Boolean' => Type.Boolean;
+    'Currency' => Type.Currency;
+    'Date' => Type.Date;
+    'Location' => Type.Location;
+    'Number' => Type.Number;
+    'Time' => Type.Time;
+    'String' => Type.String;
+    'Object' => Type.Object;
+
+    name:IDENTIFIER => new Type.Unknown(name.value);
+
+    'Array' '(' elem:type_ref ')' => new Type.Array(elem);
+    'Entity' '(' name:ENTITY_NAME ')' => new Type.Entity(name.value);
+    'Measure' '(' name:unit_name ')' => new Type.Measure(name);
+    'Enum' '(' entries:enum_list ')' => new Type.Enum(entries);
+
+    // TODO compound types
+    //'Object' '(' entries:objectdecl_list ')' => new Type.Object(entries);
+}
+
+enum_list : string[] = {
+    v:identifier_or_keyword => [v];
+    enum_list ',' v:identifier_or_keyword => enum_list.concat([v]);
+}
+
+objectdecl_list : { [key : string] : Type } = {
+    name:variable_name type_annot => ({ [name]: type_annot });
+    entries:objectdecl_list ',' name:variable_name type_annot => {
+        entries[name] = type_annot;
+        return entries;
+    };
+}
+
+// an identifier or a contextual keyword (as defined in lexer.ts CONTEXTUAL_KEYWORDS)
+variable_name : string = {
+    name:IDENTIFIER => name.value;
+
+    'action';
+    'from';
+    'list';
+    'monitorable';
+    'program';
+    'query';
+    'stream';
+
+    'asc';
+    'desc';
+
+    function_like_comparison_op;
+    aggr_op;
+    scalar_op;
+    'count';
+}
+
+// this is identical to variable_name, except it is always followed by (
+// whereas variable_name must never be followed by (
+// this solves the ambiguity with function-like operators
+function_name : string = {
+    name:IDENTIFIER => name.value;
+
+    'action';
+    'from';
+    'list';
+    'monitorable';
+    'program';
+    'query';
+    'stream';
+
+    'asc';
+    'desc';
+
+    function_like_comparison_op;
+    aggr_op;
+    scalar_op;
+    'count';
+}
+
+// this is almost like function_name, but it is used for user-defined
+// functions ("function foo() {}" statement, not Thingpedia functions),
+// those functions cannot use the same name as predefined functions
+udf_function_name : string = {
+    name:IDENTIFIER => name.value;
+
+    'action';
+    'from';
+    'list';
+    'monitorable';
+    'program';
+    'query';
+    'stream';
+
+    'asc';
+    'desc';
+}
+
+variable_name_list : string[] = {
+    name:variable_name => [name];
+
+    list:variable_name_list ',' name:variable_name => {
+        list.push(name);
+        return list;
+    };
+}
+
+unit_name : string = {
+    name:IDENTIFIER => name.value;
+    'in' => 'in';
+}
+
+// TODO update based on lexer.ts KEYWORDS
+identifier_or_keyword : string = {
+    function_name;
+
+    'let';
+    'of';
+    'if';
+    'for';
+    'import';
+    'class';
+    'extends';
+    'switch';
+    'in';
+    'new';
+    'null';
+    'true';
+    'false';
+    'enum';
+
+    // ThingTalk-specific keywords
+    'abstract';
+    'aggregate';
+    'dataset';
+    'filter';
+    'mixin';
+    'monitor';
+    'notify';
+    'out';
+    'opt';
+    'req';
+    'sort';
+
+    // reserved words from JavaScript
+    'await';
+    'break';
+    'case';
+    'catch';
+    'continue';
+    'debugger';
+    'default';
+    'delete';
+    'do';
+    'export';
+    'finally';
+    'function';
+    'implements';
+    'instanceof';
+    'interface';
+    'package';
+    'private';
+    'protected';
+    'public';
+    'return';
+    'static';
+    'super';
+    'this';
+    'throw';
+    'try';
+    'typeof';
+    'var';
+    'void';
+    'with';
+    'while';
+    'yield';
+
+    // reserved words from ThingTalk
+    'join';
+    'edge';
+    'now';
+    'as';
+
+    //
+    'Any';
+    'ArgMap';
+    'Array';
+    'Boolean';
+    'Currency';
+    'Date';
+    'Entity';
+    'Enum';
+    'Integer';
+    'Invalid';
+    'Location';
+    'Measure';
+    'Number';
+    'Object';
+    'String';
+    'Time';
+    'Void';
 }

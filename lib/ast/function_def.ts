@@ -821,6 +821,17 @@ export class ExpressionSignature extends Node {
     }
 
     /**
+     * Clone this expression signature into a signature of the given type.
+     *
+     * This is used during typechecking to convert a table into a stream.
+     */
+    asType(type : FunctionType) : ExpressionSignature {
+        const clone = this.clone();
+        clone._functionType = type;
+        return clone;
+    }
+
+    /**
      * The type of this signature, either `stream`, `query` or `action`
      * @type {string}
      * @readonly

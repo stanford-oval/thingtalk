@@ -28,6 +28,16 @@ import NodeVisitor from './visitor';
 import { BooleanExpression } from './expression';
 import type { ArgumentDef } from './function_def';
 
+import {
+    TokenStream,
+    ConstantToken
+} from '../new-syntax/tokenstream';
+import List from '../utils/list';
+import {
+    SyntaxPriority,
+    addParenthesis
+} from './syntax_priority';
+
 import * as builtin from '../builtin/values';
 
 export abstract class Location {
@@ -40,6 +50,7 @@ export abstract class Location {
 
     abstract clone() : Location;
     abstract equals(x : unknown) : boolean;
+    abstract toSource() : TokenStream;
 }
 Location.prototype.isAbsolute = false;
 Location.prototype.isRelative = false;
@@ -58,6 +69,17 @@ export class AbsoluteLocation extends Location {
         this.lon = lon;
         assert(typeof display === 'string' || display === null);
         this.display = display;
+    }
+
+    get latitude() {
+        return this.lat;
+    }
+    get longitude() {
+        return this.lon;
+    }
+
+    toSource() : TokenStream {
+        return List.singleton(new ConstantToken('LOCATION', this));
     }
 
     toString() : string {
@@ -85,6 +107,10 @@ export class RelativeLocation extends Location {
         this.relativeTag = relativeTag;
     }
 
+    toSource() : TokenStream {
+        return List.concat('$location', '.', this.relativeTag);
+    }
+
     toString() : string {
         return `Relative(${this.relativeTag})`;
     }
@@ -106,6 +132,11 @@ export class UnresolvedLocation extends Location {
     constructor(name : string) {
         super();
         this.name = name;
+    }
+
+    toSource() : TokenStream {
+        const syntax : TokenStream = List.concat('new', 'Location', '(');
+        return List.concat(syntax, new ConstantToken('QUOTED_STRING', this.name), ')');
     }
 
     toString() : string {
@@ -135,6 +166,10 @@ export class DateEdge {
         this.unit = unit;
     }
 
+    toSource() : TokenStream {
+        return List.concat('$' + this.edge, '(', this.unit, ')');
+    }
+
     equals(other : unknown) : boolean {
         return other instanceof DateEdge && this.edge === other.edge && this.unit === other.unit;
     }
@@ -160,6 +195,23 @@ export class DatePiece {
         this.month = month;
         this.day = day;
         this.time = time;
+    }
+
+    toSource() : TokenStream {
+        let syntax : TokenStream = List.concat('new', 'Date', '(');
+        if (this.year !== null)
+            syntax = List.concat(syntax, new ConstantToken('NUMBER', this.year));
+        syntax = List.concat(syntax, ',');
+        if (this.month !== null)
+            syntax = List.concat(syntax, new ConstantToken('NUMBER', this.month));
+        syntax = List.concat(syntax, ',');
+        if (this.day !== null)
+            syntax = List.concat(syntax, new ConstantToken('NUMBER', this.day));
+        syntax = List.concat(syntax, ',');
+        if (this.time !== null)
+            syntax = List.concat(syntax, this.time.toSource());
+        syntax = List.concat(syntax, ')');
+        return syntax;
     }
 
     equals(other : unknown) : boolean {
@@ -192,6 +244,13 @@ export class WeekDayDate {
         this.time = time;
     }
 
+    toSource() : TokenStream {
+        if (this.time !== null)
+            return List.concat('new', 'Date', '(', 'enum', this.weekday, ',', this.time.toSource(), ')');
+        else
+            return List.concat('new', 'Date', '(', 'enum', this.weekday, ')');
+    }
+
     equals(other : unknown) : boolean {
         return (other instanceof WeekDayDate && this.weekday === other.weekday
             && (this.time === other.time || !!(this.time && other.time && this.time.equals(other.time))));
@@ -206,6 +265,7 @@ export abstract class Time {
 
     abstract clone() : Time;
     abstract equals(x : unknown) : boolean;
+    abstract toSource() : TokenStream;
 }
 Time.prototype.isAbsolute = false;
 Time.prototype.isRelative = false;
@@ -229,6 +289,10 @@ export class AbsoluteTime extends Time {
         this.minute = minute;
         assert(typeof second === 'number' && Number.isFinite(second));
         this.second = second;
+    }
+
+    toSource() : TokenStream {
+        return List.singleton(new ConstantToken('TIME', this));
     }
 
     clone() : AbsoluteTime {
@@ -270,6 +334,10 @@ export class RelativeTime extends Time {
         super();
         assert(typeof relativeTag === 'string');
         this.relativeTag = relativeTag;
+    }
+
+    toSource() : TokenStream {
+        return List.concat('$time', '.', this.relativeTag);
     }
 
     clone() : RelativeTime{
@@ -342,6 +410,10 @@ export abstract class Value extends AstNode {
     isArrayField ! : boolean;
     static Computation : typeof ComputationValue;
     isComputation ! : boolean;
+
+    get priority() : SyntaxPriority {
+        return SyntaxPriority.Primary;
+    }
 
     abstract clone() : Value;
 
@@ -515,6 +587,10 @@ export class ArrayValue extends Value {
         this.type = type;
     }
 
+    toSource() : TokenStream {
+        return List.concat('[', List.join(this.value.map((v) => v.toSource()), ','), ']');
+    }
+
     toString() : string {
         return `Array(${this.value})`;
     }
@@ -566,6 +642,10 @@ export class VarRefValue extends Value {
         this.type = type;
     }
 
+    toSource() : TokenStream {
+        return List.singleton(this.name);
+    }
+
     toString() : string {
         return `VarRef(${this.name})`;
     }
@@ -599,6 +679,15 @@ export class VarRefValue extends Value {
 VarRefValue.prototype.isVarRef = true;
 Value.VarRef = VarRefValue;
 
+const OperatorPriority : { [key : string] : SyntaxPriority } = {
+    '+': SyntaxPriority.Add,
+    '-': SyntaxPriority.Add,
+    '*': SyntaxPriority.Mul,
+    '/': SyntaxPriority.Mul,
+    '%': SyntaxPriority.Mul,
+    '**': SyntaxPriority.Exp
+};
+
 export class ComputationValue extends Value {
     op : string;
     operands : Value[];
@@ -618,6 +707,23 @@ export class ComputationValue extends Value {
         this.overload = overload;
         assert(type === null || type instanceof Type);
         this.type = type;
+    }
+
+    get priority() : SyntaxPriority {
+        return OperatorPriority[this.op] || SyntaxPriority.Primary;
+    }
+
+    toSource() : TokenStream {
+        const priority = OperatorPriority[this.op];
+        if (priority === undefined) {
+            // not an infix operator
+            return List.concat(this.op, '(', List.join(this.operands.map((v) => v.toSource()), ','), ')');
+        }
+
+        assert(this.operands.length === 2);
+        const [lhs, rhs] = this.operands;
+        return List.concat(addParenthesis(priority, lhs.priority, lhs.toSource()),
+            this.op, addParenthesis(priority, rhs.priority, rhs.toSource()));
     }
 
     toString() : string {
@@ -676,6 +782,14 @@ export class ArrayFieldValue extends Value {
         this.arg = arg;
     }
 
+    get priority() : SyntaxPriority {
+        return SyntaxPriority.ArrayField;
+    }
+
+    toSource() : TokenStream {
+        return List.concat(this.field, 'of', addParenthesis(this.priority, this.value.priority, this.value.toSource()));
+    }
+
     toString() : string {
         return `ArrayField(${this.value}, ${this.field})`;
     }
@@ -727,6 +841,17 @@ export class FilterValue extends Value {
         this.type = type;
     }
 
+    get priority() : SyntaxPriority {
+        return SyntaxPriority.Filter;
+    }
+
+    toSource() : TokenStream {
+        // note: the filter is parenthesized if it is a lower priority than a comparison
+        // (ie an "or" or "and")
+        return List.concat(addParenthesis(this.priority, this.value.priority, this.value.toSource()),
+            'filter', addParenthesis(SyntaxPriority.Comp, this.filter.priority, this.filter.toSource()));
+    }
+
     toString() : string {
         return `Filter(${this.value}, ${this.filter})`;
     }
@@ -772,6 +897,10 @@ export class UndefinedValue extends Value {
         this.local = local;
     }
 
+    toSource() : TokenStream {
+        return List.singleton('$?');
+    }
+
     toString() : string {
         return `Undefined(${this.local})`;
     }
@@ -813,6 +942,10 @@ export class ContextRefValue extends Value {
         this.type = type;
     }
 
+    toSource() : TokenStream {
+        return List.concat('$context', '.', this.name, ':' + this.type);
+    }
+
     toString() : string {
         return `ContextRef(${this.name}, ${this.type})`;
     }
@@ -849,6 +982,10 @@ export class BooleanValue extends Value {
         super(null);
         assert(typeof value === 'boolean');
         this.value = value;
+    }
+
+    toSource() : TokenStream {
+        return List.singleton(String(this.value));
     }
 
     toString() : string {
@@ -889,6 +1026,10 @@ export class StringValue extends Value {
         this.value = value;
     }
 
+    toSource() : TokenStream {
+        return List.singleton(new ConstantToken('QUOTED_STRING', this.value));
+    }
+
     toString() : string {
         return `String(${this.value})`;
     }
@@ -925,6 +1066,10 @@ export class NumberValue extends Value {
         super(null);
         assert(typeof value === 'number');
         this.value = value;
+    }
+
+    toSource() : TokenStream {
+        return List.singleton(new ConstantToken('NUMBER', this.value));
     }
 
     toString() : string {
@@ -966,6 +1111,13 @@ export class MeasureValue extends Value {
         this.value = value;
         assert(typeof unit === 'string');
         this.unit = unit;
+    }
+
+    toSource() : TokenStream {
+        return List.singleton(new ConstantToken('MEASURE', {
+            value: this.value,
+            unit: this.unit
+        }));
     }
 
     toString() : string {
@@ -1014,6 +1166,13 @@ export class CurrencyValue extends Value {
         this.code = code;
     }
 
+    toSource() : TokenStream {
+        return List.singleton(new ConstantToken('CURRENCY', {
+            value: this.value,
+            unit: this.code
+        }));
+    }
+
     toString() : string {
         return `Currency(${this.value}, ${this.code})`;
     }
@@ -1051,6 +1210,10 @@ export class LocationValue extends Value {
         super(null);
         assert(value instanceof Location);
         this.value = value;
+    }
+
+    toSource() : TokenStream {
+        return this.value.toSource();
     }
 
     toString() : string {
@@ -1110,6 +1273,12 @@ function dateEquals(a : DateLike|null, b : DateLike|null) : boolean {
     return a.equals(b);
 }
 
+function dateToSource(date : DateLike) : TokenStream {
+    if (date instanceof Date)
+            return List.singleton(new ConstantToken('DATE', date));
+    return date.toSource();
+}
+
 export class DateValue extends Value {
     value : DateLike|null;
 
@@ -1121,6 +1290,12 @@ export class DateValue extends Value {
 
     static now() : DateValue {
         return new DateValue(null);
+    }
+
+    toSource() : TokenStream {
+        if (this.value === null)
+            return List.singleton('$now');
+        return dateToSource(this.value);
     }
 
     toString() : string {
@@ -1161,6 +1336,10 @@ export class TimeValue extends Value {
         super(null);
         assert(value instanceof Time);
         this.value = value;
+    }
+
+    toSource() : TokenStream {
+        return this.value.toSource();
     }
 
     toString() : string {
@@ -1258,6 +1437,24 @@ export class RecurrentTimeRule extends AstNode {
         this.subtract = subtract;
     }
 
+    toSource() : TokenStream {
+        let src = List.concat('{',
+            'beginTime', '=', this.beginTime.toSource(), ',',
+            'endTime', '=', this.endTime.toSource(), ',',
+            'interval', '=', this.interval.toSource(), ',',
+            'frequency', '=', new ConstantToken('NUMBER', this.frequency));
+        if (this.dayOfWeek !== null)
+            src = List.concat(src, ',', 'dayOfWeek', '=', 'enum', this.dayOfWeek);
+        if (this.beginDate !== null)
+            src = List.concat(src, ',', 'beginDate', '=', dateToSource(this.beginDate));
+        if (this.endDate !== null)
+            src = List.concat(src, ',', 'endDate', '=', dateToSource(this.endDate));
+        if (this.subtract)
+            src = List.concat(src, ',', 'subtract', '=', 'true');
+        src = List.concat(src, '}');
+        return src;
+    }
+
     toString() : string {
         return `RecurrentTimeRule(${this.subtract ? 'subtract' : 'add'} ${this.beginTime} -- ${this.endTime}; ${this.frequency} every ${this.interval}; from ${this.beginDate} to ${this.endDate})`;
     }
@@ -1319,6 +1516,11 @@ export class RecurrentTimeSpecificationValue extends Value {
         this.rules = rules;
     }
 
+    toSource() : TokenStream {
+        return List.concat('new', 'RecurrentTimeRule', '(',
+            List.join(this.rules.map((r) => r.toSource()), ','), ')');
+    }
+
     toString() : string {
         return `RecurrentTimeSpec([${this.rules.join(', ')}])`;
     }
@@ -1368,6 +1570,32 @@ export class EntityValue extends Value {
         this.display = display;
     }
 
+    toSource() : TokenStream {
+        switch (this.type) {
+        case '':
+        case 'tt:function':
+            throw new TypeError('not implemented (yet)');
+        case 'tt:device':
+            return List.singleton('@' + this.value);
+        case 'tt:picture':
+            return List.singleton(new ConstantToken('PICTURE', this.value!));
+        case 'tt:username':
+            return List.singleton(new ConstantToken('USERNAME', this.value!));
+        case 'tt:hashtag':
+            return List.singleton(new ConstantToken('HASHTAG', this.value!));
+        case 'tt:url':
+            return List.singleton(new ConstantToken('URL', this.value!));
+        case 'tt:phone_number':
+            return List.singleton(new ConstantToken('PHONE_NUMBER', this.value!));
+        case 'tt:email_address':
+            return List.singleton(new ConstantToken('EMAIL_ADDRESS', this.value!));
+        case 'tt:path_name':
+            return List.singleton(new ConstantToken('PATH_NAME', this.value!));
+        default:
+            return List.singleton(new ConstantToken('GENERIC_ENTITY', this));
+        }
+    }
+
     toString() : string {
         return `Entity(${this.value}, ${this.type}, ${this.display})`;
     }
@@ -1411,6 +1639,10 @@ export class EnumValue extends Value {
         this.value = value;
     }
 
+    toSource() : TokenStream {
+        return List.concat('enum', this.value);
+    }
+
     toString() : string {
         return `Enum(${this.value})`;
     }
@@ -1447,6 +1679,13 @@ export class EventValue extends Value {
         super(null);
         assert(name === null || typeof name === 'string');
         this.name = name;
+    }
+
+    toSource() : TokenStream {
+        if (this.name === null)
+            return List.singleton('$result');
+        else
+            return List.concat('$' + this.name);
     }
 
     toString() : string {
@@ -1489,6 +1728,12 @@ export class ArgMapValue extends Value {
         super(null);
         assert(typeof value === 'object');
         this.value = value;
+    }
+
+    toSource() : TokenStream {
+        return List.concat('new', 'ArgMap', '(',
+            List.join(Object.entries(this.value).map(([name, type])=> List.concat(name, ':' + type.toString())), ','),
+            ')');
     }
 
     toString() : string {
@@ -1543,6 +1788,18 @@ export class ObjectValue extends Value {
         this.value = value;
         assert(type === null || type instanceof Type);
         this.type = type;
+    }
+
+    toSource() : TokenStream {
+        const entries : Array<[string, Value]> = Object.entries(this.value);
+
+        if (entries.length > 0) {
+            return List.concat('{', ' ',
+                List.join(entries.map(([name, value])=> List.concat(name, '=', value.toSource())), ','),
+                ' ', '}');
+        } else {
+            return List.concat('{', '}');
+        }
     }
 
     toString() : string {

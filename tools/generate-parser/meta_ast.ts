@@ -24,11 +24,19 @@ import { stringEscape } from '../../lib/utils/escaping';
 export class Grammar {
     constructor(public comment : string,
                 public initialCode : string,
-                public statements : NonTerminalStmt[]) {
+                public statements : Statement[]) {
     }
 
     get preamble() {
         return this.comment + this.initialCode;
+    }
+}
+
+type Statement = TerminalStmt | NonTerminalStmt;
+
+export class TerminalStmt {
+    constructor(public name : string,
+                public type : string) {
     }
 }
 
@@ -77,12 +85,20 @@ class NonTerminalRuleHead extends RuleHeadPart {
 RuleHeadPart.NonTerminal = NonTerminalRuleHead;
 
 class TerminalRuleHead extends RuleHeadPart {
-    type = '$runtime.TokenWrapper<any>';
+    private _type = 'any';
 
     constructor(public name : string,
                 public category : string) {
         super();
         this.isTerminal = true;
+    }
+
+    get type() : string {
+        return `$runtime.TokenWrapper<${this._type}>`;
+    }
+
+    set type(v : string) {
+        this._type = v;
     }
 
     getGeneratorInput() {

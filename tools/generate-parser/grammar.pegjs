@@ -64,7 +64,13 @@ Grammar = initialComment:$(__) codeBlock:InitialCodeBlock? __ stmt:(Statement __
 InitialCodeBlock = '{' code:Code '}' { return code; }
 
 Statement
-  = NonTerminalDeclaration
+  = TerminalDeclaration
+  / NonTerminalDeclaration
+
+TerminalDeclaration
+  = TerminalToken __ name:Identifier __ ':' __ type:CodeNoSemicolon __ ';' {
+    return new Ast.TerminalStmt(name, type);
+  }
 
 NonTerminalDeclaration
   = name:Identifier __ type:(':' __ CodeNoEqual)? '=' __ block:RuleBlock {
@@ -209,6 +215,7 @@ Keyword
   / ElseToken
   / ImportToken
   / ForToken
+  / TerminalToken
 
 FutureReservedWord
   = BreakToken
@@ -411,6 +418,7 @@ VoidToken       = "void"       !IdentifierPart
 WhileToken      = "while"      !IdentifierPart
 WithToken       = "with"       !IdentifierPart
 ChoiceToken     = "choice"     !IdentifierPart
+TerminalToken   = "terminal"   !IdentifierPart
 
 /* Skipped */
 
