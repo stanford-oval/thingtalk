@@ -20,7 +20,6 @@
 
 import assert from 'assert';
 import * as Grammar from '../grammar';
-import { typeCheckProgram } from '../typecheck';
 import { NotCompilableError, NotImplementedError } from '../utils/errors';
 import * as Ast from '../ast';
 import { TypeMap } from '../type';
@@ -327,7 +326,7 @@ export default class AppCompiler {
     }
 
     async compileProgram(program : Ast.Program) : Promise<CompiledProgram> {
-        await typeCheckProgram(program, this._schemaRetriever);
+        await program.typecheck(this._schemaRetriever);
         this._verifyCompilable(program);
 
         const compiledRules : Array<string|CompiledStatement> = [];

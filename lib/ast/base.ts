@@ -34,6 +34,9 @@ import type {
     VarRefTable,
     VarRefStream
 } from './primitive';
+import type {
+    FunctionCallExpression
+} from './expression2';
 import {
     SourceRange,
     SourceLocation
@@ -60,6 +63,7 @@ export type Primitive = Invocation |
     VarRefTable |
     VarRefAction |
     VarRefStream |
+    FunctionCallExpression |
     ExternalBooleanExpression;
 
 /**

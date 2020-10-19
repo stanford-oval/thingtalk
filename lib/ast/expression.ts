@@ -22,15 +22,12 @@ import assert from 'assert';
 
 import Node, { SourceRange } from './base';
 import NodeVisitor from './visitor';
-import { ClassDef } from './class_def';
 import { ExpressionSignature } from './function_def';
 import { Value } from './values';
 
 import Type from '../type';
 import { prettyprintFilterExpression } from '../prettyprint';
-import * as Typechecking from '../typecheck';
 import * as Optimizer from '../optimize';
-import SchemaRetriever from '../schema';
 import {
     iterateSlots2InputParams,
     recursiveYieldArraySlots,
@@ -395,28 +392,6 @@ export abstract class BooleanExpression extends Node {
     isCompute ! : boolean;
     static DontCare : any;
     isDontCare ! : boolean;
-
-    /**
-     * Typecheck this boolean expression.
-     *
-     * This method can be used to typecheck a boolean expression is isolation,
-     * outside of a ThingTalk program.
-     *
-     * @param {Ast.ExpressionSignature} schema - the signature of the query expression this filter
-     *                                           would be attached to
-     * @param {null} scope - reserved, must be null
-     * @param {SchemaRetriever} schemas - schema retriever object to retrieve Thingpedia information
-     * @param {Object.<string,Ast.ClassDef>} classes - additional locally defined classes, overriding Thingpedia
-     * @param {boolean} [useMeta=false] - retreive natural language metadata during typecheck
-     */
-    async typecheck(schema : ExpressionSignature,
-                    scope : null,
-                    schemas : SchemaRetriever,
-                    classes : { [key : string] : ClassDef },
-                    useMeta : boolean) : Promise<this> {
-        await Typechecking.typeCheckFilter(this, schema, undefined, schemas, classes, useMeta);
-        return this;
-    }
 
     /**
      * Convert this boolean expression to prettyprinted ThingTalk code.

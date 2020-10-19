@@ -49,8 +49,8 @@ import {
     prettyprintExample,
     prettyprintDataset
 } from '../prettyprint';
-import * as Typechecking from '../typecheck';
 import * as Optimizer from '../optimize';
+import TypeChecker from '../typecheck';
 import convertToPermissionRule from './convert_to_permission_rule';
 import lowerReturn, { Messaging } from './lower_return';
 import SchemaRetriever from '../schema';
@@ -872,7 +872,8 @@ export class Program extends Input {
     }
 
     async typecheck(schemas : SchemaRetriever, getMeta = false) : Promise<this> {
-        await Typechecking.typeCheckProgram(this, schemas, getMeta);
+        const typeChecker = new TypeChecker(schemas, getMeta);
+        await typeChecker.typeCheckProgram(this);
         return this;
     }
 }
@@ -945,7 +946,8 @@ export class PermissionRule extends Input {
     }
 
     async typecheck(schemas : SchemaRetriever, getMeta = false) : Promise<this> {
-        await Typechecking.typeCheckPermissionRule(this, schemas, getMeta);
+        const typeChecker = new TypeChecker(schemas, getMeta);
+        await typeChecker.typeCheckPermissionRule(this);
         return this;
     }
 }
@@ -1006,7 +1008,8 @@ export class Library extends Input {
     }
 
     async typecheck(schemas : SchemaRetriever, getMeta = false) : Promise<this> {
-        await Typechecking.typeCheckMeta(this, schemas, getMeta);
+        const typeChecker = new TypeChecker(schemas, getMeta);
+        await typeChecker.typeCheckLibrary(this);
         return this;
     }
 }
@@ -1114,8 +1117,9 @@ export class Example extends Node {
      * @param schemas - schema retriever object to retrieve Thingpedia information
      * @param [getMeta=false] - retrieve natural language metadata during typecheck
      */
-    async typecheck(schemas : SchemaRetriever, getMeta = false) : Promise<Example> {
-        await Typechecking.typeCheckExample(this, schemas, {}, getMeta);
+    async typecheck(schemas : SchemaRetriever, getMeta = false) : Promise<this> {
+        const typeChecker = new TypeChecker(schemas, getMeta);
+        await typeChecker.typeCheckExample(this);
         return this;
     }
 

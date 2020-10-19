@@ -25,7 +25,7 @@ import NodeVisitor from './visitor';
 import { Input } from './program';
 import { Value } from './values';
 import { BooleanExpression } from './expression';
-import * as Typechecking from '../typecheck';
+import TypeChecker from '../typecheck';
 import SchemaRetriever from '../schema';
 
 /**
@@ -75,7 +75,8 @@ export class Bookkeeping extends Input {
     }
 
     async typecheck(schemas : SchemaRetriever, getMeta = false) : Promise<this> {
-        await Typechecking.typeCheckBookkeeping(this.intent, schemas, getMeta);
+        const typeChecker = new TypeChecker(schemas, getMeta);
+        await typeChecker.typeCheckBookkeeping(this.intent);
         return this;
     }
 }

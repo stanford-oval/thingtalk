@@ -47,6 +47,7 @@ import {
     OldSlot
 } from './slots';
 import SchemaRetriever from '../schema';
+import TypeChecker from '../typecheck';
 
 import { TokenStream } from '../new-syntax/tokenstream';
 import List from '../utils/list';
@@ -222,8 +223,8 @@ export class Program2 extends Input {
     }
 
     async typecheck(schemas : SchemaRetriever, getMeta = false) : Promise<this> {
-        // TODO
-        //await Typechecking.typeCheckProgram2(this, schemas, getMeta);
+        const typeChecker = new TypeChecker(schemas, getMeta);
+        await typeChecker.typeCheckProgram2(this);
         return this;
     }
 }

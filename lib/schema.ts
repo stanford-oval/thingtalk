@@ -22,7 +22,7 @@ import assert from 'assert';
 
 import Type from './type';
 import * as Grammar from './grammar_api';
-import { typeCheckClass } from './typecheck';
+import TypeChecker from './typecheck';
 import { ClassDef } from './ast/class_def';
 import {
     FunctionDef,
@@ -274,7 +274,8 @@ export default class SchemaRetriever {
 
         await Promise.all(parsed.classes.map(async (classDef) => {
             try {
-                await typeCheckClass(classDef, this, {}, isMeta === 'everything', true);
+                const typeChecker = new TypeChecker(this, isMeta === 'everything');
+                await typeChecker.typeCheckClass(classDef, true);
                 this._classCache[isMeta].set(classDef.kind, classDef);
                 result[classDef.kind] = classDef;
                 missing.delete(classDef.kind);

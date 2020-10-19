@@ -518,6 +518,8 @@ export class AggregationExpression extends Expression {
     field : string;
     operator : string;
     overload : Type[]|null;
+    // TODO
+    alias = null;
 
     constructor(location : SourceRange|null,
                 expression : Expression,

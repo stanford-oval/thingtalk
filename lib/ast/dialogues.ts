@@ -23,7 +23,7 @@ import assert from 'assert';
 import AstNode, { SourceRange } from './base';
 import { Input, Statement, Rule, Command } from './program';
 import * as Optimizer from '../optimize';
-import * as Typechecking from '../typecheck';
+import TypeChecker from '../typecheck';
 import { prettyprintStatement, prettyprintHistoryItem } from '../prettyprint';
 import { DeviceSelector, Invocation } from './expression';
 import { Value, NumberValue } from './values';
@@ -389,7 +389,8 @@ export class DialogueState extends Input {
     }
 
     async typecheck(schemas : SchemaRetriever, getMeta = false) : Promise<this> {
-        await Typechecking.typeCheckDialogue(this, schemas, getMeta);
+        const typeChecker = new TypeChecker(schemas, getMeta);
+        await typeChecker.typeCheckDialogue(this);
         return this;
     }
 
