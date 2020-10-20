@@ -23,3 +23,6 @@ all: dist
 
 lib/grammar.js : lib/grammar.pegjs
 	pegjs --allowed-start-rules input,type_ref,permission_rule -o $@ $<
+
+%.html : %.lr
+	ts-node tools/generate-parser --wsn $< | kgt -l wsn -e ebnfhtml5 > $@

@@ -686,7 +686,6 @@ constant_Boolean : Ast.BooleanValue = {
 }
 
 any_string : string = {
-    '""' => '';
     str:QUOTED_STRING => str.value;
 }
 

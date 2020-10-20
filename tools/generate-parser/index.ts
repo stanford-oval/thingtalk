@@ -22,33 +22,17 @@ process.on('unhandledRejection', (up) => { throw up; });
 
 import assert from 'assert';
 import * as fs from 'fs';
+import { promises as pfs } from 'fs';
 import * as path from 'path';
-import * as stream from 'stream';
 
 import * as Grammar from './grammar';
 import * as Ast from './meta_ast';
 import {
     SLRParserGenerator,
     ProcessedRule,
-    ProcessedGrammar
+    ProcessedGrammar,
 } from './slr_generator';
 import writeout from './javascript';
-
-function readall(stream : stream.Readable) : Promise<Buffer> {
-    return new Promise((resolve, reject) => {
-        const buffers : Buffer[] = [];
-        let total = 0;
-        stream.on('data', (buf) => {
-            buffers.push(buf);
-            total += buf.length;
-        });
-        stream.on('end', () => {
-            resolve(Buffer.concat(buffers, total));
-        });
-        stream.on('error', reject);
-        stream.resume();
-    });
-}
 
 type TypeMap = { [key : string] : string };
 
@@ -81,8 +65,7 @@ function handleRule(rule : Ast.Rule,
 
 async function processFile(filename : string,
                            grammar : ProcessedGrammar) : Promise<[Ast.Grammar, TypeMap]> {
-    const fileStream = fs.createReadStream(filename);
-    const input = (await readall(fileStream)).toString('utf8');
+    const input = await pfs.readFile(filename, { encoding: 'utf8' });
     const parsed = Grammar.parse(input);
     assert(parsed instanceof Ast.Grammar);
 
@@ -111,6 +94,24 @@ async function processFile(filename : string,
     return [parsed, typeMap];
 }
 
+function wsnDump(grammar : ProcessedGrammar) {
+    for (const nonTerm in grammar) {
+        let first = true;
+        const prefix = ' '.repeat(nonTerm.length);
+        for (const [rule,] of grammar[nonTerm]) {
+            const ruleOut = rule.map((r) => r.toWSN()).join(' ');
+
+            if (first) {
+                console.log(`${nonTerm} = ${ruleOut}`);
+                first = false;
+            } else {
+                console.log(`${prefix} | ${ruleOut}`);
+            }
+        }
+        console.log(`${prefix} .`);
+    }
+}
+
 async function main() {
     const output = process.argv[2];
     const input = process.argv[3];
@@ -128,7 +129,11 @@ async function main() {
         }
     }
 
-    const generator = new SLRParserGenerator(grammar, 'input', typeMap['input'] || 'any');
-    await writeout(firstFile.preamble, generator, fs.createWriteStream(output), output, typeMap['input'] || 'any');
+    if (output === '--wsn') {
+        wsnDump(grammar);
+    } else {
+        const generator = new SLRParserGenerator(grammar, 'input', typeMap['input'] || 'any');
+        await writeout(firstFile.preamble, generator, fs.createWriteStream(output), output, typeMap['input'] || 'any');
+    }
 }
 main();

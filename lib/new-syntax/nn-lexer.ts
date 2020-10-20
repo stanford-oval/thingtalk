@@ -130,6 +130,8 @@ export function* nnLexer(input : Iterable<string>,
                 token: i+1
             };
             yield Token.make('QUOTED_STRING', { start, end }, languagePack.detokenizeSentence(words));
+        } else if (next === '""') {
+            yield Token.make('QUOTED_STRING', makeLocation(), '');
         } else if (FORBIDDEN_KEYWORDS.has(next)) {
             throw new ThingTalkSyntaxError(`Use of forbidden token ${next}`, makeLocation());
         } else if (DECIMAL_LITERAL.test(next)) {

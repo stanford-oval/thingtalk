@@ -18,7 +18,6 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 // Generate and SLR parser, given a grammar
 // This is JavaScript version of almond-nnparser/grammar/slr.py
 
@@ -235,9 +234,11 @@ export class Terminal implements EqualityComparable {
     isTerminal ! : boolean;
     isNonTerminal ! : boolean;
     symbol : string;
+    isConstant : boolean;
 
-    constructor(symbol : string) {
+    constructor(symbol : string, isConstant : boolean) {
         this.symbol = symbol;
+        this.isConstant = isConstant;
     }
 
     equals(x : unknown) : boolean {
@@ -246,6 +247,13 @@ export class Terminal implements EqualityComparable {
 
     toString() : string {
         return `T:${this.symbol}`;
+    }
+
+    toWSN() : string {
+        if (this.isConstant)
+            return '"' + this.symbol.replace(/"/g, '""') + '"';
+        else
+            return this.symbol;
     }
 }
 Terminal.prototype.isTerminal = true;
@@ -267,6 +275,10 @@ export class NonTerminal implements EqualityComparable {
     toString() : string {
         return `NT:${this.symbol}`;
     }
+
+    toWSN() : string {
+        return this.symbol;
+    }
 }
 NonTerminal.prototype.isTerminal = false;
 NonTerminal.prototype.isNonTerminal = true;
@@ -275,9 +287,9 @@ const ROOT_NT = new NonTerminal('$ROOT');
 
 // special tokens start with a space
 // so they sort earlier than all other tokens
-const PAD_TOKEN = new Terminal(' 0PAD');
-const EOF_TOKEN = new Terminal(' 1EOF');
-const START_TOKEN = new Terminal(' 2START');
+const PAD_TOKEN = new Terminal(' 0PAD', false);
+const EOF_TOKEN = new Terminal(' 1EOF', false);
+const START_TOKEN = new Terminal(' 2START', false);
 
 export type ProcessedRule = [Array<NonTerminal|Terminal>, string];
 export type ProcessedGrammar = { [key : string] : ProcessedRule[] };

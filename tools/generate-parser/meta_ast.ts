@@ -102,7 +102,7 @@ class TerminalRuleHead extends RuleHeadPart {
     }
 
     getGeneratorInput() {
-        return new slr.Terminal(this.category);
+        return new slr.Terminal(this.category, false);
     }
 }
 RuleHeadPart.Terminal = TerminalRuleHead;
@@ -121,7 +121,7 @@ class StringLiteralRuleHead extends RuleHeadPart {
     }
 
     getGeneratorInput() {
-        return new slr.Terminal(this.value);
+        return new slr.Terminal(this.value, true);
     }
 }
 RuleHeadPart.StringLiteral = StringLiteralRuleHead;
