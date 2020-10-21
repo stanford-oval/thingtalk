@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -21,81 +21,132 @@
 import assert from 'assert';
 import * as util from 'util';
 
+import * as Ast from '../ast';
+
 import { parseDate } from '../date_utils';
+import {
+    EntityMap,
+    MeasureEntity,
+    LocationEntity,
+    TimeEntity,
+    DateEntity,
+    GenericEntity,
+    AnyEntity
+} from './entities';
 
 import List from './list';
 
 // convert AST values to on-the-wire entities, as returned by almond-tokenizer
 // the two are mostly the same, except for some weird historical stuff where
 // units are sometimes called codes and similar
-function valueToEntity(type, value) {
-    if (type === 'CURRENCY')
+function valueToEntity(type : string, value : Ast.Value) : AnyEntity {
+    if (type === 'CURRENCY') {
+        assert(value instanceof Ast.CurrencyValue);
         return { unit: value.code, value: value.value };
+    }
     if (type === 'LOCATION') {
-        if (value.value.isAbsolute)
-            return { latitude: value.value.lat, longitude: value.value.lon, display: value.value.display };
-        else // isUnresolved (because isRelative is handled elsewhere) - note that NaN !== NaN so this will never match (which is the goal)
-            return { latitude: NaN, longitude: NaN, display: value.value.name };
+        assert(value instanceof Ast.LocationValue);
+        const loc = value.value;
+        if (loc instanceof Ast.AbsoluteLocation) {
+            return { latitude: loc.lat, longitude: loc.lon, display: loc.display };
+        } else {
+            // (isRelative is handled elsewhere)
+            assert(loc instanceof Ast.UnresolvedLocation);
+            // note that NaN !== NaN so this will never match (which is the goal)
+            return { latitude: NaN, longitude: NaN, display: loc.name };
+        }
     }
     if (type === 'DURATION' ||
-        type.startsWith('MEASURE_'))
+        type.startsWith('MEASURE_')) {
+        assert(value instanceof Ast.MeasureValue);
         return { unit: value.unit, value: value.value };
-    if (type === 'TIME') // isRelative is handled elsewhere
-        return { hour: value.value.hour, minute: value.value.minute, second: value.value.second };
-    if (type.startsWith('GENERIC_ENTITY_'))
+    }
+    if (type === 'TIME') {
+        assert(value instanceof Ast.TimeValue);
+        const time = value.value;
+        assert(time instanceof Ast.AbsoluteTime); // isRelative is handled elsewhere
+        return { hour: time.hour, minute: time.minute, second: time.second };
+    }
+    if (type.startsWith('GENERIC_ENTITY_')) {
+        assert(value instanceof Ast.EntityValue);
         return { value: value.value, display: value.display };
+    }
+    if (type === 'DATE') {
+        assert(value instanceof Ast.DateValue);
+        const date = value.value;
+        assert(date instanceof Date);
+        return date;
+    }
 
-    return value.value;
+    assert(value instanceof Ast.StringValue ||
+           value instanceof Ast.NumberValue ||
+           value instanceof Ast.CurrencyValue /* for NUMBER + currency code */ ||
+           value instanceof Ast.MeasureValue /* for NUMBER + unit */ ||
+           value instanceof Ast.EntityValue /* for special entities like hashtags */);
+    return value.value!;
 }
 
-function entitiesEqual(type, one, two) {
+function entitiesEqual(type : string, one : AnyEntity, two : AnyEntity) : boolean {
     if (one === two)
         return true;
     if (!one || !two)
         return false;
     if (type.startsWith('GENERIC_ENTITY_')) {
-        if (!one.value && !two.value)
-            return one.display === two.display;
-        return (one.value === two.value);
+        const eone = one as GenericEntity;
+        const etwo = two as GenericEntity;
+
+        if (!eone.value && !etwo.value)
+            return eone.display === etwo.display;
+        return (eone.value === etwo.value);
     }
 
     if (type.startsWith('MEASURE_') ||
-        type === 'DURATION')
-        return one.value === two.value && one.unit === two.unit;
+        type === 'DURATION') {
+        const eone = one as MeasureEntity;
+        const etwo = two as MeasureEntity;
+        return eone.value === etwo.value && eone.unit === etwo.unit;
+    }
 
     switch (type) {
-    case 'CURRENCY':
-        return one.value === two.value && one.unit === two.unit;
-    case 'TIME':
-        return one.hour === two.hour &&
-            one.minute === two.minute &&
-            (one.second || 0) === (two.second || 0);
+    case 'CURRENCY': {
+        const eone = one as MeasureEntity;
+        const etwo = two as MeasureEntity;
+        return eone.value === etwo.value && eone.unit === etwo.unit;
+    }
+    case 'TIME': {
+        const eone = one as TimeEntity;
+        const etwo = two as TimeEntity;
+        return eone.hour === etwo.hour &&
+            eone.minute === etwo.minute &&
+            (eone.second || 0) === (etwo.second || 0);
+    }
     case 'DATE':
         if (!(one instanceof Date))
-            one = parseDate(one);
+            one = parseDate(one as DateEntity);
         if (!(two instanceof Date))
-            two = parseDate(two);
+            two = parseDate(two as DateEntity);
 
         return +one === +two;
-    case 'LOCATION':
-        if (isNaN(one.latitude) && isNaN(two.latitude) && isNaN(one.longitude) && isNaN(two.longitude))
-            return one.display === two.display;
-        return Math.abs(one.latitude - two.latitude) < 0.01 &&
-            Math.abs(one.longitude - two.longitude) < 0.01;
+    case 'LOCATION': {
+        const eone = one as LocationEntity;
+        const etwo = two as LocationEntity;
+        if (isNaN(eone.latitude) && isNaN(etwo.latitude) && isNaN(eone.longitude) && isNaN(etwo.longitude))
+            return eone.display === etwo.display;
+        return Math.abs(eone.latitude - etwo.latitude) < 0.01 &&
+            Math.abs(eone.longitude - etwo.longitude) < 0.01;
+    }
     }
 
     return false;
 }
 
-function entityToString(entityType, entity) {
-    let entityString;
-
-    if ((entityType.startsWith('GENERIC_ENTITY_') || entityType === 'LOCATION') && entity.display)
-        entityString = entity.display;
-    else
-        entityString = String(entity);
-
-    return entityString;
+function entityToString(entityType : string, entity : AnyEntity) : string {
+    if ((entityType.startsWith('GENERIC_ENTITY_') || entityType === 'LOCATION')) {
+        const generic = entity as GenericEntity;
+        if (generic.display)
+            return generic.display;
+    }
+    return String(entity);
 }
 
 /**
@@ -104,8 +155,7 @@ function entityToString(entityType, entity) {
  *
  * @alias NNSyntax.AbstractEntityRetriever
  */
-class AbstractEntityRetriever {
-    /* instanbul ignore next */
+export abstract class AbstractEntityRetriever {
     /**
      * Find the entity with the given `entityType` (USERNAME, HASHTAG, etc.) and value.
      *
@@ -116,9 +166,7 @@ class AbstractEntityRetriever {
      *   of throwing an exception.
      * @return {Array<string>} - the list of tokens making up this entity.
      */
-    findEntity(entityType, value) {
-        throw new Error('abstract method');
-    }
+    abstract findEntity(entityType : string, value : Ast.Value, options : { ignoreNotFound ?: boolean; }) : List<string>|null;
 }
 
 /**
@@ -128,8 +176,12 @@ class AbstractEntityRetriever {
  * @alias NNSyntax.EntityRetriever
  * @extends NNSyntax.AbstractEntityRetriever
  */
-class EntityRetriever extends AbstractEntityRetriever {
-    constructor(sentence, entities) {
+export class EntityRetriever extends AbstractEntityRetriever {
+    sentence : string[];
+    entities : EntityMap;
+    protected _used : EntityMap;
+
+    constructor(sentence : string|string[], entities : EntityMap) {
         super();
         if (typeof sentence === 'string')
             sentence = sentence.split(' ');
@@ -141,7 +193,7 @@ class EntityRetriever extends AbstractEntityRetriever {
         this._used = {};
     }
 
-    _sentenceContains(tokens) {
+    protected _sentenceContains(tokens : string[]) : boolean {
         for (let i = 0; i <= this.sentence.length-tokens.length; i++) {
             let found = true;
             for (let j = 0; j < tokens.length; j++) {
@@ -170,25 +222,28 @@ class EntityRetriever extends AbstractEntityRetriever {
      * @return {undefined|string} - the tokens to predict, space-separated, or `undefined` if the entity
      *   is not mentioned in the sentence.
      */
-    _findEntityFromSentence(entityType, entityString, ignoreNotFound) {
+    protected _findEntityFromSentence(entityType : string, entityString : string, ignoreNotFound : boolean) : string|undefined {
         const entityTokens = entityString.toLowerCase().split(' ');
-        let found = this._sentenceContains(entityTokens);
+        const found = this._sentenceContains(entityTokens);
         if (found)
             return entityTokens.join(' ');
         else
             return undefined;
     }
 
-    _findStringLikeEntity(entityType, entity, entityString, ignoreNotFound) {
+    protected _findStringLikeEntity(entityType : string,
+                                    entity : AnyEntity,
+                                    entityString : string,
+                                    ignoreNotFound : boolean) : List<string>|undefined {
         if (entityType === 'DATE') {
-            const dateStr = entity.toISOString();
+            const dateStr = (entity as Date).toISOString();
             if (this._sentenceContains([dateStr]))
                 return List.concat('new', 'Date', '(', '"', dateStr, '"', ')');
         }
 
         if (entityType === 'QUOTED_STRING' || entityType === 'HASHTAG' || entityType === 'USERNAME' ||
             entityType === 'LOCATION' ||
-            (entityType.startsWith('GENERIC_ENTITY_') && entity.display)) {
+            (entityType.startsWith('GENERIC_ENTITY_') && (entity as GenericEntity).display)) {
 
             const found = this._findEntityFromSentence(entityType, entityString, ignoreNotFound);
             if (found) {
@@ -208,10 +263,10 @@ class EntityRetriever extends AbstractEntityRetriever {
         return undefined;
     }
 
-    _findEntityInBag(entityType, value, entities) {
-        let candidates = [];
+    protected _findEntityInBag(entityType : string, value : AnyEntity, entities : EntityMap) : string[] {
+        const candidates = [];
 
-        for (let what in entities) {
+        for (const what in entities) {
             if (!what.startsWith(entityType + '_'))
                 continue;
 
@@ -221,7 +276,7 @@ class EntityRetriever extends AbstractEntityRetriever {
         return candidates;
     }
 
-    findEntity(entityType, value, { ignoreNotFound = false }) {
+    findEntity(entityType : string, value : Ast.Value, { ignoreNotFound = false }) : List<string>|null {
         const entity = valueToEntity(entityType, value);
 
         const entityString = entityToString(entityType, entity);
@@ -240,11 +295,11 @@ class EntityRetriever extends AbstractEntityRetriever {
             // uh oh we don't have the entity we want
             // see if we have an used pile, and try there for an unambiguous one
 
-            let reuse = this._findEntityInBag(entityType, entity, this._used);
+            const reuse = this._findEntityInBag(entityType, entity, this._used);
             if (reuse.length > 0) {
                 if (reuse.length > 1)
                     throw new Error('Ambiguous entity ' + entity + ' of type ' + entityType);
-                return reuse[0];
+                return List.singleton(reuse[0]);
             }
 
             if (ignoreNotFound && candidates.length === 0)
@@ -258,16 +313,21 @@ class EntityRetriever extends AbstractEntityRetriever {
         } else {
             // move the first entity (in sentence order) from the main bag to the used bag
             candidates.sort();
-            let result = candidates.shift();
+            const result = candidates.shift();
+            assert(result !== undefined);
             this._used[result] = this.entities[result];
             delete this.entities[result];
-            return result;
+            return List.singleton(result);
         }
     }
 }
 
-class SequentialEntityAllocator extends AbstractEntityRetriever {
-    constructor(entities, explicitStrings = false) {
+export class SequentialEntityAllocator extends AbstractEntityRetriever {
+    offsets : { [key : string] : number };
+    entities : EntityMap;
+    explicitStrings : boolean;
+
+    constructor(entities : EntityMap, explicitStrings = false) {
         super();
         this.offsets = {};
         this.entities = entities;
@@ -275,16 +335,16 @@ class SequentialEntityAllocator extends AbstractEntityRetriever {
         this.updateOffsets();
     }
 
-    updateOffsets() {
-        for (let entity in this.entities ) {
+    private updateOffsets() : void {
+        for (const entity in this.entities) {
             const entityType = entity.slice(0, entity.lastIndexOf('_'));
             const offset = entity.slice(entity.lastIndexOf('_') + 1);
             assert(/^\d+$/.test(offset));
-            this.offsets[entityType] = Math.max((this.entities[entityType] || -1), parseInt(offset) + 1);
+            this.offsets[entityType] = Math.max((this.offsets[entityType] || -1), parseInt(offset) + 1);
         }
     }
 
-    findEntity(entityType, value, { ignoreNotFound = false }) {
+    findEntity(entityType : string, value : Ast.Value, { ignoreNotFound = false }) : List<string>|null {
         const entity = valueToEntity(entityType, value);
 
         if (this.explicitStrings &&
@@ -304,12 +364,12 @@ class SequentialEntityAllocator extends AbstractEntityRetriever {
                 return List.concat('"', entityString, '"', '^^' + entityType.substring('GENERIC_ENTITY_'.length));
         }
 
-        for (let what in this.entities) {
+        for (const what in this.entities) {
             if (!what.startsWith(entityType + '_'))
                 continue;
 
             if (entitiesEqual(entityType, this.entities[what], entity))
-                return what;
+                return List.singleton(what);
         }
 
         let num;
@@ -323,12 +383,6 @@ class SequentialEntityAllocator extends AbstractEntityRetriever {
 
         const key = entityType + '_' + num;
         this.entities[key] = entity;
-        return key;
+        return List.singleton(key);
     }
 }
-
-export {
-    AbstractEntityRetriever,
-    EntityRetriever,
-    SequentialEntityAllocator
-};

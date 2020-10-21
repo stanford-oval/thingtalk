@@ -274,7 +274,7 @@ export default class OpCompiler {
             const [kind, attrs, fname] = this._compileTpFunctionCall(expr);
             const list = this._irBuilder.allocRegister();
             const [argmap, args] = this._compileInputParams(expr);
-            const schema = expr.schema as Ast.ExpressionSignature;
+            const schema = expr.schema!;
 
             const hints = { projection: Array.from(getExpressionParameters(expr.filter, schema)) };
             this._irBuilder.add(new JSIr.InvokeQuery(kind, attrs, fname, list, args, hints));
@@ -416,8 +416,7 @@ export default class OpCompiler {
         this._irBuilder.add(loop);
         this._irBuilder.pushBlock(loop.body);
 
-        this._setInvocationOutputs(streamop.invocation.schema as Ast.ExpressionSignature,
-            argmap, result);
+        this._setInvocationOutputs(streamop.invocation.schema!, argmap, result);
     }
 
     private _compileTimer(streamop : Ops.TimerStreamOp) {
@@ -566,8 +565,7 @@ export default class OpCompiler {
         this._irBuilder.add(new JSIr.InvokeQuery(kind, attrs, fname, list, argmapreg, hints));
 
         const result = this._compileIterateQuery(list);
-        this._setInvocationOutputs(tableop.invocation.schema as Ast.ExpressionSignature,
-            argmap, result);
+        this._setInvocationOutputs(tableop.invocation.schema!, argmap, result);
     }
 
     private _compileVarRefInputParams(decl : DeclarationScopeEntry|ProcedureScopeEntry,
@@ -664,8 +662,7 @@ export default class OpCompiler {
             this._irBuilder.add(new JSIr.InvokeAction(kind, attrs, fname, list, args));
 
             const result = this._compileIterateQuery(list);
-            this._setInvocationOutputs(action.schema as Ast.ExpressionSignature,
-                argmap, result);
+            this._setInvocationOutputs(action.schema!, argmap, result);
 
             return true;
         } else {
@@ -1166,8 +1163,7 @@ export default class OpCompiler {
         this._irBuilder.add(new JSIr.InvokeDBQuery(kind, attrs, list, astReg));
 
         const result = this._compileIterateQuery(list);
-        this._setInvocationOutputs(tableop.ast.schema as Ast.ExpressionSignature,
-            {}, result);
+        this._setInvocationOutputs(tableop.ast.schema!, {}, result);
     }
 
     private _compileTable(tableop : Ops.TableOp) {

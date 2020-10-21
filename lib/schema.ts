@@ -164,7 +164,7 @@ export default class SchemaRetriever {
      * @param {boolean} [silent=false] - whether debugging information should be printed
      */
     constructor(tpClient : AbstractThingpediaClient,
-                mClient ?: MemoryClient,
+                mClient ?: MemoryClient|null,
                 silent = false) {
         this._manifestCache = new Map;
 

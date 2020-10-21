@@ -534,7 +534,7 @@ export class ExpressionSignature extends Node {
             return true;
         if (this.extends.length > 0) {
             for (const fname of this.extends) {
-                const f = this.class!.getFunction(this.functionType, fname) as FunctionDef;
+                const f = this.class!.getFunction(this.functionType, fname)!;
                 if (f.hasArgument(arg))
                     return true;
             }
@@ -556,7 +556,7 @@ export class ExpressionSignature extends Node {
             return this._argmap[arg];
         if (this.extends.length > 0) {
             for (const fname of this.extends) {
-                const f = this.class!.getFunction(this.functionType, fname) as FunctionDef;
+                const f = this.class!.getFunction(this.functionType, fname)!;
                 if (f.hasArgument(arg))
                     return f.getArgument(arg);
             }
@@ -579,7 +579,7 @@ export class ExpressionSignature extends Node {
             return this._argmap[arg].type;
         if (this.extends.length > 0) {
             for (const fname of this.extends) {
-                const f = this.class!.getFunction(this.functionType, fname) as FunctionDef;
+                const f = this.class!.getFunction(this.functionType, fname)!;
                 if (f.hasArgument(arg))
                     return f.getArgType(arg);
             }
@@ -602,7 +602,7 @@ export class ExpressionSignature extends Node {
             return this._argmap[arg].canonical;
         if (this.extends.length > 0) {
             for (const fname of this.extends) {
-                const f = this.class!.getFunction(this.functionType, fname) as FunctionDef;
+                const f = this.class!.getFunction(this.functionType, fname)!;
                 if (f.hasArgument(arg))
                     return f.getArgCanonical(arg);
             }
@@ -625,7 +625,7 @@ export class ExpressionSignature extends Node {
             return this._argmap[arg].metadata;
         if (this.extends.length > 0) {
             for (const fname of this.extends) {
-                const f = this.class!.getFunction(this.functionType, fname) as FunctionDef;
+                const f = this.class!.getFunction(this.functionType, fname)!;
                 if (f.hasArgument(arg))
                     return f.getArgMetadata(arg);
             }
@@ -648,7 +648,7 @@ export class ExpressionSignature extends Node {
             return this._argmap[arg].is_input;
         if (this.extends.length > 0) {
             for (const fname of this.extends) {
-                const f = this.class!.getFunction(this.functionType, fname) as FunctionDef;
+                const f = this.class!.getFunction(this.functionType, fname)!;
                 if (f.hasArgument(arg))
                     return f.isArgInput(arg);
             }
@@ -671,7 +671,7 @@ export class ExpressionSignature extends Node {
             return this._argmap[arg].required;
         if (this.extends.length > 0) {
             for (const fname of this.extends) {
-                const f = this.class!.getFunction(this.functionType, fname) as FunctionDef;
+                const f = this.class!.getFunction(this.functionType, fname)!;
                 if (f.hasArgument(arg))
                     return f.isArgRequired(arg);
             }

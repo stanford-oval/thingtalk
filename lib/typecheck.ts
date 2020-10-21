@@ -459,7 +459,7 @@ function addOutput(schema : Ast.ExpressionSignature,
 }
 
 function typeCheckAggregation(ast : Ast.AggregationTable, scope : Scope) {
-    const schema = ast.table.schema as Ast.ExpressionSignature;
+    const schema = ast.table.schema!;
 
     let name, type, nl_annotations;
     if (ast.field === '*') {
@@ -743,22 +743,22 @@ async function typeCheckTable(ast : Ast.Table,
                               classes : ClassMap,
                               useMeta = false) {
     if (ast instanceof Ast.VarRefTable) {
-        ast.schema = await typeCheckInputArgs(ast, ast.schema as Ast.ExpressionSignature, scope, schemas, classes, useMeta);
+        ast.schema = await typeCheckInputArgs(ast, ast.schema!, scope, schemas, classes, useMeta);
         scope.addAll(ast.schema.out);
     } else if (ast instanceof Ast.InvocationTable) {
-        ast.schema = await typeCheckInputArgs(ast.invocation, ast.invocation.schema as Ast.ExpressionSignature, scope, schemas, classes, useMeta);
+        ast.schema = await typeCheckInputArgs(ast.invocation, ast.invocation.schema!, scope, schemas, classes, useMeta);
         scope.addAll(ast.schema.out);
     } else if (ast instanceof Ast.FilteredTable) {
         await typeCheckTable(ast.table, schemas, scope, classes, useMeta);
-        await typeCheckFilter(ast.filter, ast.table.schema as Ast.ExpressionSignature, scope, schemas, classes, useMeta);
-        ast.schema = resolveFilter(ast.filter, ast.table.schema as Ast.ExpressionSignature);
+        await typeCheckFilter(ast.filter, ast.table.schema!, scope, schemas, classes, useMeta);
+        ast.schema = resolveFilter(ast.filter, ast.table.schema!);
     } else if (ast instanceof Ast.ProjectionTable) {
         await typeCheckTable(ast.table, schemas, scope, classes, useMeta);
-        ast.schema = resolveProjection(ast.args, ast.table.schema as Ast.ExpressionSignature, scope);
+        ast.schema = resolveProjection(ast.args, ast.table.schema!, scope);
     } else if (ast instanceof Ast.AliasTable) {
         await typeCheckTable(ast.table, schemas, scope, classes, useMeta);
         ast.schema = ast.table.schema;
-        scope.addGlobal(ast.name, ast.schema as Ast.ExpressionSignature);
+        scope.addGlobal(ast.name, ast.schema!);
         scope.prefix(ast.name);
     } else if (ast instanceof Ast.AggregationTable) {
         await typeCheckTable(ast.table, schemas, scope, classes, useMeta);
@@ -779,13 +779,13 @@ async function typeCheckTable(ast : Ast.Table,
         await typeCheckTable(ast.lhs, schemas, leftscope, classes, useMeta);
         await typeCheckTable(ast.rhs, schemas, rightscope, classes, useMeta);
         leftscope.$has_event = true;
-        await typeCheckInputArgs(ast, ast.rhs.schema as Ast.ExpressionSignature, leftscope, schemas, classes, useMeta);
-        ast.schema = resolveJoin(ast, ast.lhs.schema as Ast.ExpressionSignature, ast.rhs.schema as Ast.ExpressionSignature);
+        await typeCheckInputArgs(ast, ast.rhs.schema!, leftscope, schemas, classes, useMeta);
+        ast.schema = resolveJoin(ast, ast.lhs.schema!, ast.rhs.schema!);
         scope.merge(leftscope);
         scope.merge(rightscope);
     } else if (ast instanceof Ast.ComputeTable) {
         await typeCheckTable(ast.table, schemas, scope, classes, useMeta);
-        await typeCheckComputation(ast, ast.table.schema as Ast.ExpressionSignature, scope, schemas, classes, useMeta);
+        await typeCheckComputation(ast, ast.table.schema!, scope, schemas, classes, useMeta);
     } else {
         throw new Error('Not Implemented');
     }
@@ -797,7 +797,7 @@ async function typeCheckStream(ast : Ast.Stream,
                                classes : ClassMap,
                                useMeta = false) {
     if (ast instanceof Ast.VarRefStream) {
-        ast.schema = await typeCheckInputArgs(ast, ast.schema as Ast.ExpressionSignature, scope, schemas, classes, useMeta);
+        ast.schema = await typeCheckInputArgs(ast, ast.schema!, scope, schemas, classes, useMeta);
         scope.addAll(ast.schema!.out);
     } else if (ast instanceof Ast.TimerStream) {
         ast.schema = new Ast.ExpressionSignature(ast.location, 'stream', null, [], [], {
@@ -834,19 +834,19 @@ async function typeCheckStream(ast : Ast.Stream,
     } else if (ast instanceof Ast.EdgeFilterStream) {
         await typeCheckStream(ast.stream, schemas, scope, classes, useMeta);
         ast.schema = ast.stream.schema;
-        await typeCheckFilter(ast.filter, ast.schema as Ast.ExpressionSignature, scope, schemas, classes, useMeta);
+        await typeCheckFilter(ast.filter, ast.schema!, scope, schemas, classes, useMeta);
     } else if (ast instanceof Ast.FilteredStream) {
         await typeCheckStream(ast.stream, schemas, scope, classes, useMeta);
-        ast.schema = resolveFilter(ast.filter, ast.stream.schema as Ast.ExpressionSignature);
-        await typeCheckFilter(ast.filter, ast.schema as Ast.ExpressionSignature, scope, schemas, classes, useMeta);
+        ast.schema = resolveFilter(ast.filter, ast.stream.schema!);
+        await typeCheckFilter(ast.filter, ast.schema!, scope, schemas, classes, useMeta);
     } else if (ast instanceof Ast.AliasStream) {
         await typeCheckStream(ast.stream, schemas, scope, classes, useMeta);
         ast.schema = ast.stream.schema;
-        scope.addGlobal(ast.name, ast.schema as Ast.ExpressionSignature);
+        scope.addGlobal(ast.name, ast.schema!);
         scope.prefix(ast.name);
     } else if (ast instanceof Ast.ProjectionStream) {
         await typeCheckStream(ast.stream, schemas, scope, classes, useMeta);
-        ast.schema = resolveProjection(ast.args, ast.stream.schema as Ast.ExpressionSignature, scope);
+        ast.schema = resolveProjection(ast.args, ast.stream.schema!, scope);
     } else if (ast instanceof Ast.JoinStream) {
         const leftscope = new Scope(scope);
         const rightscope = new Scope(scope);
@@ -854,13 +854,13 @@ async function typeCheckStream(ast : Ast.Stream,
         await typeCheckStream(ast.stream, schemas, leftscope, classes, useMeta);
         await typeCheckTable(ast.table, schemas, rightscope, classes, useMeta);
         leftscope.$has_event = true;
-        await typeCheckInputArgs(ast, ast.table.schema as Ast.ExpressionSignature, leftscope, schemas, classes, useMeta);
-        ast.schema = resolveJoin(ast, ast.stream.schema as Ast.ExpressionSignature, ast.table.schema as Ast.ExpressionSignature);
+        await typeCheckInputArgs(ast, ast.table.schema!, leftscope, schemas, classes, useMeta);
+        ast.schema = resolveJoin(ast, ast.stream.schema!, ast.table.schema!);
         scope.merge(leftscope);
         scope.merge(rightscope);
     } else if (ast instanceof Ast.ComputeStream) {
         await typeCheckStream(ast.stream, schemas, scope, classes, useMeta);
-        await typeCheckComputation(ast, ast.stream.schema as Ast.ExpressionSignature, scope, schemas, classes, useMeta);
+        await typeCheckComputation(ast, ast.stream.schema!, scope, schemas, classes, useMeta);
     } else {
         throw new Error('Not Implemented');
     }
@@ -874,9 +874,9 @@ async function typeCheckAction(ast : Ast.Action,
     if (ast instanceof Ast.NotifyAction)
         ast.schema = await loadNotifyAction(ast.name);
     else if (ast instanceof Ast.InvocationAction)
-        ast.schema = await typeCheckInputArgs(ast.invocation, ast.invocation.schema as Ast.ExpressionSignature, scope, schemas, classes, useMeta);
+        ast.schema = await typeCheckInputArgs(ast.invocation, ast.invocation.schema!, scope, schemas, classes, useMeta);
     else if (ast instanceof Ast.VarRefAction)
-        ast.schema = await typeCheckInputArgs(ast, ast.schema as Ast.ExpressionSignature, scope, schemas, classes, useMeta);
+        ast.schema = await typeCheckInputArgs(ast, ast.schema!, scope, schemas, classes, useMeta);
     else
         throw new Error('Not Implemented');
 }
@@ -1288,7 +1288,7 @@ function makeFunctionSchema(ast : Ast.Declaration) : Ast.FunctionDef {
 
     // remove all input parameters (which will be filled with undefined)
     // and add the lambda arguments
-    const schema = ast.value.schema as Ast.ExpressionSignature;
+    const schema = ast.value.schema!;
 
     const argdefs : Ast.ArgumentDef[] = schema.args
         .map((argname : string) => schema.getArgument(argname) as Ast.ArgumentDef)

@@ -695,13 +695,18 @@ export abstract class Input extends Node {
     *iterateSlots2() : Generator<Selector|AbstractSlot, void> {
     }
 
+    optimize() : Input|null {
+        return this;
+    }
+    abstract clone() : Input;
+
     /**
      * Convert this ThingTalk input to prettyprinted ThingTalk code.
      *
      * @param {string} [prefix] - prefix each output line with this string (for indentation)
      * @return {string} the prettyprinted code
      */
-    prettyprint(short : boolean) : string {
+    prettyprint(short = true) : string {
         return prettyprint(this, short);
     }
 
@@ -1301,9 +1306,9 @@ export class EntityDef extends Node {
      * @return {any|undefined} the annotation normalized value, or `undefined` if the
      *         annotation is not present
      */
-    getImplementationAnnotation(name : string) : any|undefined {
+    getImplementationAnnotation<T>(name : string) : T|undefined {
         if (Object.prototype.hasOwnProperty.call(this.impl_annotations, name))
-            return this.impl_annotations[name].toJS();
+            return this.impl_annotations[name].toJS() as T;
         else
             return undefined;
     }

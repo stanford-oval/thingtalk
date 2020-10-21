@@ -35,3 +35,4 @@ export * from './program';
 export * from './bookkeeping';
 export * from './dialogues';
 export { default as NodeVisitor } from './visitor';
+export { AbstractSlot } from './slots';
