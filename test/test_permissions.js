@@ -15,19 +15,17 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-"use strict";
 
-const Q = require('q');
-Q.longStackSupport = true;
-const CVC4Solver = require('smtlib').LocalCVC4Solver;
 
-const Ast = require('../lib/ast');
-const Grammar = require('../lib/grammar_api');
-const Compiler = require('../lib/compiler').default;
-const SchemaRetriever = require('../lib/schema').default;
-const PermissionChecker = require('../lib/permission_checker').default;
+import { LocalCVC4Solver as CVC4Solver } from 'smtlib';
 
-const _mockSchemaDelegate = require('./mock_schema_delegate');
+import * as Ast from '../lib/ast';
+import * as Grammar from '../lib/grammar_api';
+import Compiler from '../lib/compiler';
+import SchemaRetriever from '../lib/schema';
+import PermissionChecker from '../lib/permission_checker';
+
+import _mockSchemaDelegate from './mock_schema_delegate';
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 const TEST_CASES = [
@@ -137,22 +135,22 @@ const PERMISSION_DATABASE = [
 ];
 
 class MockGroupDelegate {
-    getGroups(principal) {
+    async getGroups(principal) {
         switch (principal) {
         case 'omlet-messaging:testtesttest':
-            return Q(['omlet-feed:family', 'role:mom']);
+            return ['omlet-feed:family', 'role:mom'];
         case 'omlet-messaging:sistertest':
-            return Q(['omlet-feed:family', 'role:sister']);
+            return ['omlet-feed:family', 'role:sister'];
         case 'omlet-messaging:strangertext':
-            return Q([]);
+            return [];
         default:
-            return Q([]);
+            return [];
         }
     }
 }
 
-async function main() {
-    var checker = new PermissionChecker(CVC4Solver, schemaRetriever, new MockGroupDelegate());
+export default async function main() {
+    let checker = new PermissionChecker(CVC4Solver, schemaRetriever, new MockGroupDelegate());
 
     await Promise.all(PERMISSION_DATABASE.map((a, i) => {
         console.log('Parsing rule ', i+1);
@@ -202,6 +200,5 @@ async function main() {
         });
     });
 }
-module.exports = main;
 if (!module.parent)
     main();

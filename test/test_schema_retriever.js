@@ -17,20 +17,19 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagna@cs.stanford.edu>
-"use strict";
+
 
 // Unit tests for SchemaRetriever
 
-const assert = require('assert');
-const util = require('util');
-const fs = require('fs');
+import assert from 'assert';
+import * as util from 'util';
+import * as fs from 'fs';
 
-const SchemaRetriever = require('../lib/schema').default;
-const Grammar = require('../lib/grammar_api');
-const { ClassDef } = require('../lib/ast/class_def');
+import SchemaRetriever from '../lib/schema';
+import * as Grammar from '../lib/grammar_api';
 
-const _mockSchemaDelegate = require('./mock_schema_delegate');
-const _mockMemoryClient = require('./mock_memory_client');
+import _mockSchemaDelegate from './mock_schema_delegate';
+import _mockMemoryClient from './mock_memory_client';
 
 const FAKE_TWITTER = `class @com.twitter {
     import loader from @org.thingpedia.v2();
@@ -111,10 +110,9 @@ async function testInvalid() {
     });
 }
 
-async function main()   {
+export default async function main()   {
     await testInjectManifest();
     await testInvalid();
 }
-module.exports = main;
 if (!module.parent)
     main();

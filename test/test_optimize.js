@@ -17,11 +17,11 @@
 // limitations under the License.
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
-"use strict";
 
-const AppGrammar = require('../lib/grammar_api');
-const SchemaRetriever = require('../lib/schema').default;
-const _mockSchemaDelegate = require('./mock_schema_delegate');
+
+import * as AppGrammar from '../lib/grammar_api';
+import SchemaRetriever from '../lib/schema';
+import _mockSchemaDelegate from './mock_schema_delegate';
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 const TEST_CASES = [
@@ -206,12 +206,9 @@ function test(i) {
     });
 }
 
-
-async function main() {
+export default async function main() {
     for (let i = 0; i < TEST_CASES.length; i++)
         await test(i);
 }
-
-module.exports = main;
 if (!module.parent)
     main();

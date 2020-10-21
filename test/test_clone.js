@@ -17,11 +17,11 @@
 // limitations under the License.
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
-const AppGrammar = require('../lib/grammar_api');
-const { prettyprint } = require('../lib/prettyprint');
+
+import assert from 'assert';
+import * as AppGrammar from '../lib/grammar_api';
+import { prettyprint } from '../lib/prettyprint';
 
 const TEST_CASES = [
 // device selectors
@@ -30,7 +30,7 @@ const TEST_CASES = [
 `now => @light-bulb(all=true).set_power(power=enum(on));`
 ];
 
-function main() {
+export default function main() {
     TEST_CASES.forEach((code, i) => {
         console.log('# Test Case ' + (i+1));
 
@@ -62,6 +62,5 @@ function main() {
         }
     });
 }
-module.exports = main;
 if (!module.parent)
     main();

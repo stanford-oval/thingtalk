@@ -23,7 +23,7 @@ import * as AppGrammar from '../lib/grammar_api';
 
 const debug = false;
 
-async function main() {
+export default async function main() {
     const testFile = fs.readFileSync(process.argv[2] || './test/test_syntax.tt').toString('utf8').split('====');
 
     for (let i = 0; i < testFile.length; i++) {
@@ -74,6 +74,5 @@ async function main() {
         }
     }
 }
-module.exports = main;
 if (!module.parent)
     main();

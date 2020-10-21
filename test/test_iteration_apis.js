@@ -17,16 +17,15 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
+import assert from 'assert';
 
-const Grammar = require('../lib/grammar_api');
-const Ast = require('../lib/ast');
-const SchemaRetriever = require('../lib/schema').default;
-const Type = require('../lib/type').default;
+import * as Grammar from '../lib/grammar_api';
+import * as Ast from '../lib/ast';
+import SchemaRetriever from '../lib/schema';
+import Type from '../lib/type';
 
-const _mockSchemaDelegate = require('./mock_schema_delegate');
+import _mockSchemaDelegate from './mock_schema_delegate';
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 function assertArrayEquals(testCase, array, expected) {
@@ -45,7 +44,7 @@ function assertArrayEquals(testCase, array, expected) {
         throw new Error(`testIterationAPIs ${testCase} FAILED`);
 }
 
-var TEST_CASES = [
+let TEST_CASES = [
     [`now => @com.xkcd.get_comic() => notify;`,
     ['query: Invocation(Device(com.xkcd, , ), get_comic, , )'],
     ['Device(com.xkcd, , ) com.xkcd:get_comic'],
@@ -452,7 +451,7 @@ now => [food] of ((@uk.ac.cam.multiwoz.Restaurant.Restaurant()), true) => notify
 
 async function test(i) {
     console.log('Test Case #' + (i+1));
-    var [code, expectedPrim, expectedSlots, expectedSlots2] = TEST_CASES[i];
+    let [code, expectedPrim, expectedSlots, expectedSlots2] = TEST_CASES[i];
 
     try {
         const prog = await Grammar.parseAndTypecheck(code, schemaRetriever, true);
@@ -465,7 +464,7 @@ async function test(i) {
                 return `${slot} ${prim.selector.kind}:${prim.channel}`;
         });
         const generatedSlots2 = Array.from(prog.iterateSlots2()).map((slot) => {
-            if (slot instanceof Ast.Selector)
+            if (slot instanceof Ast.DeviceSelector)
                 return `Selector(@${slot.kind})`;
 
             assert(slot.type instanceof Type);
@@ -491,10 +490,9 @@ async function test(i) {
     }
 }
 
-async function main() {
+export default async function main() {
     for (let i = 0; i < TEST_CASES.length; i++)
         await test(i);
 }
-module.exports = main;
 if (!module.parent)
     main();

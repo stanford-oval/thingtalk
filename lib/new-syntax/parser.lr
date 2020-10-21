@@ -348,7 +348,8 @@ thingpedia_call : Ast.Invocation = {
     };
 
     className:CLASS_OR_FUNCTION_REF device_params:in_param_list '.' functionName:function_name in_params:in_param_list => {
-        let id : string|null = null, all = false, other = [];
+        let id : string|null = null, all = false;
+        const other = [];
         for (const attr of device_params) {
             if (attr.name === 'id') {
                 id = String(attr.value.toJS());

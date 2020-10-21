@@ -17,13 +17,13 @@
 // limitations under the License.
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
-"use strict";
-const assert = require('assert');
-const Grammar = require('../lib/grammar_api');
-const SchemaRetriever = require('../lib/schema').default;
 
-const _mockSchemaDelegate = require('./mock_schema_delegate');
-const _mockMemoryClient = require('./mock_memory_client');
+import assert from 'assert';
+import * as Grammar from '../lib/grammar_api';
+import SchemaRetriever from '../lib/schema';
+
+import _mockSchemaDelegate from './mock_schema_delegate';
+import _mockMemoryClient from './mock_memory_client';
 
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, _mockMemoryClient, true);
 
@@ -143,13 +143,12 @@ async function testArrayCompoundElements(i) {
     }
 }
 
-async function main() {
+export default async function main() {
     for (let i = 0; i < FUNC_TEST_CASES.length; i++)
         await testCompoundArguments(i);
     for (let i = 0; i < ARRAY_TEST_CASES.length; i++)
         await testArrayCompoundElements(i);
 }
-module.exports = main;
 if (!module.parent)
     main();
 

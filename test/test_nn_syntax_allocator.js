@@ -17,15 +17,14 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
-const Ast = require('../lib/ast');
-const NNSyntax = require('../lib/nn-syntax');
+import assert from 'assert';
+
+import * as NNSyntax from '../lib/nn-syntax';
 //const NNOutputParser = require('../lib/nn_output_parser');
-const SchemaRetriever = require('../lib/schema').default;
+import SchemaRetriever from '../lib/schema';
 
-const _mockSchemaDelegate = require('./mock_schema_delegate');
+import _mockSchemaDelegate from './mock_schema_delegate';
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 /*class SimpleSequenceLexer {
@@ -179,7 +178,7 @@ async function testCase(test, i) {
         }
 
         assert.deepStrictEqual(into, entities);
-    } catch (e) {
+    } catch(e) {
         console.error('Test Case #' + (i+1) + ' failed with exception');
         console.error(sequence.join(' '));
         console.error(e);
@@ -188,10 +187,9 @@ async function testCase(test, i) {
     }
 }
 
-async function main() {
+export default async function main() {
     for (let i = 0; i < TEST_CASES.length; i++)
         await testCase(TEST_CASES[i], i);
 }
-module.exports = main;
 if (!module.parent)
     main();

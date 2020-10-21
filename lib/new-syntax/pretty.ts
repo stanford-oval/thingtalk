@@ -226,9 +226,10 @@ export function prettyprint(tokens : TokenStream) : string {
             buffer += token + ' ';
             break;
 
-        // add a space BEFORE and AFTER with and of
+        // add a space BEFORE and AFTER filter, with and of
         // this is necessary because they can follow a variable name immediately
         case 'with':
+        case 'filter':
         case 'of':
             buffer += ' ' + token + ' ';
             break;

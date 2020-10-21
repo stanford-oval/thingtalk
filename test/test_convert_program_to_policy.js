@@ -17,17 +17,14 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const Q = require('q');
-Q.longStackSupport = true;
-const Grammar = require('../lib/grammar_api');
-const SchemaRetriever = require('../lib/schema').default;
+import * as Grammar from '../lib/grammar_api';
+import SchemaRetriever from '../lib/schema';
 
-const _mockSchemaDelegate = require('./mock_schema_delegate');
+import _mockSchemaDelegate from './mock_schema_delegate';
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
-var TEST_CASES = [
+let TEST_CASES = [
     // manually written test cases
     ['now => @com.twitter.post();',
      'source == "test-account:foobar"^^tt:contact("Bob") : now => @com.twitter.post;'],
@@ -63,7 +60,7 @@ var TEST_CASES = [
 
 function test(i) {
     console.log('Test Case #' + (i+1));
-    var [code, expected] = TEST_CASES[i];
+    let [code, expected] = TEST_CASES[i];
 
     return Grammar.parseAndTypecheck(code, schemaRetriever, true).then((prog) => {
         let rule = prog.convertToPermissionRule('test-account:foobar', 'Bob');
@@ -85,16 +82,9 @@ function test(i) {
     });
 }
 
-function loop(i) {
-    if (i === TEST_CASES.length)
-        return Q();
-
-    return Q(test(i)).then(() => loop(i+1));
+export default async function main() {
+    for (let i = 0; i < TEST_CASES.length; i++)
+        await test(i);
 }
-
-function main() {
-    return loop(0);
-}
-module.exports = main;
 if (!module.parent)
     main();

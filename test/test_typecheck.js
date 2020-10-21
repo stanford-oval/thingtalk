@@ -15,19 +15,19 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-"use strict";
 
-const fs = require('fs');
 
-const AppGrammar = require('../lib/grammar_api');
-const SchemaRetriever = require('../lib/schema').default;
+import * as fs from 'fs';
 
-const _mockSchemaDelegate = require('./mock_schema_delegate');
-const _mockMemoryClient = require('./mock_memory_client');
+import * as AppGrammar from '../lib/grammar_api';
+import SchemaRetriever from '../lib/schema';
+
+import _mockSchemaDelegate from './mock_schema_delegate';
+import _mockMemoryClient from './mock_memory_client';
 
 const _schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, _mockMemoryClient, true);
 
-async function main() {
+export default async function main() {
     const tests = fs.readFileSync('./test/sample.apps').toString('utf8').split('====');
 
     for (let code of tests) {
@@ -35,7 +35,7 @@ async function main() {
         let program;
         try {
             program = await AppGrammar.parseAndTypecheck(code, _schemaRetriever);
-        } catch (e) {
+        } catch(e) {
             if (code.indexOf(`** typecheck: expect ${e.name} **`) >= 0)
                 continue;
             console.error('Failed');
@@ -77,6 +77,5 @@ async function main() {
         }
     }
 }
-module.exports = main;
 if (!module.parent)
     main();

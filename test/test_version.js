@@ -17,16 +17,14 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
+import assert from 'assert';
 
-const ThingTalk = require('../lib/index');
-const packageJson = require('../package.json');
+import * as ThingTalk from '../lib/index';
+import packageJson from '../package.json';
 
-function main() {
+export default function main() {
     assert.deepStrictEqual(ThingTalk.version, packageJson.version);
 }
-module.exports = main;
 if (!module.parent)
     main();

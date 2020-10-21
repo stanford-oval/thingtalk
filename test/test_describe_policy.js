@@ -17,19 +17,16 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
-const Q = require('q');
-Q.longStackSupport = true;
-const Describe = require('../lib/describe');
-const Grammar = require('../lib/grammar_api');
-const SchemaRetriever = require('../lib/schema').default;
+import assert from 'assert';
+import * as Describe from '../lib/describe';
+import * as Grammar from '../lib/grammar_api';
+import SchemaRetriever from '../lib/schema';
 
-const _mockSchemaDelegate = require('./mock_schema_delegate');
+import _mockSchemaDelegate from './mock_schema_delegate';
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
-var TEST_CASES = [
+let TEST_CASES = [
     ['true : * => *',
      'anyone is allowed to read all your data and then perform any action with it'],
 
@@ -270,7 +267,7 @@ const gettext = {
 
 function test(i) {
     console.log('Test Case #' + (i+1));
-    var [code, expected] = TEST_CASES[i];
+    const [code, expected] = TEST_CASES[i];
 
     return Grammar.parseAndTypecheck(code, schemaRetriever, true).then((prog) => {
         assert(prog.isPermissionRule);
@@ -294,16 +291,9 @@ function test(i) {
     });
 }
 
-function loop(i) {
-    if (i === TEST_CASES.length)
-        return Q();
-
-    return Q(test(i)).then(() => loop(i+1));
+export default async function main() {
+    for (let i = 0; i < TEST_CASES.length; i++)
+        await test(i);
 }
-
-function main() {
-    return loop(0);
-}
-module.exports = main;
 if (!module.parent)
     main();

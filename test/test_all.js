@@ -15,10 +15,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-"use strict";
 
-const Q = require('q');
-Q.longStackSupport = true;
 process.on('unhandledRejection', (up) => { throw up; });
 
 process.env.TEST_MODE = '1';
@@ -26,7 +23,7 @@ process.env.TEST_MODE = '1';
 async function seq(array) {
     for (let fn of array) {
         console.log(`Running ${fn}`);
-        await require(fn)();
+        await (await import(fn)).default();
     }
 }
 

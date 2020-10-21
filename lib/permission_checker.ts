@@ -424,10 +424,20 @@ class SmtReduction {
             let ptype = scopeType[filter.name];
             if (!ptype)
                 throw new TypeError('Invalid filter left-hand-side ' + filter.name);
-            if (filter.operator === 'contains')
+            switch (filter.operator) {
+            case 'contains':
                 ptype = (ptype as ArrayType).elem as Type;
-            else if (filter.operator === 'in_array')
+                break;
+            case 'contains~':
+                ptype = Type.String;
+                break;
+            case 'in_array':
                 ptype = new Type.Array(ptype);
+                break;
+            case 'in_array~':
+                ptype = new Type.Array(Type.String);
+                break;
+            }
 
             const value = filter.value;
             if (value.isUndefined) {
@@ -478,8 +488,20 @@ class SmtReduction {
             let ptype = schema.out[filter.name] || schema.inReq[filter.name] || schema.inOpt[filter.name];
             if (!ptype)
                 throw new TypeError('Invalid filter left-hand-side ' + filter.name);
-            if (filter.operator === 'contains')
+            switch (filter.operator) {
+            case 'contains':
                 ptype = (ptype as ArrayType).elem as Type;
+                break;
+            case 'contains~':
+                ptype = Type.String;
+                break;
+            case 'in_array':
+                ptype = new Type.Array(ptype);
+                break;
+            case 'in_array~':
+                ptype = new Type.Array(Type.String);
+                break;
+            }
             if (filter.value.isUndefined)
                 throw new TypeError('Invalid filter right hand side (should be slot filled)');
             const values = [];
@@ -975,6 +997,7 @@ class RuleTransformer {
                 if (permissionRule.action !== Ast.PermissionFunction.Builtin &&
                     permissionRule.action !== Ast.PermissionFunction.Star)
                     return false;
+                continue;
             }
             assert(action instanceof Ast.InvocationAction);
             if (!this._isFunctionPermissionRelevant(permissionRule.action, action.invocation))

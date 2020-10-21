@@ -17,19 +17,17 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const Q = require('q');
-Q.longStackSupport = true;
-const assert = require('assert');
 
-const Compiler = require('../lib/compiler').default;
-const SchemaRetriever = require('../lib/schema').default;
+import assert from 'assert';
 
-const ExecEnvironment = require('../lib/runtime/exec_environment').default;
-const builtin = require('../lib/builtin/values');
+import Compiler from '../lib/compiler';
+import SchemaRetriever from '../lib/schema';
 
-const _mockSchemaDelegate = require('./mock_schema_delegate');
+import ExecEnvironment from '../lib/runtime/exec_environment';
+import * as builtin from '../lib/builtin/values';
+
+import _mockSchemaDelegate from './mock_schema_delegate';
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 class MockAssistant {
@@ -2524,7 +2522,7 @@ async function test(i) {
 
         if (actions.length !== 0)
             throw new Error(`Left-over actions in test ${i+1}`);
-    } catch (e) {
+    } catch(e) {
         console.error('Test Case #' + (i+1) + ': failed with exception');
         console.error('Code: ' + code);
         console.error('Error: ' + e.message);
@@ -2534,10 +2532,9 @@ async function test(i) {
     }
 }
 
-async function main() {
+export default async function main() {
     for (let i = 0; i < TEST_CASES.length; i++)
         await test(i);
 }
-module.exports = main;
 if (!module.parent)
     main();

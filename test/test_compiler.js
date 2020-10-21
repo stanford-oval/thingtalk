@@ -15,15 +15,13 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-"use strict";
 
-require('../lib/grammar_api');
-const Compiler = require('../lib/compiler').default;
-const SchemaRetriever = require('../lib/schema').default;
+import Compiler from '../lib/compiler';
+import SchemaRetriever from '../lib/schema';
 
-const _mockSchemaDelegate = require('./mock_schema_delegate');
-const _mockMemoryClient = require('./mock_memory_client');
-var schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, _mockMemoryClient, true);
+import _mockSchemaDelegate from './mock_schema_delegate';
+import _mockMemoryClient from './mock_memory_client';
+let schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, _mockMemoryClient, true);
 
 const TEST_CASES = [
     //1
@@ -9154,7 +9152,7 @@ async function test(i) {
                 new AsyncFunction('__builtin', '__scope', '__ast', '__env', code);
             }
         }
-    } catch (e) {
+    } catch(e) {
         console.error('Test Case #' + (i+1) + ': failed with exception');
         console.error('Code: ' + code);
         console.error('Error: ' + e.message);
@@ -9164,11 +9162,10 @@ async function test(i) {
     }
 }
 
-async function main() {
+export default async function main() {
     const max = !module.parent && process.argv[2] ? parseInt(process.argv[2]) : Infinity;
     for (let i = 0; i < Math.min(max, TEST_CASES.length); i++)
       await test(i);
 }
-module.exports = main;
 if (!module.parent)
     main();

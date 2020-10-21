@@ -1691,10 +1691,9 @@ export default class TypeChecker {
     }
 
     async typeCheckLibrary(meta : Ast.Library) : Promise<void> {
-        const classes : ClassMap = {};
         for (const klass of meta.classes) {
             await this.typeCheckClass(klass, true);
-            classes[klass.name] = klass;
+            this._classes[klass.name] = klass;
         }
         for (const dataset of meta.datasets)
             await this._typeCheckDataset(dataset);

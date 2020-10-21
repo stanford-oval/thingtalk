@@ -17,18 +17,14 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const Q = require('q');
-Q.longStackSupport = true;
+import assert from 'assert';
 
-const SchemaRetriever = require('../lib/schema').default;
-const assert = require('assert');
+import SchemaRetriever from '../lib/schema';
+import Formatter from '../lib/runtime/formatter';
+import * as builtin from '../lib/builtin/values';
 
-const Formatter = require('../lib/runtime/formatter').default;
-const builtin = require('../lib/builtin/values');
-
-const _mockSchemaDelegate = require('./mock_schema_delegate');
+import _mockSchemaDelegate from './mock_schema_delegate';
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 
@@ -314,38 +310,31 @@ const gettext = {
 
 const formatter = new Formatter('en-US', 'America/Los_Angeles', schemaRetriever, gettext);
 
-function test(i) {
+async function test(i) {
     console.log('Test Case #' + (i+1));
 
     let [outputType, outputValues, hint, expected] = TEST_CASES[i];
 
-    return Q.try(() => {
-        return formatter.formatForType(outputType, outputValues, hint).then((generated) => {
-            try {
-                assert.strictEqual(JSON.stringify(generated), JSON.stringify(expected));
-            } catch(e) {
-                console.log(generated);
-                throw e;
-            }
-        });
-    }).catch((e) => {
+    try {
+        const generated = await formatter.formatForType(outputType, outputValues, hint);
+        try {
+            assert.strictEqual(JSON.stringify(generated), JSON.stringify(expected));
+        } catch(e) {
+            console.log(generated);
+            throw e;
+        }
+    } catch(e) {
         console.error('Test Case #' + (i+1) + ': failed with exception');
         console.error('Error: ' + e.message);
         console.error(e.stack);
         if (process.env.TEST_MODE)
             throw e;
-    });
+    }
 }
 
-function loop(i) {
-    if (i === TEST_CASES.length)
-        return Q();
-
-    return Q(test(i)).then(() => loop(i+1));
+export default async function main() {
+    for (let i = 0; i < TEST_CASES.length; i++)
+        await test(i);
 }
-function main() {
-    return loop(0);
-}
-module.exports = main;
 if (!module.parent)
     main();

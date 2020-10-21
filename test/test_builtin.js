@@ -17,9 +17,8 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const Builtin = require('../lib/builtin');
+import * as Builtin from '../lib/builtin';
 
 function sleep(timeout) {
     return new Promise((resolve, reject) => {
@@ -152,7 +151,7 @@ function testEdgeNew() {
     }
 }
 
-async function main() {
+export default async function main() {
     console.log('testStreamUnion');
     await timeout(30000, testStreamUnion());
     console.log('testCrossJoin');
@@ -160,6 +159,5 @@ async function main() {
     console.log('testEdgeNew');
     await timeout(30000, testEdgeNew());
 }
-module.exports = main;
 if (!module.parent)
     main();

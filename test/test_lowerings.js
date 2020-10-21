@@ -17,17 +17,15 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const Q = require('q');
-const assert = require('assert');
+import assert from 'assert';
 
-const AppGrammar = require('../lib/grammar_api');
-const SchemaRetriever = require('../lib/schema').default;
-const { prettyprint } = require('../lib/prettyprint');
+import * as AppGrammar from '../lib/grammar_api';
+import SchemaRetriever from '../lib/schema';
+import { prettyprint } from '../lib/prettyprint';
 
-const _mockSchemaDelegate = require('./mock_schema_delegate');
-const _mockMemoryClient = require('./mock_memory_client');
+import _mockSchemaDelegate from './mock_schema_delegate';
+import _mockMemoryClient from './mock_memory_client';
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, _mockMemoryClient, true);
 
 const TEST_CASES = [
@@ -122,7 +120,7 @@ const TEST_CASES = [
 
 ];
 
-var _mockMessaging = {
+let _mockMessaging = {
     getSelf(sendTo) {
         assert.strictEqual(sendTo, '1234');
         return 'mock-account:12345678';
@@ -172,15 +170,9 @@ function test(i) {
     });
 }
 
-function loop(i) {
-    if (i === TEST_CASES.length)
-        return Q();
-
-    return Q(test(i)).then(() => loop(i+1));
+export default async function main() {
+    for (let i = 0; i < TEST_CASES.length; i++)
+        await test(i);
 }
-function main() {
-    return loop(0);
-}
-module.exports = main;
 if (!module.parent)
     main();
