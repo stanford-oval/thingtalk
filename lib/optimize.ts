@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -27,13 +27,13 @@ import {
     getScalarExpressionName
 } from './utils';
 
-function flattenAnd(expr) {
-    let flattened = [];
-    if (expr.isAnd) {
-        for (let op of expr.operands) {
-            let operands = flattenAnd(op);
+function flattenAnd(expr : Ast.BooleanExpression) : Ast.BooleanExpression[] {
+    const flattened = [];
+    if (expr instanceof Ast.AndBooleanExpression) {
+        for (const op of expr.operands) {
+            const operands = flattenAnd(op);
             operands.forEach((op) => assert(op instanceof Ast.BooleanExpression));
-            for (let subop of operands)
+            for (const subop of operands)
                 flattened.push(subop);
         }
     } else {
@@ -42,13 +42,13 @@ function flattenAnd(expr) {
     return flattened;
 }
 
-function flattenOr(expr) {
-    let flattened = [];
-    if (expr.isOr) {
-        for (let op of expr.operands) {
-            let operands = flattenOr(op);
+function flattenOr(expr : Ast.BooleanExpression) : Ast.BooleanExpression[] {
+    const flattened = [];
+    if (expr instanceof Ast.OrBooleanExpression) {
+        for (const op of expr.operands) {
+            const operands = flattenOr(op);
             operands.forEach((op) => assert(op instanceof Ast.BooleanExpression));
-            for (let subop of operands)
+            for (const subop of operands)
                 flattened.push(subop);
         }
     } else {
@@ -57,13 +57,13 @@ function flattenOr(expr) {
     return flattened;
 }
 
-function optimizeFilter(expr) {
+function optimizeFilter(expr : Ast.BooleanExpression) : Ast.BooleanExpression {
     if (expr.isTrue || expr.isFalse || expr.isDontCare)
         return expr;
-    if (expr.isAnd) {
-        let operands = flattenAnd(expr).map((o) => optimizeFilter(o)).filter((o) => !o.isTrue);
+    if (expr instanceof Ast.AndBooleanExpression) {
+        const operands = flattenAnd(expr).map((o) => optimizeFilter(o)).filter((o) => !o.isTrue);
         operands.forEach((op) => assert(op instanceof Ast.BooleanExpression));
-        for (let o of operands) {
+        for (const o of operands) {
             if (o.isFalse)
                 return Ast.BooleanExpression.False;
         }
@@ -73,10 +73,10 @@ function optimizeFilter(expr) {
             return operands[0];
         return new Ast.BooleanExpression.And(expr.location, operands);
     }
-    if (expr.isOr) {
-        let operands = flattenOr(expr).map((o) => optimizeFilter(o)).filter((o) => !o.isFalse);
+    if (expr instanceof Ast.OrBooleanExpression) {
+        const operands = flattenOr(expr).map((o) => optimizeFilter(o)).filter((o) => !o.isFalse);
         operands.forEach((op) => assert(op instanceof Ast.BooleanExpression));
-        for (let o of operands) {
+        for (const o of operands) {
             if (o.isTrue)
                 return Ast.BooleanExpression.True;
         }
@@ -87,11 +87,11 @@ function optimizeFilter(expr) {
 
         // convert "x == foo || x == bar" to "x in_array [foo, bar]"
         // and "x =~ foo || x =~ bar" to "x in_array~ [foo, bar]"
-        let equalityFilters = {};
-        let likeFilters = {};
-        let otherFilters = [];
-        for (let operand of operands) {
-            if (operand.isAtom) {
+        const equalityFilters : { [key : string] : Ast.Value[] } = {};
+        const likeFilters : { [key : string] : Ast.Value[] } = {};
+        const otherFilters : Ast.BooleanExpression[] = [];
+        for (const operand of operands) {
+            if (operand instanceof Ast.AtomBooleanExpression) {
                 if (operand.operator === '==') {
                     if (operand.name in equalityFilters)
                         equalityFilters[operand.name].push(operand.value);
@@ -109,7 +109,7 @@ function optimizeFilter(expr) {
                 otherFilters.push(operand);
             }
         }
-        for (let eqParam in equalityFilters) {
+        for (const eqParam in equalityFilters) {
             if (equalityFilters[eqParam].length > 1) {
                 otherFilters.push(new Ast.BooleanExpression.Atom(expr.location, eqParam, 'in_array',
                     new Ast.Value.Array(equalityFilters[eqParam])));
@@ -117,7 +117,7 @@ function optimizeFilter(expr) {
                 otherFilters.push(new Ast.BooleanExpression.Atom(expr.location, eqParam, '==', equalityFilters[eqParam][0]));
             }
         }
-        for (let eqParam in likeFilters) {
+        for (const eqParam in likeFilters) {
             if (likeFilters[eqParam].length > 1) {
                 otherFilters.push(new Ast.BooleanExpression.Atom(expr.location, eqParam, 'in_array~',
                     new Ast.Value.Array(likeFilters[eqParam])));
@@ -128,19 +128,19 @@ function optimizeFilter(expr) {
 
         return new Ast.BooleanExpression.Or(expr.location, otherFilters);
     }
-    if (expr.isNot) {
-        if (expr.expr.isNot) // double negation
+    if (expr instanceof Ast.NotBooleanExpression) {
+        if (expr.expr instanceof Ast.NotBooleanExpression) // double negation
             return optimizeFilter(expr.expr.expr);
 
-        let subexpr = optimizeFilter(expr.expr);
+        const subexpr = optimizeFilter(expr.expr);
         if (subexpr.isTrue)
             return Ast.BooleanExpression.False;
         if (subexpr.isFalse)
             return Ast.BooleanExpression.True;
         return new Ast.BooleanExpression.Not(expr.location, subexpr);
     }
-    if (expr.isExternal) {
-        let subfilter = optimizeFilter(expr.filter);
+    if (expr instanceof Ast.ExternalBooleanExpression) {
+        const subfilter = optimizeFilter(expr.filter);
         if (subfilter.isFalse)
             return new Ast.BooleanExpression.False;
         // NOTE: it does not hold that if subfilter is True
@@ -153,15 +153,12 @@ function optimizeFilter(expr) {
         // TODO
         return expr;
     }
-    if (expr.isVarRef) {
-        // TODO
-        return expr;
-    }
+    assert(expr instanceof Ast.AtomBooleanExpression);
 
-    let lhs = expr.name;
-    let rhs = expr.value;
-    let op = expr.operator;
-    if (rhs.isVarRef && rhs.name === lhs) {
+    const lhs = expr.name;
+    const rhs = expr.value;
+    const op = expr.operator;
+    if (rhs instanceof Ast.VarRefValue && rhs.name === lhs) {
         // x = x , x =~ x , x >= x, x <= x
         if (op === '==' || op === '=~' || op === '>=' || op === '<=')
             return Ast.BooleanExpression.True;
@@ -169,11 +166,11 @@ function optimizeFilter(expr) {
     return expr;
 }
 
-function optimizeStream(stream, allow_projection=true) {
+function optimizeStream(stream : Ast.Stream, allow_projection=true) : Ast.Stream|null {
     if (stream.isVarRef || stream.isTimer || stream.isAtTimer)
         return stream;
 
-    if (stream.isProjection) {
+    if (stream instanceof Ast.ProjectionStream) {
         if (!allow_projection)
             return optimizeStream(stream.stream, allow_projection);
 
@@ -182,21 +179,21 @@ function optimizeStream(stream, allow_projection=true) {
             return null;
 
         // collapse projection of projection
-        if (optimized.isProjection) {
+        if (optimized instanceof Ast.ProjectionStream) {
             return new Ast.Stream.Projection(stream.location, optimized.stream,
                 stream.args, stream.schema);
         }
         return new Ast.Stream.Projection(stream.location, optimized, stream.args, stream.schema);
     }
 
-    if (stream.isMonitor) {
+    if (stream instanceof Ast.MonitorStream) {
         // always allow projection inside a monitor, because the projection affects which parameters we monitor
-        let table = optimizeTable(stream.table, true);
+        const table = optimizeTable(stream.table, true);
         if (!table)
             return null;
 
         // convert monitor of a projection to a projection of a monitor
-        if (table.isProjection) {
+        if (table instanceof Ast.ProjectionTable) {
             const newMonitor = new Ast.Stream.Monitor(table.location, table.table, stream.args || table.args, stream.schema);
 
             if (allow_projection)
@@ -209,7 +206,7 @@ function optimizeStream(stream, allow_projection=true) {
         return stream;
     }
 
-    if (stream.isFilter) {
+    if (stream instanceof Ast.FilteredStream) {
         stream.filter = optimizeFilter(stream.filter);
         // handle constant filters
         if (stream.filter.isTrue)
@@ -217,15 +214,15 @@ function optimizeStream(stream, allow_projection=true) {
         if (stream.filter.isFalse)
             return null;
         // compress filter of filter
-        if (stream.stream.isFilter) {
+        if (stream.stream instanceof Ast.FilteredStream) {
             stream.filter = optimizeFilter(Ast.BooleanExpression.And([stream.filter, stream.stream.filter]));
             stream.stream = stream.stream.stream;
             return optimizeStream(stream, allow_projection);
         }
 
         // switch filter of monitor to monitor of filter
-        if (stream.stream.isMonitor) {
-            let newstream = new Ast.Stream.Monitor(
+        if (stream.stream instanceof Ast.MonitorStream) {
+            const newstream = new Ast.Stream.Monitor(
                 stream.location,
                 new Ast.Table.Filter(stream.location, stream.stream.table, stream.filter, stream.stream.table.schema),
                 stream.stream.args,
@@ -235,7 +232,7 @@ function optimizeStream(stream, allow_projection=true) {
         }
 
         // switch filter of project to project of filter
-        if (stream.stream.isProjection) {
+        if (stream.stream instanceof Ast.ProjectionStream) {
             if (allow_projection) {
                 return optimizeStream(new Ast.Stream.Projection(
                     stream.location,
@@ -253,11 +250,11 @@ function optimizeStream(stream, allow_projection=true) {
                 ), allow_projection);
             }
         }
-    } else if (stream.isEdgeNew) {
+    } else if (stream instanceof Ast.EdgeNewStream) {
         // collapse edge new of monitor or edge new of edge new
         if (stream.stream.isMonitor || stream.stream.isEdgeNew)
             return optimizeStream(stream.stream, allow_projection);
-    } else if (stream.isEdgeFilter) {
+    } else if (stream instanceof Ast.EdgeFilterStream) {
         stream.filter = optimizeFilter(stream.filter);
         // handle constant filters
         // we don't optimize the isTrue case here: "edge on true" means only once
@@ -266,18 +263,18 @@ function optimizeStream(stream, allow_projection=true) {
     }
 
     if (isUnaryStreamToStreamOp(stream)) {
-        let inner = optimizeStream(stream.stream, allow_projection);
+        const inner = optimizeStream(stream.stream, allow_projection);
         if (!inner)
             return null;
         stream.stream = inner;
         return stream;
     }
 
-    if (stream.isJoin) {
-        let lhs = optimizeStream(stream.stream, allow_projection);
+    if (stream instanceof Ast.JoinStream) {
+        const lhs = optimizeStream(stream.stream, allow_projection);
         if (!lhs)
             return null;
-        let rhs = optimizeTable(stream.table, allow_projection);
+        const rhs = optimizeTable(stream.table, allow_projection);
         if (!rhs)
             return null;
         stream.stream = lhs;
@@ -288,15 +285,16 @@ function optimizeStream(stream, allow_projection=true) {
     return stream;
 }
 
-function findComputeTable(table) {
-    if (table.isCompute)
+function findComputeTable(table : Ast.Table) : Ast.ComputeTable|null {
+    if (table instanceof Ast.ComputeTable)
         return table;
-    if (table.isInvocation || table.isVarRef)
+    if (table instanceof Ast.InvocationTable || table instanceof Ast.VarRefTable)
         return null;
 
     // do not traverse joins or aliases, as those
     // change the meaning of parameters and therefore the expressions
-    if (table.isJoin || table.isAlias || table.isProjection)
+    if (table instanceof Ast.JoinTable || table instanceof Ast.AliasTable ||
+        table instanceof Ast.ProjectionTable)
         return null;
 
     if (isUnaryTableToTableOp(table))
@@ -305,10 +303,10 @@ function findComputeTable(table) {
     throw new TypeError(table.constructor.name);
 }
 
-function expressionUsesParam(expr, pname) {
+function expressionUsesParam(expr : Ast.Node, pname : string) : boolean {
     let used = false;
     expr.visit(new class extends Ast.NodeVisitor {
-        visitVarRefValue(value) {
+        visitVarRefValue(value : Ast.VarRefValue) {
             used = used || value.name === pname;
             return true;
         }
@@ -316,11 +314,11 @@ function expressionUsesParam(expr, pname) {
     return used;
 }
 
-function optimizeTable(table, allow_projection=true) {
+function optimizeTable(table : Ast.Table, allow_projection=true) : Ast.Table|null {
     if (table.isVarRef || table.isInvocation)
         return table;
 
-    if (table.isProjection) {
+    if (table instanceof Ast.ProjectionTable) {
         if (!allow_projection)
             return optimizeTable(table.table);
         if (table.table.isAggregation)
@@ -331,13 +329,13 @@ function optimizeTable(table, allow_projection=true) {
             return null;
 
         // collapse projection of projection
-        if (optimized.isProjection)
+        if (optimized instanceof Ast.ProjectionTable)
             return new Ast.Table.Projection(table.location, optimized.table, table.args, table.schema);
         return new Ast.Table.Projection(table.location, optimized, table.args, table.schema);
     }
 
-    if (table.isCompute) {
-        if (table.expression.isVarRef) // entirely redundant
+    if (table instanceof Ast.ComputeTable) {
+        if (table.expression instanceof Ast.VarRefValue) // entirely redundant
             return optimizeTable(table.table);
 
         // look for a nested compute table and find one that has the same
@@ -363,14 +361,14 @@ function optimizeTable(table, allow_projection=true) {
         }
 
         // nope, no optimization here
-        inner = optimizeTable(table.table, allow_projection);
-        if (!inner)
+        const optimized = optimizeTable(table.table, allow_projection);
+        if (!optimized)
             return null;
-        table.table = inner;
+        table.table = optimized;
         return table;
     }
 
-    if (table.isFilter) {
+    if (table instanceof Ast.FilteredTable) {
         table.filter = optimizeFilter(table.filter);
         // handle constant filters
         if (table.filter.isTrue)
@@ -378,7 +376,7 @@ function optimizeTable(table, allow_projection=true) {
         if (table.filter.isFalse)
             return null;
         // compress filter of filter
-        if (table.table.isFilter) {
+        if (table.table instanceof Ast.FilteredTable) {
             table.filter = optimizeFilter(new Ast.BooleanExpression.And(table.filter.location,
                 [table.filter, table.table.filter]));
             table.table = table.table.table;
@@ -386,16 +384,20 @@ function optimizeTable(table, allow_projection=true) {
         }
 
         // switch filter of project to project of filter
-        if (table.table.isProjection) {
+        if (table.table instanceof Ast.ProjectionTable) {
             if (allow_projection) {
+                const optimized = optimizeTable(new Ast.Table.Filter(
+                    table.table.location,
+                    table.table.table,
+                    table.filter,
+                    table.table.table.schema),
+                    allow_projection);
+                if (!optimized)
+                    return null;
+
                 return new Ast.Table.Projection(
                     table.location,
-                    optimizeTable(new Ast.Table.Filter(
-                        table.table.location,
-                        table.table.table,
-                        table.filter,
-                        table.table.table.schema),
-                    allow_projection),
+                    optimized,
                     table.table.args,
                     table.table.schema
                 );
@@ -410,25 +412,28 @@ function optimizeTable(table, allow_projection=true) {
         }
     }
 
-    if (table.isIndex && table.indices.length === 1 && table.indices[0].isArray)
-        table.indices = table.indices[0].value;
+    if (table instanceof Ast.IndexTable && table.indices.length === 1) {
+        const index = table.indices[0];
+        if (index instanceof Ast.ArrayValue)
+            table.indices = index.value;
+    }
 
     // turn a slice with a constant limit of 1 to an index
-    if (table.isSlice && table.limit.isNumber && table.limit.value === 1)
+    if (table instanceof Ast.SlicedTable && table.limit instanceof Ast.NumberValue && table.limit.value === 1)
         return optimizeTable(new Ast.Table.Index(table.location, table.table, [table.base], table.table.schema), allow_projection);
 
     if (isUnaryTableToTableOp(table)) {
-        let inner = optimizeTable(table.table, allow_projection);
+        const inner = optimizeTable(table.table, allow_projection);
         if (!inner)
             return null;
         table.table = inner;
         return table;
     }
-    if (table.isJoin) {
-        let lhs = optimizeTable(table.lhs, allow_projection);
+    if (table instanceof Ast.JoinTable) {
+        const lhs = optimizeTable(table.lhs, allow_projection);
         if (!lhs)
             return null;
-        let rhs = optimizeTable(table.rhs, allow_projection);
+        const rhs = optimizeTable(table.rhs, allow_projection);
         if (!rhs)
             return null;
         table.lhs = lhs;
@@ -439,32 +444,34 @@ function optimizeTable(table, allow_projection=true) {
     return table;
 }
 
-function optimizeRule(rule) {
+function optimizeRule(rule : Ast.Rule|Ast.Command) : Ast.Rule|Ast.Command|null {
     let allow_projection = false;
     // projectino is only allowed when the actions include notify/return
     if (rule.actions.some((a) => a.isNotify))
         allow_projection = true;
-    if (rule.stream) {
-        rule.stream = optimizeStream(rule.stream, allow_projection);
-        if (!rule.stream)
+    if (rule instanceof Ast.Rule) {
+        const newStream = optimizeStream(rule.stream, allow_projection);
+        if (!newStream)
             return null;
+        rule.stream = newStream;
     } else if (rule.table) {
-        rule.table = optimizeTable(rule.table, allow_projection);
-        if (!rule.table)
+        const newTable = optimizeTable(rule.table, allow_projection);
+        if (!newTable)
             return null;
+        rule.table = newTable;
     }
     if (!rule.actions.length)
         return null;
     return rule;
 }
 
-function optimizeProgram(program) {
-    let rules = [];
+function optimizeProgram(program : Ast.Program) : Ast.Program|null {
+    const rules : Ast.ExecutableStatement[] = [];
     program.rules.forEach((rule) => {
-        if (rule.isAssignment) {
+        if (rule instanceof Ast.Assignment) {
             rules.push(rule);
         } else {
-            let newrule = optimizeRule(rule);
+            const newrule = optimizeRule(rule);
             if (newrule)
                 rules.push(newrule);
         }

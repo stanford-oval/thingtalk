@@ -19,6 +19,8 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 export interface Gettext {
+    locale : string;
+
     gettext : (x : string) => string;
     dgettext : (d : string, x : string) => string;
     ngettext : (x1 : string, xn : string, n : number) => string;
@@ -28,6 +30,8 @@ export interface Gettext {
 const _languages = new Map<string, Gettext>();
 
 const _defaultGettext : Gettext = {
+    locale: 'en-US',
+
     gettext(x) { return x; },
     dgettext(d, x) { return x; },
     ngettext(x1, xn, n) { return n === 1 ? x1 : xn; },
@@ -63,6 +67,7 @@ const _defaultGettext : Gettext = {
 export function init(locale : string, gettext : Gettext) {
     // make a wrapper that is not object-oriented, and is bound to our domain
     const wrappedGettext : Gettext = {
+        locale: gettext.locale,
         dgettext: gettext.dgettext.bind(gettext),
         dngettext: gettext.dngettext.bind(gettext),
         gettext: gettext.dgettext.bind(gettext, 'thingtalk'),

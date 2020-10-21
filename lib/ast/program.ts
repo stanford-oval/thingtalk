@@ -852,7 +852,7 @@ export class Program extends Input {
         );
     }
 
-    optimize() : Program {
+    optimize() : Program|null {
         return Optimizer.optimizeProgram(this);
     }
 

@@ -48,6 +48,10 @@ import {
     addParenthesis
 } from './syntax_priority';
 
+interface Device {
+    name : string;
+}
+
 /**
  * An expression that maps to one or more devices in Thingpedia.
  *
@@ -62,6 +66,7 @@ export class DeviceSelector extends Node {
     principal : null;
     attributes : InputParam[];
     all : boolean;
+    device ?: Device;
 
     /**
      * Construct a new device selector.
