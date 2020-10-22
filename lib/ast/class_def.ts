@@ -293,5 +293,3 @@ export class ClassDef extends Statement {
         return this.getImplementationAnnotation<T>(name);
     }
 }
-Statement.ClassDef = ClassDef;
-ClassDef.prototype.isClassDef = true;

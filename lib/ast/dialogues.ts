@@ -21,10 +21,9 @@
 import assert from 'assert';
 
 import AstNode, { SourceRange } from './base';
-import { Input, Statement, Rule, Command } from './program';
+import { Input, ExpressionStatement } from './program';
 import * as Optimizer from '../optimize';
 import TypeChecker from '../typecheck';
-import { prettyprintStatement, prettyprintHistoryItem } from '../prettyprint';
 import { DeviceSelector, Invocation } from './expression';
 import { Value, NumberValue } from './values';
 import { ExpressionSignature, FunctionDef } from './function_def';
@@ -179,7 +178,6 @@ export class DialogueHistoryResultList extends AstNode {
 }
 
 export type ConfirmationState = 'proposed' | 'accepted' | 'confirmed';
-type ExecutableStatement = Rule | Command;
 
 /**
  * A single item in the dialogue state. Consists of a program and optionally
@@ -188,16 +186,16 @@ type ExecutableStatement = Rule | Command;
  * @alias Ast.DialogueHistoryItem
  */
 export class DialogueHistoryItem extends AstNode {
-    stmt : ExecutableStatement;
+    stmt : ExpressionStatement;
     results : DialogueHistoryResultList|null;
     confirm : ConfirmationState;
 
     constructor(location : SourceRange|null,
-                stmt : ExecutableStatement,
+                stmt : ExpressionStatement,
                 results : DialogueHistoryResultList|null,
                 confirm : ConfirmationState|boolean) {
         super(location);
-        assert(stmt instanceof Statement);
+        assert(stmt instanceof ExpressionStatement);
         assert(results === null || results instanceof DialogueHistoryResultList);
         if (typeof confirm === 'boolean')
             confirm = confirm ? 'confirmed' : 'accepted';
@@ -218,10 +216,6 @@ export class DialogueHistoryItem extends AstNode {
         };
         this.stmt.visit(visitor);
         return functions;
-    }
-
-    prettyprint(prefix = '') : string {
-        return prettyprintHistoryItem(this, prefix);
     }
 
     compatible(other : DialogueHistoryItem) : boolean {
@@ -274,7 +268,7 @@ export class DialogueHistoryItem extends AstNode {
 
         // HACK prettyprint to compare for equality is quite expensive, we should open-code
         // equality properly
-        if (prettyprintStatement(this.stmt) !== prettyprintStatement(other.stmt))
+        if (this.stmt.prettyprint2() !== other.stmt.prettyprint2())
             return false;
 
         if (this.results === other.results)
@@ -315,9 +309,7 @@ export class DialogueHistoryItem extends AstNode {
         if (this.results === null)
             return;
 
-        const stmtSchema = this.stmt instanceof Command &&
-            this.stmt.actions.every((a) => a.isNotify) &&
-            this.stmt.table ? this.stmt.table.schema : null;
+        const stmtSchema = this.stmt.expression.schema!;
         yield* this.results.iterateSlots2(stmtSchema);
     }
 }

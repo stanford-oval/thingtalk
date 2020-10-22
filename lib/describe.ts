@@ -1066,14 +1066,15 @@ class Describer {
         }
     }
 
-    private _describeDeclaration(d : Ast.Declaration|Ast.Assignment) {
+    private _describeAssignment(d : Ast.Assignment) {
         let valuedesc;
-        if (d instanceof Ast.Assignment || d.type === 'query')
-            valuedesc = this.describeTable(d.value as Ast.Table, []);
-        else if (d.type === 'stream')
-            valuedesc = this.describeStream(d.value as Ast.Stream);
-        else
-            valuedesc = this._describeAction(d.value as Ast.Action);
+        const value = d.value.toLegacy();
+        if (value instanceof Ast.Table)
+            valuedesc = this.describeTable(value, []);
+        else if (value instanceof Ast.Stream)
+            valuedesc = this.describeStream(value);
+        else if (value instanceof Ast.Action)
+            valuedesc = this._describeAction(value);
 
         return this._interp(this._("let ${name} be ${value}"), {
             name: clean(d.name),
@@ -1082,12 +1083,11 @@ class Describer {
     }
 
     describeProgram(program : Ast.Program) : string {
-        const arr : Array<Ast.Declaration|Ast.ExecutableStatement> = program.declarations;
-        const desc = arr.concat(program.rules).map((r) => {
-            if (r instanceof Ast.Declaration || r instanceof Ast.Assignment)
-                return this._describeDeclaration(r);
+        const desc = program.statements.map((r) => {
+            if (r instanceof Ast.Assignment)
+                return this._describeAssignment(r);
             else
-                return this._describeRule(r);
+                return this._describeRule(r.toLegacy());
         }).join('; ');
         if (program.principal) {
             return this._interp(this._("tell ${principal}: ${command}"), {

@@ -24,7 +24,6 @@ import type * as BK from './bookkeeping';
 import type { ClassDef } from './class_def';
 import type { FunctionDef, ArgumentDef } from './function_def';
 import type * as Prog from './program';
-import type * as Prog2 from './program2';
 import type * as Exp from './expression';
 import type * as Exp2 from './expression2';
 import type * as Prim from './primitive';
@@ -446,7 +445,7 @@ export default abstract class NodeVisitor {
 
     // statements and inputs
     /* istanbul ignore next */
-    visitDeclaration(node : Prog.Declaration) : boolean {
+    visitFunctionDeclaration(node : Prog.FunctionDeclaration) : boolean {
         return true;
     }
     /* istanbul ignore next */
@@ -462,7 +461,7 @@ export default abstract class NodeVisitor {
         return true;
     }
     /* istanbul ignore next */
-    visitOnInputChoice(node : Prog.OnInputChoice) : boolean {
+    visitExpressionStatement(node : Prog.ExpressionStatement) : boolean {
         return true;
     }
     /* istanbul ignore next */
@@ -471,10 +470,6 @@ export default abstract class NodeVisitor {
     }
     /* istanbul ignore next */
     visitProgram(node : Prog.Program) : boolean {
-        return true;
-    }
-    /* istanbul ignore next */
-    visitProgram2(node : Prog2.Program2) : boolean {
         return true;
     }
     /* istanbul ignore next */
@@ -487,10 +482,6 @@ export default abstract class NodeVisitor {
     }
     /* istanbul ignore next */
     visitExample(node : Prog.Example) : boolean {
-        return true;
-    }
-    /* istanbul ignore next */
-    visitExpressionStatement(node : Prog2.ExpressionStatement) : boolean {
         return true;
     }
 

@@ -143,3 +143,17 @@ interface UnaryTableToStreamOp extends Ast.Stream {
 export function isUnaryTableToStreamOp(stream : Ast.Stream) : stream is UnaryTableToStreamOp {
     return stream.isMonitor;
 }
+
+interface UnaryExpressionOp extends Ast.Expression {
+    expression : Ast.Expression;
+}
+
+export function isUnaryExpressionOp(expression : Ast.Expression) : expression is UnaryExpressionOp {
+    return expression instanceof Ast.FilterExpression ||
+        expression instanceof Ast.ProjectionExpression ||
+        expression instanceof Ast.AliasExpression ||
+        expression instanceof Ast.AggregationExpression ||
+        expression instanceof Ast.SortExpression ||
+        expression instanceof Ast.IndexExpression ||
+        expression instanceof Ast.SliceExpression;
+}

@@ -181,10 +181,9 @@ dialogue_result_list_nonempty : Ast.DialogueHistoryResultItem[] = {
 }
 
 program : Ast.Program = {
-    rule:rule => new Ast.Program($.location, [], [], [rule], null);
-    'executor' '=' user:value ':' rule => {
-        return new Ast.Program(null, [], [], [rule], user);
-    };
+    rule:rule => new Ast.Program($.location, [], [], [rule]);
+    'executor' '=' user:value ':' rule =>
+        new Ast.Program(null, [], [], [rule], { impl: { executor: user } });
 }
 
 policy : Ast.PermissionRule = {
@@ -215,15 +214,15 @@ policy_fn : Ast.PermissionFunction = {
     fn:FUNCTION 'filter' filter => new Ast.PermissionFunction.Specified($.location, fn.value.kind, fn.value.channel, filter, null);
 }
 
-rule : Ast.Rule|Ast.Command = {
-    stream '=>' action => new Ast.Statement.Rule($.location, stream, [action]);
-    'now' '=>' table '=>' action => new Ast.Statement.Command($.location, table, [action]);
-    'now' '=>' action => new Ast.Statement.Command($.location, null, [action]);
+rule : Ast.ExpressionStatement = {
+    stream '=>' action => new Ast.ExpressionStatement($.location, new Ast.ChainExpression($.location, [stream.toExpression(), action.toExpression()], null));
+    'now' '=>' table '=>' action => new Ast.ExpressionStatement($.location, new Ast.ChainExpression($.location, [table.toExpression(), action.toExpression()], null));
+    'now' '=>' action => new Ast.ExpressionStatement($.location, new Ast.ChainExpression($.location, [action.toExpression()], null));
 
     rule 'on' pp:param_passing => {
         rule = rule.clone();
-        const action = rule.actions[0];
-        assert(action instanceof Ast.Action.Invocation);
+        const action = rule.last;
+        assert(action instanceof Ast.InvocationExpression);
         action.invocation.in_params.push(pp);
         return rule;
     };

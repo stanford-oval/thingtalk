@@ -20,12 +20,12 @@
 
 import assert from 'assert';
 import * as Grammar from '../grammar';
-import { NotCompilableError, NotImplementedError } from '../utils/errors';
+import { NotCompilableError } from '../utils/errors';
 import * as Ast from '../ast';
 import { TypeMap } from '../type';
 
 import * as JSIr from './jsir';
-import { compileStatementToOp, compileStreamToOps, compileTableToOps } from './ast-to-ops';
+import { compileStatementToOp, compileTableToOps } from './ast-to-ops';
 import { QueryInvocationHints } from './ops';
 import { getDefaultProjection } from './utils';
 import OpCompiler from './ops-to-jsir';
@@ -120,58 +120,6 @@ export default class AppCompiler {
         return compiledArgs;
     }
 
-    private _compileDeclarationFunction(decl : Ast.Declaration,
-                                        parentIRBuilder : JSIr.IRBuilder|null) : void {
-        const irBuilder = new JSIr.IRBuilder(parentIRBuilder ? parentIRBuilder.nextRegister : 0, ['__emit']);
-
-        const functionScope = new Scope(this._declarations);
-        const args = this._declareArguments(decl.args, functionScope, irBuilder);
-        const opCompiler = new OpCompiler(this, functionScope, irBuilder, false);
-        let op;
-
-        const schema = decl.schema;
-        assert(schema);
-        const hints = new QueryInvocationHints(new Set(getDefaultProjection(schema)));
-
-        switch (decl.type) {
-        case 'query':
-            assert(decl.value instanceof Ast.Table);
-            op = compileTableToOps(decl.value, [], hints);
-            opCompiler.compileQueryDeclaration(op);
-            break;
-
-        case 'stream':
-            assert(decl.value instanceof Ast.Stream);
-            op = compileStreamToOps(decl.value, hints);
-            opCompiler.compileStreamDeclaration(op);
-            break;
-
-        case 'action':
-            assert(decl.value instanceof Ast.Action);
-            opCompiler.compileActionDeclaration(decl.value);
-            break;
-        }
-
-        let code;
-        let register;
-        if (parentIRBuilder) {
-            parentIRBuilder.skipRegisterRange(irBuilder.registerRange);
-
-            register = parentIRBuilder.allocRegister();
-            parentIRBuilder.add(new JSIr.AsyncFunctionDeclaration(register, irBuilder));
-            code = null;
-        } else {
-            register = null;
-            code = this._testMode ? irBuilder.codegen() : irBuilder.compile(this._toplevelscope, this._astVars);
-            this._toplevelscope[decl.name] = code;
-        }
-
-        this._declarations.set(decl.name, {
-            type: 'declaration',
-            args, code, register, schema,
-        });
-    }
-
     private _compileAssignment(assignment : Ast.Assignment,
                                irBuilder : JSIr.IRBuilder,
                                { hasAnyStream, forProcedure } : StatementCompileOptions) {
@@ -187,14 +135,18 @@ export default class AppCompiler {
         let register;
 
         if (assignment.isAction) {
-            assert(assignment.value instanceof Ast.InvocationTable ||
-                   assignment.value instanceof Ast.VarRefTable);
-            register = opCompiler.compileActionAssignment(assignment.value, isPersistent);
+            const action = assignment.value.toLegacy();
+            assert(action instanceof Ast.InvocationAction ||
+                   action instanceof Ast.VarRefAction);
+            register = opCompiler.compileActionAssignment(action, isPersistent);
         } else {
             const schema = assignment.value.schema;
             assert(schema);
             const hints = new QueryInvocationHints(new Set(getDefaultProjection(schema)));
-            const tableop = compileTableToOps(assignment.value, [], hints);
+
+            const table = assignment.value.toLegacy();
+            assert(table instanceof Ast.Table);
+            const tableop = compileTableToOps(table, [], hints);
             register = opCompiler.compileAssignment(tableop, isPersistent);
         }
 
@@ -206,7 +158,7 @@ export default class AppCompiler {
         });
     }
 
-    private _compileProcedure(decl : Ast.Declaration,
+    private _compileProcedure(decl : Ast.FunctionDeclaration,
                               parentIRBuilder : JSIr.IRBuilder|null) {
         const saveScope = this._declarations;
 
@@ -222,8 +174,7 @@ export default class AppCompiler {
         const args = this._declareArguments(decl.args, procedureScope, irBuilder);
         this._declarations = procedureScope;
 
-        assert(decl.value instanceof Ast.Program);
-        this._compileInScope(decl.value, decl.value.rules, irBuilder, {
+        this._compileInScope(decl.declarations, decl.statements, irBuilder, {
             hasAnyStream: false,
             forProcedure: true
         });
@@ -268,18 +219,12 @@ export default class AppCompiler {
         return this._testMode ? irBuilder.codegen() : irBuilder.compile(this._toplevelscope, this._astVars);
     }
 
-    private _compileInScope(program : Ast.Program,
+    private _compileInScope(declarations : Ast.FunctionDeclaration[],
                             stmts : Ast.ExecutableStatement[],
                             irBuilder : JSIr.IRBuilder|null,
                             { hasAnyStream, forProcedure } : StatementCompileOptions) {
-        for (const decl of program.declarations) {
-            if (['stream', 'query', 'action'].indexOf(decl.type) >= 0)
-                this._compileDeclarationFunction(decl, irBuilder);
-            else if (decl.type === 'procedure')
-                this._compileProcedure(decl, irBuilder);
-            else
-                throw new NotImplementedError(String(decl));
-        }
+        for (const decl of declarations)
+            this._compileProcedure(decl, irBuilder);
 
         if (stmts.length === 0)
             return null;
@@ -304,7 +249,7 @@ export default class AppCompiler {
             if (stmt instanceof Ast.Assignment)
                 this._compileAssignment(stmt, irBuilder, { hasAnyStream, forProcedure });
             else
-                this._doCompileStatement(stmt, irBuilder, forProcedure);
+                this._doCompileStatement(stmt.toLegacy(), irBuilder, forProcedure);
         }
 
         return irBuilder;
@@ -330,18 +275,18 @@ export default class AppCompiler {
         this._verifyCompilable(program);
 
         const compiledRules : Array<string|CompiledStatement> = [];
-        const immediate : Array<Ast.Assignment|Ast.Command> = [];
-        const rules : Ast.Rule[] = [];
+        const immediate : Array<Ast.Assignment|Ast.ExpressionStatement> = [];
+        const rules : Ast.ExpressionStatement[] = [];
 
-        for (const stmt of program.rules) {
-            if (stmt instanceof Ast.Assignment || stmt instanceof Ast.Command)
+        for (const stmt of program.statements) {
+            if (stmt instanceof Ast.Assignment || !stmt.stream)
                 immediate.push(stmt);
             else
                 rules.push(stmt);
         }
 
         this._declarations = new Scope;
-        const commandIRBuilder = this._compileInScope(program, immediate, null, {
+        const commandIRBuilder = this._compileInScope(program.declarations, immediate, null, {
             hasAnyStream: rules.length > 0,
             forProcedure: false
         });
@@ -355,7 +300,7 @@ export default class AppCompiler {
             compiledCommand = null;
         }
         for (const rule of rules)
-            compiledRules.push(this._compileRule(rule));
+            compiledRules.push(this._compileRule(rule.toLegacy()));
 
         return new CompiledProgram(this._nextStateVar, compiledCommand, compiledRules);
     }

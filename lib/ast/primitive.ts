@@ -27,6 +27,20 @@ import {
     InputParam,
     BooleanExpression
 } from './expression';
+import {
+    Expression,
+    FunctionCallExpression,
+    InvocationExpression,
+    FilterExpression,
+    ProjectionExpression,
+    AliasExpression,
+    SortExpression,
+    IndexExpression,
+    SliceExpression,
+    AggregationExpression,
+    MonitorExpression,
+    ChainExpression
+} from './expression2';
 import { Value } from './values';
 import {
     iterateSlots2InputParams,
@@ -92,6 +106,8 @@ export abstract class Table extends Node {
         this.schema = schema;
     }
 
+    abstract toExpression() : Expression;
+
     abstract clone() : Table;
 
     /**
@@ -136,6 +152,10 @@ export class VarRefTable extends Table {
 
         assert(Array.isArray(in_params));
         this.in_params = in_params;
+    }
+
+    toExpression() {
+        return new FunctionCallExpression(this.location, this.name, this.in_params, this.schema);
     }
 
     toSource() : TokenStream {
@@ -185,6 +205,10 @@ export class InvocationTable extends Table {
         this.invocation = invocation;
     }
 
+    toExpression() {
+        return new InvocationExpression(this.location, this.invocation, this.schema);
+    }
+
     toSource() : TokenStream {
         return this.invocation.toSource();
     }
@@ -229,6 +253,10 @@ export class FilteredTable extends Table {
 
         assert(filter instanceof BooleanExpression);
         this.filter = filter;
+    }
+
+    toExpression() {
+        return new FilterExpression(this.location, this.table.toExpression(), this.filter, this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -278,6 +306,10 @@ export class ProjectionTable extends Table {
 
         assert(Array.isArray(args));
         this.args = args;
+    }
+
+    toExpression() {
+        return new ProjectionExpression(this.location, this.table.toExpression(), this.args, [], [], this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -341,6 +373,10 @@ export class ComputeTable extends Table {
         this.type = type;
     }
 
+    toExpression() {
+        return new ProjectionExpression(this.location, this.table.toExpression(), [], [this.expression], [this.alias], this.schema);
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitComputeTable(this)) {
@@ -389,6 +425,10 @@ export class AliasTable extends Table {
 
         assert(typeof name === 'string');
         this.name = name;
+    }
+
+    toExpression() {
+        return new AliasExpression(this.location, this.table.toExpression(), this.name, this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -449,6 +489,10 @@ export class AggregationTable extends Table {
         this.overload = overload;
     }
 
+    toExpression() {
+        return new AggregationExpression(this.location, this.table.toExpression(), this.field, this.operator, this.schema);
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitAggregationTable(this))
@@ -501,6 +545,10 @@ export class SortedTable extends Table {
         this.direction = direction;
     }
 
+    toExpression() {
+        return new SortExpression(this.location, this.table.toExpression(), this.field, this.direction, this.schema);
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitSortedTable(this))
@@ -544,6 +592,10 @@ export class IndexTable extends Table {
 
         assert(Array.isArray(indices));
         this.indices = indices;
+    }
+
+    toExpression() {
+        return new IndexExpression(this.location, this.table.toExpression(), this.indices, this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -601,6 +653,10 @@ export class SlicedTable extends Table {
         this.limit = limit;
     }
 
+    toExpression() {
+        return new SliceExpression(this.location, this.table.toExpression(), this.base, this.limit, this.schema);
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitSlicedTable(this)) {
@@ -655,6 +711,10 @@ export class JoinTable extends Table {
 
         assert(Array.isArray(in_params));
         this.in_params = in_params;
+    }
+
+    toExpression() {
+        return new ChainExpression(this.location, [this.lhs.toExpression(), this.rhs.toExpression()], this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -743,6 +803,8 @@ export abstract class Stream extends Node {
         this.schema = schema;
     }
 
+    abstract toExpression() : Expression;
+
     abstract clone() : Stream;
 
     /**
@@ -787,6 +849,10 @@ export class VarRefStream extends Stream {
 
         assert(Array.isArray(in_params));
         this.in_params = in_params;
+    }
+
+    toExpression() {
+        return new FunctionCallExpression(this.location, this.name, this.in_params, this.schema);
     }
 
     toSource() : TokenStream {
@@ -846,6 +912,12 @@ export class TimerStream extends Stream {
         this.frequency = frequency;
     }
 
+    toExpression() {
+        return new FunctionCallExpression(this.location, 'timer',
+            [new InputParam(null, 'base', this.base),
+             new InputParam(null, 'interval', this.interval)], this.schema);
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitTimerStream(this)) {
@@ -897,6 +969,13 @@ export class AtTimerStream extends Stream {
 
         assert(expiration_date === null || expiration_date instanceof Value);
         this.expiration_date = expiration_date;
+    }
+
+    toExpression() {
+        const in_params = [new InputParam(null, 'time', new Value.Array(this.time))];
+        if (this.expiration_date)
+            in_params.push(new InputParam(null, 'expiration_date', this.expiration_date));
+        return new FunctionCallExpression(this.location, 'attimer', in_params, this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -952,6 +1031,10 @@ export class MonitorStream extends Stream {
         this.args = args;
     }
 
+    toExpression() {
+        return new MonitorExpression(this.location, this.table.toExpression(), this.args, this.schema);
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitMonitorStream(this))
@@ -989,6 +1072,10 @@ export class EdgeNewStream extends Stream {
 
         assert(stream instanceof Stream);
         this.stream = stream;
+    }
+
+    toExpression() : never {
+        throw new Error('`edge on new` is not supported in the new syntax');
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -1032,6 +1119,10 @@ export class EdgeFilterStream extends Stream {
 
         assert(filter instanceof BooleanExpression);
         this.filter = filter;
+    }
+
+    toExpression() {
+        return new FilterExpression(this.location, this.stream.toExpression(), this.filter, this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -1084,6 +1175,10 @@ export class FilteredStream extends Stream {
         this.filter = filter;
     }
 
+    toExpression() : never {
+        throw new Error('stream filter is not supported in the new syntax (push the filter down inside the monitor)');
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitFilteredStream(this)) {
@@ -1132,6 +1227,10 @@ export class ProjectionStream extends Stream {
 
         assert(Array.isArray(args));
         this.args = args;
+    }
+
+    toExpression() {
+        return new ProjectionExpression(this.location, this.stream.toExpression(), this.args, [], [], this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -1195,6 +1294,10 @@ export class ComputeStream extends Stream {
         this.type = type;
     }
 
+    toExpression() {
+        return new ProjectionExpression(this.location, this.stream.toExpression(), [], [this.expression], [this.alias], this.schema);
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitComputeStream(this)) {
@@ -1245,6 +1348,10 @@ export class AliasStream extends Stream {
         this.name = name;
     }
 
+    toExpression() {
+        return new AliasExpression(this.location, this.stream.toExpression(), this.name, this.schema);
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitAliasStream(this))
@@ -1292,6 +1399,10 @@ export class JoinStream extends Stream {
 
         assert(Array.isArray(in_params));
         this.in_params = in_params;
+    }
+
+    toExpression() {
+        return new ChainExpression(this.location, [this.stream.toExpression(), this.table.toExpression()], this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -1386,6 +1497,8 @@ export abstract class Action extends Node {
         return new NotifyAction(null, what, Builtin.Actions[what]);
     }
 
+    abstract toExpression() : Expression;
+
     abstract clone() : Action;
 
     /**
@@ -1447,6 +1560,10 @@ export class VarRefAction extends Action {
          * @readonly
          */
         this.in_params = in_params;
+    }
+
+    toExpression() {
+        return new FunctionCallExpression(this.location, this.name, this.in_params, this.schema);
     }
 
     toSource() : TokenStream {
@@ -1515,6 +1632,10 @@ export class InvocationAction extends Action {
         this.invocation = invocation;
     }
 
+    toExpression() {
+        return new InvocationExpression(this.location, this.invocation, this.schema);
+    }
+
     toSource() : TokenStream {
         return this.invocation.toSource();
     }
@@ -1568,6 +1689,10 @@ export class NotifyAction extends Action {
 
         assert(['notify', 'return', 'save'].includes(name));
         this.name = name;
+    }
+
+    toExpression() : never {
+        throw new Error(`notify actions no longer exist`);
     }
 
     toSource() : TokenStream {

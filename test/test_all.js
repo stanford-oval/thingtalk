@@ -50,7 +50,6 @@ seq([
     ('./test_describe_api'),
     ('./test_describe_policy'),
     ('./test_permissions'),
-    ('./test_lowerings'),
     ('./test_declaration_program'),
     ('./test_example_program'),
     ('./test_convert_program_to_policy'),

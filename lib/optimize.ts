@@ -22,8 +22,7 @@ import assert from 'assert';
 import * as Ast from './ast';
 
 import {
-    isUnaryStreamToStreamOp,
-    isUnaryTableToTableOp,
+    isUnaryExpressionOp,
     getScalarExpressionName
 } from './utils';
 
@@ -166,141 +165,22 @@ function optimizeFilter(expr : Ast.BooleanExpression) : Ast.BooleanExpression {
     return expr;
 }
 
-function optimizeStream(stream : Ast.Stream, allow_projection=true) : Ast.Stream|null {
-    if (stream.isVarRef || stream.isTimer || stream.isAtTimer)
-        return stream;
-
-    if (stream instanceof Ast.ProjectionStream) {
-        if (!allow_projection)
-            return optimizeStream(stream.stream, allow_projection);
-
-        const optimized = optimizeStream(stream.stream, allow_projection);
-        if (!optimized)
-            return null;
-
-        // collapse projection of projection
-        if (optimized instanceof Ast.ProjectionStream) {
-            return new Ast.Stream.Projection(stream.location, optimized.stream,
-                stream.args, stream.schema);
-        }
-        return new Ast.Stream.Projection(stream.location, optimized, stream.args, stream.schema);
-    }
-
-    if (stream instanceof Ast.MonitorStream) {
-        // always allow projection inside a monitor, because the projection affects which parameters we monitor
-        const table = optimizeTable(stream.table, true);
-        if (!table)
-            return null;
-
-        // convert monitor of a projection to a projection of a monitor
-        if (table instanceof Ast.ProjectionTable) {
-            const newMonitor = new Ast.Stream.Monitor(table.location, table.table, stream.args || table.args, stream.schema);
-
-            if (allow_projection)
-                return new Ast.Stream.Projection(table.location, newMonitor, table.args, stream.schema);
-            else
-                return newMonitor;
-        }
-
-        stream.table = table;
-        return stream;
-    }
-
-    if (stream instanceof Ast.FilteredStream) {
-        stream.filter = optimizeFilter(stream.filter);
-        // handle constant filters
-        if (stream.filter.isTrue)
-            return optimizeStream(stream.stream, allow_projection);
-        if (stream.filter.isFalse)
-            return null;
-        // compress filter of filter
-        if (stream.stream instanceof Ast.FilteredStream) {
-            stream.filter = optimizeFilter(Ast.BooleanExpression.And([stream.filter, stream.stream.filter]));
-            stream.stream = stream.stream.stream;
-            return optimizeStream(stream, allow_projection);
-        }
-
-        // switch filter of monitor to monitor of filter
-        if (stream.stream instanceof Ast.MonitorStream) {
-            const newstream = new Ast.Stream.Monitor(
-                stream.location,
-                new Ast.Table.Filter(stream.location, stream.stream.table, stream.filter, stream.stream.table.schema),
-                stream.stream.args,
-                stream.stream.schema
-            );
-            return optimizeStream(newstream, allow_projection);
-        }
-
-        // switch filter of project to project of filter
-        if (stream.stream instanceof Ast.ProjectionStream) {
-            if (allow_projection) {
-                return optimizeStream(new Ast.Stream.Projection(
-                    stream.location,
-                    new Ast.Stream.Filter(stream.location,
-                        stream.stream.stream, stream.filter, stream.stream.stream.schema),
-                    stream.stream.args,
-                    stream.stream.schema
-                ), allow_projection);
-            } else {
-                return optimizeStream(new Ast.Stream.Filter(
-                    stream.location,
-                    stream.stream.stream,
-                    stream.filter,
-                    stream.stream.stream.schema
-                ), allow_projection);
-            }
-        }
-    } else if (stream instanceof Ast.EdgeNewStream) {
-        // collapse edge new of monitor or edge new of edge new
-        if (stream.stream.isMonitor || stream.stream.isEdgeNew)
-            return optimizeStream(stream.stream, allow_projection);
-    } else if (stream instanceof Ast.EdgeFilterStream) {
-        stream.filter = optimizeFilter(stream.filter);
-        // handle constant filters
-        // we don't optimize the isTrue case here: "edge on true" means only once
-        if (stream.filter.isFalse)
-            return null;
-    }
-
-    if (isUnaryStreamToStreamOp(stream)) {
-        const inner = optimizeStream(stream.stream, allow_projection);
-        if (!inner)
-            return null;
-        stream.stream = inner;
-        return stream;
-    }
-
-    if (stream instanceof Ast.JoinStream) {
-        const lhs = optimizeStream(stream.stream, allow_projection);
-        if (!lhs)
-            return null;
-        const rhs = optimizeTable(stream.table, allow_projection);
-        if (!rhs)
-            return null;
-        stream.stream = lhs;
-        stream.table = rhs;
-        return stream;
-    }
-
-    return stream;
-}
-
-function findComputeTable(table : Ast.Table) : Ast.ComputeTable|null {
-    if (table instanceof Ast.ComputeTable)
-        return table;
-    if (table instanceof Ast.InvocationTable || table instanceof Ast.VarRefTable)
+function findComputeExpression(expression : Ast.Expression) : Ast.ProjectionExpression|null {
+    if (expression instanceof Ast.ProjectionExpression)
+        return expression;
+    if (expression instanceof Ast.InvocationTable || expression instanceof Ast.VarRefTable)
         return null;
 
-    // do not traverse joins or aliases, as those
+    // do not traverse joins, aggregations or aliases, as those
     // change the meaning of parameters and therefore the expressions
-    if (table instanceof Ast.JoinTable || table instanceof Ast.AliasTable ||
-        table instanceof Ast.ProjectionTable)
+    if (expression instanceof Ast.ChainExpression || expression instanceof Ast.AliasExpression ||
+        expression instanceof Ast.AggregationExpression)
         return null;
 
-    if (isUnaryTableToTableOp(table))
-        return findComputeTable(table.table);
+    if (isUnaryExpressionOp(expression))
+        return findComputeExpression(expression.expression);
 
-    throw new TypeError(table.constructor.name);
+    throw new TypeError(expression.constructor.name);
 }
 
 function expressionUsesParam(expr : Ast.Node, pname : string) : boolean {
@@ -314,170 +194,197 @@ function expressionUsesParam(expr : Ast.Node, pname : string) : boolean {
     return used;
 }
 
-function optimizeTable(table : Ast.Table, allow_projection=true) : Ast.Table|null {
-    if (table.isVarRef || table.isInvocation)
-        return table;
+function optimizeExpression(expression : Ast.Expression, allow_projection=true) : Ast.Expression|null {
+    if (expression instanceof Ast.FunctionCallExpression || expression instanceof Ast.FunctionCallExpression)
+        return expression;
 
-    if (table instanceof Ast.ProjectionTable) {
-        if (!allow_projection)
-            return optimizeTable(table.table);
-        if (table.table.isAggregation)
-            return optimizeTable(table.table);
+    if (expression instanceof Ast.ProjectionExpression) {
+        const newComputations : Ast.Value[] = [], newAliases : Array<string|null> = [];
 
-        const optimized = optimizeTable(table.table, allow_projection);
-        if (!optimized)
-            return null;
+        // for each computation, look for a nested projection table and find one that has the same
+        // expression (note that joins, aggregations and aliases stop the traversal)
+        // if so, we remove this expression entirely
 
-        // collapse projection of projection
-        if (optimized instanceof Ast.ProjectionTable)
-            return new Ast.Table.Projection(table.location, optimized.table, table.args, table.schema);
-        return new Ast.Table.Projection(table.location, optimized, table.args, table.schema);
-    }
+        for (let i = 0; i < expression.computations.length; i++) {
+            let inner = findComputeExpression(expression.expression);
+            let found = false;
+            search_loop:
+            while (inner) {
+                for (let j = 0; j < inner.computations.length; j++) {
+                    // check that our expression doesn't depend on the result of the computation
+                    // (if it does, the computation is not redundant)
+                    const innerOutputName = inner.aliases[j] || getScalarExpressionName(inner.computations[j]);
 
-    if (table instanceof Ast.ComputeTable) {
-        if (table.expression instanceof Ast.VarRefValue) // entirely redundant
-            return optimizeTable(table.table);
+                    if (expressionUsesParam(expression.computations[i], innerOutputName))
+                        break search_loop;
 
-        // look for a nested compute table and find one that has the same
-        // expression (note that joins and aliases stop the traversal)
-        // if so, we remove this compute expression entirely
-        let inner = findComputeTable(table.table);
-        while (inner) {
-            // check that our expression doesn't depend on the result of the computation
-            // (if it does, the computation is not redundant)
-            const innerOutputName = inner.alias || getScalarExpressionName(inner.expression);
+                    // check that our expression is equal to the inner expression,
+                    if (inner.computations[j].equals(expression.computations[i])) {
+                        found = true;
+                        break search_loop;
+                    }
+                }
 
-            if (expressionUsesParam(table.expression, innerOutputName))
-                break;
-
-            // check that our expression is equal to the inner expression,
-            if (inner.expression.equals(table.expression)) {
-                // yep, found it!
-                return optimizeTable(table.table);
+                // try going deeper
+                inner = findComputeExpression(inner.expression);
             }
 
-            // try going deeper
-            inner = findComputeTable(inner.table);
+            if (!found) {
+                newComputations.push(expression.computations[i]);
+                newAliases.push(expression.aliases[i]);
+            }
+        }
+
+        if (newComputations.length === 0) {
+            if (!allow_projection)
+                return optimizeExpression(expression.expression);
+            if (expression.expression instanceof Ast.AggregationExpression)
+                return optimizeExpression(expression.expression);
+
+            const optimized = optimizeExpression(expression.expression, allow_projection);
+            if (!optimized)
+                return null;
+
+            // collapse projection of projection
+            if (optimized instanceof Ast.ProjectionExpression && optimized.computations.length === 0)
+                return new Ast.ProjectionExpression(expression.location, optimized.expression, expression.args, [], [], expression.schema);
+            return new Ast.ProjectionExpression(expression.location, optimized, expression.args, [], [], expression.schema);
         }
 
         // nope, no optimization here
-        const optimized = optimizeTable(table.table, allow_projection);
+        const optimized = optimizeExpression(expression.expression, allow_projection);
         if (!optimized)
             return null;
-        table.table = optimized;
-        return table;
+        return new Ast.ProjectionExpression(expression.location, optimized, expression.args, newComputations, newAliases, expression.schema);
     }
 
-    if (table instanceof Ast.FilteredTable) {
-        table.filter = optimizeFilter(table.filter);
+    if (expression instanceof Ast.MonitorExpression) {
+        // always allow projection inside a monitor, because the projection affects which parameters we monitor
+        const optimized = optimizeExpression(expression.expression, true);
+        if (!optimized)
+            return null;
+
+        // convert monitor of a projection to a projection of a monitor
+        if (optimized instanceof Ast.ProjectionExpression && optimized.computations.length === 0) {
+            const newMonitor = new Ast.MonitorExpression(expression.location, optimized.expression, expression.args || optimized.args, expression.schema);
+
+            if (allow_projection)
+                return new Ast.ProjectionExpression(expression.location, newMonitor, optimized.args, optimized.computations, optimized.aliases, expression.schema);
+            else
+                return newMonitor;
+        }
+
+        expression.expression = optimized;
+        return expression;
+    }
+
+    if (expression instanceof Ast.FilterExpression) {
+        expression.filter = optimizeFilter(expression.filter);
         // handle constant filters
-        if (table.filter.isTrue)
-            return optimizeTable(table.table, allow_projection);
-        if (table.filter.isFalse)
+        if (expression.filter.isTrue)
+            return optimizeExpression(expression.expression, allow_projection);
+        if (expression.filter.isFalse)
             return null;
         // compress filter of filter
-        if (table.table instanceof Ast.FilteredTable) {
-            table.filter = optimizeFilter(new Ast.BooleanExpression.And(table.filter.location,
-                [table.filter, table.table.filter]));
-            table.table = table.table.table;
-            return optimizeTable(table, allow_projection);
+        if (expression.expression instanceof Ast.FilterExpression) {
+            expression.filter = optimizeFilter(new Ast.BooleanExpression.And(expression.filter.location,
+                [expression.filter, expression.expression.filter]));
+            expression.expression = expression.expression.expression;
+            return optimizeExpression(expression, allow_projection);
         }
 
         // switch filter of project to project of filter
-        if (table.table instanceof Ast.ProjectionTable) {
+        if (expression.expression instanceof Ast.ProjectionExpression &&
+            expression.expression.computations.length === 0) {
             if (allow_projection) {
-                const optimized = optimizeTable(new Ast.Table.Filter(
-                    table.table.location,
-                    table.table.table,
-                    table.filter,
-                    table.table.table.schema),
+                const optimized = optimizeExpression(new Ast.FilterExpression(
+                    expression.expression.location,
+                    expression.expression.expression,
+                    expression.filter,
+                    expression.expression.expression.schema),
                     allow_projection);
                 if (!optimized)
                     return null;
 
-                return new Ast.Table.Projection(
-                    table.location,
+                return new Ast.ProjectionExpression(
+                    expression.location,
                     optimized,
-                    table.table.args,
-                    table.table.schema
+                    expression.expression.args,
+                    [], [],
+                    expression.expression.schema
                 );
             } else {
-                return optimizeTable(new Ast.Table.Filter(
-                    table.location,
-                    table.table.table,
-                    table.filter,
-                    table.table.table.schema
+                return optimizeExpression(new Ast.FilterExpression(
+                    expression.location,
+                    expression.expression.expression,
+                    expression.filter,
+                    expression.expression.expression.schema
                 ), allow_projection);
             }
         }
     }
 
-    if (table instanceof Ast.IndexTable && table.indices.length === 1) {
-        const index = table.indices[0];
+    if (expression instanceof Ast.IndexExpression && expression.indices.length === 1) {
+        const index = expression.indices[0];
         if (index instanceof Ast.ArrayValue)
-            table.indices = index.value;
+            expression.indices = index.value;
     }
 
     // turn a slice with a constant limit of 1 to an index
-    if (table instanceof Ast.SlicedTable && table.limit instanceof Ast.NumberValue && table.limit.value === 1)
-        return optimizeTable(new Ast.Table.Index(table.location, table.table, [table.base], table.table.schema), allow_projection);
+    if (expression instanceof Ast.SliceExpression && expression.limit instanceof Ast.NumberValue && expression.limit.value === 1)
+        return optimizeExpression(new Ast.IndexExpression(expression.location, expression.expression, [expression.base], expression.expression.schema), allow_projection);
 
-    if (isUnaryTableToTableOp(table)) {
-        const inner = optimizeTable(table.table, allow_projection);
+    if (isUnaryExpressionOp(expression)) {
+        const inner = optimizeExpression(expression.expression, allow_projection);
         if (!inner)
             return null;
-        table.table = inner;
-        return table;
+        expression.expression = inner;
+        return expression;
     }
-    if (table instanceof Ast.JoinTable) {
-        const lhs = optimizeTable(table.lhs, allow_projection);
-        if (!lhs)
-            return null;
-        const rhs = optimizeTable(table.rhs, allow_projection);
-        if (!rhs)
-            return null;
-        table.lhs = lhs;
-        table.rhs = rhs;
-        return table;
+    if (expression instanceof Ast.ChainExpression) {
+        for (let i = 0; i < expression.expressions.length; i++) {
+            const optimized = optimizeExpression(expression.expressions[i], allow_projection);
+            if (!optimized)
+                return null;
+            expression.expressions[i] = optimized;
+        }
     }
 
-    return table;
+    return expression;
 }
 
-function optimizeRule(rule : Ast.Rule|Ast.Command) : Ast.Rule|Ast.Command|null {
-    let allow_projection = false;
-    // projectino is only allowed when the actions include notify/return
-    if (rule.actions.some((a) => a.isNotify))
-        allow_projection = true;
-    if (rule instanceof Ast.Rule) {
-        const newStream = optimizeStream(rule.stream, allow_projection);
-        if (!newStream)
-            return null;
-        rule.stream = newStream;
-    } else if (rule.table) {
-        const newTable = optimizeTable(rule.table, allow_projection);
-        if (!newTable)
-            return null;
-        rule.table = newTable;
-    }
-    if (!rule.actions.length)
+function optimizeRule(rule : Ast.ExpressionStatement) : Ast.ExpressionStatement|null {
+    // in old thingtalk, projection was only allowed when there is no action
+    // but we don't know that at this stage, because we're running before
+    // typechecking, so we don't know if something is an action or not
+    const allow_projection = true;
+    const newExpression = optimizeExpression(rule.expression, allow_projection);
+    if (!newExpression)
         return null;
+    if (!(newExpression instanceof Ast.ChainExpression))
+        rule.expression = new Ast.ChainExpression(newExpression.location, [newExpression], newExpression.schema);
+    else
+        rule.expression = newExpression;
     return rule;
 }
 
 function optimizeProgram(program : Ast.Program) : Ast.Program|null {
-    const rules : Ast.ExecutableStatement[] = [];
-    program.rules.forEach((rule) => {
-        if (rule instanceof Ast.Assignment) {
-            rules.push(rule);
+    const statements : Ast.ExecutableStatement[] = [];
+    program.statements.forEach((stmt) => {
+        if (stmt instanceof Ast.Assignment) {
+            const optimized = optimizeExpression(stmt.value);
+            if (optimized === null)
+                return;
+            stmt.value = optimized;
+            statements.push(stmt);
         } else {
-            const newrule = optimizeRule(rule);
+            const newrule = optimizeRule(stmt);
             if (newrule)
-                rules.push(newrule);
+                statements.push(newrule);
         }
     });
-    program.rules = rules;
-    if (program.rules.length === 0 && program.declarations.length === 0 && Object.keys(program.classes).length === 0 && program.oninputs.length === 0)
+    program.statements = statements;
+    if (program.statements.length === 0 && program.declarations.length === 0)
         return null;
     else
         return program;

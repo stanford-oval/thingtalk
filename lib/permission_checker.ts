@@ -1360,12 +1360,12 @@ export default class PermissionChecker {
 
     private async _doCheck(principal : Ast.EntityValue, program : Ast.Program) {
         let all = true;
-        await promiseDoAll(program.rules, (rule) => {
+        await promiseDoAll(program.statements, (rule) => {
             if (rule instanceof Ast.Assignment)
                 throw new Error(`Unsupported assignment`);
 
             const transformer = new RuleTransformer(this._SolverClass,
-                principal, program, rule, this._permissiondb, this._groupmap,
+                principal, program, rule.toLegacy(), this._permissiondb, this._groupmap,
                 { allowUndefined: true, debug: false });
             return transformer.check().then((ok) => {
                 if (!ok)
@@ -1376,22 +1376,22 @@ export default class PermissionChecker {
     }
 
     private async _doTransform(principal : Ast.EntityValue, program : Ast.Program) {
-        const newrules : Array<Ast.Rule|Ast.Command> = [];
-        await promiseDoAll(program.rules, (rule) => {
+        const newrules : Ast.ExpressionStatement[] = [];
+        await promiseDoAll(program.statements, (rule) => {
             if (rule instanceof Ast.Assignment)
                 throw new Error(`Unsupported assignment`);
 
             const transformer = new RuleTransformer(this._SolverClass,
-                principal, program, rule, this._permissiondb, this._groupmap,
+                principal, program, rule.toLegacy(), this._permissiondb, this._groupmap,
                 { allowUndefined: false, debug: false });
             return transformer.transform().then((newrule) => {
                 if (newrule !== null)
-                    newrules.push(newrule);
+                    newrules.push(newrule.toExpression());
             });
         });
         if (newrules.length === 0)
             return null;
-        return (new Ast.Program(null, program.classes, program.declarations, newrules, null)).optimize();
+        return (new Ast.Program(null, program.classes, program.declarations, newrules)).optimize();
     }
 
     check(principal : Ast.EntityValue, program : Ast.Program, options : { transform : false }) : Promise<boolean>;

@@ -37,8 +37,8 @@ import { parseDate } from '../utils/date_utils';
 function makeInput($ : $runtime.ParserInterface, toplevelstatements : Array<Ast.ClassDef|Ast.Dataset>, otherstatements : Ast.Statement[], annotations : Ast.AnnotationSpec) {
     const classes : Ast.ClassDef[] = [];
     const datasets : Ast.Dataset[] = [];
-    const declarations : Ast.Declaration[] = [];
-    const executable : Ast.ExecutableStatement2[] = [];
+    const declarations : Ast.FunctionDeclaration[] = [];
+    const executable : Ast.ExecutableStatement[] = [];
 
     for (const stmt of toplevelstatements) {
         if (stmt instanceof Ast.ClassDef)
@@ -56,7 +56,7 @@ function makeInput($ : $runtime.ParserInterface, toplevelstatements : Array<Ast.
         return new Ast.Library($.location, classes, datasets);
 
     for (const stmt of otherstatements) {
-        if (stmt instanceof Ast.Declaration) {
+        if (stmt instanceof Ast.FunctionDeclaration) {
             declarations.push(stmt);
         } else {
             assert(stmt instanceof Ast.ExpressionStatement || stmt instanceof Ast.Assignment);
@@ -64,7 +64,7 @@ function makeInput($ : $runtime.ParserInterface, toplevelstatements : Array<Ast.
         }
     }
 
-    return new Ast.Program2($.location, classes, declarations, executable, annotations);
+    return new Ast.Program($.location, classes, declarations, executable, annotations);
 }
 
 function isIdentifier(name : string) {
@@ -135,11 +135,14 @@ statement_list : Ast.Statement[] = {
     };
 }
 
-statement : Ast.Statement = {
-    expr:chain_expression ';' => new Ast.Statement.Expression($.location, expr);
+statement : Ast.ExecutableStatement = {
+    'let' name:variable_name '=' expr:chain_expression ';'
+        => new Ast.Assignment($.location, name, expr, null);
+
+    expr:chain_expression ';' => new Ast.ExpressionStatement($.location, expr);
 
     // redundant forms for compatibility
-    'now' '=>' expr:chain_expression ';' => new Ast.Statement.Expression($.location, expr);
+    'now' '=>' expr:chain_expression ';' => new Ast.ExpressionStatement($.location, expr);
 }
 
 chain_expression : Ast.ChainExpression = {

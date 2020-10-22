@@ -236,13 +236,13 @@ export class FilterExpression extends Expression {
             this.expression.toSource()), 'filter', this.filter.toSource());
     }
 
-    toLegacy() : legacy.FilteredTable|legacy.FilteredStream {
+    toLegacy() : legacy.FilteredTable|legacy.EdgeFilterStream {
         const schema = this.schema!;
         assert(schema.functionType !== 'action');
         if (schema.functionType === 'query')
             return new legacy.FilteredTable(this.location, this.expression.toLegacy() as legacy.Table, this.filter, this.schema);
         else
-            return new legacy.FilteredStream(this.location, this.expression.toLegacy() as legacy.Stream, this.filter, this.schema);
+            return new legacy.EdgeFilterStream(this.location, this.expression.toLegacy() as legacy.Stream, this.filter, this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {

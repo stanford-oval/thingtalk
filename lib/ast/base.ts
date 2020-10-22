@@ -26,7 +26,7 @@ import type {
     ExternalBooleanExpression
 } from './expression';
 import type { Value } from './values';
-import type { Declaration } from './program';
+import type { FunctionDeclaration } from './program';
 import type {
     InvocationAction,
     VarRefAction,
@@ -178,11 +178,9 @@ export default abstract class Node {
                 return true;
             }
 
-            visitDeclaration(node : Declaration) {
-                // if the declaration refers to a nested scope, we don't recurse into it
-                if (node.type === 'program' || node.type === 'procedure')
-                    return false;
-                return true;
+            visitFunctionDeclaration(node : FunctionDeclaration) {
+                // we don't recurse into nested procedures
+                return false;
             }
         };
 

@@ -20,7 +20,7 @@
 //         Silei Xu <silei@cs.stanford.edu>
 import assert from 'assert';
 
-import Type, { TypeMap } from '../type';
+import { TypeMap } from '../type';
 import Node, {
     SourceRange,
     NLAnnotationMap,
@@ -28,7 +28,7 @@ import Node, {
     AnnotationSpec,
 } from './base';
 import NodeVisitor from './visitor';
-import { Value, ArrayValue, VarRefValue } from './values';
+import { Value, VarRefValue } from './values';
 import { DeviceSelector, InputParam, BooleanExpression } from './expression';
 import {
     Stream,
@@ -36,12 +36,14 @@ import {
     Action,
     PermissionFunction
 } from './primitive';
+import {
+    Expression,
+    ChainExpression
+} from './expression2';
 import { ClassDef } from './class_def';
 import { FunctionDef, ExpressionSignature } from './function_def';
 import {
-    recursiveYieldArraySlots,
     AbstractSlot,
-    FieldSlot,
     OldSlot
 } from './slots';
 import {
@@ -52,11 +54,7 @@ import {
 import * as Optimizer from '../optimize';
 import TypeChecker from '../typecheck';
 import convertToPermissionRule from './convert_to_permission_rule';
-import lowerReturn, { Messaging } from './lower_return';
 import SchemaRetriever from '../schema';
-import type {
-    ExpressionStatement
-} from './program2';
 
 import { TokenStream } from '../new-syntax/tokenstream';
 import List from '../utils/list';
@@ -70,23 +68,6 @@ import List from '../utils/list';
  * @abstract
  */
 export abstract class Statement extends Node {
-    static Rule : typeof Rule;
-    isRule ! : boolean;
-    static Command : typeof Command;
-    isCommand ! : boolean;
-    static Assignment : typeof Assignment;
-    isAssignment ! : boolean;
-    static OnInputChoice : typeof OnInputChoice;
-    isOnInputChoice ! : boolean;
-    static Declaration : typeof Declaration;
-    isDeclaration ! : boolean;
-    static Dataset : typeof Dataset;
-    isDataset ! : boolean;
-    static ClassDef : typeof ClassDef;
-    isClassDef ! : boolean;
-    static Expression : typeof ExpressionStatement;
-    isExpression ! : boolean;
-
     /**
      * Iterate all slots (scalar value nodes) in this statement.
      *
@@ -105,58 +86,36 @@ export abstract class Statement extends Node {
      */
     abstract clone() : Statement;
 }
-Statement.prototype.isRule = false;
-Statement.prototype.isCommand = false;
-Statement.prototype.isAssignment = false;
-Statement.prototype.isOnInputChoice = false;
-Statement.prototype.isDeclaration = false;
-Statement.prototype.isDataset = false;
-Statement.prototype.isClassDef = false;
-Statement.prototype.isExpression = false;
 
-function declarationLikeToProgram(self : Declaration|Example) : Program {
+function declarationLikeToProgram(self : FunctionDeclaration|Example) : Program {
     const nametoslot : { [key : string] : number } = {};
 
     let i = 0;
     for (const name in self.args)
         nametoslot[name] = i++;
 
-    let program : Program;
-    if (self.type === 'action') {
-        program = new Program(null, [], [],
-            [new Statement.Command(null, null, [(self.value as Action).clone()])], null);
-    } else if (self.type === 'query') {
-        program = new Program(null, [], [],
-            [new Statement.Command(null, (self.value as Table).clone(), [Action.notifyAction()])], null);
-    } else if (self.type === 'stream') {
-        program = new Program(null, [], [],
-            [new Statement.Rule(null, (self.value as Stream).clone(), [Action.notifyAction()])], null);
+    let declarations : FunctionDeclaration[], statements : ExecutableStatement[];
+    if (self instanceof Example) {
+        declarations = [];
+        statements = [new ExpressionStatement(null, self.value)];
     } else {
-        program = (self.value as Program).clone();
+        declarations = self.declarations.map((d) => d.clone());
+        statements = self.statements.map((s) => s.clone());
     }
 
-    function recursiveHandleSlot(value : Value) : void {
-        if (value instanceof VarRefValue && value.name in nametoslot) {
-            value.name = '__const_SLOT_' + nametoslot[value.name];
-        } else if (value instanceof ArrayValue) {
-            for (const v of value.value)
-                recursiveHandleSlot(v);
+    const program = new Program(null, [], declarations, statements);
+    program.visit(new class extends NodeVisitor {
+        visitVarRefValue(value : VarRefValue) {
+            if (value.name in nametoslot)
+                value.name = '__const_SLOT_' + nametoslot[value.name];
+            return true;
         }
-    }
-
-    for (const slot of program.iterateSlots2()) {
-        if (slot instanceof DeviceSelector)
-            continue;
-        recursiveHandleSlot(slot.get());
-    }
-
+    });
     return program;
 }
 
-type DeclarationType = ('stream'|'query'|'action'|'program'|'procedure');
-
 /**
- * `let` statements, that bind a ThingTalk expression to a name.
+ * A ThingTalk function declaration.
  *
  * A declaration statement creates a new, locally scoped, function
  * implemented as ThingTalk expression. The name can then be invoked
@@ -165,11 +124,11 @@ type DeclarationType = ('stream'|'query'|'action'|'program'|'procedure');
  * @alias Ast.Statement.Declaration
  * @extends Ast.Statement
  */
-export class Declaration extends Statement {
+export class FunctionDeclaration extends Statement {
     name : string;
-    type : DeclarationType;
     args : TypeMap;
-    value : (Table|Stream|Action|Program);
+    declarations : FunctionDeclaration[];
+    statements : ExecutableStatement[];
     nl_annotations : NLAnnotationMap;
     impl_annotations : AnnotationMap;
     schema : FunctionDef|null;
@@ -189,9 +148,9 @@ export class Declaration extends Statement {
      */
     constructor(location : SourceRange|null,
                 name : string,
-                type : DeclarationType,
                 args : TypeMap,
-                value : (Table|Stream|Action|Program),
+                declarations : FunctionDeclaration[],
+                statements : ExecutableStatement[],
                 metadata : NLAnnotationMap = {},
                 annotations : AnnotationMap = {},
                 schema : FunctionDef|null = null) {
@@ -204,24 +163,14 @@ export class Declaration extends Statement {
          */
         this.name = name;
 
-        assert(['stream', 'query', 'action', 'program', 'procedure'].indexOf(type) >= 0);
-        /**
-         * What type of function is being declared, either `stream`, `query`, `action`,
-         * `program` or `procedure`.
-         */
-        this.type = type;
-
         assert(typeof args === 'object');
         /**
          * Arguments available to the function.
          */
         this.args = args;
 
-        assert(value instanceof Stream || value instanceof Table || value instanceof Action || value instanceof Program);
-        /**
-         * The declaration body.
-         */
-        this.value = value;
+        this.declarations = declarations;
+        this.statements = statements;
 
         /**
          * The declaration natural language annotations (translatable annotations).
@@ -231,8 +180,9 @@ export class Declaration extends Statement {
          * The declaration annotations.
          */
         this.impl_annotations = annotations;
+
         /**
-         * The type definition corresponding to this declaration.
+         * The type definition corresponding to this function.
          *
          * This property is guaranteed not `null` after type-checking.
          */
@@ -248,29 +198,25 @@ export class Declaration extends Statement {
 
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
-        if (visitor.visitDeclaration(this))
-            this.value.visit(visitor);
+        if (visitor.visitFunctionDeclaration(this)) {
+            for (const decl of this.declarations)
+                decl.visit(visitor);
+            for (const stmt of this.statements)
+                stmt.visit(visitor);
+        }
         visitor.exit(this);
     }
 
     *iterateSlots() : Generator<OldSlot, void> {
-        // if the declaration refers to a nested scope, we don't need to
+        // the declaration refers to a nested scope, we don't need to
         // slot fill it now
-        if (this.type === 'program' || this.type === 'procedure')
-            return;
-
-        yield* this.value.iterateSlots({});
     }
     *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
-        // if the declaration refers to a nested scope, we don't need to
+        // the declaration refers to a nested scope, we don't need to
         // slot fill it now
-        if (this.type === 'program' || this.type === 'procedure')
-            return;
-
-        yield* this.value.iterateSlots2({});
     }
 
-    clone() : Declaration {
+    clone() : FunctionDeclaration {
         const newArgs = {};
         Object.assign(newArgs, this.args);
 
@@ -278,8 +224,10 @@ export class Declaration extends Statement {
         Object.assign(newMetadata, this.nl_annotations);
         const newAnnotations = {};
         Object.assign(newAnnotations, this.impl_annotations);
-        return new Declaration(this.location, this.name, this.type, newArgs,
-            this.value.clone(), newMetadata, newAnnotations, this.schema);
+        return new FunctionDeclaration(this.location, this.name, newArgs,
+            this.declarations.map((d) => d.clone()),
+            this.statements.map((s) => s.clone()),
+            newMetadata, newAnnotations, this.schema);
     }
 
     /**
@@ -294,8 +242,6 @@ export class Declaration extends Statement {
         return declarationLikeToProgram(this);
     }
 }
-Declaration.prototype.isDeclaration = true;
-Statement.Declaration = Declaration;
 
 /**
  * `let result` statements, that assign the value of a ThingTalk expression to a name.
@@ -308,9 +254,12 @@ Statement.Declaration = Declaration;
  */
 export class Assignment extends Statement {
     name : string;
-    value : Table;
+    /**
+     * The expression being assigned.
+     * @type {Ast.Table}
+     */
+    value : Expression;
     schema : ExpressionSignature|null;
-    isAction : boolean;
 
     /**
      * Construct a new assignment statement.
@@ -323,9 +272,8 @@ export class Assignment extends Statement {
      */
     constructor(location : SourceRange|null,
                 name : string,
-                value : Table,
-                schema : ExpressionSignature|null = null,
-                isAction : boolean) {
+                value : Expression,
+                schema : ExpressionSignature|null = null) {
         super(location);
 
         assert(typeof name === 'string');
@@ -335,11 +283,7 @@ export class Assignment extends Statement {
          */
         this.name = name;
 
-        assert(value instanceof Table);
-        /**
-         * The expression being assigned.
-         * @type {Ast.Table}
-         */
+        assert(value instanceof Expression);
         this.value = value;
 
         /**
@@ -350,14 +294,16 @@ export class Assignment extends Statement {
          * @type {Ast.ExpressionSignature|null}
          */
         this.schema = schema;
+    }
 
-        /**
-         * Whether this assignment calls an action or executes a query.
-         *
-         * This will be `undefined` before typechecking, and then either `true` or `false`.
-         * @type {boolean}
-         */
-        this.isAction = isAction;
+    /**
+     * Whether this assignment calls an action or executes a query.
+     *
+     * This will be `undefined` before typechecking, and then either `true` or `false`.
+     * @type {boolean}
+     */
+    get isAction() : boolean {
+        return this.schema!.functionType === 'action';
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -375,18 +321,12 @@ export class Assignment extends Statement {
     }
 
     clone() : Assignment {
-        return new Assignment(this.location, this.name, this.value.clone(), this.schema, this.isAction);
+        return new Assignment(this.location, this.name, this.value.clone(), this.schema);
     }
 }
-Assignment.prototype.isAssignment = true;
-Statement.Assignment = Assignment;
 
 /**
- * A statement that executes one or more actions for each element
- * of a stream.
- *
- * @alias Ast.Statement.Rule
- * @extends Ast.Statement
+ * @deprecated Use {@link ExpressionStatement} instead.
  */
 export class Rule extends Statement {
     stream : Stream;
@@ -410,6 +350,11 @@ export class Rule extends Statement {
 
         assert(Array.isArray(actions));
         this.actions = actions;
+    }
+
+    toExpression() : ExpressionStatement {
+        const exprs = [this.stream.toExpression()].concat(this.actions.filter((a) => !a.isNotify).map((a) => a.toExpression()));
+        return new ExpressionStatement(this.location, new ChainExpression(this.location, exprs, null));
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -437,15 +382,9 @@ export class Rule extends Statement {
         return new Rule(this.location, this.stream.clone(), this.actions.map((a) => a.clone()));
     }
 }
-Rule.prototype.isRule = true;
-Statement.Rule = Rule;
 
 /**
- * A statement that executes one or more actions immediately, potentially
- * reading data from a query.
- *
- * @alias Ast.Statement.Command
- * @extends Ast.Statement
+ * @deprecated Use {@link ExpressionStatement} instead.
  */
 export class Command extends Statement {
     table : Table|null;
@@ -469,6 +408,14 @@ export class Command extends Statement {
 
         assert(Array.isArray(actions));
         this.actions = actions;
+    }
+
+    toExpression() : ExpressionStatement {
+        const exprs : Expression[] = [];
+        if (this.table)
+            exprs.push(this.table.toExpression());
+        exprs.push(...this.actions.filter((a) => !a.isNotify).map((a) => a.toExpression()));
+        return new ExpressionStatement(this.location, new ChainExpression(this.location, exprs, null));
     }
 
     toSource() : TokenStream {
@@ -511,97 +458,101 @@ export class Command extends Statement {
             this.actions.map((a) => a.clone()));
     }
 }
-Command.prototype.isCommand = true;
-Statement.Command = Command;
 
 /**
- * A statement that interactively prompts the user for one or more choices.
- *
- * @alias Ast.Statement.OnInputChoice
- * @extends Ast.Statement
+ * A statement that evaluates an expression and presents the results
+ * to the user.
  */
-export class OnInputChoice extends Statement {
-    table : Table|null;
-    actions : Action[];
-    nl_annotations : NLAnnotationMap;
-    impl_annotations : AnnotationMap;
+export class ExpressionStatement extends Statement {
+    expression : ChainExpression;
 
-    /**
-     * Construct a new on-input statement.
-     *
-     * @param {Ast~SourceRange|null} location - the position of this node
-     *        in the source code
-     * @param {Ast.Table|null} table - the table to read from
-     * @param {Ast.Action[]} actions - the actions to execute
-     * @param {Object.<string, any>} [metadata={}] - natural language annotations of the statement (translatable annotations)
-     * @param {Object.<string, Ast.Value>} [annotations={}]- implementation annotations
-     */
     constructor(location : SourceRange|null,
-                table : Table|null,
-                actions : Action[],
-                metadata : NLAnnotationMap = {},
-                annotations : AnnotationMap = {}) {
+                expression : Expression) {
         super(location);
 
-        assert(table === null || table instanceof Table);
-        this.table = table;
+        if (!(expression instanceof ChainExpression))
+            this.expression = new ChainExpression(location, [expression], expression.schema);
+        else
+            this.expression = expression;
 
-        assert(Array.isArray(actions));
-        this.actions = actions;
-
-        this.nl_annotations = metadata;
-        this.impl_annotations = annotations;
+        assert(this.expression.expressions.length > 0);
     }
 
-    get metadata() : NLAnnotationMap {
-        return this.nl_annotations;
+    get first() : Expression {
+        return this.expression.expressions[0];
     }
-    get annotations() : AnnotationMap {
-        return this.impl_annotations;
+
+    get last() : Expression {
+        return this.expression.expressions[this.expression.expressions.length-1];
+    }
+
+    get stream() : Expression|null {
+        const first = this.first;
+        if (first.schema!.functionType === 'stream')
+            return first;
+        else
+            return null;
+    }
+
+    get lastTable() : Expression|null {
+        const expressions = this.expression.expressions;
+        if (expressions.length === 1) {
+            const single = expressions[0];
+            if (single.schema!.functionType === 'action')
+                return null;
+            return single;
+        } else {
+            return expressions[expressions.length-2];
+        }
+    }
+
+    toLegacy() : Rule|Command {
+        const last = this.last;
+        const action = last.schema!.functionType === 'action' ? last : null;
+        let head : Stream|Table|null = null;
+        if (action) {
+            const remaining = this.expression.expressions.slice(0, this.expression.expressions.length-1);
+            if (remaining.length > 0) {
+                const converted = new ChainExpression(null, remaining, null).toLegacy();
+                assert(converted instanceof Stream || converted instanceof Table);
+                head = converted;
+            }
+        } else {
+            const converted  = this.expression.toLegacy();
+            assert(converted instanceof Stream || converted instanceof Table);
+            head = converted;
+        }
+        const convertedAction = action ? action.toLegacy() : null;
+        assert(convertedAction === null || convertedAction instanceof Action);
+
+        if (head instanceof Stream)
+            return new Rule(this.location, head, convertedAction ? [convertedAction] : [Action.notifyAction()]);
+        else
+            return new Command(this.location, head, convertedAction ? [convertedAction] : [Action.notifyAction()]);
+    }
+
+    toSource() : TokenStream {
+        return List.concat(this.expression.toSource(), ';');
     }
 
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
-        if (visitor.visitOnInputChoice(this)) {
-            if (this.table !== null)
-                this.table.visit(visitor);
-            for (const action of this.actions)
-                action.visit(visitor);
-        }
+        if (visitor.visitExpressionStatement(this))
+            this.expression.visit(visitor);
         visitor.exit(this);
     }
 
     *iterateSlots() : Generator<OldSlot, void> {
-        let scope = {};
-        if (this.table)
-            [,scope] = yield* this.table.iterateSlots({});
-        for (const action of this.actions)
-            yield* action.iterateSlots(scope);
+        yield* this.expression.iterateSlots({});
     }
     *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
-        let scope = {};
-        if (this.table)
-            [,scope] = yield* this.table.iterateSlots2({});
-        for (const action of this.actions)
-            yield* action.iterateSlots2(scope);
+        yield* this.expression.iterateSlots2({});
     }
 
-    clone() : OnInputChoice {
-        const newMetadata = {};
-        Object.assign(newMetadata, this.nl_annotations);
-
-        const newAnnotations = {};
-        Object.assign(newAnnotations, this.impl_annotations);
-        return new OnInputChoice(
-            this.location,
-            this.table !== null ? this.table.clone() : null,
-            this.actions.map((a) => a.clone()),
-            newMetadata,
-            newAnnotations);
+    clone() : ExpressionStatement {
+        return new ExpressionStatement(this.location, this.expression.clone());
     }
 }
-OnInputChoice.prototype.isOnInputChoice = true;
-Statement.OnInputChoice = OnInputChoice;
 
 /**
  * A statement that declares a ThingTalk dataset (collection of primitive
@@ -680,8 +631,6 @@ export class Dataset extends Statement {
             this.name, this.language, this.examples.map((e) => e.clone()), newAnnotations);
     }
 }
-Dataset.prototype.isDataset = true;
-Statement.Dataset = Dataset;
 
 /**
  * A collection of Statements from the same source file.
@@ -698,14 +647,10 @@ export abstract class Input extends Node {
     isBookkeeping ! : boolean;
     static Program : any;
     isProgram ! : boolean;
-    static Program2 : any;
-    isProgram2 ! : boolean;
     static Library : any;
     isLibrary ! : boolean;
     static PermissionRule : any;
     isPermissionRule ! : boolean;
-    static Meta : any;
-    isMeta ! : boolean;
     static DialogueState : any;
     isDialogueState ! : boolean;
 
@@ -742,13 +687,11 @@ export abstract class Input extends Node {
 }
 Input.prototype.isBookkeeping = false;
 Input.prototype.isProgram = false;
-Input.prototype.isProgram2 = false;
 Input.prototype.isLibrary = false;
 Input.prototype.isPermissionRule = false;
-Input.prototype.isMeta = false;
 Input.prototype.isDialogueState = false;
 
-export type ExecutableStatement = Assignment | Rule | Command;
+export type ExecutableStatement = Assignment | ExpressionStatement;
 
 /**
  * An executable ThingTalk program (containing at least one executable
@@ -759,10 +702,10 @@ export type ExecutableStatement = Assignment | Rule | Command;
  */
 export class Program extends Input {
     classes : ClassDef[];
-    declarations : Declaration[];
-    rules : ExecutableStatement[];
-    principal : Value|null;
-    oninputs : OnInputChoice[];
+    declarations : FunctionDeclaration[];
+    statements : ExecutableStatement[];
+    nl_annotations : NLAnnotationMap;
+    impl_annotations : AnnotationMap;
 
     /**
      * Construct a new ThingTalk program.
@@ -777,30 +720,34 @@ export class Program extends Input {
      */
     constructor(location : SourceRange|null,
                 classes : ClassDef[],
-                declarations : Declaration[],
-                rules : ExecutableStatement[],
-                principal : Value|null = null,
-                oninputs : OnInputChoice[] = []) {
+                declarations : FunctionDeclaration[],
+                statements : ExecutableStatement[],
+                { nl, impl } : AnnotationSpec = {}) {
         super(location);
         assert(Array.isArray(classes));
         this.classes = classes;
         assert(Array.isArray(declarations));
         this.declarations = declarations;
-        assert(Array.isArray(rules));
-        this.rules = rules;
-        assert(principal === null || principal instanceof Value);
-        this.principal = principal;
-        assert(Array.isArray(oninputs));
-        this.oninputs = oninputs;
+        assert(Array.isArray(statements));
+        this.statements = statements;
+
+        this.nl_annotations = nl || {};
+        this.impl_annotations = impl || {};
+    }
+
+    get principal() : Value|null {
+        return this.impl_annotations.principal || null;
     }
 
     toSource() : TokenStream {
+        // TODO: deal with annotations
+
         let input : TokenStream = List.Nil;
         for (const classdef of this.classes)
             input = List.concat(input, classdef.toSource());
         for (const decl of this.declarations)
             input = List.concat(input, decl.toSource());
-        for (const stmt of this.rules)
+        for (const stmt of this.statements)
             input = List.concat(input, stmt.toSource());
         return input;
     }
@@ -808,16 +755,12 @@ export class Program extends Input {
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitProgram(this)) {
-            if (this.principal !== null)
-                this.principal.visit(visitor);
             for (const classdef of this.classes)
                 classdef.visit(visitor);
             for (const decl of this.declarations)
                 decl.visit(visitor);
-            for (const rule of this.rules)
+            for (const rule of this.statements)
                 rule.visit(visitor);
-            for (const onInput of this.oninputs)
-                onInput.visit(visitor);
         }
         visitor.exit(this);
     }
@@ -825,35 +768,41 @@ export class Program extends Input {
     *iterateSlots() : Generator<OldSlot, void> {
         for (const decl of this.declarations)
             yield* decl.iterateSlots();
-        for (const rule of this.rules)
+        for (const rule of this.statements)
             yield* rule.iterateSlots();
-        for (const oninput of this.oninputs)
-            yield* oninput.iterateSlots();
     }
     *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
-        if (this.principal !== null)
-            yield* recursiveYieldArraySlots(new FieldSlot(null, {}, new Type.Entity('tt:contact'), this, 'program', 'principal'));
         for (const decl of this.declarations)
             yield* decl.iterateSlots2();
-        for (const rule of this.rules)
+        for (const rule of this.statements)
             yield* rule.iterateSlots2();
-        for (const oninput of this.oninputs)
-            yield* oninput.iterateSlots2();
     }
 
     clone() : Program {
+        // clone annotations
+        const nl : NLAnnotationMap = {};
+        Object.assign(nl, this.nl_annotations);
+        const impl : AnnotationMap = {};
+        Object.assign(impl, this.impl_annotations);
+        const annotations = { nl, impl };
+
         return new Program(
             this.location,
             this.classes.map((c) => c.clone()),
             this.declarations.map((d) => d.clone()),
-            this.rules.map((r) => r.clone()),
-            this.principal !== null ? this.principal.clone() : null,
-            this.oninputs.map((o) => o.clone())
+            this.statements.map((s) => s.clone(),
+            annotations)
         );
     }
 
     optimize() : Program|null {
         return Optimizer.optimizeProgram(this);
+    }
+
+    async typecheck(schemas : SchemaRetriever, getMeta = false) : Promise<this> {
+        const typeChecker = new TypeChecker(schemas, getMeta);
+        await typeChecker.typeCheckProgram(this);
+        return this;
     }
 
     /**
@@ -865,16 +814,6 @@ export class Program extends Input {
      */
     convertToPermissionRule(principal : string, contactName : string|null) : PermissionRule|null {
         return convertToPermissionRule(this, principal, contactName);
-    }
-
-    lowerReturn(messaging : Messaging) : Program[] {
-        return lowerReturn(this, messaging);
-    }
-
-    async typecheck(schemas : SchemaRetriever, getMeta = false) : Promise<this> {
-        const typeChecker = new TypeChecker(schemas, getMeta);
-        await typeChecker.typeCheckProgram(this);
-        return this;
     }
 }
 Program.prototype.isProgram = true;
@@ -1015,9 +954,6 @@ export class Library extends Input {
 }
 Library.prototype.isLibrary = true;
 Input.Library = Library;
-// API backward compat
-Library.prototype.isMeta = true;
-Input.Meta = Library;
 
 /**
  * A single example (primitive template) in a ThingTalk dataset
@@ -1027,9 +963,9 @@ Input.Meta = Library;
 export class Example extends Node {
     isExample = true;
     id : number;
-    type : DeclarationType;
+    type : string;
     args : TypeMap;
-    value : (Stream|Table|Action|Program);
+    value : Expression;
     utterances : string[];
     preprocessed : string[];
     annotations : AnnotationMap;
@@ -1049,9 +985,9 @@ export class Example extends Node {
      */
     constructor(location : SourceRange|null,
                 id : number,
-                type : DeclarationType,
+                type : string,
                 args : TypeMap,
-                value : (Stream|Table|Action|Program),
+                value : Expression,
                 utterances : string[],
                 preprocessed : string[],
                 annotations : AnnotationMap) {
@@ -1060,13 +996,12 @@ export class Example extends Node {
         assert(typeof id === 'number');
         this.id = id;
 
-        assert(['stream', 'query', 'action', 'program'].includes(type));
         this.type = type;
 
         assert(typeof args === 'object');
         this.args = args;
 
-        assert(value instanceof Stream || value instanceof Table || value instanceof Action || value instanceof Input);
+        assert(value instanceof Expression);
         this.value = value;
 
         assert(Array.isArray(utterances) && Array.isArray(preprocessed));

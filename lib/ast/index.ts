@@ -33,7 +33,6 @@ export * from './expression';
 export * from './expression2';
 export * from './primitive';
 export * from './program';
-export * from './program2';
 export * from './bookkeeping';
 export * from './dialogues';
 export { default as NodeVisitor } from './visitor';
