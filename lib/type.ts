@@ -23,6 +23,9 @@ import * as TTUnits from 'thingtalk-units';
 import type * as Ast from './ast';
 import * as Grammar from './grammar';
 
+import { TokenStream } from './new-syntax/tokenstream';
+import List from './utils/list';
+
 function normalizeUnit(unit : string) : string {
     if (unit.startsWith('default')) {
         switch (unit) {
@@ -86,7 +89,7 @@ export default abstract class Type {
         if (str instanceof Type)
             return str;
 
-        return Grammar.parse(str, { startRule: 'type_ref' });
+        return Grammar.parse(str, { startRule: 'type_ref' }) as any;
     }
 
     isNumeric() : boolean {
@@ -96,6 +99,7 @@ export default abstract class Type {
         return this.isNumeric() || this.isDate || this.isTime || this.isString;
     }
 
+    abstract toSource() : TokenStream;
     abstract equals(other : Type) : boolean;
 
     static isAssignable(type : Type, assignableTo : Type|string, typeScope : TypeScope = {}, lenient = false) : boolean {
@@ -231,6 +235,9 @@ class PrimitiveType extends Type {
     toString() {
         return this.name;
     }
+    toSource() : TokenStream {
+        return List.singleton(this.name);
+    }
 
     equals(other : Type) : boolean {
         // primitive types are singletons
@@ -258,6 +265,10 @@ export class EntityType extends Type {
         return `Entity(${this.type})`;
     }
 
+    toSource() : TokenStream {
+        return List.concat('Entity', '(', this.type, ')');
+    }
+
     equals(other : Type) : boolean {
         return other instanceof EntityType && this.type === other.type;
     }
@@ -279,6 +290,10 @@ export class MeasureType extends Type {
         return `Measure(${this.unit})`;
     }
 
+    toSource() : TokenStream {
+        return List.concat('Measure', '(', this.unit, ')');
+    }
+
     equals(other : Type) : boolean {
         return other instanceof MeasureType && this.unit === other.unit;
     }
@@ -295,6 +310,12 @@ export class EnumType extends Type {
         return `Enum(${this.entries})`;
     }
 
+    toSource() : TokenStream {
+        if (this.entries === null)
+            return List.concat('Enum', '(', '*', ')');
+        return List.concat('Enum', '(', List.join(this.entries.map((e) => List.singleton(e)), ','), ')');
+    }
+
     equals(other : Type) : boolean {
         return other instanceof EnumType && arrayEquals(this.entries, other.entries);
     }
@@ -309,6 +330,12 @@ export class ArrayType extends Type {
 
     toString() : string {
         return `Array(${this.elem})`;
+    }
+
+    toSource() : TokenStream {
+        if (typeof this.elem === 'string')
+            return List.concat('Array', '(', this.elem, ')');
+        return List.concat('Array', '(', this.elem.toSource(), ')');
     }
 
     equals(other : Type) : boolean {
@@ -336,6 +363,21 @@ export class CompoundType extends Type {
         if (this.name)
             return `Compound(${this.name})`;
         return `Compound`;
+    }
+
+    toSource() : TokenStream {
+        let list : TokenStream = List.concat('{', '\t+', '\n');
+        let first = true;
+        for (const field in this.fields) {
+            const arg = this.fields[field];
+            if (first)
+                first = false;
+            else
+                list = List.concat(list, ',', '\n');
+            list = List.concat(list, arg.toSource());
+        }
+        list = List.concat(list, '\n', '\t-', '}');
+        return list;
     }
 
     equals(other : Type) : boolean {
@@ -367,6 +409,10 @@ export class UnknownType extends Type {
 
     toString() : string {
         return this.name;
+    }
+
+    toSource() : TokenStream {
+        return List.singleton(this.name);
     }
 
     equals(other : Type) : boolean {

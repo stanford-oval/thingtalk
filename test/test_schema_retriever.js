@@ -26,7 +26,7 @@ import * as util from 'util';
 import * as fs from 'fs';
 
 import SchemaRetriever from '../lib/schema';
-import * as Grammar from '../lib/grammar_api';
+import * as Grammar from '../lib/syntax_api';
 
 import _mockSchemaDelegate from './mock_schema_delegate';
 import _mockMemoryClient from './mock_memory_client';
@@ -50,53 +50,77 @@ async function testInjectManifest() {
     assert.deepStrictEqual((await schemaRetriever.getFullSchema('com.xkcd')).prettyprint(), `class @com.xkcd
 #[version=91] {
   import loader from @org.thingpedia.v2();
+
   import config from @org.thingpedia.config.none();
 
-  monitorable query get_comic(in opt number: Number
+  monitorable query get_comic(in opt number : Number
                               #_[prompt="What Xkcd comic do you want?"],
-                              out title: String,
-                              out picture_url: Entity(tt:picture),
-                              out link: Entity(tt:url),
-                              out alt_text: String)
+                              out title : String,
+                              out picture_url : Entity(tt:picture),
+                              out link : Entity(tt:url),
+                              out alt_text : String)
   #_[canonical="xkcd comic"]
   #_[confirmation="an Xkcd comic"]
-  #_[formatted=[{type="rdl", webCallback="${'${link}'}", displayTitle="${'${title}'}"}, {type="picture", url="${'${picture_url}'}"}, {type="text", text="${'${alt_text}'}"}]]
+  #_[formatted=[{
+    type="rdl",
+    webCallback="\${link}",
+    displayTitle="\${title}"
+  }, {
+    type="picture",
+    url="\${picture_url}"
+  }, {
+    type="text",
+    text="\${alt_text}"
+  }]]
   #[poll_interval=86400000ms]
   #[doc="retrieve the comic with a given number, or the latest comit"]
   #[minimal_projection=[]];
 
-  query random_comic(out number: Number,
-                     out title: String,
-                     out picture_url: Entity(tt:picture),
-                     out link: Entity(tt:url),
-                     out alt_text: String)
+  query random_comic(out number : Number,
+                     out title : String,
+                     out picture_url : Entity(tt:picture),
+                     out link : Entity(tt:url),
+                     out alt_text : String)
   #_[canonical="random xkcd comic"]
   #_[confirmation="a random Xkcd comic"]
-  #_[formatted=[{type="rdl", webCallback="${'${link}'}", displayTitle="${'${title}'}"}, {type="picture", url="${'${picture_url}'}"}, {type="text", text="${'${alt_text}'}"}]]
+  #_[formatted=[{
+    type="rdl",
+    webCallback="\${link}",
+    displayTitle="\${title}"
+  }, {
+    type="picture",
+    url="\${picture_url}"
+  }, {
+    type="text",
+    text="\${alt_text}"
+  }]]
   #[doc="retrieve a random xkcd"]
   #[minimal_projection=[]];
 
-  monitorable list query what_if(out title: String,
-                                 out link: Entity(tt:url),
-                                 out updated_time: Date)
+  monitorable list query what_if(out title : String,
+                                 out link : Entity(tt:url),
+                                 out updated_time : Date)
   #_[canonical="xkcd what if blog posts"]
   #_[confirmation="Xkcd's What If blog posts"]
-  #_[formatted=[{type="rdl", webCallback="${'${link}'}", displayTitle="${'${title}'}"}]]
+  #_[formatted=[{
+    type="rdl",
+    webCallback="\${link}",
+    displayTitle="\${title}"
+  }]]
   #[poll_interval=86400000ms]
   #[doc="retrieve the latest posts on Xkcd's What If blog"]
   #[minimal_projection=[]];
-}
-`
+}`
     );
 
-    const fakeTwitter = (await Grammar.parseAndTypecheck(FAKE_TWITTER, schemaRetriever)).classes[0];
+    const fakeTwitter = (await Grammar.parse(FAKE_TWITTER).typecheck(schemaRetriever)).classes[0];
     schemaRetriever.injectClass(fakeTwitter);
 
     assert.deepStrictEqual((await schemaRetriever.getSchemaAndNames('com.twitter', 'query', 'fake_query')).prettyprint(),
-        `monitorable list query fake_query(in req fake_argument: String)\n` +
-        `  #[poll_interval=1min]\n` +
-        `  #[formatted=["foo"]]\n` +
-        `  #[minimal_projection=[]];`);
+        `monitorable list query fake_query(in req fake_argument : String)\n` +
+        `#[poll_interval=1min]\n` +
+        `#[formatted=["foo"]]\n` +
+        `#[minimal_projection=[]];`);
 }
 
 async function testInvalid() {

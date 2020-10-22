@@ -26,6 +26,7 @@ import Type, { EnumType, EntityType, ArrayType } from './type';
 import * as BuiltinDefs from './builtin/defs';
 import * as BuiltinOps from './builtin/primitive_ops';
 import SchemaRetriever from './schema';
+import { flipOperator } from './utils';
 
 function arrayEquals<T>(a : T[]|null, b : T[]|null) : boolean {
     if (a === null && b === null)
@@ -847,44 +848,6 @@ async function promiseDoAll<T>(array : T[], fn : (x : T, i : number) => Promise<
         await fn(array[i], i);
 }
 
-function flipOperator(op : string) : string {
-    switch (op) {
-    case '==':
-    case '!=':
-        return op;
-    case '<':
-        return '>';
-    case '<=':
-        return '>=';
-    case '>':
-        return '<';
-    case '>=':
-        return '>=';
-    case 'contains':
-        return 'in_array';
-    case 'in_array':
-        return 'contains';
-    case '=~':
-        return '~=';
-    case '~=':
-        return '=~';
-    case 'group_member':
-        return 'has_member';
-    case 'has_member':
-        return 'group_member';
-    case 'starts_with':
-        return 'prefix_of';
-    case 'prefix_of':
-        return 'starts_with';
-    case 'ends_with':
-        return 'suffix_of';
-    case 'suffix_of':
-        return 'ends_with';
-    default:
-        throw new TypeError('invalid operator ' + op);
-    }
-}
-
 type BinaryOpMap = { [key : string] : (x : any, y : any) => boolean };
 const OP_FUNCTIONS : BinaryOpMap = {
     '>': (a, b) => a > b,
@@ -921,7 +884,7 @@ class RuleTransformer {
     private _principal : Ast.EntityValue;
     private _program : Ast.Program;
     private _rule : Ast.Rule|Ast.Command;
-    private _primKey : Array<[('action'|'query'|'stream'|'filter'), Ast.Invocation|Ast.ExternalBooleanExpression]>;
+    private _primKey : Array<[('action'|'query'|'stream'|'filter'|'expression'), Ast.Invocation|Ast.ExternalBooleanExpression]>;
     private _relevantPermissions : Ast.PermissionRule[];
     private _newrule : Ast.Rule|Ast.Command|null;
 

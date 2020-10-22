@@ -31,6 +31,8 @@ function simpleEntity<K extends StringLikeEntityType>(token : ConstantToken<K, s
     return stringEscape(token.value) + '^^' + type;
 }
 
+const BASIC_INDENT = 2;
+
 export function prettyprint(tokens : TokenStream) : string {
     let buffer = '';
     let indent = '';
@@ -44,11 +46,11 @@ export function prettyprint(tokens : TokenStream) : string {
     }
 
     for (const token of tokens) {
-        if (typeof token === 'string' && token.startsWith(':') && token !== ':' && token !== '::') {
+        /*if (typeof token === 'string' && token.startsWith(':') && token !== ':' && token !== '::') {
             // type annotation
             buffer += ' : ' + token.substring(1);
             continue;
-        }
+        }*/
 
         // handle the formatting pseudo-tokens first
         switch (String(token)) {
@@ -57,11 +59,19 @@ export function prettyprint(tokens : TokenStream) : string {
             continue;
 
         case '\t+': // increase basic indentation
-            indent += '    ';
+            if (tabStops.length > 0)
+                tabStops[tabStops.length-1] += ' '.repeat(BASIC_INDENT);
+            else
+                indent += ' '.repeat(BASIC_INDENT);
             continue;
 
         case '\t-': // decrease basic indentation
-            indent = indent.substring(0, indent.length - 4);
+            if (tabStops.length > 0) {
+                const lastStop = tabStops[tabStops.length-1];
+                tabStops[tabStops.length-1] = lastStop.substring(0, lastStop.length - BASIC_INDENT);
+            } else {
+                indent = indent.substring(0, indent.length - BASIC_INDENT);
+            }
             continue;
 
         case '\t=+': // add a tab stop at the current position
@@ -76,7 +86,18 @@ export function prettyprint(tokens : TokenStream) : string {
             if (buffer.endsWith('\n'))
                 buffer = buffer.substring(0, buffer.length-1);
             continue;
+
+        case '\n':
+            // remove an extra space if we just added it
+            if (buffer.endsWith(' '))
+                buffer = buffer.substring(0, buffer.length-1);
+            buffer += '\n';
+            needsIndent = true;
+            continue;
         }
+
+        if (/[ \n\t]/.test(String(token)))
+            throw new Error(`Invalid control token "${token}"`);
 
         if (needsIndent) {
             if (tabStops.length > 0)
@@ -84,11 +105,6 @@ export function prettyprint(tokens : TokenStream) : string {
             else
                 buffer += indent;
             needsIndent = false;
-        }
-        if (token === '\n') {
-            buffer += '\n';
-            needsIndent = true;
-            continue;
         }
 
         // convert literals/constants back to their surface representation
@@ -115,7 +131,9 @@ export function prettyprint(tokens : TokenStream) : string {
             case 'LOCATION': {
                 const location = constant.value;
 
-                if (location.display !== null)
+                if (Number.isNaN(location.latitude) && Number.isNaN(location.longitude))
+                    buffer += `new Location(${stringEscape(location.display)})`;
+                else if (location.display !== null)
                     buffer += `new Location(${location.latitude}, ${location.longitude}, ${stringEscape(location.display)})`;
                 else
                     buffer += `new Location(${location.latitude}, ${location.longitude})`;
@@ -123,7 +141,7 @@ export function prettyprint(tokens : TokenStream) : string {
             }
             case 'DATE': {
                 const date = constant.value;
-                buffer += `new Date(${date.getTime()})`;
+                buffer += `new Date(${stringEscape(date.toISOString())})`;
                 break;
             }
             case 'TIME': {
@@ -198,19 +216,22 @@ export function prettyprint(tokens : TokenStream) : string {
         case '||':
         case '&&':
         case '::':
+        case '=>':
             buffer += ' ' + token + ' ';
             break;
 
         // add a space after the comma and certain keywords,
         case ',':
+        case 'abstract':
         case 'class':
         case 'const':
         case 'dataset':
-        case 'extends':
+        case 'enum':
         case 'if':
         case 'import':
         case 'in':
         case 'for':
+        case 'function':
         case 'let':
         case 'list':
         case 'mixin':
@@ -223,24 +244,22 @@ export function prettyprint(tokens : TokenStream) : string {
         case 'until':
         case 'when':
         case 'while':
+        case '$dialogue':
+        case '$policy':
             buffer += token + ' ';
             break;
 
-        // add a space BEFORE and AFTER filter, with and of
+        // add a space BEFORE and AFTER filter, with, of, and as
         // this is necessary because they can follow a variable name immediately
         case 'with':
         case 'filter':
         case 'of':
+        case 'as':
+        case 'extends':
             buffer += ' ' + token + ' ';
             break;
 
-        // add a space before sort directions, which follow directly a parameter name
-        case 'asc':
-        case 'desc':
-            buffer += ' ' + token;
-            break;
-
-        // the following keywords DO NOT receive a space: null, true, false, sort, aggregate, bookkeeping
+        // the following keywords DO NOT receive a space: null, true, false, sort
 
         // other tokens
         default:
@@ -248,5 +267,5 @@ export function prettyprint(tokens : TokenStream) : string {
         }
     }
 
-    return buffer;
+    return buffer.trim();
 }

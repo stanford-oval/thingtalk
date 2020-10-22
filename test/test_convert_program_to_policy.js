@@ -18,7 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import * as Grammar from '../lib/grammar_api';
+import * as Grammar from '../lib/syntax_api';
 import SchemaRetriever from '../lib/schema';
 
 import _mockSchemaDelegate from './mock_schema_delegate';
@@ -27,42 +27,80 @@ const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 let TEST_CASES = [
     // manually written test cases
     ['now => @com.twitter.post();',
-     'source == "test-account:foobar"^^tt:contact("Bob") : now => @com.twitter.post;'],
+     `$policy {
+  source == "test-account:foobar"^^tt:contact("Bob") : now => @com.twitter.post;
+}`],
     [`now => @com.twitter.post(status="foo");`,
-     'source == "test-account:foobar"^^tt:contact("Bob") : now => @com.twitter.post, status == "foo";'],
+     `$policy {
+  source == "test-account:foobar"^^tt:contact("Bob") : now => @com.twitter.post filter status == "foo";
+}`],
 
     [`now => @com.twitter.search(), text =~ "lol" => @com.twitter.post(status=text);`,
-     'source == "test-account:foobar"^^tt:contact("Bob") : @com.twitter.search, text =~ "lol" => @com.twitter.post, status == text;'],
+     `$policy {
+  source == "test-account:foobar"^^tt:contact("Bob") : @com.twitter.search filter text =~ "lol" => @com.twitter.post filter status == text;
+}`],
+
     [`now => @com.bing.web_search(query="lol") => @com.twitter.post(status=description);`,
-     'source == "test-account:foobar"^^tt:contact("Bob") : @com.bing.web_search, query == "lol" => @com.twitter.post, status == description;'],
+     `$policy {
+  source == "test-account:foobar"^^tt:contact("Bob") : @com.bing.web_search filter query == "lol" => @com.twitter.post filter status == description;
+}`],
+
     [`now => @com.bing.web_search(query="lol"), description =~ "bar" => @com.twitter.post(status=description);`,
-     'source == "test-account:foobar"^^tt:contact("Bob") : @com.bing.web_search, (query == "lol" && description =~ "bar") => @com.twitter.post, status == description;'],
-    [`monitor @com.bing.web_search(query="lol") => @com.twitter.post(status=description);`,
-     'source == "test-account:foobar"^^tt:contact("Bob") : @com.bing.web_search, query == "lol" => @com.twitter.post, status == description;'],
-    [`monitor @com.bing.web_search(query="lol"), description =~ "bar" => @com.twitter.post(status=description);`,
-     'source == "test-account:foobar"^^tt:contact("Bob") : @com.bing.web_search, (query == "lol" && description =~ "bar") => @com.twitter.post, status == description;'],
+     `$policy {
+  source == "test-account:foobar"^^tt:contact("Bob") : @com.bing.web_search filter description =~ "bar" && query == "lol" => @com.twitter.post filter status == description;
+}`],
+
+    [`monitor(@com.bing.web_search(query="lol")) => @com.twitter.post(status=description);`,
+     `$policy {
+  source == "test-account:foobar"^^tt:contact("Bob") : @com.bing.web_search filter query == "lol" => @com.twitter.post filter status == description;
+}`],
+
+    [`monitor(@com.bing.web_search(query="lol")), description =~ "bar" => @com.twitter.post(status=description);`,
+     `$policy {
+  source == "test-account:foobar"^^tt:contact("Bob") : @com.bing.web_search filter description =~ "bar" && query == "lol" => @com.twitter.post filter status == description;
+}`],
+
     [`monitor (@com.bing.web_search(query="lol"), description =~ "bar") => @com.twitter.post(status=description);`,
-     'source == "test-account:foobar"^^tt:contact("Bob") : @com.bing.web_search, (query == "lol" && description =~ "bar") => @com.twitter.post, status == description;'],
+     `$policy {
+  source == "test-account:foobar"^^tt:contact("Bob") : @com.bing.web_search filter description =~ "bar" && query == "lol" => @com.twitter.post filter status == description;
+}`],
 
     [`now => @com.twitter.search(), text =~ "lol" => notify;`,
-     'source == "test-account:foobar"^^tt:contact("Bob") : @com.twitter.search, text =~ "lol" => notify;'],
+     `$policy {
+  source == "test-account:foobar"^^tt:contact("Bob") : @com.twitter.search filter text =~ "lol" => notify;
+}`],
+
     [`now => @com.bing.web_search(query="lol") => notify;`,
-     'source == "test-account:foobar"^^tt:contact("Bob") : @com.bing.web_search, query == "lol" => notify;'],
+     `$policy {
+  source == "test-account:foobar"^^tt:contact("Bob") : @com.bing.web_search filter query == "lol" => notify;
+}`],
+
     [`now => @com.bing.web_search(query="lol"), description =~ "bar" => notify;`,
-     'source == "test-account:foobar"^^tt:contact("Bob") : @com.bing.web_search, (query == "lol" && description =~ "bar") => notify;'],
-    [`monitor @com.bing.web_search(query="lol") => notify;`,
-     'source == "test-account:foobar"^^tt:contact("Bob") : @com.bing.web_search, query == "lol" => notify;'],
-    [`monitor @com.bing.web_search(query="lol"), description =~ "bar" => notify;`,
-     'source == "test-account:foobar"^^tt:contact("Bob") : @com.bing.web_search, (query == "lol" && description =~ "bar") => notify;'],
+     `$policy {
+  source == "test-account:foobar"^^tt:contact("Bob") : @com.bing.web_search filter description =~ "bar" && query == "lol" => notify;
+}`],
+
+    [`monitor(@com.bing.web_search(query="lol")) => notify;`,
+     `$policy {
+  source == "test-account:foobar"^^tt:contact("Bob") : @com.bing.web_search filter query == "lol" => notify;
+}`],
+
+    [`monitor(@com.bing.web_search(query="lol")), description =~ "bar" => notify;`,
+     `$policy {
+  source == "test-account:foobar"^^tt:contact("Bob") : @com.bing.web_search filter description =~ "bar" && query == "lol" => notify;
+}`],
+
     [`monitor (@com.bing.web_search(query="lol"), description =~ "bar") => notify;`,
-     'source == "test-account:foobar"^^tt:contact("Bob") : @com.bing.web_search, (query == "lol" && description =~ "bar") => notify;'],
+     `$policy {
+  source == "test-account:foobar"^^tt:contact("Bob") : @com.bing.web_search filter description =~ "bar" && query == "lol" => notify;
+}`],
 ];
 
 function test(i) {
     console.log('Test Case #' + (i+1));
     let [code, expected] = TEST_CASES[i];
 
-    return Grammar.parseAndTypecheck(code, schemaRetriever, true).then((prog) => {
+    return Grammar.parse(code).typecheck(schemaRetriever, true).then((prog) => {
         let rule = prog.convertToPermissionRule('test-account:foobar', 'Bob');
         let tt = rule.prettyprint(true);
 

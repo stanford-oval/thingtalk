@@ -19,7 +19,7 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 
 import assert from 'assert';
-import * as Grammar from '../lib/grammar_api';
+import * as Grammar from '../lib/syntax_api';
 import SchemaRetriever from '../lib/schema';
 
 import _mockSchemaDelegate from './mock_schema_delegate';
@@ -106,7 +106,7 @@ async function testCompoundArguments(i) {
     let [tt, args] = FUNC_TEST_CASES[i];
 
     try {
-        const parsed = await Grammar.parseAndTypecheck(tt, schemaRetriever, false);
+        const parsed = await Grammar.parse(tt).typecheck(schemaRetriever, false);
         const q = Object.values(parsed.classes[0].queries)[0];
         assert.deepStrictEqual(q.args, args);
         const clone = q.clone();
@@ -125,7 +125,7 @@ async function testArrayCompoundElements(i) {
     let [tt, arg, fields] = ARRAY_TEST_CASES[i];
 
     try {
-        const parsed = await Grammar.parseAndTypecheck(tt, schemaRetriever, false);
+        const parsed = await Grammar.parse(tt).typecheck(schemaRetriever, false);
         const q = Object.values(parsed.classes[0].queries)[0];
         const type = q.getArgType(arg);
         assert(type.isArray && type.elem.isCompound);

@@ -82,22 +82,30 @@ export function getScalarExpressionName(ast : Ast.Value) : string {
         return 'result';
 }
 
-export function getSchemaForSelector(schemaRetriever : SchemaRetriever,
-                                     type : string,
-                                     name : string,
-                                     schemaType : 'query' | 'action',
-                                     getMeta = false,
-                                     classes : { [key : string] : Ast.ClassDef } = {}) : Promise<Ast.FunctionDef> {
-    if (type in classes) {
+export async function getSchemaForSelector(schemaRetriever : SchemaRetriever,
+                                           kind : string,
+                                           name : string,
+                                           schemaType : 'query' | 'action' | 'both',
+                                           getMeta = false,
+                                           classes : { [key : string] : Ast.ClassDef } = {}) : Promise<Ast.FunctionDef> {
+    if (kind in classes) {
+        const classDef = classes[kind];
         const where = schemaRetriever._where(schemaType);
-        if (!classes[type][where][name])
-            throw new TypeError("Schema " + type + " has no " + where + " " + name);
-        return Promise.resolve(classes[type][where][name]);
+
+        if (where === 'both') {
+            if (!(name in classDef.queries) && !(name in classDef.actions))
+                throw new TypeError(`Class ${kind} has no function ${name}`);
+            return classDef.queries[name] || classDef.actions[name];
+        } else {
+            if (!(name in classDef[where]))
+                throw new TypeError(`Class ${kind} has no ${schemaType} ${name}`);
+            return classDef[where][name];
+        }
     }
     if (getMeta)
-        return schemaRetriever.getMeta(type, schemaType, name);
+        return schemaRetriever.getMeta(kind, schemaType, name);
     else
-        return schemaRetriever.getSchemaAndNames(type, schemaType, name);
+        return schemaRetriever.getSchemaAndNames(kind, schemaType, name);
 }
 
 interface UnaryTableToTableOp extends Ast.Table {
@@ -156,4 +164,50 @@ export function isUnaryExpressionOp(expression : Ast.Expression) : expression is
         expression instanceof Ast.SortExpression ||
         expression instanceof Ast.IndexExpression ||
         expression instanceof Ast.SliceExpression;
+}
+
+export function flipOperator(op : string) : string {
+    switch (op) {
+    case '==':
+    case '!=':
+        return op;
+    case '<':
+        return '>';
+    case '<=':
+        return '>=';
+    case '>':
+        return '<';
+    case '>=':
+        return '<=';
+    case 'contains':
+        return 'in_array';
+    case 'contains~':
+        return '~in_array';
+    case '~contains':
+        return 'in_array~';
+    case 'in_array':
+        return 'contains';
+    case 'in_array~':
+        return '~contains';
+    case '~in_array':
+        return 'contains~';
+    case '=~':
+        return '~=';
+    case '~=':
+        return '=~';
+    case 'group_member':
+        return 'has_member';
+    case 'has_member':
+        return 'group_member';
+    case 'starts_with':
+        return 'prefix_of';
+    case 'prefix_of':
+        return 'starts_with';
+    case 'ends_with':
+        return 'suffix_of';
+    case 'suffix_of':
+        return 'ends_with';
+    default:
+        throw new TypeError('invalid operator ' + op);
+    }
 }

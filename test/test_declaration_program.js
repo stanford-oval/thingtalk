@@ -18,7 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import * as Grammar from '../lib/grammar_api';
+import * as Grammar from '../lib/syntax_api';
 import SchemaRetriever from '../lib/schema';
 
 import _mockSchemaDelegate from './mock_schema_delegate';
@@ -26,30 +26,30 @@ const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 let TEST_CASES = [
     // manually written test cases
-    ['let action x := @com.twitter.post();',
-     'now => @com.twitter.post(status=$?);'],
-    [`let action x := \\(p_status : String) -> @com.twitter.post(status=p_status);`,
-     'now => @com.twitter.post(status=__const_SLOT_0);'],
+    ['function x() { @com.twitter.post(); }',
+     '@com.twitter.post();'],
+    [`function x(p_status : String) { @com.twitter.post(status=p_status); }`,
+     '@com.twitter.post(status=__const_SLOT_0);'],
 
-    ['let table x := @com.bing.web_search();',
-     'now => @com.bing.web_search(query=$?) => notify;'],
-    [`let table x := \\(p_query : String) -> @com.bing.web_search(query=p_query);`,
-     'now => @com.bing.web_search(query=__const_SLOT_0) => notify;'],
-    [`let table x := \\(p_query : String, p_width : Number) -> @com.bing.image_search(query=p_query), width >= p_width;`,
-     'now => (@com.bing.image_search(query=__const_SLOT_0)), width >= __const_SLOT_1 => notify;'],
+    ['function x() { @com.bing.web_search(); }',
+     '@com.bing.web_search();'],
+    [`function x(p_query : String) { @com.bing.web_search(query=p_query); }`,
+     '@com.bing.web_search(query=__const_SLOT_0);'],
+    [`function x(p_query : String, p_width : Number) { @com.bing.image_search(query=p_query), width >= p_width; }`,
+     '@com.bing.image_search(query=__const_SLOT_0) filter width >= __const_SLOT_1;'],
 
-    [`let stream x := \\(p_author : Entity(tt:username)) -> monitor (@com.twitter.search()), author == p_author;`,
-     `monitor (@com.twitter.search()), author == __const_SLOT_0 => notify;`],
+    [`function x(p_author : Entity(tt:username)) { monitor (@com.twitter.search()), author == p_author; }`,
+     `monitor(@com.twitter.search()) filter author == __const_SLOT_0;`],
 
-    ['let action x := \\(p_song1 : String, p_song2 : String) -> @com.spotify.play_songs(songs=[p_song1, p_song2]);',
-    'now => @com.spotify.play_songs(songs=[__const_SLOT_0, __const_SLOT_1]);'],
+    ['function x(p_song1 : String, p_song2 : String) { @com.spotify.play_songs(songs=[p_song1, p_song2]); }',
+    '@com.spotify.play_songs(songs=[__const_SLOT_0, __const_SLOT_1]);'],
 ];
 
 function test(i) {
     console.log('Test Case #' + (i+1));
     let [code, expected] = TEST_CASES[i];
 
-    return Grammar.parseAndTypecheck(code, schemaRetriever, true).then((prog) => {
+    return Grammar.parse(code).typecheck(schemaRetriever, true).then((prog) => {
         let program = prog.declarations[0].toProgram();
         let tt = program.prettyprint(true);
 

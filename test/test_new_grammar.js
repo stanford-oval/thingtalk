@@ -19,7 +19,7 @@
 import assert from 'assert';
 import * as fs from 'fs';
 
-import * as AppGrammar from '../lib/grammar_api';
+import * as AppGrammar from '../lib/syntax_api';
 
 const debug = false;
 
@@ -35,10 +35,22 @@ export default async function main() {
             ast = AppGrammar.parse(code);
             //console.log(String(ast.statements));
         } catch(e) {
+            if (code.indexOf(`** expect ${e.name} **`) >= 0)
+                continue;
             console.error('Parsing failed');
             console.error(code);
             console.error(e);
-            return;
+            if (process.env.TEST_MODE)
+                throw e;
+            continue;
+        }
+
+        if (code.indexOf(`** expect SyntaxError **`) >= 0) {
+            console.error('Failed (expected error)');
+            console.error(code);
+            if (process.env.TEST_MODE)
+                assert.fail('Failed (expected error)');
+            continue;
         }
 
         let codegenned;

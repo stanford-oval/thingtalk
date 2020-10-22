@@ -24,126 +24,115 @@ import Node, { SourceRange } from './base';
 import NodeVisitor from './visitor';
 import { Input } from './program';
 import { Value } from './values';
-import { BooleanExpression } from './expression';
 import TypeChecker from '../typecheck';
 import SchemaRetriever from '../schema';
+
+import { TokenStream } from '../new-syntax/tokenstream';
+import List from '../utils/list';
 
 /**
  * A ThingTalk input that drives the dialog.
  *
- * Bookkeeping inputs are special commands like yes, no or cancel
+ * Control commands are special commands like yes, no or cancel
  * whose purpose is to drive a dialog agent, but have no direct executable
  * semantic.
  *
  * Their definition is included in ThingTalk to aid using ThingTalk as a
  * virtual assistant representation language without extensions.
  *
- * @alias Ast.Input.Bookkeeping
+ * @alias Ast.Input.Control
  * @extends Ast.Input
  */
-export class Bookkeeping extends Input {
-    intent : BookkeepingIntent;
+export class ControlCommand extends Input {
+    intent : ControlIntent;
 
     /**
-     * Construct a new bookkeeping input.
+     * Construct a new control input.
      *
      * @param location - the position of this node
      *        in the source code
      * @param intent - the current intent
      */
-    constructor(location : SourceRange|null, intent : BookkeepingIntent) {
+    constructor(location : SourceRange|null, intent : ControlIntent) {
         super(location);
 
         /**
          * The intent associated with this input.
          *
-         * @type {Ast.BookkeepingIntent}
+         * @type {Ast.ControlIntent}
          * @readonly
          */
         this.intent = intent;
     }
 
+    toSource() : TokenStream {
+        return List.concat(this.intent.toSource(), ';');
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
-        if (visitor.visitBookkeeping(this))
+        if (visitor.visitControlCommand(this))
             this.intent.visit(visitor);
         visitor.exit(this);
     }
 
-    clone() : Bookkeeping {
-        return new Bookkeeping(this.location, this.intent.clone());
+    clone() : ControlCommand {
+        return new ControlCommand(this.location, this.intent.clone());
     }
 
     async typecheck(schemas : SchemaRetriever, getMeta = false) : Promise<this> {
         const typeChecker = new TypeChecker(schemas, getMeta);
-        await typeChecker.typeCheckBookkeeping(this.intent);
+        await typeChecker.typeCheckControl(this.intent);
         return this;
     }
 }
-Input.Bookkeeping = Bookkeeping;
-Bookkeeping.prototype.isBookkeeping = true;
+Input.ControlCommand = ControlCommand;
+ControlCommand.prototype.isControlCommand = true;
 
 /**
- * All types of special bookkeeping commands.
- *
- * @alias Ast.BookkeepingSpecialTypes
- * @type {string[]}
+ * All types of special control commands.
  */
-export const BookkeepingSpecialTypes = [
+export const ControlCommandType = [
     'yes',
     'no',
     'failed',
     'train',
-    'back', // go back / go to the previous page
-    'more', // show more results / go to the next page
-    'empty', // default trigger/action, in make dialog
     'debug',
-    'maybe', // "yes with filters", for permission grant
     'nevermind', // cancel the current task
     'stop', // cancel the current task, quietly
     'help', // ask for contextual help, or start a new task
-    'makerule', // reset and start a new task
     'wakeup', // do nothing and wake up the screen
 ];
 
 /**
- * Base class of all the bookkeeping intents.
+ * Base class of all the control intents.
  *
- * The meaning of all bookkeeping commands is mapped to a subclass of
+ * The meaning of all control commands is mapped to a subclass of
  * this class.
  *
- * @alias Ast.BookkeepingIntent
+ * @alias Ast.ControlIntent
  */
-export abstract class BookkeepingIntent extends Node {
+export abstract class ControlIntent extends Node {
     static Special : any;
     isSpecial ! : boolean;
-    static CommandList : any;
-    isCommandList ! : boolean;
     static Choice : any;
     isChoice ! : boolean;
     static Answer : any;
     isAnswer ! : boolean;
-    static Predicate : any;
-    isPredicate ! : boolean;
 
-    abstract clone() : BookkeepingIntent;
+    abstract clone() : ControlIntent;
 }
-BookkeepingIntent.prototype.isSpecial = false;
-BookkeepingIntent.prototype.isCommandList = false;
-BookkeepingIntent.prototype.isChoice = false;
-BookkeepingIntent.prototype.isAnswer = false;
-BookkeepingIntent.prototype.isPredicate = false;
+ControlIntent.prototype.isSpecial = false;
+ControlIntent.prototype.isChoice = false;
+ControlIntent.prototype.isAnswer = false;
 
 /**
- * A special bookkeeping command.
+ * A special control command.
  *
  * Special commands have no parameters, and are expected to trigger
  * unusual behavior from the dialog agent.
- *
- * @alias Ast.BookkeepingIntent.Special
- * @extends Ast.BookkeepingIntent
  */
-export class SpecialBookkeepingIntent extends BookkeepingIntent {
+export class SpecialControlIntent extends ControlIntent {
     type : string;
 
     /**
@@ -151,41 +140,45 @@ export class SpecialBookkeepingIntent extends BookkeepingIntent {
      *
      * @param location - the position of this node
      *        in the source code
-     * @param type - the command type (one of {@link Ast.BookkeepingSpecialTypes})
+     * @param type - the command type (one of {@link Ast.ControlSpecialTypes})
      */
     constructor(location : SourceRange|null, type : string) {
         super(location);
 
         assert(typeof type === 'string');
         /**
-         * The special command type (one of {@link Ast.BookkeepingSpecialTypes}).
+         * The special command type (one of {@link Ast.ControlSpecialTypes}).
          * @type {string}
          */
         this.type = type;
     }
 
+    toSource() : TokenStream {
+        return List.singleton('$' + this.type);
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
-        visitor.visitSpecialBookkeepingIntent(this);
+        visitor.visitSpecialControlIntent(this);
         visitor.exit(this);
     }
 
-    clone() : SpecialBookkeepingIntent {
-        return new SpecialBookkeepingIntent(this.location, this.type);
+    clone() : SpecialControlIntent {
+        return new SpecialControlIntent(this.location, this.type);
     }
 }
-SpecialBookkeepingIntent.prototype.isSpecial = true;
-BookkeepingIntent.Special = SpecialBookkeepingIntent;
+SpecialControlIntent.prototype.isSpecial = true;
+ControlIntent.Special = SpecialControlIntent;
 
 /**
- * A multiple-choice bookkeeping command.
+ * A multiple-choice control command.
  *
  * This indicates the user chose one option out of the just-presented list.
  *
- * @alias Ast.BookkeepingIntent.Choice
- * @extends Ast.BookkeepingIntent
+ * @alias Ast.ControlIntent.Choice
+ * @extends Ast.ControlIntent
  */
-export class ChoiceBookkeepingIntent extends BookkeepingIntent {
+export class ChoiceControlIntent extends ControlIntent {
     value : number;
 
     /**
@@ -206,80 +199,30 @@ export class ChoiceBookkeepingIntent extends BookkeepingIntent {
         this.value = value;
     }
 
-    visit(visitor : NodeVisitor) : void {
-        visitor.enter(this);
-        visitor.visitChoiceBookkeepingIntent(this);
-        visitor.exit(this);
-    }
-
-    clone() : ChoiceBookkeepingIntent {
-        return new ChoiceBookkeepingIntent(this.location, this.value);
-    }
-}
-ChoiceBookkeepingIntent.prototype.isChoice = true;
-BookkeepingIntent.Choice = ChoiceBookkeepingIntent;
-
-/**
- * A command that triggers a command list.
- *
- * Used to request help for a specific device or category of devices.
- *
- * @alias Ast.BookkeepingIntent.CommandList
- * @extends Ast.BookkeepingIntent
- */
-export class CommandListBookkeepingIntent extends BookkeepingIntent {
-    device : Value;
-    category : string;
-
-    /**
-     * Construct a new command list command.
-     *
-     * @param location - the position of this node
-     *        in the source code
-     * @param device - the device to ask for (an `Entity` or `Undefined` value)
-     * @param category - the Thingpedia (sub)category to ask for
-     */
-    constructor(location : SourceRange|null, device : Value, category : string) {
-        super(location);
-
-        assert(device instanceof Value);
-        /**
-         * The device to list commands for
-         * @type {Ast.Value}
-         */
-        this.device = device;
-
-        assert(typeof category === 'string');
-        /**
-         * The (sub)category to ask for
-         * @type {string}
-         */
-        this.category = category;
+    toSource() : TokenStream {
+        return List.concat('$choice', '(', String(this.value), ')');
     }
 
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
-        if (visitor.visitCommandListBookkeepingIntent(this))
-            this.device.visit(visitor);
+        visitor.visitChoiceControlIntent(this);
         visitor.exit(this);
     }
 
-    clone() : CommandListBookkeepingIntent {
-        return new CommandListBookkeepingIntent(this.location, this.device, this.category);
+    clone() : ChoiceControlIntent {
+        return new ChoiceControlIntent(this.location, this.value);
     }
 }
-CommandListBookkeepingIntent.prototype.isCommandList = true;
-BookkeepingIntent.CommandList = CommandListBookkeepingIntent;
-
-// these are on the chopping block after the contextual work is done...
+ChoiceControlIntent.prototype.isChoice = true;
+ControlIntent.Choice = ChoiceControlIntent;
 
 /**
  * A direct answer to a slot-filling question.
  *
- * @alias Ast.BookkeepingIntent.Answer
- * @extends Ast.BookkeepingIntent
+ * @alias Ast.ControlIntent.Answer
+ * @extends Ast.ControlIntent
  */
-export class AnswerBookkeepingIntent extends BookkeepingIntent {
+export class AnswerControlIntent extends ControlIntent {
     value : Value;
 
     /**
@@ -299,58 +242,20 @@ export class AnswerBookkeepingIntent extends BookkeepingIntent {
         this.value = value;
     }
 
+    toSource() : TokenStream {
+        return List.concat('$answer', '(', this.value.toSource(), ')');
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
-        if (visitor.visitAnswerBookkeepingIntent(this))
+        if (visitor.visitAnswerControlIntent(this))
             this.value.visit(visitor);
         visitor.exit(this);
     }
 
-    clone() : AnswerBookkeepingIntent {
-        return new AnswerBookkeepingIntent(this.location, this.value);
+    clone() : AnswerControlIntent {
+        return new AnswerControlIntent(this.location, this.value);
     }
 }
-AnswerBookkeepingIntent.prototype.isAnswer = true;
-BookkeepingIntent.Answer = AnswerBookkeepingIntent;
-
-/**
- * A standalone predicate to add to the current command.
- *
- * @alias Ast.BookkeepingIntent.Predicate
- * @extends Ast.BookkeepingIntent
- * @deprecated Predicates cannot be typechecked in isolation, and should be replaced with
- *             contextual commands instead.
- */
-export class PredicateBookkeepingIntent extends BookkeepingIntent {
-    predicate : BooleanExpression;
-
-    /**
-     * Construct a new answer command.
-     *
-     * @param location - the position of this node in the source code
-     * @param predicate - the predicate to add
-     */
-    constructor(location : SourceRange|null, predicate : BooleanExpression) {
-        super(location);
-
-        assert(predicate instanceof BooleanExpression);
-        /**
-         * The predicate to add
-         * @type {Ast.BooleanExpression}
-         */
-        this.predicate = predicate;
-    }
-
-    visit(visitor : NodeVisitor) : void {
-        visitor.enter(this);
-        if (visitor.visitPredicateBookkeepingIntent(this))
-            this.predicate.visit(visitor);
-        visitor.exit(this);
-    }
-
-    clone() : PredicateBookkeepingIntent {
-        return new PredicateBookkeepingIntent(this.location, this.predicate);
-    }
-}
-PredicateBookkeepingIntent.prototype.isPredicate = true;
-BookkeepingIntent.Predicate = PredicateBookkeepingIntent;
+AnswerControlIntent.prototype.isAnswer = true;
+ControlIntent.Answer = AnswerControlIntent;

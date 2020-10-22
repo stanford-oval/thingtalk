@@ -20,13 +20,23 @@
 
 import assert from 'assert';
 
-import { SourceRange, NLAnnotationMap, AnnotationMap, AnnotationSpec } from './base';
+import {
+    SourceRange,
+    NLAnnotationMap,
+    AnnotationMap,
+    AnnotationSpec,
+    implAnnotationsToSource,
+    nlAnnotationsToSource,
+} from './base';
 import { cleanKind } from '../utils';
 import { DeviceSelector } from './expression';
 import { Statement, MixinImportStmt, EntityDef } from './program';
 import { FunctionType, FunctionDef } from './function_def';
 import { OldSlot, AbstractSlot } from './slots';
 import NodeVisitor from './visitor';
+
+import { TokenStream } from '../new-syntax/tokenstream';
+import List from '../utils/list';
 
 // Class definitions
 
@@ -116,6 +126,53 @@ export class ClassDef extends Statement {
 
         // load additional options
         this.is_abstract = !!(options && options.is_abstract);
+    }
+
+    toSource() : TokenStream {
+        let list : TokenStream = List.concat('class', '@' + this.kind);
+        if (this.extends.length > 0)
+            list = List.concat(list, 'extends', List.join(this.extends.map((e) => List.singleton('@' + e)), ','));
+
+        let first = true;
+        list = List.concat(list,
+            nlAnnotationsToSource(this.nl_annotations),
+            implAnnotationsToSource(this.impl_annotations),
+            ' ', '{', '\n', '\t+');
+        for (const import_ of this.imports) {
+            if (first)
+                first = false;
+            else
+                list = List.concat(list, '\n');
+            list = List.concat(list, import_.toSource(), '\n');
+        }
+        for (const entity of this.entities) {
+            if (first)
+                first = false;
+            else
+                list = List.concat(list, '\n');
+            list = List.concat(list, entity.toSource(), '\n');
+        }
+        for (const q in this.queries) {
+            if (first)
+                first = false;
+            else
+                list = List.concat(list, '\n');
+            list = List.concat(list, this.queries[q].toSource(), '\n');
+        }
+        for (const a in this.actions) {
+            if (first)
+                first = false;
+            else
+                list = List.concat(list, '\n');
+            list = List.concat(list, this.actions[a].toSource(), '\n');
+        }
+
+        list = List.concat(list, '\t-', '}');
+
+        if (this.is_abstract)
+            list = List.concat('abstract', list);
+
+        return list;
     }
 
     *iterateSlots() : Generator<OldSlot, void> {

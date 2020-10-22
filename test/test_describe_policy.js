@@ -20,7 +20,7 @@
 
 import assert from 'assert';
 import * as Describe from '../lib/describe';
-import * as Grammar from '../lib/grammar_api';
+import * as Grammar from '../lib/syntax_api';
 import SchemaRetriever from '../lib/schema';
 
 import _mockSchemaDelegate from './mock_schema_delegate';
@@ -161,7 +161,7 @@ let TEST_CASES = [
      'anyone is allowed to read the current event detected on your security camera if the current time is before the evening'],
 
     ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= makeTime(17,00) && time <= makeTime(19,00) } => notify',
-     'anyone is allowed to read the current event detected on your security camera if the current time is after 5:00 PM and the current time is before 7:00 PM'],
+     'anyone is allowed to read the current event detected on your security camera if the current time is before 7:00 PM and the current time is after 5:00 PM'],
 
     ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_gps() { location == $context.location.home } => notify',
      'anyone is allowed to read the current event detected on your security camera if the my location is equal to at home'],
@@ -181,7 +181,7 @@ let TEST_CASES = [
     ['true : @security-camera.current_event, @org.thingpedia.weather.current(location=$context.location.current_location) { temperature <= 21C && temperature >= 19C } => notify',
      'anyone is allowed to read the current event detected on your security camera if for the current weather for here, the temperature is less than or equal to 21 C and the temperature is greater than or equal to 19 C'],
     ['true : @security-camera.current_event, @org.thingpedia.weather.current(location=$context.location.current_location) { temperature >= 21C || temperature <= 19C } => notify',
-     'anyone is allowed to read the current event detected on your security camera if for the current weather for here, the temperature is greater than or equal to 21 C or the temperature is less than or equal to 19 C'],
+     'anyone is allowed to read the current event detected on your security camera if for the current weather for here, the temperature is less than or equal to 19 C or the temperature is greater than or equal to 21 C'],
 
 
     ['true : @com.bing.web_search, query == "foo" => notify',
@@ -194,10 +194,10 @@ let TEST_CASES = [
      'anyone is allowed to read websites matching “foo” on Bing if the description contains “lol”'],
 
     ['true : @com.bing.web_search, !(query == "foo" && description =~ "lol") => notify',
-     'anyone is allowed to read websites matching any query on Bing if not the query is equal to “foo” and the description contains “lol”'],
+     'anyone is allowed to read websites matching any query on Bing if not the description contains “lol” and the query is equal to “foo”'],
 
     ['true : @com.bing.web_search, (query == "foo" || query == "bar") && description =~ "lol" => notify',
-     'anyone is allowed to read websites matching any query on Bing if the query is any of “foo” or “bar” and the description contains “lol”'],
+     'anyone is allowed to read websites matching any query on Bing if the description contains “lol” and the query is any of “foo” or “bar”'],
 
     ['true : @com.washingtonpost.get_article => notify',
     'anyone is allowed to read the latest articles in the any section section of the Washington Post'],
@@ -206,7 +206,7 @@ let TEST_CASES = [
     'anyone is allowed to read the latest articles in the world section of the Washington Post'],
 
     ['true : @com.washingtonpost.get_article, section == enum(world) || section == enum(opinions) => notify',
-    'anyone is allowed to read the latest articles in the any section section of the Washington Post if the section is any of world or opinions'],
+    'anyone is allowed to read the latest articles in the any section section of the Washington Post if the section is any of opinions or world'],
 
     ['true : @com.wsj.get, section == enum(world_news) && updated >= makeDate() => notify',
     'anyone is allowed to read articles published in the world news section of the Wall Street Journal if the updated is after now'],
@@ -269,7 +269,7 @@ function test(i) {
     console.log('Test Case #' + (i+1));
     const [code, expected] = TEST_CASES[i];
 
-    return Grammar.parseAndTypecheck(code, schemaRetriever, true).then((prog) => {
+    return Grammar.parse(code, Grammar.SyntaxType.Legacy).typecheck(schemaRetriever, true).then((prog) => {
         assert(prog.isPermissionRule);
         let reconstructed = Describe.describePermissionRule(gettext, prog);
 

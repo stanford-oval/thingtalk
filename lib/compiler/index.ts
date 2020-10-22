@@ -19,7 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
-import * as Grammar from '../grammar';
+import * as Grammar from '../syntax_api';
 import { NotCompilableError } from '../utils/errors';
 import * as Ast from '../ast';
 import { TypeMap } from '../type';
@@ -88,7 +88,10 @@ export default class AppCompiler {
     }
 
     compileCode(code : string) : Promise<CompiledProgram> {
-        return this.compileProgram(Grammar.parse(code));
+        const parsed = Grammar.parse(code);
+        if (!(parsed instanceof Ast.Program))
+            throw new Error(`Not an executable program`);
+        return this.compileProgram(parsed);
     }
 
     _allocState() : number {
@@ -144,8 +147,16 @@ export default class AppCompiler {
             assert(schema);
             const hints = new QueryInvocationHints(new Set(getDefaultProjection(schema)));
 
-            const table = assignment.value.toLegacy();
-            assert(table instanceof Ast.Table);
+            const converted = assignment.value.toLegacy();
+            let table : Ast.Table;
+            if (converted instanceof Ast.Action.Invocation) {
+                table = new Ast.Table.Invocation(null, converted.invocation, converted.schema);
+            } else if (converted instanceof Ast.Action.VarRef) {
+                table = new Ast.Table.VarRef(null, converted.name, converted.in_params, converted.schema);
+            } else {
+                assert(converted instanceof Ast.Table);
+                table = converted;
+            }
             const tableop = compileTableToOps(table, [], hints);
             register = opCompiler.compileAssignment(tableop, isPersistent);
         }

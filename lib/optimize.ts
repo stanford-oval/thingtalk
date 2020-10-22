@@ -21,9 +21,10 @@
 import assert from 'assert';
 import * as Ast from './ast';
 
+import List from './utils/list';
 import {
     isUnaryExpressionOp,
-    getScalarExpressionName
+    flipOperator
 } from './utils';
 
 function flattenAnd(expr : Ast.BooleanExpression) : Ast.BooleanExpression[] {
@@ -56,12 +57,36 @@ function flattenOr(expr : Ast.BooleanExpression) : Ast.BooleanExpression[] {
     return flattened;
 }
 
+function compareList<T>(one : List<T>, two : List<T>) : -1|0|1 {
+    const oneit = one[Symbol.iterator](), twoit = two[Symbol.iterator]();
+
+    for (;;) {
+        const onev = oneit.next(), twov = twoit.next();
+        if (onev.done && twov.done)
+            return 0;
+        if (onev.done)
+            return -1;
+        if (twov.done)
+            return 1;
+        if (String(onev.value) < String(twov.value))
+            return -1;
+        if (String(twov.value) < String(onev.value))
+            return 1;
+    }
+}
+
+// compare according to the lexicographic representation
+function compareBooleanExpression(one : Ast.BooleanExpression, two : Ast.BooleanExpression) {
+    return compareList(one.toSource(), two.toSource());
+}
+
 function optimizeFilter(expr : Ast.BooleanExpression) : Ast.BooleanExpression {
     if (expr.isTrue || expr.isFalse || expr.isDontCare)
         return expr;
     if (expr instanceof Ast.AndBooleanExpression) {
         const operands = flattenAnd(expr).map((o) => optimizeFilter(o)).filter((o) => !o.isTrue);
         operands.forEach((op) => assert(op instanceof Ast.BooleanExpression));
+        operands.sort(compareBooleanExpression);
         for (const o of operands) {
             if (o.isFalse)
                 return Ast.BooleanExpression.False;
@@ -75,6 +100,7 @@ function optimizeFilter(expr : Ast.BooleanExpression) : Ast.BooleanExpression {
     if (expr instanceof Ast.OrBooleanExpression) {
         const operands = flattenOr(expr).map((o) => optimizeFilter(o)).filter((o) => !o.isFalse);
         operands.forEach((op) => assert(op instanceof Ast.BooleanExpression));
+        operands.sort(compareBooleanExpression);
         for (const o of operands) {
             if (o.isTrue)
                 return Ast.BooleanExpression.True;
@@ -148,8 +174,34 @@ function optimizeFilter(expr : Ast.BooleanExpression) : Ast.BooleanExpression {
         return new Ast.BooleanExpression.External(expr.location, expr.selector,
             expr.channel, expr.in_params, subfilter, expr.schema);
     }
-    if (expr.isCompute) {
-        // TODO
+    if (expr instanceof Ast.ComputeBooleanExpression) {
+        const lhs = expr.lhs;
+        const rhs = expr.rhs;
+        const op = expr.operator;
+
+        // convert to atom filters if possible (easier to deal with as slots)
+        if (lhs instanceof Ast.VarRefValue) {
+            return optimizeFilter(new Ast.BooleanExpression.Atom(expr.location,
+                lhs.name, op, rhs));
+        }
+        if (rhs instanceof Ast.VarRefValue) {
+            return optimizeFilter(new Ast.BooleanExpression.Atom(expr.location,
+                rhs.name, flipOperator(op), lhs));
+        }
+
+        // check for common equality cases
+        if (lhs.equals(rhs) &&
+            (op === '==' || op === '=~' || op === '>=' || op === '<='))
+            return Ast.BooleanExpression.True;
+        if (lhs.isConstant() && rhs.isConstant() &&
+            !lhs.equals(rhs) && op === '==')
+            return Ast.BooleanExpression.False;
+
+        // put constants on the right side
+        if (lhs.isConstant() && !rhs.isConstant()) {
+            return new Ast.BooleanExpression.Compute(expr.location,
+                rhs, flipOperator(op), lhs);
+        }
         return expr;
     }
     assert(expr instanceof Ast.AtomBooleanExpression);
@@ -165,77 +217,26 @@ function optimizeFilter(expr : Ast.BooleanExpression) : Ast.BooleanExpression {
     return expr;
 }
 
-function findComputeExpression(expression : Ast.Expression) : Ast.ProjectionExpression|null {
-    if (expression instanceof Ast.ProjectionExpression)
-        return expression;
-    if (expression instanceof Ast.InvocationTable || expression instanceof Ast.VarRefTable)
-        return null;
-
-    // do not traverse joins, aggregations or aliases, as those
-    // change the meaning of parameters and therefore the expressions
-    if (expression instanceof Ast.ChainExpression || expression instanceof Ast.AliasExpression ||
-        expression instanceof Ast.AggregationExpression)
-        return null;
-
-    if (isUnaryExpressionOp(expression))
-        return findComputeExpression(expression.expression);
-
-    throw new TypeError(expression.constructor.name);
-}
-
-function expressionUsesParam(expr : Ast.Node, pname : string) : boolean {
-    let used = false;
-    expr.visit(new class extends Ast.NodeVisitor {
-        visitVarRefValue(value : Ast.VarRefValue) {
-            used = used || value.name === pname;
-            return true;
-        }
-    });
-    return used;
+function compareInputParam(one : Ast.InputParam, two : Ast.InputParam) : -1|0|1 {
+    if (one.name < two.name)
+        return -1;
+    if (two.name < one.name)
+        return 1;
+    return 0;
 }
 
 function optimizeExpression(expression : Ast.Expression, allow_projection=true) : Ast.Expression|null {
-    if (expression instanceof Ast.FunctionCallExpression || expression instanceof Ast.FunctionCallExpression)
+    if (expression instanceof Ast.FunctionCallExpression) {
+        expression.in_params.sort(compareInputParam);
         return expression;
+    }
+    if (expression instanceof Ast.InvocationExpression) {
+        expression.invocation.in_params.sort(compareInputParam);
+        return expression;
+    }
 
     if (expression instanceof Ast.ProjectionExpression) {
-        const newComputations : Ast.Value[] = [], newAliases : Array<string|null> = [];
-
-        // for each computation, look for a nested projection table and find one that has the same
-        // expression (note that joins, aggregations and aliases stop the traversal)
-        // if so, we remove this expression entirely
-
-        for (let i = 0; i < expression.computations.length; i++) {
-            let inner = findComputeExpression(expression.expression);
-            let found = false;
-            search_loop:
-            while (inner) {
-                for (let j = 0; j < inner.computations.length; j++) {
-                    // check that our expression doesn't depend on the result of the computation
-                    // (if it does, the computation is not redundant)
-                    const innerOutputName = inner.aliases[j] || getScalarExpressionName(inner.computations[j]);
-
-                    if (expressionUsesParam(expression.computations[i], innerOutputName))
-                        break search_loop;
-
-                    // check that our expression is equal to the inner expression,
-                    if (inner.computations[j].equals(expression.computations[i])) {
-                        found = true;
-                        break search_loop;
-                    }
-                }
-
-                // try going deeper
-                inner = findComputeExpression(inner.expression);
-            }
-
-            if (!found) {
-                newComputations.push(expression.computations[i]);
-                newAliases.push(expression.aliases[i]);
-            }
-        }
-
-        if (newComputations.length === 0) {
+        if (expression.computations.length === 0) {
             if (!allow_projection)
                 return optimizeExpression(expression.expression);
             if (expression.expression instanceof Ast.AggregationExpression)
@@ -255,7 +256,8 @@ function optimizeExpression(expression : Ast.Expression, allow_projection=true) 
         const optimized = optimizeExpression(expression.expression, allow_projection);
         if (!optimized)
             return null;
-        return new Ast.ProjectionExpression(expression.location, optimized, expression.args, newComputations, newAliases, expression.schema);
+        expression.expression = optimized;
+        return expression;
     }
 
     if (expression instanceof Ast.MonitorExpression) {
@@ -285,23 +287,30 @@ function optimizeExpression(expression : Ast.Expression, allow_projection=true) 
             return optimizeExpression(expression.expression, allow_projection);
         if (expression.filter.isFalse)
             return null;
+
+        const inner = optimizeExpression(expression.expression, allow_projection);
+        if (!inner)
+            return null;
+        expression.expression = inner;
+
         // compress filter of filter
-        if (expression.expression instanceof Ast.FilterExpression) {
+        if (inner instanceof Ast.FilterExpression) {
             expression.filter = optimizeFilter(new Ast.BooleanExpression.And(expression.filter.location,
-                [expression.filter, expression.expression.filter]));
-            expression.expression = expression.expression.expression;
+                [expression.filter, inner.filter]));
+            expression.expression = inner.expression;
             return optimizeExpression(expression, allow_projection);
         }
 
         // switch filter of project to project of filter
-        if (expression.expression instanceof Ast.ProjectionExpression &&
-            expression.expression.computations.length === 0) {
+        if (inner instanceof Ast.ProjectionExpression &&
+            inner.computations.length === 0) {
+
             if (allow_projection) {
                 const optimized = optimizeExpression(new Ast.FilterExpression(
-                    expression.expression.location,
-                    expression.expression.expression,
+                    inner.location,
+                    inner.expression,
                     expression.filter,
-                    expression.expression.expression.schema),
+                    inner.expression.schema),
                     allow_projection);
                 if (!optimized)
                     return null;
@@ -309,16 +318,16 @@ function optimizeExpression(expression : Ast.Expression, allow_projection=true) 
                 return new Ast.ProjectionExpression(
                     expression.location,
                     optimized,
-                    expression.expression.args,
+                    inner.args,
                     [], [],
-                    expression.expression.schema
+                    inner.schema
                 );
             } else {
                 return optimizeExpression(new Ast.FilterExpression(
                     expression.location,
-                    expression.expression.expression,
+                    inner.expression,
                     expression.filter,
-                    expression.expression.expression.schema
+                    inner.expression.schema
                 ), allow_projection);
             }
         }
@@ -342,8 +351,12 @@ function optimizeExpression(expression : Ast.Expression, allow_projection=true) 
         return expression;
     }
     if (expression instanceof Ast.ChainExpression) {
+        if (expression.expressions.length === 1)
+            return optimizeExpression(expression.expressions[0], allow_projection);
+
         for (let i = 0; i < expression.expressions.length; i++) {
-            const optimized = optimizeExpression(expression.expressions[i], allow_projection);
+            const optimized = optimizeExpression(expression.expressions[i],
+                allow_projection && i === expression.expressions.length - 1);
             if (!optimized)
                 return null;
             expression.expressions[i] = optimized;
@@ -390,8 +403,23 @@ function optimizeProgram(program : Ast.Program) : Ast.Program|null {
         return program;
 }
 
+function optimizeDataset(dataset : Ast.Dataset) : Ast.Dataset {
+    const newExamples = [];
+    for (const ex of dataset.examples) {
+
+        const optimized = optimizeExpression(ex.value, true);
+        if (!optimized)
+            continue;
+        ex.value = optimized;
+        newExamples.push(ex);
+    }
+    dataset.examples = newExamples;
+    return dataset;
+}
+
 export {
     optimizeRule,
     optimizeProgram,
+    optimizeDataset,
     optimizeFilter
 };

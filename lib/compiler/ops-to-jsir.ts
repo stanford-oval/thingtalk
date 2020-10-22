@@ -676,10 +676,6 @@ export default class OpCompiler {
         this._irBuilder.pushBlock(tryCatch.try);
 
         if (ast instanceof Ast.NotifyAction) {
-            if (ast.name === 'return')
-                throw new TypeError('return must be lowered before execution, use Generate.lowerReturn');
-            assert(ast.name === 'notify');
-
             this._compileInvokeOutput();
         } else {
             const stack = this._irBuilder.saveStackState();
@@ -1151,7 +1147,7 @@ export default class OpCompiler {
             null /* location */,
             [],
             [],
-            [new Ast.ExpressionStatement(null, tableop.ast.toExpression())]
+            [new Ast.ExpressionStatement(null, tableop.ast.toExpression([]))]
         );
         const astId = this._compiler._allocAst(query);
         const astReg = this._irBuilder.allocRegister();

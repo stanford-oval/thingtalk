@@ -49,12 +49,9 @@ type DialogueHistoryAnnotation =
 
 input : Ast.Input = {
     program;
-    'bookkeeping' 'special' s:SPECIAL => new Ast.Input.Bookkeeping($.location, new Ast.BookkeepingIntent.Special($.location, s.value));
-    'bookkeeping' 'answer' c:value => new Ast.Input.Bookkeeping($.location, new Ast.BookkeepingIntent.Answer($.location, c));
-    'bookkeeping' 'filter' f:filter => new Ast.Input.Bookkeeping($.location, new Ast.BookkeepingIntent.Predicate($.location, f));
-    'bookkeeping' 'category' c:command_category => new Ast.Input.Bookkeeping($.location, new Ast.BookkeepingIntent.CommandList($.location, new Ast.Value.Undefined(true), c));
-    'bookkeeping' 'commands' c:command_category d:constant_Entity__tt__device => new Ast.Input.Bookkeeping($.location, new Ast.BookkeepingIntent.CommandList(null, d, c));
-    'bookkeeping' 'choice' n:literal_integer => new Ast.Input.Bookkeeping($.location, new Ast.BookkeepingIntent.Choice($.location, n));
+    'bookkeeping' 'special' s:SPECIAL => new Ast.ControlCommand($.location, new Ast.ControlIntent.Special($.location, s.value));
+    'bookkeeping' 'answer' c:value => new Ast.ControlCommand($.location, new Ast.ControlIntent.Answer($.location, c));
+    'bookkeeping' 'choice' n:literal_integer => new Ast.ControlCommand($.location, new Ast.ControlIntent.Choice($.location, n));
 
     'policy' p:policy => p;
 
@@ -65,19 +62,6 @@ literal_integer : number = {
     '0' => 0;
     '1' => 1;
     n:LITERAL_INTEGER => n.value;
-}
-
-command_category : string = {
-    'online' => 'online';
-    'physical' => 'physical';
-    'data' => 'data';
-    'media' => 'media';
-    'home' => 'home';
-    'social-network' => 'social-network';
-    'communication' => 'communication';
-    'data-management' => 'data-management';
-    'health' => 'health';
-    'service' => 'service';
 }
 
 dialogue_state : Ast.DialogueState = {
@@ -215,9 +199,9 @@ policy_fn : Ast.PermissionFunction = {
 }
 
 rule : Ast.ExpressionStatement = {
-    stream '=>' action => new Ast.ExpressionStatement($.location, new Ast.ChainExpression($.location, [stream.toExpression(), action.toExpression()], null));
-    'now' '=>' table '=>' action => new Ast.ExpressionStatement($.location, new Ast.ChainExpression($.location, [table.toExpression(), action.toExpression()], null));
-    'now' '=>' action => new Ast.ExpressionStatement($.location, new Ast.ChainExpression($.location, [action.toExpression()], null));
+    stream '=>' action => new Ast.Rule($.location, stream, [action]).toExpression();
+    'now' '=>' table '=>' action => new Ast.Command($.location, table, [action]).toExpression();
+    'now' '=>' action => new Ast.Command($.location, null, [action]).toExpression();
 
     rule 'on' pp:param_passing => {
         rule = rule.clone();
@@ -311,7 +295,6 @@ stream_join : Ast.JoinStream = {
 
 action : Ast.NotifyAction|Ast.InvocationAction = {
     'notify' => new Ast.Action.Notify($.location, 'notify', null);
-    'return' => new Ast.Action.Notify($.location, 'return', null);
     call => new Ast.Action.Invocation($.location, call, null);
 }
 

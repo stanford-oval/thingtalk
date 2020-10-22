@@ -21,40 +21,38 @@
 
 import assert from 'assert';
 
-import * as AppGrammar from '../lib/grammar_api';
+import * as AppGrammar from '../lib/syntax_api';
 
 const TEST_CASES = [
 // compound type
 `class @org.schema {
-  list query local_business(out name: String
+  list query local_business(out name : String
                             #_[canonical={
                               base=["name"],
                               passive_verb=["called"]
                             }]
                             #[filterable=false],
-                            out rating: {
-                              value: Number
+                            out rating : {
+                              value : Number
                               #_[canonical="v"],
-                              count: Number
+                              count : Number
                               #[foo=true]
                             })
   #[minimal_projection=[]];
-}
-`,
+}`,
 
 // sub function
 `class @org.schema {
-  list query local_business(out name: String,
-                            out rating: {
-                              value: Number,
-                              count: Number
+  list query local_business(out name : String,
+                            out rating : {
+                              value : Number,
+                              count : Number
                             })
   #[minimal_projection=[]];
 
-  list query restaurants extends local_business(out serveCuisine: String)
+  list query restaurants extends local_business(out serveCuisine : String)
   #[minimal_projection=[]];
-}
-`,
+}`,
 
 // entity def
 `class @com.example {
@@ -62,33 +60,32 @@ const TEST_CASES = [
     #_[description="Restaurant"]
     #[has_ner=true];
 
-  query restaurant(out id: Entity(com.example:restaurant),
-                   out geo: Location)
+  query restaurant(out id : Entity(com.example:restaurant),
+                   out geo : Location)
   #[minimal_projection=["id"]];
-}
-`,
+}`,
 
 // aggregate filter
-`@org.schema.restaurant(), count(review) >= 1;`,
+`@org.schema.restaurant() filter count(review) >= 1;`,
 
 // compute table
 `[count(reviews)] of @org.schema.restaurants();`,
-`[aggregateRating.reviews filter { author == "Bob" }] of @org.schema.restaurants();`,
-`[aggregateRating.reviews filter { author == "Bob" } as foo] of @org.schema.restaurants();`,
+`[aggregateRating.reviews filter author == "Bob"] of @org.schema.restaurants();`,
+`[aggregateRating.reviews filter author == "Bob" as foo] of @org.schema.restaurants();`,
 
 // device selectors
-`now => @light-bulb(name="bathroom").set_power(power=enum(on));`,
-`now => @light-bulb(id="io.home-assistant/http://hassio.local:8123-light.hue_bloom_1", name="bathroom").set_power(power=enum(on));`,
-`now => @light-bulb(all=true).set_power(power=enum(on));`,
+`@light-bulb(name="bathroom").set_power(power=enum on);`,
+`@light-bulb(id="io.home-assistant/http://hassio.local:8123-light.hue_bloom_1"^^tt:device_id("bathroom")).set_power(power=enum on);`,
+`@light-bulb(all=true).set_power(power=enum on);`,
 
-`dataset @everything language "en" {
-  query := @org.thingpedia.rss(all=true).get_post()
+`dataset @everything
+#[language="en"] {
+  query = @org.thingpedia.rss(all=true).get_post()
   #_[utterances=["all rss feeds"]];
 
-  query (p_name :String) := @org.thingpedia.rss(name=p_name).get_post()
+  query (p_name : String) = @org.thingpedia.rss(name=p_name).get_post()
   #_[utterances=["$p_name rss feed"]];
-}
-`,
+}`,
 ];
 
 export default function main() {
@@ -109,7 +106,7 @@ export default function main() {
         let codegenned;
         try {
             codegenned = ast.prettyprint();
-            assert.strictEqual(code, codegenned);
+            assert.strictEqual(codegenned, code);
         } catch(e) {
             console.error('Prettyprint failed');
             console.error('Prettyprinted:');

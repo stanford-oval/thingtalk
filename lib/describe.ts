@@ -1018,14 +1018,7 @@ class Describer {
     }
 
     private _describeNotifyAction(action : Ast.NotifyAction) {
-        if (action.name === 'return')
-            return this._("send it to me");
-        else if (action.name === 'notify')
-            return this._("notify you");
-        else if (action.name === 'save')
-            return this._("save it");
-        else
-            throw new TypeError();
+        return this._("notify you");
     }
 
     private _describeAction(action : Ast.Action) {
@@ -1286,23 +1279,16 @@ class Describer {
         }
     }
 
-    private _describeBookkeeping(input : Ast.Bookkeeping) : string {
+    private _describeControlCommand(input : Ast.ControlCommand) : string {
         const intent = input.intent;
-        if (intent instanceof Ast.SpecialBookkeepingIntent) {
+        if (intent instanceof Ast.SpecialControlIntent) {
             return this._describeSpecial(intent.type);
-        } else if (intent instanceof Ast.CommandListBookkeepingIntent) {
-            return this._interp(this._("list the commands of ${device}, in category ${category}"), {
-                device: this._describeArg(intent.device),
-                category: clean(intent.category)
-            })||'';
-        } else if (intent instanceof Ast.ChoiceBookkeepingIntent) {
+        } else if (intent instanceof Ast.ChoiceControlIntent) {
             return this._interp(this._("choice number ${choice}"), {
                 choice: intent.value+1
             })||'';
-        } else if (intent instanceof Ast.AnswerBookkeepingIntent) {
+        } else if (intent instanceof Ast.AnswerControlIntent) {
             return this.describeArg(intent.value);
-        } else if (intent instanceof Ast.PredicateBookkeepingIntent) {
-            return this.describeFilter(intent.predicate);
         } else {
             throw new TypeError();
         }
@@ -1313,8 +1299,8 @@ class Describer {
             return this.describeProgram(input);
         else if (input instanceof Ast.PermissionRule)
             return this.describePermissionRule(input);
-        else if (input instanceof Ast.Bookkeeping)
-            return this._describeBookkeeping(input);
+        else if (input instanceof Ast.ControlCommand)
+            return this._describeControlCommand(input);
         else
             throw new TypeError(`Unrecognized input type ${input}`);
     }
@@ -1344,6 +1330,9 @@ function getProgramName(_ : (x : string) => string, program : Ast.Program) : str
     const descriptions : string[] = [];
     for (const [,prim] of program.iteratePrimitives(true)) {
         if (prim instanceof Ast.ExternalBooleanExpression)
+            continue;
+        if (prim instanceof Ast.FunctionCallExpression &&
+            (prim.name === 'timer' || prim.name === 'attimer'))
             continue;
         descriptions.push(capitalizeSelector(prim));
     }

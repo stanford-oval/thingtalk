@@ -38,6 +38,14 @@ import {
     addParenthesis
 } from './syntax_priority';
 
+import {
+    MeasureEntity,
+    LocationEntity,
+    TimeEntity,
+    GenericEntity,
+    AnyEntity
+} from '../entities';
+
 import * as builtin from '../builtin/values';
 
 export abstract class Location {
@@ -50,6 +58,7 @@ export abstract class Location {
 
     abstract clone() : Location;
     abstract equals(x : unknown) : boolean;
+    abstract toEntity() : LocationEntity;
     abstract toSource() : TokenStream;
 }
 Location.prototype.isAbsolute = false;
@@ -78,8 +87,12 @@ export class AbsoluteLocation extends Location {
         return this.lon;
     }
 
+    toEntity() : LocationEntity {
+        return { latitude: this.lat, longitude: this.lon, display: this.display };
+    }
+
     toSource() : TokenStream {
-        return List.singleton(new ConstantToken('LOCATION', this));
+        return List.singleton(new ConstantToken('LOCATION', this.toEntity()));
     }
 
     toString() : string {
@@ -105,6 +118,10 @@ export class RelativeLocation extends Location {
         super();
         assert(typeof relativeTag === 'string');
         this.relativeTag = relativeTag;
+    }
+
+    toEntity() : LocationEntity {
+        throw new Error('Value is not an entity');
     }
 
     toSource() : TokenStream {
@@ -134,9 +151,12 @@ export class UnresolvedLocation extends Location {
         this.name = name;
     }
 
+    toEntity() : LocationEntity {
+        return { latitude: NaN, longitude: NaN, display: this.name };
+    }
+
     toSource() : TokenStream {
-        const syntax : TokenStream = List.concat('new', 'Location', '(');
-        return List.concat(syntax, new ConstantToken('QUOTED_STRING', this.name), ')');
+        return List.singleton(new ConstantToken('LOCATION', this.toEntity()));
     }
 
     toString() : string {
@@ -207,9 +227,10 @@ export class DatePiece {
         syntax = List.concat(syntax, ',');
         if (this.day !== null)
             syntax = List.concat(syntax, new ConstantToken('NUMBER', this.day));
-        syntax = List.concat(syntax, ',');
-        if (this.time !== null)
+        if (this.time !== null) {
+            syntax = List.concat(syntax, ',');
             syntax = List.concat(syntax, this.time.toSource());
+        }
         syntax = List.concat(syntax, ')');
         return syntax;
     }
@@ -238,8 +259,14 @@ export class WeekDayDate {
     weekday : WeekDay;
     time : TimeValue|null;
 
-    constructor(weekday : WeekDay, time : TimeValue|null) {
-        assert(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].includes(weekday));
+    constructor(weekday : string, time : TimeValue|null) {
+        assert(weekday === 'monday' ||
+               weekday === 'tuesday' ||
+               weekday === 'wednesday' ||
+               weekday === 'thursday' ||
+               weekday === 'friday' ||
+               weekday === 'saturday' ||
+               weekday === 'sunday');
         this.weekday = weekday;
         this.time = time;
     }
@@ -265,6 +292,7 @@ export abstract class Time {
 
     abstract clone() : Time;
     abstract equals(x : unknown) : boolean;
+    abstract toEntity() : TimeEntity;
     abstract toSource() : TokenStream;
 }
 Time.prototype.isAbsolute = false;
@@ -291,8 +319,12 @@ export class AbsoluteTime extends Time {
         this.second = second;
     }
 
+    toEntity() : TimeEntity {
+        return { hour: this.hour, minute: this.minute, second: this.second };
+    }
+
     toSource() : TokenStream {
-        return List.singleton(new ConstantToken('TIME', this));
+        return List.singleton(new ConstantToken('TIME', this.toEntity()));
     }
 
     clone() : AbsoluteTime {
@@ -334,6 +366,10 @@ export class RelativeTime extends Time {
         super();
         assert(typeof relativeTag === 'string');
         this.relativeTag = relativeTag;
+    }
+
+    toEntity() : TimeEntity {
+        throw new Error('Value is not an entity');
     }
 
     toSource() : TokenStream {
@@ -551,6 +587,13 @@ export abstract class Value extends AstNode {
      */
     toJS() : unknown {
         throw new Error('Value is not a constant');
+    }
+
+    /**
+     * Convert this AST node to an entity that can be extracted from a sentence.
+     */
+    toEntity() : AnyEntity {
+        throw new Error('Value is not an entity');
     }
 }
 Value.prototype.isBoolean = false;
@@ -943,7 +986,7 @@ export class ContextRefValue extends Value {
     }
 
     toSource() : TokenStream {
-        return List.concat('$context', '.', this.name, ':' + this.type);
+        return List.concat('$context', '.', this.name, ':', this.type.toSource());
     }
 
     toString() : string {
@@ -1026,6 +1069,10 @@ export class StringValue extends Value {
         this.value = value;
     }
 
+    toEntity() : string {
+        return this.value;
+    }
+
     toSource() : TokenStream {
         return List.singleton(new ConstantToken('QUOTED_STRING', this.value));
     }
@@ -1066,6 +1113,10 @@ export class NumberValue extends Value {
         super(null);
         assert(typeof value === 'number');
         this.value = value;
+    }
+
+    toEntity() : number {
+        return this.value;
     }
 
     toSource() : TokenStream {
@@ -1113,11 +1164,12 @@ export class MeasureValue extends Value {
         this.unit = unit;
     }
 
+    toEntity() : MeasureEntity {
+        return { unit: this.unit, value: this.value };
+    }
+
     toSource() : TokenStream {
-        return List.singleton(new ConstantToken('MEASURE', {
-            value: this.value,
-            unit: this.unit
-        }));
+        return List.singleton(new ConstantToken('MEASURE', this.toEntity()));
     }
 
     toString() : string {
@@ -1166,11 +1218,12 @@ export class CurrencyValue extends Value {
         this.code = code;
     }
 
+    toEntity() : MeasureEntity {
+        return { unit: this.code, value: this.value };
+    }
+
     toSource() : TokenStream {
-        return List.singleton(new ConstantToken('CURRENCY', {
-            value: this.value,
-            unit: this.code
-        }));
+        return List.singleton(new ConstantToken('CURRENCY', this.toEntity()));
     }
 
     toString() : string {
@@ -1210,6 +1263,10 @@ export class LocationValue extends Value {
         super(null);
         assert(value instanceof Location);
         this.value = value;
+    }
+
+    toEntity() : LocationEntity {
+        return this.value.toEntity();
     }
 
     toSource() : TokenStream {
@@ -1292,6 +1349,13 @@ export class DateValue extends Value {
         return new DateValue(null);
     }
 
+    toEntity() : Date {
+        if (this.value instanceof Date)
+            return this.value;
+        else
+            throw new Error('Value is not an entity');
+    }
+
     toSource() : TokenStream {
         if (this.value === null)
             return List.singleton('$now');
@@ -1336,6 +1400,10 @@ export class TimeValue extends Value {
         super(null);
         assert(value instanceof Time);
         this.value = value;
+    }
+
+    toEntity() : TimeEntity {
+        return this.value.toEntity();
     }
 
     toSource() : TokenStream {
@@ -1438,11 +1506,13 @@ export class RecurrentTimeRule extends AstNode {
     }
 
     toSource() : TokenStream {
-        let src = List.concat('{',
+        let src = List.concat('{', ' ',
             'beginTime', '=', this.beginTime.toSource(), ',',
-            'endTime', '=', this.endTime.toSource(), ',',
-            'interval', '=', this.interval.toSource(), ',',
-            'frequency', '=', new ConstantToken('NUMBER', this.frequency));
+            'endTime', '=', this.endTime.toSource());
+        if (this.interval.value !== 1 || this.interval.unit !== 'day')
+            src = List.concat(src, ',', 'interval', '=', this.interval.toSource());
+        if (this.frequency !== 1)
+            src = List.concat(src, ',', 'frequency', '=', new ConstantToken('NUMBER', this.frequency));
         if (this.dayOfWeek !== null)
             src = List.concat(src, ',', 'dayOfWeek', '=', 'enum', this.dayOfWeek);
         if (this.beginDate !== null)
@@ -1451,7 +1521,7 @@ export class RecurrentTimeRule extends AstNode {
             src = List.concat(src, ',', 'endDate', '=', dateToSource(this.endDate));
         if (this.subtract)
             src = List.concat(src, ',', 'subtract', '=', 'true');
-        src = List.concat(src, '}');
+        src = List.concat(src, ' ', '}');
         return src;
     }
 
@@ -1517,7 +1587,7 @@ export class RecurrentTimeSpecificationValue extends Value {
     }
 
     toSource() : TokenStream {
-        return List.concat('new', 'RecurrentTimeRule', '(',
+        return List.concat('new', 'RecurrentTimeSpecification', '(',
             List.join(this.rules.map((r) => r.toSource()), ','), ')');
     }
 
@@ -1570,27 +1640,44 @@ export class EntityValue extends Value {
         this.display = display;
     }
 
-    toSource() : TokenStream {
+    toEntity() : GenericEntity|string {
+        if (!this.value)
+            return { value: this.value, display: this.display };
+
         switch (this.type) {
-        case '':
-        case 'tt:function':
-            throw new TypeError('not implemented (yet)');
-        case 'tt:device':
-            return List.singleton('@' + this.value);
         case 'tt:picture':
-            return List.singleton(new ConstantToken('PICTURE', this.value!));
         case 'tt:username':
-            return List.singleton(new ConstantToken('USERNAME', this.value!));
         case 'tt:hashtag':
-            return List.singleton(new ConstantToken('HASHTAG', this.value!));
         case 'tt:url':
-            return List.singleton(new ConstantToken('URL', this.value!));
         case 'tt:phone_number':
-            return List.singleton(new ConstantToken('PHONE_NUMBER', this.value!));
         case 'tt:email_address':
-            return List.singleton(new ConstantToken('EMAIL_ADDRESS', this.value!));
         case 'tt:path_name':
-            return List.singleton(new ConstantToken('PATH_NAME', this.value!));
+            return this.value;
+
+        default:
+            return { value: this.value, display: this.display };
+        }
+    }
+
+    toSource() : TokenStream {
+        if (!this.value)
+            return List.singleton(new ConstantToken('GENERIC_ENTITY', this));
+
+        switch (this.type) {
+        case 'tt:picture':
+            return List.singleton(new ConstantToken('PICTURE', this.value));
+        case 'tt:username':
+            return List.singleton(new ConstantToken('USERNAME', this.value));
+        case 'tt:hashtag':
+            return List.singleton(new ConstantToken('HASHTAG', this.value));
+        case 'tt:url':
+            return List.singleton(new ConstantToken('URL', this.value));
+        case 'tt:phone_number':
+            return List.singleton(new ConstantToken('PHONE_NUMBER', this.value));
+        case 'tt:email_address':
+            return List.singleton(new ConstantToken('EMAIL_ADDRESS', this.value));
+        case 'tt:path_name':
+            return List.singleton(new ConstantToken('PATH_NAME', this.value));
         default:
             return List.singleton(new ConstantToken('GENERIC_ENTITY', this));
         }

@@ -22,7 +22,7 @@ import assert from 'assert';
 
 import Node, { SourceRange } from './base';
 import NodeVisitor from './visitor';
-import { ExpressionSignature } from './function_def';
+import { ExpressionSignature, FunctionDef } from './function_def';
 import { Value } from './values';
 
 import Type from '../type';
@@ -243,7 +243,7 @@ export class Invocation extends Node {
     selector : DeviceSelector;
     channel : string;
     in_params : InputParam[];
-    schema : ExpressionSignature|null;
+    schema : FunctionDef|null;
     __effectiveSelector : DeviceSelector|null = null;
 
     /**
@@ -260,7 +260,7 @@ export class Invocation extends Node {
                 selector : DeviceSelector,
                 channel : string,
                 in_params : InputParam[],
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location);
 
         assert(selector instanceof DeviceSelector);
@@ -286,7 +286,7 @@ export class Invocation extends Node {
          */
         this.in_params = in_params;
 
-        assert(schema === null || schema instanceof ExpressionSignature);
+        assert(schema === null || schema instanceof FunctionDef);
         /**
          * Type signature of the invoked function (not of the invocation itself).
          * This property is guaranteed not `null` after type-checking.
@@ -296,18 +296,29 @@ export class Invocation extends Node {
     }
 
     toSource() : TokenStream {
+        // filter out parameters that are required and undefined
+        let filteredParams = this.in_params;
+        if (this.schema) {
+            const schema : FunctionDef = this.schema;
+            filteredParams = this.in_params.filter((ip) => {
+                return !ip.value.isUndefined || !schema.isArgRequired(ip.name);
+            });
+        }
+
         return List.concat(this.selector.toSource(), '.', this.channel,
-            '(', List.join(this.in_params.map((ip) => ip.toSource()), ','), ')');
+            '(', List.join(filteredParams.map((ip) => ip.toSource()), ','), ')');
     }
 
     clone() : Invocation {
-        return new Invocation(
+        const clone = new Invocation(
             this.location,
             this.selector.clone(),
             this.channel,
             this.in_params.map((p) => p.clone()),
             this.schema ? this.schema.clone(): null
         );
+        clone.__effectiveSelector = this.__effectiveSelector;
+        return clone;
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -779,7 +790,7 @@ export class ExternalBooleanExpression extends BooleanExpression {
     channel : string;
     in_params : InputParam[];
     filter : BooleanExpression;
-    schema : ExpressionSignature|null;
+    schema : FunctionDef|null;
     __effectiveSelector : DeviceSelector|null = null;
 
     /**
@@ -796,7 +807,7 @@ export class ExternalBooleanExpression extends BooleanExpression {
                 channel : string,
                 in_params : InputParam[],
                 filter : BooleanExpression,
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location);
 
         assert(selector instanceof DeviceSelector);
@@ -829,7 +840,7 @@ export class ExternalBooleanExpression extends BooleanExpression {
          */
         this.filter = filter;
 
-        assert(schema === null || schema instanceof ExpressionSignature);
+        assert(schema === null || schema instanceof FunctionDef);
         /**
          * Type signature of the invoked function (not of the boolean expression itself).
          * This property is guaranteed not `null` after type-checking.
@@ -843,7 +854,8 @@ export class ExternalBooleanExpression extends BooleanExpression {
     }
 
     toSource() : TokenStream {
-        throw new Error('not implemented yet');
+        const inv = new Invocation(null, this.selector, this.channel, this.in_params, this.schema);
+        return List.concat('any', '(', inv.toSource(), 'filter', this.filter.toSource(), ')');
     }
 
     toString() : string {
@@ -1105,6 +1117,9 @@ export class ComputeBooleanExpression extends BooleanExpression {
     toSource() : TokenStream {
         if (INFIX_COMPARISON_OPERATORS.has(this.operator)) {
             return List.concat(
+                // force parenthesis around constants on the LHS of the filter, because it will be ambiguous otherwise
+                this.lhs.isConstant() ?
+                List.concat('(', this.lhs.toSource(), ')') :
                 addParenthesis(SyntaxPriority.Add, this.lhs.priority, this.lhs.toSource()),
                 this.operator,
                 addParenthesis(SyntaxPriority.Add, this.rhs.priority, this.rhs.toSource()));

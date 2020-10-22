@@ -177,7 +177,7 @@ function addOutput(schema : Ast.ExpressionSignature,
 }
 
 const VALID_DEVICE_ATTRIBUTES = ['name'];
-type OldPrimType = 'stream'|'table'|'query'|'action'|'filter';
+type OldPrimType = 'stream'|'table'|'query'|'action'|'filter'|'expression';
 
 interface MixinDeclaration {
     kind : string;
@@ -424,9 +424,10 @@ export default class TypeChecker {
 
         assert(ast instanceof Ast.ExternalBooleanExpression);
         if (ast.schema === null)
-            await this._loadOneSchema(scope, 'query', ast);
+            await this._loadTpSchema(ast);
+        if (ast.schema!.functionType !== 'query')
+            throw new TypeError(`Subquery function must be a query, not ${ast.schema!.functionType}`);
         await this._typeCheckInputArgs(ast, ast.schema!, scope);
-        this._addRequiredInputParamsInvocation(ast, new Set<string>());
         await this._typeCheckFilterHelper(ast.filter, ast.schema, scope);
     }
 
@@ -473,14 +474,16 @@ export default class TypeChecker {
         ast.schema = addOutput(cleanOutput(schema, scope), name, type, scope, nl_annotations);
     }
 
-    private _typeCheckSort(ast : Ast.SortedTable|Ast.SortExpression, scope : Scope) {
-        const innerSchema = ast instanceof Ast.SortExpression ? ast.expression.schema : ast.table.schema;
+    private async _typeCheckSort(ast : Ast.SortExpression, scope : Scope) {
+        const innerSchema = ast.expression.schema;
 
-        const arg = innerSchema!.getArgument(ast.field);
-        if (!arg)
-            throw new TypeError('Invalid sort field ' + ast.field);
-        if (!arg.type.isComparable())
-            throw new TypeError(`Invalid sort of non-comparable field ${ast.field}`);
+        const type = await this._typeCheckValue(ast.value, scope);
+        if (!type.isComparable()) {
+            if (ast.value instanceof Ast.VarRefValue)
+                throw new TypeError(`Invalid sort of non-comparable field ${ast.value.name}`);
+            else
+                throw new TypeError(`Invalid sort of non-comparable value`);
+        }
 
         ast.schema = innerSchema;
     }
@@ -518,7 +521,7 @@ export default class TypeChecker {
     }
 
     private _typeCheckMonitor(ast : Ast.MonitorExpression) {
-        const schema = ast.schema;
+        const schema = ast.expression.schema;
         assert(schema);
         if (ast.args) {
             ast.args.forEach((arg : string) => {
@@ -578,7 +581,8 @@ export default class TypeChecker {
 
     private _resolveNewProjection(ast : Ast.ProjectionExpression,
                                   scope : Scope) {
-        const schema = ast.schema!;
+        const schema = ast.expression.schema;
+        assert(schema);
         if (ast.computations.length === 0 && Object.keys(schema.out).length === 1)
             throw new TypeError('No projection is allowed if there is only one output parameter');
         if (ast.computations.length === 0 && ast.args.length === 0)
@@ -610,73 +614,63 @@ export default class TypeChecker {
         }
 
         clone = clone.addArguments(newArgs);
+        clone.default_projection = [];
         assert(Array.isArray(clone.minimal_projection));
         return clone;
     }
 
-    private _resolveChain(ast : Ast.ChainExpression) {
-        const allOutArgs = new Map<string, Ast.ArgumentDef>();
-
-        for (const expr of ast.expressions) {
-            for (const arg of expr.schema!.iterateArguments()) {
-                if (arg.is_input)
-                    continue;
-                // the map will overwrite an existing argument with the same name
-                allOutArgs.set(arg.name, arg);
-            }
-        }
+    private _resolveChain(ast : Ast.ChainExpression) : Ast.ExpressionSignature {
+        // the schema of a chain is just the schema of the last function in
+        // the chain, nothing special about it - no joins, no merging, no
+        // nothing
         const last = ast.expressions[ast.expressions.length-1];
 
-        // remove all output arguments and add the new ones from the schema
-        // of the last primitive
-        // this will result in a primitive with the same name as the last
-        // primitive (which will help deal with dialogues and output types)
-        // but that contains all output arguments
-        let newSchema = last.schema!.filterArguments((arg) => arg.is_input);
-        newSchema = newSchema.addArguments(Array.from(allOutArgs.values()));
-        ast.schema = newSchema;
+        // except the schema is monitorable if the _every_ schema is monitorable
+        // and the schema is a list if _any_ schema is a list
+        const clone = last.schema!.clone();
+        clone.is_list = ast.expressions.some((exp) => exp.schema!.is_list);
+        clone.is_monitorable = ast.expressions.every((exp) => exp.schema!.is_monitorable);
+        return clone;
     }
 
-    private async _typeCheckInputArgs(ast : Ast.Primitive|Ast.JoinStream|Ast.JoinTable,
+    private async _typeCheckInputArgs(ast : Ast.Invocation|Ast.ExternalBooleanExpression|Ast.FunctionCallExpression,
                                       schema : Ast.ExpressionSignature,
                                       scope : Scope) {
         if (ast instanceof Ast.Invocation ||
             ast instanceof Ast.ExternalBooleanExpression) {
             assert(ast.selector);
 
-            if (ast.selector instanceof Ast.DeviceSelector) {
-                const dupes = new Set;
+            const dupes = new Set;
 
-                const attrscope = scope ? scope.clone() : new Scope;
-                attrscope.cleanOutput();
-                for (const attr of ast.selector.attributes) {
-                    if (dupes.has(attr.name))
-                        throw new TypeError(`Duplicate device attribute ${attr.name}`);
-                    dupes.add(attr.name);
+            const attrscope = scope ? scope.clone() : new Scope;
+            attrscope.cleanOutput();
+            for (const attr of ast.selector.attributes) {
+                if (dupes.has(attr.name))
+                    throw new TypeError(`Duplicate device attribute ${attr.name}`);
+                dupes.add(attr.name);
 
-                    if (VALID_DEVICE_ATTRIBUTES.indexOf(attr.name) < 0)
-                        throw new TypeError(`Invalid device attribute ${attr.name}`);
+                if (VALID_DEVICE_ATTRIBUTES.indexOf(attr.name) < 0)
+                    throw new TypeError(`Invalid device attribute ${attr.name}`);
 
-                    if (!attr.value.isVarRef && !attr.value.isConstant())
-                        throw new TypeError(`Device attribute ${attr.value} must be a constant or variable`);
-                    const valueType = await this._typeCheckValue(attr.value, attrscope);
-                    if (!Type.isAssignable(valueType, Type.String, {}, false) || attr.value.isUndefined)
-                        throw new TypeError(`Invalid type for device attribute ${attr.name}, have ${valueType}, need String`);
-                }
+                if (!attr.value.isVarRef && !attr.value.isConstant())
+                    throw new TypeError(`Device attribute ${attr.value} must be a constant or variable`);
+                const valueType = await this._typeCheckValue(attr.value, attrscope);
+                if (!Type.isAssignable(valueType, Type.String, {}, false) || attr.value.isUndefined)
+                    throw new TypeError(`Invalid type for device attribute ${attr.name}, have ${valueType}, need String`);
+            }
 
-                if (ast.selector.id && ast.selector.all)
-                    throw new TypeError(`all=true device attribute is incompatible with setting a device ID`);
+            if (ast.selector.id && ast.selector.all)
+                throw new TypeError(`all=true device attribute is incompatible with setting a device ID`);
 
-                if (ast.selector.kind in this._classes) {
-                    const classdef = this._classes[ast.selector.kind];
+            if (ast.selector.kind in this._classes) {
+                const classdef = this._classes[ast.selector.kind];
 
-                    if (classdef.extends.length > 0 && classdef.extends.length === 1 && classdef.extends[0] === 'org.thingpedia.builtin.thingengine.remote')
-                        ast.__effectiveSelector = new Ast.DeviceSelector(ast.selector.location, 'org.thingpedia.builtin.thingengine.remote', ast.selector.id, ast.selector.principal, ast.selector.attributes.slice());
-                    else
-                        ast.__effectiveSelector = ast.selector;
-                } else {
+                if (classdef.extends.length > 0 && classdef.extends.length === 1 && classdef.extends[0] === 'org.thingpedia.builtin.thingengine.remote')
+                    ast.__effectiveSelector = new Ast.DeviceSelector(ast.selector.location, 'org.thingpedia.builtin.thingengine.remote', ast.selector.id, ast.selector.principal, ast.selector.attributes.slice());
+                else
                     ast.__effectiveSelector = ast.selector;
-                }
+            } else {
+                ast.__effectiveSelector = ast.selector;
             }
         }
 
@@ -694,7 +688,17 @@ export default class TypeChecker {
             presentParams.add(inParam.name);
         }
 
-        return schema.filterArguments((arg) => !presentParams.has(arg.name));
+        for (const arg of schema.iterateArguments()) {
+            if (!arg.is_input || !arg.required)
+                continue;
+            if (!presentParams.has(arg.name))
+                ast.in_params.push(new Ast.InputParam(ast.location, arg.name, new Ast.Value.Undefined(true)));
+        }
+
+        // we used to remove the assigned input parameters here, to deal with joins
+        // with param passing, but we don't those joins any more
+        // removing input params causes problems with finding the type of input params of FunctionCallExpression
+        return schema;
     }
 
     private _checkExpressionType(ast : Ast.Expression, expected : Ast.FunctionType[], msg : string) {
@@ -704,7 +708,8 @@ export default class TypeChecker {
 
     private async _typeCheckExpression(ast : Ast.Expression, scope : Scope) {
         if (ast instanceof Ast.FunctionCallExpression) {
-            ast.schema = await this._typeCheckInputArgs(ast, ast.schema!, scope);
+            const schema = await this._loadFunctionSchema(scope, ast);
+            ast.schema = await this._typeCheckInputArgs(ast, schema, scope);
             scope.addAll(ast.schema.out);
         } else if (ast instanceof Ast.InvocationExpression) {
             ast.schema = await this._typeCheckInputArgs(ast.invocation, ast.invocation.schema!, scope);
@@ -733,7 +738,7 @@ export default class TypeChecker {
         } else if (ast instanceof Ast.SortExpression) {
             await this._typeCheckExpression(ast.expression, scope);
             this._checkExpressionType(ast.expression, ['query'], 'sort');
-            this._typeCheckSort(ast, scope);
+            await this._typeCheckSort(ast, scope);
         } else if (ast instanceof Ast.IndexExpression) {
             await this._typeCheckExpression(ast.expression, scope);
             this._checkExpressionType(ast.expression, ['query'], 'index');
@@ -762,75 +767,40 @@ export default class TypeChecker {
                 else
                     this._checkExpressionType(expr, ['query', 'action'], 'chain');
             }
-            this._resolveChain(ast);
+
+            ast.schema = this._resolveChain(ast);
         } else {
             throw new Error('Not Implemented');
         }
     }
 
-    private _addRequiredInputParamsInvocation(prim : Ast.Primitive,
-                                              extrainparams : Set<string> = new Set<string>()) {
-        const present = new Set<string>();
-        for (const in_param of prim.in_params)
-            present.add(in_param.name);
-
-        for (const name in prim.schema!.inReq) {
-            if (!present.has(name) && (!extrainparams || !extrainparams.has(name)))
-                prim.in_params.push(new Ast.InputParam(prim.location, name, new Ast.Value.Undefined(true)));
-        }
+    private async _loadFunctionSchema(scope : Scope,
+                                      prim : Ast.FunctionCallExpression) : Promise<Ast.ExpressionSignature> {
+        let schema : unknown;
+        if (scope.has(prim.name))
+            schema = scope.get(prim.name);
+        else if (prim.name in Builtin.Functions)
+            schema = Builtin.Functions[prim.name];
+        else
+            schema = await this._schemas.getMemorySchema(prim.name, this._useMeta);
+        if (schema === null)
+            throw new TypeError(`Undeclared function or variable ${prim.name}`);
+        if (!(schema instanceof Ast.ExpressionSignature))
+            throw new TypeError(`Variable ${prim.name} does not name an expression`);
+        return schema;
     }
 
-    private _addRequiredInputParamsExpression(expr : Ast.Expression) {
-        const self = this;
-        expr.visit(new class extends Ast.NodeVisitor {
-            visitInvocation(invocation : Ast.Invocation) {
-                self._addRequiredInputParamsInvocation(invocation);
-                return true;
-            }
-
-            visitFunctionCallExpression(expr : Ast.FunctionCallExpression) {
-                self._addRequiredInputParamsInvocation(expr);
-                return true;
-            }
-
-            visitExternalBooleanExpression(expr : Ast.ExternalBooleanExpression) {
-                self._addRequiredInputParamsInvocation(expr);
-                return true;
-            }
-        });
-    }
-
-    private async _loadOneSchema(scope : Scope,
-                                 primType : OldPrimType,
-                                 prim : Ast.Primitive) {
-        if (primType === 'table' || primType === 'filter')
-            primType = 'query';
-
-        let schema;
-        if (prim instanceof Ast.VarRefTable ||
-            prim instanceof Ast.VarRefStream ||
-            prim instanceof Ast.VarRefAction ||
-            prim instanceof Ast.FunctionCallExpression) {
-            if (scope.has(prim.name))
-                schema = scope.get(prim.name);
-            else
-                schema = await this._schemas.getMemorySchema(prim.name, this._useMeta);
-            if (schema === null)
-                throw new TypeError(`Cannot find declaration ${prim.name} in memory`);
-            if (!(schema instanceof Ast.ExpressionSignature) || schema.functionType !== primType)
-                throw new TypeError(`Variable ${prim.name} does not name a ${primType}`);
-        } else {
-            assert(primType !== 'stream');
-            schema = await Utils.getSchemaForSelector(this._schemas, prim.selector.kind, prim.channel, primType, this._useMeta, this._classes);
-        }
+    private async _loadTpSchema(prim : Ast.Invocation|Ast.ExternalBooleanExpression) {
+        const schema = await Utils.getSchemaForSelector(this._schemas, prim.selector.kind, prim.channel, 'both', this._useMeta, this._classes);
         if (prim.schema === null)
             prim.schema = schema;
+
+        assert(prim.schema);
     }
 
-    private async _loadAllSchemas(ast : Ast.Node,
-                                  scope : Scope) {
-        return Promise.all(Array.from(ast.iteratePrimitives(true)).map(async ([primType, prim] : [OldPrimType, Ast.Primitive]) => {
-            return this._loadOneSchema(scope, primType, prim);
+    private async _loadAllSchemas(ast : Ast.Node) {
+        return Promise.all(Array.from(ast.iteratePrimitives(false)).map(async ([primType, prim] : [OldPrimType, Ast.Invocation|Ast.ExternalBooleanExpression]) => {
+            return this._loadTpSchema(prim);
         }));
     }
 
@@ -862,10 +832,19 @@ export default class TypeChecker {
             }
         }
 
-        for (const [, query] of Object.entries(klass.queries))
+        const names = new Set<string>();
+        for (const [, query] of Object.entries(klass.queries)) {
+            if (names.has(query.name))
+                throw new Error(`Duplicate function ${query.name}`);
+            names.add(query.name);
             await this._typeCheckFunctionDef('query', query);
-         for (const [, action] of Object.entries(klass.actions))
+        }
+        for (const [, action] of Object.entries(klass.actions)) {
+            if (names.has(action.name))
+                throw new Error(`Duplicate function ${action.name}`);
+            names.add(action.name);
             await this._typeCheckFunctionDef('action', action);
+        }
     }
 
     private async _typeCheckMixin(import_stmt : Ast.MixinImportStmt,
@@ -961,6 +940,8 @@ export default class TypeChecker {
     private _typeCheckFunctionInheritance(func : Ast.FunctionDef) {
         if (func.extends.length === 0)
             return;
+        if (func.functionType !== 'query')
+            throw new TypeError(`Actions cannot extend other functions`);
         const functions : string[] = [];
         const args : TypeMap = {};
         for (const fname of func.iterateBaseFunctions()) {
@@ -1061,32 +1042,7 @@ export default class TypeChecker {
                                               scope : Scope) {
         this._typeCheckDeclarationArgs(ast.args);
         scope.addLambdaArgs(ast.args);
-        await this._loadAllSchemas(ast, scope);
-    }
-
-    private _makeProcedureSchema(ast : Ast.FunctionDeclaration) {
-        const args : Ast.ArgumentDef[] = Object.keys(ast.args).map((name : string) =>
-            new Ast.ArgumentDef(ast.location, Ast.ArgDirection.IN_REQ, name, ast.args[name], {}));
-
-        // add output arguments from the last statement (unless that statement is an assignment)
-        let anyAction = false;
-
-        for (const stmt of ast.statements) {
-            if (stmt instanceof Ast.Assignment)
-                anyAction = anyAction || stmt.value.schema!.functionType === 'action';
-            else
-                anyAction = anyAction || stmt.expression.schema!.functionType === 'action';
-        }
-
-        const last = ast.statements[ast.statements.length-1];
-        if (last instanceof Ast.ExpressionStatement) {
-            const outargs : Ast.ArgumentDef[] = Array.from(last.expression.schema!.iterateArguments()).filter((a : Ast.ArgumentDef) => !a.is_input);
-            args.push(...outargs);
-        }
-
-        return new Ast.FunctionDef(ast.location, anyAction ? 'action' : 'query', null, ast.name, [],
-            { is_list: false, is_monitorable: false }, args,
-            { nl: ast.nl_annotations, impl: ast.impl_annotations });
+        await this._loadAllSchemas(ast);
     }
 
     private async _typeCheckDeclaration(ast : Ast.FunctionDeclaration,
@@ -1096,30 +1052,106 @@ export default class TypeChecker {
         await this._typeCheckDeclarationCommon(ast, nestedScope);
         this._typeCheckMetadata(ast);
 
-        for (const decl of ast.declarations) {
-            nestedScope.clean();
+        for (const decl of ast.declarations)
             await this._typeCheckDeclaration(decl, nestedScope);
-        }
+
+        // the return value of a function is
+        // - the stream statement, if any (there can be at most one)
+        // - the last query expression statement, if any
+        // - the last action expression statement
+        let anyAction = false, anyStream = false,
+            resultExpression : Ast.Expression|undefined;
 
         for (const stmt of ast.statements) {
-            nestedScope.clean();
             if (stmt instanceof Ast.Assignment) {
                 await this._typeCheckAssignment(stmt, nestedScope);
+                anyAction = anyAction || stmt.value.schema!.functionType === 'action';
             } else {
-                await this._typeCheckExpressionStatement(stmt, nestedScope);
-                if (stmt.stream)
-                    throw new TypeError(`Continuous statements are not allowed in nested procedures`);
+                await this._typeCheckExpressionStatement(stmt, new Scope(nestedScope));
+
+                // a stream in a nested function is allowed if it is the only
+                // stream statement, and the function does not invoke an action
+                if (stmt.stream) {
+                    if (anyStream)
+                        throw new TypeError(`Multiple stream statements are not allowed in user-defined procedures`);
+                    if (anyAction || stmt.expression.schema!.functionType === 'action')
+                        throw new TypeError(`Stream-action combinations are not allowed in user-defined procedures`);
+                    anyStream = true;
+                } else if (stmt.expression.schema!.functionType === 'query') {
+                    resultExpression = stmt.expression;
+                } else {
+                    anyAction = true;
+                    if (!resultExpression)
+                        resultExpression = stmt.expression;
+                    if (anyStream)
+                        throw new TypeError(`Stream-action combinations are not allowed in user-defined procedures`);
+                }
             }
         }
 
-        ast.schema = this._makeProcedureSchema(ast);
-        scope.addGlobal(ast.name, ast.schema);
+        const args : Ast.ArgumentDef[] = Object.keys(ast.args).map((name : string) =>
+            new Ast.ArgumentDef(ast.location, Ast.ArgDirection.IN_REQ, name, ast.args[name], {}));
+        if (resultExpression) {
+            const outargs : Ast.ArgumentDef[] = Array.from(resultExpression.schema!.iterateArguments()).filter((a : Ast.ArgumentDef) => !a.is_input);
+            args.push(...outargs);
+        }
+
+        const schema = new Ast.FunctionDef(ast.location, anyStream ? 'stream' : anyAction ? 'action' : 'query', null, ast.name, [],
+            { is_list: false, is_monitorable: false }, args,
+            { nl: ast.nl_annotations, impl: ast.impl_annotations });
+
+        ast.schema = schema;
+        scope.addGlobal(ast.name, schema);
     }
 
     async typeCheckExample(ast : Ast.Example) : Promise<void> {
         const scope = new Scope();
         await this._typeCheckDeclarationCommon(ast, scope);
-        await this._typeCheckExpression(ast.value, scope);
+
+        const value = ast.value;
+        let type : string|undefined = undefined;
+        if (value instanceof Ast.ChainExpression) {
+            const expressions = value.expressions;
+            const nestedScope = new Scope(scope);
+            for (let i = 0; i < expressions.length; i++) {
+                const expr = expressions[i];
+
+                scope.$has_event = i > 0;
+                await this._typeCheckExpression(expr, nestedScope);
+                const schema = expr.schema!;
+                if (schema.require_filter)
+                    throw new TypeError('Filter required');
+                if (schema.functionType === 'stream' && i > 0)
+                    throw new Error(`Stream expression must be first in a chain expression`);
+                if (schema.functionType === 'action' && i < expressions.length-1)
+                    throw new Error(`Action expression must be last in a chain expression`);
+
+                // a stream+action example must be declared "program"
+                // a query+action example must be declared "action" or "program"
+                // a stream+query example must be declared "stream" or "program"
+                // a query example must be declared "query" or "program"
+                if (schema.functionType === 'stream') {
+                    if (type === 'action' || type === 'program')
+                        type = 'program';
+                    else
+                        type = 'stream';
+                } else if (schema.functionType === 'action') {
+                    if (type === 'stream' || type === 'program')
+                        type = 'program';
+                    else
+                        type = 'action';
+                } else {
+                    if (!type)
+                        type = 'query';
+                }
+            }
+        } else {
+            await this._typeCheckExpression(ast.value, new Scope(scope));
+            type = ast.value.schema!.functionType;
+        }
+
+        if (ast.type !== 'program' && ast.type !== type)
+            throw new Error(`Declared example type does not match the type of the expression, expected ${type} got ${ast.type}`);
 
         if (!Array.isArray(ast.utterances))
             throw new TypeError('Utterances annotation expects an array');
@@ -1131,10 +1163,9 @@ export default class TypeChecker {
 
     private async _typeCheckAssignment(ast : Ast.Assignment,
                                        scope : Scope) {
-        await this._loadAllSchemas(ast, scope);
+        const nestedScope = new Scope(scope);
 
-        this._addRequiredInputParamsExpression(ast.value);
-        await this._typeCheckExpression(ast.value, scope);
+        await this._typeCheckExpression(ast.value, nestedScope);
         const schema = ast.value.schema!;
         if (schema.require_filter)
             throw new TypeError('Filter required');
@@ -1150,12 +1181,9 @@ export default class TypeChecker {
 
     private async _typeCheckExpressionStatement(ast : Ast.ExpressionStatement,
                                                 scope : Scope) {
-        await this._loadAllSchemas(ast, scope);
-
         const expressions = ast.expression.expressions;
         for (let i = 0; i < expressions.length; i++) {
             const expr = expressions[i];
-            this._addRequiredInputParamsExpression(expr);
 
             scope.$has_event = i > 0;
             await this._typeCheckExpression(expr, scope);
@@ -1167,29 +1195,29 @@ export default class TypeChecker {
             if (schema.functionType === 'action' && i < expressions.length-1)
                 throw new Error(`Action expression must be last in a chain expression`);
         }
-        this._resolveChain(ast.expression);
+
+        ast.expression.schema = this._resolveChain(ast.expression);
     }
 
     private _typeCheckProgramAnnotations(ast : Ast.Program) {
         return Promise.all(Object.entries(ast.impl_annotations).map(async ([name, value] : [string, Ast.Value]) => {
-            if (!value.isConstant())
-                throw new Error(`Annotation #[${name}] must be a constant`);
-
-            if (name === 'principal')
+            if (name === 'executor')
                 await this._typecheckPrincipal(value);
+            else if (!value.isConstant())
+                throw new Error(`Annotation #[${name}] must be a constant`);
         }));
     }
 
-    async typeCheckProgram(ast : Ast.Program,
-                           parentScope : Scope|null = null) : Promise<void> {
+    async typeCheckProgram(ast : Ast.Program) : Promise<void> {
         ast.classes.forEach((ast) => {
             this._classes[ast.name] = ast;
         });
+        await this._loadAllSchemas(ast);
 
         this._typeCheckMetadata(ast);
         this._typeCheckProgramAnnotations(ast);
 
-        const scope = new Scope(parentScope);
+        const scope = new Scope();
 
         for (const klass of ast.classes)
             await this.typeCheckClass(klass, false);
@@ -1208,6 +1236,8 @@ export default class TypeChecker {
     }
 
     async typeCheckDialogue(ast : Ast.DialogueState) : Promise<void> {
+        await this._loadAllSchemas(ast);
+
         for (const item of ast.history) {
             const scope = new Scope(null);
             await this._typeCheckExpressionStatement(item.stmt, scope);
@@ -1272,6 +1302,8 @@ export default class TypeChecker {
     }
 
     private async _typeCheckDataset(dataset : Ast.Dataset) {
+        await this._loadAllSchemas(dataset);
+
         for (const ex of dataset.examples)
             await this.typeCheckExample(ex);
     }
@@ -1281,18 +1313,18 @@ export default class TypeChecker {
             await this.typeCheckClass(klass, true);
             this._classes[klass.name] = klass;
         }
+
+        await this._loadAllSchemas(meta);
         for (const dataset of meta.datasets)
             await this._typeCheckDataset(dataset);
     }
 
-    async typeCheckBookkeeping(intent : Ast.BookkeepingIntent) : Promise<void> {
-        if (intent instanceof Ast.SpecialBookkeepingIntent) {
-            if (Ast.BookkeepingSpecialTypes.indexOf(intent.type) < 0)
-                throw new TypeError(`Invalid special ${intent.type}`);
-        } else if (intent instanceof Ast.CommandListBookkeepingIntent) {
-            const valueType = await this._typeCheckValue(intent.device, new Scope);
-            if (!Type.isAssignable(valueType, new Type.Entity('tt:device'), {}, true))
-                throw new TypeError('Invalid device parameter');
+    async typeCheckControl(intent : Ast.ControlIntent) : Promise<void> {
+        if (intent instanceof Ast.SpecialControlIntent) {
+            if (Ast.ControlCommandType.indexOf(intent.type) < 0)
+                throw new TypeError(`Invalid control command ${intent.type}`);
+        } else if (intent instanceof Ast.AnswerControlIntent) {
+            await this._typeCheckValue(intent.value, new Scope);
         }
     }
 }

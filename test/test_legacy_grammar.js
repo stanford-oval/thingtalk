@@ -26,8 +26,7 @@ import { Value } from '../lib/ast/values';
 
 import * as Ast from '../lib/ast';
 
-import * as AppGrammar from '../lib/grammar_api';
-import { prettyprint } from '../lib/prettyprint';
+import * as AppGrammar from '../lib/syntax_api';
 
 const debug = false;
 
@@ -77,7 +76,7 @@ for (let method of Object.getOwnPropertyNames(NodeVisitor.prototype)) {
 }
 
 export default async function main() {
-    const testFile = fs.readFileSync(process.argv[2] || './test/sample.apps').toString('utf8').split('====');
+    const testFile = fs.readFileSync(process.argv[2] || './test/test_legacy_syntax.tt').toString('utf8').split('====');
 
     for (let i = 0; i < testFile.length; i++) {
         console.log('# Test Case ' + (i+1));
@@ -96,7 +95,7 @@ export default async function main() {
 
         let codegenned;
         try {
-            codegenned = prettyprint(ast, true);
+            codegenned = ast.prettyprint();
             AppGrammar.parse(codegenned);
 
             if (debug) {
@@ -107,11 +106,6 @@ export default async function main() {
                 console.log('====');
                 console.log();
             }
-
-            const ast2 = ast.clone();
-            const codegenned2 = prettyprint(ast2, true);
-            assert(ast !== ast2);
-            assert.strictEqual(codegenned2, codegenned);
         } catch(e) {
             console.error('Codegen failed');
             console.error('AST:');
@@ -120,6 +114,28 @@ export default async function main() {
             console.error(codegenned);
             console.error('====\nCode:');
             console.error(code);
+            console.error('====');
+            console.error(e.stack);
+            if (process.env.TEST_MODE)
+                throw e;
+        }
+
+        let ast2, codegenned2;
+        try {
+            ast2 = ast.clone();
+            codegenned2 = ast2.prettyprint();
+            assert(ast !== ast2);
+            assert.strictEqual(codegenned2, codegenned);
+        } catch(e) {
+            console.error('Codegen failed for the clone');
+            console.error('AST:');
+            console.error(ast);
+            console.error('Cloned AST:');
+            console.error(ast2);
+            console.error('Original Codegenned:');
+            console.error(codegenned);
+            console.error('Clone Codegenned:');
+            console.error(codegenned2);
             console.error('====');
             console.error(e.stack);
             if (process.env.TEST_MODE)

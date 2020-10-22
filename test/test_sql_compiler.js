@@ -19,7 +19,7 @@
 
 import deq from 'deep-equal';
 
-import * as AppGrammar from '../lib/grammar_api';
+import * as AppGrammar from '../lib/syntax_api';
 import SqlCompiler from '../lib/sql_compiler';
 import * as SchemaRetriever from '../lib/schema';
 
@@ -89,7 +89,7 @@ function test(i) {
     console.log('Test Case #' + (i+1));
     let [testCase, versions, scope, expectedSql, expectedBinders,] = TEST_CASES[i];
 
-    return AppGrammar.parseAndTypecheck(testCase, schemaRetriever).then((prog) => {
+    return AppGrammar.parse(testCase).typecheck(schemaRetriever).then((prog) => {
         let queries = prog.rules[0].queries;
 
         let sqlCompiler = new SqlCompiler(queries, versions, scope);

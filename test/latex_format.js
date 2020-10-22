@@ -17,7 +17,7 @@
 // limitations under the License.
 
 
-import * as AppGrammar from '../lib/grammar_api';
+import * as AppGrammar from '../lib/syntax_api';
 
 function latexprintLocation(l) {
     if (l.isAbsolute)

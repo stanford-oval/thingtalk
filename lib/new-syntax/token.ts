@@ -29,11 +29,6 @@ import {
     DateEntity,
 } from '../entities';
 
-interface FunctionToken {
-    kind : string;
-    channel : string;
-}
-
 interface GenericEntityToken {
     value : string|null;
     type : string;
@@ -61,8 +56,6 @@ interface TokenTypes {
     PHONE_NUMBER : string;
     EMAIL_ADDRESS : string;
     PATH_NAME : string;
-    DEVICE : string;
-    FUNCTION : FunctionToken;
     PICTURE : string;
     TYPE_ANNOT : Type;
     IDENTIFIER : string;

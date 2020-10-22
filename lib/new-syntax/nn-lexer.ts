@@ -23,22 +23,24 @@ import * as assert from 'assert';
 import { EntityType, EntityMap, EntityResolver, GenericEntity, MeasureEntity } from '../entities';
 import { SourceRange, SourceLocation } from '../utils/source_locations';
 import { ThingTalkSyntaxError } from '../utils/errors';
-import { DOLLAR_KEYWORDS, FORBIDDEN_KEYWORDS, KEYWORDS } from './keywords';
+import { DOLLAR_KEYWORDS, FORBIDDEN_KEYWORDS, CONTEXTUAL_KEYWORDS, KEYWORDS } from './keywords';
 import { Token, TypeOfToken } from './token';
 
 const DECIMAL_LITERAL = /^-?(?:(?:0|[1-9][0-9]*)\.[0-9]*(?:[eE][+-]?[0-9]+)?|\.[0-9]+(?:[eE][+-]?[0-9]+)?|(?:0|[1-9][0-9]*)(?:[eE][+-]?[0-9]+)?)$/;
-const IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*$/;
+
+// matches one or more identifiers separated by a period
+const IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9]*)*$/;
 
 function isEntity(token : string) {
-    return /^(?:QUOTED_STRING|NUMBER|CURRENCY|TIME|DATE|LOCATION|USERNAME|HASHTAG|URL|PHONE_NUMBER|EMAIL_ADDRESS|PATH_NAME|PICTURE|GENERIC_ENTITY|SLOT)_/.test(token);
+    return /^(?:QUOTED_STRING|NUMBER|CURRENCY|DURATION|MEASURE|TIME|DATE|LOCATION|USERNAME|HASHTAG|URL|PHONE_NUMBER|EMAIL_ADDRESS|PATH_NAME|PICTURE|GENERIC_ENTITY|SLOT)_/.test(token);
 }
 
-function isIdentifier(token : string) {
-    return IDENTIFIER.test(token) && !KEYWORDS.has(token);
+function isIdentifierLike(token : string) {
+    return IDENTIFIER.test(token);
 }
 
 function isUnit(token : string) {
-    return isIdentifier(token) || token === 'in';
+    return isIdentifierLike(token) || token === 'in' || token === 'min';
 }
 
 interface LanguagePack {
@@ -51,12 +53,12 @@ class DummyLanguagePack {
     }
 }
 
-export function* nnLexer(input : Iterable<string>,
+export function* nnLexer(input : string|string[],
                          entities : EntityResolver|EntityMap,
                          languagePack : LanguagePack = new DummyLanguagePack()) : IterableIterator<Token> {
     let sequence : string[];
-    if (!Array.isArray(input))
-        sequence = Array.from(input);
+    if (typeof input === 'string')
+        sequence = input.split(' ');
     else
         sequence = input;
 
@@ -105,7 +107,7 @@ export function* nnLexer(input : Iterable<string>,
         i++;
     }
 
-    for (let i = 0; i < sequence.length; advance()) {
+    for (; i < sequence.length; advance()) {
         const next = sequence[i];
         if (next === '"') {
             const start : SourceLocation = {
@@ -167,6 +169,21 @@ export function* nnLexer(input : Iterable<string>,
                 yield Token.make('DOLLARIDENTIFIER', makeLocation(), next.substring(1));
         } else if (next.startsWith('^^')) {
             yield Token.make('ENTITY_NAME', makeLocation(), next.substring(2));
+        } else if (isIdentifierLike(next)) {
+            const parts = next.split('.');
+            let first = true;
+            for (const part of parts) {
+                if (first)
+                    first = false;
+                else
+                    yield Token.make('.', makeLocation(), null);
+                if (KEYWORDS.has(part) || CONTEXTUAL_KEYWORDS.has(part))
+                    yield Token.make(part, makeLocation(), null);
+                else
+                    yield Token.make('IDENTIFIER', makeLocation(), part);
+            }
+        } else {
+            yield Token.make(next, makeLocation(), null);
         }
     }
 }

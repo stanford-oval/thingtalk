@@ -25,12 +25,17 @@ import Node, {
     NLAnnotationMap,
     AnnotationMap,
     AnnotationSpec,
+    implAnnotationsToSource,
+    nlAnnotationsToSource,
 } from './base';
 import Type, { TypeMap, ArrayType, CompoundType } from '../type';
 import { Value } from './values';
 import { ClassDef } from './class_def';
 import NodeVisitor from './visitor';
 import { clean } from '../utils';
+
+import { TokenStream } from '../new-syntax/tokenstream';
+import List from '../utils/list';
 
 // Class and function definitions
 
@@ -73,6 +78,7 @@ export class ArgumentDef extends Node {
     is_input : boolean;
     required : boolean;
     unique : boolean;
+    private _is_compound_field : boolean;
 
     /**
      * Construct a new argument definition.
@@ -89,7 +95,8 @@ export class ArgumentDef extends Node {
                 direction : ArgDirection|null,
                 name : string,
                 type : Type,
-                annotations : AnnotationSpec = {}) {
+                annotations : AnnotationSpec = {},
+                is_compound_field = false) {
         super(location);
 
         /**
@@ -131,11 +138,25 @@ export class ArgumentDef extends Node {
          */
         this.impl_annotations = annotations.impl || {};
 
+        this._is_compound_field = is_compound_field || this.direction === null;
+
         this.unique = this.impl_annotations.unique && this.impl_annotations.unique.isBoolean && this.impl_annotations.unique.toJS() === true;
         if (this.direction && type instanceof CompoundType)
             this._updateFields(type);
         if (this.type instanceof ArrayType && this.type.elem instanceof CompoundType)
             this._flattenCompoundArray();
+    }
+
+    toSource() : TokenStream {
+        let list : TokenStream;
+        if (!this.direction || this._is_compound_field)
+            list = List.concat(this.name, ':', this.type.toSource());
+        else
+            list = List.concat(...this.direction.split(' '), this.name, ':', this.type.toSource());
+        list = List.concat(list,
+            nlAnnotationsToSource(this.nl_annotations),
+            implAnnotationsToSource(this.impl_annotations));
+        return list;
     }
 
     private _updateFields(type : CompoundType) {
@@ -239,7 +260,8 @@ export class ArgumentDef extends Node {
         const impl = {};
         Object.assign(impl, this.impl_annotations);
 
-        return new ArgumentDef(this.location, this.direction, this.name, this.type, { nl, impl });
+        return new ArgumentDef(this.location, this.direction, this.name, this.type, { nl, impl },
+            this._is_compound_field);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -434,6 +456,10 @@ export class ExpressionSignature extends Node {
         this._class = klass;
     }
 
+    toSource() : TokenStream {
+        throw new Error(`Non-function ExpressionSignature cannot be converted to source code`);
+    }
+
     visit(visitor : NodeVisitor) : void {
         throw new Error('Unimplemented method');
     }
@@ -441,7 +467,7 @@ export class ExpressionSignature extends Node {
     /**
      * The names of the arguments defined by this expression signature.
      *
-     * This does include arguments inherited from parent functions.
+     * This does not include arguments inherited from parent functions.
      *
      * @type {string[]}
      * @readonly
@@ -676,8 +702,11 @@ export class ExpressionSignature extends Node {
         if (this.extends.length > 0) {
             if (!this.class)
                 throw new Error(`Class information missing from the function definition.`);
-            for (const fname of this.extends)
-                yield *this.class.getFunction(this.functionType, fname)!.iterateArguments(returned);
+            for (const fname of this.extends) {
+                const parent = this.class.getFunction('query', fname);
+                assert(parent);
+                yield *parent.iterateArguments(returned);
+            }
         }
     }
 
@@ -988,6 +1017,10 @@ export class FunctionDef extends ExpressionSignature {
         const options : ExpressionSignatureConstructorOptions = {};
         options.is_list = qualifiers.is_list || false;
         options.is_monitorable = qualifiers.is_monitorable || false;
+        if (functionType === 'action') {
+            assert(!options.is_list);
+            assert(!options.is_monitorable);
+        }
 
         if (annotations.impl) {
             if ('require_filter' in annotations.impl)
@@ -1014,6 +1047,59 @@ export class FunctionDef extends ExpressionSignature {
         // delay setting the default #[minimal_projection] if the class is not yet constructed
         if (this._class !== null)
             this._setMinimalProjection();
+    }
+
+    toSource() : TokenStream {
+        // this is somewhat ugly
+        // we first generate in turn:
+        // - the type of function (query / action)
+        // - the name
+        // - the parenthesis
+        // - the parent functions (`extends foo, bar, baz`)
+        //
+        // we set a tab stop at this position
+        //
+        // then we generate all the arguments
+        // arguments are separated by ',' and '\n'
+        // '\n' respects the tab stop so it is aligned at the parenthesis
+        //
+        // after the arguments we remove the tab stop and do the metadata/annotations
+        // finally, we add ';' and newlines
+
+        let list : TokenStream = List.concat(this.functionType, ' ', this.name);
+
+        if (this._extends.length > 0)
+            list = List.concat(list, 'extends', List.join(this._extends.map((e) => List.singleton(e)), ','));
+
+        // set a tab stop immediately after the parenthesis
+        list = List.concat(list, '(', '\t=+');
+
+        let first = true;
+        for (const argname of this.args) {
+            if (argname.indexOf('.') >= 0)
+                continue;
+
+            const arg = this._argmap[argname];
+            if (first) {
+                list = List.concat(list, arg.toSource());
+                first = false;
+            } else {
+                list = List.concat(list, ',', '\n', arg.toSource());
+            }
+        }
+
+        // remove the tab stop
+        list = List.concat(list, ')', '\t=-',
+            nlAnnotationsToSource(this.nl_annotations),
+            implAnnotationsToSource(this.impl_annotations),
+            ';');
+
+        if (this.is_list)
+            list = List.concat('list', list);
+        if (this.is_monitorable)
+            list = List.concat('monitorable', list);
+
+        return list;
     }
 
     clone() : FunctionDef {

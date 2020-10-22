@@ -57,7 +57,6 @@ export const KEYWORDS = new Set<string>([
     'const',
     'continue',
     'debugger',
-    'default',
     'delete',
     'do',
     'export',
@@ -84,6 +83,9 @@ export const KEYWORDS = new Set<string>([
     'while',
     'with',
     'yield',
+
+    // NOTE: "default" is NOT a keyword, it is a valid identifier (used by
+    // many annotations)
 
     // reserved words from ThingTalk
     // (these are the keywords in old ThingTalk, which are reserved in new
@@ -112,11 +114,6 @@ export const KEYWORDS = new Set<string>([
     'RecurrentTimeSpecification',
     'String',
     'Time',
-
-    // reserved as type names for future extensions
-    'Integer',
-    'Invalid',
-    'Void',
 ]);
 
 export const FORBIDDEN_KEYWORDS = new Set<string>([
@@ -129,18 +126,12 @@ export const FORBIDDEN_KEYWORDS = new Set<string>([
     '__noSuchMethod__',
     '__parent__',
     '__proto__',
-    'constructor',
     'eval',
-    'hasOwnProperty',
-    'isPrototypeOf',
-    'propertyIsEnumerable',
-    'toLocaleString',
-    'toSource',
-    'toString',
-    'valueOf',
-    'unwatch',
-    'watch',
 ]);
+
+// contextual keywords are identifiers that have special meaning to the parser
+// but can be otherwise be used as variable names (parameter names, Thingpedia
+// function names, ThingTalk function names) in most situations
 export const CONTEXTUAL_KEYWORDS = new Set<string>([
     // keywords inside class and dataset
     'action',
@@ -152,6 +143,22 @@ export const CONTEXTUAL_KEYWORDS = new Set<string>([
     'program',
     'query',
     'stream',
+
+    // dialogue state annotation (except 'count')
+    'error',
+    'confirm',
+    'more',
+    'results',
+
+    // keys to define a RecurrentTimeRule
+    'beginDate',
+    'beginTime',
+    'dayOfWeek',
+    'endDate',
+    'endTime',
+    'frequency',
+    'interval',
+    'subtract',
 
     // sort descriptors
     'asc',
@@ -173,16 +180,36 @@ export const CONTEXTUAL_KEYWORDS = new Set<string>([
 ]);
 
 export const DOLLAR_KEYWORDS = new Set<string>([
+    // syntax control keywords
+    '$dialogue',
+    '$policy',
+
+    // undefined
     '$?',
+    '$undefined',
+
+    // control commands
     '$answer',
     '$choice',
+    '$yes',
+    '$no',
+    '$failed',
+    '$train',
+    '$debug',
+    '$nevermind',
+    '$stop',
+    '$help',
+    '$wakeup',
+
+    // special values
     '$end_of',
     '$location',
     '$now',
     '$program_id',
     '$result',
+    '$type',
     '$self',
     '$start_of',
     '$time',
-    '$undefined'
+    '$context',
 ]);

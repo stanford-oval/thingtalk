@@ -18,7 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import * as Grammar from '../lib/grammar_api';
+import * as Grammar from '../lib/syntax_api';
 import Mixins from './mixins.json';
 import * as fs from 'fs';
 import * as util from 'util';

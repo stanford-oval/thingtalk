@@ -20,14 +20,13 @@
 
 
 import assert from 'assert';
-import * as AppGrammar from '../lib/grammar_api';
-import { prettyprint } from '../lib/prettyprint';
+import * as AppGrammar from '../lib/syntax_api';
 
 const TEST_CASES = [
 // device selectors
-`now => @light-bulb(name="bathroom").set_power(power=enum(on));`,
-`now => @light-bulb(id="io.home-assistant/http://hassio.local:8123-light.hue_bloom_1", name="bathroom").set_power(power=enum(on));`,
-`now => @light-bulb(all=true).set_power(power=enum(on));`
+`@light-bulb(name="bathroom").set_power(power=enum(on));`,
+`@light-bulb(id="io.home-assistant/http://hassio.local:8123-light.hue_bloom_1"^^tt:device_id("bathroom")).set_power(power=enum(on));`,
+`@light-bulb(all=true).set_power(power=enum(on));`
 ];
 
 export default function main() {
@@ -47,8 +46,8 @@ export default function main() {
 
         let codegenned;
         try {
-            codegenned = prettyprint(ast.clone(), true);
-            assert.strictEqual(code, codegenned);
+            codegenned = ast.clone().prettyprint();
+            assert.strictEqual(codegenned, code);
         } catch(e) {
             console.error('Prettyprint failed');
             console.error('Prettyprinted:');

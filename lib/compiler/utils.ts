@@ -210,8 +210,10 @@ function getDefaultProjection(schema : Ast.ExpressionSignature|null) : string[] 
     // if no #[default_projection] is specified, then we project all
     // arguments
     const projection = [];
-    for (const arg of schema.iterateArguments())
-        projection.push(arg.name);
+    for (const arg of schema.iterateArguments()) {
+        if (!arg.is_input)
+            projection.push(arg.name);
+    }
     return projection;
 }
 

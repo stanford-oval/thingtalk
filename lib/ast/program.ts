@@ -20,12 +20,14 @@
 //         Silei Xu <silei@cs.stanford.edu>
 import assert from 'assert';
 
-import { TypeMap } from '../type';
+import Type, { TypeMap } from '../type';
 import Node, {
     SourceRange,
     NLAnnotationMap,
     AnnotationMap,
     AnnotationSpec,
+    implAnnotationsToSource,
+    nlAnnotationsToSource,
 } from './base';
 import NodeVisitor from './visitor';
 import { Value, VarRefValue } from './values';
@@ -43,6 +45,7 @@ import {
 import { ClassDef } from './class_def';
 import { FunctionDef, ExpressionSignature } from './function_def';
 import {
+    FieldSlot,
     AbstractSlot,
     OldSlot
 } from './slots';
@@ -183,6 +186,26 @@ export class FunctionDeclaration extends Statement {
         this.schema = schema;
     }
 
+    toSource() : TokenStream {
+        let list : TokenStream = List.concat('function', this.name, '(', '\t=+');
+        let first = true;
+        for (const argname in this.args) {
+            const argtype = this.args[argname];
+            if (first)
+                first = false;
+            else
+                list = List.concat(list, ',', '\n');
+            list = List.concat(list, argname, ':', argtype.toSource());
+        }
+        list = List.concat(list, ')', '\t=-', ' ', '{', '\t+', '\n');
+        for (const stmt of this.declarations)
+            list = List.concat(list, stmt.toSource(), '\n');
+        for (const stmt of this.statements)
+            list = List.concat(list, stmt.toSource(), '\n');
+        list = List.concat(list, '\t-', '}');
+        return list;
+    }
+
     get metadata() : NLAnnotationMap {
         return this.nl_annotations;
     }
@@ -290,6 +313,10 @@ export class Assignment extends Statement {
         this.schema = schema;
     }
 
+    toSource() : TokenStream {
+        return List.concat('let', this.name, ' ', '=', ' ', this.value.toSource(), ';');
+    }
+
     /**
      * Whether this assignment calls an action or executes a query.
      *
@@ -325,6 +352,7 @@ export class Assignment extends Statement {
 export class Rule extends Statement {
     stream : Stream;
     actions : Action[];
+    isRule = true;
 
     /**
      * Construct a new rule statement.
@@ -344,6 +372,11 @@ export class Rule extends Statement {
 
         assert(Array.isArray(actions));
         this.actions = actions;
+    }
+
+    toSource() : TokenStream {
+        assert(this.actions.length === 1);
+        return List.concat(this.stream.toSource(), '=>', this.actions[0].toSource(), ';');
     }
 
     toExpression() : ExpressionStatement {
@@ -383,6 +416,7 @@ export class Rule extends Statement {
 export class Command extends Statement {
     table : Table|null;
     actions : Action[];
+    isCommand = true;
 
     /**
      * Construct a new command statement.
@@ -407,7 +441,7 @@ export class Command extends Statement {
     toExpression() : ExpressionStatement {
         const exprs : Expression[] = [];
         if (this.table)
-            exprs.push(this.table.toExpression());
+            exprs.push(this.table.toExpression([]));
         exprs.push(...this.actions.filter((a) => !a.isNotify).map((a) => a.toExpression()));
         return new ExpressionStatement(this.location, new ChainExpression(this.location, exprs, null));
     }
@@ -577,6 +611,7 @@ export class Dataset extends Statement {
         super(location);
 
         assert(typeof name === 'string');
+        assert(!name.startsWith('@'));
         this.name = name;
 
         assert(Array.isArray(examples)); // of Example
@@ -584,6 +619,25 @@ export class Dataset extends Statement {
 
         this.impl_annotations = annotations.impl||{};
         this.nl_annotations = annotations.nl||{};
+    }
+
+    toSource() : TokenStream {
+        let list : TokenStream = List.concat('dataset', '@' + this.name,
+            nlAnnotationsToSource(this.nl_annotations),
+            implAnnotationsToSource(this.impl_annotations),
+            ' ', '{', '\n', '\t+');
+
+        let first = true;
+        for (const ex of this.examples) {
+            // force an additional \n between examples
+            if (first)
+                first = false;
+            else
+                list = List.concat(list, '\n');
+            list = List.concat(list, ex.toSource(), '\n');
+        }
+        list = List.concat(list, '\t-', '}');
+        return list;
     }
 
     get language() : string|undefined {
@@ -612,6 +666,10 @@ export class Dataset extends Statement {
             yield* ex.iterateSlots2();
     }
 
+    optimize() : Dataset {
+        return Optimizer.optimizeDataset(this);
+    }
+
     clone() : Dataset {
         const newMetadata = {};
         Object.assign(newMetadata, this.nl_annotations);
@@ -633,8 +691,8 @@ export class Dataset extends Statement {
  * @abstract
  */
 export abstract class Input extends Node {
-    static Bookkeeping : any;
-    isBookkeeping ! : boolean;
+    static ControlCommand : any;
+    isControlCommand ! : boolean;
     static Program : any;
     isProgram ! : boolean;
     static Library : any;
@@ -663,9 +721,9 @@ export abstract class Input extends Node {
      * @param schemas - schema retriever object to retrieve Thingpedia information
      * @param [getMeta=false] - retreive natural language metadata during typecheck
      */
-    abstract typecheck(schemas : SchemaRetriever, getMeta : boolean) : Promise<this>;
+    abstract typecheck(schemas : SchemaRetriever, getMeta ?: boolean) : Promise<this>;
 }
-Input.prototype.isBookkeeping = false;
+Input.prototype.isControlCommand = false;
 Input.prototype.isProgram = false;
 Input.prototype.isLibrary = false;
 Input.prototype.isPermissionRule = false;
@@ -715,20 +773,25 @@ export class Program extends Input {
         this.impl_annotations = impl || {};
     }
 
+    /**
+     * @deprecated
+     */
     get principal() : Value|null {
-        return this.impl_annotations.principal || null;
+        return this.impl_annotations.executor || null;
     }
 
     toSource() : TokenStream {
-        // TODO: deal with annotations
-
-        let input : TokenStream = List.Nil;
+        let input : TokenStream = List.concat(
+            nlAnnotationsToSource(this.nl_annotations),
+            implAnnotationsToSource(this.impl_annotations),
+            '\n',
+        );
         for (const classdef of this.classes)
-            input = List.concat(input, classdef.toSource());
+            input = List.concat(input, classdef.toSource(), '\n');
         for (const decl of this.declarations)
-            input = List.concat(input, decl.toSource());
+            input = List.concat(input, decl.toSource(), '\n');
         for (const stmt of this.statements)
-            input = List.concat(input, stmt.toSource());
+            input = List.concat(input, stmt.toSource(), '\n');
         return input;
     }
 
@@ -752,6 +815,9 @@ export class Program extends Input {
             yield* rule.iterateSlots();
     }
     *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
+        if (this.principal)
+            yield new FieldSlot(null, {}, new Type.Entity('tt:contact'), this.impl_annotations, 'program', 'executor');
+
         for (const decl of this.declarations)
             yield* decl.iterateSlots2();
         for (const rule of this.statements)
@@ -764,15 +830,14 @@ export class Program extends Input {
         Object.assign(nl, this.nl_annotations);
         const impl : AnnotationMap = {};
         Object.assign(impl, this.impl_annotations);
-        const annotations = { nl, impl };
+        const annotations : AnnotationSpec = { nl, impl };
 
         return new Program(
             this.location,
             this.classes.map((c) => c.clone()),
             this.declarations.map((d) => d.clone()),
-            this.statements.map((s) => s.clone(),
-            annotations)
-        );
+            this.statements.map((s) => s.clone()),
+            annotations);
     }
 
     optimize() : Program|null {
@@ -834,6 +899,18 @@ export class PermissionRule extends Input {
 
         assert(action instanceof PermissionFunction);
         this.action = action;
+    }
+
+    toSource() : TokenStream {
+        let list : TokenStream = List.concat('$policy', '{', '\t+', '\n',
+            this.principal.toSource(), ':');
+        if (this.query.isBuiltin)
+            list = List.concat(list, 'now');
+        else
+            list = List.concat(list, this.query.toSource());
+        list = List.concat(list, '=>', this.action.toSource(), ';',
+            '\t-', '\n', '}');
+        return list;
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -901,6 +978,15 @@ export class Library extends Input {
         this.datasets = datasets;
     }
 
+    toSource() : TokenStream {
+        let input : TokenStream = List.Nil;
+        for (const classdef of this.classes)
+            input = List.concat(input, classdef.toSource(), '\n');
+        for (const dataset of this.datasets)
+            input = List.concat(input, dataset.toSource(), '\n');
+        return input;
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitLibrary(this)) {
@@ -924,6 +1010,12 @@ export class Library extends Input {
     clone() : Library {
         return new Library(this.location,
             this.classes.map((c) => c.clone()), this.datasets.map((d) => d.clone()));
+    }
+
+    optimize() : Library {
+        for (const d of this.datasets)
+            d.optimize();
+        return this;
     }
 
     async typecheck(schemas : SchemaRetriever, getMeta = false) : Promise<this> {
@@ -990,6 +1082,38 @@ export class Example extends Node {
 
         assert(typeof annotations === 'object');
         this.annotations = annotations;
+    }
+
+    toSource() : TokenStream {
+        const annotations : AnnotationMap = {};
+        if (this.id >= 0)
+            annotations.id = new Value.Number(this.id);
+        Object.assign(annotations, this.annotations);
+        const metadata : NLAnnotationMap = {
+            utterances: this.utterances
+        };
+        if (this.preprocessed.length > 0)
+            metadata.preprocessed = this.preprocessed;
+
+        let args : TokenStream = List.Nil;
+        let first = true;
+        for (const argname in this.args) {
+            const argtype = this.args[argname];
+            if (first)
+                first = false;
+            else
+                args = List.concat(args, ',');
+            args = List.concat(args, argname, ':', argtype.toSource());
+        }
+
+        let list : TokenStream = List.singleton(this.type);
+        if (args !== List.Nil)
+             list = List.concat(list, ' ', '(', args, ')');
+        list = List.concat(list, ' ', '=', ' ', this.value.toSource(),
+            nlAnnotationsToSource(metadata),
+            implAnnotationsToSource(annotations),
+            ';');
+        return list;
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -1099,6 +1223,12 @@ export class MixinImportStmt extends Node {
         this.in_params = in_params;
     }
 
+    toSource() : TokenStream {
+        return List.concat('import', List.join(this.facets.map((f) => List.singleton(f)), ','), ' ',
+            'from', ' ', '@' + this.module,
+            '(', List.join(this.in_params.map((ip) => ip.toSource()), ','), ')', ';');
+    }
+
     clone() : MixinImportStmt {
         return new MixinImportStmt(
             this.location,
@@ -1156,6 +1286,13 @@ export class EntityDef extends Node {
          * The entity annotations.
          */
         this.impl_annotations = annotations.impl || {};
+    }
+
+    toSource() : TokenStream {
+        return List.concat('entity', ' ', this.name, '\t+',
+            nlAnnotationsToSource(this.nl_annotations),
+            implAnnotationsToSource(this.impl_annotations),
+        '\t-', ';');
     }
 
     /**

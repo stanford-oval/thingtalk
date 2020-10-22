@@ -21,70 +21,19 @@
 import assert from 'assert';
 import * as util from 'util';
 
-import * as Ast from '../ast';
+import { parseDate } from './utils/date_utils';
+import List from './utils/list';
 
-import { parseDate } from '../utils/date_utils';
+import { SyntaxType } from './syntax_api';
 import {
-    EntityMap,
     MeasureEntity,
     LocationEntity,
     TimeEntity,
     DateEntity,
     GenericEntity,
-    AnyEntity
-} from '../entities';
-
-import List from '../utils/list';
-
-// convert AST values to on-the-wire entities, as returned by almond-tokenizer
-// the two are mostly the same, except for some weird historical stuff where
-// units are sometimes called codes and similar
-function valueToEntity(type : string, value : Ast.Value) : AnyEntity {
-    if (type === 'CURRENCY') {
-        assert(value instanceof Ast.CurrencyValue);
-        return { unit: value.code, value: value.value };
-    }
-    if (type === 'LOCATION') {
-        assert(value instanceof Ast.LocationValue);
-        const loc = value.value;
-        if (loc instanceof Ast.AbsoluteLocation) {
-            return { latitude: loc.lat, longitude: loc.lon, display: loc.display };
-        } else {
-            // (isRelative is handled elsewhere)
-            assert(loc instanceof Ast.UnresolvedLocation);
-            // note that NaN !== NaN so this will never match (which is the goal)
-            return { latitude: NaN, longitude: NaN, display: loc.name };
-        }
-    }
-    if (type === 'DURATION' ||
-        type.startsWith('MEASURE_')) {
-        assert(value instanceof Ast.MeasureValue);
-        return { unit: value.unit, value: value.value };
-    }
-    if (type === 'TIME') {
-        assert(value instanceof Ast.TimeValue);
-        const time = value.value;
-        assert(time instanceof Ast.AbsoluteTime); // isRelative is handled elsewhere
-        return { hour: time.hour, minute: time.minute, second: time.second };
-    }
-    if (type.startsWith('GENERIC_ENTITY_')) {
-        assert(value instanceof Ast.EntityValue);
-        return { value: value.value, display: value.display };
-    }
-    if (type === 'DATE') {
-        assert(value instanceof Ast.DateValue);
-        const date = value.value;
-        assert(date instanceof Date);
-        return date;
-    }
-
-    assert(value instanceof Ast.StringValue ||
-           value instanceof Ast.NumberValue ||
-           value instanceof Ast.CurrencyValue /* for NUMBER + currency code */ ||
-           value instanceof Ast.MeasureValue /* for NUMBER + unit */ ||
-           value instanceof Ast.EntityValue /* for special entities like hashtags */);
-    return value.value!;
-}
+    AnyEntity,
+    EntityMap
+} from './entities';
 
 function entitiesEqual(type : string, one : AnyEntity, two : AnyEntity) : boolean {
     if (one === two)
@@ -152,29 +101,35 @@ function entityToString(entityType : string, entity : AnyEntity) : string {
 /**
  * Abstract class capable of allocating entity numbers when converting
  * ThingTalk code to NN syntax (which uses numbered entities matching the input sentence).
- *
- * @alias NNSyntax.AbstractEntityRetriever
  */
 export abstract class AbstractEntityRetriever {
+    protected _syntaxType : SyntaxType.Tokenized|SyntaxType.LegacyNN;
+
+    constructor() {
+        this._syntaxType = SyntaxType.LegacyNN;
+    }
+
+    setSyntaxType(syntaxType : SyntaxType.Tokenized|SyntaxType.LegacyNN) {
+        this._syntaxType = syntaxType;
+    }
+
     /**
      * Find the entity with the given `entityType` (USERNAME, HASHTAG, etc.) and value.
      *
-     * @param {string} entityType - the type of entity to retrieve
-     * @param {Ast.Value} value - the value to retrieve
-     * @param {Object} options - additional options
-     * @param {boolean} options.ignoreNotFound - return `null` if the entity is not found, instead
+     * @param entityType - the type of entity to retrieve
+     * @param value - the value to retrieve
+     * @param options - additional options
+     * @param options.ignoreNotFound - return `null` if the entity is not found, instead
      *   of throwing an exception.
-     * @return {Array<string>} - the list of tokens making up this entity.
+     * @return the list of tokens making up this entity.
      */
-    abstract findEntity(entityType : string, value : Ast.Value, options : { ignoreNotFound ?: boolean; }) : List<string>|null;
+    abstract findEntity(entityType : string, value : AnyEntity, options : { ignoreNotFound : true }) : List<string>|null;
+    abstract findEntity(entityType : string, value : AnyEntity, options ?: { ignoreNotFound ?: false }) : List<string>;
 }
 
 /**
  * Entity retriever that looks for an entity in the tokenized entities, if any, and then
  * falls back to string matching in the sentence.
- *
- * @alias NNSyntax.EntityRetriever
- * @extends NNSyntax.AbstractEntityRetriever
  */
 export class EntityRetriever extends AbstractEntityRetriever {
     sentence : string[];
@@ -219,22 +174,21 @@ export class EntityRetriever extends AbstractEntityRetriever {
      * @param {string} entityString - the string to search
      * @param {boolean} ignoreNotFound - ignore if the entity is not mentioned; subclasses can
      *   use this to hallucinate entities that are not mentioned, when `ignoreNotFound` is false
-     * @return {undefined|string} - the tokens to predict, space-separated, or `undefined` if the entity
-     *   is not mentioned in the sentence.
+     * @return the tokens to predict, or `undefined` if the entity is not mentioned in the sentence.
      */
-    protected _findEntityFromSentence(entityType : string, entityString : string, ignoreNotFound : boolean) : string|undefined {
+    protected _findEntityFromSentence(entityType : string, entityString : string, ignoreNotFound : boolean) : string[]|undefined {
         const entityTokens = entityString.toLowerCase().split(' ');
         const found = this._sentenceContains(entityTokens);
         if (found)
-            return entityTokens.join(' ');
+            return entityTokens;
         else
             return undefined;
     }
 
-    protected _findStringLikeEntity(entityType : string,
-                                    entity : AnyEntity,
-                                    entityString : string,
-                                    ignoreNotFound : boolean) : List<string>|undefined {
+    private  _findStringLikeEntity(entityType : string,
+                                   entity : AnyEntity,
+                                   entityString : string,
+                                   ignoreNotFound : boolean) : List<string>|undefined {
         if (entityType === 'DATE') {
             const dateStr = (entity as Date).toISOString();
             if (this._sentenceContains([dateStr]))
@@ -248,22 +202,51 @@ export class EntityRetriever extends AbstractEntityRetriever {
             const found = this._findEntityFromSentence(entityType, entityString, ignoreNotFound);
             if (found) {
                 if (entityType === 'QUOTED_STRING')
-                    return List.concat('"', found, '"');
+                    return List.concat('"', ...found, '"');
                 else if (entityType === 'HASHTAG')
-                    return List.concat('"', found, '"', '^^tt:hashtag');
+                    return List.concat('"', ...found, '"', '^^tt:hashtag');
                 else if (entityType === 'USERNAME')
-                    return List.concat('"', found, '"', '^^tt:username');
-                else if (entityType === 'LOCATION')
-                    return List.concat('location:', '"', found, '"');
-                else
-                    return List.concat('"', found, '"', '^^' + entityType.substring('GENERIC_ENTITY_'.length));
+                    return List.concat('"', ...found, '"', '^^tt:username');
+
+                if (this._syntaxType === SyntaxType.LegacyNN) {
+                    if (entityType === 'LOCATION')
+                        return List.concat('location:', '"', ...found, '"');
+                    else
+                        return List.concat('"', ...found, '"', '^^' + entityType.substring('GENERIC_ENTITY_'.length));
+                } else {
+                    if (entityType === 'LOCATION')
+                        return List.concat('new', 'Location', '(', '"', ...found, '"', ')');
+                    else
+                        return List.concat('null', '^^' + entityType.substring('GENERIC_ENTITY_'.length), '(', '"', ...found, '"', ')');
+                }
+            }
+        }
+
+        // always predict (not copy) these entities if they are missing from the sentence
+        // (the neural model will learn the names of the devices
+        if (entityType === 'GENERIC_ENTITY_tt:device') {
+            const value = (entity as GenericEntity).value!;
+            if (this._syntaxType === SyntaxType.LegacyNN)
+                return List.singleton('device:' + value);
+            else
+                return List.singleton('@' + value);
+        }
+        if (entityType === 'GENERIC_ENTITY_tt:function') {
+            const value = (entity as GenericEntity).value!;
+            if (this._syntaxType === SyntaxType.LegacyNN) {
+                return List.singleton('@' + value);
+            } else {
+                const dot = value.lastIndexOf('.');
+                const kind = value.substring(0, dot);
+                const name = value.substring(dot+1, value.length);
+                return List.concat('@' + kind, '.', name);
             }
         }
 
         return undefined;
     }
 
-    protected _findEntityInBag(entityType : string, value : AnyEntity, entities : EntityMap) : string[] {
+    private _findEntityInBag(entityType : string, value : AnyEntity, entities : EntityMap) : string[] {
         const candidates = [];
 
         for (const what in entities) {
@@ -276,9 +259,9 @@ export class EntityRetriever extends AbstractEntityRetriever {
         return candidates;
     }
 
-    findEntity(entityType : string, value : Ast.Value, { ignoreNotFound = false }) : List<string>|null {
-        const entity = valueToEntity(entityType, value);
-
+    findEntity(entityType : string, entity : AnyEntity, options : { ignoreNotFound : true }) : List<string>|null;
+    findEntity(entityType : string, entity : AnyEntity, options ?: { ignoreNotFound ?: false }) : List<string>;
+    findEntity(entityType : string, entity : AnyEntity, { ignoreNotFound = false } = {}) : List<string>|null {
         const entityString = entityToString(entityType, entity);
 
         // try in the sentence before we look in the bag of entities (which comes from the context)
@@ -344,24 +327,30 @@ export class SequentialEntityAllocator extends AbstractEntityRetriever {
         }
     }
 
-    findEntity(entityType : string, value : Ast.Value, { ignoreNotFound = false }) : List<string>|null {
-        const entity = valueToEntity(entityType, value);
-
+    findEntity(entityType : string, entity : AnyEntity, { ignoreNotFound = false } = {}) : List<string> {
         if (this.explicitStrings &&
             (entityType === 'QUOTED_STRING' || entityType === 'HASHTAG' || entityType === 'USERNAME' ||
             entityType === 'LOCATION' || entityType.startsWith('GENERIC_ENTITY_'))) {
-            const entityString = entityToString(entityType, entity);
+            const entityString = entityToString(entityType, entity).split(' ');
 
             if (entityType === 'QUOTED_STRING')
-                return List.concat('"', entityString, '"');
+                return List.concat('"', ...entityString, '"');
             else if (entityType === 'HASHTAG')
-                return List.concat('"', entityString, '"', '^^tt:hashtag');
+                return List.concat('"', ...entityString, '"', '^^tt:hashtag');
             else if (entityType === 'USERNAME')
-                return List.concat('"', entityString, '"', '^^tt:username');
-            else if (entityType === 'LOCATION')
-                return List.concat('location:', '"', entityString, '"');
-            else
-                return List.concat('"', entityString, '"', '^^' + entityType.substring('GENERIC_ENTITY_'.length));
+                return List.concat('"', ...entityString, '"', '^^tt:username');
+
+            if (this._syntaxType === SyntaxType.LegacyNN) {
+                if (entityType === 'LOCATION')
+                    return List.concat('location:', '"', ...entityString, '"');
+                else
+                    return List.concat('"', ...entityString, '"', '^^' + entityType.substring('GENERIC_ENTITY_'.length));
+            } else {
+                if (entityType === 'LOCATION')
+                    return List.concat('new', 'Location', '(', '"', ...entityString, '"', ')');
+                else
+                    return List.concat('null', '^^' + entityType.substring('GENERIC_ENTITY_'.length), '(', '"', ...entityString, '"', ')');
+            }
         }
 
         for (const what in this.entities) {

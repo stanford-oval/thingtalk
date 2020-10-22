@@ -179,27 +179,19 @@ export default abstract class NodeVisitor {
     // bookkeeping
 
     /* istanbul ignore next */
-    visitBookkeeping(node : BK.Bookkeeping) : boolean {
+    visitControlCommand(node : BK.ControlCommand) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitSpecialBookkeepingIntent(node : BK.SpecialBookkeepingIntent) : boolean {
+    visitSpecialControlIntent(node : BK.SpecialControlIntent) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitChoiceBookkeepingIntent(node : BK.ChoiceBookkeepingIntent) : boolean {
+    visitChoiceControlIntent(node : BK.ChoiceControlIntent) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitCommandListBookkeepingIntent(node : BK.CommandListBookkeepingIntent) : boolean {
-        return true;
-    }
-    /* istanbul ignore next */
-    visitAnswerBookkeepingIntent(node : BK.AnswerBookkeepingIntent) : boolean {
-        return true;
-    }
-    /* istanbul ignore next */
-    visitPredicateBookkeepingIntent(node : BK.PredicateBookkeepingIntent) : boolean {
+    visitAnswerControlIntent(node : BK.AnswerControlIntent) : boolean {
         return true;
     }
 

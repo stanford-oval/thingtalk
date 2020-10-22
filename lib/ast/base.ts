@@ -26,7 +26,6 @@ import type {
     ExternalBooleanExpression
 } from './expression';
 import type { Value } from './values';
-import type { FunctionDeclaration } from './program';
 import type {
     InvocationAction,
     VarRefAction,
@@ -35,6 +34,7 @@ import type {
     VarRefStream
 } from './primitive';
 import type {
+    InvocationExpression,
     FunctionCallExpression
 } from './expression2';
 import {
@@ -42,8 +42,12 @@ import {
     SourceLocation
 } from '../utils/source_locations';
 
-import { TokenStream } from '../new-syntax/tokenstream';
-import { prettyprint } from '../new-syntax/pretty';
+import { TokenStream, ConstantToken } from '../new-syntax/tokenstream';
+import {
+    SyntaxType,
+    serialize,
+} from '../syntax_api';
+import List from '../utils/list';
 
 // reexport those types for the benefit of ThingTalk API consumers
 export {
@@ -65,6 +69,53 @@ export type Primitive = Invocation |
     VarRefStream |
     FunctionCallExpression |
     ExternalBooleanExpression;
+
+export function implAnnotationsToSource(map : AnnotationMap, prefix = '\n') : TokenStream {
+    let syntax : TokenStream = List.Nil;
+    for (const key in map) {
+        syntax = List.concat(syntax,
+            prefix, '#[', key, '=', map[key].toSource(), ']');
+    }
+    return syntax;
+}
+
+export function toJSON(value : unknown) : TokenStream {
+    if (Array.isArray(value)) {
+        return List.concat('[', List.join(value.map(toJSON), ','), ']');
+    } else if (typeof value === 'object' && value !== null) {
+        let list : TokenStream = List.singleton('{');
+        let first = true;
+        const object = value as { [key : string] : unknown };
+        for (const key in object) {
+            const inner = object[key];
+            if (first) {
+                list = List.concat(list, '\n', '\t+');
+                first = false;
+            } else {
+                list = List.concat(list, ',', '\n');
+            }
+            list = List.concat(list, key, '=', toJSON(inner));
+        }
+        if (first)
+            list = List.concat(list, '}');
+        else
+            list = List.concat(list, '\n', '\t-', '}');
+        return list;
+    } else if (typeof value === 'string') {
+        return List.singleton(new ConstantToken('QUOTED_STRING', value));
+    } else {
+        return List.singleton(String(value));
+    }
+}
+
+export function nlAnnotationsToSource(map : NLAnnotationMap, prefix = '\n') : TokenStream {
+    let syntax : TokenStream = List.Nil;
+    for (const key of Object.keys(map)) {
+        syntax = List.concat(syntax,
+            prefix, '#_[', key, '=', toJSON(map[key]), ']');
+    }
+    return syntax;
+}
 
 /**
  * Base class of AST nodes.
@@ -120,16 +171,13 @@ export default abstract class Node {
     /**
      * Convert this AST node to a sequence of tokens.
      */
-    toSource() : TokenStream {
-        // this method should be abstract but that would break everything
-        throw new Error('not implemented');
-    }
+    abstract toSource() : TokenStream;
 
     /**
      * Convert this AST node to a normalized surface form in ThingTalk.
      */
-    prettyprint() {
-        return prettyprint(this.toSource());
+    prettyprint() : string {
+        return serialize(this, SyntaxType.Normal);
     }
 
     /**
@@ -143,11 +191,11 @@ export default abstract class Node {
      *                                  in the iteration
      * @deprecated Use {@link Ast.NodeVisitor}.
      */
-    iteratePrimitives(includeVarRef : false) : Array<[('action'|'query'|'stream'|'filter'), Invocation|ExternalBooleanExpression]>;
-    iteratePrimitives(includeVarRef : boolean) : Array<[('action'|'query'|'stream'|'filter'), Primitive]>;
-    iteratePrimitives(includeVarRef : boolean) : Array<[('action'|'query'|'stream'|'filter'), Primitive]> {
+    iteratePrimitives(includeVarRef : false) : Array<[('action'|'query'|'stream'|'filter'|'expression'), Invocation|ExternalBooleanExpression]>;
+    iteratePrimitives(includeVarRef : boolean) : Array<[('action'|'query'|'stream'|'filter'|'expression'), Primitive]>;
+    iteratePrimitives(includeVarRef : boolean) : Array<[('action'|'query'|'stream'|'filter'|'expression'), Primitive]> {
         // we cannot yield from inside the visitor, so we buffer everything
-        const buffer : Array<[('action'|'query'|'stream'|'filter'), Primitive]> = [];
+        const buffer : Array<[('action'|'query'|'stream'|'filter'|'expression'), Primitive]> = [];
         const visitor = new class extends NodeVisitor {
             visitVarRefAction(node : VarRefAction) {
                 if (includeVarRef)
@@ -172,14 +220,25 @@ export default abstract class Node {
                     buffer.push(['stream', node]);
                 return true;
             }
+            visitFunctionCallExpression(node : FunctionCallExpression) {
+                if (!includeVarRef)
+                    return true;
+                if (node.schema)
+                    buffer.push([node.schema.functionType, node]);
+                else
+                    buffer.push(['expression', node]);
+                return true;
+            }
+            visitInvocationExpression(node : InvocationExpression) {
+                if (node.schema)
+                    buffer.push([node.schema.functionType, node.invocation]);
+                else
+                    buffer.push(['expression', node.invocation]);
+                return true;
+            }
             visitExternalBooleanExpression(node : ExternalBooleanExpression) {
                 buffer.push(['filter', node]);
                 return true;
-            }
-
-            visitFunctionDeclaration(node : FunctionDeclaration) {
-                // we don't recurse into nested procedures
-                return false;
             }
         };
 

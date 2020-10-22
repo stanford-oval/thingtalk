@@ -81,6 +81,8 @@ function convertExpressionToPermissionFunction(expression : Expression) : Permis
         return convertExpressionToPermissionFunction(expression.expression);
 
     if (expression instanceof ChainExpression) {
+        if (expression.expressions.length === 1)
+            return convertExpressionToPermissionFunction(expression.expressions[0]);
         console.log('NOT IMPLEMENTED: cannot support more than one permission primitive');
         return null;
     }

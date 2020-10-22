@@ -19,7 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import * as Describe from '../lib/describe';
-import * as Grammar from '../lib/grammar_api';
+import * as Grammar from '../lib/syntax_api';
 import SchemaRetriever from '../lib/schema';
 
 import _mockSchemaDelegate from './mock_schema_delegate';
@@ -30,38 +30,38 @@ const TEST_CASES = [
     ['now => @com.twitter.post(status=$undefined);',
      'tweet ____',
      'Twitter'],
-    ['monitor @com.twitter.home_timeline() => @com.twitter.post(status=text);',
+    ['monitor(@com.twitter.home_timeline()) => @com.twitter.post(status=text);',
     'tweet the text when tweets from anyone you follow change',
     'Twitter ⇒ Twitter'],
 
-    ['attimer(time=makeTime(8,30)) => @org.thingpedia.builtin.thingengine.builtin.say(message=$undefined);',
+    ['attimer(time=[new Time(8,30)]) => @org.thingpedia.builtin.thingengine.builtin.say(message=$undefined);',
     'send me a message ____ every day at 8:30 AM',
     'Say'],
-    ['attimer(time=makeTime(20,30)) => @org.thingpedia.builtin.thingengine.builtin.say(message=$undefined);',
+    ['attimer(time=[new Time(20,30)]) => @org.thingpedia.builtin.thingengine.builtin.say(message=$undefined);',
     'send me a message ____ every day at 8:30 PM',
     'Say'],
-    ['attimer(time=makeTime(0,0)) => @org.thingpedia.builtin.thingengine.builtin.say(message=$undefined);',
+    ['attimer(time=[new Time(0,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message=$undefined);',
     'send me a message ____ every day at 12:00 AM',
     'Say'],
-    ['attimer(time=makeTime(12,0)) => @org.thingpedia.builtin.thingengine.builtin.say(message=$undefined);',
+    ['attimer(time=[new Time(12,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message=$undefined);',
     'send me a message ____ every day at 12:00 PM',
     'Say'],
-    [`attimer(time=[makeTime(9,0), makeTime(15,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");`,
+    [`attimer(time=[new Time(9,0), new Time(15,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");`,
     `send me a message “it's 9am or 3pm” every day at 9:00 AM and 3:00 PM`,//'
     'Say'],
-    [`attimer(time=[makeTime(9,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am");`,
+    [`attimer(time=[new Time(9,0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am");`,
     `send me a message “it's 9am” every day at 9:00 AM`,//'
     'Say'],
-    [`attimer(time=[$context.time.morning]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's the morning");`,
+    [`attimer(time=[$time.morning]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's the morning");`,
     `send me a message “it's the morning” every day at the morning`,//'
     'Say'],
-    [`attimer(time=[$context.time.evening]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's the evening");`,
+    [`attimer(time=[$time.evening]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's the evening");`,
     `send me a message “it's the evening” every day at the evening`,//'
     'Say'],
-    [`timer(base=makeDate(), interval=2h) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's the evening");`,
+    [`timer(base=new Date(), interval=2h) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's the evening");`,
     `send me a message “it's the evening” every 2 h`,//'
     'Say'],
-    [`timer(base=makeDate(), interval=2h, frequency=2) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's the evening");`,
+    [`timer(base=new Date(), interval=2h, frequency=2) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's the evening");`,
     `send me a message “it's the evening” twice every 2 h`,//'
     'Say'],
 
@@ -74,39 +74,33 @@ const TEST_CASES = [
     [`now => @com.xkcd.get_comic(number=$undefined) => notify;`,
     'get an Xkcd comic with number equal to ____ and then notify you',
     'Xkcd'],
-    [`now => @com.xkcd.get_comic() => return;`,
-    'get an Xkcd comic and then send it to me',
-    'Xkcd'],
-    [`monitor @com.xkcd.get_comic() => notify;`,
+    [`monitor(@com.xkcd.get_comic()) => notify;`,
     'notify you when an Xkcd comic changes',
     'Xkcd'],
-    [`monitor @com.xkcd.get_comic() => return;`,
-    'send it to me when an Xkcd comic changes',
-    'Xkcd'],
 
-    [`now => @org.thingpedia.weather.current(location=$context.location.current_location) => notify;`,
+    [`now => @org.thingpedia.weather.current(location=$location.current_location) => notify;`,
     `get the current weather for here and then notify you`,
     'Weather'],
-    [`now => @org.thingpedia.weather.current(location=$context.location.home) => notify;`,
+    [`now => @org.thingpedia.weather.current(location=$location.home) => notify;`,
     `get the current weather for at home and then notify you`,
     'Weather'],
-    [`now => @org.thingpedia.weather.current(location=$context.location.work) => notify;`,
+    [`now => @org.thingpedia.weather.current(location=$location.work) => notify;`,
     `get the current weather for at work and then notify you`,
     'Weather'],
-    [`now => @org.thingpedia.weather.current(location=makeLocation(37,-137)) => notify;`,
+    [`now => @org.thingpedia.weather.current(location=new Location(37,-137)) => notify;`,
     `get the current weather for [Latitude: 37 deg, Longitude: -137 deg] and then notify you`,
     'Weather'],
-    [`now => @org.thingpedia.weather.current(location=makeLocation(37,-137, "Somewhere")) => notify;`,
+    [`now => @org.thingpedia.weather.current(location=new Location(37,-137, "Somewhere")) => notify;`,
     `get the current weather for Somewhere and then notify you`,
     'Weather'],
 
-    /*[`now => @org.thingpedia.weather.sunrise(date=makeDate(2018,4,24)) => notify;`,
+    /*[`now => @org.thingpedia.weather.sunrise(date=new Date(2018,4,24)) => notify;`,
     `get get the sunrise and sunset time for location ____ with date equal to 4/24/2018 and then notify you`,
     'Weather'],
-    [`now => @org.thingpedia.weather.sunrise(date=makeDate(2018,4,24,10,0,0)) => notify;`,
+    [`now => @org.thingpedia.weather.sunrise(date=new Date(2018,4,24,10,0,0)) => notify;`,
     `get get the sunrise and sunset time for location ____ with date equal to 4/24/2018, 10:00:00 AM and then notify you`,
     'Weather'],
-    [`now => @org.thingpedia.weather.sunrise(date=makeDate(2018,4,24,22,0,0)) => notify;`,
+    [`now => @org.thingpedia.weather.sunrise(date=new Date(2018,4,24,22,0,0)) => notify;`,
     `get get the sunrise and sunset time for location ____ with date equal to 4/24/2018, 10:00:00 PM and then notify you`,
     'Weather'],*/
 
@@ -117,26 +111,26 @@ const TEST_CASES = [
     `get your recent Instagram pictures that have hashtags #foo and then notify you`,
     'Instagram'],
 
-    [`now => @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code, text="hello") => @com.facebook.post(status=$event);`,
+    [`now => @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code, text="hello") => @com.facebook.post(status=$result);`,
     `get the translation of “hello” to zh and then post the result on Facebook`,
     'Yandex Translate ⇒ Facebook'],
-    [`now => @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code) => @com.facebook.post(status=$event.type);`,
+    [`now => @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code) => @com.facebook.post(status=$type);`,
     `get the translation of ____ to zh and then post the device type on Facebook`,
     'Yandex Translate ⇒ Facebook'],
-    [`now => @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code) => @com.facebook.post(status=$event.program_id);`,
+    [`now => @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code) => @com.facebook.post(status=$program_id);`,
     `get the translation of ____ to zh and then post the program ID on Facebook`,
     'Yandex Translate ⇒ Facebook'],
-    [`now => @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code("Chinese")) => @com.facebook.post(status=$event.program_id);`,
+    [`now => @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code("Chinese")) => @com.facebook.post(status=$program_id);`,
     `get the translation of ____ to Chinese and then post the program ID on Facebook`,
     'Yandex Translate ⇒ Facebook'],
 
-    [`monitor (@com.xkcd.get_comic()) join @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code("Chinese")) on (text=title) => @com.facebook.post(status=$event);`,
+    [`monitor (@com.xkcd.get_comic()) => @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code("Chinese"), text=title) => @com.facebook.post(status=$result);`,
     `do the following: when an Xkcd comic changes, get the translation of the title to Chinese, and then post the result on Facebook`,
     'Xkcd ⇒ Yandex Translate ⇒ Facebook'],
-    [`monitor (@com.xkcd.get_comic()) join @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code("Chinese")) on (text=title) => notify;`,
+    [`monitor (@com.xkcd.get_comic()) => @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code("Chinese"), text=title) => notify;`,
     `do the following: when an Xkcd comic changes, get the translation of the title to Chinese, and then notify you`,
     'Xkcd ⇒ Yandex Translate'],
-    [`monitor (@com.xkcd.get_comic(), title =~ "lol") join @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code("Chinese")) on (text=title) => notify;`,
+    [`monitor (@com.xkcd.get_comic(), title =~ "lol") => @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code("Chinese"), text=title) => notify;`,
     'do the following: when an Xkcd comic changes if the title contains “lol”, get the translation of the title to Chinese, and then notify you',
     'Xkcd ⇒ Yandex Translate'],
     [`monitor (@com.xkcd.get_comic(), title =~ "lol") => notify;`,
@@ -155,13 +149,13 @@ const TEST_CASES = [
     `post the snippet on Facebook when the emails in your GMail inbox change if the labels do not contain “work”`,
     'Gmail ⇒ Facebook'],
 
-    ['monitor @com.twitter.home_timeline(), contains~(hashtags, "funny") => @com.twitter.post(status=text);',
+    ['monitor(@com.twitter.home_timeline(), contains~(hashtags, "funny")) => @com.twitter.post(status=text);',
     'tweet the text when tweets from anyone you follow change if the hashtags contain “funny”',
     'Twitter ⇒ Twitter'],
-    ['monitor @com.twitter.home_timeline(), text =~ "funny" => @com.twitter.post(status=text);',
+    ['monitor(@com.twitter.home_timeline(), text =~ "funny") => @com.twitter.post(status=text);',
     'tweet the text when tweets from anyone you follow change if the text contains “funny”',
     'Twitter ⇒ Twitter'],
-    ['monitor @com.twitter.home_timeline(), !(text =~ "funny") => @com.twitter.post(status=text);',
+    ['monitor(@com.twitter.home_timeline(), !(text =~ "funny")) => @com.twitter.post(status=text);',
     'tweet the text when tweets from anyone you follow change if the text does not contain “funny”',
     'Twitter ⇒ Twitter'],
 
@@ -173,14 +167,14 @@ const TEST_CASES = [
     ['now => @org.thingpedia.builtin.thingengine.phone.set_ringer(mode=enum(vibrate));',
     'set your phone to vibrate', 'Phone'],
 
-    ['now => (@com.bing.web_search() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code("Italian")) on (text=$event)) => notify;',
+    ['now => @com.bing.web_search() => @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code("Italian"), text=$result) => notify;',
     'get websites matching ____ on Bing and the translation of the result to Italian and then notify you',
     'Bing ⇒ Yandex Translate'],
-    ['monitor @com.bing.web_search() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code("Italian")) on (text=$event) => notify;',
+    ['monitor(@com.bing.web_search()) => @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code("Italian"), text=$result) => notify;',
     'do the following: when websites matching ____ on Bing change, get the translation of the result to Italian, and then notify you',
     'Bing ⇒ Yandex Translate'],
 
-    [`monitor @com.yahoo.finance.get_stock_quote(stock_id="goog"^^tt:stock_id("Alphabet, Inc.")), ask_price >= makeCurrency(100, usd) => notify;`,
+    [`monitor(@com.yahoo.finance.get_stock_quote(stock_id="goog"^^tt:stock_id("Alphabet, Inc.")), ask_price >= 100$usd) => notify;`,
     'notify you when the stock price of Alphabet, Inc. changes if the ask price is greater than or equal to $100.00',
     'Yahoo Finance'],
 
@@ -192,49 +186,49 @@ const TEST_CASES = [
     'get the ask price and bid price of the stock price of Alphabet, Inc. and then notify you',
     'Yahoo Finance'],
 
-    [`now => aggregate avg file_size of @com.google.drive.list_drive_files() => notify;`,
+    [`now => avg(file_size of @com.google.drive.list_drive_files()) => notify;`,
     'get the average file size in files in your Google Drive and then notify you',
     'Google Drive'],
-    [`now => aggregate min file_size of @com.google.drive.list_drive_files() => notify;`,
+    [`now => min(file_size of @com.google.drive.list_drive_files()) => notify;`,
     'get the minimum file size in files in your Google Drive and then notify you',
     'Google Drive'],
-    [`now => aggregate max file_size of @com.google.drive.list_drive_files() => notify;`,
+    [`now => max(file_size of @com.google.drive.list_drive_files()) => notify;`,
     'get the maximum file size in files in your Google Drive and then notify you',
     'Google Drive'],
-    [`now => aggregate sum file_size of @com.google.drive.list_drive_files() => notify;`,
+    [`now => sum(file_size of @com.google.drive.list_drive_files()) => notify;`,
     'get the sum of the file size in files in your Google Drive and then notify you',
     'Google Drive'],
-    [`now => aggregate count file_size of @com.google.drive.list_drive_files() => notify;`,
+    [`now => count(file_size of @com.google.drive.list_drive_files()) => notify;`,
     'get the number of file sizes in files in your Google Drive and then notify you',
     'Google Drive'],
-    [`now => aggregate count file_name of @com.google.drive.list_drive_files() => notify;`,
+    [`now => count(file_name of @com.google.drive.list_drive_files()) => notify;`,
     'get the number of file names in files in your Google Drive and then notify you',
     'Google Drive'],
-    [`now => aggregate count of @com.google.drive.list_drive_files() => notify;`,
+    [`now => count(@com.google.drive.list_drive_files()) => notify;`,
     'get the number of files in your Google Drive and then notify you',
     'Google Drive'],
-    [`now => (sort file_size asc of @com.google.drive.list_drive_files())[1] => notify;`,
+    [`now => sort(file_size asc of @com.google.drive.list_drive_files())[1] => notify;`,
     'get the files in your Google Drive with the minimum file size and then notify you',
     'Google Drive'],
-    [`now => (sort file_size desc of @com.google.drive.list_drive_files())[-1] => notify;`,
+    [`now => sort(file_size desc of @com.google.drive.list_drive_files())[-1] => notify;`,
     'get the files in your Google Drive with the minimum file size and then notify you',
     'Google Drive'],
-    [`now => (sort file_size desc of @com.google.drive.list_drive_files())[1] => notify;`,
+    [`now => sort(file_size desc of @com.google.drive.list_drive_files())[1] => notify;`,
     'get the files in your Google Drive with the maximum file size and then notify you',
     'Google Drive'],
-    [`now => (sort file_size asc of @com.google.drive.list_drive_files())[-1] => notify;`,
+    [`now => sort(file_size asc of @com.google.drive.list_drive_files())[-1] => notify;`,
     'get the files in your Google Drive with the maximum file size and then notify you',
     'Google Drive'],
-    [`now => (sort file_size asc of @com.google.drive.list_drive_files())[-1:5] => notify;`,
+    [`now => sort(file_size asc of @com.google.drive.list_drive_files())[-1:5] => notify;`,
     'get the 5 files in your Google Drive with the maximum file size and then notify you',
     'Google Drive'],
-    [`now => (sort file_size asc of @com.google.drive.list_drive_files())[1:5] => notify;`,
+    [`now => sort(file_size asc of @com.google.drive.list_drive_files())[1:5] => notify;`,
     'get the 5 files in your Google Drive with the minimum file size and then notify you',
     'Google Drive'],
-    [`now => (sort file_size asc of @com.google.drive.list_drive_files())[1:$?] => notify;`,
+    [`now => sort(file_size asc of @com.google.drive.list_drive_files())[1:$?] => notify;`,
     'get the ____ files in your Google Drive with the minimum file size and then notify you',
     'Google Drive'],
-    [`now => (sort file_size desc of @com.google.drive.list_drive_files())[1:$?] => notify;`,
+    [`now => sort(file_size desc of @com.google.drive.list_drive_files())[1:$?] => notify;`,
     'get the ____ files in your Google Drive with the maximum file size and then notify you',
     'Google Drive'],
     [`now => @com.google.drive.list_drive_files()[1] => notify;`,
@@ -268,32 +262,23 @@ const TEST_CASES = [
     'get elements 1, 2, and 7 of the files in your Google Drive and then notify you',
     'Google Drive'],
 
-    [`now => [file_name] of sort file_size asc of @com.google.drive.list_drive_files() => notify;`,
+    [`now => [file_name] of sort(file_size asc of @com.google.drive.list_drive_files()) => notify;`,
     'get the file name of the files in your Google Drive sorted by increasing file size and then notify you',
     'Google Drive'],
 
-    [`bookkeeping(yes);`,
+    [`$yes;`,
     'yes', ''],
 
-    [`bookkeeping(no);`,
+    [`$no;`,
     'no', ''],
 
-    [`bookkeeping(nevermind);`,
+    [`$nevermind;`,
     'cancel', ''],
 
-    [`bookkeeping(commands(category="online-account"));`,
-    'list the commands of ____, in category online-account', ''],
-
-    [`bookkeeping(commands(device="com.twitter"^^tt:device, category="social-network"));`,
-    'list the commands of com.twitter, in category social-network', ''],
-
-    [`bookkeeping(commands(device="com.twitter"^^tt:device("Twitter"), category="social-network"));`,
-    'list the commands of Twitter, in category social-network', ''],
-
-    [`bookkeeping(answer(42));`,
+    [`$answer(42);`,
     '42', ''],
 
-    [`bookkeeping(choice(0));`,
+    [`$choice(0);`,
     'choice number 1', ''],
 
     [`now => @com.spotify.get_currently_playing() => @com.spotify.add_songs_to_playlist(songs=[song]);`,
@@ -317,23 +302,23 @@ const TEST_CASES = [
     [`monitor (@smoke-alarm(name="kitchen").status()) => notify;`,
     'notify you when the status of your “kitchen” smoke alarm changes', 'Smoke Alarm'],
 
-    [`now => compute distance(geo, $context.location.current_location) of @org.schema.place() => notify;`,
-    'get places and the distance between the geo and here and then notify you', 'Schema'],
-    [`compute distance(geo, $context.location.current_location) of (timer(base=$?, interval=$?) join @org.schema.place()) => notify;`,
-    'notify you every ____ starting ____, get places and the distance between the geo and here', 'Schema'],
+    [`now => [distance(geo, $location.current_location)] of @org.schema.place() => notify;`,
+    'get the distance of places and the distance between the geo and here and then notify you', 'Schema'],
+    [`timer(base=$?, interval=$?) => [distance(geo, $location.current_location)] of @org.schema.place() => notify;`,
+    'do the following: every ____ starting ____, get the distance of places and the distance between the geo and here, and then notify you', 'Schema'],
 
-    [`executor = "bob"^^tt:username : now => @com.twitter.post(status="lol");`,
+    [`#[executor = "bob"^^tt:username] now => @com.twitter.post(status="lol");`,
     `tell @bob: tweet “lol”`, `Twitter`],
 
-    [`executor = "bob"^^tt:username : monitor(@security-camera.current_event()) => @com.twitter.post(status="lol");`,
+    [`#[executor = "bob"^^tt:username] monitor(@security-camera.current_event()) => @com.twitter.post(status="lol");`,
     `tell @bob: tweet “lol” when the current event detected on your security camera changes`,
     `Security Camera ⇒ Twitter`],
 
-    [`executor = "bob"^^tt:username : monitor(@security-camera.current_event()) => @com.yandex.translate.translate(text="lol") => @com.twitter.post(status=translated_text);`,
+    [`#[executor = "bob"^^tt:username] monitor(@security-camera.current_event()) => @com.yandex.translate.translate(text="lol") => @com.twitter.post(status=translated_text);`,
     `tell @bob: do the following: when the current event detected on your security camera changes, get the translation of “lol” to ____, and then tweet the translated text`,
     `Security Camera ⇒ Yandex Translate ⇒ Twitter`],
 
-    [`edge (monitor (@org.thingpedia.weather.current(location=$?))) on temperature >= 5defaultTemperature => notify;`,
+    [`(monitor (@org.thingpedia.weather.current(location=$?))) filter temperature >= 5defaultTemperature => notify;`,
     'notify you when the current weather for ____ changes and it becomes true that the temperature is greater than or equal to 5 degrees', 'Weather'],
     [`now => (@org.thingpedia.weather.current(location=$?)), temperature >= 10defaultTemperature => notify;`,
     'get the current weather for ____ such that the temperature is greater than or equal to 10 degrees and then notify you', 'Weather'],
@@ -378,11 +363,27 @@ const TEST_CASES = [
      `get today's date such that the date is after 12:00 PM on day 1 of june, this year and then notify you`,
      `Get Date`],
 
-    [`now => @org.thingpedia.builtin.thingengine.builtin.get_date(), date >= new Date(monday) => notify;`,
+    [`now => @org.thingpedia.builtin.thingengine.builtin.get_date(), date >= new Date(2020, 6, ) => notify;`,
+     `get today's date such that the date is after Monday, June 1, 2020 and then notify you`,
+     `Get Date`],
+
+    [`now => @org.thingpedia.builtin.thingengine.builtin.get_date(), date >= new Date(2020, 6, , 12, 0, 0) => notify;`,
+     `get today's date such that the date is after 6/1/2020, 12:00:00 PM and then notify you`,
+     `Get Date`],
+
+    [`now => @org.thingpedia.builtin.thingengine.builtin.get_date(), date >= new Date(, 6, 3, 12, 0, 0) => notify;`,
+     `get today's date such that the date is after 12:00 PM on day 3 of june, this year and then notify you`,
+     `Get Date`],
+
+    [`now => @org.thingpedia.builtin.thingengine.builtin.get_date(), date >= new Date(, 6, 3) => notify;`,
+     `get today's date such that the date is after start of day on day 3 of june, this year and then notify you`,
+     `Get Date`],
+
+    [`now => @org.thingpedia.builtin.thingengine.builtin.get_date(), date >= new Date(enum monday) => notify;`,
      `get today's date such that the date is after start of day on monday and then notify you`,
      `Get Date`],
 
-    [`now => @org.thingpedia.builtin.thingengine.builtin.get_date(), date >= new Date(monday, 12, 0, 0) => notify;`,
+    [`now => @org.thingpedia.builtin.thingengine.builtin.get_date(), date >= new Date(enum monday, 12, 0, 0) => notify;`,
      `get today's date such that the date is after 12:00 PM on monday and then notify you`,
      `Get Date`]
 ];
@@ -399,7 +400,7 @@ async function test(i) {
 
     let failed = false;
     try {
-        const prog = await Grammar.parseAndTypecheck(code, schemaRetriever, true);
+        const prog = await Grammar.parse(code).typecheck(schemaRetriever, true);
         const describer = new Describe.Describer(gettext, 'en-US', 'America/Los_Angeles');
         let reconstructed = describer.describe(prog);
         if (expected !== reconstructed) {

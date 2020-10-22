@@ -24,6 +24,11 @@
  * @namespace Ast
  */
 
+// import syntax API first to resolve a cyclic import:
+// "base" imports "syntax_api" for serialize, and "syntax_api"
+// indirectly imports us here
+import '../syntax_api';
+
 export { default as Node } from './base';
 export * from './base';
 export * from './function_def';

@@ -488,7 +488,7 @@ export class ArrayIndexSlot extends AbstractSlot {
 
         switch (this._baseTag) {
         case 'table.index':
-
+        case 'expression.index':
             if (this._array.length === 1)
                 return _("Which result do you want?");
 
@@ -500,6 +500,20 @@ export class ArrayIndexSlot extends AbstractSlot {
                 two {What is the index of the ${index}nd result you would like?}\
                 few {What is the index of the ${index}rd result you would like?}\
                 other {What is the index of the ${index}th result you would like?}\
+            }"), { index: this._index+1 }, { locale }) as string;
+
+        case 'expression.computations':
+            if (this._array.length === 1)
+                return _("What parameter would you like?");
+
+            return interpolate(_("${index:ordinal:\
+                =1 {What is the first parameter you would like?}\
+                =2 {What is the second parameter you would like?}\
+                =3 {What is the third parameter you would like?}\
+                one {What is the ${index}st parameter you would like?}\
+                two {What is the ${index}nd parameter you would like?}\
+                few {What is the ${index}rd parameter you would like?}\
+                other {What is the ${index}th parameter you would like?}\
             }"), { index: this._index+1 }, { locale }) as string;
 
         case 'attimer.time':
@@ -688,6 +702,7 @@ export class FieldSlot extends AbstractSlot {
 
         switch (this._tag) {
         case 'program.principal':
+        case 'program.executor':
             return _("Who should run this command?");
         case 'timer.base':
             return _("When would you like your command to start?");
@@ -759,7 +774,7 @@ export function* recursiveYieldArraySlots(slot : AbstractSlot) : Generator<Abstr
     yield slot;
     const value = slot.get();
     if (value instanceof ArrayValue) {
-        const type = slot.type as ArrayType;
+        const type = slot.type;
         assert(type instanceof ArrayType);
         for (let i = 0; i < value.value.length; i++)
             yield* recursiveYieldArraySlots(new ArrayIndexSlot(slot.primitive, slot.scope, type.elem as Type, value.value, slot, i));

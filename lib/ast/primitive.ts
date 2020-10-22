@@ -55,7 +55,6 @@ import {
 } from './slots';
 import Type from '../type';
 import NodeVisitor from './visitor';
-import * as Builtin from '../builtin/defs';
 
 import { TokenStream } from '../new-syntax/tokenstream';
 import List from '../utils/list';
@@ -106,7 +105,11 @@ export abstract class Table extends Node {
         this.schema = schema;
     }
 
-    abstract toExpression() : Expression;
+    toSource() : TokenStream {
+        throw new Error(`Legacy AST node cannot be converted to source, convert to Expression first`);
+    }
+
+    abstract toExpression(extra_in_params : InputParam[]) : Expression;
 
     abstract clone() : Table;
 
@@ -114,7 +117,7 @@ export abstract class Table extends Node {
      * Iterate all slots (scalar value nodes) in this table.
      *
      * @param scope - available names for parameter passing
-     * @deprecated Use {@link Ast.Table#iterateSlots2} instead.
+     * @deprecated Use {@link Table#iterateSlots2} instead.
      */
     abstract iterateSlots(scope : ScopeMap) : Generator<OldSlot, [InvocationLike|null, ScopeMap]>;
 
@@ -154,8 +157,9 @@ export class VarRefTable extends Table {
         this.in_params = in_params;
     }
 
-    toExpression() {
-        return new FunctionCallExpression(this.location, this.name, this.in_params, this.schema);
+    toExpression(extra_in_params : InputParam[]) {
+        return new FunctionCallExpression(this.location, this.name,
+            this.in_params.concat(extra_in_params), this.schema);
     }
 
     toSource() : TokenStream {
@@ -205,8 +209,10 @@ export class InvocationTable extends Table {
         this.invocation = invocation;
     }
 
-    toExpression() {
-        return new InvocationExpression(this.location, this.invocation, this.schema);
+    toExpression(extra_in_params : InputParam[]) {
+        const invocation = this.invocation.clone();
+        invocation.in_params.push(...extra_in_params);
+        return new InvocationExpression(this.location, invocation, this.schema);
     }
 
     toSource() : TokenStream {
@@ -255,8 +261,8 @@ export class FilteredTable extends Table {
         this.filter = filter;
     }
 
-    toExpression() {
-        return new FilterExpression(this.location, this.table.toExpression(), this.filter, this.schema);
+    toExpression(extra_in_params : InputParam[]) {
+        return new FilterExpression(this.location, this.table.toExpression(extra_in_params), this.filter, this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -308,8 +314,8 @@ export class ProjectionTable extends Table {
         this.args = args;
     }
 
-    toExpression() {
-        return new ProjectionExpression(this.location, this.table.toExpression(), this.args, [], [], this.schema);
+    toExpression(extra_in_params : InputParam[]) {
+        return new ProjectionExpression(this.location, this.table.toExpression(extra_in_params), this.args, [], [], this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -373,8 +379,8 @@ export class ComputeTable extends Table {
         this.type = type;
     }
 
-    toExpression() {
-        return new ProjectionExpression(this.location, this.table.toExpression(), [], [this.expression], [this.alias], this.schema);
+    toExpression(extra_in_params : InputParam[]) {
+        return new ProjectionExpression(this.location, this.table.toExpression(extra_in_params), [], [this.expression], [this.alias], this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -427,8 +433,8 @@ export class AliasTable extends Table {
         this.name = name;
     }
 
-    toExpression() {
-        return new AliasExpression(this.location, this.table.toExpression(), this.name, this.schema);
+    toExpression(extra_in_params : InputParam[]) {
+        return new AliasExpression(this.location, this.table.toExpression(extra_in_params), this.name, this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -489,8 +495,8 @@ export class AggregationTable extends Table {
         this.overload = overload;
     }
 
-    toExpression() {
-        return new AggregationExpression(this.location, this.table.toExpression(), this.field, this.operator, this.schema);
+    toExpression(extra_in_params : InputParam[]) {
+        return new AggregationExpression(this.location, this.table.toExpression(extra_in_params), this.field, this.operator, this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -545,8 +551,9 @@ export class SortedTable extends Table {
         this.direction = direction;
     }
 
-    toExpression() {
-        return new SortExpression(this.location, this.table.toExpression(), this.field, this.direction, this.schema);
+    toExpression(extra_in_params : InputParam[]) {
+        return new SortExpression(this.location, this.table.toExpression(extra_in_params),
+            new Value.VarRef(this.field), this.direction, this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -594,8 +601,8 @@ export class IndexTable extends Table {
         this.indices = indices;
     }
 
-    toExpression() {
-        return new IndexExpression(this.location, this.table.toExpression(), this.indices, this.schema);
+    toExpression(extra_in_params : InputParam[]) {
+        return new IndexExpression(this.location, this.table.toExpression(extra_in_params), this.indices, this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -653,8 +660,8 @@ export class SlicedTable extends Table {
         this.limit = limit;
     }
 
-    toExpression() {
-        return new SliceExpression(this.location, this.table.toExpression(), this.base, this.limit, this.schema);
+    toExpression(extra_in_params : InputParam[]) {
+        return new SliceExpression(this.location, this.table.toExpression(extra_in_params), this.base, this.limit, this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -713,8 +720,13 @@ export class JoinTable extends Table {
         this.in_params = in_params;
     }
 
-    toExpression() {
-        return new ChainExpression(this.location, [this.lhs.toExpression(), this.rhs.toExpression()], this.schema);
+    toExpression(extra_in_params : InputParam[]) {
+        // we need typechecking to implement this correctly, but typechecking
+        // happens after the conversion so it is too late
+        if (extra_in_params.length > 0)
+            throw new Error(`Cannot carry extra_in_params across a join`);
+
+        return new ChainExpression(this.location, [this.lhs.toExpression([]), this.rhs.toExpression(this.in_params)], this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -801,6 +813,10 @@ export abstract class Stream extends Node {
 
         assert(schema === null || schema instanceof ExpressionSignature);
         this.schema = schema;
+    }
+
+    toSource() : TokenStream {
+        throw new Error(`Legacy AST node cannot be converted to source, convert to Expression first`);
     }
 
     abstract toExpression() : Expression;
@@ -913,9 +929,11 @@ export class TimerStream extends Stream {
     }
 
     toExpression() {
-        return new FunctionCallExpression(this.location, 'timer',
-            [new InputParam(null, 'base', this.base),
-             new InputParam(null, 'interval', this.interval)], this.schema);
+        const args = [new InputParam(null, 'base', this.base),
+                      new InputParam(null, 'interval', this.interval)];
+        if (this.frequency)
+            args.push(new InputParam(null, 'frequency', this.frequency));
+        return new FunctionCallExpression(this.location, 'timer', args, this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -1032,7 +1050,7 @@ export class MonitorStream extends Stream {
     }
 
     toExpression() {
-        return new MonitorExpression(this.location, this.table.toExpression(), this.args, this.schema);
+        return new MonitorExpression(this.location, this.table.toExpression([]), this.args, this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -1175,7 +1193,18 @@ export class FilteredStream extends Stream {
         this.filter = filter;
     }
 
-    toExpression() : never {
+    toExpression() : Expression {
+        // catch a common case that we can handle before bailing
+        if (this.stream instanceof MonitorStream) {
+            return new MonitorExpression(this.location,
+                new FilterExpression(this.location,
+                this.stream.table.toExpression([]),
+                this.filter,
+                this.schema),
+                this.stream.args,
+                this.stream.schema);
+        }
+
         throw new Error('stream filter is not supported in the new syntax (push the filter down inside the monitor)');
     }
 
@@ -1402,7 +1431,12 @@ export class JoinStream extends Stream {
     }
 
     toExpression() {
-        return new ChainExpression(this.location, [this.stream.toExpression(), this.table.toExpression()], this.schema);
+        const lhs = this.stream.toExpression();
+        // flatten chain expressions, or typechecking will fail
+        if (lhs instanceof ChainExpression)
+            return new ChainExpression(this.location, [...lhs.expressions, this.table.toExpression(this.in_params)], this.schema);
+        else
+            return new ChainExpression(this.location, [lhs, this.table.toExpression(this.in_params)], this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -1493,8 +1527,8 @@ export abstract class Action extends Node {
      * @param {string} [what=notify] - what action to create
      * @return {Ast.Action} the action node
      */
-    static notifyAction(what : keyof typeof Builtin.Actions = 'notify') : NotifyAction {
-        return new NotifyAction(null, what, Builtin.Actions[what]);
+    static notifyAction(what : 'notify' = 'notify') : NotifyAction {
+        return new NotifyAction(null, what, null);
     }
 
     abstract toExpression() : Expression;
@@ -1673,7 +1707,7 @@ Action.Invocation.prototype.isInvocation = true;
  * @extends Ast.Action
  */
 export class NotifyAction extends Action {
-    name : keyof typeof Builtin.Actions;
+    name : 'notify';
 
     /**
      * Construct a new notify action.
@@ -1683,11 +1717,14 @@ export class NotifyAction extends Action {
      * @param schema - type signature of this action
      */
     constructor(location : SourceRange|null,
-                name : keyof typeof Builtin.Actions,
-                schema : ExpressionSignature|null) {
-        super(location, schema || Builtin.Actions[name]);
+                name : 'notify',
+                schema : ExpressionSignature|null = null) {
+        super(location, schema);
 
-        assert(['notify', 'return', 'save'].includes(name));
+        // we used to support "return" and "save", but those are gone
+        // in new syntax so let's make sure we don't create ASTs for them
+        // (or we'll lose information when we convert)
+        assert(name === 'notify');
         this.name = name;
     }
 
@@ -1797,6 +1834,13 @@ export class SpecifiedPermissionFunction extends PermissionFunction {
         this.schema = schema;
     }
 
+    toSource() : TokenStream {
+        if (this.filter.isTrue)
+            return List.concat('@' + this.kind, '.', this.channel);
+        return List.concat('@' + this.kind, '.', this.channel, 'filter',
+            this.filter.toSource());
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitSpecifiedPermissionFunction(this))
@@ -1838,8 +1882,12 @@ export class BuiltinPermissionFunction extends PermissionFunction {
         visitor.exit(this);
     }
 
+    toSource() : TokenStream {
+        return List.singleton('notify');
+    }
+
     clone() : BuiltinPermissionFunction {
-        return new BuiltinPermissionFunction();
+        return this;
     }
 }
 BuiltinPermissionFunction.prototype.isBuiltin = true;
@@ -1878,6 +1926,10 @@ export class ClassStarPermissionFunction extends PermissionFunction {
         this.kind = kind;
     }
 
+    toSource() : TokenStream {
+        return List.concat('@' + this.kind, '.', '*');
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         visitor.visitClassStarPermissionFunction(this);
@@ -1902,8 +1954,12 @@ export class StarPermissionFunction extends PermissionFunction {
         visitor.exit(this);
     }
 
+    toSource() : TokenStream {
+        return List.singleton('*');
+    }
+
     clone() : StarPermissionFunction {
-        return new StarPermissionFunction();
+        return this;
     }
 }
 StarPermissionFunction.prototype.isStar = true;

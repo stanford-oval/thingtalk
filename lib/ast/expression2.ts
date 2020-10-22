@@ -30,7 +30,8 @@ import {
 } from './expression';
 import * as legacy from './primitive';
 import {
-    Value
+    Value,
+    VarRefValue
 } from './values';
 import {
     iterateSlots2InputParams,
@@ -70,7 +71,7 @@ export abstract class Expression extends Node {
     // syntactic priority of this expression (to emit the right parenthesis)
     abstract get priority() : SyntaxPriority;
 
-    abstract toLegacy() : legacy.Stream|legacy.Table|legacy.Action;
+    abstract toLegacy(into_params ?: InputParam[]) : legacy.Stream|legacy.Table|legacy.Action;
     abstract clone() : Expression;
     abstract toSource() : TokenStream;
 
@@ -94,6 +95,19 @@ export abstract class Expression extends Node {
     abstract iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]>;
 }
 
+// move parameter-passing from regular parameters to join parameters
+// when converting back to the legacy AST nodes
+function moveInputParams(in_params : InputParam[], into_params : InputParam[]) : InputParam[] {
+    return in_params.filter((ip) => {
+        if (ip.value.isVarRef || ip.value.isEvent) {
+            into_params.push(ip);
+            return false;
+        } else {
+            return true;
+        }
+    });
+}
+
 export class FunctionCallExpression extends Expression {
     name : string;
     in_params : InputParam[];
@@ -115,18 +129,42 @@ export class FunctionCallExpression extends Expression {
         return SyntaxPriority.Primary;
     }
 
+    toString() : string {
+        const in_params = this.in_params && this.in_params.length > 0 ? this.in_params.toString() : '';
+        return `FunctionCallExpression(${this.name}, ${in_params})`;
+    }
+
     toSource() : TokenStream {
         return List.concat(this.name, '(', List.join(this.in_params.map((ip) => ip.toSource()), ','), ')');
     }
 
-    toLegacy() : legacy.VarRefTable|legacy.VarRefStream|legacy.VarRefAction {
+    toLegacy(into_params : InputParam[] = []) : legacy.VarRefTable|legacy.VarRefStream|legacy.TimerStream|legacy.AtTimerStream|legacy.VarRefAction {
         const schema = this.schema!;
-        if (schema.functionType === 'query')
-            return new legacy.VarRefTable(this.location, this.name, this.in_params, this.schema);
-        else if (schema.functionType === 'stream')
-            return new legacy.VarRefStream(this.location, this.name, this.in_params, this.schema);
-        else
+        if (schema.functionType === 'stream') {
+            if (this.name === 'timer') {
+                const base = this.in_params.find((ip) => ip.name === 'base')!;
+                const interval = this.in_params.find((ip) => ip.name === 'interval')!;
+                const frequency = this.in_params.find((ip) => ip.name === 'frequency');
+                return new legacy.TimerStream(this.location, base.value, interval.value,
+                    frequency ? frequency.value : null, this.schema);
+            } else if (this.name === 'attimer') {
+                const time = this.in_params.find((ip) => ip.name === 'time')!;
+                const expiration_date = this.in_params.find((ip) => ip.name === 'expiration_date');
+                let timevalue : Value[];
+                if (time.value instanceof Value.Array)
+                    timevalue = time.value.value;
+                else
+                    timevalue = [time.value];
+                return new legacy.AtTimerStream(this.location, timevalue,
+                    expiration_date ? expiration_date.value : null, this.schema);
+            } else {
+                return new legacy.VarRefStream(this.location, this.name, this.in_params, this.schema);
+            }
+        } else if (schema.functionType === 'query') {
+            return new legacy.VarRefTable(this.location, this.name, moveInputParams(this.in_params, into_params), this.schema);
+        } else {
             return new legacy.VarRefAction(this.location, this.name, this.in_params, this.schema);
+        }
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -178,13 +216,16 @@ export class InvocationExpression extends Expression {
         return this.invocation.toSource();
     }
 
-    toLegacy() : legacy.InvocationTable|legacy.InvocationAction {
+    toLegacy(into_params : InputParam[] = []) : legacy.InvocationTable|legacy.InvocationAction {
         const schema = this.schema!;
         assert(schema.functionType !== 'stream');
-        if (schema.functionType === 'query')
-            return new legacy.InvocationTable(this.location, this.invocation, this.schema);
-        else
+        if (schema.functionType === 'query') {
+            const clone = this.invocation.clone();
+            clone.in_params = moveInputParams(clone.in_params, into_params);
+            return new legacy.InvocationTable(this.location, clone, this.schema);
+        } else {
             return new legacy.InvocationAction(this.location, this.invocation, this.schema);
+        }
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -236,13 +277,13 @@ export class FilterExpression extends Expression {
             this.expression.toSource()), 'filter', this.filter.toSource());
     }
 
-    toLegacy() : legacy.FilteredTable|legacy.EdgeFilterStream {
+    toLegacy(into_params : InputParam[] = []) : legacy.FilteredTable|legacy.EdgeFilterStream {
         const schema = this.schema!;
         assert(schema.functionType !== 'action');
         if (schema.functionType === 'query')
-            return new legacy.FilteredTable(this.location, this.expression.toLegacy() as legacy.Table, this.filter, this.schema);
+            return new legacy.FilteredTable(this.location, this.expression.toLegacy(into_params) as legacy.Table, this.filter, this.schema);
         else
-            return new legacy.EdgeFilterStream(this.location, this.expression.toLegacy() as legacy.Stream, this.filter, this.schema);
+            return new legacy.EdgeFilterStream(this.location, this.expression.toLegacy(into_params) as legacy.Stream, this.filter, this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -307,8 +348,8 @@ export class MonitorExpression extends Expression {
         }
     }
 
-    toLegacy() : legacy.MonitorStream {
-        const el = this.expression.toLegacy();
+    toLegacy(into_params : InputParam[] = []) : legacy.MonitorStream {
+        const el = this.expression.toLegacy(into_params);
         assert(el instanceof legacy.Table);
         return new legacy.MonitorStream(this.location, el, this.args, this.schema);
     }
@@ -384,11 +425,11 @@ export class ProjectionExpression extends Expression {
             addParenthesis(this.priority, this.expression.priority, this.expression.toSource()));
     }
 
-    toLegacy() : legacy.ProjectionTable|legacy.ProjectionStream {
+    toLegacy(into_params : InputParam[] = []) : legacy.ProjectionTable|legacy.ProjectionStream {
         const schema = this.schema!;
         assert(schema.functionType !== 'action');
 
-        const inner = this.expression.toLegacy();
+        const inner = this.expression.toLegacy(into_params);
         const names = this.args.slice();
         if (schema.functionType === 'query') {
             let table = inner as legacy.Table;
@@ -478,8 +519,8 @@ export class AliasExpression extends Expression {
             this.expression.toSource()), 'as', this.name);
     }
 
-    toLegacy() : legacy.AliasTable|legacy.AliasStream {
-        const el = this.expression.toLegacy();
+    toLegacy(into_params : InputParam[] = []) : legacy.AliasTable|legacy.AliasStream {
+        const el = this.expression.toLegacy(into_params);
         if (el instanceof legacy.Table) {
             return new legacy.AliasTable(this.location, el, this.name, this.schema);
         } else {
@@ -554,8 +595,8 @@ export class AggregationExpression extends Expression {
         }
     }
 
-    toLegacy() : legacy.AggregationTable {
-        const el = this.expression.toLegacy();
+    toLegacy(into_params : InputParam[] = []) : legacy.AggregationTable {
+        const el = this.expression.toLegacy(into_params);
         assert(el instanceof legacy.Table);
         return new legacy.AggregationTable(this.location, el, this.field, this.operator, null, this.schema);
     }
@@ -589,12 +630,12 @@ export class AggregationExpression extends Expression {
 
 export class SortExpression extends Expression {
     expression : Expression;
-    field : string;
+    value : Value;
     direction : 'asc'|'desc';
 
     constructor(location : SourceRange|null,
                 expression : Expression,
-                field : string,
+                value : Value,
                 direction : 'asc'|'desc',
                 schema : ExpressionSignature|null) {
         super(location, schema);
@@ -602,8 +643,7 @@ export class SortExpression extends Expression {
         assert(expression instanceof Expression);
         this.expression = expression;
 
-        assert(typeof field === 'string');
-        this.field = field;
+        this.value = value;
 
         assert(direction === 'asc' || direction === 'desc');
         this.direction = direction;
@@ -614,20 +654,28 @@ export class SortExpression extends Expression {
     }
 
     toSource() : TokenStream {
-        return List.concat('sort', '(', this.field, this.direction, 'of',
+        return List.concat('sort', '(', this.value.toSource(), ' ', this.direction, 'of',
             this.expression.toSource(), ')');
     }
 
-    toLegacy() : legacy.SortedTable {
-        const el = this.expression.toLegacy();
+    toLegacy(into_params : InputParam[] = []) : legacy.SortedTable {
+        const el = this.expression.toLegacy(into_params);
         assert(el instanceof legacy.Table);
-        return new legacy.SortedTable(this.location, el, this.field, this.direction, this.schema);
+        if (this.value instanceof VarRefValue) {
+            return new legacy.SortedTable(this.location, el, this.value.name, this.direction, this.schema);
+        } else {
+            return new legacy.SortedTable(this.location,
+                new legacy.ComputeTable(this.location, el, this.value, null, this.schema),
+                getScalarExpressionName(this.value), this.direction, this.schema);
+        }
     }
 
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
-        if (visitor.visitSortExpression(this))
+        if (visitor.visitSortExpression(this)) {
             this.expression.visit(visitor);
+            this.value.visit(visitor);
+        }
         visitor.exit(this);
     }
 
@@ -635,7 +683,7 @@ export class SortExpression extends Expression {
         return new SortExpression(
             this.location,
             this.expression.clone(),
-            this.field,
+            this.value.clone(),
             this.direction,
             this.schema ? this.schema.clone() : null
         );
@@ -646,7 +694,9 @@ export class SortExpression extends Expression {
     }
 
     *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
-        return yield* this.expression.iterateSlots2(scope);
+        const [prim, innerScope] = yield* this.expression.iterateSlots2(scope);
+        yield* recursiveYieldArraySlots(new FieldSlot(prim, innerScope, Type.Number, this, 'sort', 'value'));
+        return [prim, innerScope];
     }
 }
 
@@ -676,8 +726,8 @@ export class IndexExpression extends Expression {
             '[', List.join(this.indices.map((i) => i.toSource()), ','), ']');
     }
 
-    toLegacy() : legacy.IndexTable {
-        const el = this.expression.toLegacy();
+    toLegacy(into_params : InputParam[] = []) : legacy.IndexTable {
+        const el = this.expression.toLegacy(into_params);
         assert(el instanceof legacy.Table);
         return new legacy.IndexTable(this.location, el, this.indices, this.schema);
     }
@@ -744,8 +794,8 @@ export class SliceExpression extends Expression {
             '[', this.base.toSource(), ':', this.limit.toSource(), ']');
     }
 
-    toLegacy() : legacy.SlicedTable {
-        const el = this.expression.toLegacy();
+    toLegacy(into_params : InputParam[] = []) : legacy.SlicedTable {
+        const el = this.expression.toLegacy(into_params);
         assert(el instanceof legacy.Table);
         return new legacy.SlicedTable(this.location, el, this.base, this.limit, this.schema);
     }
@@ -808,9 +858,9 @@ export class ChainExpression extends Expression {
         return List.join(this.expressions.map((exp) => exp.toSource()), '=>');
     }
 
-    toLegacy() : legacy.Stream|legacy.Table|legacy.Action {
+    toLegacy(into_params : InputParam[] = []) : legacy.Stream|legacy.Table|legacy.Action {
         if (this.expressions.length === 1)
-            return this.expressions[0].toLegacy();
+            return this.expressions[0].toLegacy(into_params);
 
         // note: schemas and parameter passing work differently in old thingtalk
         // table/stream join and new thingtalk chain expressions
@@ -818,29 +868,85 @@ export class ChainExpression extends Expression {
 
         const first = this.expressions[0];
         if (first.schema!.functionType === 'stream') {
-            const fl = first.toLegacy();
+            const fl = first.toLegacy(into_params);
             assert(fl instanceof legacy.Stream);
             if (this.expressions.length > 2) {
-                const sl = this.expressions[1].toLegacy();
+                const newIntoParams : InputParam[] = [];
+                const sl = this.expressions[1].toLegacy(newIntoParams);
                 assert(sl instanceof legacy.Table);
                 const rest : legacy.Table = this.expressions.slice(2).reduce((al, b) => {
-                    const bl = b.toLegacy();
+                    const newIntoParams : InputParam[] = [];
+                    const bl = b.toLegacy(newIntoParams);
                     assert(bl instanceof legacy.Table);
-                    return new legacy.JoinTable(null, al, bl, [], b.schema);
+
+                    const joinParams = newIntoParams.filter((ip) => {
+                        if (ip.value instanceof VarRefValue) {
+                            if (al.schema!.hasArgument(ip.value.name)) {
+                                return true;
+                            } else {
+                                into_params.push(ip);
+                                return false;
+                            }
+                        } else { // $event
+                            return true;
+                        }
+                    });
+                    return new legacy.JoinTable(null, al, bl, joinParams, b.schema);
                 }, sl);
-                return new legacy.JoinStream(this.location, fl, rest, [], this.expressions[this.expressions.length-1].schema);
+
+                const joinParams = newIntoParams.filter((ip) => {
+                    if (ip.value instanceof VarRefValue) {
+                        if (fl.schema!.hasArgument(ip.value.name)) {
+                            return true;
+                        } else {
+                            into_params.push(ip);
+                            return false;
+                        }
+                    } else { // $event
+                        return true;
+                    }
+                });
+                return new legacy.JoinStream(this.location, fl, rest, joinParams, this.expressions[this.expressions.length-1].schema);
             } else {
-                const rest = this.expressions[1].toLegacy();
+                const newIntoParams : InputParam[] = [];
+                const rest = this.expressions[1].toLegacy(newIntoParams);
                 assert(rest instanceof legacy.Table);
-                return new legacy.JoinStream(this.location, fl, rest, [], this.expressions[1].schema);
+
+                const joinParams = newIntoParams.filter((ip) => {
+                    if (ip.value instanceof VarRefValue) {
+                        if (fl.schema!.hasArgument(ip.value.name)) {
+                            return true;
+                        } else {
+                            into_params.push(ip);
+                            return false;
+                        }
+                    } else { // $event
+                        return true;
+                    }
+                });
+                return new legacy.JoinStream(this.location, fl, rest, joinParams, this.expressions[1].schema);
             }
         } else {
-            const fl = this.expressions[0].toLegacy();
+            const fl = this.expressions[0].toLegacy(into_params);
             assert(fl instanceof legacy.Table);
-            return this.expressions.reduce((al, b) => {
-                const bl = b.toLegacy();
+            return this.expressions.slice(1).reduce((al, b) => {
+                const newIntoParams : InputParam[] = [];
+                const bl = b.toLegacy(newIntoParams);
                 assert(bl instanceof legacy.Table);
-                return new legacy.JoinTable(null, al, bl, [], b.schema);
+
+                const joinParams = newIntoParams.filter((ip) => {
+                    if (ip.value instanceof VarRefValue) {
+                        if (al.schema!.hasArgument(ip.value.name)) {
+                            return true;
+                        } else {
+                            into_params.push(ip);
+                            return false;
+                        }
+                    } else { // $event
+                        return true;
+                    }
+                });
+                return new legacy.JoinTable(null, al, bl, joinParams, b.schema);
             }, fl);
         }
     }

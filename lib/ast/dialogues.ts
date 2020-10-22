@@ -36,6 +36,9 @@ import {
 } from './slots';
 import type SchemaRetriever from '../schema';
 
+import { TokenStream } from '../new-syntax/tokenstream';
+import List from '../utils/list';
+
 type ResultMap = { [key : string] : Value };
 type RawResultMap = { [key : string] : unknown };
 
@@ -53,6 +56,10 @@ export class DialogueHistoryResultItem extends AstNode {
 
         assert(raw === null || typeof raw === 'object');
         this.raw = raw;
+    }
+
+    toSource() : TokenStream {
+        return new Value.Object(this.value).toSource();
     }
 
     clone() : DialogueHistoryResultItem {
@@ -135,6 +142,31 @@ export class DialogueHistoryResultList extends AstNode {
         this.error = error;
     }
 
+    toSource() : TokenStream {
+        let list : TokenStream;
+        if (this.results.length === 0) {
+            list = List.concat('#[', 'results', '=', '[', ']', ']');
+        } else {
+            list = List.concat('#[', 'results', '=', '[', '\n', '\t+');
+            let first = true;
+            for (const result of this.results) {
+                if (first)
+                    first = false;
+                else
+                    list = List.concat(list, ',', '\n');
+                list = List.concat(list, result.toSource());
+            }
+            list = List.concat(list, '\n', '\t-', ']', ']');
+        }
+        if (!(this.count instanceof Value.Number && this.count.value <= this.results.length))
+            list = List.concat(list, '\n', '#[', 'count', '=', this.count.toSource(), ']');
+        if (this.more)
+            list = List.concat(list, '\n', '#[', 'more', '=', 'true', ']');
+        if (this.error)
+            list = List.concat(list, '\n', '#[', 'error', '=', this.error.toSource(), ']');
+        return list;
+    }
+
     clone() : DialogueHistoryResultList {
         return new DialogueHistoryResultList(this.location, this.results.map((r) => r.clone()), this.count.clone(), this.more, this.error);
     }
@@ -193,17 +225,28 @@ export class DialogueHistoryItem extends AstNode {
     constructor(location : SourceRange|null,
                 stmt : ExpressionStatement,
                 results : DialogueHistoryResultList|null,
-                confirm : ConfirmationState|boolean) {
+                confirm : string|boolean) {
         super(location);
         assert(stmt instanceof ExpressionStatement);
         assert(results === null || results instanceof DialogueHistoryResultList);
         if (typeof confirm === 'boolean')
             confirm = confirm ? 'confirmed' : 'accepted';
-        assert(['proposed', 'accepted', 'confirmed'].includes(confirm));
+        assert(confirm === 'proposed' || confirm === 'accepted' || confirm === 'confirmed');
 
         this.stmt = stmt;
         this.results = results;
         this.confirm = confirm;
+    }
+
+    toSource() : TokenStream {
+        // note: we punch through to stmt.expression because stmt.toSource() will
+        // add the semicolon, which we don't want
+        if (this.results !== null)
+            return List.concat(this.stmt.expression.toSource(), '\n', this.results.toSource(), ';');
+        else if (this.confirm !== 'accepted')
+            return List.concat(this.stmt.expression.toSource(), '\n', '#[', 'confirm', '=', new Value.Enum(this.confirm).toSource(), ']', ';');
+        else
+            return List.concat(this.stmt.expression.toSource(), ';');
     }
 
     private _getFunctions() {
@@ -373,6 +416,16 @@ export class DialogueState extends Input {
         this.history = this.history.map((prog) => prog.optimize())
             .filter((prog) => prog !== null) as DialogueHistoryItem[];
         return this;
+    }
+
+    toSource() : TokenStream {
+        let list : TokenStream = List.concat('$dialogue', '@' + this.policy, '.', this.dialogueAct);
+        if (this.dialogueActParam)
+            list = List.concat(list, '(', List.join(this.dialogueActParam.map((p) => List.singleton(p)), ','), ')');
+        list = List.concat(list, ';');
+        for (const item of this.history)
+            list = List.concat(list, '\n', item.toSource());
+        return list;
     }
 
     clone() : DialogueState {
