@@ -21,7 +21,6 @@
 import assert from 'assert';
 
 import { SourceRange, NLAnnotationMap, AnnotationMap, AnnotationSpec } from './base';
-import { prettyprintClassDef } from '../prettyprint';
 import { cleanKind } from '../utils';
 import { DeviceSelector } from './expression';
 import { Statement, MixinImportStmt, EntityDef } from './program';
@@ -30,6 +29,8 @@ import { OldSlot, AbstractSlot } from './slots';
 import NodeVisitor from './visitor';
 
 // Class definitions
+
+export type ClassMember = FunctionDef | MixinImportStmt | EntityDef;
 
 type FunctionMap = { [key : string] : FunctionDef };
 
@@ -186,16 +187,6 @@ export class ClassDef extends Statement {
             return this.nl_annotations[name] as T;
         else
             return undefined;
-    }
-
-    /**
-     * Convert this class to prettyprinted ThingTalk code.
-     *
-     * @param {string} [prefix] - prefix each output line with this string (for indentation)
-     * @return {string} the prettyprinted code
-     */
-    prettyprint(prefix = '') : string {
-        return prettyprintClassDef(this, prefix);
     }
 
     /**

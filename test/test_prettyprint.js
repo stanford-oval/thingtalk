@@ -22,7 +22,6 @@
 import assert from 'assert';
 
 import * as AppGrammar from '../lib/grammar_api';
-import { prettyprint } from '../lib/prettyprint';
 
 const TEST_CASES = [
 // compound type
@@ -70,12 +69,12 @@ const TEST_CASES = [
 `,
 
 // aggregate filter
-`now => (@org.schema.restaurant()), count(review) >= 1 => notify;`,
+`@org.schema.restaurant(), count(review) >= 1;`,
 
 // compute table
-`now => compute (count(reviews)) of (@org.schema.restaurant()) => notify;`,
-`now => compute ((aggregateRating.reviews) filter { author == "Bob" }) of (@org.schema.restaurants()) => notify;`,
-`now => [foo] of (compute ((aggregateRating.reviews) filter { author == "Bob" }) as foo of (@org.schema.restaurants())) => notify;`,
+`[count(reviews)] of @org.schema.restaurants();`,
+`[aggregateRating.reviews filter { author == "Bob" }] of @org.schema.restaurants();`,
+`[aggregateRating.reviews filter { author == "Bob" } as foo] of @org.schema.restaurants();`,
 
 // device selectors
 `now => @light-bulb(name="bathroom").set_power(power=enum(on));`,
@@ -109,7 +108,7 @@ export default function main() {
 
         let codegenned;
         try {
-            codegenned = prettyprint(ast, true);
+            codegenned = ast.prettyprint();
             assert.strictEqual(code, codegenned);
         } catch(e) {
             console.error('Prettyprint failed');

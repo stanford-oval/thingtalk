@@ -32,7 +32,7 @@ export default async function main() {
 
         let ast;
         try {
-            ast = AppGrammar.parse(code, AppGrammar.SyntaxType.Normal);
+            ast = AppGrammar.parse(code);
             //console.log(String(ast.statements));
         } catch(e) {
             console.error('Parsing failed');
@@ -43,8 +43,8 @@ export default async function main() {
 
         let codegenned;
         try {
-            codegenned = ast.prettyprint2();
-            AppGrammar.parse(codegenned, AppGrammar.SyntaxType.Normal);
+            codegenned = ast.prettyprint();
+            AppGrammar.parse(codegenned);
 
             if (debug) {
                 console.log('Code:');
@@ -56,7 +56,7 @@ export default async function main() {
             }
 
             const ast2 = ast.clone();
-            const codegenned2 = ast.prettyprint2();
+            const codegenned2 = ast.prettyprint();
             assert(ast !== ast2);
             assert.strictEqual(codegenned2, codegenned);
         } catch(e) {

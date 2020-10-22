@@ -125,11 +125,10 @@ export default abstract class Node {
         throw new Error('not implemented');
     }
 
-    // TODO: rename to prettyprint() when the new syntax becomes the default
     /**
      * Convert this AST node to a normalized surface form in ThingTalk.
      */
-    prettyprint2() {
+    prettyprint() {
         return prettyprint(this.toSource());
     }
 

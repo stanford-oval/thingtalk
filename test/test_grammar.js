@@ -85,7 +85,7 @@ export default async function main() {
 
         let ast;
         try {
-            ast = AppGrammar.parse(code);
+            ast = AppGrammar.parse(code, AppGrammar.SyntaxType.Legacy);
             //console.log(String(ast.statements));
         } catch(e) {
             console.error('Parsing failed');

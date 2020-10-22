@@ -21,7 +21,7 @@
 {
 import assert from 'assert';
 import * as Ast from '../ast';
-import Type from '../type';
+import Type, { TypeMap } from '../type';
 import { KEYWORDS, FORBIDDEN_KEYWORDS } from './keywords';
 import { TypeOfToken } from './token';
 
@@ -34,29 +34,18 @@ import { parseDate } from '../utils/date_utils';
     | { key : 'more', value : true };
 */
 
-function makeInput($ : $runtime.ParserInterface, toplevelstatements : Array<Ast.ClassDef|Ast.Dataset>, otherstatements : Ast.Statement[], annotations : Ast.AnnotationSpec) {
+function makeInput($ : $runtime.ParserInterface, statements : Ast.Statement[], annotations : Ast.AnnotationSpec) {
     const classes : Ast.ClassDef[] = [];
     const datasets : Ast.Dataset[] = [];
     const declarations : Ast.FunctionDeclaration[] = [];
     const executable : Ast.ExecutableStatement[] = [];
 
-    for (const stmt of toplevelstatements) {
-        if (stmt instanceof Ast.ClassDef)
+    for (const stmt of statements) {
+        if (stmt instanceof Ast.ClassDef) {
             classes.push(stmt);
-        else if (stmt instanceof Ast.Dataset)
+        } else if (stmt instanceof Ast.Dataset) {
             datasets.push(stmt);
-    }
-
-    if (datasets.length > 0) {
-        if (otherstatements.length > 0)
-            $.error(`Cannot mix dataset with ThingTalk statements other than class`);
-        return new Ast.Library($.location, classes, datasets);
-    }
-    if (classes.length > 0 && otherstatements.length === 0)
-        return new Ast.Library($.location, classes, datasets);
-
-    for (const stmt of otherstatements) {
-        if (stmt instanceof Ast.FunctionDeclaration) {
+        } else if (stmt instanceof Ast.FunctionDeclaration) {
             declarations.push(stmt);
         } else {
             assert(stmt instanceof Ast.ExpressionStatement || stmt instanceof Ast.Assignment);
@@ -64,35 +53,125 @@ function makeInput($ : $runtime.ParserInterface, toplevelstatements : Array<Ast.
         }
     }
 
+    if (datasets.length > 0) {
+        if (declarations.length > 0 || executable.length > 0)
+            $.error(`Cannot mix dataset with ThingTalk statements other than class`);
+        return new Ast.Library($.location, classes, datasets);
+    }
+    if (classes.length > 0 && declarations.length === 0 && executable.length === 0)
+        return new Ast.Library($.location, classes, datasets);
+
     return new Ast.Program($.location, classes, declarations, executable, annotations);
+}
+
+function makeClassDef($ : $runtime.ParserInterface,
+                      name : string,
+                      _extends : string[]|null,
+                      members : Ast.ClassMember[],
+                      annotations : Ast.AnnotationSpec,
+                      is_abstract : boolean) {
+    const queries : { [key : string] : Ast.FunctionDef } = {};
+    const actions : { [key : string] : Ast.FunctionDef } = {};
+    const imports : Ast.MixinImportStmt[] = [];
+    const entities : Ast.EntityDef[] = [];
+
+    for (const ast of members) {
+        if (ast instanceof Ast.FunctionDef) {
+          switch (ast.functionType) {
+          case 'query':
+              queries[ast.name] = ast;
+              break;
+          case 'action':
+              actions[ast.name] = ast;
+              break;
+          }
+        } else if (ast instanceof Ast.MixinImportStmt) {
+          imports.push(ast);
+        } else if (ast instanceof Ast.EntityDef) {
+          entities.push(ast);
+        }
+    }
+
+    const options = { is_abstract: !!is_abstract };
+    return new Ast.ClassDef($.location, name, _extends, { queries, actions, imports, entities }, annotations, options);
+}
+
+function splitStatements(stmts : Array<Ast.FunctionDeclaration|Ast.ExecutableStatement>) : [Ast.FunctionDeclaration[], Ast.ExecutableStatement[]] {
+    const declarations : Ast.FunctionDeclaration[] = [];
+    const executable : Ast.ExecutableStatement[] = [];
+
+    for (const stmt of stmts) {
+        if (stmt instanceof Ast.FunctionDeclaration)
+            declarations.push(stmt);
+        else
+            executable.push(stmt);
+    }
+    return [declarations, executable];
 }
 
 function isIdentifier(name : string) {
     return /^[A-Za-z_][A-Za-z0-9_]*$/.test(name) && !KEYWORDS.has(name) && !FORBIDDEN_KEYWORDS.has(name);
 }
 
-/*
-interface FunctionCall {
+interface AnnotationEntry {
+    type : 'nl'|'impl';
     name : string;
-    in_params : Ast.InputParams[];
+    value : Ast.Value;
 }
 
-function checkInputParams<T extends string>($ : $runtime.ParserInterface, fc : FunctionCall, expected : T[], required : T[]) : { [key : T] : Ast.Value } {
-    const out : { [key : T] : Ast.Value } = {};
-    for (let in_param of fc.in_params) {
-        if (!expected.includes(in_param.name))
-            return $.error(`Invalid parameter ${in_param.name} to builtin function ${fc.name}`);
-        if (in_param.name in out)
-            return $.error(`Duplicate parameter ${in_param.name} to builtin function ${fc.name}`);
-        out[in_param.name] = in_param.value;
+function checkExampleAnnotations($ : $runtime.ParserInterface, annotations : AnnotationEntry[]) : [number, string[], string[], Ast.AnnotationMap] {
+    let id : number = -1;
+    let utterances : string[] = [];
+    let preprocessed : string[] = [];
+    let other : Ast.AnnotationMap = {};
+
+    for (let annotation of annotations) {
+        if (annotation.type === 'impl') {
+            if (annotation.name === 'id') {
+                if (!(annotation.value instanceof Ast.NumberValue))
+                    return $.error(`Example id annotation must be a number`);
+                id = annotation.value.toJS();
+            } else {
+                other[annotation.name] = annotation.value;
+            }
+        } else {
+            if (!(annotation.value instanceof Ast.ArrayValue) && !(annotation.value instanceof Ast.StringValue))
+                return $.error(`An array is expected for ${annotation.name} annotation`);
+            if (annotation.value instanceof Ast.StringValue)
+                annotation.value = new Ast.ArrayValue([annotation.value]);
+
+            switch (annotation.name) {
+            case 'utterances':
+                utterances.push(...(annotation.value.toJS() as string[]));
+                break;
+            case 'preprocessed':
+                preprocessed.push(...(annotation.value.toJS() as string[]));
+                break;
+            default:
+                return $.error(`Invalid example annotation ${annotation.name}, expected utterances or preprocessed`);
+            }
+        }
     }
-    for (let expect of required) {
-        if (!(expect in out))
-            return $.error(`Missing parameter ${expect} to builtin function ${fc.name}`);
-    }
-    return out;
+
+    return [id, utterances, preprocessed, other];
 }
-*/
+
+// split annotations between nl and impl
+function splitAnnotations(annotations : AnnotationEntry[]) {
+    const nl_annotations : Ast.NLAnnotationMap = {};
+    const impl_annotations : Ast.AnnotationMap = {};
+    for (let a of annotations) {
+        if (a.type === 'nl')
+            nl_annotations[a.name] = a.value.toJS();
+        else if (a.type === 'impl')
+            impl_annotations[a.name] = a.value;
+        else
+            throw new TypeError();
+    }
+
+    return { nl: nl_annotations, impl: impl_annotations };
+}
+
 }
 
 terminal CLASS_OR_FUNCTION_REF : TypeOfToken<'CLASS_OR_FUNCTION_REF'>;
@@ -123,10 +202,25 @@ terminal ENTITY_NAME : TypeOfToken<'ENTITY_NAME'>;
 
 
 input : Ast.Input = {
-    stmts:statement_list => makeInput($, [], stmts, {});
+    stmts:toplevel_statement_list => makeInput($, stmts, {});
+    annot:annotation_spec stmts:toplevel_statement_list => makeInput($, stmts, annot);
 }
 
-statement_list : Ast.Statement[] = {
+annotation_spec : Ast.AnnotationSpec = {
+    list:annotation_list => splitAnnotations(list);
+}
+
+annotation : AnnotationEntry = {
+    '#_[' name:variable_name '=' value:value ']' => ({ type: 'nl', name, value });
+    '#[' name:variable_name '=' value:value ']' => ({ type: 'impl', name, value });
+}
+
+annotation_list : AnnotationEntry[] = {
+    annotation => [annotation];
+    list:annotation_list annotation => list.concat([annotation]);
+}
+
+statement_list : Array<Ast.FunctionDeclaration|Ast.ExecutableStatement> = {
     stmt:statement => [stmt];
 
     list:statement_list stmt:statement => {
@@ -135,7 +229,252 @@ statement_list : Ast.Statement[] = {
     };
 }
 
-statement : Ast.ExecutableStatement = {
+toplevel_statement_list : Ast.Statement[] = {
+    stmt:toplevel_statement => [stmt];
+    list:toplevel_statement_list stmt:toplevel_statement => list.concat([stmt]);
+    list:toplevel_statement_list stmt:statement => list.concat([stmt]);
+}
+
+toplevel_statement : (Ast.ClassDef|Ast.Dataset) = {
+    class_def;
+    dataset_def;
+}
+
+class_specifier : boolean = {
+    'class' => false;
+    'abstract' 'class' => true;
+}
+
+class_def : Ast.ClassDef = {
+    is_abstract:class_specifier name:CLASS_OR_FUNCTION_REF class_body
+        => makeClassDef($, name.value, null, class_body, {}, is_abstract);
+    is_abstract:class_specifier name:CLASS_OR_FUNCTION_REF 'extends' _extends:class_ref_list class_body
+        => makeClassDef($, name.value, _extends, class_body, {}, is_abstract);
+    is_abstract:class_specifier name:CLASS_OR_FUNCTION_REF annot:annotation_spec class_body
+        => makeClassDef($, name.value, null, class_body, annot, is_abstract);
+    is_abstract:class_specifier name:CLASS_OR_FUNCTION_REF 'extends' _extends:class_ref_list annot:annotation_spec class_body
+        => makeClassDef($, name.value, _extends, class_body, annot, is_abstract);
+}
+
+class_body : Ast.ClassMember[] = {
+    '{' '}' => [];
+    '{' stmts:class_stmt_list '}' => stmts;
+}
+
+class_ref_list : string[] = {
+    name:CLASS_OR_FUNCTION_REF => [name.value];
+    list:class_ref_list ',' name:CLASS_OR_FUNCTION_REF => list.concat([name.value]);
+}
+
+class_stmt_list : Ast.ClassMember[] = {
+    stmt:class_stmt => [stmt];
+    list:class_stmt_list stmt:class_stmt => list.concat([stmt]);
+}
+
+function_type_decl : [('query'|'action'), boolean, boolean] = {
+    'query' => ['query', false, false];
+    'monitorable' 'query' => ['query', false, true];
+    'monitorable' 'list' 'query' => ['query', true, true];
+    'list' 'monitorable' 'query' => ['query', true, true];
+    'list' 'query' => ['query', true, false];
+    'action' => ['action', false, false];
+    'list' 'action' => ['action', true, false];
+}
+
+class_stmt : Ast.ClassMember = {
+    'import' facets:identifier_list 'from' name:CLASS_OR_FUNCTION_REF in_param_list ';'
+        => new Ast.MixinImportStmt($.location, facets, name.value, in_param_list);
+
+    'entity' name:variable_name annotations:annotation_spec ';'
+        => new Ast.EntityDef($.location, name, annotations);
+
+    fntype:function_type_decl name:function_name args:decl_param_list ';' => {
+        const [functionType, is_list, is_monitorable] = fntype;
+        return new Ast.FunctionDef($.location, functionType, null, name, [], { is_list, is_monitorable }, args);
+    };
+
+    fntype:function_type_decl name:function_name args:decl_param_list annot:annotation_spec ';' => {
+        const [functionType, is_list, is_monitorable] = fntype;
+        return new Ast.FunctionDef($.location, functionType, null, name, [], { is_list, is_monitorable }, args, annot);
+    };
+
+    fntype:function_type_decl name:function_name 'extends' extends_:identifier_list args:decl_param_list ';' => {
+        const [functionType, is_list, is_monitorable] = fntype;
+        return new Ast.FunctionDef($.location, functionType, null, name, extends_, { is_list, is_monitorable }, args);
+    };
+
+    fntype:function_type_decl name:function_name 'extends' extends_:identifier_list args:decl_param_list annot:annotation_spec ';' => {
+        const [functionType, is_list, is_monitorable] = fntype;
+        return new Ast.FunctionDef($.location, functionType, null, name, extends_, { is_list, is_monitorable }, args, annot);
+    };
+
+}
+
+decl_param_list : Ast.ArgumentDef[] = {
+    '(' ')' => [];
+    '(' decl_param_list_nonempty ')' => decl_param_list_nonempty;
+}
+
+decl_param_list_nonempty : Ast.ArgumentDef[] = {
+    decl_param => [decl_param];
+    decl_param_list_nonempty ',' decl_param => decl_param_list_nonempty.concat([decl_param]);
+}
+
+decl_param : Ast.ArgumentDef = {
+    name:variable_name type:type_annot => new Ast.ArgumentDef($.location, Ast.ArgDirection.IN_REQ, name, type);
+    arg_direction name:variable_name type:type_annot => new Ast.ArgumentDef($.location, arg_direction, name, type);
+
+    name:variable_name type:type_annot annot:annotation_spec
+        => new Ast.ArgumentDef($.location, Ast.ArgDirection.IN_REQ, name, type, annot);
+    arg_direction name:variable_name type:type_annot annot:annotation_spec
+        => new Ast.ArgumentDef($.location, arg_direction, name, type, annot);
+}
+
+udf_decl_param_list : TypeMap = {
+    '(' ')' => ({});
+    '(' list:udf_decl_param_list_nonempty ')' => {
+        const typeMap : TypeMap = {};
+        for (const [name, type] of list)
+            typeMap[name] = type;
+        return typeMap;
+    };
+}
+
+udf_decl_param_list_nonempty : Array<[string, Type]> = {
+    p:udf_decl_param => [p];
+    list:udf_decl_param_list_nonempty ',' p:udf_decl_param => {
+        list.push(p);
+        return list;
+    };
+}
+
+udf_decl_param : [string, Type] = {
+    name:variable_name type:type_annot => [name, type];
+}
+
+arg_direction : Ast.ArgDirection = {
+    'in' 'req' => Ast.ArgDirection.IN_REQ;
+    'in' 'opt' => Ast.ArgDirection.IN_OPT;
+    'out' => Ast.ArgDirection.OUT;
+}
+
+dataset_def : Ast.Dataset = {
+    'dataset' name:CLASS_OR_FUNCTION_REF dataset_body =>
+        new Ast.Dataset($.location, name.value, dataset_body, {});
+
+    'dataset' name:CLASS_OR_FUNCTION_REF annot:annotation_spec dataset_body
+        => new Ast.Dataset($.location, name.value, dataset_body, annot);
+
+    'dataset' name:CLASS_OR_FUNCTION_REF 'language' lang:any_string dataset_body =>
+        new Ast.Dataset($.location, name.value, dataset_body, { impl: { language: new Ast.Value.String(lang) } });
+
+    'dataset' name:CLASS_OR_FUNCTION_REF 'language' lang:any_string annot:annotation_spec dataset_body
+        => {
+            annot.impl!.language = new Ast.Value.String(lang);
+            return new Ast.Dataset($.location, name.value, dataset_body, annot);
+        };
+}
+
+dataset_body : Ast.Example[] = {
+    '{' '}' => [];
+    '{' example_list '}' => example_list;
+}
+
+example_list : Ast.Example[] = {
+    example => [example];
+    example_list example => example_list.concat([example]);
+}
+
+assignment_compat = {
+    '=';
+    ':=';
+}
+
+example : Ast.Example = {
+    'stream' params:udf_decl_param_list assignment_compat expr:chain_expression annot:annotation_list ';' => {
+        const [id, utterances, preprocessed, other] = checkExampleAnnotations($, annot);
+        return new Ast.Example($.location, id, 'stream', params, expr, utterances, preprocessed, other);
+    };
+    'stream' params:udf_decl_param_list assignment_compat expr:chain_expression ';' =>
+        new Ast.Example($.location, -1, 'stream', params, expr, [], [], {});
+    'stream' assignment_compat expr:chain_expression annot:annotation_list ';' => {
+        const [id, utterances, preprocessed, other] = checkExampleAnnotations($, annot);
+        return new Ast.Example($.location, id, 'stream', {}, expr, utterances, preprocessed, other);
+    };
+    'stream' assignment_compat expr:chain_expression ';' =>
+        new Ast.Example($.location, -1, 'stream', {}, expr, [], [], {});
+
+    'query' params:udf_decl_param_list assignment_compat expr:chain_expression annot:annotation_list ';' => {
+        const [id, utterances, preprocessed, other] = checkExampleAnnotations($, annot);
+        return new Ast.Example($.location, id, 'query', params, expr, utterances, preprocessed, other);
+    };
+    'query' params:udf_decl_param_list assignment_compat expr:chain_expression ';' =>
+        new Ast.Example($.location, -1, 'query', params, expr, [], [], {});
+    'query' assignment_compat expr:chain_expression annot:annotation_list ';' => {
+        const [id, utterances, preprocessed, other] = checkExampleAnnotations($, annot);
+        return new Ast.Example($.location, id, 'query', {}, expr, utterances, preprocessed, other);
+    };
+    'query' assignment_compat expr:chain_expression ';' =>
+        new Ast.Example($.location, -1, 'query', {}, expr, [], [], {});
+
+
+    'action' params:udf_decl_param_list assignment_compat expr:chain_expression annot:annotation_list ';' => {
+        const [id, utterances, preprocessed, other] = checkExampleAnnotations($, annot);
+        return new Ast.Example($.location, id, 'action', params, expr, utterances, preprocessed, other);
+    };
+    'action' params:udf_decl_param_list assignment_compat expr:chain_expression ';' =>
+        new Ast.Example($.location, -1, 'action', params, expr, [], [], {});
+    'action' assignment_compat expr:chain_expression annot:annotation_list ';' => {
+        const [id, utterances, preprocessed, other] = checkExampleAnnotations($, annot);
+        return new Ast.Example($.location, id, 'action', {}, expr, utterances, preprocessed, other);
+    };
+    'action' assignment_compat expr:chain_expression ';' =>
+        new Ast.Example($.location, -1, 'action', {}, expr, [], [], {});
+
+    'program' params:udf_decl_param_list assignment_compat expr:chain_expression annot:annotation_list ';' => {
+        const [id, utterances, preprocessed, other] = checkExampleAnnotations($, annot);
+        return new Ast.Example($.location, id, 'program', params, expr, utterances, preprocessed, other);
+    };
+    'program' params:udf_decl_param_list assignment_compat expr:chain_expression ';' =>
+        new Ast.Example($.location, -1, 'program', params, expr, [], [], {});
+    'program' assignment_compat expr:chain_expression annot:annotation_list ';' => {
+        const [id, utterances, preprocessed, other] = checkExampleAnnotations($, annot);
+        return new Ast.Example($.location, id, 'program', {}, expr, utterances, preprocessed, other);
+    };
+    'program' assignment_compat expr:chain_expression ';' =>
+        new Ast.Example($.location, -1, 'program', {}, expr, [], [], {});
+
+    'program' params:udf_decl_param_list assignment_compat '{' expr:chain_expression '}' annot:annotation_list ';' => {
+        const [id, utterances, preprocessed, other] = checkExampleAnnotations($, annot);
+        return new Ast.Example($.location, id, 'program', params, expr, utterances, preprocessed, other);
+    };
+    'program' params:udf_decl_param_list assignment_compat '{' expr:chain_expression '}' ';' =>
+        new Ast.Example($.location, -1, 'program', params, expr, [], [], {});
+    'program' assignment_compat '{' expr:chain_expression '}' annot:annotation_list ';' => {
+        const [id, utterances, preprocessed, other] = checkExampleAnnotations($, annot);
+        return new Ast.Example($.location, id, 'program', {}, expr, utterances, preprocessed, other);
+    };
+    'program' assignment_compat '{' expr:chain_expression '}' ';' =>
+        new Ast.Example($.location, -1, 'program', {}, expr, [], [], {});
+}
+
+// Executable Statements
+
+udf_declaration : Ast.FunctionDeclaration = {
+    'function' name:udf_function_name params:udf_decl_param_list '{' stmts:statement_list '}' => {
+        const [declarations, executable] = splitStatements(stmts);
+        return new Ast.FunctionDeclaration($.location, name, params, declarations, executable, {}, null);
+    };
+
+    'function' name:udf_function_name params:udf_decl_param_list annot:annotation_spec '{' stmts:statement_list '}' => {
+        const [declarations, executable] = splitStatements(stmts);
+        return new Ast.FunctionDeclaration($.location, name, params, declarations, executable, annot, null);
+    };
+}
+
+statement : Ast.FunctionDeclaration|Ast.ExecutableStatement = {
+    decl:udf_declaration => decl;
+
     'let' name:variable_name '=' expr:chain_expression ';'
         => new Ast.Assignment($.location, name, expr, null);
 
@@ -350,6 +689,9 @@ thingpedia_call : Ast.Invocation = {
         return new Ast.Invocation($.location, new Ast.DeviceSelector($.location, className, null, null), functionName, in_params, null);
     };
 
+    className:CLASS_OR_FUNCTION_REF '.' functionName:function_name in_params:in_param_list
+        => new Ast.Invocation($.location, new Ast.DeviceSelector($.location, className.value, null, null), functionName, in_params, null);
+
     className:CLASS_OR_FUNCTION_REF device_params:in_param_list '.' functionName:function_name in_params:in_param_list => {
         let id : string|null = null, all = false;
         const other = [];
@@ -381,6 +723,13 @@ in_param_list_nonempty : Ast.InputParam[] = {
 }
 
 in_param : Ast.InputParam = {
+    // "all" is a valid input parameter to a device selector
+    // for reason of grammar ambiguity with function call shorthands
+    // device selectors and in_param_list MUST be the same, so "all" is
+    // allowed as input parameter, even though it is a keyword
+    // it will be killed in typechecking because you cannot declare a function parameter called "all"
+    'all' '=' value => new Ast.InputParam($.location, 'all', value);
+
     name:variable_name '=' value => new Ast.InputParam($.location, name, value);
 }
 
@@ -532,7 +881,12 @@ primary_value : Ast.Value = {
 }
 
 var_ref_value : Ast.VarRefValue = {
-    name:variable_name => new Ast.Value.VarRef(name);
+    name:qualified_name => new Ast.Value.VarRef(name);
+}
+
+qualified_name : string = {
+    name:variable_name => name;
+    prefix:qualified_name '.' name:variable_name => prefix + '.' + name;
 }
 
 value : Ast.Value = {
@@ -587,7 +941,7 @@ event_value : Ast.EventValue = {
 }
 
 context_value : Ast.ContextRefValue = {
-    '$context' '.' name:variable_name type:type_ref => new Ast.Value.ContextRef(name, type);
+    '$context' '.' name:variable_name type:type_annot => new Ast.Value.ContextRef(name, type);
 }
 
 array_value : Ast.ArrayValue = {
@@ -598,6 +952,7 @@ array_value : Ast.ArrayValue = {
 object_literal_value : Ast.ObjectValue = {
     '{' '}' => new Ast.Value.Object({});
     '{' values:object_literal_entry_list '}' => new Ast.Value.Object(values);
+    '{' values:object_literal_entry_list ',' '}' => new Ast.Value.Object(values);
 }
 
 object_literal_entry_list : { [key : string] : Ast.Value } = {
@@ -900,6 +1255,7 @@ type_ref : Type = {
     'Time' => Type.Time;
     'String' => Type.String;
     'Object' => Type.Object;
+    'RecurrentTimeSpecification' => Type.RecurrentTimeSpecification;
 
     name:IDENTIFIER => new Type.Unknown(name.value);
 
@@ -908,8 +1264,40 @@ type_ref : Type = {
     'Measure' '(' name:unit_name ')' => new Type.Measure(name);
     'Enum' '(' entries:enum_list ')' => new Type.Enum(entries);
 
-    // TODO compound types
-    //'Object' '(' entries:objectdecl_list ')' => new Type.Object(entries);
+    '{' fields:compound_type_field_map '}' => new Type.Compound(null, fields);
+}
+
+compound_type_field_map : { [key : string] : Ast.ArgumentDef } = {
+    list:compound_type_field_list => {
+        let fields : { [key : string] : Ast.ArgumentDef } = {};
+        for (const arg of list)
+            fields[arg.name] = arg;
+        return fields;
+    };
+
+    list:compound_type_field_list ',' => {
+        let fields : { [key : string] : Ast.ArgumentDef } = {};
+        for (const arg of list)
+            fields[arg.name] = arg;
+        return fields;
+    };
+}
+
+compound_type_field_list : Ast.ArgumentDef[] = {
+    field:compound_type_field => [field];
+
+    list:compound_type_field_list ',' field:compound_type_field => {
+        list.push(field);
+        return list;
+    };
+}
+
+compound_type_field : Ast.ArgumentDef = {
+    name:variable_name type:type_annot
+        => new Ast.ArgumentDef($.location, null, name, type, {});
+
+    name:variable_name type:type_annot annot:annotation_spec
+        => new Ast.ArgumentDef($.location, null, name, type, annot);
 }
 
 enum_list : string[] = {
@@ -917,12 +1305,10 @@ enum_list : string[] = {
     enum_list ',' v:identifier_or_keyword => enum_list.concat([v]);
 }
 
-objectdecl_list : { [key : string] : Type } = {
-    name:variable_name type_annot => ({ [name]: type_annot });
-    entries:objectdecl_list ',' name:variable_name type_annot => {
-        entries[name] = type_annot;
-        return entries;
-    };
+
+identifier_list : string[] = {
+    name:function_name => [name];
+    list:identifier_list ',' name:function_name => list.concat([name]);
 }
 
 // an identifier or a contextual keyword (as defined in lexer.ts CONTEXTUAL_KEYWORDS)
@@ -930,7 +1316,9 @@ variable_name : string = {
     name:IDENTIFIER => name.value;
 
     'action';
+    'entity';
     'from';
+    'language';
     'list';
     'monitorable';
     'program';
@@ -953,7 +1341,9 @@ function_name : string = {
     name:IDENTIFIER => name.value;
 
     'action';
+    'entity';
     'from';
+    'language';
     'list';
     'monitorable';
     'program';
@@ -1005,29 +1395,31 @@ unit_name : string = {
 identifier_or_keyword : string = {
     function_name;
 
-    'let';
-    'of';
-    'if';
-    'for';
-    'import';
+    // keywords shared with javascript
     'class';
+    'enum';
     'extends';
-    'switch';
+    'import';
     'in';
+    'let';
     'new';
     'null';
+    'of';
     'true';
     'false';
-    'enum';
 
     // ThingTalk-specific keywords
     'abstract';
-    'aggregate';
+    'all';
+    'any';
+    'as';
     'dataset';
     'filter';
+    'function';
     'mixin';
     'monitor';
     'notify';
+    'now';
     'out';
     'opt';
     'req';
@@ -1038,6 +1430,7 @@ identifier_or_keyword : string = {
     'break';
     'case';
     'catch';
+    'const';
     'continue';
     'debugger';
     'default';
@@ -1045,7 +1438,8 @@ identifier_or_keyword : string = {
     'do';
     'export';
     'finally';
-    'function';
+    'for';
+    'if';
     'implements';
     'instanceof';
     'interface';
@@ -1056,38 +1450,44 @@ identifier_or_keyword : string = {
     'return';
     'static';
     'super';
+    'switch';
     'this';
     'throw';
     'try';
     'typeof';
     'var';
     'void';
-    'with';
     'while';
+    'with';
     'yield';
 
-    // reserved words from ThingTalk
-    'join';
+    // reserved words from the old ThingTalk syntax
+    'aggregate';
+    'bookkeeping';
+    'compute';
     'edge';
-    'now';
-    'as';
+    'join';
+    'oninput';
 
     //
     'Any';
     'ArgMap';
     'Array';
     'Boolean';
+    'Compound';
     'Currency';
     'Date';
     'Entity';
     'Enum';
-    'Integer';
-    'Invalid';
     'Location';
     'Measure';
     'Number';
     'Object';
+    'RecurrentTimeSpecification';
     'String';
     'Time';
+
+    'Integer';
+    'Invalid';
     'Void';
 }

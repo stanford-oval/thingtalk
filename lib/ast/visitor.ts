@@ -217,10 +217,6 @@ export default abstract class NodeVisitor {
         return true;
     }
     /* istanbul ignore next */
-    visitClassImportStmt(node : Prog.ClassImportStmt) : boolean {
-        return true;
-    }
-    /* istanbul ignore next */
     visitMixinImportStmt(node : Prog.MixinImportStmt) : boolean {
         return true;
     }

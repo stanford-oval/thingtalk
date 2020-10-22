@@ -26,7 +26,6 @@ import { ExpressionSignature } from './function_def';
 import { Value } from './values';
 
 import Type from '../type';
-import { prettyprintFilterExpression } from '../prettyprint';
 import * as Optimizer from '../optimize';
 import {
     iterateSlots2InputParams,
@@ -397,17 +396,6 @@ export abstract class BooleanExpression extends Node {
     isCompute ! : boolean;
     static DontCare : any;
     isDontCare ! : boolean;
-
-    /**
-     * Convert this boolean expression to prettyprinted ThingTalk code.
-     *
-     * @param {string} [prefix] - prefix each output line with this string (for indentation)
-     * @return {string} the prettyprinted code
-     * @alias Ast.BooleanExpression#prettyprint
-     */
-    prettyprint() : string {
-        return prettyprintFilterExpression(this);
-    }
 
     optimize() : BooleanExpression {
         return Optimizer.optimizeFilter(this);

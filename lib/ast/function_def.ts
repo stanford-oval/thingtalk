@@ -27,7 +27,6 @@ import Node, {
     AnnotationSpec,
 } from './base';
 import Type, { TypeMap, ArrayType, CompoundType } from '../type';
-import { prettyprintType, prettyprintAnnotations } from '../prettyprint';
 import { Value } from './values';
 import { ClassDef } from './class_def';
 import NodeVisitor from './visitor';
@@ -247,26 +246,6 @@ export class ArgumentDef extends Node {
         visitor.enter(this);
         visitor.visitArgumentDef(this);
         visitor.exit(this);
-    }
-
-    /**
-     * Convert this AST node to a string of ThingTalk code.
-     *
-     * @param {string} [prefix] - an optional prefix to apply when printing the type
-     * @return {string} - the ThingTalk code that corresponds to this argument definition
-     */
-    toString(prefix = '') : string {
-        return `${this.direction} ${this.name}: ${prettyprintType(this.type, prefix)}${prettyprintAnnotations(this, prefix, true)}`;
-    }
-
-    /**
-     * Convert this argument definition to prettyprinted ThingTalk code.
-     *
-     * @param {string} [prefix] - prefix each output line with this string (for indentation)
-     * @return {string} the prettyprinted code
-     */
-    prettyprint(prefix = '') : string {
-        return `${prefix}${this}`;
     }
 
     /**
@@ -1004,7 +983,7 @@ export class FunctionDef extends ExpressionSignature {
                 _extends : string[],
                 qualifiers : FunctionQualifiers,
                 args : ArgumentDef[],
-                annotations : AnnotationSpec) {
+                annotations : AnnotationSpec = {}) {
         // load up options for function signature from qualifiers and annotations
         const options : ExpressionSignatureConstructorOptions = {};
         options.is_list = qualifiers.is_list || false;
@@ -1130,43 +1109,8 @@ export class FunctionDef extends ExpressionSignature {
             return undefined;
     }
 
-    /**
-     * Convert this function definition to prettyprinted ThingTalk code.
-     *
-     * @param {string} [prefix] - prefix each output line with this string (for indentation)
-     * @return {string} the prettyprinted code
-     */
-    toString(prefix = '') : string {
-        const annotations = prettyprintAnnotations(this);
-
-        const extendclause = this._extends.length > 0 ? ` extends ${this._extends.join(', ')}` : '';
-        const firstline = `${prefix}${this.is_monitorable ? 'monitorable ' : ''}${this.is_list ? 'list ' : ''}${this.functionType} ${this.name}${extendclause}`;
-        // skip arguments flattened from compound param
-        const args = this.args.filter((a) => !a.includes('.'));
-
-        const padding = ' '.repeat(firstline.length+1);
-        if (args.length === 0)
-            return `${firstline}()${annotations};`;
-        if (args.length === 1)
-            return `${firstline}(${this._argmap[args[0]].toString(padding)})${annotations};`;
-
-        let buffer = `${firstline}(${this._argmap[args[0]].toString(padding)},\n`;
-        for (let i = 1; i < args.length-1; i++)
-            buffer += `${padding}${this._argmap[args[i]].toString(padding)},\n`;
-        buffer += `${padding}${this._argmap[args[args.length-1]].toString(padding)})${annotations};`;
-        return buffer;
-    }
-
-    /**
-     * Convert this function definition to prettyprinted ThingTalk code.
-     *
-     * This is an alias for {@link Ast.FunctionDef#toString}.
-     *
-     * @param {string} [prefix] - prefix each output line with this string (for indentation)
-     * @return {string} the prettyprinted code
-     */
-    prettyprint(prefix = '') : string {
-        return this.toString(prefix);
+    toString() : string {
+        return this.prettyprint();
     }
 
     visit(visitor : NodeVisitor) : void {

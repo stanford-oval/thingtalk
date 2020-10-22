@@ -52,7 +52,7 @@ export enum SyntaxType {
  */
 export function parse(code : string, syntaxType : SyntaxType.Tokenized, entities : EntityMap|EntityResolver) : Ast.Input;
 export function parse(code : string, syntaxType ?: SyntaxType) : Ast.Input;
-export function parse(code : string, syntaxType : SyntaxType = SyntaxType.Legacy, entities ?: EntityMap|EntityResolver) : Ast.Input {
+export function parse(code : string, syntaxType : SyntaxType = SyntaxType.Normal, entities ?: EntityMap|EntityResolver) : Ast.Input {
     if (syntaxType === SyntaxType.Tokenized)
         return new Parser().parse(nnLexer(code.split(' '), entities!));
     else if (syntaxType === SyntaxType.Normal)
@@ -77,7 +77,7 @@ export function parse(code : string, syntaxType : SyntaxType = SyntaxType.Legacy
 export function parseAndTypecheck(code : string,
                                   schemaRetriever : SchemaRetriever,
                                   useMeta = false,
-                                  syntaxType : SyntaxType = SyntaxType.Legacy,
+                                  syntaxType : SyntaxType = SyntaxType.Normal,
                                   entities ?: EntityMap|EntityResolver) : Promise<Ast.Input> {
     // workaround grammar bug with // comments at the end of input
     let ast;

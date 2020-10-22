@@ -46,11 +46,6 @@ import {
     AbstractSlot,
     OldSlot
 } from './slots';
-import {
-    prettyprint,
-    prettyprintExample,
-    prettyprintDataset
-} from '../prettyprint';
 import * as Optimizer from '../optimize';
 import TypeChecker from '../typecheck';
 import convertToPermissionRule from './convert_to_permission_rule';
@@ -151,8 +146,7 @@ export class FunctionDeclaration extends Statement {
                 args : TypeMap,
                 declarations : FunctionDeclaration[],
                 statements : ExecutableStatement[],
-                metadata : NLAnnotationMap = {},
-                annotations : AnnotationMap = {},
+                annotations : AnnotationSpec = {},
                 schema : FunctionDef|null = null) {
         super(location);
 
@@ -175,11 +169,11 @@ export class FunctionDeclaration extends Statement {
         /**
          * The declaration natural language annotations (translatable annotations).
          */
-        this.nl_annotations = metadata;
+        this.nl_annotations = annotations.nl || {};
         /**
          * The declaration annotations.
          */
-        this.impl_annotations = annotations;
+        this.impl_annotations = annotations.impl || {};
 
         /**
          * The type definition corresponding to this function.
@@ -227,7 +221,7 @@ export class FunctionDeclaration extends Statement {
         return new FunctionDeclaration(this.location, this.name, newArgs,
             this.declarations.map((d) => d.clone()),
             this.statements.map((s) => s.clone()),
-            newMetadata, newAnnotations, this.schema);
+            { nl: newMetadata, impl: newAnnotations }, this.schema);
     }
 
     /**
@@ -563,9 +557,9 @@ export class ExpressionStatement extends Statement {
  */
 export class Dataset extends Statement {
     name : string;
-    language : string;
     examples : Example[];
-    annotations : AnnotationMap;
+    nl_annotations : NLAnnotationMap;
+    impl_annotations : AnnotationMap;
 
     /**
      * Construct a new dataset.
@@ -578,32 +572,26 @@ export class Dataset extends Statement {
      */
     constructor(location : SourceRange|null,
                 name : string,
-                language : string,
                 examples : Example[],
-                annotations : AnnotationMap = {}) {
+                annotations : AnnotationSpec = {}) {
         super(location);
 
         assert(typeof name === 'string');
         this.name = name;
 
-        assert(typeof language === 'string');
-        this.language = language;
-
         assert(Array.isArray(examples)); // of Example
         this.examples = examples;
 
-        assert(typeof annotations === 'object');
-        this.annotations = annotations;
+        this.impl_annotations = annotations.impl||{};
+        this.nl_annotations = annotations.nl||{};
     }
 
-    /**
-     * Convert this dataset to prettyprinted ThingTalk code.
-     *
-     * @param {string} [prefix] - prefix each output line with this string (for indentation)
-     * @return {string} the prettyprinted code
-     */
-    prettyprint(prefix = '') : string {
-        return prettyprintDataset(this, prefix);
+    get language() : string|undefined {
+        const language = this.impl_annotations.language;
+        if (language)
+            return String(language.toJS());
+        else
+            return undefined;
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -625,10 +613,12 @@ export class Dataset extends Statement {
     }
 
     clone() : Dataset {
+        const newMetadata = {};
+        Object.assign(newMetadata, this.nl_annotations);
         const newAnnotations = {};
-        Object.assign(newAnnotations, this.annotations);
+        Object.assign(newAnnotations, this.impl_annotations);
         return new Dataset(this.location,
-            this.name, this.language, this.examples.map((e) => e.clone()), newAnnotations);
+            this.name, this.examples.map((e) => e.clone()), { nl: newMetadata, impl: newAnnotations });
     }
 }
 
@@ -663,16 +653,6 @@ export abstract class Input extends Node {
         return this;
     }
     abstract clone() : Input;
-
-    /**
-     * Convert this ThingTalk input to prettyprinted ThingTalk code.
-     *
-     * @param {string} [prefix] - prefix each output line with this string (for indentation)
-     * @return {string} the prettyprinted code
-     */
-    prettyprint(short = true) : string {
-        return prettyprint(this, short);
-    }
 
     /**
      * Typecheck this ThingTalk input.
@@ -1033,16 +1013,6 @@ export class Example extends Node {
     }
 
     /**
-     * Convert this example to prettyprinted ThingTalk code.
-     *
-     * @param {string} [prefix] - prefix each output line with this string (for indentation)
-     * @return {string} the prettyprinted code
-     */
-    prettyprint(prefix = '') : string {
-        return prettyprintExample(this, prefix);
-    }
-
-    /**
      * Typecheck this example.
      *
      * This method can be used to typecheck an example is isolation,
@@ -1094,78 +1064,13 @@ export class Example extends Node {
 
 
 /**
- * An `import` statement inside a ThingTalk class.
- *
- * @alias Ast.ImportStmt
- * @extends Ast~Node
- * @abstract
- */
-export abstract class ImportStmt extends Node {
-    isImportStmt = true;
-    static Class : any;
-    isClass ! : boolean;
-    static Mixin : any;
-    isMixin ! : boolean;
-
-    abstract clone() : ImportStmt;
-}
-ImportStmt.prototype.isClass = false;
-ImportStmt.prototype.isMixin = false;
-
-/**
- * A `import` statement that imports a whole ThingTalk class.
- *
- * @alias Ast.ImportStmt.Class
- * @extends Ast.ImportStmt
- * @deprecated Class imports were never implemented and are unlikely to be implemented soon.
- */
-export class ClassImportStmt extends ImportStmt {
-    kind : string;
-    alias : string|null;
-
-    /**
-     * Construct a new class import statement.
-     *
-     * @param location - the position of this node in the source code
-     * @param kind - the class identifier to import
-     * @param alias - rename the imported class to the given alias
-     */
-    constructor(location : SourceRange|null,
-                kind : string,
-                alias : string|null) {
-        super(location);
-
-        assert(typeof kind === 'string');
-        this.kind = kind;
-
-        assert(alias === null || typeof alias === 'string');
-        this.alias = alias;
-    }
-
-    clone() : ClassImportStmt {
-        return new ClassImportStmt(this.location, this.kind, this.alias);
-    }
-
-    visit(visitor : NodeVisitor) : void {
-        visitor.enter(this);
-        visitor.visitClassImportStmt(this);
-        visitor.exit(this);
-    }
-}
-ImportStmt.Class = ClassImportStmt;
-ImportStmt.Class.prototype.isClass = true;
-
-/**
- * A `import` statement that imports a mixin.
+ * A `import` statement that imports a mixin inside a ThingTalk class.
  *
  * Mixins add implementation functionality to ThingTalk classes, such as specifying
  * how the class is loaded (which language, which format, which version of the SDK)
  * and how devices are configured.
- *
- * @alias Ast.ImportStmt.Mixin
- * @extends Ast.ImportStmt
  */
-export class MixinImportStmt extends ImportStmt {
+export class MixinImportStmt extends Node {
     facets : string[];
     module : string;
     in_params : InputParam[];
@@ -1212,8 +1117,6 @@ export class MixinImportStmt extends ImportStmt {
         visitor.exit(this);
     }
 }
-ImportStmt.Mixin = MixinImportStmt;
-ImportStmt.Mixin.prototype.isMixin = true;
 
 /**
  * An `entity` statement inside a ThingTalk class.

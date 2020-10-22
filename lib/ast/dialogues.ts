@@ -268,7 +268,7 @@ export class DialogueHistoryItem extends AstNode {
 
         // HACK prettyprint to compare for equality is quite expensive, we should open-code
         // equality properly
-        if (this.stmt.prettyprint2() !== other.stmt.prettyprint2())
+        if (this.stmt.prettyprint() !== other.stmt.prettyprint())
             return false;
 
         if (this.results === other.results)

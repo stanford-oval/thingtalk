@@ -21,22 +21,25 @@
 export const KEYWORDS = new Set<string>([
     // keywords shared with JavaScript
     'class',
+    'enum',
     'extends',
     'import',
     'in',
     'let',
-    'of',
     'new',
     'null',
+    'of',
     'true',
     'false',
-    'enum',
 
     // ThingTalk-specific keywords
     'abstract',
+    'all',
+    'any',
     'as',
     'dataset',
     'filter',
+    'function',
     'mixin',
     'monitor',
     'notify',
@@ -60,7 +63,6 @@ export const KEYWORDS = new Set<string>([
     'export',
     'finally',
     'for',
-    'function',
     'if',
     'implements',
     'instanceof',
@@ -108,8 +110,8 @@ export const KEYWORDS = new Set<string>([
     'Number',
     'Object',
     'RecurrentTimeSpecification',
-    'Time',
     'String',
+    'Time',
 
     // reserved as type names for future extensions
     'Integer',
@@ -142,7 +144,9 @@ export const FORBIDDEN_KEYWORDS = new Set<string>([
 export const CONTEXTUAL_KEYWORDS = new Set<string>([
     // keywords inside class and dataset
     'action',
+    'entity',
     'from',
+    'language',
     'list',
     'monitorable',
     'program',
