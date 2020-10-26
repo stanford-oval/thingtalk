@@ -184,16 +184,16 @@ export type WeekDay = ('monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday
 export class WeekDayDate {
     isWeekDayDate = true;
     weekday : WeekDay;
-    time : AbsoluteTime;
+    time : AbsoluteTime|null;
 
-    constructor(weekday : WeekDay, time : AbsoluteTime) {
+    constructor(weekday : WeekDay, time : AbsoluteTime|null) {
         assert(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].includes(weekday));
         this.weekday = weekday;
         this.time = time;
     }
 
     equals(other : unknown) : boolean {
-        return (other instanceof WeekDayDate && this.weekday === other.weekday
+        return !!(other instanceof WeekDayDate && this.weekday === other.weekday
             && (this.time === other.time || (this.time && other.time && this.time.equals(other.time))));
     }
 }
