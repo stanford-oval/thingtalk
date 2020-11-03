@@ -99,7 +99,7 @@ type ResultT<T> = [string, T];
 type EmitFunction<T> = (type : string, value : T) => void;
 type Stream<T> = (emit : EmitFunction<T>) => Promise<void>;
 
-export function streamUnion<T>(lhs : Stream<T>, rhs : Stream<T>) : AsyncQueue<IteratorResult<ResultT<T>, void>> {
+export function streamUnion<T>(lhs : Stream<T>, rhs : Stream<T>) : AsyncIterator<ResultT<T>> {
     const queue = new AsyncQueue<IteratorResult<ResultT<T>, void>>();
 
     let currentLeft : ResultT<T>|null = null;
@@ -206,4 +206,16 @@ export function invokeStreamVarRef<T>(env : ExecEnvironment,
     });
 
     return queue;
+}
+
+interface IterableOrAsyncIterable<T> {
+    [Symbol.iterator] ?: () => Iterator<T>;
+    [Symbol.asyncIterator] ?: () => AsyncIterator<T>;
+}
+
+export function getAsyncIterator<T>(obj : IterableOrAsyncIterable<T>) : Iterator<T>|AsyncIterator<T> {
+    const getAsync = obj[Symbol.asyncIterator];
+    if (typeof getAsync === 'function')
+        return getAsync.call(obj);
+    return obj[Symbol.iterator]!();
 }

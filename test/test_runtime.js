@@ -111,19 +111,18 @@ class MockExecEnvironment extends ExecEnvironment {
         return times[Symbol.iterator]();
     }
 
-    invokeQuery(kind, attrs, fname, params) {
+    async *invokeQuery(kind, attrs, fname, params) {
         const fn = this._getFn(kind, attrs, fname);
 
         if (!(fn in this._query))
             throw new Error('Unexpected query ' + fn);
 
-        const result = this._query[fn].map((v) => {
+        for (const v of this._query[fn]) {
             if (typeof v === 'function')
-                return [fn, v(params)];
+                yield [fn, v(params)];
             else
-                return [fn,v];
-        });
-        return result;
+                yield [fn,v];
+        }
     }
 
     invokeDBQuery(kind, attrs, query) {

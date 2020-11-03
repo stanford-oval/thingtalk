@@ -46,7 +46,7 @@ const TEST_CASES = [
     try {
       _t_0 = {};
       _t_1 = await __env.invokeQuery("com.xkcd", { }, "get_comic", _t_0, { projection: ["number", "title", "picture_url", "link", "alt_text"] });
-      _t_2 = _t_1[Symbol.iterator]();
+      _t_2 = __builtin.getAsyncIterator(_t_1);
       {
         let _iter_tmp = await _t_2.next();
         while (!_iter_tmp.done) {
@@ -94,7 +94,7 @@ const TEST_CASES = [
     try {
       _t_0 = {};
       _t_1 = await __env.invokeQuery("com.xkcd", { id: "com.xkcd-123", }, "get_comic", _t_0, { projection: ["number", "title", "picture_url", "link", "alt_text"] });
-      _t_2 = _t_1[Symbol.iterator]();
+      _t_2 = __builtin.getAsyncIterator(_t_1);
       {
         let _iter_tmp = await _t_2.next();
         while (!_iter_tmp.done) {
@@ -143,7 +143,7 @@ const TEST_CASES = [
     try {
       _t_0 = {};
       _t_1 = await __env.invokeQuery("com.xkcd", { }, "get_comic", _t_0, { projection: ["number", "title", "picture_url", "link", "alt_text"] });
-      _t_2 = _t_1[Symbol.iterator]();
+      _t_2 = __builtin.getAsyncIterator(_t_1);
       {
         let _iter_tmp = await _t_2.next();
         while (!_iter_tmp.done) {
@@ -201,7 +201,7 @@ const TEST_CASES = [
     try {
       _t_0 = {};
       _t_1 = await __env.invokeQuery("com.xkcd", { }, "get_comic", _t_0, { projection: ["number", "title", "picture_url", "link", "alt_text"] });
-      _t_2 = _t_1[Symbol.iterator]();
+      _t_2 = __builtin.getAsyncIterator(_t_1);
       {
         let _iter_tmp = await _t_2.next();
         while (!_iter_tmp.done) {
@@ -747,7 +747,7 @@ const TEST_CASES = [
       _t_3[2] = _t_6;
       _t_2[0] = _t_3;
       _t_7 = await __env.invokeQuery("com.youtube", { }, "search_videos", _t_0, { projection: ["video_id", "channel_id", "title", "description", "thumbnail", "count", "video_url"], filter: _t_2 });
-      _t_8 = _t_7[Symbol.iterator]();
+      _t_8 = __builtin.getAsyncIterator(_t_7);
       {
         let _iter_tmp = await _t_8.next();
         while (!_iter_tmp.done) {
@@ -1144,7 +1144,7 @@ const TEST_CASES = [
     try {
       _t_0 = {};
       _t_1 = await __env.invokeQuery("org.thingpedia.builtin.thingengine.builtin", { }, "get_time", _t_0, { projection: ["time"] });
-      _t_2 = _t_1[Symbol.iterator]();
+      _t_2 = __builtin.getAsyncIterator(_t_1);
       {
         let _iter_tmp = await _t_2.next();
         while (!_iter_tmp.done) {
@@ -1219,7 +1219,7 @@ const TEST_CASES = [
       _t_4[2] = _t_7;
       _t_3[0] = _t_4;
       _t_8 = await __env.invokeQuery("com.uber", { }, "price_estimate", _t_0, { projection: ["uber_type", "low_estimate", "high_estimate", "surge", "duration", "distance"], filter: _t_3 });
-      _t_9 = _t_8[Symbol.iterator]();
+      _t_9 = __builtin.getAsyncIterator(_t_8);
       {
         let _iter_tmp = await _t_9.next();
         while (!_iter_tmp.done) {
@@ -1398,7 +1398,7 @@ const TEST_CASES = [
           try {
             _t_17 = {};
             _t_16 = await __env.invokeQuery("org.thingpedia.builtin.thingengine.builtin", { }, "get_time", _t_17, { projection: ["time"] });
-            _t_18 = _t_16[Symbol.iterator]();
+            _t_18 = __builtin.getAsyncIterator(_t_16);
             {
               let _iter_tmp = await _t_18.next();
               while (!_iter_tmp.done) {
@@ -1522,7 +1522,7 @@ const TEST_CASES = [
           try {
             _t_25 = {};
             _t_24 = await __env.invokeQuery("org.thingpedia.builtin.thingengine.builtin", { }, "get_time", _t_25, { projection: ["time"] });
-            _t_26 = _t_24[Symbol.iterator]();
+            _t_26 = __builtin.getAsyncIterator(_t_24);
             {
               let _iter_tmp = await _t_26.next();
               while (!_iter_tmp.done) {
@@ -2055,7 +2055,7 @@ const TEST_CASES = [
     try {
       _t_0 = {};
       _t_1 = await __env.invokeQuery("com.twitter", { }, "home_timeline", _t_0, { projection: ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"] });
-      _t_2 = _t_1[Symbol.iterator]();
+      _t_2 = __builtin.getAsyncIterator(_t_1);
       {
         let _iter_tmp = await _t_2.next();
         while (!_iter_tmp.done) {
@@ -2073,7 +2073,7 @@ const TEST_CASES = [
             _t_13 = {};
             _t_13.query = _t_7;
             _t_14 = await __env.invokeQuery("com.bing", { }, "web_search", _t_13, { projection: ["title", "description", "link"] });
-            _t_15 = _t_14[Symbol.iterator]();
+            _t_15 = __builtin.getAsyncIterator(_t_14);
             {
               let _iter_tmp = await _t_15.next();
               while (!_iter_tmp.done) {
@@ -2179,7 +2179,7 @@ const TEST_CASES = [
       try {
         _t_1 = {};
         _t_2 = await __env.invokeQuery("com.twitter", { }, "home_timeline", _t_1, { projection: ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"] });
-        _t_3 = _t_2[Symbol.iterator]();
+        _t_3 = __builtin.getAsyncIterator(_t_2);
         {
           let _iter_tmp = await _t_3.next();
           while (!_iter_tmp.done) {
@@ -2207,7 +2207,7 @@ const TEST_CASES = [
         _t_16 = "foo";
         _t_15.query = _t_16;
         _t_17 = await __env.invokeQuery("com.bing", { }, "web_search", _t_15, { projection: ["title", "description", "link"] });
-        _t_18 = _t_17[Symbol.iterator]();
+        _t_18 = __builtin.getAsyncIterator(_t_17);
         {
           let _iter_tmp = await _t_18.next();
           while (!_iter_tmp.done) {
@@ -2300,7 +2300,7 @@ const TEST_CASES = [
         try {
           _t_5 = {};
           _t_6 = await __env.invokeQuery("com.thecatapi", { id: "com.thecatapi", }, "get", _t_5, { projection: ["picture_url"] });
-          _t_7 = _t_6[Symbol.iterator]();
+          _t_7 = __builtin.getAsyncIterator(_t_6);
           {
             let _iter_tmp = await _t_7.next();
             while (!_iter_tmp.done) {
@@ -2384,7 +2384,7 @@ const TEST_CASES = [
       _t_2 = 1;
       _t_0.count = _t_2;
       _t_3 = await __env.invokeQuery("org.thingpedia.builtin.test", { id: "org.thingpedia.builtin.test", }, "get_data", _t_0, { projection: ["data"] });
-      _t_4 = _t_3[Symbol.iterator]();
+      _t_4 = __builtin.getAsyncIterator(_t_3);
       {
         let _iter_tmp = await _t_4.next();
         while (!_iter_tmp.done) {
@@ -2484,7 +2484,7 @@ const TEST_CASES = [
           _t_7[2] = _t_10;
           _t_6[0] = _t_7;
           _t_11 = await __env.invokeQuery("com.twitter", { }, "search", _t_5, { projection: ["count", "text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"], filter: _t_6 });
-          _t_12 = _t_11[Symbol.iterator]();
+          _t_12 = __builtin.getAsyncIterator(_t_11);
           {
             let _iter_tmp = await _t_12.next();
             while (!_iter_tmp.done) {
@@ -2596,7 +2596,7 @@ const TEST_CASES = [
       _t_2 = "dogs";
       _t_1.query = _t_2;
       _t_3 = await __env.invokeQuery("com.bing", { }, "web_search", _t_1, { projection: [] });
-      _t_4 = _t_3[Symbol.iterator]();
+      _t_4 = __builtin.getAsyncIterator(_t_3);
       {
         let _iter_tmp = await _t_4.next();
         while (!_iter_tmp.done) {
@@ -2672,7 +2672,7 @@ const TEST_CASES = [
           _t_7 = "dogs";
           _t_6.query = _t_7;
           _t_8 = await __env.invokeQuery("com.bing", { }, "web_search", _t_6, { projection: [] });
-          _t_9 = _t_8[Symbol.iterator]();
+          _t_9 = __builtin.getAsyncIterator(_t_8);
           {
             let _iter_tmp = await _t_9.next();
             while (!_iter_tmp.done) {
@@ -2760,7 +2760,7 @@ const TEST_CASES = [
         try {
           _t_6 = {};
           _t_7 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_6, { projection: ["mime_type"] });
-          _t_8 = _t_7[Symbol.iterator]();
+          _t_8 = __builtin.getAsyncIterator(_t_7);
           {
             let _iter_tmp = await _t_8.next();
             while (!_iter_tmp.done) {
@@ -2859,7 +2859,7 @@ const TEST_CASES = [
         try {
           _t_7 = {};
           _t_8 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_7, { projection: ["file_size"] });
-          _t_9 = _t_8[Symbol.iterator]();
+          _t_9 = __builtin.getAsyncIterator(_t_8);
           {
             let _iter_tmp = await _t_9.next();
             while (!_iter_tmp.done) {
@@ -2956,7 +2956,7 @@ const TEST_CASES = [
         try {
           _t_6 = {};
           _t_7 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_6, { projection: ["file_size"] });
-          _t_8 = _t_7[Symbol.iterator]();
+          _t_8 = __builtin.getAsyncIterator(_t_7);
           {
             let _iter_tmp = await _t_8.next();
             while (!_iter_tmp.done) {
@@ -3071,7 +3071,7 @@ const TEST_CASES = [
       try {
         _t_1 = {};
         _t_2 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_1, { projection: ["order_by", "file_size", "file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "last_modified_by", "link"] });
-        _t_3 = _t_2[Symbol.iterator]();
+        _t_3 = __builtin.getAsyncIterator(_t_2);
         {
           let _iter_tmp = await _t_3.next();
           while (!_iter_tmp.done) {
@@ -3103,7 +3103,7 @@ const TEST_CASES = [
       try {
         _t_21 = {};
         _t_22 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_21, { projection: ["file_size"] });
-        _t_23 = _t_22[Symbol.iterator]();
+        _t_23 = __builtin.getAsyncIterator(_t_22);
         {
           let _iter_tmp = await _t_23.next();
           while (!_iter_tmp.done) {
@@ -3259,7 +3259,7 @@ const TEST_CASES = [
             try {
               _t_26 = {};
               _t_27 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_26, { projection: ["file_size"] });
-              _t_28 = _t_27[Symbol.iterator]();
+              _t_28 = __builtin.getAsyncIterator(_t_27);
               {
                 let _iter_tmp = await _t_28.next();
                 while (!_iter_tmp.done) {
@@ -3388,7 +3388,7 @@ const TEST_CASES = [
         try {
           _t_9 = {};
           _t_10 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_9, { projection: ["file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "file_size", "order_by", "last_modified_by", "link"], sort: ["file_size", "desc"], limit: 1 });
-          _t_11 = _t_10[Symbol.iterator]();
+          _t_11 = __builtin.getAsyncIterator(_t_10);
           {
             let _iter_tmp = await _t_11.next();
             while (!_iter_tmp.done) {
@@ -3549,7 +3549,7 @@ const TEST_CASES = [
         try {
           _t_9 = {};
           _t_10 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_9, { projection: ["file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "file_size", "order_by", "last_modified_by", "link"], sort: ["file_size", "asc"], limit: 1 });
-          _t_11 = _t_10[Symbol.iterator]();
+          _t_11 = __builtin.getAsyncIterator(_t_10);
           {
             let _iter_tmp = await _t_11.next();
             while (!_iter_tmp.done) {
@@ -3690,7 +3690,7 @@ const TEST_CASES = [
     try {
       _t_5 = {};
       _t_6 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_5, { projection: ["file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "file_size", "order_by", "last_modified_by", "link"], sort: ["file_size", "desc"], limit: 2 });
-      _t_7 = _t_6[Symbol.iterator]();
+      _t_7 = __builtin.getAsyncIterator(_t_6);
       {
         let _iter_tmp = await _t_7.next();
         while (!_iter_tmp.done) {
@@ -3777,7 +3777,7 @@ const TEST_CASES = [
     try {
       _t_3 = {};
       _t_4 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_3, { projection: ["file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "file_size", "order_by", "last_modified_by", "link"], limit: 2 });
-      _t_5 = _t_4[Symbol.iterator]();
+      _t_5 = __builtin.getAsyncIterator(_t_4);
       {
         let _iter_tmp = await _t_5.next();
         while (!_iter_tmp.done) {
@@ -3887,7 +3887,7 @@ const TEST_CASES = [
         try {
           _t_8 = {};
           _t_9 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_8, { projection: ["file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "file_size", "order_by", "last_modified_by", "link"], limit: 2 });
-          _t_10 = _t_9[Symbol.iterator]();
+          _t_10 = __builtin.getAsyncIterator(_t_9);
           {
             let _iter_tmp = await _t_10.next();
             while (!_iter_tmp.done) {
@@ -4021,7 +4021,7 @@ const TEST_CASES = [
     try {
       _t_5 = {};
       _t_6 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_5, { projection: ["file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "file_size", "order_by", "last_modified_by", "link"] });
-      _t_7 = _t_6[Symbol.iterator]();
+      _t_7 = __builtin.getAsyncIterator(_t_6);
       {
         let _iter_tmp = await _t_7.next();
         while (!_iter_tmp.done) {
@@ -4127,7 +4127,7 @@ const TEST_CASES = [
     try {
       _t_3 = {};
       _t_4 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_3, { projection: ["file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "file_size", "order_by", "last_modified_by", "link"], limit: 5 });
-      _t_5 = _t_4[Symbol.iterator]();
+      _t_5 = __builtin.getAsyncIterator(_t_4);
       {
         let _iter_tmp = await _t_5.next();
         while (!_iter_tmp.done) {
@@ -4229,7 +4229,7 @@ const TEST_CASES = [
     try {
       _t_1 = {};
       _t_2 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_1, { projection: ["file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "file_size", "order_by", "last_modified_by", "link"], sort: ["file_size", "asc"] });
-      _t_3 = _t_2[Symbol.iterator]();
+      _t_3 = __builtin.getAsyncIterator(_t_2);
       {
         let _iter_tmp = await _t_3.next();
         while (!_iter_tmp.done) {
@@ -4309,7 +4309,7 @@ const TEST_CASES = [
     try {
       _t_0 = {};
       _t_1 = await __env.invokeQuery("com.thecatapi", { }, "get", _t_0, { projection: ["image_id", "count", "picture_url", "link"] });
-      _t_2 = _t_1[Symbol.iterator]();
+      _t_2 = __builtin.getAsyncIterator(_t_1);
       {
         let _iter_tmp = await _t_2.next();
         while (!_iter_tmp.done) {
@@ -4370,7 +4370,7 @@ const TEST_CASES = [
     try {
       _t_0 = {};
       _t_1 = await __env.invokeQuery("com.thecatapi", { }, "get", _t_0, { projection: ["image_id", "count", "picture_url", "link"] });
-      _t_2 = _t_1[Symbol.iterator]();
+      _t_2 = __builtin.getAsyncIterator(_t_1);
       {
         let _iter_tmp = await _t_2.next();
         while (!_iter_tmp.done) {
@@ -4478,7 +4478,7 @@ const TEST_CASES = [
     _t_1 = {};
     _t_1.query = _t_0;
     _t_2 = await __env.invokeQuery("com.bing", { }, "web_search", _t_1, { projection: ["title", "description", "link", "p_query"] });
-    _t_3 = _t_2[Symbol.iterator]();
+    _t_3 = __builtin.getAsyncIterator(_t_2);
     {
       let _iter_tmp = await _t_3.next();
       while (!_iter_tmp.done) {
@@ -4733,7 +4733,7 @@ const TEST_CASES = [
     try {
       _t_1 = {};
       _t_2 = await __env.invokeQuery("com.thecatapi", { }, "get", _t_1, { projection: ["image_id", "count", "picture_url", "link"] });
-      _t_3 = _t_2[Symbol.iterator]();
+      _t_3 = __builtin.getAsyncIterator(_t_2);
       {
         let _iter_tmp = await _t_3.next();
         while (!_iter_tmp.done) {
@@ -4756,7 +4756,7 @@ const TEST_CASES = [
       __env.reportError("Failed to invoke query", _exc_);
     }
     __env.clearGetCache();
-    _t_13 = _t_0[Symbol.iterator]();
+    _t_13 = __builtin.getAsyncIterator(_t_0);
     {
       let _iter_tmp = await _t_13.next();
       while (!_iter_tmp.done) {
@@ -4776,7 +4776,7 @@ const TEST_CASES = [
       }
     }
     __env.clearGetCache();
-    _t_21 = _t_0[Symbol.iterator]();
+    _t_21 = __builtin.getAsyncIterator(_t_0);
     {
       let _iter_tmp = await _t_21.next();
       while (!_iter_tmp.done) {
@@ -4839,7 +4839,7 @@ const TEST_CASES = [
     try {
       _t_1 = {};
       _t_2 = await __env.invokeQuery("com.thecatapi", { }, "get", _t_1, { projection: ["image_id", "count", "picture_url", "link"] });
-      _t_3 = _t_2[Symbol.iterator]();
+      _t_3 = __builtin.getAsyncIterator(_t_2);
       {
         let _iter_tmp = await _t_3.next();
         while (!_iter_tmp.done) {
@@ -4864,7 +4864,7 @@ const TEST_CASES = [
     await __env.writeState(0, _t_0);
     __env.clearGetCache();
     _t_13 = await __env.readState(0);
-    _t_14 = _t_13[Symbol.iterator]();
+    _t_14 = __builtin.getAsyncIterator(_t_13);
     {
       let _iter_tmp = await _t_14.next();
       while (!_iter_tmp.done) {
@@ -4919,7 +4919,7 @@ const TEST_CASES = [
       while (!_iter_tmp.done) {
         _t_4 = _iter_tmp.value;
         _t_5 = await __env.readState(0);
-        _t_6 = _t_5[Symbol.iterator]();
+        _t_6 = __builtin.getAsyncIterator(_t_5);
         {
           let _iter_tmp = await _t_6.next();
           while (!_iter_tmp.done) {
@@ -4993,7 +4993,7 @@ const TEST_CASES = [
       _t_1 = {};
       _t_1.query = _t_0;
       _t_2 = await __env.invokeQuery("com.bing", { }, "web_search", _t_1, { projection: ["title", "description", "link"] });
-      _t_3 = _t_2[Symbol.iterator]();
+      _t_3 = __builtin.getAsyncIterator(_t_2);
       {
         let _iter_tmp = await _t_3.next();
         while (!_iter_tmp.done) {
@@ -5211,7 +5211,7 @@ const TEST_CASES = [
       _t_2 = {};
       _t_2.query = _t_0;
       _t_3 = await __env.invokeQuery("com.bing", { }, "web_search", _t_2, { projection: ["title", "description", "link"] });
-      _t_4 = _t_3[Symbol.iterator]();
+      _t_4 = __builtin.getAsyncIterator(_t_3);
       {
         let _iter_tmp = await _t_4.next();
         while (!_iter_tmp.done) {
@@ -5233,7 +5233,7 @@ const TEST_CASES = [
       __env.reportError("Failed to invoke query", _exc_);
     }
     __env.clearGetCache();
-    _t_13 = _t_1[Symbol.iterator]();
+    _t_13 = __builtin.getAsyncIterator(_t_1);
     {
       let _iter_tmp = await _t_13.next();
       while (!_iter_tmp.done) {
@@ -5253,7 +5253,7 @@ const TEST_CASES = [
       }
     }
     __env.clearGetCache();
-    _t_21 = _t_1[Symbol.iterator]();
+    _t_21 = __builtin.getAsyncIterator(_t_1);
     {
       let _iter_tmp = await _t_21.next();
       while (!_iter_tmp.done) {
@@ -5392,7 +5392,7 @@ const TEST_CASES = [
         _t_1 = {};
         _t_1.query = _t_0;
         _t_2 = await __env.invokeQuery("com.bing", { }, "web_search", _t_1, { projection: ["title", "description", "link"] });
-        _t_3 = _t_2[Symbol.iterator]();
+        _t_3 = __builtin.getAsyncIterator(_t_2);
         {
           let _iter_tmp = await _t_3.next();
           while (!_iter_tmp.done) {
@@ -5851,7 +5851,7 @@ const TEST_CASES = [
     try {
       _t_0 = {};
       _t_1 = await __env.invokeQuery("com.spotify", { }, "get_currently_playing", _t_0, { projection: ["song"] });
-      _t_2 = _t_1[Symbol.iterator]();
+      _t_2 = __builtin.getAsyncIterator(_t_1);
       {
         let _iter_tmp = await _t_2.next();
         while (!_iter_tmp.done) {
@@ -5897,7 +5897,7 @@ const TEST_CASES = [
     try {
       _t_1 = __ast[0];
       _t_0 = await __env.invokeDBQuery("org.wikidata", { }, _t_1);
-      _t_2 = _t_0[Symbol.iterator]();
+      _t_2 = __builtin.getAsyncIterator(_t_0);
       {
         let _iter_tmp = await _t_2.next();
         while (!_iter_tmp.done) {
@@ -5960,7 +5960,7 @@ const TEST_CASES = [
     try {
       _t_1 = __ast[0];
       _t_0 = await __env.invokeDBQuery("org.wikidata", { }, _t_1);
-      _t_2 = _t_0[Symbol.iterator]();
+      _t_2 = __builtin.getAsyncIterator(_t_0);
       {
         let _iter_tmp = await _t_2.next();
         while (!_iter_tmp.done) {
@@ -6047,7 +6047,7 @@ const TEST_CASES = [
     try {
       _t_1 = __ast[0];
       _t_0 = await __env.invokeDBQuery("org.wikidata", { }, _t_1);
-      _t_2 = _t_0[Symbol.iterator]();
+      _t_2 = __builtin.getAsyncIterator(_t_0);
       {
         let _iter_tmp = await _t_2.next();
         while (!_iter_tmp.done) {
@@ -6151,7 +6151,7 @@ const TEST_CASES = [
     try {
       _t_0 = {};
       _t_1 = await __env.invokeQuery("org.thingpedia.test.compounds_and_inheritance", { }, "foo", _t_0, { projection: ["compound", "p4", "compound.nestedCompound", "compound.nestedCompound.p1", "compound.nestedCompound.p2", "compound.p3", "name", "description", "image"] });
-      _t_2 = _t_1[Symbol.iterator]();
+      _t_2 = __builtin.getAsyncIterator(_t_1);
       {
         let _iter_tmp = await _t_2.next();
         while (!_iter_tmp.done) {
@@ -6216,7 +6216,7 @@ const TEST_CASES = [
     try {
       _t_0 = {};
       _t_1 = await __env.invokeQuery("org.thingpedia.test.compounds_and_inheritance", { }, "foo", _t_0, { projection: ["compound.nestedCompound.p1"] });
-      _t_2 = _t_1[Symbol.iterator]();
+      _t_2 = __builtin.getAsyncIterator(_t_1);
       {
         let _iter_tmp = await _t_2.next();
         while (!_iter_tmp.done) {
@@ -6371,7 +6371,7 @@ const TEST_CASES = [
     try {
       _t_0 = {};
       _t_1 = await __env.invokeQuery("org.schema", { }, "restaurant", _t_0, { projection: ["name", "serveCuisine", "priceRange", "openingHours", "address", "aggregateRating", "review", "telephone", "brand", "address.addressCountry", "address.addressRegion", "address.postalCode", "address.streetAddress", "address.addressLocality", "aggregateRating.ratingValue", "aggregateRating.reviewCount", "brand.name", "description", "image", "geo"] });
-      _t_2 = _t_1[Symbol.iterator]();
+      _t_2 = __builtin.getAsyncIterator(_t_1);
       {
         let _iter_tmp = await _t_2.next();
         while (!_iter_tmp.done) {
@@ -6488,7 +6488,7 @@ const TEST_CASES = [
     try {
       _t_0 = {};
       _t_1 = await __env.invokeQuery("org.schema", { }, "restaurant", _t_0, { projection: ["name", "serveCuisine", "priceRange", "openingHours", "address", "aggregateRating", "review", "telephone", "brand", "address.addressCountry", "address.addressRegion", "address.postalCode", "address.streetAddress", "address.addressLocality", "aggregateRating.ratingValue", "aggregateRating.reviewCount", "brand.name", "description", "image", "geo"] });
-      _t_2 = _t_1[Symbol.iterator]();
+      _t_2 = __builtin.getAsyncIterator(_t_1);
       {
         let _iter_tmp = await _t_2.next();
         while (!_iter_tmp.done) {
@@ -6591,7 +6591,7 @@ const TEST_CASES = [
     try {
       _t_0 = {};
       _t_1 = await __env.invokeQuery("org.schema", { }, "place", _t_0, { projection: ["address", "geo", "address.addressCountry", "address.addressRegion", "address.postalCode", "address.streetAddress", "address.addressLocality", "name", "description", "image", "distance"] });
-      _t_2 = _t_1[Symbol.iterator]();
+      _t_2 = __builtin.getAsyncIterator(_t_1);
       {
         let _iter_tmp = await _t_2.next();
         while (!_iter_tmp.done) {
@@ -6711,7 +6711,7 @@ const TEST_CASES = [
     try {
       _t_0 = {};
       _t_1 = await __env.invokeQuery("com.twitter", { }, "home_timeline", _t_0, { projection: ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id", "result"] });
-      _t_2 = _t_1[Symbol.iterator]();
+      _t_2 = __builtin.getAsyncIterator(_t_1);
       {
         let _iter_tmp = await _t_2.next();
         while (!_iter_tmp.done) {
@@ -6771,7 +6771,7 @@ const TEST_CASES = [
     try {
       _t_0 = {};
       _t_1 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_0, { projection: ["file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "file_size", "order_by", "last_modified_by", "link", "result"] });
-      _t_2 = _t_1[Symbol.iterator]();
+      _t_2 = __builtin.getAsyncIterator(_t_1);
       {
         let _iter_tmp = await _t_2.next();
         while (!_iter_tmp.done) {
@@ -6831,7 +6831,7 @@ const TEST_CASES = [
       _t_2 = new Date(XNOWX);
       _t_0.date = _t_2;
       _t_3 = await __env.invokeQuery("org.thingpedia.weather", { }, "sunrise", _t_0, { projection: ["sunrise_time", "sunset_time"] });
-      _t_4 = _t_3[Symbol.iterator]();
+      _t_4 = __builtin.getAsyncIterator(_t_3);
       {
         let _iter_tmp = await _t_4.next();
         while (!_iter_tmp.done) {
@@ -6883,7 +6883,7 @@ const TEST_CASES = [
       _t_4 = __builtin.dateAdd(_t_2, _t_3);
       _t_0.date = _t_4;
       _t_5 = await __env.invokeQuery("org.thingpedia.weather", { }, "sunrise", _t_0, { projection: ["sunrise_time", "sunset_time"] });
-      _t_6 = _t_5[Symbol.iterator]();
+      _t_6 = __builtin.getAsyncIterator(_t_5);
       {
         let _iter_tmp = await _t_6.next();
         while (!_iter_tmp.done) {
@@ -6935,7 +6935,7 @@ const TEST_CASES = [
       _t_4 = __builtin.dateSub(_t_2, _t_3);
       _t_0.date = _t_4;
       _t_5 = await __env.invokeQuery("org.thingpedia.weather", { }, "sunrise", _t_0, { projection: ["sunrise_time", "sunset_time"] });
-      _t_6 = _t_5[Symbol.iterator]();
+      _t_6 = __builtin.getAsyncIterator(_t_5);
       {
         let _iter_tmp = await _t_6.next();
         while (!_iter_tmp.done) {
@@ -7007,7 +7007,7 @@ const TEST_CASES = [
     try {
       _t_4 = {};
       _t_5 = await __env.invokeQuery("com.yelp", { }, "restaurant", _t_4, { projection: ["id", "link", "rating", "cuisines", "geo", "image_url"], sort: ["distance", "asc"], limit: 1 });
-      _t_6 = _t_5[Symbol.iterator]();
+      _t_6 = __builtin.getAsyncIterator(_t_5);
       {
         let _iter_tmp = await _t_6.next();
         while (!_iter_tmp.done) {
@@ -7106,7 +7106,7 @@ const TEST_CASES = [
     try {
       _t_1 = {};
       _t_2 = await __env.invokeQuery("com.yelp", { }, "restaurant", _t_1, { projection: [] });
-      _t_3 = _t_2[Symbol.iterator]();
+      _t_3 = __builtin.getAsyncIterator(_t_2);
       {
         let _iter_tmp = await _t_3.next();
         while (!_iter_tmp.done) {
@@ -7171,7 +7171,7 @@ const TEST_CASES = [
     try {
       _t_0 = {};
       _t_1 = await __env.invokeQuery("com.yelp", { }, "restaurant", _t_0, { projection: ["id", "rating"] });
-      _t_2 = _t_1[Symbol.iterator]();
+      _t_2 = __builtin.getAsyncIterator(_t_1);
       {
         let _iter_tmp = await _t_2.next();
         while (!_iter_tmp.done) {
@@ -7234,7 +7234,7 @@ const TEST_CASES = [
     try {
       _t_0 = {};
       _t_1 = await __env.invokeQuery("com.yelp", { }, "restaurant", _t_0, { projection: ["id", "link", "rating", "cuisines", "geo", "image_url"] });
-      _t_2 = _t_1[Symbol.iterator]();
+      _t_2 = __builtin.getAsyncIterator(_t_1);
       {
         let _iter_tmp = await _t_2.next();
         while (!_iter_tmp.done) {
@@ -7306,7 +7306,7 @@ const TEST_CASES = [
     try {
       _t_0 = {};
       _t_1 = await __env.invokeQuery("com.yelp", { }, "restaurant", _t_0, { projection: ["id", "count", "cuisines"] });
-      _t_2 = _t_1[Symbol.iterator]();
+      _t_2 = __builtin.getAsyncIterator(_t_1);
       {
         let _iter_tmp = await _t_2.next();
         while (!_iter_tmp.done) {
@@ -7394,7 +7394,7 @@ const TEST_CASES = [
     try {
       _t_1 = {};
       _t_2 = await __env.invokeQuery("com.thecatapi", { }, "get", _t_1, { projection: ["image_id", "count", "picture_url", "link"] });
-      _t_3 = _t_2[Symbol.iterator]();
+      _t_3 = __builtin.getAsyncIterator(_t_2);
       {
         let _iter_tmp = await _t_3.next();
         while (!_iter_tmp.done) {
@@ -7417,7 +7417,7 @@ const TEST_CASES = [
       __env.reportError("Failed to invoke query", _exc_);
     }
     __env.clearGetCache();
-    _t_13 = _t_0[Symbol.iterator]();
+    _t_13 = __builtin.getAsyncIterator(_t_0);
     {
       let _iter_tmp = await _t_13.next();
       while (!_iter_tmp.done) {
@@ -7442,7 +7442,7 @@ const TEST_CASES = [
       }
     }
     __env.clearGetCache();
-    _t_24 = _t_0[Symbol.iterator]();
+    _t_24 = __builtin.getAsyncIterator(_t_0);
     {
       let _iter_tmp = await _t_24.next();
       while (!_iter_tmp.done) {
@@ -7506,7 +7506,7 @@ const TEST_CASES = [
       }
     }
     __env.clearGetCache();
-    _t_11 = _t_0[Symbol.iterator]();
+    _t_11 = __builtin.getAsyncIterator(_t_0);
     {
       let _iter_tmp = await _t_11.next();
       while (!_iter_tmp.done) {
@@ -7598,7 +7598,7 @@ const TEST_CASES = [
     try {
       _t_4 = {};
       _t_5 = await __env.invokeQuery("org.schema.full", { }, "Recipe", _t_4, { projection: ["id", "recipeYield", "recipeCategory", "recipeIngredient", "recipeInstructions", "nutrition", "suitableForDiet", "recipeCuisine", "cookTime", "cookingMethod", "nutrition.saturatedFatContent", "nutrition.fatContent", "nutrition.unsaturatedFatContent", "nutrition.sugarContent", "nutrition.cholesterolContent", "nutrition.carbohydrateContent", "nutrition.proteinContent", "nutrition.sodiumContent", "nutrition.transFatContent", "nutrition.fiberContent", "nutrition.calories", "nutrition.servingSize", "count"], sort: ["count", "asc"], limit: 1 });
-      _t_6 = _t_5[Symbol.iterator]();
+      _t_6 = __builtin.getAsyncIterator(_t_5);
       {
         let _iter_tmp = await _t_6.next();
         while (!_iter_tmp.done) {
@@ -7729,7 +7729,7 @@ const TEST_CASES = [
     try {
       _t_0 = {};
       _t_1 = await __env.invokeQuery("org.schema.full", { }, "Recipe", _t_0, { projection: ["id", "nutrition.saturatedFatContent", "nutrition.cholesterolContent"] });
-      _t_2 = _t_1[Symbol.iterator]();
+      _t_2 = __builtin.getAsyncIterator(_t_1);
       {
         let _iter_tmp = await _t_2.next();
         while (!_iter_tmp.done) {
@@ -7807,7 +7807,7 @@ const TEST_CASES = [
       _t_2 = new __builtin.Entity("TR2530", "tr2530");
       _t_0.train = _t_2;
       _t_3 = await __env.invokeAction("uk.ac.cam.multiwoz.Train", { }, "make_booking", _t_0);
-      _t_4 = _t_3[Symbol.iterator]();
+      _t_4 = __builtin.getAsyncIterator(_t_3);
       {
         let _iter_tmp = await _t_4.next();
         while (!_iter_tmp.done) {
@@ -7855,7 +7855,7 @@ const TEST_CASES = [
       _t_1 = new __builtin.Location(37.442156, -122.1634471, "Palo Alto, California");
       _t_0.location = _t_1;
       _t_2 = await __env.invokeQuery("org.thingpedia.weather", { }, "current", _t_0, { projection: ["temperature"] });
-      _t_3 = _t_2[Symbol.iterator]();
+      _t_3 = __builtin.getAsyncIterator(_t_2);
       {
         let _iter_tmp = await _t_3.next();
         while (!_iter_tmp.done) {
@@ -7931,7 +7931,7 @@ const TEST_CASES = [
       _t_2[2] = _t_5;
       _t_1[0] = _t_2;
       _t_6 = await __env.invokeQuery("com.yelp", { }, "restaurant", _t_0, { projection: ["id", "link", "rating", "cuisines", "geo", "image_url", "openingHours"], filter: _t_1 });
-      _t_7 = _t_6[Symbol.iterator]();
+      _t_7 = __builtin.getAsyncIterator(_t_6);
       {
         let _iter_tmp = await _t_7.next();
         while (!_iter_tmp.done) {
@@ -8019,7 +8019,7 @@ const TEST_CASES = [
       _t_2[2] = _t_5;
       _t_1[0] = _t_2;
       _t_6 = await __env.invokeQuery("com.yelp", { }, "restaurant", _t_0, { projection: ["id", "link", "rating", "cuisines", "geo", "image_url", "openingHours"], filter: _t_1 });
-      _t_7 = _t_6[Symbol.iterator]();
+      _t_7 = __builtin.getAsyncIterator(_t_6);
       {
         let _iter_tmp = await _t_7.next();
         while (!_iter_tmp.done) {
@@ -8107,7 +8107,7 @@ const TEST_CASES = [
       _t_2[2] = _t_5;
       _t_1[0] = _t_2;
       _t_6 = await __env.invokeQuery("com.yelp", { }, "restaurant", _t_0, { projection: ["id", "link", "rating", "cuisines", "geo", "image_url", "openingHours"], filter: _t_1 });
-      _t_7 = _t_6[Symbol.iterator]();
+      _t_7 = __builtin.getAsyncIterator(_t_6);
       {
         let _iter_tmp = await _t_7.next();
         while (!_iter_tmp.done) {
@@ -8195,7 +8195,7 @@ const TEST_CASES = [
       _t_2[2] = _t_5;
       _t_1[0] = _t_2;
       _t_6 = await __env.invokeQuery("com.yelp", { }, "restaurant", _t_0, { projection: ["id", "link", "rating", "cuisines", "geo", "image_url", "openingHours"], filter: _t_1 });
-      _t_7 = _t_6[Symbol.iterator]();
+      _t_7 = __builtin.getAsyncIterator(_t_6);
       {
         let _iter_tmp = await _t_7.next();
         while (!_iter_tmp.done) {
@@ -8317,7 +8317,7 @@ const TEST_CASES = [
       _t_9[2] = _t_12;
       _t_8[0] = _t_9;
       _t_13 = await __env.invokeQuery("com.spotify2", { }, "song", _t_7, { projection: ["id", "artists", "album", "genres", "release_date", "popularity", "energy", "danceability"], filter: _t_8, sort: ["popularity", "desc"], limit: 1 });
-      _t_14 = _t_13[Symbol.iterator]();
+      _t_14 = __builtin.getAsyncIterator(_t_13);
       {
         let _iter_tmp = await _t_14.next();
         while (!_iter_tmp.done) {
@@ -8478,7 +8478,7 @@ const TEST_CASES = [
       _t_9[2] = _t_12;
       _t_8[0] = _t_9;
       _t_13 = await __env.invokeQuery("com.spotify2", { }, "song", _t_7, { projection: ["id"], filter: _t_8, sort: ["popularity", "desc"], limit: 1 });
-      _t_14 = _t_13[Symbol.iterator]();
+      _t_14 = __builtin.getAsyncIterator(_t_13);
       {
         let _iter_tmp = await _t_14.next();
         while (!_iter_tmp.done) {
@@ -8549,7 +8549,7 @@ const TEST_CASES = [
         _t_53 = {};
         _t_53.song = _t_45;
         _t_54 = await __env.invokeAction("com.spotify2", { }, "play_song", _t_53);
-        _t_55 = _t_54[Symbol.iterator]();
+        _t_55 = __builtin.getAsyncIterator(_t_54);
         {
           let _iter_tmp = await _t_55.next();
           while (!_iter_tmp.done) {
@@ -8657,7 +8657,7 @@ const TEST_CASES = [
     try {
       _t_9 = {};
       _t_10 = await __env.invokeQuery("com.spotify2", { }, "song", _t_9, { projection: ["id", "artists", "album", "genres", "release_date", "popularity", "energy", "danceability"], sort: ["popularity", "desc"] });
-      _t_11 = _t_10[Symbol.iterator]();
+      _t_11 = __builtin.getAsyncIterator(_t_10);
       {
         let _iter_tmp = await _t_11.next();
         while (!_iter_tmp.done) {
@@ -8809,7 +8809,7 @@ const TEST_CASES = [
     try {
       _t_9 = {};
       _t_10 = await __env.invokeQuery("com.spotify2", { }, "song", _t_9, { projection: ["id", "artists", "album", "genres", "release_date", "popularity", "energy", "danceability"], sort: ["popularity", "desc"], limit: 1 });
-      _t_11 = _t_10[Symbol.iterator]();
+      _t_11 = __builtin.getAsyncIterator(_t_10);
       {
         let _iter_tmp = await _t_11.next();
         while (!_iter_tmp.done) {
@@ -8932,7 +8932,7 @@ const TEST_CASES = [
     try {
       _t_6 = {};
       _t_7 = await __env.invokeQuery("com.spotify2", { }, "song", _t_6, { projection: ["id", "artists", "album", "genres", "release_date", "popularity", "energy", "danceability"], limit: 1 });
-      _t_8 = _t_7[Symbol.iterator]();
+      _t_8 = __builtin.getAsyncIterator(_t_7);
       {
         let _iter_tmp = await _t_8.next();
         while (!_iter_tmp.done) {
@@ -9052,7 +9052,7 @@ const TEST_CASES = [
     try {
       _t_8 = {};
       _t_9 = await __env.invokeQuery("com.spotify2", { }, "song", _t_8, { projection: ["id", "artists", "album", "genres", "release_date", "popularity", "energy", "danceability"], limit: 1 });
-      _t_10 = _t_9[Symbol.iterator]();
+      _t_10 = __builtin.getAsyncIterator(_t_9);
       {
         let _iter_tmp = await _t_10.next();
         while (!_iter_tmp.done) {

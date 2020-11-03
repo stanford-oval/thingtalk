@@ -212,7 +212,7 @@ class GetScope {
     }
 }
 
-class Iterator {
+class AsyncIterator {
     private _into : Register;
     private _iterable : Register;
 
@@ -222,7 +222,7 @@ class Iterator {
     }
 
     codegen(prefix : string) : string {
-        return `${prefix}_t_${this._into} = _t_${this._iterable}[Symbol.iterator]();`;
+        return `${prefix}_t_${this._into} = __builtin.getAsyncIterator(_t_${this._iterable});`;
     }
 }
 
@@ -1177,7 +1177,7 @@ export {
     GetVariable,
     GetEnvironment,
     GetScope,
-    Iterator,
+    AsyncIterator,
     LoadConstant,
     LoadContext,
     LoadBuiltin,
