@@ -164,7 +164,7 @@ const TEST_CASES = [
           try {
             _t_12 = {};
             _t_12.status = _t_8;
-            await __env.invokeAction("com.twitter", { }, "post", _t_12);
+            await __builtin.drainAction(__env.invokeAction("com.twitter", { }, "post", _t_12));
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
@@ -225,7 +225,7 @@ const TEST_CASES = [
             try {
               _t_14 = {};
               _t_14.status = _t_8;
-              await __env.invokeAction("com.twitter", { }, "post", _t_14);
+              await __builtin.drainAction(__env.invokeAction("com.twitter", { }, "post", _t_14));
             } catch(_exc_) {
               __env.reportError("Failed to invoke action", _exc_);
             }
@@ -283,7 +283,7 @@ const TEST_CASES = [
               _t_12 = {};
               _t_13 = "bla";
               _t_12.message = _t_13;
-              await __env.invokeAction("org.thingpedia.builtin.thingengine.builtin", { }, "say", _t_12);
+              await __builtin.drainAction(__env.invokeAction("org.thingpedia.builtin.thingengine.builtin", { }, "say", _t_12));
             } catch(_exc_) {
               __env.reportError("Failed to invoke action", _exc_);
             }
@@ -341,7 +341,7 @@ const TEST_CASES = [
               _t_12 = {};
               _t_13 = "bla";
               _t_12.message = _t_13;
-              await __env.invokeAction("org.thingpedia.builtin.thingengine.builtin", { }, "say", _t_12);
+              await __builtin.drainAction(__env.invokeAction("org.thingpedia.builtin.thingengine.builtin", { }, "say", _t_12));
             } catch(_exc_) {
               __env.reportError("Failed to invoke action", _exc_);
             }
@@ -369,7 +369,7 @@ const TEST_CASES = [
       _t_0 = {};
       _t_1 = "test";
       _t_0.message = _t_1;
-      await __env.invokeAction("org.thingpedia.builtin.thingengine.builtin", { }, "say", _t_0);
+      await __builtin.drainAction(__env.invokeAction("org.thingpedia.builtin.thingengine.builtin", { }, "say", _t_0));
     } catch(_exc_) {
       __env.reportError("Failed to invoke action", _exc_);
     }
@@ -632,7 +632,7 @@ const TEST_CASES = [
           _t_5 = {};
           _t_6 = "lol";
           _t_5.status = _t_6;
-          await __env.invokeAction("com.twitter", { }, "post", _t_5);
+          await __builtin.drainAction(__env.invokeAction("com.twitter", { }, "post", _t_5));
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -695,7 +695,7 @@ const TEST_CASES = [
           _t_5 = {};
           _t_6 = "lol";
           _t_5.status = _t_6;
-          await __env.invokeAction("com.twitter", { }, "post", _t_5);
+          await __builtin.drainAction(__env.invokeAction("com.twitter", { }, "post", _t_5));
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -828,7 +828,7 @@ const TEST_CASES = [
             _t_14.caption = _t_8;
             _t_15 = String (_t_9);
             _t_14.picture_url = _t_15;
-            await __env.invokeAction("com.twitter", { id: "twitter-foo", }, "post_picture", _t_14);
+            await __builtin.drainAction(__env.invokeAction("com.twitter", { id: "twitter-foo", }, "post_picture", _t_14));
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
@@ -858,7 +858,7 @@ const TEST_CASES = [
       _t_0 = {};
       _t_1 = "foo";
       _t_0.foo = _t_1;
-      await __env.invokeAction("org.thingpedia.builtin.thingengine.remote", { }, "send", _t_0);
+      await __builtin.drainAction(__env.invokeAction("org.thingpedia.builtin.thingengine.remote", { }, "send", _t_0));
     } catch(_exc_) {
       __env.reportError("Failed to invoke action", _exc_);
     }
@@ -993,7 +993,7 @@ const TEST_CASES = [
             _t_15 = {};
             _t_16 = await __env.formatEvent(_t_4, _t_5, "string");
             _t_15.message = _t_16;
-            await __env.invokeAction("org.thingpedia.builtin.thingengine.builtin", { }, "say", _t_15);
+            await __builtin.drainAction(__env.invokeAction("org.thingpedia.builtin.thingengine.builtin", { }, "say", _t_15));
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
@@ -1053,7 +1053,7 @@ const TEST_CASES = [
             _t_15 = {};
             _t_16 = String (_t_4);
             _t_15.message = _t_16;
-            await __env.invokeAction("org.thingpedia.builtin.thingengine.builtin", { }, "say", _t_15);
+            await __builtin.drainAction(__env.invokeAction("org.thingpedia.builtin.thingengine.builtin", { }, "say", _t_15));
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
@@ -1111,7 +1111,7 @@ const TEST_CASES = [
             _t_14 = {};
             _t_15 = String (_t_9);
             _t_14.status = _t_15;
-            await __env.invokeAction("com.twitter", { }, "post", _t_14);
+            await __builtin.drainAction(__env.invokeAction("com.twitter", { }, "post", _t_14));
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
@@ -1315,7 +1315,7 @@ const TEST_CASES = [
             _t_18 = 0;
             _t_15.__flow = _t_18;
             _t_15.__kindChannel = _t_4;
-            await __env.invokeAction("org.thingpedia.builtin.thingengine.remote", { }, "send", _t_15);
+            await __builtin.drainAction(__env.invokeAction("org.thingpedia.builtin.thingengine.remote", { }, "send", _t_15));
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
@@ -1611,7 +1611,7 @@ const TEST_CASES = [
           _t_5.__kindChannel = _t_3;
           _t_9 = 10000;
           _t_5.interval = _t_9;
-          await __env.invokeAction("org.thingpedia.builtin.thingengine.remote", { }, "send", _t_5);
+          await __builtin.drainAction(__env.invokeAction("org.thingpedia.builtin.thingengine.remote", { }, "send", _t_5));
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -1681,7 +1681,7 @@ const TEST_CASES = [
             _t_14 = {};
             _t_15 = "on";
             _t_14.power = _t_15;
-            await __env.invokeAction("security-camera", { }, "set_power", _t_14);
+            await __builtin.drainAction(__env.invokeAction("security-camera", { }, "set_power", _t_14));
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
@@ -2334,7 +2334,7 @@ const TEST_CASES = [
                 _t_23.message = _t_26;
                 _t_27 = String (_t_21);
                 _t_23.picture_url = _t_27;
-                await __env.invokeAction("com.gmail", { id: "xxxx", }, "send_picture", _t_23);
+                await __builtin.drainAction(__env.invokeAction("com.gmail", { id: "xxxx", }, "send_picture", _t_23));
               } catch(_exc_) {
                 __env.reportError("Failed to invoke action", _exc_);
               }
@@ -2403,7 +2403,7 @@ const TEST_CASES = [
             _t_10.__flow = _t_13;
             _t_10.__kindChannel = _t_6;
             _t_10.data = _t_9;
-            await __env.invokeAction("org.thingpedia.builtin.thingengine.remote", { id: "org.thingpedia.builtin.thingengine.remote", }, "send", _t_10);
+            await __builtin.drainAction(__env.invokeAction("org.thingpedia.builtin.thingengine.remote", { id: "org.thingpedia.builtin.thingengine.remote", }, "send", _t_10));
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
@@ -2559,7 +2559,7 @@ const TEST_CASES = [
       _t_0.picture_url = _t_2;
       _t_3 = "lol";
       _t_0.caption = _t_3;
-      await __env.invokeAction("com.twitter", { }, "post_picture", _t_0);
+      await __builtin.drainAction(__env.invokeAction("com.twitter", { }, "post_picture", _t_0));
     } catch(_exc_) {
       __env.reportError("Failed to invoke action", _exc_);
     }
@@ -4337,7 +4337,7 @@ const TEST_CASES = [
       _t_11 = {};
       _t_12 = "foo";
       _t_11.status = _t_12;
-      await __env.invokeAction("com.twitter", { }, "post", _t_11);
+      await __builtin.drainAction(__env.invokeAction("com.twitter", { }, "post", _t_11));
     } catch(_exc_) {
       __env.reportError("Failed to invoke action", _exc_);
     }
@@ -4398,7 +4398,7 @@ const TEST_CASES = [
       _t_11 = {};
       _t_12 = "foo";
       _t_11.status = _t_12;
-      await __env.invokeAction("com.twitter", { }, "post", _t_11);
+      await __builtin.drainAction(__env.invokeAction("com.twitter", { }, "post", _t_11));
     } catch(_exc_) {
       __env.reportError("Failed to invoke action", _exc_);
     }
@@ -4500,7 +4500,7 @@ const TEST_CASES = [
   try {
     _t_1 = {};
     _t_1.status = _t_0;
-    await __env.invokeAction("com.twitter", { }, "post", _t_1);
+    await __builtin.drainAction(__env.invokeAction("com.twitter", { }, "post", _t_1));
   } catch(_exc_) {
     __env.reportError("Failed to invoke action", _exc_);
   }`, `  "use strict";
@@ -4793,7 +4793,7 @@ const TEST_CASES = [
           _t_29.caption = _t_30;
           _t_31 = String (_t_27);
           _t_29.picture_url = _t_31;
-          await __env.invokeAction("com.twitter", { }, "post_picture", _t_29);
+          await __builtin.drainAction(__env.invokeAction("com.twitter", { }, "post_picture", _t_29));
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -4946,7 +4946,7 @@ const TEST_CASES = [
               _t_20.caption = _t_21;
               _t_22 = String (_t_18);
               _t_20.picture_url = _t_22;
-              await __env.invokeAction("com.twitter", { }, "post_picture", _t_20);
+              await __builtin.drainAction(__env.invokeAction("com.twitter", { }, "post_picture", _t_20));
             } catch(_exc_) {
               __env.reportError("Failed to invoke action", _exc_);
             }
@@ -5019,7 +5019,7 @@ const TEST_CASES = [
     try {
       _t_11 = {};
       _t_11.status = _t_0;
-      await __env.invokeAction("com.twitter", { }, "post", _t_11);
+      await __builtin.drainAction(__env.invokeAction("com.twitter", { }, "post", _t_11));
     } catch(_exc_) {
       __env.reportError("Failed to invoke action", _exc_);
     }
@@ -5032,7 +5032,7 @@ const TEST_CASES = [
     try {
       _t_1 = {};
       _t_1.status = _t_0;
-      await __env.invokeAction("com.facebook", { }, "post", _t_1);
+      await __builtin.drainAction(__env.invokeAction("com.facebook", { }, "post", _t_1));
     } catch(_exc_) {
       __env.reportError("Failed to invoke action", _exc_);
     }
@@ -5267,7 +5267,7 @@ const TEST_CASES = [
         try {
           _t_29 = {};
           _t_29.status = _t_26;
-          await __env.invokeAction("com.twitter", { }, "post", _t_29);
+          await __builtin.drainAction(__env.invokeAction("com.twitter", { }, "post", _t_29));
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -5450,7 +5450,7 @@ const TEST_CASES = [
           try {
             _t_28 = {};
             _t_28.status = _t_25;
-            await __env.invokeAction("com.twitter", { }, "post", _t_28);
+            await __builtin.drainAction(__env.invokeAction("com.twitter", { }, "post", _t_28));
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
@@ -5568,7 +5568,7 @@ const TEST_CASES = [
           _t_2 = {};
           _t_2.title = _t_0;
           _t_2.body = _t_1;
-          await __env.invokeAction("com.tumblr.blog", { }, "post_text", _t_2);
+          await __builtin.drainAction(__env.invokeAction("com.tumblr.blog", { }, "post_text", _t_2));
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -5704,7 +5704,7 @@ const TEST_CASES = [
           _t_2 = {};
           _t_2.title = _t_0;
           _t_2.body = _t_1;
-          await __env.invokeAction("com.tumblr.blog", { }, "post_text", _t_2);
+          await __builtin.drainAction(__env.invokeAction("com.tumblr.blog", { }, "post_text", _t_2));
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -5821,7 +5821,7 @@ const TEST_CASES = [
           _t_6 = {};
           _t_7 = "it's 9am or 3pm";
           _t_6.message = _t_7;
-          await __env.invokeAction("org.thingpedia.builtin.thingengine.builtin", { }, "say", _t_6);
+          await __builtin.drainAction(__env.invokeAction("org.thingpedia.builtin.thingengine.builtin", { }, "say", _t_6));
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -5867,7 +5867,7 @@ const TEST_CASES = [
             _t_8.songs = _t_9;
             _t_10 = "my favorite";
             _t_8.playlist = _t_10;
-            await __env.invokeAction("com.spotify", { }, "add_songs_to_playlist", _t_8);
+            await __builtin.drainAction(__env.invokeAction("com.spotify", { }, "add_songs_to_playlist", _t_8));
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
@@ -6082,7 +6082,7 @@ const TEST_CASES = [
           try {
             _t_31 = {};
             _t_31.status = _t_24;
-            await __env.invokeAction("com.twitter", { }, "post", _t_31);
+            await __builtin.drainAction(__env.invokeAction("com.twitter", { }, "post", _t_31));
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
@@ -6244,7 +6244,7 @@ const TEST_CASES = [
           try {
             _t_16 = {};
             _t_16.status = _t_9;
-            await __env.invokeAction("com.twitter", { }, "post", _t_16);
+            await __builtin.drainAction(__env.invokeAction("com.twitter", { }, "post", _t_16));
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
@@ -6642,7 +6642,7 @@ const TEST_CASES = [
       _t_0 = {};
       _t_1 = await __env.loadContext("selection", "String");
       _t_0.status = _t_1;
-      await __env.invokeAction("com.twitter", { }, "post", _t_0);
+      await __builtin.drainAction(__env.invokeAction("com.twitter", { }, "post", _t_0));
     } catch(_exc_) {
       __env.reportError("Failed to invoke action", _exc_);
     }
@@ -6661,7 +6661,7 @@ const TEST_CASES = [
       _t_0 = {};
       _t_1 = "on";
       _t_0.power = _t_1;
-      await __env.invokeAction("light-bulb", { name: "bedroom", }, "set_power", _t_0);
+      await __builtin.drainAction(__env.invokeAction("light-bulb", { name: "bedroom", }, "set_power", _t_0));
     } catch(_exc_) {
       __env.reportError("Failed to invoke action", _exc_);
     }
@@ -6680,7 +6680,7 @@ const TEST_CASES = [
       _t_0 = {};
       _t_1 = "on";
       _t_0.power = _t_1;
-      await __env.invokeAction("light-bulb", { name: "bedroom", }, "set_power", _t_0);
+      await __builtin.drainAction(__env.invokeAction("light-bulb", { name: "bedroom", }, "set_power", _t_0));
     } catch(_exc_) {
       __env.reportError("Failed to invoke action", _exc_);
     }
@@ -7434,7 +7434,7 @@ const TEST_CASES = [
           _t_21.picture_url = _t_22;
           _t_23 = "cat";
           _t_21.caption = _t_23;
-          await __env.invokeAction("com.twitter", { }, "post_picture", _t_21);
+          await __builtin.drainAction(__env.invokeAction("com.twitter", { }, "post_picture", _t_21));
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -7806,7 +7806,7 @@ const TEST_CASES = [
       _t_0.day = _t_1;
       _t_2 = new __builtin.Entity("TR2530", "tr2530");
       _t_0.train = _t_2;
-      _t_3 = await __env.invokeAction("uk.ac.cam.multiwoz.Train", { }, "make_booking", _t_0);
+      _t_3 = __env.invokeAction("uk.ac.cam.multiwoz.Train", { }, "make_booking", _t_0);
       _t_4 = __builtin.getAsyncIterator(_t_3);
       {
         let _iter_tmp = await _t_4.next();
@@ -8548,7 +8548,7 @@ const TEST_CASES = [
       try {
         _t_53 = {};
         _t_53.song = _t_45;
-        _t_54 = await __env.invokeAction("com.spotify2", { }, "play_song", _t_53);
+        _t_54 = __env.invokeAction("com.spotify2", { }, "play_song", _t_53);
         _t_55 = __builtin.getAsyncIterator(_t_54);
         {
           let _iter_tmp = await _t_55.next();

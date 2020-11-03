@@ -219,3 +219,7 @@ export function getAsyncIterator<T>(obj : IterableOrAsyncIterable<T>) : Iterator
         return getAsync.call(obj);
     return obj[Symbol.iterator]!();
 }
+
+export async function drainAction(obj : AsyncIterable<unknown>) : Promise<void> {
+    for await (const _ of obj);
+}

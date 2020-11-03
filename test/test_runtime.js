@@ -129,7 +129,7 @@ class MockExecEnvironment extends ExecEnvironment {
         return this.invokeQuery(kind, attrs, 'query', { query });
     }
 
-    invokeAction(kind, attrs, fname, params) {
+    async *invokeAction(kind, attrs, fname, params) {
         const fn = this._getFn(kind, attrs, fname);
 
         const nextaction = this._actions.shift();
