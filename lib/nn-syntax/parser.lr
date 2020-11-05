@@ -202,6 +202,7 @@ dialogue_result_list_nonempty = {
 }
 
 program = {
+    assignment => new Ast.Program(null, [], [], [assignment], null);
     rule:rule => new Ast.Program(null, [], [], [rule], null);
     'executor' '=' user:value ':' rule => {
         return new Ast.Program(null, [], [], [rule], user);
@@ -234,6 +235,10 @@ policy_fn = {
     klass:CLASS_STAR => new Ast.PermissionFunction.ClassStar(null, klass.value);
     fn:FUNCTION => new Ast.PermissionFunction.Specified(null, fn.value.kind, fn.value.channel, Ast.BooleanExpression.True, null);
     fn:FUNCTION 'filter' filter => new Ast.PermissionFunction.Specified(null, fn.value.kind, fn.value.channel, filter, null);
+}
+
+assignment = {
+    'let' name:PARAM_NAME '=' '(' table ')' => new Ast.Statement.Assignment(null, name.value, table);
 }
 
 rule = {
