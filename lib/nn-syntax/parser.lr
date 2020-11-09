@@ -195,7 +195,7 @@ dialogue_result_list = {
 
 dialogue_result_list_nonempty = {
     value:object_literal_value => [new Ast.DialogueHistoryResultItem(null, value.value)];
-    list:dialogue_result_list ',' value:object_literal_value => {
+    list:dialogue_result_list_nonempty ',' value:object_literal_value => {
         list.push(new Ast.DialogueHistoryResultItem(null, value.value));
         return list;
     };
