@@ -27,12 +27,12 @@
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.1",
-    "@types/node": "^14.11.1",
-    "@typescript-eslint/eslint-plugin": "^4.2.0",
-    "@typescript-eslint/parser": "^4.2.0",
+    "@types/node": "^14.14.6",
+    "@typescript-eslint/eslint-plugin": "^4.6.1",
+    "@typescript-eslint/parser": "^4.6.1",
     "coveralls": "^3.0.0",
-    "deep-equal": "^2.0.1",
-    "eslint": "^7.1.0",
+    "deep-equal": "^2.0.4",
+    "eslint": "^7.13.0",
     "nyc": "^15.0.0",
     "pegjs": "~0.10.0",
     "q": "^1.5.1",
@@ -40,7 +40,7 @@
     "source-map-support": "^0.5.19",
     "ts-node": "^9.0.0",
     "typedoc": "^0.19.2",
-    "typescript": "^4.0.3"
+    "typescript": "^4.0.5"
   },
   "scripts": {
     "update-pot": "xgettext -f po/POTFILES -x po/POTFILES.skip -o po/${npm_package_name}.pot --from-code UTF-8 --package-name ${npm_package_name} --package-version ${npm_package_version}",
