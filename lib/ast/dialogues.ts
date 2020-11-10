@@ -28,6 +28,7 @@ import { prettyprintStatement, prettyprintHistoryItem } from '../prettyprint';
 import { Selector, DeviceSelector, Invocation } from './expression';
 import { Value, NumberValue } from './values';
 import { ExpressionSignature, FunctionDef } from './function_def';
+import { InvocationAction } from './primitive';
 import NodeVisitor from './visitor';
 import {
     OldSlot,
@@ -318,9 +319,16 @@ export class DialogueHistoryItem extends AstNode {
         if (this.results === null)
             return;
 
-        const stmtSchema = this.stmt instanceof Command &&
-            this.stmt.actions.every((a) => a.isNotify) &&
-            this.stmt.table ? this.stmt.table.schema : null;
+        let stmtSchema : ExpressionSignature|null = null;
+        if (this.stmt instanceof Command) {
+            if (this.stmt.actions.every((a) => a.isNotify)) {
+                stmtSchema = this.stmt.table ? this.stmt.table.schema : null;
+            } else {
+                const action = this.stmt.actions[0];
+                assert(action instanceof InvocationAction);
+                stmtSchema = action.invocation.schema;
+            }
+        }
         yield* this.results.iterateSlots2(stmtSchema);
     }
 }
