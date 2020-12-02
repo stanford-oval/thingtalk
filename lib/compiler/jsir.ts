@@ -212,7 +212,7 @@ class GetScope {
     }
 }
 
-class Iterator {
+class AsyncIterator {
     private _into : Register;
     private _iterable : Register;
 
@@ -222,7 +222,7 @@ class Iterator {
     }
 
     codegen(prefix : string) : string {
-        return `${prefix}_t_${this._into} = _t_${this._iterable}[Symbol.iterator]();`;
+        return `${prefix}_t_${this._into} = __builtin.getAsyncIterator(_t_${this._iterable});`;
     }
 }
 
@@ -675,7 +675,7 @@ class InvokeAction {
     }
 
     codegen(prefix : string) : string {
-        return `${prefix}_t_${this._into} = await __env.invokeAction(${stringEscape(this._kind)}, ${objectToJS(this._attrs)}, ${stringEscape(this._fname)}, _t_${this._args});`;
+        return `${prefix}_t_${this._into} = __env.invokeAction(${stringEscape(this._kind)}, ${objectToJS(this._attrs)}, ${stringEscape(this._fname)}, _t_${this._args});`;
     }
 }
 
@@ -696,7 +696,7 @@ class InvokeVoidAction {
     }
 
     codegen(prefix : string) : string {
-        return `${prefix}await __env.invokeAction(${stringEscape(this._kind)}, ${objectToJS(this._attrs)}, ${stringEscape(this._fname)}, _t_${this._args});`;
+        return `${prefix}await __builtin.drainAction(__env.invokeAction(${stringEscape(this._kind)}, ${objectToJS(this._attrs)}, ${stringEscape(this._fname)}, _t_${this._args}));`;
     }
 }
 
@@ -1177,7 +1177,7 @@ export {
     GetVariable,
     GetEnvironment,
     GetScope,
-    Iterator,
+    AsyncIterator,
     LoadConstant,
     LoadContext,
     LoadBuiltin,

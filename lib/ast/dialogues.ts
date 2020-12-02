@@ -190,7 +190,7 @@ export class DialogueHistoryResultList extends AstNode {
     equals(other : DialogueHistoryResultList) : boolean {
         if (this === other)
             return true;
-        if (this.more === other.more || !this.count.equals(other.count))
+        if (this.more !== other.more || !this.count.equals(other.count))
             return false;
         if (this.error !== other.error) {
             if (!this.error || !other.error)
@@ -232,6 +232,7 @@ export class DialogueHistoryItem extends AstNode {
         if (typeof confirm === 'boolean')
             confirm = confirm ? 'confirmed' : 'accepted';
         assert(confirm === 'proposed' || confirm === 'accepted' || confirm === 'confirmed');
+        assert(confirm === 'confirmed' || results === null);
 
         this.stmt = stmt;
         this.results = results;

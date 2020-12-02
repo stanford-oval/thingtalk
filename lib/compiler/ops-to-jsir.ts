@@ -115,7 +115,7 @@ export default class OpCompiler {
 
     private _compileIterateQuery(list : JSIr.Register) : JSIr.Register {
         const iterator = this._irBuilder.allocRegister();
-        this._irBuilder.add(new JSIr.Iterator(iterator, list));
+        this._irBuilder.add(new JSIr.AsyncIterator(iterator, list));
 
         const deviceAndResult = this._irBuilder.allocRegister();
         const loop = new JSIr.AsyncWhileLoop(deviceAndResult, iterator);

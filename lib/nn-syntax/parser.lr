@@ -158,13 +158,14 @@ dialogue_result_list : Ast.DialogueHistoryResultItem[] = {
 
 dialogue_result_list_nonempty : Ast.DialogueHistoryResultItem[] = {
     value:object_literal_value => [new Ast.DialogueHistoryResultItem($.location, value.value)];
-    list:dialogue_result_list ',' value:object_literal_value => {
+    list:dialogue_result_list_nonempty ',' value:object_literal_value => {
         list.push(new Ast.DialogueHistoryResultItem(null, value.value));
         return list;
     };
 }
 
 program : Ast.Program = {
+    assignment => new Ast.Program($.location, [], [], [assignment]);
     rule:rule => new Ast.Program($.location, [], [], [rule]);
     'executor' '=' user:value ':' rule =>
         new Ast.Program(null, [], [], [rule], { impl: { executor: user } });
@@ -210,6 +211,10 @@ rule : Ast.ExpressionStatement = {
         action.invocation.in_params.push(pp);
         return rule;
     };
+}
+
+assignment : Ast.Assignment = {
+    'let' name:PARAM_NAME '=' '(' table ')' => new Ast.Assignment($.location, name.value, table.toExpression([]));
 }
 
 aggr_op : ('min'|'max'|'sum'|'avg') = {

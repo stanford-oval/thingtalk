@@ -611,6 +611,10 @@ const TEST_CASES = [
     + ` dayOfWeek = enum friday } , { beginTime = new Time ( 0 , 0 ) , endTime = new Time ( NUMBER_0 , 0 ) , dayOfWeek = enum saturday } ) ;`,
     `restaurants open NUMBER_0 hours on friday and saturday`, { NUMBER_0: 24 },
     `@com.yelp.restaurant() filter openingHours == new RecurrentTimeSpecification({ beginTime=new Time(0, 0), endTime=new Time(24, 0), dayOfWeek=enum friday }, { beginTime=new Time(0, 0), endTime=new Time(24, 0), dayOfWeek=enum saturday });`],
+
+    ['let foo = @org.thingpedia.weather . sunrise ( date = new Date ( enum monday ) ) ;',
+     'let foo be the weather on monday', {},
+     'let foo = @org.thingpedia.weather.sunrise(date=new Date(enum monday));'],
 ];
 
 async function testCase(test, i) {

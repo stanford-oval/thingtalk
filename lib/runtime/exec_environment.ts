@@ -20,6 +20,7 @@
 
 import assert from 'assert';
 
+import * as Ast from '../ast';
 import Formatter from './formatter';
 import * as I18n from '../i18n';
 import type SchemaRetriever from '../schema';
@@ -39,6 +40,7 @@ interface CompiledQueryHints {
 }
 
 interface StreamValue {
+    [key : string] : unknown;
     __timestamp : number;
 }
 
@@ -98,18 +100,18 @@ export default abstract class ExecEnvironment {
                   attrs : CompiledDeviceAttributes,
                   fname : string,
                   params : CompiledParams,
-                  hints : CompiledQueryHints) : Promise<AsyncIterator<StreamValue>> {
+                  hints : CompiledQueryHints) : AsyncIterator<[string, StreamValue]> {
         throw new Error('Must be overridden');
     }
     /* istanbul ignore next */
     invokeTimer(base : Date,
                 interval : number,
-                frequency : number) : Promise<AsyncIterator<StreamValue>> {
+                frequency : number) : AsyncIterator<StreamValue> {
         throw new Error('Must be overridden');
     }
     /* istanbul ignore next */
     invokeAtTimer(timeArray : builtin.Time[],
-                  expiration_date ?: Date) : Promise<AsyncIterator<StreamValue>> {
+                  expiration_date ?: Date) : AsyncIterator<StreamValue> {
         throw new Error('Must be overridden');
     }
     /* istanbul ignore next */
@@ -117,21 +119,20 @@ export default abstract class ExecEnvironment {
                 attrs : CompiledDeviceAttributes,
                 fname : string,
                 params : CompiledParams,
-                hints : CompiledQueryHints) : Promise<AsyncIterator<unknown>> {
+                hints : CompiledQueryHints) : AsyncIterable<[string, PlainObject]> {
         throw new Error('Must be overridden');
     }
     /* istanbul ignore next */
     invokeDBQuery(kind : string,
                   attrs : CompiledDeviceAttributes,
-                  fname : string,
-                  params : CompiledParams) : Promise<AsyncIterator<unknown>> {
+                  query : Ast.Program) : AsyncIterable<[string, PlainObject]> {
         throw new Error('Must be overridden');
     }
     /* istanbul ignore next */
     invokeAction(kind : string,
                  attrs : CompiledDeviceAttributes,
                  fname : string,
-                 params : CompiledParams) : Promise<unknown|undefined> {
+                 params : CompiledParams) : AsyncIterable<[string, PlainObject]> {
         throw new Error('Must be overridden');
     }
     /* istanbul ignore next */
@@ -149,11 +150,11 @@ export default abstract class ExecEnvironment {
     }
 
     /* istanbul ignore next */
-    readState(stateId : string) : Promise<unknown> {
+    readState(stateId : number) : Promise<unknown> {
         throw new Error('Must be overridden');
     }
     /* istanbul ignore next */
-    writeState(stateId : string, value : unknown) : Promise<void> {
+    writeState(stateId : number, value : unknown) : Promise<void> {
         throw new Error('Must be overridden');
     }
     /* istanbul ignore next */
