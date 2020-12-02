@@ -507,11 +507,11 @@ export class ExpressionStatement extends Statement {
     }
 
     get first() : Expression {
-        return this.expression.expressions[0];
+        return this.expression.first;
     }
 
     get last() : Expression {
-        return this.expression.expressions[this.expression.expressions.length-1];
+        return this.expression.last;
     }
 
     get stream() : Expression|null {
@@ -522,16 +522,8 @@ export class ExpressionStatement extends Statement {
             return null;
     }
 
-    get lastTable() : Expression|null {
-        const expressions = this.expression.expressions;
-        if (expressions.length === 1) {
-            const single = expressions[0];
-            if (single.schema!.functionType === 'action')
-                return null;
-            return single;
-        } else {
-            return expressions[expressions.length-2];
-        }
+    get lastQuery() : Expression|null {
+        return this.expression.lastQuery;
     }
 
     toLegacy() : Rule|Command {

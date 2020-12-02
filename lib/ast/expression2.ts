@@ -854,6 +854,39 @@ export class ChainExpression extends Expression {
         return SyntaxPriority.Chain;
     }
 
+    get first() : Expression {
+        return this.expressions[0];
+    }
+
+    get last() : Expression {
+        return this.expressions[this.expressions.length-1];
+    }
+
+    get lastQuery() : Expression|null {
+        const expressions = this.expressions;
+        if (expressions.length === 1) {
+            const single = expressions[0];
+            if (single.schema!.functionType === 'action')
+                return null;
+            return single;
+        } else {
+            return expressions[expressions.length-2];
+        }
+    }
+
+    setLastQuery(expr : Expression) {
+        const expressions = this.expressions;
+        if (expressions.length === 1) {
+            const single = expressions[0];
+            if (single.schema!.functionType === 'action')
+                expressions.unshift(expr);
+            else
+                expressions[expressions.length-1] = expr;
+        } else {
+            expressions[expressions.length-2] = expr;
+        }
+    }
+
     toSource() : TokenStream {
         return List.join(this.expressions.map((exp) => exp.toSource()), '=>');
     }
