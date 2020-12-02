@@ -210,6 +210,14 @@ now => [distance(geo, $location.current_location)] of @com.yelp.restaurant() => 
     `$dialogue @org.thingpedia.dialogue.transaction.execute;
 now => sort distance asc of (compute (distance(geo, $location.current_location)) of (@com.yelp.restaurant())) => notify;`]*/
 
+    // projection of chain to chain of projection
+    [`[link] of (@com.washingtonpost.get_article() => @com.bing.web_search(query=title));`,
+    `@com.washingtonpost.get_article() => [link] of @com.bing.web_search(query=title);`],
+
+    // nested chains
+    [`(@com.bing.web_search() => @com.yandex.translate.translate(text=title)) => @com.twitter.post(status=translated_text);`,
+    `@com.bing.web_search() => @com.yandex.translate.translate(text=title) => @com.twitter.post(status=translated_text);`],
+
 ];
 
 

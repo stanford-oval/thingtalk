@@ -236,15 +236,28 @@ function optimizeExpression(expression : Ast.Expression, allow_projection=true) 
     }
 
     if (expression instanceof Ast.ProjectionExpression) {
+        const optimized = optimizeExpression(expression.expression, allow_projection);
+        if (!optimized)
+            return null;
+
+        // convert projection-of-chain to chain-of-projection (push the projection
+        // down to the last element)
+        if (optimized instanceof Ast.ChainExpression) {
+            const last = optimized.last;
+
+            const newProjection = optimizeExpression(new Ast.ProjectionExpression(expression.location, last,
+                expression.args, expression.computations, expression.aliases, expression.schema), allow_projection);
+            if (!newProjection)
+                return null;
+            optimized.expressions[optimized.expressions.length-1] = newProjection;
+            return optimized;
+        }
+
         if (expression.computations.length === 0) {
             if (!allow_projection)
-                return optimizeExpression(expression.expression);
-            if (expression.expression instanceof Ast.AggregationExpression)
-                return optimizeExpression(expression.expression);
-
-            const optimized = optimizeExpression(expression.expression, allow_projection);
-            if (!optimized)
-                return null;
+                return optimized;
+            if (optimized instanceof Ast.AggregationExpression)
+                return optimized;
 
             // collapse projection of projection
             if (optimized instanceof Ast.ProjectionExpression && optimized.computations.length === 0)
@@ -253,9 +266,6 @@ function optimizeExpression(expression : Ast.Expression, allow_projection=true) 
         }
 
         // nope, no optimization here
-        const optimized = optimizeExpression(expression.expression, allow_projection);
-        if (!optimized)
-            return null;
         expression.expression = optimized;
         return expression;
     }
@@ -354,13 +364,19 @@ function optimizeExpression(expression : Ast.Expression, allow_projection=true) 
         if (expression.expressions.length === 1)
             return optimizeExpression(expression.expressions[0], allow_projection);
 
+        // flatten ChainExpressions
+        const newExpressions : Ast.Expression[] = [];
         for (let i = 0; i < expression.expressions.length; i++) {
             const optimized = optimizeExpression(expression.expressions[i],
                 allow_projection && i === expression.expressions.length - 1);
             if (!optimized)
                 return null;
-            expression.expressions[i] = optimized;
+            if (optimized instanceof Ast.ChainExpression)
+                newExpressions.push(...optimized.expressions);
+            else
+                newExpressions.push(optimized);
         }
+        expression.expressions = newExpressions;
     }
 
     return expression;
