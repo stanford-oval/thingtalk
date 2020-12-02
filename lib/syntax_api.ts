@@ -19,6 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
+import * as semver from 'semver';
 
 import type * as Ast from './ast';
 
@@ -93,6 +94,7 @@ export function parse(code : string|string[], syntaxType : SyntaxType = SyntaxTy
 
 export interface SerializeOptions {
     typeAnnotations ?: boolean;
+    compatibility ?: string;
 }
 
 /**
@@ -113,7 +115,17 @@ export function serialize(node : Ast.Node,
                           entityRetriever ?: AbstractEntityRetriever,
                           options : SerializeOptions = {}) : string|string[] {
 
-    if (syntaxType === SyntaxType.Tokenized || syntaxType === SyntaxType.LegacyNN) {
+    if (syntaxType === SyntaxType.Tokenized && options.compatibility &&
+        semver.satisfies(options.compatibility, '1.*')) {
+        syntaxType = SyntaxType.LegacyNN;
+        entityRetriever!.setSyntaxType(syntaxType);
+
+        const serialized = LegacyNNSyntax.toNN(node as Ast.Input, entityRetriever!, options);
+        LegacyNNSyntax.applyCompatibility(serialized, options.compatibility);
+        return serialized;
+
+        // if we introduce compatibility fixes for new syntax, they will go here as well
+    } else if (syntaxType === SyntaxType.Tokenized || syntaxType === SyntaxType.LegacyNN) {
         entityRetriever!.setSyntaxType(syntaxType);
 
         if (syntaxType === SyntaxType.Tokenized)
