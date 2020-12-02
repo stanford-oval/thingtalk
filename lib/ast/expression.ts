@@ -102,6 +102,14 @@ export class DeviceSelector extends Node {
         this.all = all;
     }
 
+    getAttribute(name : string) : InputParam|undefined {
+        for (const attr of this.attributes) {
+            if (attr.name === name)
+                return attr;
+        }
+        return undefined;
+    }
+
     toSource() : TokenStream {
         if (this.id === null && !this.all && this.attributes.length === 0)
             return List.singleton('@' + this.kind);
