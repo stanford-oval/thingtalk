@@ -105,12 +105,12 @@ export interface SerializeOptions {
  * @param options.typeAnnotations - include type annotations for parameters
  *   (only meaningful to legacy NN syntax)
  */
-export function serialize(node : Ast.Input, syntaxType : SyntaxType.LegacyNN, entities : EntityRetriever, options ?: SerializeOptions) : string[];
-export function serialize(node : Ast.Node, syntaxType : SyntaxType.Tokenized, entities : EntityRetriever, options ?: SerializeOptions) : string[];
+export function serialize(node : Ast.Input, syntaxType : SyntaxType.LegacyNN, entities : AbstractEntityRetriever, options ?: SerializeOptions) : string[];
+export function serialize(node : Ast.Node, syntaxType : SyntaxType.Tokenized, entities : AbstractEntityRetriever, options ?: SerializeOptions) : string[];
 export function serialize(node : Ast.Node, syntaxType ?: SyntaxType.Normal|SyntaxType.Legacy) : string;
 export function serialize(node : Ast.Node,
                           syntaxType : SyntaxType = SyntaxType.Normal,
-                          entityRetriever ?: EntityRetriever,
+                          entityRetriever ?: AbstractEntityRetriever,
                           options : SerializeOptions = {}) : string|string[] {
 
     if (syntaxType === SyntaxType.Tokenized || syntaxType === SyntaxType.LegacyNN) {
