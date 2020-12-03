@@ -858,8 +858,16 @@ export class ChainExpression extends Expression {
         return this.expressions[0];
     }
 
+    set first(expr : Expression) {
+        this.expressions[0] = expr;
+    }
+
     get last() : Expression {
         return this.expressions[this.expressions.length-1];
+    }
+
+    set last(expr : Expression) {
+        this.expressions[this.expressions.length-1] = expr;
     }
 
     get lastQuery() : Expression|null {
