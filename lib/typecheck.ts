@@ -1145,6 +1145,8 @@ export default class TypeChecker {
                         type = 'query';
                 }
             }
+
+            value.schema = this._resolveChain(value);
         } else {
             await this._typeCheckExpression(ast.value, new Scope(scope));
             type = ast.value.schema!.functionType;
