@@ -270,7 +270,6 @@ export default class OpCompiler {
             this._irBuilder.add(tryCatch);
             this._irBuilder.pushBlock(tryCatch.try);
 
-            assert(expr.selector.isDevice);
             const [kind, attrs, fname] = this._compileTpFunctionCall(expr);
             const list = this._irBuilder.allocRegister();
             const [argmap, args] = this._compileInputParams(expr);
@@ -677,10 +676,6 @@ export default class OpCompiler {
         this._irBuilder.pushBlock(tryCatch.try);
 
         if (ast instanceof Ast.NotifyAction) {
-            if (ast.name === 'return')
-                throw new TypeError('return must be lowered before execution, use Generate.lowerReturn');
-            assert(ast.name === 'notify');
-
             this._compileInvokeOutput();
         } else {
             const stack = this._irBuilder.saveStackState();
@@ -1152,9 +1147,7 @@ export default class OpCompiler {
             null /* location */,
             [],
             [],
-            [new Ast.Statement.Command(null, tableop.ast, [Ast.Action.notifyAction()])],
-            null,
-            []
+            [new Ast.ExpressionStatement(null, tableop.ast.toExpression([]))]
         );
         const astId = this._compiler._allocAst(query);
         const astReg = this._irBuilder.allocRegister();
@@ -1189,7 +1182,7 @@ export default class OpCompiler {
 
     private _compileEndOfFlow(action : Ast.Action) {
         if (!(action instanceof Ast.InvocationAction) ||
-            !action.invocation.selector.isDevice || !isRemoteSend(action.invocation))
+            !isRemoteSend(action.invocation))
             return;
 
         const tryCatch = new JSIr.TryCatch("Failed to signal end-of-flow");
@@ -1244,14 +1237,14 @@ export default class OpCompiler {
         this._irBuilder.popAll();
     }
 
-    compileActionAssignment(action : Ast.InvocationTable|Ast.VarRefTable,
+    compileActionAssignment(action : Ast.InvocationAction|Ast.VarRefAction,
                             isPersistent : boolean) : JSIr.Register {
         const register = this._irBuilder.allocRegister();
         let stateId;
         this._irBuilder.add(new JSIr.CreateTuple(0, register));
 
         let hasResult;
-        if (action instanceof Ast.VarRefTable) {
+        if (action instanceof Ast.VarRefAction) {
             this._compileInvokeGenericVarRef(action);
             hasResult = true;
         } else {

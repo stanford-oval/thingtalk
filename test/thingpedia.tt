@@ -509,7 +509,7 @@ class @com.yahoo.finance
 #_[canonical="yahoo finance"] {
   monitorable query get_stock_div(in req stock_id: Entity(tt:stock_id) #_[prompt="What company's stock do you want to watch? Use the 4 letter ID, like GOOG, AAPL or MSFT"] #_[canonical="stock id"],
                                   out company_name: String #_[canonical="company name"],
-                                  out yield: Number #_[canonical="yield"],
+                                  out yield_: Number #_[canonical="yield"],
                                   out value: Currency #_[canonical="value"],
                                   out pay_date: Date #_[canonical="pay date"],
                                   out ex_dividend_date: Date #_[canonical="ex dividend date"])
@@ -1901,7 +1901,7 @@ class @com.yelp
 class @org.thingpedia.test.compounds_and_inheritance {
   monitorable list query thing(out name: String,
                                out description: String,
-                               out image: Picture);
+                               out image: Entity(tt:picture));
 
   monitorable list query foo extends thing (out compound: {
                                               nestedCompound: {
@@ -2103,7 +2103,7 @@ class @org.wikidata
 class @org.schema {
   list query thing(out name: String,
                    out description: String,
-                   out image: Picture);
+                   out image: Entity(tt:picture));
 
   list query organization extends thing(out address: {
                                           addressCountry: Entity(tt:country) #_[canonical="country"],
@@ -2124,7 +2124,7 @@ class @org.schema {
                                           description: String,
                                           author: String
                                         }),
-                                        out telephone: PhoneNumber,
+                                        out telephone: Entity(tt:phone_number),
                                         out brand: {
                                            name: String #_[canonical="brand"]
                                         });
@@ -2644,7 +2644,7 @@ class @org.schema.full {
                    out estimatedCost: Currency #[org_schema_type="MonetaryAmount"] #[org_schema_comment="The estimated cost of the supply or supplies consumed when performing instructions."],
                    out totalTime: Measure(ms) #[org_schema_type="Duration"] #[org_schema_comment="The total time required to perform instructions or a direction (including time to prepare the supplies), in <a href=\"http://en.wikipedia.org/wiki/ISO_8601\">ISO 8601 duration format</a>."],
                    out supply: Array(String) #[org_schema_type="Text"] #[org_schema_comment="A sub-property of instrument. A supply consumed when performing instructions or a direction."],
-                   out yield: Number #[org_schema_type="QuantitativeValue"] #[org_schema_comment="The quantity that results by performing instructions. For example, a paper airplane, 10 personalized candles."])
+                   out yield_: Number #[org_schema_type="QuantitativeValue"] #[org_schema_comment="The quantity that results by performing instructions. For example, a paper airplane, 10 personalized candles."])
   #[org_schema_comment="Instructions that explain how to achieve a result by performing a sequence of steps."];
 
   list query Recipe(out id: Entity(org.schema:Recipe),

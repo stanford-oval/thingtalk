@@ -17,13 +17,13 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
 
-const { clean } = require('../lib/utils');
+import assert from 'assert';
 
-function testClean() {
+import { clean } from '../lib/utils';
+
+export default function testClean() {
     assert.strictEqual(clean('argument'), 'argument');
     assert.strictEqual(clean('other_argument'), 'other argument');
     assert.strictEqual(clean('otherArgument'), 'other argument');
@@ -32,6 +32,5 @@ function testClean() {
     assert.strictEqual(clean('otherWEIRD_Thing'), 'other weird thing');
     assert.strictEqual(clean('OtherArgument'), 'other argument');
 }
-module.exports = testClean;
 if (!module.parent)
     testClean();

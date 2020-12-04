@@ -1,5 +1,6 @@
 lib/grammar.js
 lib/nn-syntax/parser.js
+tools/generate-parser/grammar.js
 node_modules
 dist
 coverage

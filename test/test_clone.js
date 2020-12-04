@@ -17,20 +17,19 @@
 // limitations under the License.
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
-const AppGrammar = require('../lib/grammar_api');
-const { prettyprint } = require('../lib/prettyprint');
+
+import assert from 'assert';
+import * as AppGrammar from '../lib/syntax_api';
 
 const TEST_CASES = [
 // device selectors
-`now => @light-bulb(name="bathroom").set_power(power=enum(on));`,
-`now => @light-bulb(id="io.home-assistant/http://hassio.local:8123-light.hue_bloom_1", name="bathroom").set_power(power=enum(on));`,
-`now => @light-bulb(all=true).set_power(power=enum(on));`
+`@light-bulb(name="bathroom").set_power(power=enum(on));`,
+`@light-bulb(id="io.home-assistant/http://hassio.local:8123-light.hue_bloom_1"^^tt:device_id("bathroom")).set_power(power=enum(on));`,
+`@light-bulb(all=true).set_power(power=enum(on));`
 ];
 
-function main() {
+export default function main() {
     TEST_CASES.forEach((code, i) => {
         console.log('# Test Case ' + (i+1));
 
@@ -47,8 +46,8 @@ function main() {
 
         let codegenned;
         try {
-            codegenned = prettyprint(ast.clone(), true);
-            assert.strictEqual(code, codegenned);
+            codegenned = ast.clone().prettyprint();
+            assert.strictEqual(codegenned, code);
         } catch(e) {
             console.error('Prettyprint failed');
             console.error('Prettyprinted:');
@@ -62,6 +61,5 @@ function main() {
         }
     });
 }
-module.exports = main;
 if (!module.parent)
     main();

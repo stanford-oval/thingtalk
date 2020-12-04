@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -22,13 +22,13 @@ import assert from 'assert';
 import interpolate from 'string-interp';
 
 import * as Ast from './ast';
-import Type from './type';
+import Type, { ArrayType } from './type';
 import { clean, cleanKind } from './utils';
 import { Currency } from './builtin/values';
 import * as I18n from './i18n';
 
 
-const OLD_ANNOTATION_RENAME = {
+const OLD_ANNOTATION_RENAME : { [key : string] : string } = {
     'property': 'npp',
     'reverse_property': 'npi',
     'verb': 'avp',
@@ -36,7 +36,7 @@ const OLD_ANNOTATION_RENAME = {
     'adjective': 'apv',
     'implicit_identity': 'npv',
 };
-const NEW_ANNOTATION_RENAME = {
+const NEW_ANNOTATION_RENAME : { [key : string] : string } = {
     'npp': 'property',
     'npi': 'reverse_property',
     'avp': 'verb',
@@ -45,9 +45,17 @@ const NEW_ANNOTATION_RENAME = {
     'npv': 'implicit_identity',
 };
 
+type ScopeMap = { [key : string] : string };
 
 class Describer {
-    constructor(gettext, locale = gettext.locale, timezone) {
+    private _ : (x : string) => string;
+    locale : string;
+    timezone : string|undefined;
+
+    private _format : InstanceType<typeof interpolate.Formatter>; // FIXME
+    private _interp : (x : string, args : { [key : string] : unknown }) => string;
+
+    constructor(gettext ?: I18n.Gettext, locale : string = gettext!.locale, timezone ?: string) {
         if (!gettext)
             gettext = I18n.get(locale);
         this._ = gettext.dgettext.bind(gettext, 'thingtalk');
@@ -55,18 +63,19 @@ class Describer {
         this.timezone = timezone;
 
         this._format = new interpolate.Formatter(locale, timezone);
-        this._interp = (string, args) => interpolate(string, args, { locale, timezone });
+        this._interp = (string, args) => interpolate(string, args, { locale, timezone })||'';
     }
 
-    _displayLocation(loc) {
-        if (loc.isAbsolute) {
+    private _displayLocation(loc : Ast.Location) {
+        if (loc instanceof Ast.AbsoluteLocation) {
             if (loc.display)
                 return loc.display;
             else
                 return this._interp(this._("[Latitude: ${loc.lat:.3} deg, Longitude: ${loc.lon:.3} deg]"), { loc });
-        } else if (loc.isUnresolved) {
+        } else if (loc instanceof Ast.UnresolvedLocation) {
             return loc.name;
         } else {
+            assert(loc instanceof Ast.RelativeLocation);
             switch (loc.relativeTag) {
             case 'current_location':
                 return this._("here");
@@ -80,8 +89,8 @@ class Describer {
         }
     }
 
-    _describeTime(time) {
-        if (time.isAbsolute) {
+    private _describeTime(time : Ast.Time) {
+        if (time instanceof Ast.AbsoluteTime) {
             const date = new Date;
             date.setHours(time.hour);
             date.setMinutes(time.minute);
@@ -99,6 +108,7 @@ class Describer {
                 });
             }
         } else {
+            assert(time instanceof Ast.RelativeTime);
             switch (time.relativeTag) {
                 case 'morning':
                     return this._('the morning');
@@ -110,26 +120,26 @@ class Describer {
         }
     }
 
-    _describeDate(date, operator, offset) {
+    private _describeDate(date : Date|Ast.DatePiece|Ast.DateEdge|Ast.WeekDayDate|null) {
         let base;
 
         if (date === null) {
             base = this._("now");
-        } else if (date.isDatePiece) {
+        } else if (date instanceof Ast.DatePiece) {
             const monthNames = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december" ];
-            let year = this._(date.year === null ?
+            const year = this._(date.year === null ?
                               "this year" :
                               date.year.toString());
-            let month = this._(date.month === null ?
+            const month = this._(date.month === null ?
                                (date.day === null ? "january" : "this month") :
                                monthNames[date.month - 1]);
-            let day = this._(date.day === null ?
+            const day = this._(date.day === null ?
                              "1" :
                              date.day.toString());
-            let time = date.time === null ? this._("start of day") : this._describeTime(date.time.value);
+            const time = date.time === null ? this._("start of day") : this._describeTime(date.time.value);
             base = this._interp(this._("${time} on day ${day} of ${month}, ${year}"),
                                 { year, month, day, time });
-        } else if (date.isDateEdge) {
+        } else if (date instanceof Ast.DateEdge) {
             let unit;
             switch (date.unit) {
             case 'ms':
@@ -161,9 +171,9 @@ class Describer {
                 base = this._interp(this._("the start of ${unit}"), { unit });
             else
                 base = this._interp(this._("the end of ${unit}"), { unit });
-        } else if (date.isWeekDayDate) {
-            let time = date.time === null ? this._("start of day") : this._describeTime(date.time.value);
-            let weekday = this._(date.weekday);
+        } else if (date instanceof Ast.WeekDayDate) {
+            const time = date.time === null ? this._("start of day") : this._describeTime(date.time.value);
+            const weekday = this._(date.weekday);
             base = this._interp(this._("${time} on ${weekday}"), { time, weekday });
         } else {
             if (date.getHours() === 0 && date.getMinutes() === 0 && date.getSeconds() === 0)
@@ -176,7 +186,7 @@ class Describer {
     }
 
     // public API that always returns a string
-    describeArg(arg, scope) {
+    describeArg(arg : Ast.Value, scope ?: ScopeMap) : string {
         return this._interp('${v}', {
             v: this._describeArg(arg, scope)
         });
@@ -184,17 +194,14 @@ class Describer {
 
     // internal API that returns an array or number in some cases (so string-interp can do
     // better formatting than we can)
-    _describeArg(arg, scope = {}) {
-        if (arg.isArray)
+    private _describeArg(arg : Ast.Value, scope : ScopeMap = {}) : unknown {
+        if (arg instanceof Ast.ArrayValue)
             return arg.value.map((v) => this._describeArg(v, scope));
         // for Number, we return the actual value, so the sentence can do plural selection
-        if (arg.isNumber)
+        if (arg instanceof Ast.NumberValue)
             return arg.value;
 
-        if (arg.display)
-            return arg.display;
-
-        if (arg.isVarRef) {
+        if (arg instanceof Ast.VarRefValue) {
             let name;
             if (arg.name in scope)
                 name = scope[arg.name];
@@ -202,11 +209,11 @@ class Describer {
                 name = clean(arg.name);
             return this._interp(this._("the ${name}"), { name });
         }
-        if (arg.isComputation) {
+        if (arg instanceof Ast.ComputationValue) {
             if ((arg.op === '+' || arg.op === '-') &&
                 arg.operands[0].isDate) {
-                let base = this._describeArg(arg.operands[0], scope);
-                let offset = this._describeArg(arg.operands[1], scope);
+                const base = this._describeArg(arg.operands[0], scope);
+                const offset = this._describeArg(arg.operands[1], scope);
 
                 if (arg.op === '+')
                     return this._interp(this._("${offset} past ${base}"), { offset, base });
@@ -217,7 +224,7 @@ class Describer {
             if (arg.op === '+' && arg.operands.every((op) => op.isMeasure))
                 return arg.operands.map((v) => this._describeArg(v, scope)).join(' ');
 
-            let operands = arg.operands.map((v) => this._describeArg(v, scope));
+            const operands : unknown[] = arg.operands.map((v) => this._describeArg(v, scope));
             switch (arg.op) {
             case '+':
                 return this._interp(this._("${lhs} plus ${rhs}"), { lhs: operands[0], rhs: operands[1] });
@@ -248,20 +255,20 @@ class Describer {
             }
         }
 
-        if (arg.isFilter) {
+        if (arg instanceof Ast.FilterValue) {
             return this._interp(this._("${value} for which ${filter}"), {
                 value: this._describeArg(arg.value, scope),
-                filter: this.describeFilter(arg.filter, this._compoundTypeToSchema(arg.type.elem), scope)
+                filter: this.describeFilter(arg.filter, this._compoundTypeToSchema((arg.type as ArrayType).elem as Type), scope)
             });
         }
-        if (arg.isArrayField) {
+        if (arg instanceof Ast.ArrayFieldValue) {
             return this._interp(this._("the ${field} of ${value}"), {
-                field: arg.arg.canonical,
+                field: arg.arg!.canonical,
                 value: this._describeArg(arg.value, scope)
             });
         }
 
-        if (arg.isContextRef) {
+        if (arg instanceof Ast.ContextRefValue) {
             switch (arg.name) {
             case 'selection':
                 return this._("the selection on the screen");
@@ -269,9 +276,9 @@ class Describer {
                 throw new Error(`unsupported context value`);
             }
         }
-        if (arg.isUndefined)
+        if (arg instanceof Ast.UndefinedValue)
             return '____';
-        if (arg.isEvent) {
+        if (arg instanceof Ast.EventValue) {
             switch (arg.name) {
             case 'program_id':
                 return this._("the program ID");
@@ -281,22 +288,24 @@ class Describer {
                 return this._("the result");
             }
         }
-        if (arg.isLocation)
+        if (arg instanceof Ast.LocationValue)
             return this._displayLocation(arg.value);
-        if (arg.isString)
+        if (arg instanceof Ast.StringValue)
             return `“${arg.value}”`;
-        if (arg.isEntity) {
+        if (arg instanceof Ast.EntityValue) {
             if (arg.type === 'tt:username' || arg.type === 'tt:contact_name' || arg.type === 'tt:contact_group_name')
                 return '@' + arg.value;
             if (arg.type === 'tt:hashtag')
                 return '#' + arg.value;
+            if (arg.display)
+                return arg.display;
             return arg.value;
         }
-        if (arg.isCurrency)
+        if (arg instanceof Ast.CurrencyValue)
             return new Currency(arg.value, arg.code).toLocaleString(this.locale);
-        if (arg.isEnum)
+        if (arg instanceof Ast.EnumValue)
             return clean(arg.value);
-        if (arg.isMeasure) {
+        if (arg instanceof Ast.MeasureValue) {
             if (arg.unit.startsWith('default')) {
                 switch (arg.unit) {
                 case 'defaultTemperature':
@@ -308,17 +317,21 @@ class Describer {
                 return arg.value + ' ' + arg.unit;
             }
         }
-        if (arg.isBoolean)
+        if (arg instanceof Ast.BooleanValue)
             return arg.value ? this._("true") : this._("false");
-        if (arg.isDate)
-            return this._describeDate(arg.value, arg.operator, arg.offset);
-        if (arg.isTime)
+        if (arg instanceof Ast.DateValue)
+            return this._describeDate(arg.value);
+        if (arg instanceof Ast.TimeValue)
             return this._describeTime(arg.value);
 
         return String(arg);
     }
 
-    _describeOperator(argcanonical, op, value, negate, ptype) {
+    private _describeOperator(argcanonical : string,
+                              op : string,
+                              value : unknown,
+                              negate : boolean,
+                              ptype : Type) {
         let op_key = op;
         switch (op) {
         case '=~':
@@ -384,37 +397,41 @@ class Describer {
         }"), { op_key, argcanonical, value }); //"
     }
 
-    _compoundTypeToSchema(type, parentscope) {
-        let args = [];
-        if (type.isCompound) {
-            for (let field in type.fields) {
-                args.push(new Ast.ArgumentDef('out', field, type.fields[field].type, {
-                    nl: field.nl_annotations,
-                    impl: field.impl_annotations
+    private _compoundTypeToSchema(type : Type) {
+        const args = [];
+        if (type instanceof Type.Compound) {
+            for (const field in type.fields) {
+                args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, field, type.fields[field].type, {
+                    nl: type.fields[field].nl_annotations,
+                    impl: type.fields[field].impl_annotations
                 }));
             }
         } else {
-            args.push(new Ast.ArgumentDef('out', 'value', type, {}));
+            args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'value', type, {}));
         }
-        const localschema = new Ast.ExpressionSignature('query', null, [], args, {});
+        const localschema = new Ast.ExpressionSignature(null, 'query', null, [], args, {});
         return localschema;
     }
 
-    _describeAtomFilter(expr, schema, scope, negate, canonical_overwrite = {}) {
-        let filter = expr;
-        let argname = filter.name;
+    private _describeAtomFilter(expr : Ast.AtomBooleanExpression,
+                                schema : Ast.ExpressionSignature|null,
+                                scope : ScopeMap,
+                                negate : boolean,
+                                canonical_overwrite : ScopeMap = {}) {
+        const filter = expr;
+        const argname = filter.name;
         let argcanonical;
         if (argname in canonical_overwrite) {
             argcanonical = canonical_overwrite[argname];
         } else if (schema) {
             if (argname in schema.index)
-                argcanonical = schema.getArgCanonical(argname);
+                argcanonical = schema.getArgCanonical(argname)!;
             else
                 argcanonical = scope[argname];
         } else {
             argcanonical = scope[argname];
         }
-        let value = this._describeArg(filter.value, scope);
+        const value = this._describeArg(filter.value, scope);
         let ptype;
         if (schema === null)
             ptype = new Type.Entity('tt:contact');
@@ -423,14 +440,17 @@ class Describer {
         return this._describeOperator(argcanonical, filter.operator, value, negate, ptype);
     }
 
-    describeFilter(expr, schema, scope = {}, canonical_overwrite = {}) {
-        const recursiveHelper = (expr) => {
-            if (expr.isTrue || (expr.isAnd && expr.operands.length === 0))
+    describeFilter(expr : Ast.BooleanExpression,
+                   schema : Ast.ExpressionSignature|null = null,
+                   scope : ScopeMap = {},
+                   canonical_overwrite : ScopeMap = {}) : string {
+        const recursiveHelper = (expr : Ast.BooleanExpression) : string => {
+            if (expr.isTrue || (expr instanceof Ast.AndBooleanExpression && expr.operands.length === 0))
                 return this._("true");
-            if (expr.isFalse || (expr.isOr && expr.operands.length === 0))
+            if (expr.isFalse || (expr instanceof Ast.OrBooleanExpression && expr.operands.length === 0))
                 return this._("false");
-            if (expr.isDontCare) {
-                let argname = expr.name;
+            if (expr instanceof Ast.DontCareBooleanExpression) {
+                const argname = expr.name;
                 let argcanonical;
                 if (argname in canonical_overwrite) {
                     argcanonical = canonical_overwrite[argname];
@@ -447,7 +467,7 @@ class Describer {
 
             // FIXME these should use this._format.listToString but that might not behave well
             // on all versions of node / ICU
-            if (expr.isAnd || expr.isOr) {
+            if (expr instanceof Ast.AndBooleanExpression || expr instanceof Ast.OrBooleanExpression) {
                 return expr.operands.map(recursiveHelper).reduce((lhs, rhs) => {
                     return this._interp(this._("${lhs} ${op} ${rhs}"), {
                         lhs, rhs,
@@ -455,25 +475,25 @@ class Describer {
                     });
                 });
             }
-            if (expr.isNot && expr.expr.isAtom)
+            if (expr instanceof Ast.NotBooleanExpression && expr.expr instanceof Ast.AtomBooleanExpression)
                 return this._describeAtomFilter(expr.expr, schema, scope, true, canonical_overwrite);
-            if (expr.isNot)
+            if (expr instanceof Ast.NotBooleanExpression)
                 return this._interp(this._("not ${expr}"), { expr: recursiveHelper(expr.expr) });
-            if (expr.isExternal) {
+            if (expr instanceof Ast.ExternalBooleanExpression) {
                 if (expr.selector.kind === 'org.thingpedia.builtin.thingengine.builtin' &&
                     expr.channel === 'get_time') {
-                    const schema = expr.schema.clone();
+                    const schema = expr.schema!.clone();
                     return this.describeFilter(expr.filter, schema, scope, { time: this._("current time") });
                 }
                 if (expr.selector.kind === 'org.thingpedia.builtin.thingengine.builtin' &&
                     expr.channel === 'get_gps') {
-                    const schema = expr.schema.clone();
+                    const schema = expr.schema!.clone();
                     return this.describeFilter(expr.filter, schema, scope, { location: this._("my location") });
                 }
 
                 const primdesc = this.describePrimitive(expr, scope, []);
 
-                if (expr.filter.isAtom) {
+                if (expr.filter instanceof Ast.AtomBooleanExpression) {
                     // common case
                     const lhs = this._interp(this._("the ${param} of ${expr}"), {
                         param: expr.filter.name,
@@ -484,8 +504,9 @@ class Describer {
                                                   expr.filter.operator,
                                                   this._describeArg(expr.filter.value, scope),
                                                   false,
-                                                  expr.schema.out[expr.filter.name]);
-                } else if (expr.filter.isNot && expr.filter.expr.isAtom) {
+                                                  expr.schema!.out[expr.filter.name]);
+                } else if (expr.filter instanceof Ast.NotBooleanExpression &&
+                           expr.filter.expr instanceof Ast.AtomBooleanExpression) {
                     // common case 2
                     const lhs = this._interp(this._("the ${param} of ${expr}"), {
                         param: expr.filter.expr.name,
@@ -496,7 +517,7 @@ class Describer {
                                                   expr.filter.expr.operator,
                                                   this._describeArg(expr.filter.expr.value, scope),
                                                   true,
-                                                  expr.schema.out[expr.filter.expr.name]);
+                                                  expr.schema!.out[expr.filter.expr.name]);
                 } else {
                     // general case
                     return this._interp(this._("for ${expr}, ${filter}"), {
@@ -505,24 +526,28 @@ class Describer {
                     });
                 }
             }
+            assert(expr instanceof Ast.AtomBooleanExpression);
             return this._describeAtomFilter(expr, schema, scope, false, canonical_overwrite);
         };
 
         return recursiveHelper(expr);
     }
 
-    _getDeviceAttribute(selector, name) {
-        for (let attr of selector.attributes) {
+    private _getDeviceAttribute(selector : Ast.DeviceSelector, name : string) : unknown|undefined {
+        for (const attr of selector.attributes) {
             if (attr.name === name)
                 return this._describeArg(attr.value, {});
         }
         return undefined;
     }
 
-    describePrimitive(obj, scope, extraInParams = []) {
+    describePrimitive(obj : Ast.Invocation|Ast.ExternalBooleanExpression,
+                      scope ?: ScopeMap,
+                      extraInParams : Ast.InputParam[] = []) : string {
         const kind = obj.selector.kind;
         const channel = obj.channel;
         const schema = obj.schema;
+        assert(schema instanceof Ast.FunctionDef);
 
         const argMap = new Map;
 
@@ -536,12 +561,12 @@ class Describer {
             else
                 throw TypeError('Invalid @remote channel ' + channel);
         } else {
-            confirm = schema.confirmation;
+            confirm = schema.confirmation!;
 
-            let cleanKind = obj.schema.class ? obj.schema.class.canonical : clean(obj.selector.kind);
+            const cleanKind = schema.class ? schema.class.canonical : clean(obj.selector.kind);
 
             let selector;
-            let name = this._getDeviceAttribute(obj.selector, 'name');
+            const name = this._getDeviceAttribute(obj.selector, 'name');
             if (obj.selector.device)
                 selector = this._interp(this._("your ${device}"), { device: obj.selector.device.name });
             else if (obj.selector.all && name)
@@ -570,7 +595,7 @@ class Describer {
             // @com.xkcd.get_comic()
             // to "get xkcd"
 
-            if (inParam.value.isUndefined && obj.schema.isArgRequired(argname))
+            if (inParam.value.isUndefined && schema.isArgRequired(argname))
                 continue;
             argMap.set(argname, this._describeArg(inParam.value, scope));
         }
@@ -584,7 +609,7 @@ class Describer {
             timezone: this.timezone,
             failIfMissing: false,
             nullReplacement: '____'
-        });
+        })||'';
 
         let firstExtra = true;
         for (const inParam of obj.in_params.concat(extraInParams)) {
@@ -598,7 +623,7 @@ class Describer {
                 continue;
             if (kind === 'remote' || kind.startsWith('__dyn'))
                 continue;
-            if (inParam.value.isUndefined && obj.schema.isArgRequired(argname))
+            if (inParam.value.isUndefined && schema.isArgRequired(argname))
                 continue;
             if (firstExtra) {
                 confirm = this._interp(this._("${confirm} with ${argcanonical} equal to ${value}"), { confirm, argcanonical, value });
@@ -611,8 +636,8 @@ class Describer {
         return confirm;
     }
 
-    _describeIndex(index, tabledesc) {
-        if (index.isNumber) {
+    private _describeIndex(index : Ast.Value, tabledesc : string) {
+        if (index instanceof Ast.NumberValue) {
             if (index.value < 0) {
                 return this._interp(this._("${index:ordinal: \
                     =1 {the last ${table}}\
@@ -641,9 +666,10 @@ class Describer {
         }
     }
 
-    _describeFilteredTable(table, extraInParams) {
+    private _describeFilteredTable(table : Ast.FilteredTable,
+                                   extraInParams : Ast.InputParam[]) : string {
         const inner = this.describeTable(table.table, extraInParams);
-        if (!table.schema.is_list) {
+        if (!table.schema!.is_list) {
             return this._interp(this._("${table} such that ${filter}"), {
                 table: inner,
                 filter: this.describeFilter(table.filter, table.schema)
@@ -654,20 +680,20 @@ class Describer {
         const slotClauses = [];
         const otherClauses = [];
 
-        for (let clause of (filter.isAnd ? filter.operands : [filter])) {
-            if (!clause.isAtom) {
+        for (const clause of (filter instanceof Ast.AndBooleanExpression ? filter.operands : [filter])) {
+            if (!(clause instanceof Ast.AtomBooleanExpression)) {
                 otherClauses.push(clause);
                 continue;
             }
 
             const name = clause.name;
-            const arg = table.schema.getArgument(name);
+            const arg = table.schema!.getArgument(name);
             if (!arg) {
                 otherClauses.push(clause);
                 continue;
             }
 
-            let isEqualityFilter = ['==', '=~', 'contains', 'contains~', '~contains', 'in_array', 'in_array~', '~in_array'].includes(clause.operator);
+            const isEqualityFilter = ['==', '=~', 'contains', 'contains~', '~contains', 'in_array', 'in_array~', '~in_array'].includes(clause.operator);
             if (!isEqualityFilter) {
                 otherClauses.push(clause);
                 continue;
@@ -729,7 +755,7 @@ class Describer {
         let tabledesc = inner;
         let first = true;
 
-        for (let [clause, canonical, form] of slotClauses) {
+        for (const [clause, canonical, form] of slotClauses) {
             let value = this._describeArg(clause.value, {});
             if (Array.isArray(value)) {
                 value = this._format.listToString(value, {
@@ -779,26 +805,26 @@ class Describer {
         }
     }
 
-    describeTable(table, extraInParams) {
-        if (table.isVarRef) {
+    describeTable(table : Ast.Table, extraInParams : Ast.InputParam[] = []) : string {
+        if (table instanceof Ast.VarRefTable) {
             return clean(table.name);
-        } else if (table.isInvocation) {
+        } else if (table instanceof Ast.InvocationTable) {
             return this.describePrimitive(table.invocation, {}, extraInParams);
-        } else if (table.isFilter) {
+        } else if (table instanceof Ast.FilteredTable) {
             return this._describeFilteredTable(table, extraInParams);
-        } else if (table.isProjection) {
+        } else if (table instanceof Ast.ProjectionTable) {
             return this._interp(this._("the ${param} of ${table}"), {
                 table: this.describeTable(table.table, extraInParams),
-                param: this.__describeArgList(table.args, table.schema)
+                param: this.__describeArgList(table.args, table.schema!)
             });
-        } else if (table.isCompute) {
+        } else if (table instanceof Ast.ComputeTable) {
             return this._interp(this._("${table} and ${expression}"), {
                 table: this.describeTable(table.table, extraInParams),
-                expression: this._describeArg(table.expression, table.table.schema)
+                expression: this._describeArg(table.expression)
             });
-        } else if (table.isAlias) {
+        } else if (table instanceof Ast.AliasTable) {
             return this.describeTable(table.table, extraInParams);
-        } else if (table.isAggregation) {
+        } else if (table instanceof Ast.AggregationTable) {
             if (table.field === '*') {
                 return this._interp(this._("the number of ${table}"), {
                     table: this.describeTable(table.table, extraInParams)
@@ -826,59 +852,62 @@ class Describer {
                 throw new TypeError(`Invalid aggregation ${table.operator}`);
             }
             return this._interp(desc, {
-                param: table.schema.getArgCanonical(table.field),
+                param: table.schema!.getArgCanonical(table.field),
                 table: this.describeTable(table.table, extraInParams)
             });
 
         // recognize argmin/argmax
-        } else if (table.isIndex && table.indices.length === 1 && table.indices[0].isNumber && table.table.isSort &&
-            (table.indices[0].value === 1 || table.indices[0].value === -1)) {
-            if ((table.indices[0].value === 1 && table.table.direction === 'asc') ||
-                (table.indices[0].value === -1 && table.table.direction === 'desc')) {
+        } else if (table instanceof Ast.IndexTable && table.indices.length === 1 && table.indices[0] instanceof Ast.NumberValue &&
+            table.table instanceof Ast.SortedTable &&
+            (table.indices[0].toJS() === 1 || table.indices[0].toJS() === -1)) {
+            const index = table.indices[0] as Ast.NumberValue;
+
+            if ((index.value === 1 && table.table.direction === 'asc') ||
+                (index.value === -1 && table.table.direction === 'desc')) {
                 return this._interp(this._("the ${table} with the minimum ${param}"), {
                     table: this.describeTable(table.table.table, extraInParams),
-                    param: table.schema.getArgCanonical(table.table.field)
+                    param: table.schema!.getArgCanonical(table.table.field)
                 });
             } else {
                 return this._interp(this._("the ${table} with the maximum ${param}"), {
                     table: this.describeTable(table.table.table, extraInParams),
-                    param: table.schema.getArgCanonical(table.table.field)
+                    param: table.schema!.getArgCanonical(table.table.field)
                 });
             }
 
         // recognize argmin/argmax top K
-        } else if (table.isSlice && table.table.isSort && table.base.isNumber &&
+        } else if (table instanceof Ast.SlicedTable && table.table instanceof Ast.SortedTable && table.base instanceof Ast.NumberValue &&
             (table.base.value === 1 || table.base.value === -1)) {
                 if ((table.base.value === 1 && table.table.direction === 'asc') ||
                     (table.base.value === -1 && table.table.direction === 'desc')) {
                 return this._interp(this._("the ${limit} ${table} with the minimum ${param}"), {
                     limit: this._describeArg(table.limit),
                     table: this.describeTable(table.table.table, extraInParams),
-                    param: table.schema.getArgCanonical(table.table.field)
+                    param: table.schema!.getArgCanonical(table.table.field)
                 });
             } else {
                 return this._interp(this._("the ${limit} ${table} with the maximum ${param}"), {
                     limit: this._describeArg(table.limit),
                     table: this.describeTable(table.table.table, extraInParams),
-                    param: table.schema.getArgCanonical(table.table.field)
+                    param: table.schema!.getArgCanonical(table.table.field)
                 });
             }
-        } else if (table.isSort) {
+        } else if (table instanceof Ast.SortedTable) {
             if (table.direction === 'asc') {
                 return this._interp(this._("the ${table} sorted by increasing ${param}"), {
                     table: this.describeTable(table.table, extraInParams),
-                    param: table.schema.getArgCanonical(table.field)
+                    param: table.schema!.getArgCanonical(table.field)
                 });
             } else {
                 return this._interp(this._("the ${table} sorted by decreasing ${param}"), {
                     table: this.describeTable(table.table, extraInParams),
-                    param: table.schema.getArgCanonical(table.field)
+                    param: table.schema!.getArgCanonical(table.field)
                 });
             }
-        } else if (table.isIndex && table.indices.length === 1) {
+        } else if (table instanceof Ast.IndexTable && table.indices.length === 1) {
             return this._describeIndex(table.indices[0],
                 this.describeTable(table.table, extraInParams));
-        } else if (table.isIndex) {
+        } else if (table instanceof Ast.IndexTable) {
             return this._interp(this._("${indices.length:plural:\
                 one {element ${indices} of the ${table}}\
                 other {elements ${indices} of the ${table}}\
@@ -886,7 +915,7 @@ class Describer {
                 indices: this._describeArg(new Ast.Value.Array(table.indices)),
                 table: this.describeTable(table.table, extraInParams),
             });
-        } else if (table.isSlice) {
+        } else if (table instanceof Ast.SlicedTable) {
             return this._interp(this._("${base:plural:\
                 =1 {the first ${limit} ${table}}\
                 =-1 {the last ${limit} ${table}}\
@@ -896,9 +925,9 @@ class Describer {
                 base: this._describeArg(table.base),
                 table: this.describeTable(table.table, extraInParams),
             });
-        } else if (table.isJoin) {
-            let lhsParams = extraInParams.filter((p) => p.name in table.lhs.schema.inReq || p.name in table.lhs.schema.inOpt);
-            let rhsParams = extraInParams.filter((p) => p.name in table.rhs.schema.inReq || p.name in table.rhs.schema.inOpt);
+        } else if (table instanceof Ast.JoinTable) {
+            const lhsParams = extraInParams.filter((p) => p.name in table.lhs.schema!.inReq || p.name in table.lhs.schema!.inOpt);
+            const rhsParams = extraInParams.filter((p) => p.name in table.rhs.schema!.inReq || p.name in table.rhs.schema!.inOpt);
 
             return this._interp(this._("${lhs} and ${rhs}"), {
                 lhs: this.describeTable(table.lhs, lhsParams),
@@ -909,14 +938,14 @@ class Describer {
         }
     }
 
-    __describeArgList(args, schema) {
+    private __describeArgList(args : string[], schema : Ast.ExpressionSignature) {
         return args.map((argname) => schema.getArgCanonical(argname));
     }
 
-    describeStream(stream) {
-        if (stream.isVarRef) {
+    describeStream(stream : Ast.Stream) : string {
+        if (stream instanceof Ast.VarRefStream) {
             return clean(stream.name);
-        } else if (stream.isTimer) {
+        } else if (stream instanceof Ast.TimerStream) {
             return this._interp(this._("${frequency:plural:\
                 =1 {every ${interval}}\
                 =2 {twice every ${interval}}\
@@ -924,21 +953,21 @@ class Describer {
             }${? starting ${base}}"), {
                 frequency: stream.frequency !== null ? this._describeArg(stream.frequency) : 1,
                 interval: this._describeArg(stream.interval),
-                base: stream.base.value !== null ? this._describeArg(stream.base) : null
+                base: stream.base instanceof Ast.DateValue && stream.base.value === null ? null : this._describeArg(stream.base)
             });
-        } else if (stream.isAtTimer) {
+        } else if (stream instanceof Ast.AtTimerStream) {
             return this._interp(this._("every day at ${times}${? until ${expiration}}"), {
                 times: stream.time.map((t) => this._describeArg(t)),
                 expiration: stream.expiration_date !== null ? this._describeArg(stream.expiration_date) : null
             });
-        } else if (stream.isMonitor) {
-            if (stream.table.isFilter) {
+        } else if (stream instanceof Ast.MonitorStream) {
+            if (stream.table instanceof Ast.FilteredTable) {
                 // flip monitor of filter to filter of monitor
                 return this._interp(this._("${is_list:select:\
                     true {when ${table} change if ${filter}}\
                     false {when ${table} changes if ${filter}}\
                 }"), {
-                    is_list: stream.table.schema.is_list,
+                    is_list: stream.table.schema!.is_list,
                     table: this.describeTable(stream.table.table, []),
                     filter: this.describeFilter(stream.table.filter, stream.table.schema)
                 });
@@ -947,38 +976,38 @@ class Describer {
                     true {when ${table} change}\
                     false {when ${table} changes}\
                 }"), {
-                    is_list: stream.table.schema.is_list,
+                    is_list: stream.table.schema!.is_list,
                     table: this.describeTable(stream.table, []),
                 });
             }
-        } else if (stream.isEdgeNew) {
+        } else if (stream instanceof Ast.EdgeNewStream) {
             // XXX weird
             return this._interp(this._("${stream} and the result changes"), {
                 stream: this.describeStream(stream.stream)
             });
-        } else if (stream.isEdgeFilter) {
+        } else if (stream instanceof Ast.EdgeFilterStream) {
             return this._interp(this._("${stream} and it becomes true that ${filter}"), {
                 stream: this.describeStream(stream.stream),
                 filter: this.describeFilter(stream.filter, stream.schema)
             });
-        } else if (stream.isFilter) {
+        } else if (stream instanceof Ast.FilteredStream) {
             return this._interp(this._("${stream} and ${filter}"), {
                 stream: this.describeStream(stream.stream),
                 filter: this.describeFilter(stream.filter, stream.schema)
             });
-        } else if (stream.isProjection) {
+        } else if (stream instanceof Ast.ProjectionStream) {
             return this._interp(this._("the ${param} of ${stream}"), {
                 stream: this.describeStream(stream.stream),
-                param: this.__describeArgList(stream.args, stream.schema),
+                param: this.__describeArgList(stream.args, stream.schema!),
             });
-        } else if (stream.isCompute) {
+        } else if (stream instanceof Ast.ComputeStream) {
             return this._interp(this._("${stream} and ${expression}"), {
                 stream: this.describeStream(stream.stream),
-                expression: this._describeArg(stream.expression, stream.stream.schema)
+                expression: this._describeArg(stream.expression)
             });
-        } else if (stream.isAlias) {
+        } else if (stream instanceof Ast.AliasStream) {
             return this.describeStream(stream.stream);
-        } else if (stream.isJoin) {
+        } else if (stream instanceof Ast.JoinStream) {
             return this._interp(this._("${stream}, get ${table}"), {
                 stream: this.describeStream(stream.stream),
                 table: this.describeTable(stream.table, stream.in_params)
@@ -988,35 +1017,28 @@ class Describer {
         }
     }
 
-    _describeNotifyAction(action) {
-        if (action.name === 'return')
-            return this._("send it to me");
-        else if (action.name === 'notify')
-            return this._("notify you");
-        else if (action.name === 'save')
-            return this._("save it");
-        else
-            throw new TypeError();
+    private _describeNotifyAction(action : Ast.NotifyAction) {
+        return this._("notify you");
     }
 
-    _describeAction(action) {
-        if (action.isVarRef)
+    private _describeAction(action : Ast.Action) {
+        if (action instanceof Ast.VarRefAction)
             return clean(action.name);
-        else if (action.isInvocation)
+        else if (action instanceof Ast.InvocationAction)
             return this.describePrimitive(action.invocation);
-        else if (action.isNotify)
+        else if (action instanceof Ast.NotifyAction)
             return this._describeNotifyAction(action);
         else
             throw new TypeError();
     }
 
-    _describeActionList(actions) {
+    private _describeActionList(actions : Ast.Action[]) {
         return actions.map((a) => this._describeAction(a));
     }
 
-    _describeRule(r) {
-        if (r.isRule) {
-            if (r.stream.isJoin) {
+    private _describeRule(r : Ast.Rule|Ast.Command) {
+        if (r instanceof Ast.Rule) {
+            if (r.stream instanceof Ast.JoinStream) {
                 return this._interp(this._("do the following: ${stream}, and then ${actions}"), {
                     stream: this.describeStream(r.stream),
                     actions: this._describeActionList(r.actions),
@@ -1037,14 +1059,15 @@ class Describer {
         }
     }
 
-    _describeDeclaration(d) {
+    private _describeAssignment(d : Ast.Assignment) {
         let valuedesc;
-        if (d.type === 'stream')
-            valuedesc = this.describeStream(d.value);
-        else if (d.type === 'table' || d.isAssignment)
-            valuedesc = this.describeTable(d.value, []);
-        else
-            valuedesc = this._describeAction(d.value);
+        const value = d.value.toLegacy();
+        if (value instanceof Ast.Table)
+            valuedesc = this.describeTable(value, []);
+        else if (value instanceof Ast.Stream)
+            valuedesc = this.describeStream(value);
+        else if (value instanceof Ast.Action)
+            valuedesc = this._describeAction(value);
 
         return this._interp(this._("let ${name} be ${value}"), {
             name: clean(d.name),
@@ -1052,12 +1075,12 @@ class Describer {
         });
     }
 
-    describeProgram(program) {
-        let desc = program.declarations.concat(program.rules).map((r) => {
-            if (r.isDeclaration || r.isAssignment)
-                return this._describeDeclaration(r);
+    describeProgram(program : Ast.Program) : string {
+        const desc = program.statements.map((r) => {
+            if (r instanceof Ast.Assignment)
+                return this._describeAssignment(r);
             else
-                return this._describeRule(r);
+                return this._describeRule(r.toLegacy());
         }).join('; ');
         if (program.principal) {
             return this._interp(this._("tell ${principal}: ${command}"), {
@@ -1069,27 +1092,32 @@ class Describer {
         }
     }
 
-    describePermissionFunction(permissionFunction, functionType, scope) {
-        if (permissionFunction.isSpecified) {
-            let kind = permissionFunction.kind;
-            let schema = permissionFunction.schema;
+    describePermissionFunction(permissionFunction : Ast.PermissionFunction,
+                               functionType : 'query'|'action',
+                               scope : ScopeMap) : string {
+        if (permissionFunction instanceof Ast.SpecifiedPermissionFunction) {
+            const kind = permissionFunction.kind;
+            const schema = permissionFunction.schema as Ast.FunctionDef;
 
-            let confirm = schema.confirmation;
-            let argMap = new Map;
+            let confirm = schema.confirmation!;
+            const argMap = new Map;
             argMap.set('__device', [clean(kind), -1]);
 
             let filterClone = permissionFunction.filter.clone().optimize();
-            if (!filterClone.isAnd)
-                filterClone = new Ast.BooleanExpression.And(null, [filterClone]);
+            let andFilter : Ast.AndBooleanExpression;
+            if (!(filterClone instanceof Ast.AndBooleanExpression))
+                andFilter = new Ast.BooleanExpression.And(null, [filterClone]);
+            else
+                andFilter = filterClone;
 
-            filterClone.operands.forEach((operand, i) => {
+            andFilter.operands.forEach((operand, i) => {
                 // don't traverse Ors or Nots
-                if (!operand.isAtom)
+                if (!(operand instanceof Ast.AtomBooleanExpression))
                     return;
                 if (operand.operator !== '==')
                     return;
 
-                let argname = operand.name;
+                const argname = operand.name;
                 argMap.set(argname, [this._describeArg(operand.value, scope), i]);
             });
 
@@ -1097,7 +1125,7 @@ class Describer {
                 if (argMap.has(param)) {
                     const [desc, index] = argMap.get(param);
                     if (index >= 0)
-                        filterClone.operands[index] = Ast.BooleanExpression.True;
+                        andFilter.operands[index] = Ast.BooleanExpression.True;
                     return desc;
                 } else {
                     return this._interp(this._("any ${param}"), { param });
@@ -1107,10 +1135,10 @@ class Describer {
                 timezone: this.timezone,
                 failIfMissing: false,
                 nullReplacement: '____'
-            });
+            })||'';
 
             // optimize the modified filter, and see if there is anything left
-            filterClone = filterClone.optimize();
+            filterClone = andFilter.optimize();
             if (!filterClone.isTrue) {
                 confirm = this._interp(this._("${confirm} if ${filter}"), {
                     confirm,
@@ -1118,15 +1146,15 @@ class Describer {
                 });
             }
 
-            for (let argname in permissionFunction.schema.out)
-                scope[argname] = schema.getArgCanonical(argname);
+            for (const argname in schema.out)
+                scope[argname] = schema.getArgCanonical(argname)!;
 
             return confirm;
         } else {
-            assert(permissionFunction.isClassStar);
+            assert(permissionFunction instanceof Ast.ClassStarPermissionFunction);
 
             // class star
-            let kind = permissionFunction.kind;
+            const kind = permissionFunction.kind;
             if (kind === 'org.thingpedia.builtin.thingengine.builtin') {
                 // very weird edge cases...
                 switch (functionType) {
@@ -1148,13 +1176,13 @@ class Describer {
         }
     }
 
-    describePermissionRule(permissionRule) {
+    describePermissionRule(permissionRule : Ast.PermissionRule) : string {
         let principal;
         if (permissionRule.principal.isTrue) {
             principal = this._("anyone");
-        } else if (permissionRule.principal.isAtom && permissionRule.principal.operator === '==') {
+        } else if (permissionRule.principal instanceof Ast.AtomBooleanExpression && permissionRule.principal.operator === '==') {
             principal = this._describeArg(permissionRule.principal.value);
-        } else if (permissionRule.principal.isAtom && permissionRule.principal.operator === 'group_member') {
+        } else if (permissionRule.principal instanceof Ast.AtomBooleanExpression && permissionRule.principal.operator === 'group_member') {
             principal = this._interp(this._("anyone in the ${group} group"), {
                 group: this._describeArg(permissionRule.principal.value)
         });
@@ -1166,7 +1194,7 @@ class Describer {
             });
         }
 
-        const scope = {};
+        const scope : ScopeMap = {};
         if (permissionRule.query.isBuiltin) {
             if (permissionRule.action.isBuiltin) {
                 throw new Error();
@@ -1216,7 +1244,7 @@ class Describer {
         }
     }
 
-    _describeSpecial(specialType) {
+    private _describeSpecial(specialType : string) {
         switch (specialType) {
             case 'yes':
                 return this._("yes");
@@ -1251,52 +1279,45 @@ class Describer {
         }
     }
 
-    _describeBookkeeping(input) {
+    private _describeControlCommand(input : Ast.ControlCommand) : string {
         const intent = input.intent;
-        if (intent.isSpecial) {
+        if (intent instanceof Ast.SpecialControlIntent) {
             return this._describeSpecial(intent.type);
-        } else if (intent.isCommandList) {
-            return this._interp(this._("list the commands of ${device}, in category ${category}"), {
-                device: this._describeArg(intent.device),
-                category: clean(intent.category)
-            });
-        } else if (intent.isChoice) {
+        } else if (intent instanceof Ast.ChoiceControlIntent) {
             return this._interp(this._("choice number ${choice}"), {
                 choice: intent.value+1
-            });
-        } else if (intent.isAnswer) {
+            })||'';
+        } else if (intent instanceof Ast.AnswerControlIntent) {
             return this.describeArg(intent.value);
-        } else if (intent.isPredicate) {
-            return this.describeFilter(intent.predicate);
         } else {
             throw new TypeError();
         }
     }
 
-    describe(input) {
-        if (input.isProgram)
+    describe(input : Ast.Input) : string {
+        if (input instanceof Ast.Program)
             return this.describeProgram(input);
-        else if (input.isPermissionRule)
+        else if (input instanceof Ast.PermissionRule)
             return this.describePermissionRule(input);
-        else if (input.isBookkeeping)
-            return this._describeBookkeeping(input);
+        else if (input instanceof Ast.ControlCommand)
+            return this._describeControlCommand(input);
         else
             throw new TypeError(`Unrecognized input type ${input}`);
     }
 }
 
-function capitalize(str) {
+function capitalize(str : string) : string {
     return str.split(/\s+/g).map((word) => word[0].toUpperCase() + word.substring(1)).join(' ');
 }
 
-function capitalizeSelector(prim) {
+function capitalizeSelector(prim : Ast.Invocation|{ name : string }) : string {
     if (prim instanceof Ast.Invocation)
         return doCapitalizeSelector(prim.selector.kind, prim.channel);
     else
         return clean(prim.name);
 }
 
-function doCapitalizeSelector(kind, channel) {
+function doCapitalizeSelector(kind : string, channel : string) {
     kind = cleanKind(kind);
 
     if (kind === 'builtin' || kind === 'remote' || kind.startsWith('__dyn_'))
@@ -1305,18 +1326,24 @@ function doCapitalizeSelector(kind, channel) {
         return capitalize(kind);
 }
 
-function getProgramName(_, program) {
-    let descriptions = [];
-    for (let [,prim] of program.iteratePrimitives(true))
+function getProgramName(_ : (x : string) => string, program : Ast.Program) : string {
+    const descriptions : string[] = [];
+    for (const [,prim] of program.iteratePrimitives(true)) {
+        if (prim instanceof Ast.ExternalBooleanExpression)
+            continue;
+        if (prim instanceof Ast.FunctionCallExpression &&
+            (prim.name === 'timer' || prim.name === 'attimer'))
+            continue;
         descriptions.push(capitalizeSelector(prim));
+    }
     return descriptions.join(" ⇒ ");
 }
-function pubGetProgramName(gettext, program) {
+function pubGetProgramName(gettext : I18n.Gettext, program : Ast.Program) : string {
     return getProgramName(gettext.dgettext.bind(gettext, 'thingtalk'), program);
 }
 
-const _warned = {};
-function compatGetDescriber(fn, gettext) {
+const _warned : { [key : string] : boolean } = {};
+function compatGetDescriber(fn : { name : string }, gettext : I18n.Gettext) {
     const name = fn.name.replace('pubD', 'd');
     if (!_warned[name]) {
         _warned[name] = true;
@@ -1327,37 +1354,48 @@ function compatGetDescriber(fn, gettext) {
     return new Describer(gettext, gettext.locale, 'America/Los_Angeles');
 }
 
-function pubDescribeArg(gettext, arg, scope = {}) {
+function pubDescribeArg(gettext : I18n.Gettext,
+                        arg : Ast.Value,
+                        scope : ScopeMap = {}) : string {
     const desc = compatGetDescriber(pubDescribeArg, gettext);
     return desc.describeArg(arg, scope);
 }
-function pubDescribeFilter(gettext, filter, schema, scope = {}) {
+function pubDescribeFilter(gettext : I18n.Gettext,
+                           filter : Ast.BooleanExpression,
+                           schema : Ast.ExpressionSignature,
+                           scope : ScopeMap = {}) : string {
     const desc = compatGetDescriber(pubDescribeFilter, gettext);
     return desc.describeFilter(filter, schema, scope);
 }
-function pubDescribeProgram(gettext, program) {
+function pubDescribeProgram(gettext : I18n.Gettext, program : Ast.Program) : string {
     const desc = compatGetDescriber(pubDescribeProgram, gettext);
     return desc.describeProgram(program);
 }
 
-function pubDescribePrimitive(gettext, prim, scope) {
+function pubDescribePrimitive(gettext : I18n.Gettext, prim : Ast.Invocation, scope : ScopeMap) : string {
     const desc = compatGetDescriber(pubDescribePrimitive, gettext);
     return desc.describePrimitive(prim, scope);
 }
-function pubDescribeStream(gettext, stream) {
+function pubDescribeStream(gettext : I18n.Gettext, stream : Ast.Stream) : string {
     const desc = compatGetDescriber(pubDescribeStream, gettext);
     return desc.describeStream(stream);
 }
-function pubDescribeTable(gettext, table, extraInParams = []) {
+function pubDescribeTable(gettext : I18n.Gettext,
+                          table : Ast.Table,
+                          extraInParams : Ast.InputParam[] = []) : string {
     const desc = compatGetDescriber(pubDescribeTable, gettext);
     return desc.describeTable(table, extraInParams);
 }
 
-function pubDescribePermissionRule(gettext, permissionRule) {
+function pubDescribePermissionRule(gettext : I18n.Gettext,
+                                   permissionRule : Ast.PermissionRule) : string {
     const desc = compatGetDescriber(pubDescribePermissionRule, gettext);
     return desc.describePermissionRule(permissionRule);
 }
-function pubDescribePermissionFunction(gettext, permissionFunction, functionType, scope) {
+function pubDescribePermissionFunction(gettext : I18n.Gettext,
+                                       permissionFunction : Ast.PermissionFunction,
+                                       functionType : 'query'|'action',
+                                       scope : ScopeMap) : string {
     const desc = compatGetDescriber(pubDescribePermissionFunction, gettext);
     return desc.describePermissionFunction(permissionFunction, functionType, scope);
 }

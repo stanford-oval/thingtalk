@@ -35,6 +35,19 @@ export default abstract class List<T> {
         return result;
     }
 
+    static join<T>(lists : Array<List<T>>, joiner : T) : List<T> {
+        let result : List<T> = List.Nil;
+        let first = true;
+        for (const list of lists) {
+            if (first)
+                first = false;
+            else
+                result = new Snoc<T>(result, joiner);
+            result = new Concat<T>(result, list);
+        }
+        return result;
+    }
+
     static singleton<T>(el : T) : List<T> {
         return new Cons<T>(el, List.Nil);
     }
@@ -49,6 +62,7 @@ export default abstract class List<T> {
     }
 
     abstract traverse(cb : (x : T) => void) : void;
+    abstract [Symbol.iterator]() : Iterator<T>;
     abstract getFirst() : T;
 }
 
@@ -58,6 +72,9 @@ class NilClass extends List<never> {
 
     getFirst() : never {
         throw new Error('getFirst on an empty list');
+    }
+
+    *[Symbol.iterator]() : Iterator<never> {
     }
 }
 List.Nil = new NilClass();
@@ -76,6 +93,11 @@ class Cons<T> extends List<T> {
     getFirst() : T {
         return this.head;
     }
+
+    *[Symbol.iterator]() : Iterator<T> {
+        yield this.head;
+        yield *this.tail;
+    }
 }
 
 class Snoc<T> extends List<T> {
@@ -91,6 +113,11 @@ class Snoc<T> extends List<T> {
 
     getFirst() : T {
         return this.head.getFirst();
+    }
+
+    *[Symbol.iterator]() : Iterator<T> {
+        yield *this.head;
+        yield this.tail;
     }
 }
 
@@ -109,5 +136,10 @@ class Concat<T> extends List<T> {
 
     getFirst() : T {
         return this.first.getFirst();
+    }
+
+    *[Symbol.iterator]() : Iterator<T> {
+        yield *this.first;
+        yield *this.second;
     }
 }

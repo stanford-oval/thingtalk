@@ -22,15 +22,11 @@ import assert from 'assert';
 
 import Node, { SourceRange } from './base';
 import NodeVisitor from './visitor';
-import { ClassDef } from './class_def';
-import { ExpressionSignature } from './function_def';
+import { ExpressionSignature, FunctionDef } from './function_def';
 import { Value } from './values';
 
 import Type from '../type';
-import { prettyprintFilterExpression } from '../prettyprint';
-import * as Typechecking from '../typecheck';
 import * as Optimizer from '../optimize';
-import SchemaRetriever from '../schema';
 import {
     iterateSlots2InputParams,
     recursiveYieldArraySlots,
@@ -44,41 +40,32 @@ import {
     InvocationLike
 } from './slots';
 
+import { TokenStream } from '../new-syntax/tokenstream';
+import List from '../utils/list';
+import {
+    SyntaxPriority,
+    addParenthesis
+} from './syntax_priority';
+
+interface Device {
+    name : string;
+}
+
 /**
- * Base class of all expressions that select a device.
+ * An expression that maps to one or more devices in Thingpedia.
  *
  * Selectors correspond to the `@`-device part of the ThingTalk code,
  * up to but not including the function name.
  *
- * @alias Ast.Selector
- * @extends Ast~Node
- * @property {boolean} isDevice - true if this is an instance of {@link Ast.Selector.Device}
- * @property {boolean} isBuiltin - true if this is {@link Ast.Selector.Builtin}
+ * @alias Ast.DeviceSelector
  */
-export abstract class Selector extends Node {
-    static Device : any;
-    isDevice ! : boolean;
-    static Builtin : any;
-    isBuiltin ! : boolean;
-
-    abstract clone() : Selector;
-    abstract equals(other : Selector) : boolean;
-}
-Selector.prototype.isDevice = false;
-Selector.prototype.isBuiltin = false;
-
-/**
- * A selector that maps to one or more devices in Thingpedia.
- *
- * @alias Ast.Selector.Device
- * @extends Ast.Selector
- */
-export class DeviceSelector extends Selector {
+export class DeviceSelector extends Node {
     kind : string;
     id : string|null;
     principal : null;
     attributes : InputParam[];
     all : boolean;
+    device ?: Device;
 
     /**
      * Construct a new device selector.
@@ -115,12 +102,55 @@ export class DeviceSelector extends Selector {
         this.all = all;
     }
 
+    getAttribute(name : string) : InputParam|undefined {
+        for (const attr of this.attributes) {
+            if (attr.name === name)
+                return attr;
+        }
+        return undefined;
+    }
+
+    toSource() : TokenStream {
+        this.attributes.sort((p1, p2) => {
+            if (p1.name < p2.name)
+                return -1;
+            if (p1.name > p2.name)
+                return 1;
+            return 0;
+        });
+
+        const attributes : TokenStream[] = [];
+        if (this.all) {
+            attributes.push(List.concat('all', '=', 'true'));
+        } else if (this.id && this.id !== this.kind) {
+            // note: we omit the device ID if it is identical to the kind (which indicates there can only be
+            // one device of this type in the system)
+            // this reduces the amount of stuff we have to encode/predict for the common cases
+
+            const name = this.attributes.find((attr) => attr.name === 'name');
+            const id = new Value.Entity(this.id, 'tt:device_id', name ? name.value.toJS() as string : null);
+            attributes.push(List.concat('id', '=', id.toSource()));
+        }
+
+        for (const attr of this.attributes) {
+            if (attr.value.isUndefined)
+                continue;
+            if (attr.name === 'name' && this.id)
+                continue;
+
+            attributes.push(List.concat(attr.name, '=', attr.value.toSource()));
+        }
+        if (attributes.length === 0)
+            return List.singleton('@' + this.kind);
+        return List.concat('@' + this.kind, '(', List.join(attributes, ','), ')');
+    }
+
     clone() : DeviceSelector {
         const attributes = this.attributes.map((attr) => attr.clone());
         return new DeviceSelector(this.location, this.kind, this.id, this.principal, attributes, this.all);
     }
 
-    equals(other : Selector) : boolean {
+    equals(other : DeviceSelector) : boolean {
         return other instanceof DeviceSelector &&
             this.kind === other.kind &&
             this.id === other.id &&
@@ -141,43 +171,6 @@ export class DeviceSelector extends Selector {
         return `Device(${this.kind}, ${this.id ? this.id : ''}, )`;
     }
 }
-DeviceSelector.prototype.isDevice = true;
-Selector.Device = DeviceSelector;
-
-export class BuiltinSelector extends Selector {
-    constructor() {
-        super(null);
-    }
-
-    clone() : BuiltinSelector {
-        return this;
-    }
-
-    equals(other : Selector) : boolean {
-        return this === other;
-    }
-
-    visit(visitor : NodeVisitor) : void {
-        visitor.enter(this);
-        visitor.visitBuiltinSelector(this);
-        visitor.exit(this);
-    }
-
-    toString() : string {
-        return 'Builtin';
-    }
-}
-BuiltinSelector.prototype.isBuiltin = true;
-
-/**
- * A selector that maps the builtin `notify`, `return` and `save` functions.
- *
- * This is a singleton, not a class.
- *
- * @alias Ast.Selector.Builtin
- * @readonly
- */
-Selector.Builtin = new BuiltinSelector();
 
 /**
  * AST node corresponding to an input parameter passed to a function.
@@ -228,6 +221,10 @@ export class InputParam extends Node {
         visitor.exit(this);
     }
 
+    toSource() : TokenStream {
+        return List.concat(this.name, '=', this.value.toSource());
+    }
+
     clone() : InputParam {
         return new InputParam(this.location, this.name, this.value.clone());
     }
@@ -250,34 +247,32 @@ export class InputParam extends Node {
  */
 export class Invocation extends Node {
     isInvocation = true;
-    selector : Selector;
+    selector : DeviceSelector;
     channel : string;
     in_params : InputParam[];
-    schema : ExpressionSignature|null;
+    schema : FunctionDef|null;
     __effectiveSelector : DeviceSelector|null = null;
 
     /**
      * Construct a new invocation.
      *
      * @param location - the position of this node in the source code
-     * @param {Ast.Selector} selector - the selector choosing where the function is invoked
+     * @param {Ast.DeviceSelector} selector - the selector choosing where the function is invoked
      * @param {string} channel - the function name
      * @param {Ast.InputParam[]} in_params - input parameters passed to the function
      * @param {Ast.ExpressionSignature|null} schema - type signature of the invoked function
      * @property {boolean} isInvocation - true
      */
     constructor(location : SourceRange|null,
-                selector : Selector,
+                selector : DeviceSelector,
                 channel : string,
                 in_params : InputParam[],
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location);
 
-        assert(selector instanceof Selector);
+        assert(selector instanceof DeviceSelector);
         /**
          * The selector choosing where the function is invoked.
-         * @type {Ast.Selector}
-         * @readonly
          */
         this.selector = selector;
 
@@ -298,7 +293,7 @@ export class Invocation extends Node {
          */
         this.in_params = in_params;
 
-        assert(schema === null || schema instanceof ExpressionSignature);
+        assert(schema === null || schema instanceof FunctionDef);
         /**
          * Type signature of the invoked function (not of the invocation itself).
          * This property is guaranteed not `null` after type-checking.
@@ -307,14 +302,30 @@ export class Invocation extends Node {
         this.schema = schema;
     }
 
+    toSource() : TokenStream {
+        // filter out parameters that are required and undefined
+        let filteredParams = this.in_params;
+        if (this.schema) {
+            const schema : FunctionDef = this.schema;
+            filteredParams = this.in_params.filter((ip) => {
+                return !ip.value.isUndefined || !schema.isArgRequired(ip.name);
+            });
+        }
+
+        return List.concat(this.selector.toSource(), '.', this.channel,
+            '(', List.join(filteredParams.map((ip) => ip.toSource()), ','), ')');
+    }
+
     clone() : Invocation {
-        return new Invocation(
+        const clone = new Invocation(
             this.location,
             this.selector.clone(),
             this.channel,
             this.in_params.map((p) => p.clone()),
             this.schema ? this.schema.clone(): null
         );
+        clone.__effectiveSelector = this.__effectiveSelector;
+        return clone;
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -351,7 +362,7 @@ export class Invocation extends Node {
      * @param {Object.<string, Ast~SlotScopeItem>} scope - available names for parameter passing
      * @yields {Ast~AbstractSlot}
      */
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike, ScopeMap]> {
         if (this.selector instanceof DeviceSelector) {
             for (const attr of this.selector.attributes)
                 yield new DeviceAttributeSlot(this, attr);
@@ -404,42 +415,11 @@ export abstract class BooleanExpression extends Node {
     static DontCare : any;
     isDontCare ! : boolean;
 
-    /**
-     * Typecheck this boolean expression.
-     *
-     * This method can be used to typecheck a boolean expression is isolation,
-     * outside of a ThingTalk program.
-     *
-     * @param {Ast.ExpressionSignature} schema - the signature of the query expression this filter
-     *                                           would be attached to
-     * @param {null} scope - reserved, must be null
-     * @param {SchemaRetriever} schemas - schema retriever object to retrieve Thingpedia information
-     * @param {Object.<string,Ast.ClassDef>} classes - additional locally defined classes, overriding Thingpedia
-     * @param {boolean} [useMeta=false] - retreive natural language metadata during typecheck
-     */
-    async typecheck(schema : ExpressionSignature,
-                    scope : null,
-                    schemas : SchemaRetriever,
-                    classes : { [key : string] : ClassDef },
-                    useMeta : boolean) : Promise<this> {
-        await Typechecking.typeCheckFilter(this, schema, undefined, schemas, classes, useMeta);
-        return this;
-    }
-
-    /**
-     * Convert this boolean expression to prettyprinted ThingTalk code.
-     *
-     * @param {string} [prefix] - prefix each output line with this string (for indentation)
-     * @return {string} the prettyprinted code
-     * @alias Ast.BooleanExpression#prettyprint
-     */
-    prettyprint() : string {
-        return prettyprintFilterExpression(this);
-    }
-
     optimize() : BooleanExpression {
         return Optimizer.optimizeFilter(this);
     }
+
+    abstract get priority() : SyntaxPriority;
 
     abstract clone() : BooleanExpression;
     abstract equals(other : BooleanExpression) : boolean;
@@ -458,7 +438,7 @@ export abstract class BooleanExpression extends Node {
      */
     abstract iterateSlots2(schema : ExpressionSignature|null,
                            prim : InvocationLike|null,
-                           scope : ScopeMap) : Generator<Selector|AbstractSlot, void>;
+                           scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void>;
 }
 BooleanExpression.prototype.isAnd = false;
 BooleanExpression.prototype.isOr = false;
@@ -510,6 +490,14 @@ export class AndBooleanExpression extends BooleanExpression {
         this.operands = operands;
     }
 
+    get priority() : SyntaxPriority {
+        return SyntaxPriority.And;
+    }
+
+    toSource() : TokenStream {
+        return List.join(this.operands.map((op) => addParenthesis(this.priority, op.priority, op.toSource())), '&&');
+    }
+
     equals(other : BooleanExpression) : boolean {
         return other instanceof AndBooleanExpression &&
             arrayEquals(this.operands, other.operands);
@@ -540,7 +528,7 @@ export class AndBooleanExpression extends BooleanExpression {
 
     *iterateSlots2(schema : ExpressionSignature|null,
                    prim : InvocationLike|null,
-                   scope : ScopeMap) : Generator<Selector|AbstractSlot, void> {
+                   scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
         for (const op of this.operands)
             yield* op.iterateSlots2(schema, prim, scope);
     }
@@ -570,6 +558,14 @@ export class OrBooleanExpression extends BooleanExpression {
 
         assert(Array.isArray(operands));
         this.operands = operands;
+    }
+
+    get priority() : SyntaxPriority {
+        return SyntaxPriority.Or;
+    }
+
+    toSource() : TokenStream {
+        return List.join(this.operands.map((op) => addParenthesis(this.priority, op.priority, op.toSource())), '||');
     }
 
     equals(other : BooleanExpression) : boolean {
@@ -602,13 +598,16 @@ export class OrBooleanExpression extends BooleanExpression {
 
     *iterateSlots2(schema : ExpressionSignature|null,
                    prim : InvocationLike|null,
-                   scope : ScopeMap) : Generator<Selector|AbstractSlot, void> {
+                   scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
         for (const op of this.operands)
             yield* op.iterateSlots2(schema, prim, scope);
     }
 }
 BooleanExpression.Or = OrBooleanExpression;
 BooleanExpression.Or.prototype.isOr = true;
+
+const INFIX_COMPARISON_OPERATORS = new Set(['==', '>=', '<=', '>', '<', '=~', '~=']);
+
 /**
  * A comparison expression (predicate atom)
  * @alias Ast.BooleanExpression.Atom
@@ -662,6 +661,19 @@ export class AtomBooleanExpression extends BooleanExpression {
         this.overload = overload;
     }
 
+    get priority() : SyntaxPriority {
+        return INFIX_COMPARISON_OPERATORS.has(this.operator) ? SyntaxPriority.Comp : SyntaxPriority.Primary;
+    }
+
+    toSource() : TokenStream {
+        if (INFIX_COMPARISON_OPERATORS.has(this.operator)) {
+            return List.concat(this.name, this.operator,
+                addParenthesis(SyntaxPriority.Add, this.value.priority, this.value.toSource()));
+        } else {
+            return List.concat(this.operator, '(', this.name, ',', this.value.toSource(), ')');
+        }
+    }
+
     equals(other : BooleanExpression) : boolean {
         return other instanceof AtomBooleanExpression &&
             this.name === other.name &&
@@ -698,7 +710,7 @@ export class AtomBooleanExpression extends BooleanExpression {
 
     *iterateSlots2(schema : ExpressionSignature|null,
                    prim : InvocationLike|null,
-                   scope : ScopeMap) : Generator<Selector|AbstractSlot, void> {
+                   scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
         const arg = (schema ? schema.getArgument(this.name) : null) || null;
         yield* recursiveYieldArraySlots(new FilterSlot(prim, scope, arg, this));
     }
@@ -731,6 +743,14 @@ export class NotBooleanExpression extends BooleanExpression {
         this.expr = expr;
     }
 
+    get priority() : SyntaxPriority {
+        return SyntaxPriority.Not;
+    }
+
+    toSource() : TokenStream {
+        return List.concat('!', addParenthesis(this.priority, this.expr.priority, this.expr.toSource()));
+    }
+
     equals(other : BooleanExpression) : boolean {
         return other instanceof NotBooleanExpression &&
             this.expr.equals(other.expr);
@@ -755,7 +775,7 @@ export class NotBooleanExpression extends BooleanExpression {
 
     *iterateSlots2(schema : ExpressionSignature|null,
                    prim : InvocationLike|null,
-                   scope : ScopeMap) : Generator<Selector|AbstractSlot, void> {
+                   scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
         yield* this.expr.iterateSlots2(schema, prim, scope);
     }
 }
@@ -773,11 +793,11 @@ BooleanExpression.Not.prototype.isNot = true;
  * @extends Ast.BooleanExpression
  */
 export class ExternalBooleanExpression extends BooleanExpression {
-    selector : Selector;
+    selector : DeviceSelector;
     channel : string;
     in_params : InputParam[];
     filter : BooleanExpression;
-    schema : ExpressionSignature|null;
+    schema : FunctionDef|null;
     __effectiveSelector : DeviceSelector|null = null;
 
     /**
@@ -790,18 +810,16 @@ export class ExternalBooleanExpression extends BooleanExpression {
      * @param {Ast.ExpressionSignature|null} schema - type signature of the invoked function
      */
     constructor(location : SourceRange|null,
-                selector : Selector,
+                selector : DeviceSelector,
                 channel : string,
                 in_params : InputParam[],
                 filter : BooleanExpression,
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location);
 
-        assert(selector instanceof Selector);
+        assert(selector instanceof DeviceSelector);
         /**
          * The selector choosing where the function is invoked.
-         * @type {Ast.Selector}
-         * @readonly
          */
         this.selector = selector;
 
@@ -829,13 +847,22 @@ export class ExternalBooleanExpression extends BooleanExpression {
          */
         this.filter = filter;
 
-        assert(schema === null || schema instanceof ExpressionSignature);
+        assert(schema === null || schema instanceof FunctionDef);
         /**
          * Type signature of the invoked function (not of the boolean expression itself).
          * This property is guaranteed not `null` after type-checking.
          * @type {Ast.ExpressionSignature|null}
          */
         this.schema = schema;
+    }
+
+    get priority() : SyntaxPriority {
+        return SyntaxPriority.Primary;
+    }
+
+    toSource() : TokenStream {
+        const inv = new Invocation(null, this.selector, this.channel, this.in_params, this.schema);
+        return List.concat('any', '(', inv.toSource(), 'filter', this.filter.toSource(), ')');
     }
 
     toString() : string {
@@ -881,7 +908,7 @@ export class ExternalBooleanExpression extends BooleanExpression {
 
     *iterateSlots2(schema : ExpressionSignature|null,
                    prim : InvocationLike|null,
-                   scope : ScopeMap) : Generator<Selector|AbstractSlot, void> {
+                   scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
         yield this.selector;
         yield* iterateSlots2InputParams(this, scope);
         yield* this.filter.iterateSlots2(this.schema, this, makeScope(this));
@@ -904,6 +931,14 @@ export class DontCareBooleanExpression extends BooleanExpression {
         this.name = name;
     }
 
+    get priority() : SyntaxPriority {
+        return SyntaxPriority.Primary;
+    }
+
+    toSource() : TokenStream {
+        return List.concat('true', '(', this.name, ')');
+    }
+
     equals(other : BooleanExpression) : boolean {
         return other instanceof DontCareBooleanExpression && this.name === other.name;
     }
@@ -924,7 +959,7 @@ export class DontCareBooleanExpression extends BooleanExpression {
     }
     *iterateSlots2(schema : ExpressionSignature|null,
                    prim : InvocationLike|null,
-                   scope : ScopeMap) : Generator<Selector|AbstractSlot, void> {
+                   scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
     }
 }
 BooleanExpression.DontCare = DontCareBooleanExpression;
@@ -933,6 +968,14 @@ DontCareBooleanExpression.prototype.isDontCare = true;
 export class TrueBooleanExpression extends BooleanExpression {
     constructor() {
         super(null);
+    }
+
+    get priority() : SyntaxPriority {
+        return SyntaxPriority.Primary;
+    }
+
+    toSource() : TokenStream {
+        return List.singleton('true');
     }
 
     equals(other : BooleanExpression) : boolean {
@@ -955,7 +998,7 @@ export class TrueBooleanExpression extends BooleanExpression {
     }
     *iterateSlots2(schema : ExpressionSignature|null,
                    prim : InvocationLike|null,
-                   scope : ScopeMap) : Generator<Selector|AbstractSlot, void> {
+                   scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
     }
 }
 TrueBooleanExpression.prototype.isTrue = true;
@@ -972,6 +1015,14 @@ BooleanExpression.True = new TrueBooleanExpression();
 export class FalseBooleanExpression extends BooleanExpression {
     constructor() {
         super(null);
+    }
+
+    get priority() : SyntaxPriority {
+        return SyntaxPriority.Primary;
+    }
+
+    toSource() : TokenStream {
+        return List.singleton('false');
     }
 
     equals(other : BooleanExpression) : boolean {
@@ -994,7 +1045,7 @@ export class FalseBooleanExpression extends BooleanExpression {
     }
     *iterateSlots2(schema : ExpressionSignature|null,
                    prim : InvocationLike|null,
-                   scope : ScopeMap) : Generator<Selector|AbstractSlot, void> {
+                   scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
     }
 }
 FalseBooleanExpression.prototype.isFalse = true;
@@ -1066,6 +1117,24 @@ export class ComputeBooleanExpression extends BooleanExpression {
         this.overload = overload;
     }
 
+    get priority() : SyntaxPriority {
+        return INFIX_COMPARISON_OPERATORS.has(this.operator) ? SyntaxPriority.Comp : SyntaxPriority.Primary;
+    }
+
+    toSource() : TokenStream {
+        if (INFIX_COMPARISON_OPERATORS.has(this.operator)) {
+            return List.concat(
+                // force parenthesis around constants on the LHS of the filter, because it will be ambiguous otherwise
+                this.lhs.isConstant() ?
+                List.concat('(', this.lhs.toSource(), ')') :
+                addParenthesis(SyntaxPriority.Add, this.lhs.priority, this.lhs.toSource()),
+                this.operator,
+                addParenthesis(SyntaxPriority.Add, this.rhs.priority, this.rhs.toSource()));
+        } else {
+            return List.concat(this.operator, '(', this.lhs.toSource(), ',', this.rhs.toSource(), ')');
+        }
+    }
+
     equals(other : BooleanExpression) : boolean {
         return other instanceof ComputeBooleanExpression &&
             this.lhs.equals(other.lhs) &&
@@ -1100,7 +1169,7 @@ export class ComputeBooleanExpression extends BooleanExpression {
 
     *iterateSlots2(schema : ExpressionSignature|null,
                    prim : InvocationLike|null,
-                   scope : ScopeMap) : Generator<Selector|AbstractSlot, void> {
+                   scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
         yield* recursiveYieldArraySlots(new FieldSlot(prim, scope, this.lhs.getType(), this, 'compute_filter', 'lhs'));
         yield* recursiveYieldArraySlots(new FieldSlot(prim, scope, this.rhs.getType(), this, 'compute_filter', 'rhs'));
     }

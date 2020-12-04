@@ -1,0 +1,1843 @@
+// -* mode: js -*-
+
+// an action
+@com.twitter.post();
+
+// a query
+@com.twitter.home_timeline();
+
+// query + action
+@com.twitter.home_timeline() => @com.twitter.post();
+
+====
+
+// a stream
+monitor (@com.twitter.home_timeline());
+
+// stream + action
+monitor (@com.twitter.home_timeline()) => @com.twitter.post();
+
+// streams that monitors only specific fields
+monitor (text of @com.twitter.home_timeline());
+monitor (text, author of @com.twitter.home_timeline());
+
+// not quite the same thing: also project things
+monitor ([text, author] of @com.twitter.home_timeline());
+
+====
+
+// filters
+@com.twitter.home_timeline() filter text =~ "foo";
+@com.twitter.home_timeline() filter contains(hashtags, "foo"^^tt:hashtag);
+@com.twitter.home_timeline() filter contains~(hashtags, "foo");
+
+====
+
+// empty program
+// ** expect SyntaxError **
+now => notify;
+
+====
+
+// empty program
+// ** expect SyntaxError **
+
+====
+
+// InvalidType
+// ** expect TypeError **
+@org.thingpedia.invalid.get();
+====
+
+// InvalidType2
+// ** expect TypeError **
+@org.thingpedia.invalid2.get();
+====
+
+// InvalidType3
+// ** expect TypeError **
+@org.thingpedia.builtin.test.invalid();
+====
+
+// Array
+monitor(@com.twitter.home_timeline() filter in_array(author, ["alice"^^tt:username, "bob"^^tt:username]));
+====
+
+// TestExternalPredicate
+monitor(@com.twitter.home_timeline() filter any(@org.thingpedia.builtin.thingengine.builtin.get_time() filter time >= new Time(9, 0) && time <= new Time(10, 0)));
+monitor(@com.twitter.home_timeline() filter text =~ "lol" && any(@org.thingpedia.builtin.thingengine.builtin.get_time() filter time >= new Time(9, 0) && time <= new Time(10, 0)));
+====
+
+// ** expect TypeError **
+// these should not typecheck
+// TestInvalidExternalPredicate1
+monitor(@com.twitter.home_timeline() filter any(@org.thingpedia.builtin.thingengine.builtin.get_time() filter time =~ "lol"));
+====
+
+// ** expect TypeError **
+// TestInvalidExternalPredicate2
+monitor(@com.twitter.home_timeline() filter any(@org.thingpedia.builtin.thingengine.builtin.get_time() filter lol =~ "lol"));
+====
+
+// ** expect TypeError **
+// TestInvalidExternalPredicate3
+monitor(@com.twitter.home_timeline() filter any(@com.twitter.post() filter text =~ "lol"));
+====
+
+@org.thingpedia.builtin.thingengine.builtin.say(message="lol");
+====
+
+#[executor="matrix-account:@gcampax:matrix.org"^^tt:contact]
+@org.thingpedia.builtin.thingengine.builtin.say(message="lol");
+====
+
+// CompareDate
+@org.thingpedia.builtin.thingengine.builtin.get_time() filter time >= new Time(10, 0);
+====
+
+// StartsWith
+monitor(@com.twitter.home_timeline() filter starts_with(text, "foo"));
+====
+
+// EntityNames
+@com.twitter.post_picture(caption="lol", picture_url="http://foo.com/bar.jpg"^^tt:picture);
+====
+
+// DownCast
+monitor(@com.xkcd(id="com.xkcd-6"^^tt:device_id).get_comic()) => @com.twitter.post(status=picture_url);
+====
+
+// EventType
+monitor(@com.twitter.home_timeline()) => @org.thingpedia.builtin.thingengine.builtin.say(message=$type);
+====
+
+// FormatEvent
+monitor(@com.twitter.home_timeline()) => @org.thingpedia.builtin.thingengine.builtin.say(message=$result);
+====
+
+// ComplexFilter
+monitor(@com.twitter.home_timeline() filter text =~ "bar" && !(text =~ "lol") || text =~ "foo");
+====
+
+// WithClassDef
+class @dyn_0 extends @remote {
+  action send(in req foo : String)
+  #[minimal_projection=[]];
+}
+@dyn_0.send(foo="foo");
+====
+
+// ** expect TypeError **
+// WrongClassDef
+class @dyn_0 extends @remote {
+  action send(in req foo : Number)
+  #[minimal_projection=[]];
+}
+@dyn_0.send(foo="foo");
+====
+
+// sub function
+class @foo.bar {
+  query q1(out a : Number)
+  #[minimal_projection=[]];
+
+  query q2 extends q1(out b : String)
+  #[minimal_projection=[]];
+}
+@foo.bar.q2() filter a >= 0 && b =~ "foo";
+====
+
+// sub function
+class @foo.bar {
+  query q1(out a : Number)
+  #[minimal_projection=[]];
+
+  query q2(out b : String)
+  #[minimal_projection=[]];
+
+  query q3 extends q1, q2(out c : Number)
+  #[minimal_projection=[]];
+}
+@foo.bar.q3() filter a >= 0 && b =~ "foo" && c == 1;
+====
+
+// sub function with conflict parameters
+class @foo.bar {
+  query q0(out a : Number)
+  #[minimal_projection=[]];
+
+  query q1 extends q0(out b : Number)
+  #[minimal_projection=[]];
+
+  query q2 extends q0(out c : String)
+  #[minimal_projection=[]];
+
+  query q3 extends q1, q2(out d : Number)
+  #[minimal_projection=[]];
+}
+====
+
+// ** expect TypeError **
+// sub function with conflict parameters with different types
+class @foo.bar {
+  query q1(out a : Number)
+  #[minimal_projection=[]];
+
+  query q2(out a : String)
+  #[minimal_projection=[]];
+
+  query q3 extends q1, q2(out c : Number)
+  #[minimal_projection=[]];
+}
+====
+
+// sub function with conflict parameters
+class @foo.bar {
+  query q1(out a : Number)
+  #[minimal_projection=[]];
+
+  query q2(out b : String)
+  #[minimal_projection=[]];
+
+  query q3 extends q1, q2(out a : Number)
+  #[minimal_projection=[]];
+}
+====
+
+// sub function with conflict parameters
+class @foo.bar {
+  query q1(out a : {
+             b : String
+           })
+  #[minimal_projection=[]];
+
+  query q2(out a : {
+             b : String
+           })
+  #[minimal_projection=[]];
+
+  query q3 extends q1, q2()
+  #[minimal_projection=[]];
+}
+====
+
+// ** expect TypeError **
+// sub function with conflict parameters
+class @foo.bar {
+  query q1(out a : {
+             b : String
+           })
+  #[minimal_projection=[]];
+
+  query q2(out a : {
+             b : Number
+           })
+  #[minimal_projection=[]];
+
+  query q3 extends q1, q2()
+  #[minimal_projection=[]];
+}
+====
+
+// sub function with different types
+class @foo.bar {
+  query q1(out a : Number)
+  #[minimal_projection=[]];
+
+  list query q2 extends q1(out b : String)
+  #[minimal_projection=[]];
+}
+====
+
+// sub function with different types
+class @foo.bar {
+  monitorable query q1(out a : Number)
+  #[minimal_projection=[]];
+
+  query q2 extends q1(out b : String)
+  #[minimal_projection=[]];
+}
+====
+
+// ** expect TypeError **
+// sub function with conflict types
+class @foo.bar {
+  query q1(out a : Number)
+  #[minimal_projection=[]];
+
+  monitorable query q2 extends q1(out b : String)
+  #[minimal_projection=[]];
+}
+====
+
+// without wrapping it should still work
+
+monitor(@com.twitter.home_timeline());
+====
+
+// same for immediates
+@security-camera.current_event();
+====
+
+// PrimaryKind
+monitor(@com.twitter.home_timeline());
+====
+
+// Contains
+monitor(@com.twitter.home_timeline() filter contains(hashtags, "lol"^^tt:hashtag));
+====
+
+// ParameterPassing
+monitor(@com.xkcd(id="com.xkcd-6"^^tt:device_id).get_comic()) => @com.twitter(id="com.twitter-foo"^^tt:device_id).post_picture(caption=title, picture_url=picture_url);
+====
+
+// SecurityCamera
+    @security-camera.current_event();
+====
+
+// SearchYoutube
+    @com.youtube.search_videos(query="lol") filter video_url == "http://www.youtube.com"^^tt:url;
+====
+
+// TimeTest
+attimer(time=[new Time(12, 30)]);
+====
+
+// RelativeTime
+attimer(time=[$time.morning]);
+====
+
+// PhoneNumberTest
+@org.thingpedia.builtin.thingengine.phone.send_sms(to="+15555555555", message="");
+@org.thingpedia.builtin.thingengine.phone.send_sms(to="+15555555555"^^tt:phone_number, message="");
+monitor(@org.thingpedia.builtin.thingengine.phone.sms() filter sender == "+15555555555"^^tt:phone_number);
+====
+
+// ** expect TypeError **
+// InvalidPhoneNumberTest
+    @org.thingpedia.builtin.thingengine.phone.send_sms(to="+15555555555"^^tt:email_address, message="");
+====
+
+// LocationAsTriggerParam
+    monitor(@org.thingpedia.weather.current(location=new Location(1, 3)));
+====
+
+// RelativeLocation
+    monitor(@org.thingpedia.weather.current(location=$location.current_location));
+====
+
+// LocationWithDisplayAsTriggerParam
+    monitor(@org.thingpedia.weather.current(location=new Location(1, 3, "Somewhere")));
+====
+
+// SabrinaGeneratedMonitorcom.twitter
+monitor(@com.twitter(id="com.twitter-foo"^^tt:device_id).home_timeline() filter author == "HillaryClinton"^^tt:username);
+====
+
+// CommandTest
+  @org.thingpedia.builtin.thingengine.builtin.say(message="test");
+====
+
+// LogQueryTest
+    t();
+====
+
+// LogQueryTestProjection
+    [col1] of Q1();
+====
+
+// LogQueryTestSelection
+    [col1] of Q1() filter col2 >= 42;
+====
+
+// LogQueryAggregationTest
+max(field of Q1());
+====
+
+// LogQueryAggregationMeasureTest
+// col1 has type Measure(C)
+max(col1 of Q3()) => @thermostat.set_target_temperature(value=col1);
+max(col1 of Q3()) as tmp => @thermostat.set_target_temperature(value=tmp.col1);
+====
+
+// ** expect TypeError **
+// LogQueryInvalidAggregationTest
+max(nonexisting_field of Q1());
+====
+
+// ** expect TypeError **
+// LogQueryInvalidAggregation2Test
+max(str1 of Q1());
+====
+
+// LogQueryCountTest
+count(Q1());
+====
+
+// LogQueryCountParamPassingTest
+count(str1 of Q1()) => @com.xkcd.get_comic(number=str1);
+====
+
+// ** expect TypeError **
+// LogQueryCountInvalidParamPassingTest
+count(str1 of Q1()) => @com.twitter.post(status=count);
+====
+
+// WithSave
+function steps() {
+  @com.fitbit.getsteps();
+}
+function my_table() {
+  max(steps of Q1());
+}
+my_table();
+====
+
+// LogTriggerTest
+monitor(Q1()) => Q2();
+====
+
+// Another LogTriggerTest
+monitor(Q1()) => Q2();
+====
+
+// Another LogTriggerTest
+monitor(Q1()) => Q2() => @com.twitter.post(status="hello");
+====
+
+// LogTriggerAggregationTest
+monitor(max(field of Q1()));
+====
+
+// LogTestAll
+function saved() {
+  monitor(Q0()) => [foo] of Q1();
+}
+
+====
+
+// RelativeTime
+Q1() filter _timestamp >= $now + 2year;
+Q1() filter _timestamp >= $now + -2year;
+Q1() filter _timestamp >= $now - 2year;
+Q1() filter _timestamp >= $now + 24mon;
+Q1() filter _timestamp >= $now + -1year + -12mon;
+Q1() filter _timestamp >= $start_of(mon) && _timestamp <= $end_of(day);
+====
+
+// Lambdas
+function macro(p_number : Number) {
+  @com.xkcd.get_comic(number=p_number);
+}
+macro(p_number=1234);
+====
+
+// EdgeFilter
+monitor(@thermostat.get_temperature()) filter value >= 70F;
+====
+
+// Computation
+function x() {
+  [distance(location, new Location(1, 2))] of @org.thingpedia.builtin.thingengine.builtin.get_gps();
+}
+function y() {
+  [distance(location, $location.home)] of @org.thingpedia.builtin.thingengine.builtin.get_gps();
+}
+function z() {
+  [col1 + col2] of Q1();
+}
+function xx() {
+  [1 + col1] of sum(col1 of Q1());
+}
+function xy() {
+  [1 + col1 as colwhatever] of sum(col1 of Q1());
+}
+====
+
+// Action Lambdas
+function x(x : String) {
+  @com.twitter.post(status=x);
+}
+====
+
+// Lambdas Join
+function macro(number : Number) {
+  @com.xkcd.get_comic(number=number);
+}
+Q1() => macro(number=steps);
+====
+
+// Entities
+function x1(y : Entity(tt:hashtag)) {
+  @com.twitter.home_timeline() filter contains(hashtags, y);
+}
+function x2(y : Entity(com.google.drive:file_id)) {
+  @com.google.drive.list_drive_files() filter file_id == y;
+}
+function x3(y : Entity(com.google.drive:file_id)) {
+  @com.google.drive.list_drive_files() filter file_id == y;
+}
+x1(y="foo"^^tt:hashtag);
+x2(y="xxx"^^com.google.drive:file_id("Some file"));
+====
+// ** expect TypeError **
+// number is not a valid field in @com.xkcd.get_comic()
+// Monitor on param
+
+monitor(@com.xkcd.get_comic());
+monitor(title of @com.xkcd.get_comic());
+monitor(title, number of @com.xkcd.get_comic());
+====
+// ** expect TypeError **
+// No $events
+@com.twitter.post(status=$result);
+====
+// Join with parameter passing
+monitor(@com.wsj.get()) => @com.yandex.translate.translate(text=$result);
+====
+// Currencies
+@com.uber.price_estimate(start=$location.home, end=$location.work);
+@com.uber.price_estimate(start=$location.home, end=$location.work) filter low_estimate >= 50$usd;
+====
+
+@com.live.onedrive.list_files() => @com.bing.web_search(query=description);
+monitor(@com.live.onedrive.list_files()) => @com.bing.web_search(query=description);
+@com.live.onedrive.list_files() => @com.bing.web_search(query=description) => @com.twitter.post(status=title);
+monitor(@com.live.onedrive.list_files()) => @com.bing.web_search(query=description) => @com.twitter.post(status=title);
+@com.live.onedrive.list_files() => @com.bing.web_search(query=description) => @com.twitter.post(status=description);
+monitor(@com.live.onedrive.list_files()) => @com.bing.web_search(query=description) => @com.twitter.post(status=description);
+====
+// Bug 1
+@com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code("Italian"));
+====
+// Bug 2
+@com.twitter.my_tweets() => @com.bing.web_search(query=text);
+====
+// Bug 3
+function x(p_status : String) {
+  @com.twitter.post(status=p_status);
+}
+====
+// Bug 4
+@security-camera.set_power(power=enum(on));
+====
+
+function x(status : String) {
+  @com.twitter.post(status=status);
+}
+====
+
+// ** expect TypeError **
+function x(status : Number) {
+  @com.twitter.post(status=status);
+}
+====
+
+@com.twitter.follow(user_name=null^^tt:username("donald trump"));
+====
+
+// class definitions and import stmts
+class @com.foo {
+  import loader from @org.thingpedia.v2();
+
+  import config from @org.thingpedia.config.discovery.bluetooth(uuids=[]);
+
+  monitorable query get_power(out power : Enum(on, off))
+  #_[canonical="power status of foo"]
+  #_[confirmation="status of foo"]
+  #[poll_interval=10min]
+  #[minimal_projection=[]];
+
+  action set_power(in req power : Enum(on, off)
+                   #_[prompt="do you want turn on or off?"])
+  #_[canonical="set power of foo"]
+  #_[confirmation="turn $power foo"]
+  #[minimal_projection=[]];
+}
+====
+
+class @com.foo {
+  list query get_random_number(out number : Number)
+  #_[canonical="get random number"]
+  #_[confirmation="random number"]
+  #[minimal_projection=[]];
+}
+====
+
+// ** expect TypeError **
+// invalid value type for poll interval
+class @com.foo {
+  monitorable query get_power(out power : Enum(on, off))
+  #_[canonical="power status of foo"]
+  #_[confirmation="status of foo"]
+  #[poll_interval=10]
+  #[minimal_projection=[]];
+}
+====
+
+// prompt for output argument
+class @com.foo {
+  list query get_random_number(out number : Number
+                               #_[prompt="what number?"])
+  #_[canonical="get random number"]
+  #_[confirmation="random number"]
+  #[minimal_projection=[]];
+}
+====
+
+// Mixins 1
+class @com.foo {
+  import loader from @org.thingpedia.v2();
+
+  import config from @org.thingpedia.config.custom_oauth();
+}
+====
+
+// Mixins 2
+class @com.foo {
+  import loader from @org.thingpedia.generic_rest.v1();
+
+  import config from @org.thingpedia.config.oauth2(client_id="xxx", client_secret="yyy");
+}
+====
+
+// ** expect TypeError **
+// invalid mixin
+class @com.foo {
+  import loader from @org.thingpedia.v3();
+}
+====
+
+// ** expect TypeError **
+// invalid parameter for mixin
+class @com.foo {
+  import loader from @org.thingpedia.v2(foo="bar");
+}
+====
+
+// ** expect TypeError **
+// missing required parameter for mixin
+class @com.foo {
+  import loader from @org.thingpedia.config.discovery.bluetooth();
+}
+====
+
+// Map type
+class @com.foo {
+  import loader from @org.thingpedia.config.form(params=new ArgMap(url:String, password:Entity(tt:password)));
+}
+====
+
+// basic auth
+class @com.foo {
+  import config from @org.thingpedia.config.basic_auth();
+}
+====
+
+// Dataset language
+dataset @com.twitter
+#[language="en"] {
+  stream (p_author : Entity(tt:username)) = monitor(@com.twitter.search() filter author == p_author)
+  #_[utterances=["monitor ${p_author}'s tweets"]];
+
+  query = @com.twitter.search()
+  #_[utterances=["tweets", "post on twitter"]];
+
+  program = monitor(@com.twitter.search())
+  #_[utterances=["notify me about new tweets"]];
+}
+====
+
+// ** expect TypeError **
+// wrong type
+dataset @foo {
+  stream (p_author : Number) = monitor(@com.twitter.search() filter author == p_author)
+  #_[utterances=["monitor ${p_author}'s tweets"]];
+}
+====
+
+// Meta language
+class @foo {
+  action send(in req bar : Number)
+  #_[canonical="send a number"]
+  #_[confirmation="send $bar"]
+  #[minimal_projection=[]];
+}
+dataset @foo {
+  action = @foo.send()
+  #_[utterances=["send"]];
+
+  program = @foo.send()
+  #_[utterances=["send"]];
+}
+====
+
+// ** expect TypeError **
+// Meta language 2
+class @foo {
+  action send(in req bar : Number)
+  #_[canonical="send a number"]
+  #_[confirmation="send $bar"]
+  #[minimal_projection=[]];
+}
+dataset @foo {
+  action = @bar.send()
+  #_[utterances=["send"]];
+}
+====
+
+// ** expect TypeError **
+// Meta language 3
+class @foo {
+  action send(in req bar : Number)
+  #_[canonical="send a number"]
+  #_[confirmation="send $bar"]
+  #[minimal_projection=[]];
+}
+dataset @foo {
+  action = @foo.follow()
+  #_[utterances=["follow"]];
+}
+====
+
+// Meta language: class annotations
+class @foo
+#_[name="Foo"]
+#_[description="Bar"] {
+  action send(in req bar : Number)
+  #_[canonical="send a number"]
+  #_[confirmation="send $bar"]
+  #[minimal_projection=[]];
+}
+dataset @foo {
+  action = @foo.send()
+  #_[utterances=["send"]];
+}
+====
+
+// ** expect TypeError **
+// duplicate import
+class @com.foo {
+  import loader from @org.thingpedia.config.discovery.bluetooth(uuids=["foo"]);
+
+  import loader from @org.thingpedia.config.form(params=new ArgMap(url:String));
+}
+====
+
+// class extends
+class @com.foo extends @com.twitter {
+}
+====
+
+// class extends
+class @com.foo extends @com.twitter, @com.facebook {
+}
+====
+
+// Examples with annotations
+dataset @foo {
+  action = @com.twitter.follow()
+  #_[utterances=["follow somebody on Twitter"]]
+  #_[preprocessed=["follow somebody on twitter"]];
+
+  action (p_status : String) = @com.twitter.post(status=p_status)
+  #_[utterances=["post ${p_status} on Twitter"]]
+  #_[preprocessed=["post ${p_status} on twitter"]]
+  #[id=1234];
+
+  query = @com.twitter.home_timeline()
+  #_[utterances=[]]
+  #[id=1235]
+  #[click_count=7];
+
+  query = @com.twitter.direct_messages()
+  #_[utterances=[]]
+  #[id=1236]
+  #[arbitrary="stri\ng"]
+  #[arbitrary_number=42];
+}
+====
+
+// formatted output
+class @foo {
+  query get(out title : String,
+            out url : Entity(tt:url))
+  #_[canonical="send a number"]
+  #_[confirmation="send $bar"]
+  #_[formatted=["Here is something for you", {
+    type="rdl",
+    displayTitle="$title",
+    webCallback="$url"
+  }]]
+  #[minimal_projection=[]];
+}
+====
+// Generated from Thingpedia, part of the Thingpedia tests
+dataset @org.thingpedia.dynamic.by_kinds.org_thingpedia_builtin_test
+#[language="en"] {
+  action = @org.thingpedia.builtin.test.eat_data()
+  #_[utterances=["eat some data"]]
+  #_[preprocessed=["eat some data"]]
+  #[id=1000]
+  #[click_count=0];
+
+  query (p_size : Measure(byte)) = @org.thingpedia.builtin.test.get_data(size=p_size)
+  #_[utterances=["get some data"]]
+  #_[preprocessed=["get some data"]]
+  #[id=1001]
+  #[click_count=0];
+
+  program = monitor(@org.thingpedia.builtin.test.get_data()) => @org.thingpedia.builtin.test.eat_data()
+  #_[utterances=["keep eating data!"]]
+  #_[preprocessed=["keep eating data !"]]
+  #[id=1002]
+  #[click_count=0];
+
+  program = monitor(@org.thingpedia.builtin.test.get_data()) => @org.thingpedia.builtin.test.eat_data()
+  #_[utterances=["keep eating data! (v2)"]]
+  #_[preprocessed=["keep eating data ! -lrb- v2 -rrb-"]]
+  #[id=1003]
+  #[click_count=0];
+
+  action (p_data : String) = @org.thingpedia.builtin.test.eat_data(data=p_data)
+  #_[utterances=["more data eating..."]]
+  #_[preprocessed=["more data eating ..."]]
+  #[id=1004]
+  #[click_count=0];
+
+  query = @org.thingpedia.builtin.test.get_data()
+  #_[utterances=["more data genning..."]]
+  #_[preprocessed=["more data genning ..."]]
+  #[id=1005]
+  #[click_count=0];
+}
+dataset @org.thingpedia.dynamic.by_key.eat
+#[language="en"] {
+  action = @org.thingpedia.builtin.test.eat_data()
+  #_[utterances=["eat some data"]]
+  #_[preprocessed=["eat some data"]]
+  #[id=1000]
+  #[click_count=0];
+}
+====
+
+// ** expect TypeError **
+// Invalid type
+class @foo {
+  action foo(in req arg : Invalid)
+  #[minimal_projection=[]];
+}
+====
+
+// ** expect TypeError **
+// Invalid type 2
+function foo(arg : Invalid) {
+  @com.twitter.post();
+}
+====
+
+// explicit double quotes in formatted
+class @com.foo {
+  list query foo(out foo : String,
+                 out bar : String)
+  #_[formatted=[{
+    type="text",
+    text="\"${foo}\": ${bar}"
+  }]]
+  #[minimal_projection=[]];
+}
+====
+
+// abstract class
+abstract class @com.foo {
+  list query foo(out foo : String,
+                 out bar : String)
+  #[minimal_projection=[]];
+}
+====
+
+// ** expect TypeError **
+// no loader or config for abstract class
+abstract class @com.foo {
+  import loader from @org.thingpedia.config.none();
+
+  list query foo(out foo : String,
+                 out bar : String)
+  #[minimal_projection=[]];
+}
+====
+
+timer(base=$now, interval=30s) => @org.thingpedia.builtin.thingengine.builtin.get_random_between(low=2, high=20);
+====
+
+// multiple statements without { }
+@com.thecatapi.get();
+@uk.co.thedogapi.get();
+====
+
+// let hoisting
+function cat() {
+  @com.thecatapi.get();
+}
+cat();
+====
+
+// assignment statements
+let cat = @com.thecatapi.get();
+cat();
+====
+
+// assignment statements have output parameters
+let cat = @com.thecatapi.get();
+cat() => @com.twitter.post_picture(picture_url=picture_url, caption="cat");
+====
+
+// ** expect TypeError **
+// assignment statements do not manufacture output parameters
+let cat = @com.thecatapi.get();
+cat() => @com.twitter.post_picture(picture_url=foo, caption="cat");
+====
+
+// assignment references can be used like normal tables
+let cat = @com.thecatapi.get();
+cat()[2] => @com.twitter.post_picture(picture_url=picture_url, caption="cat");
+cat() filter image_id == "1234"^^com.thecatapi:image_id => @com.twitter.post_picture(picture_url=picture_url, caption="special cat");
+====
+
+// ** expect TypeError **
+// assignment statements are NOT hoisted
+cat();
+let cat = @com.thecatapi.get();
+====
+
+// assignment statements used multiple times
+let cat = @com.thecatapi.get();
+cat();
+cat() => @com.facebook.post();
+====
+
+// ** expect TypeError **
+// parameters to assignments
+let cat = @com.thecatapi.get();
+cat(key=1);
+====
+
+// new-style undefined
+@com.twitter.post(status=$?);
+====
+
+// index expression
+function q1(p_index : Number) {
+  @com.gmail.inbox()[p_index];
+}
+function q2(p_index : Number,
+            p_index2 : Number) {
+  @com.gmail.inbox()[p_index, p_index2];
+}
+function q3(p_indices : Array(Number)) {
+  @com.gmail.inbox()[p_indices];
+}
+@com.gmail.inbox()[1];
+@com.gmail.inbox()[-1];
+@com.gmail.inbox()[1, 2, 3];
+@com.gmail.inbox()[1, $?, 2];
+@com.gmail.inbox()[1, 2, $?];
+====
+
+// ** expect TypeError **
+// invalid index (not a number)
+@com.gmail.inbox()["foo"];
+====
+
+// ** expect TypeError **
+// invalid index (array and number)
+@com.gmail.inbox()[[1, 2], 3];
+====
+
+// ** expect TypeError **
+// invalid index (not a number)
+function q(p_index : String) {
+  @com.gmail.inbox()[p_index];
+}
+====
+
+// slice expression
+@com.gmail.inbox()[1 : 3];
+====
+
+// ** expect TypeError **
+// invalid slice offset (not a number)
+function q(p_index : String) {
+  @com.gmail.inbox()[p_index : 1];
+}
+====
+
+// ** expect TypeError **
+// also invalid slice offset (not a number)
+// (but this one is not optimized to an index)
+function q(p_index : String) {
+  @com.gmail.inbox()[p_index : 5];
+}
+====
+
+// ** expect TypeError **
+// invalid slice limit (not a number)
+function q(p_index : String) {
+  @com.gmail.inbox()[1 : p_index];
+}
+====
+
+// sort
+
+// by measure
+sort(file_size asc of @com.dropbox.list_folder());
+sort(width asc of @com.bing.image_search());
+sort(sender_name asc of @com.gmail.inbox());
+====
+
+// ** expect TypeError **
+// cannot sort by entity
+sort(sender_address asc of @com.gmail.inbox());
+====
+
+// program declarations of various sorts
+
+function p1() {
+  @com.thecatapi.get();
+}
+function p2() {
+  attimer(time=[new Time(7, 0)]) => @com.thecatapi.get();
+}
+function p3(p_query : String) {
+  @com.bing.web_search(query=p_query);
+}
+function p4(p_query : String) {
+  @com.bing.web_search(query=p_query);
+}
+p1();
+====
+
+// attimer with List
+attimer(time=[new Time(9, 0), new Time(15, 0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");
+====
+
+// list syntax with single attimer
+attimer(time=[new Time(9, 0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");
+====
+
+// ** expect TypeError **
+// procedure with a monitor
+
+function p1() {
+  attimer(time=[new Time(7, 0)]) => @com.twitter.post();
+}
+p1();
+====
+
+// ** expect TypeError **
+// wrong parameter to the procedure
+
+function p1(p_query : String) {
+  @com.bing.web_search(query=p_query);
+}
+p1(p_query=43);
+====
+
+// procedure as query
+
+function p1(p_query : String) {
+  @com.bing.web_search(query=p_query);
+}
+p1(p_query="foo");
+p1(p_query="foo"), title =~ "bar";
+====
+
+// annotations on declarations
+
+function s() {
+  monitor(@com.bing.web_search());
+}
+function q() {
+  @com.bing.web_search();
+}
+function a(p_value : String) {
+  @com.twitter.post(status=p_value);
+}
+function p1() {
+  @uk.co.thedogapi.get();
+}
+====
+
+// procedure with nested declarations
+function p1(p_foo : String) {
+  function q1() {
+    @com.bing.web_search(query=p_foo);
+  }
+  q1();
+  q1() => @com.twitter.post(status=title);
+}
+p1(p_foo="one");
+p1(p_foo="two");
+====
+
+// ** expect TypeError **
+// monitor of non-monitorable query
+
+monitor(@com.thecatapi.get());
+====
+
+// ** expect TypeError **
+// propagating monitorable bit from table joins
+
+monitor(@com.bing.web_search() => @com.thecatapi.get());
+====
+
+// propagating monitorable bit from table joins, part 2
+
+monitor(@com.bing.web_search() => @com.twitter.search());
+====
+// bookkeeping statements: special
+$yes;
+====
+// bookkeeping statements: special
+$no;
+====
+// bookkeeping statements: choice
+$choice(0);
+====
+// bookkeeping statements: answer
+$answer(42);
+====
+
+// example program with parameters
+
+dataset @foo {
+  program (p_hashtag : Entity(tt:hashtag)) = monitor(@com.twitter.home_timeline() filter contains(hashtags, p_hashtag)) => @com.twitter.retweet(tweet_id=tweet_id)
+  #_[utterances=[]]
+  #_[preprocessed=["autoretweet tweets with $p_hashtag", "autoretweet $p_hashtag"]];
+}
+====
+
+// typechecking arrays
+// ** expect TypeError **
+@com.spotify.play_songs(songs=[foo]);
+====
+
+// typechecking arrays
+// ** expect TypeError **
+@com.spotify.play_songs(songs=["1", 2]);
+====
+
+// typechecking arrays
+// ** expect TypeError **
+@com.spotify.play_songs(songs=[1, 2]);
+====
+
+// typechecking arrays
+@com.spotify.play_songs(songs=["foo", "bar"]);
+====
+// genie annotations
+class @foo {
+  query bar(out title : String,
+            out description : String,
+            out url : Entity(tt:url)
+            #[unique=true])
+  #_[canonical="foo"]
+  #_[confirmation="bar"]
+  #[require_filter=true]
+  #[default_projection=["title", "description"]]
+  #[minimal_projection=[]];
+}
+====
+// ** expect TypeError **
+// invalid type for require_filter
+class @foo {
+  query bar(out title : String,
+            out description : String,
+            out url : Entity(tt:url)
+            #[unique=true])
+  #_[canonical="foo"]
+  #_[confirmation="bar"]
+  #[require_filter="true"]
+  #[default_projection=["title", "description"]]
+  #[minimal_projection=[]];
+}
+====
+// ** expect TypeError **
+// invalid type for default_projection
+class @foo {
+  query bar(out title : String,
+            out description : String,
+            out url : Entity(tt:url)
+            #[unique=true])
+  #_[canonical="foo"]
+  #_[confirmation="bar"]
+  #[require_filter=true]
+  #[default_projection="foobar"]
+  #[minimal_projection=[]];
+}
+====
+// ** expect TypeError **
+// invalid type for default_projection
+class @foo {
+  query bar(out title : String,
+            out description : String,
+            out url : Entity(tt:url)
+            #[unique=true])
+  #_[canonical="foo"]
+  #_[confirmation="bar"]
+  #[require_filter=true]
+  #[default_projection=[123]]
+  #[minimal_projection=[]];
+}
+====
+// ** expect TypeError **
+// invalid parameter for default_projection
+class @foo {
+  query bar(out title : String,
+            out description : String,
+            out url : Entity(tt:url)
+            #[unique=true])
+  #_[canonical="foo"]
+  #_[confirmation="bar"]
+  #[require_filter=true]
+  #[default_projection=["foobar"]]
+  #[minimal_projection=[]];
+}
+====
+// this used to raise a type error but it does not at the moment
+// ** do not expect TypeError **
+// require filter
+
+[id, image] of @org.wikidata.city();
+====
+// ** expect TypeError **
+// invalid output parameter
+[id, image] of @org.wikidata.city() filter XXX =~ "Bob";
+====
+
+[id, image] of @org.wikidata.city() filter id =~ "palo alto";
+====
+// this used to raise a type error but it does not at the moment
+// ** do not expect TypeError **
+// unique output param
+
+[id, image] of @org.wikidata.city() filter country == "Q30"^^org.wikidata:country || id =~ "palo alto";
+====
+// this used to raise a type error but it does not at the moment
+// ** do not expect TypeError **
+// unique output param
+
+[id, image] of @org.wikidata.city() filter country == "Q30"^^org.wikidata:country && id =~ "palo alto";
+====
+
+[id, image] of @org.wikidata.city() filter country == "Q30"^^org.wikidata:country || postal_code =~ "94305";
+====
+
+// unresolved locations
+@org.thingpedia.weather.current(location=new Location("stanford california"));
+====
+
+// ** expect TypeError **
+// projection on table with single output param
+
+[date] of @org.thingpedia.builtin.thingengine.builtin.get_date();
+====
+
+// categories for canonical:
+// npp: noun phrase for property
+// npi: noun phrase for identity
+// pvp: passive verb phrase
+// acp: active verb phrase
+// apv: adjective phrase value
+// npv: noun phrase value
+class @foo {
+  query bar(out nickname : String
+            #_[canonical={
+              default="npp",
+              npp=["nickname"],
+              pvp=["nicknamed", "called"]
+            }],
+            out owner_of : String
+            #_[canonical={
+              default="npi",
+              npi=["owner of"],
+              avp=["own"]
+            }],
+            out gender : Enum(male, female)
+            #_[canonical={
+              default="apv",
+              apv=true,
+              npv=true,
+              npp=["gender", "sex"]
+            }])
+  #_[canonical="foo"]
+  #_[confirmation="bar"]
+  #[minimal_projection=[]];
+}
+====
+
+@com.twitter.post(status=__const_QUOTED__STRING_0);
+@com.yandex.translate.translate(target_language=__const_GENERIC__ENTITY__tt_3aiso__lang__code_0);
+@thermostat.get_temperature() filter value >= __const_NUMBER_0__C;
+@thermostat.get_temperature() filter value >= __const_MEASURE__C_0;
+====
+
+// ** expect TypeError **
+// wrong type
+@com.twitter.post(status=__const_NUMBER_0);
+====
+
+@com.twitter.post(status=$context.selection : String);
+====
+
+// ** expect TypeError **
+@thermostat.set_target_temperature(value=$context.selection : Entity(tt:picture));
+====
+
+// compound value type
+class @org.schema {
+  list query restaurants(out name : String,
+                         out rating : {
+                           value : Number,
+                           count : Number
+                         })
+  #[minimal_projection=[]];
+}
+@org.schema.restaurants() filter rating.value >= 4;
+====
+
+// nested compound value type
+class @org.schema {
+  list query restaurants(out name : String,
+                         out rating : {
+                           value : Number,
+                           count : Number,
+                           author : {
+                             name : String
+                           }
+                         })
+  #[minimal_projection=[]];
+}
+@org.schema.restaurants() filter rating.author.name ~= "bob";
+====
+
+// subfunction with compound value
+class @org.schema {
+  list query local_business(out name : String,
+                            out rating : {
+                              value : Number,
+                              count : Number
+                            })
+  #[minimal_projection=[]];
+
+  list query restaurants extends local_business(out serveCuisine : String)
+  #[minimal_projection=[]];
+}
+@org.schema.restaurants() filter rating.value >= 4 && serveCuisine =~ "seafood";
+====
+
+// aggregate filter on arrays
+class @org.schema {
+  list query restaurants(out name : String,
+                         out reviews : Array(Number))
+  #[minimal_projection=[]];
+}
+@org.schema.restaurants() filter count(reviews) >= 1;
+====
+
+// aggregate filter on arrays
+class @org.schema {
+  list query restaurants(out name : String,
+                         out reviews : Array(Number))
+  #[minimal_projection=[]];
+}
+@org.schema.restaurants() filter count(reviews filter value == 5) >= 1;
+====
+
+// aggregate (non-count) filter on arrays
+class @org.schema {
+  list query restaurants(out name : String,
+                         out reviews : Array(Number))
+  #[minimal_projection=[]];
+}
+@org.schema.restaurants() filter avg(reviews) >= 4;
+====
+
+// aggregate filter on arrays of compound value
+class @org.schema {
+  list query restaurants(out name : String,
+                         out reviews : Array({
+                           rating : Number,
+                           review : String
+                         }))
+  #[minimal_projection=[]];
+}
+@org.schema.restaurants() filter count(reviews filter rating >= 5) >= 1;
+====
+
+// aggregate (non-count) filter on arrays of compound value
+class @org.schema {
+  list query restaurants(out name : String,
+                         out reviews : Array({
+                           rating : Number,
+                           review : String
+                         }))
+  #[minimal_projection=[]];
+}
+@org.schema.restaurants() filter avg(rating of (reviews filter rating >= 5)) >= 1;
+====
+
+// ** expect TypeError **
+// aggregate filter on scalar argument
+class @org.schema {
+  list query restaurants(out name : String,
+                         out reviews : Array({
+                           rating : Number,
+                           review : String
+                         }))
+  #[minimal_projection=[]];
+}
+@org.schema.restaurants() filter count(name filter value =~ "foo") >= 4;
+====
+
+// ** expect TypeError **
+// invalid filter inside aggregate filter
+class @org.schema {
+  list query restaurants(out name : String,
+                         out reviews : Array({
+                           rating : Number,
+                           review : String
+                         }))
+  #[minimal_projection=[]];
+}
+@org.schema.restaurants() filter count(reviews filter value == 5) >= 4;
+====
+
+// ** expect TypeError **
+// aggregate on non-numeric parameter
+class @org.schema {
+  list query restaurants(out name : Array(String))
+  #[minimal_projection=[]];
+}
+@org.schema.restaurants() filter avg(name) >= 1;
+====
+
+// ** expect TypeError **
+// aggregate on non-numeric field
+class @org.schema {
+  list query restaurants(out name : String,
+                         out reviews : Array({
+                           rating : Number,
+                           review : String
+                         }))
+  #[minimal_projection=[]];
+}
+@org.schema.restaurants() filter avg(review of reviews) >= 1;
+====
+
+// ** expect TypeError **
+// invalid field
+class @org.schema {
+  list query restaurants(out name : String,
+                         out reviews : Array({
+                           rating : Number,
+                           review : String
+                         }))
+  #[minimal_projection=[]];
+}
+@org.schema.restaurants() filter avg(x of reviews) >= 1;
+====
+
+// array of compound inside compound
+class @org.schema {
+  list query restaurants(out name : String,
+                         out aggregateRating : {
+                           reviews : Array({
+                             rating : Number,
+                             review : String
+                           })
+                         })
+  #[minimal_projection=[]];
+}
+@org.schema.restaurants() filter avg(rating of aggregateRating.reviews) >= 1;
+====
+
+// nested compound inside array
+class @org.schema {
+  list query restaurants(out name : String,
+                         out reviews : Array({
+                           reviewRating : {
+                             ratingValue : Number
+                           },
+                           ratingValue : Number
+                         }))
+  #[minimal_projection=[]];
+}
+@org.schema.restaurants() filter avg(reviewRating.ratingValue of reviews) >= 1;
+====
+// nested compound inside array inside compound
+// this is the most complicated case we handle (for now), no nest arrays
+class @org.schema {
+  list query restaurants(out name : String,
+                         out aggregateRating : {
+                           reviewCount : Number,
+                           reviews : Array({
+                             reviewRating : {
+                               ratingValue : Number
+                             },
+                             ratingValue : Number
+                           })
+                         })
+  #[minimal_projection=[]];
+}
+@org.schema.restaurants() filter avg(reviewRating.ratingValue of aggregateRating.reviews) >= 1;
+====
+
+class @org.schema {
+  list query restaurants(out name : String,
+                         out aggregateRating : {
+                           reviewCount : Number,
+                           reviews : Array({
+                             reviewRating : {
+                               ratingValue : Number
+                             },
+                             ratingValue : Number
+                           })
+                         })
+  #[minimal_projection=[]];
+}
+[count(aggregateRating.reviews)] of @org.schema.restaurants();
+====
+
+class @org.schema {
+  list query restaurants(out name : String,
+                         out location : Location)
+  #[minimal_projection=[]];
+}
+[distance(location, $location.current_location)] of @org.schema.restaurants();
+([distance(location, $location.current_location)] of @org.schema.restaurants()) filter distance <= 1km;
+sort(distance desc of [distance(location, $location.current_location)] of @org.schema.restaurants());
+====
+
+class @org.schema {
+  list query restaurants(out name : String,
+                         out aggregateRating : {
+                           reviewCount : Number,
+                           reviews : Array({
+                             author : String,
+                             reviewRating : {
+                               ratingValue : Number
+                             },
+                             ratingValue : Number
+                           })
+                         })
+  #[minimal_projection=[]];
+}
+[aggregateRating.reviews filter reviewRating.ratingValue >= 4] of @org.schema.restaurants();
+[aggregateRating.reviews filter author == "Bob"] of @org.schema.restaurants();
+====
+
+// ** expect TypeError **
+// invalid type
+class @org.schema {
+  list query restaurants(out name : String,
+                         out aggregateRating : {
+                           reviewCount : Number,
+                           reviews : Array({
+                             author : String,
+                             reviewRating : {
+                               ratingValue : Number
+                             },
+                             ratingValue : Number
+                           })
+                         })
+  #[minimal_projection=[]];
+}
+[aggregateRating.reviews filter reviewRating.ratingValue >= "bob"] of @org.schema.restaurants();
+====
+
+class @org.schema {
+  list query restaurants(out name : String,
+                         out aggregateRating : {
+                           reviewCount : Number,
+                           reviews : Array({
+                             author : String,
+                             reviewRating : {
+                               ratingValue : Number
+                             },
+                             ratingValue : Number
+                           })
+                         })
+  #[minimal_projection=[]];
+}
+[aggregateRating.reviews filter author == "Bob" as foo] of @org.schema.restaurants();
+====
+
+function x(p_name : String) {
+  @light-bulb(name=p_name).set_power(power=enum(on));
+}
+@light-bulb(name="bathroom").set_power(power=enum(on));
+@light-bulb(name="ceiling").set_power(power=enum(on));
+====
+
+dataset @light-bulb {
+  action (p_name : String) = @light-bulb(name=p_name).set_power(power=enum(on))
+  #_[utterances=["turn on my $p_name lights"]];
+}
+====
+
+// ** expect TypeError **
+// no param passing into a device attribute
+@com.bing.web_search() => @light-bulb(name=title).set_power(power=enum(on));
+====
+
+// ** expect TypeError **
+// invalid enum
+@light-bulb.set_power(power=enum(cool));
+====
+
+// ** expect TypeError **
+// invalid enum
+@org.thingpedia.icalendar.list_events() filter status == enum(off);
+====
+
+// dialogue states
+
+$dialogue @org.thingpedia.dialogue.transaction.greet;
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+@com.thecatapi.get();
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+@com.thecatapi.get()
+#[results=[
+  { image_id="..."^^com.thecatapi:image_id, url="..."^^tt:url, link="..."^^tt:url }
+]];
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+@com.thecatapi.get()
+#[results=[
+  { image_id="..."^^com.thecatapi:image_id, url="..."^^tt:url, link="..."^^tt:url }
+]];
+@com.twitter.post();
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+@com.thecatapi.get()
+#[results=[
+  { image_id="..."^^com.thecatapi:image_id, url="..."^^tt:url, link="..."^^tt:url }
+]];
+@com.twitter.post()
+#[confirm=enum(confirmed)];
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+@com.thecatapi.get()
+#[results=[
+  { image_id="..."^^com.thecatapi:image_id, url="..."^^tt:url, link="..."^^tt:url }
+]];
+@com.twitter.post()
+#[results=[
+  { tweet_id="..."^^com.twitter:tweet_id, link="..."^^tt:url }
+]];
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+@com.thecatapi.get()
+#[results=[
+  { image_id="..."^^com.thecatapi:image_id, url="..."^^tt:url, link="..."^^tt:url }
+]];
+@com.twitter.post()
+#[results=[]]
+#[error="something bad happened"];
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+@com.thecatapi.get()
+#[results=[
+  { image_id="..."^^com.thecatapi:image_id, url="..."^^tt:url, link="..."^^tt:url }
+]];
+@com.twitter.post()
+#[results=[]]
+#[error=enum(my_error_code)];
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+@com.thecatapi.get()
+#[results=[
+  { image_id="..."^^com.thecatapi:image_id, url="..."^^tt:url, link="..."^^tt:url }
+]]
+#[count=3];
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+@com.thecatapi.get()
+#[results=[
+  { image_id="..."^^com.thecatapi:image_id, url="..."^^tt:url, link="..."^^tt:url }
+]]
+#[count=3]
+#[more=true];
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.sys_search_question(serveCuisine);
+@org.schema.restaurant();
+====
+
+@org.schema.full.Restaurant() filter id =~ "starbucks";
+@org.schema.full.Restaurant() filter id =~ "starbucks";
+@org.schema.full.Restaurant() filter in_array~(id, ["starbucks", "mcdonalds"]);
+====
+
+// ** expect TypeError **
+// equality of entity and string
+
+@org.schema.full.Restaurant() filter id == "starbucks";
+====
+
+// explicit dontcare
+@org.schema.full.FoodEstablishment() filter true(servesCuisine);
+====
+
+// regression test for bug in projection with function inheritance
+// ** expect TypeError **
+// the projection is inside and masks the parameter, including inherited ones
+[distance(geo, $location.current_location)] of [address] of @org.schema.place();
+====
+
+// procedures with actions and returned values
+
+function cat_and_twitter() {
+  let cat = @com.thecatapi.get();
+  cat() => @com.twitter.post_picture(picture_url=picture_url, caption="cat");
+  cat();
+}
+let cat2 = cat_and_twitter();
+cat2();
+cat2() => @com.facebook.post_picture(picture_url=picture_url, caption="cat");
+====
+
+// entity declarations
+class @com.example {
+  entity restaurant
+    #_[description="Restaurant"]
+    #[has_ner=true];
+
+  entity movie
+    #_[description="Movie"]
+    #[has_ner=true];
+
+  entity person
+    #_[description="Person"]
+    #[has_ner=true];
+
+  entity email
+    #_[description="Email Message"]
+    #[has_ner=false];
+
+  query restaurant(out id : Entity(com.example:restaurant),
+                   out geo : Location)
+  #[minimal_projection=["id"]];
+
+  query movie(out id : Entity(com.example:movie),
+              out actors : Array(Entity(com.example:person)),
+              out director : Entity(com.example:person))
+  #[minimal_projection=["id"]];
+
+  query email(out id : Entity(com.example:email),
+              out subject : String,
+              out sender : Entity(tt:email_address))
+  #[minimal_projection=["id"]];
+}
+====
+
+// date piece
+@org.thingpedia.builtin.thingengine.builtin.get_date() filter date >= new Date(, 6, , );
+====
+
+// Recurrent time specification
+@com.yelp.restaurant() filter contains(openingHours, $now);
+====
+
+// Recurrent time specification
+@com.yelp.restaurant() filter contains(openingHours, new Time(9, 0));
+====
+
+// weekday
+@org.thingpedia.builtin.thingengine.builtin.get_date() filter date >= new Date(enum(monday));
+@org.thingpedia.builtin.thingengine.builtin.get_date() filter date >= new Date(enum(monday), new Time(12, 0));
+====
+
+@com.yelp().restaurant() filter distance(geo, new Location(4, 4)) <= 23mi;
+====
+
+// restaurants open 24/7
+@com.yelp.restaurant() filter openingHours == new RecurrentTimeSpecification({ beginTime=new Time(0, 0), endTime=new Time(24, 0), interval=1day, frequency=1 });
+@com.yelp.restaurant() filter openingHours == new RecurrentTimeSpecification({ beginTime=new Time(0, 0), endTime=new Time(24, 0), interval=1day, frequency=1, dayOfWeek=enum(friday) }, { beginTime=new Time(0, 0), endTime=new Time(24, 0), interval=1day, frequency=1, dayOfWeek=enum(saturday) });
+====
+
+class @org.thingpedia.weather {
+  monitorable query current(in opt location : Location
+                            #[default=$location.current_location],
+                            out temperature : Measure(C)
+                            #[min_number=-10C]
+                            #[max_number=50C],
+                            out wind_speed : Measure(mps)
+                            #[min_number=0kmph]
+                            #[max_number=150kmph],
+                            out humidity : Number
+                            #[min_number=0]
+                            #[max_number=100],
+                            out cloudiness : Number
+                            #[min_number=0]
+                            #[max_number=100],
+                            out fog : Number
+                            #[min_number=0]
+                            #[max_number=100],
+                            out status : Enum(raining, cloudy, sunny, snowy, sleety, drizzling, windy),
+                            out icon : Entity(tt:picture))
+  #[minimal_projection=[]];
+}
+====
+
+// ** expect TypeError **
+class @org.thingpedia.weather {
+  monitorable query current(in opt location : Location
+                            #[default="foo"],
+                            out temperature : Measure(C)
+                            #[min_number=-10C]
+                            #[max_number=50C],
+                            out wind_speed : Measure(mps)
+                            #[min_number=0kmph]
+                            #[max_number=150kmph],
+                            out humidity : Number
+                            #[min_number=0]
+                            #[max_number=100],
+                            out cloudiness : Number
+                            #[min_number=0]
+                            #[max_number=100],
+                            out fog : Number
+                            #[min_number=0]
+                            #[max_number=100],
+                            out status : Enum(raining, cloudy, sunny, snowy, sleety, drizzling, windy),
+                            out icon : Entity(tt:picture))
+  #[minimal_projection=[]];
+}
+
+====
+
+let cat = @com.thecatapi.get();
+function a(p_picture_url : Entity(tt:picture)) {
+  @com.twitter.post_picture(caption="cat", picture_url=p_picture_url);
+}
+
+cat();
+attimer(time=[new Time(9, 0), new Time(15, 0)]) => cat() => a(p_picture_url=picture_url);
+
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => @com.facebook.post();

@@ -15,9 +15,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-"use strict";
 
-const AppGrammar = require('../lib/grammar_api');
+
+import * as AppGrammar from '../lib/syntax_api';
 
 function latexprintLocation(l) {
     if (l.isAbsolute)
@@ -111,17 +111,17 @@ function latexprintFilter(expr, renames) {
         if (expr.isNot)
             return `\\texttt{!}(` + recursiveHelper(expr.expr) + `)`;
         if (expr.isExternal) {
-            `@\\text{${cleanIdent(expr.selector.kind)}.${cleanIdent(expr.channel)}}(`
+            return `@\\text{${cleanIdent(expr.selector.kind)}.${cleanIdent(expr.channel)}}(`
             + expr.in_params.map((ip) => `\\textit{${cleanIdent(ip.name)}} = ${latexprintValue(ip.value, renames)}`).join(', ')
             + `) \\{ ${latexprintFilter(expr.filter, renames)} \\}`;
         }
 
         let filter = expr.filter;
-        if (isFilterInfix(filter.operator)) {
+        if (isFilterInfix(filter.operator))
             return `\\textit{${cleanIdent(filter.name)}} ${opToLatex(filter.operator)} ${latexprintValue(filter.value, renames)}`;
-        } else {
+         else
             return `${opToLatex(filter.operator)}(\\textit{${cleanIdent(filter.name)}}, ${latexprintValue(filter.value, renames)})`;
-        }
+
     })(expr);
 }
 
@@ -177,8 +177,8 @@ function latexprintPermission(permission) {
 \\end{tabbing}`;
 }
 
-function main() {
-    var input = '';
+export function main() {
+    let input = '';
     process.stdin.setEncoding('utf8');
     process.stdin.on('data', (buf) => {
         input += buf;
@@ -188,4 +188,4 @@ function main() {
     });
 }
 //main();
-module.exports = { latexprintProgram, latexprintPermission };
+export { latexprintProgram, latexprintPermission };

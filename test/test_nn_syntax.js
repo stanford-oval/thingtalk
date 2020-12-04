@@ -17,488 +17,436 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const Ast = require('../lib/ast');
-const NNSyntax = require('../lib/nn-syntax');
-//const NNOutputParser = require('../lib/nn_output_parser');
-const SchemaRetriever = require('../lib/schema').default;
 
-const _mockSchemaDelegate = require('./mock_schema_delegate');
+import * as Ast from '../lib/ast';
+import * as Grammar from '../lib/syntax_api';
+import SchemaRetriever from '../lib/schema';
+
+import _mockSchemaDelegate from './mock_schema_delegate';
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
-/*class SimpleSequenceLexer {
-    constructor(sequence) {
-        this._sequence = sequence;
-        this._i = 0;
-    }
-
-    next() {
-        if (this._i >= this._sequence.length)
-            return { done: true };
-
-        let next = this._sequence[this._i++];
-        if (/^[A-Z]/.test(next)) {
-            // entity
-            next = next.substring(0, next.lastIndexOf('_'));
-        } else if (next.startsWith('@')) {
-            next = 'FUNCTION';
-        } else if (next.startsWith('enum:')) {
-            next = 'ENUM';
-        } else if (next.startsWith('param:')) {
-            next = 'PARAM_NAME';
-        } else if (next.startsWith('unit:')) {
-            next = 'UNIT';
-        }
-        return { done: false, value: next };
-    }
-}*/
-
 const TEST_CASES = [
-    [`monitor ( @com.xkcd.get_comic ) => notify`,
+    [`monitor ( @com.xkcd . get_comic ( ) ) ;`,
      `monitor xkcd`, {},
-     `monitor (@com.xkcd.get_comic()) => notify;`
+     `monitor(@com.xkcd.get_comic());`
     ],
 
-    [`now => @com.twitter.post param:status:String = QUOTED_STRING_0`,
+    [`@com.twitter . post ( status = QUOTED_STRING_0 ) ;`,
      `tweet QUOTED_STRING_0`, {'QUOTED_STRING_0': 'hello'},
-     `now => @com.twitter.post(status="hello");`
+     `@com.twitter.post(status="hello");`
     ],
 
-    [`now => @com.twitter.post param:status:String = ""`,
+    [`@com.twitter . post ( status = "" ) ;`,
      `post on twitter`, {},
-     `now => @com.twitter.post(status="");`
+     `@com.twitter.post(status="");`
     ],
 
-    [`now => @com.xkcd.get_comic param:number:Number = NUMBER_0 => notify`,
+    [`@com.xkcd . get_comic ( number = NUMBER_0 ) ;`,
      `get xkcd NUMBER_0`, {'NUMBER_0': 1234},
-     `now => @com.xkcd.get_comic(number=1234) => notify;`],
+     `@com.xkcd.get_comic(number=1234);`],
 
-    [`now => @com.xkcd.get_comic param:number:Number = NUMBER_0 => @com.twitter.post on param:status:String = param:title:String`,
+    [`@com.xkcd . get_comic ( number = NUMBER_0 ) => @com.twitter . post ( status = title ) ;`,
      `get xkcd NUMBER_0`, {'NUMBER_0': 1234},
-     `now => @com.xkcd.get_comic(number=1234) => @com.twitter.post(status=title);`],
+     `@com.xkcd.get_comic(number=1234) => @com.twitter.post(status=title);`],
 
-    [`now => ( @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_1 param:low:Number = NUMBER_0 ) join ( @com.xkcd.get_comic ) on param:number:Number = param:random:Number => notify`,
+    [`@org.thingpedia.builtin.thingengine.builtin . get_random_between ( high = NUMBER_1 , low = NUMBER_0 ) => @com.xkcd . get_comic ( number = random ) ;`,
     `get xkcd whose number is a random number between NUMBER_0 and NUMBER_1`, {'NUMBER_0': 55, 'NUMBER_1': 1024},
-    `now => (@org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55) join @com.xkcd.get_comic() on (number=random)) => notify;`],
+    `@org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55) => @com.xkcd.get_comic(number=random);`],
 
-    [`( ( timer base = now , interval = 1 unit:h ) => ( @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_1 param:low:Number = NUMBER_0 ) ) => ( @com.xkcd.get_comic ) on param:number:Number = param:random:Number => notify`,
+    [`timer ( base = $now , interval = 1 h ) => @org.thingpedia.builtin.thingengine.builtin . get_random_between ( high = NUMBER_1 , low = NUMBER_0 ) => @com.xkcd . get_comic ( number = random ) ;`,
     `every hour get xkcd whose number is a random number between NUMBER_0 and NUMBER_1`, {'NUMBER_0': 55, 'NUMBER_1': 1024},
-    `((timer(base=new Date(), interval=1h) => @org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55)) => @com.xkcd.get_comic() on (number=random)) => notify;`],
+    `timer(base=$now, interval=1h) => @org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55) => @com.xkcd.get_comic(number=random);`],
 
-    [`( timer base = now , interval = 1 unit:h ) => ( ( @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_1 param:low:Number = NUMBER_0 ) join ( @com.xkcd.get_comic ) on param:number:Number = param:random:Number ) => notify`,
-        `every hour get xkcd whose number is a random number between NUMBER_0 and NUMBER_1`, {'NUMBER_0': 55, 'NUMBER_1': 1024},
-        `(timer(base=new Date(), interval=1h) => (@org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55) join @com.xkcd.get_comic() on (number=random))) => notify;`],
-
-    [`( ( timer base = now , interval = 1 unit:h , frequency = 3 ) => ( @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_1 param:low:Number = NUMBER_0 ) ) => ( @com.xkcd.get_comic ) on param:number:Number = param:random:Number => notify`,
+    [`timer ( base = $now , frequency = 3 , interval = 1 h ) => @org.thingpedia.builtin.thingengine.builtin . get_random_between ( high = NUMBER_1 , low = NUMBER_0 ) => @com.xkcd . get_comic ( number = random ) ;`,
     `3 times every hour get xkcd whose number is a random number between NUMBER_0 and NUMBER_1`, {'NUMBER_0': 55, 'NUMBER_1': 1024 },
-    `((timer(base=new Date(), interval=1h, frequency=3) => @org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55)) => @com.xkcd.get_comic() on (number=random)) => notify;`],
+    `timer(base=$now, frequency=3, interval=1h) => @org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55) => @com.xkcd.get_comic(number=random);`],
 
-    [`now => @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_1 param:low:Number = NUMBER_0 => notify`,
+    [`@org.thingpedia.builtin.thingengine.builtin . get_random_between ( high = NUMBER_1 , low = NUMBER_0 ) ;`,
     `get a random number between NUMBER_0 and NUMBER_1`,{'NUMBER_0': 55, 'NUMBER_1': 1024},
-    `now => @org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55) => notify;`],
+    `@org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55);`],
 
-    [`now => @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_0 param:low:Number = NUMBER_1 => notify`,
+    [`@org.thingpedia.builtin.thingengine.builtin . get_random_between ( high = NUMBER_0 , low = NUMBER_1 ) ;`,
     `get xkcd whose number is a random number max is NUMBER_0 min is NUMBER_1`, {'NUMBER_0': 1024, 'NUMBER_1': 55},
-    `now => @org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55) => notify;`],
+    `@org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55);`],
 
-    [`monitor ( @thermostat.get_temperature ) => notify`,
+    [`monitor ( @thermostat . get_temperature ( ) ) ;`,
     `monitor thermostat`, {},
-    `monitor (@thermostat.get_temperature()) => notify;`],
+    `monitor(@thermostat.get_temperature());`],
 
-    [`monitor ( ( @thermostat.get_temperature ) filter param:value:Measure(C) >= NUMBER_0 unit:F ) => notify`,
+    [`monitor ( @thermostat . get_temperature ( ) filter value >= NUMBER_0 F ) ;`,
     `notify me if the temperature is above NUMBER_0 degrees`, {'NUMBER_0': 70},
-    `monitor ((@thermostat.get_temperature()), value >= 70F) => notify;`],
+    `monitor(@thermostat.get_temperature() filter value >= 70F);`],
 
-    [`now => ( @com.bing.image_search ) filter param:width:Number >= NUMBER_0 or param:height:Number >= NUMBER_1 => notify`,
+    [`@com.bing . image_search ( ) filter height >= NUMBER_1 || width >= NUMBER_0 ;`,
     `search images wider than NUMBER_0 pixels or taller than NUMBER_1 pixels`, {NUMBER_0: 100, NUMBER_1:200},
-    `now => (@com.bing.image_search()), (width >= 100 || height >= 200) => notify;`],
+    `@com.bing.image_search() filter height >= 200 || width >= 100;`],
 
-    [`now => ( @com.bing.image_search ) filter param:width:Number <= NUMBER_2 and param:width:Number >= NUMBER_0 or param:height:Number >= NUMBER_1 => notify`,
-    `search images wider than NUMBER_0 pixels or taller than NUMBER_1 pixels and narrower than NUMBER_2 pixels`, {NUMBER_0: 100, NUMBER_1:200, NUMBER_2: 500},
-    `now => (@com.bing.image_search()), (width <= 500 && (width >= 100 || height >= 200)) => notify;`],
+    [`@com.bing . image_search ( ) filter ( height >= NUMBER_1 || width >= NUMBER_0 ) && width <= NUMBER_2 ;`,
+    `search images wider than NUMBER_0 pixels || taller than NUMBER_1 pixels and narrower than NUMBER_2 pixels`, {NUMBER_0: 100, NUMBER_1:200, NUMBER_2: 500},
+    `@com.bing.image_search() filter (height >= 200 || width >= 100) && width <= 500;`],
 
-    [`now => ( @com.bing.image_search ) filter param:width:Number >= NUMBER_0 or param:height:Number >= NUMBER_0 => notify`,
+    [`@com.bing . image_search ( ) filter height >= NUMBER_0 || width >= NUMBER_0 ;`,
     `search images larger than NUMBER_0 pixels in either dimension`, {NUMBER_0: 100},
-    `now => (@com.bing.image_search()), (width >= 100 || height >= 100) => notify;`],
+    `@com.bing.image_search() filter height >= 100 || width >= 100;`],
 
-    [`now => ( @com.bing.image_search ) filter param:width:Number >= NUMBER_0 => notify`,
+    [`@com.bing . image_search ( ) filter width >= NUMBER_0 ;`,
     `search images wider than NUMBER_0 pixels`, {NUMBER_0: 100 },
-    `now => (@com.bing.image_search()), width >= 100 => notify;`],
+    `@com.bing.image_search() filter width >= 100;`],
 
-    ['monitor ( @com.xkcd.get_comic ) on new param:title:String => notify',
+    ['monitor ( title of @com.xkcd . get_comic ( ) ) ;',
     `monitor xkcd if the title changes`, {},
-    `monitor (@com.xkcd.get_comic()) on new [title] => notify;`],
+    `monitor(title of @com.xkcd.get_comic());`],
 
-    ['monitor ( @com.xkcd.get_comic ) on new [ param:alt_text:String , param:title:String ] => notify',
+    ['monitor ( alt_text , title of @com.xkcd . get_comic ( ) ) ;',
     `monitor xkcd if the title or alt text changes`, {},
-    `monitor (@com.xkcd.get_comic()) on new [alt_text, title] => notify;`],
+    `monitor(alt_text, title of @com.xkcd.get_comic());`],
 
-    ['monitor ( ( @com.instagram.get_pictures param:count:Number = NUMBER_0 ) filter param:caption:String in_array [ QUOTED_STRING_0 , QUOTED_STRING_1 ] ) => notify',
+    ['monitor ( @com.instagram . get_pictures ( count = NUMBER_0 ) filter in_array ( caption , [ QUOTED_STRING_0 , QUOTED_STRING_1 ] ) ) ;',
     `monitor my last NUMBER_0 instagram pics if the caption is either QUOTED_STRING_0 or QUOTED_STRING_1`, {NUMBER_0: 100, QUOTED_STRING_0: 'abc', QUOTED_STRING_1: 'def'},
-    `monitor ((@com.instagram.get_pictures(count=100)), in_array(caption, ["abc", "def"])) => notify;`],
+    `monitor(@com.instagram.get_pictures(count=100) filter in_array(caption, ["abc", "def"]));`],
 
-    ['timer base = now , interval = DURATION_0 => notify',
+    ['timer ( base = $now , interval = DURATION_0 ) ;',
     `alert me every DURATION_0`, {DURATION_0: { value: 30, unit: 'min'}},
-    `timer(base=new Date(), interval=30min) => notify;`],
+    `timer(base=$now, interval=30min);`],
 
-    ['monitor ( ( @com.phdcomics.get_post ) filter not param:title:String =~ QUOTED_STRING_0 ) => notify',
+    ['monitor ( @com.phdcomics . get_post ( ) filter ! ( title =~ QUOTED_STRING_0 ) ) ;',
     `monitor phd comics post that do n't have QUOTED_STRING_0 in the title`, {QUOTED_STRING_0: 'abc'}, //'
-    `monitor ((@com.phdcomics.get_post()), !(title =~ "abc")) => notify;`],
+    `monitor(@com.phdcomics.get_post() filter !(title =~ "abc"));`],
 
-    ['now => ( @com.uber.price_estimate param:end:Location = location:home param:start:Location = location:work ) filter param:low_estimate:Currency >= CURRENCY_0 => notify',
+    ['@com.uber . price_estimate ( end = $location . home , start = $location . work ) filter low_estimate >= CURRENCY_0 ;',
     `get an uber price estimate from home to work if the low estimate is greater than CURRENCY_0`, {CURRENCY_0: { value: 50, unit: 'usd' } },
-    `now => (@com.uber.price_estimate(end=$context.location.home, start=$context.location.work)), low_estimate >= 50$usd => notify;`],
+    `@com.uber.price_estimate(end=$location.home, start=$location.work) filter low_estimate >= 50$usd;`],
 
-    ['now => ( @com.uber.price_estimate ) filter param:uber_type:Enum(pool,uber_x,uber_xl,uber_black,select,suv,assist) == enum:uber_x => notify',
+    ['@com.uber . price_estimate ( ) filter uber_type == enum uber_x ;',
     `get a price estimate for uber x`, {},
-    `now => (@com.uber.price_estimate()), uber_type == enum(uber_x) => notify;`],
+    `@com.uber.price_estimate() filter uber_type == enum uber_x;`],
 
-    ['now => @org.thingpedia.builtin.thingengine.builtin.configure param:device:Entity(tt:device) = device:com.google',
+    ['@org.thingpedia.builtin.thingengine.builtin . configure ( device = @com.google ) ;',
     `configure google`, {},
-    `now => @org.thingpedia.builtin.thingengine.builtin.configure(device="com.google"^^tt:device);`],
+    `@org.thingpedia.builtin.thingengine.builtin.configure(device="com.google"^^tt:device);`],
 
-    ['now => ( @com.nytimes.get_front_page ) filter param:updated:Date >= now - DURATION_0 => notify',
+    ['@com.nytimes . get_front_page ( ) filter updated >= $now - DURATION_0 ;',
      `get new york times articles published in the last DURATION_0`, { DURATION_0: { value: 15, unit: 'min' } },
-     `now => (@com.nytimes.get_front_page()), updated >= new Date() - 15min => notify;`],
+     `@com.nytimes.get_front_page() filter updated >= $now - 15min;`],
 
-    [`executor = USERNAME_0 : now => @com.twitter.post`,
+    [`#[ executor = USERNAME_0 ] @com.twitter . post ( ) ;`,
      `ask USERNAME_0 to post on twitter`, { USERNAME_0: 'bob' },
-     `executor = "bob"^^tt:username : {
-  now => @com.twitter.post();
-}`],
+     `#[executor="bob"^^tt:username]
+@com.twitter.post();`],
 
-    [`executor = USERNAME_0 : now => @com.xkcd.get_comic => notify`,
+    [`#[ executor = USERNAME_0 ] @com.xkcd . get_comic ( ) ;`,
      `ask USERNAME_0 to get xkcd`, { USERNAME_0: 'bob' },
-     `executor = "bob"^^tt:username : {
-  now => @com.xkcd.get_comic() => notify;
-}`],
+     `#[executor="bob"^^tt:username]
+@com.xkcd.get_comic();`],
 
-    [`executor = USERNAME_0 : now => @com.xkcd.get_comic => return`,
-     `ask USERNAME_0 to get xkcd`, { USERNAME_0: 'bob' },
-     `executor = "bob"^^tt:username : {
-  now => @com.xkcd.get_comic() => return;
-}`],
-
-    [`now => ( @security-camera.current_event ) filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:home } => notify`,
+    [`@security-camera . current_event ( ) filter any ( @org.thingpedia.builtin.thingengine.builtin . get_gps ( ) filter ! ( location == $location . home ) ) ;`,
      `show me my security camera if i 'm not home`, {}, //'
-     `now => (@security-camera.current_event()), @org.thingpedia.builtin.thingengine.builtin.get_gps() { !(location == $context.location.home) } => notify;`],
+     `@security-camera.current_event() filter any(@org.thingpedia.builtin.thingengine.builtin.get_gps() filter !(location == $location.home));`],
 
-    [`policy true : now => @com.twitter.post`,
+    [`$policy { true : now => @com.twitter . post ; }`,
     `anyone can post on twitter`, {},
-    `true : now => @com.twitter.post;`],
+    `$policy {
+  true : now => @com.twitter.post;
+}`],
 
-    [`policy true : now => @com.twitter.post filter param:status:String =~ QUOTED_STRING_0`,
+    [`$policy { true : now => @com.twitter . post filter status =~ QUOTED_STRING_0 ; }`,
     `anyone can post on twitter if they put QUOTED_STRING_0 in the status`, { QUOTED_STRING_0: 'foo' },
-    `true : now => @com.twitter.post, status =~ "foo";`],
+    `$policy {
+  true : now => @com.twitter.post filter status =~ "foo";
+}`],
 
-    [`policy param:source:Entity(tt:contact) == USERNAME_0 : now => @com.twitter.post`,
+    [`$policy { source == USERNAME_0 : now => @com.twitter . post ; }`,
     `USERNAME_0 can post on twitter`, { USERNAME_0: 'bob' },
-    `source == "bob"^^tt:username : now => @com.twitter.post;`],
+    `$policy {
+  source == "bob"^^tt:username : now => @com.twitter.post;
+}`],
 
-    [`policy param:source:Entity(tt:contact) == USERNAME_0 : now => @com.twitter.post filter param:status:String =~ QUOTED_STRING_0`,
+    [`$policy { source == USERNAME_0 : now => @com.twitter . post filter status =~ QUOTED_STRING_0 ; }`,
     `USERNAME_0 can post on twitter if he puts QUOTED_STRING_0 in the status`, { USERNAME_0: 'bob', QUOTED_STRING_0: 'foo' },
-    `source == "bob"^^tt:username : now => @com.twitter.post, status =~ "foo";`],
+    `$policy {
+  source == "bob"^^tt:username : now => @com.twitter.post filter status =~ "foo";
+}`],
 
-    [`policy true : @com.bing.web_search => notify`,
+    [`$policy { true : @com.bing . web_search => notify ; }`,
     `anyone can search on bing`, {},
-    `true : @com.bing.web_search => notify;`],
+    `$policy {
+  true : @com.bing.web_search => notify;
+}`],
 
-    [`policy true : @com.bing.web_search filter param:query:String =~ QUOTED_STRING_0 => notify`,
+    [`$policy { true : @com.bing . web_search filter query =~ QUOTED_STRING_0 => notify ; }`,
     `anyone can search on bing if the query contains QUOTED_STRING_0`,{ QUOTED_STRING_0: 'foo' },
-    `true : @com.bing.web_search, query =~ "foo" => notify;`],
+    `$policy {
+  true : @com.bing.web_search filter query =~ "foo" => notify;
+}`],
 
-    [`policy true : @com.bing.web_search filter param:description:String =~ QUOTED_STRING_0 => notify`,
+    [`$policy { true : @com.bing . web_search filter description =~ QUOTED_STRING_0 => notify ; }`,
     `anyone can search on bing if the description contains QUOTED_STRING_0`, { QUOTED_STRING_0: 'foo' },
-    `true : @com.bing.web_search, description =~ "foo" => notify;`],
+    `$policy {
+  true : @com.bing.web_search filter description =~ "foo" => notify;
+}`],
 
-    [`policy true : @com.bing.web_search filter param:description:String =~ QUOTED_STRING_0 => @com.twitter.post filter param:status:String =~ QUOTED_STRING_0`,
+    [`$policy { true : @com.bing . web_search filter description =~ QUOTED_STRING_0 => @com.twitter . post filter status =~ QUOTED_STRING_0 ; }`,
     `anyone can search on bing if the description contains QUOTED_STRING_0 and then post on twitter if the status contains the same thing`, { QUOTED_STRING_0: 'foo' },
-    `true : @com.bing.web_search, description =~ "foo" => @com.twitter.post, status =~ "foo";`],
+    `$policy {
+  true : @com.bing.web_search filter description =~ "foo" => @com.twitter.post filter status =~ "foo";
+}`],
 
-    [`policy true : @com.bing.web_search filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:home } and param:description:String =~ QUOTED_STRING_0 => notify`,
+    [`$policy { true : @com.bing . web_search filter any ( @org.thingpedia.builtin.thingengine.builtin . get_gps ( ) filter ! ( location == $location . home ) ) && description =~ QUOTED_STRING_0 => notify ; }`,
     `anyone can search on bing if i am not at home and the description contains QUOTED_STRING_0`, { QUOTED_STRING_0: 'foo' },
-    `true : @com.bing.web_search, (@org.thingpedia.builtin.thingengine.builtin.get_gps() { !(location == $context.location.home) } && description =~ "foo") => notify;`],
+    `$policy {
+  true : @com.bing.web_search filter any(@org.thingpedia.builtin.thingengine.builtin.get_gps() filter !(location == $location.home)) && description =~ "foo" => notify;
+}`],
 
-    [`executor = USERNAME_0 : now => @com.twitter.post_picture`,
+    [`#[ executor = USERNAME_0 ] @com.twitter . post_picture ( ) ;`,
      `USERNAME_0 can post pictures on twitter`, { USERNAME_0: 'mom' },
-     `executor = "mom"^^tt:username : {
-  now => @com.twitter.post_picture();
-}`],
+     `#[executor="mom"^^tt:username]
+@com.twitter.post_picture();`],
 
-    [`now => @org.thingpedia.weather.sunrise param:date:Date = DATE_0 => notify`,
+    [`@org.thingpedia.weather . sunrise ( date = DATE_0 ) ;`,
      `get sunrise sunset on date DATE_0`, { DATE_0: { year: 2018, month: 5, day: 23, hour: -1, minute: -1, second: -1 } },
-     `now => @org.thingpedia.weather.sunrise(date=new Date("2018-05-23T07:00:00.000Z")) => notify;`],
+     `@org.thingpedia.weather.sunrise(date=new Date("2018-05-23T07:00:00.000Z"));`],
 
-    [`now => @org.thingpedia.weather.sunrise param:date:Date = new Date ( " 2018-05-23T07:00:00.000Z " ) => notify`,
+    [`@org.thingpedia.weather . sunrise ( date = new Date ( " 2018-05-23T07:00:00.000Z " ) ) ;`,
      `get sunrise sunset on date 2018-05-23T07:00:00.000Z`, { },
-     `now => @org.thingpedia.weather.sunrise(date=new Date("2018-05-23T07:00:00.000Z")) => notify;`],
+     `@org.thingpedia.weather.sunrise(date=new Date("2018-05-23T07:00:00.000Z"));`],
 
-    [`now => @org.thingpedia.weather.sunrise param:date:Date = DATE_0 => notify`,
+    [`@org.thingpedia.weather . sunrise ( date = DATE_0 ) ;`,
      `get sunrise sunset on date DATE_0`, { DATE_0: { year: 2018, month: 5, day: 23, hour: 10, minute: 40, second: 0 } },
-     `now => @org.thingpedia.weather.sunrise(date=new Date("2018-05-23T17:40:00.000Z")) => notify;`],
+     `@org.thingpedia.weather.sunrise(date=new Date("2018-05-23T17:40:00.000Z"));`],
 
-    [`now => @org.thingpedia.weather.sunrise param:date:Date = DATE_0 => notify`,
+    [`@org.thingpedia.weather . sunrise ( date = DATE_0 ) ;`,
      `get sunrise sunset on date DATE_0`, { DATE_0: { year: 2018, month: 5, day: 23, hour: 10, minute: 40, second: -1 } },
-     `now => @org.thingpedia.weather.sunrise(date=new Date("2018-05-23T17:40:00.000Z")) => notify;`],
+     `@org.thingpedia.weather.sunrise(date=new Date("2018-05-23T17:40:00.000Z"));`],
 
-    [`now => @org.thingpedia.weather.sunrise param:date:Date = DATE_0 => notify`,
+    [`@org.thingpedia.weather . sunrise ( date = DATE_0 ) ;`,
      `get sunrise sunset on date DATE_0`, { DATE_0: { year: 2018, month: 5, day: 23, hour: 10, minute: 40, second: 40.5 } },
-     `now => @org.thingpedia.weather.sunrise(date=new Date("2018-05-23T17:40:40.500Z")) => notify;`],
+     `@org.thingpedia.weather.sunrise(date=new Date("2018-05-23T17:40:40.500Z"));`],
 
-    ['now => ( @com.bing.web_search ) join ( @com.yandex.translate.translate param:target_language:Entity(tt:iso_lang_code) = GENERIC_ENTITY_tt:iso_lang_code_0 ) on param:text:String = event => notify',
+    ['@com.bing . web_search ( ) => @com.yandex.translate . translate ( target_language = GENERIC_ENTITY_tt:iso_lang_code_0 , text = $result ) ;',
     `translate web searches to GENERIC_ENTITY_tt:iso_lang_code_0`, { 'GENERIC_ENTITY_tt:iso_lang_code_0': { value: 'it', display: "Italian" } },
-    `now => (@com.bing.web_search() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code("Italian")) on (text=$event)) => notify;`],
+    `@com.bing.web_search() => @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code("Italian"), text=$result);`],
 
-    ['now => ( @com.bing.web_search ) join ( @com.yandex.translate.translate param:target_language:Entity(tt:iso_lang_code) = " italian " ^^tt:iso_lang_code ) on param:text:String = event => notify',
+    ['@com.bing . web_search ( ) => @com.yandex.translate . translate ( target_language = null ^^tt:iso_lang_code ( " italian " ) , text = $result ) ;',
     `translate web searches to italian`, {},
-    `now => (@com.bing.web_search() join @com.yandex.translate.translate(target_language=null^^tt:iso_lang_code("italian")) on (text=$event)) => notify;`],
+    `@com.bing.web_search() => @com.yandex.translate.translate(target_language=null^^tt:iso_lang_code("italian"), text=$result);`],
 
-    ['now => @com.bing.web_search param:query:String = " pizza " => notify',
+    ['@com.bing . web_search ( query = " pizza " ) ;',
     `search pizza on bing`, {},
-    `now => @com.bing.web_search(query="pizza") => notify;`],
+    `@com.bing.web_search(query="pizza");`],
 
-    ['now => @com.bing.web_search param:query:String = " donald trump " => notify',
+    ['@com.bing . web_search ( query = " donald trump " ) ;',
     `search donald trump on bing`, {},
-    `now => @com.bing.web_search(query="donald trump") => notify;`],
+    `@com.bing.web_search(query="donald trump");`],
 
-    ['now => ( @com.twitter.search ) filter param:hashtags:Array(Entity(tt:hashtag)) contains " foo " ^^tt:hashtag => notify',
+    ['@com.twitter . search ( ) filter contains ( hashtags , " foo " ^^tt:hashtag ) ;',
     `search hashtag foo on twitter`, {},
-    `now => (@com.twitter.search()), contains(hashtags, "foo"^^tt:hashtag) => notify;`],
+    `@com.twitter.search() filter contains(hashtags, "foo"^^tt:hashtag);`],
 
-    ['executor = " bob " ^^tt:username : now => @com.twitter.post',
+    ['#[ executor = " bob " ^^tt:username ] @com.twitter . post ( ) ;',
     `ask bob to post on twitter`, {},
-    `executor = "bob"^^tt:username : {
-  now => @com.twitter.post();
+    `#[executor="bob"^^tt:username]
+@com.twitter.post();`],
+
+    ['@com.twitter . follow ( user_name = " bob " ^^tt:username ) ;',
+    `follow bob on twitter`, {},
+    `@com.twitter.follow(user_name="bob"^^tt:username);`],
+
+    ['$policy { true : now => @org.thingpedia.builtin.thingengine.builtin . discover filter any ( @org.thingpedia.builtin.test . get_data ( ) filter data == QUOTED_STRING_0 ) ; }',
+    'everybody has permission to discover new devices if the data of more data genning ... is exactly QUOTED_STRING_0', { QUOTED_STRING_0: 'foo' },
+    `$policy {
+  true : now => @org.thingpedia.builtin.thingengine.builtin.discover filter any(@org.thingpedia.builtin.test.get_data() filter data == "foo");
 }`],
 
-    ['now => @com.twitter.follow param:user_name:Entity(tt:username) = " bob " ^^tt:username',
-    `follow bob on twitter`, {},
-    `now => @com.twitter.follow(user_name="bob"^^tt:username);`],
-
-    ['policy true : now => @org.thingpedia.builtin.thingengine.builtin.discover filter @org.thingpedia.builtin.test.get_data { param:data:String == QUOTED_STRING_0 }',
-    'everybody has permission to discover new devices if the data of more data genning ... is exactly QUOTED_STRING_0', { QUOTED_STRING_0: 'foo' },
-    'true : now => @org.thingpedia.builtin.thingengine.builtin.discover, @org.thingpedia.builtin.test.get_data() { data == "foo" };'],
-
-    [`now => @com.xkcd.get_comic param:number:Number = SLOT_0 => notify`,
+    [`@com.xkcd . get_comic ( number = SLOT_0 ) ;`,
      '', {'SLOT_0': new Ast.Value.Number(1234) },
-     `now => @com.xkcd.get_comic(number=1234) => notify;`],
+     `@com.xkcd.get_comic(number=1234);`],
 
-    [`now => @com.xkcd.get_comic param:number:Number = SLOT_0 => notify`,
+    [`@com.xkcd . get_comic ( number = SLOT_0 ) ;`,
      '', {'SLOT_0': undefined},
-     `now => @com.xkcd.get_comic(number=$?) => notify;`],
+     `@com.xkcd.get_comic(number=$?);`],
 
-    [`bookkeeping filter param:title:String =~ SLOT_0`,
-    '', {'SLOT_0': new Ast.Value.String('foo') },
-    `bookkeeping(predicate(title =~ "foo"));`],
-
-    [`bookkeeping filter param:title:String == SLOT_0`,
-    '', {'SLOT_0': new Ast.Value.String('foo') },
-    `bookkeeping(predicate(title == "foo"));`],
-
-    [`now => @com.xkcd.get_comic param:number:Number = undefined => notify`,
+    [`@com.xkcd . get_comic ( number = $? ) ;`,
      'get some specific xkcd comic', {},
-    `now => @com.xkcd.get_comic(number=$?) => notify;`],
+    `@com.xkcd.get_comic(number=$?);`],
 
-    [`now => ( @com.twitter.search ) filter param:author:Entity(tt:username) == undefined => notify`,
+    [`@com.twitter . search ( ) filter author == $? ;`,
      'search tweets by author', {},
-    `now => (@com.twitter.search()), author == $? => notify;`],
+    `@com.twitter.search() filter author == $?;`],
 
-    ['now => sort param:sender_name:String asc of ( @com.gmail.inbox ) => notify',
+    ['sort ( sender_name asc of @com.gmail . inbox ( ) ) ;',
     'show my emails sorted by sender name', {},
-    `now => sort sender_name asc of (@com.gmail.inbox()) => notify;`],
+    `sort(sender_name asc of @com.gmail.inbox());`],
 
-    ['now => sort param:sender_name:String desc of ( @com.gmail.inbox ) => notify',
+    ['sort ( sender_name desc of @com.gmail . inbox ( ) ) ;',
     'show my emails sorted by sender name -lrb- in reverse order -rrb-', {},
-    `now => sort sender_name desc of (@com.gmail.inbox()) => notify;`],
+    `sort(sender_name desc of @com.gmail.inbox());`],
 
-    ['now => ( @com.gmail.inbox ) [ 1 ] => notify',
+    ['@com.gmail . inbox ( ) [ 1 ] ;',
     'show me exactly one email', {},
-    `now => (@com.gmail.inbox())[1] => notify;`],
+    `@com.gmail.inbox()[1];`],
 
-    ['now => ( @com.gmail.inbox ) [ 1 : 3 ] => notify',
+    ['@com.gmail . inbox ( ) [ 1 : 3 ] ;',
     'show me exactly 3 emails', {},
-    `now => (@com.gmail.inbox())[1 : 3] => notify;`],
+    `@com.gmail.inbox()[1 : 3];`],
 
-    ['now => ( @com.gmail.inbox ) [ 1 : NUMBER_0 ] => notify',
+    ['@com.gmail . inbox ( ) [ 1 : NUMBER_0 ] ;',
     'show me exactly NUMBER_0 emails', { NUMBER_0: 22 },
-    `now => (@com.gmail.inbox())[1 : 22] => notify;`],
+    `@com.gmail.inbox()[1 : 22];`],
 
-    ['now => ( @com.gmail.inbox ) [ 3 : NUMBER_0 ] => notify',
+    ['@com.gmail . inbox ( ) [ 3 : NUMBER_0 ] ;',
     'show me exactly NUMBER_0 emails , starting from the third', { NUMBER_0: 22 },
-    `now => (@com.gmail.inbox())[3 : 22] => notify;`],
+    `@com.gmail.inbox()[3 : 22];`],
 
-    ['now => ( @com.gmail.inbox ) [ NUMBER_1 : NUMBER_0 ] => notify',
+    ['@com.gmail . inbox ( ) [ NUMBER_1 : NUMBER_0 ] ;',
     'show me exactly NUMBER_0 emails , starting from the NUMBER_1', { NUMBER_1: 13, NUMBER_0: 22 },
-    `now => (@com.gmail.inbox())[13 : 22] => notify;`],
+    `@com.gmail.inbox()[13 : 22];`],
 
-    ['now => ( @com.gmail.inbox ) [ 3 , 7 , NUMBER_0 ] => notify',
+    ['@com.gmail . inbox ( ) [ 3 , 7 , NUMBER_0 ] ;',
     'show me exactly the emails number 3 , 7 and NUMBER_0', { NUMBER_0: 22 },
-    `now => (@com.gmail.inbox())[3, 7, 22] => notify;`],
+    `@com.gmail.inbox()[3, 7, 22];`],
 
-    ['bookkeeping special special:yes',
+    ['$yes ;',
     'yes', {},
-    'bookkeeping(yes);'],
+    '$yes;'],
 
-    ['bookkeeping special special:no',
+    ['$no ;',
     'no', {},
-    'bookkeeping(no);'],
+    '$no;'],
 
-    ['bookkeeping commands social-network device:com.twitter',
-    'twitter', {},
-    `bookkeeping(commands(category="social-network", device="com.twitter"^^tt:device));`],
-
-    ['bookkeeping category social-network',
-    'social networks', {},
-    `bookkeeping(commands(category="social-network", device=$?));`],
-
-    ['bookkeeping choice 0',
+    ['$choice ( 0 ) ;',
     'the first choice', {},
-    `bookkeeping(choice(0));`],
+    `$choice(0);`],
 
-    ['bookkeeping choice 1',
+    ['$choice ( 1 ) ;',
     'the second choice', {},
-    `bookkeeping(choice(1));`],
+    `$choice(1);`],
 
-    ['bookkeeping choice 2',
+    ['$choice ( 2 ) ;',
     'the third choice', {},
-    `bookkeeping(choice(2));`],
+    `$choice(2);`],
 
-    ['bookkeeping answer NUMBER_0',
+    ['$answer ( NUMBER_0 ) ;',
     'NUMBER_0', { NUMBER_0: 42 },
-    `bookkeeping(answer(42));`],
+    `$answer(42);`],
 
-    ['bookkeeping answer LOCATION_0',
+    ['$answer ( LOCATION_0 ) ;',
     'LOCATION_0', { LOCATION_0: { latitude: 0, longitude: 0, display: "North Pole" } },
-    `bookkeeping(answer(new Location(0, 0, "North Pole")));`],
+    `$answer(new Location(0, 0, "North Pole"));`],
 
-    ['bookkeeping answer 0',
+    ['$answer ( 0 ) ;',
     'zero', {},
-    `bookkeeping(answer(0));`],
+    `$answer(0);`],
 
-    ['now => @org.thingpedia.weather.current param:location:Location = location: " stanford california " => notify',
+    ['@org.thingpedia.weather . current ( location = new Location ( " stanford california " ) ) ;',
     'get weather for stanford california', {},
-    `now => @org.thingpedia.weather.current(location=new Location("stanford california")) => notify;`],
+    `@org.thingpedia.weather.current(location=new Location("stanford california"));`],
 
-    ['attimer time = TIME_0 => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = QUOTED_STRING_0',
-    `say "it's 9am" every day at 9am`,
+    ['attimer ( time = [ TIME_0 ] ) => @org.thingpedia.builtin.thingengine.builtin . say ( message = QUOTED_STRING_0 ) ;',
+    `say QUOTED_STRING_0 every day at 9am`,
     { TIME_0: { hour: 9, minute: 0 }, QUOTED_STRING_0: "it's 9am" },
-    `attimer(time=new Time(9, 0)) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am");`],
+    `attimer(time=[new Time(9, 0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am");`],
 
-    ['attimer time = [ TIME_0 , TIME_1 ] => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = QUOTED_STRING_0',
-    `say "it's 9am or 3pm" every day at 9am and 3pm`,
+    ['attimer ( time = [ TIME_0 , TIME_1 ] ) => @org.thingpedia.builtin.thingengine.builtin . say ( message = QUOTED_STRING_0 ) ;',
+    `say QUOTED_STRING_0 every day at 9am and 3pm`,
     { TIME_0: { hour: 9, minute: 0 }, TIME_1: { hour: 15, minute: 0 }, QUOTED_STRING_0: "it's 9am or 3pm" },
     `attimer(time=[new Time(9, 0), new Time(15, 0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");`],
 
-    [`attimer time = time:morning => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = QUOTED_STRING_0`,
-    `say "it's the morning" every day in the morning`,
+    [`attimer ( time = [ $time . morning ] ) => @org.thingpedia.builtin.thingengine.builtin . say ( message = QUOTED_STRING_0 ) ;`,
+    `say QUOTED_STRING_0 every day in the morning`,
     { QUOTED_STRING_0: "it's the morning" },
-    `attimer(time=$context.time.morning) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's the morning");`],
+    `attimer(time=[$time.morning]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's the morning");`],
 
-    [`attimer time = time:evening => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = QUOTED_STRING_0`,
-    `say "it's the evening" every day in the evening`,
+    [`attimer ( time = [ $time . evening ] ) => @org.thingpedia.builtin.thingengine.builtin . say ( message = QUOTED_STRING_0 ) ;`,
+    `say QUOTED_STRING_0 every day in the evening`,
     { QUOTED_STRING_0: "it's the evening" },
-    `attimer(time=$context.time.evening) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's the evening");`],
+    `attimer(time=[$time.evening]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's the evening");`],
 
-    // To test LITERAL_TIME but might want to drop this functionality
-    // Left sentence blank because "at noon" should map to TIME_0 instead
-    [`attimer time = time:12:0:0 => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = QUOTED_STRING_0`,
-    '',
+    [`attimer ( time = [ new Time ( 12 , 0 ) ] ) => @org.thingpedia.builtin.thingengine.builtin . say ( message = QUOTED_STRING_0 ) ;`,
+    'say QUOTED_STRING every day at noon',
     { QUOTED_STRING_0: "it's noon" },
-    `attimer(time=new Time(12, 0)) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's noon");`],
+    `attimer(time=[new Time(12, 0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's noon");`],
 
-    ['now => [ param:description:String , param:title:String ] of ( @com.bing.web_search ) => notify',
+    ['[ description , title ] of @com.bing . web_search ( ) ;',
     'get title and description from bing', {},
+    '[description, title] of @com.bing.web_search();'],
 
-    'now => [description, title] of (@com.bing.web_search()) => notify;'],
-
-    [`now => @com.spotify.get_currently_playing => @com.spotify.add_songs_to_playlist param:songs:Array(String) = [ param:song:String ]`,
+    [`@com.spotify . get_currently_playing ( ) => @com.spotify . add_songs_to_playlist ( songs = [ song ] ) ;`,
     `add the currently playing song to my playlist`, {},
-    `now => @com.spotify.get_currently_playing() => @com.spotify.add_songs_to_playlist(songs=[song]);`],
+    `@com.spotify.get_currently_playing() => @com.spotify.add_songs_to_playlist(songs=[song]);`],
 
-    [`[ param:author:Entity(tt:username) , param:text:String ] of ( monitor ( @com.twitter.home_timeline ) on new param:text:String ) => notify`,
+    [`[ author , text ] of monitor ( text of @com.twitter . home_timeline ( ) ) ;`,
     `monitor new text of tweets and show me the text and author`, {},
-    `[author, text] of (monitor (@com.twitter.home_timeline()) on new [text]) => notify;`],
+    `[author, text] of monitor(text of @com.twitter.home_timeline());`],
 
-    ['now => @com.twitter.post param:status:String = context:selection:String',
+    ['@com.twitter . post ( status = $context . selection : String ) ;',
     'post this on twitter', {},
-    `now => @com.twitter.post(status=$context.selection : String);`],
+    `@com.twitter.post(status=$context.selection : String);`],
 
-    [`now => ( @com.twitter.home_timeline ) filter count ( param:hashtags:Array(Entity(tt:hashtag)) ) >= 0 => notify`,
+    [`@com.twitter . home_timeline ( ) filter count ( hashtags ) >= 0 ;`,
     `get tweets with hashtags`, {},
-    `now => (@com.twitter.home_timeline()), count(hashtags) >= 0 => notify;`],
+    `@com.twitter.home_timeline() filter count(hashtags) >= 0;`],
 
     // just to test syntax, in reality we should not generate examples like this
-    [`now => ( @com.twitter.home_timeline ) filter count ( param:hashtags:Array(Entity(tt:hashtag)) filter { param:value:Entity(tt:hashtag) == " foo " ^^tt:hashtag } ) >= 0 => notify`,
+    [`@com.twitter . home_timeline ( ) filter count ( hashtags filter value == " foo " ^^tt:hashtag ) >= 0 ;`,
     `get tweets with hashtags foo`, {},
-    `now => (@com.twitter.home_timeline()), count((hashtags) filter { value == "foo"^^tt:hashtag }) >= 0 => notify;`],
+    `@com.twitter.home_timeline() filter count(hashtags filter value == "foo"^^tt:hashtag) >= 0;`],
 
-    [`now => @light-bulb.set_power attribute:name:String = " bedroom " param:power:Enum(on,off) = enum:off`,
+    [`@light-bulb ( name = " bedroom " ) . set_power ( power = enum off ) ;`,
     `turn off my bedroom lights`, {},
-    `now => @light-bulb(name="bedroom").set_power(power=enum(off));`],
+    `@light-bulb(name="bedroom").set_power(power=enum off);`],
 
-    [`$dialogue @org.thingpedia.dialogue.transaction.greet ;`,
+    [`$dialogue @org.thingpedia.dialogue.transaction . greet ;`,
      `hello`, {},
      `$dialogue @org.thingpedia.dialogue.transaction.greet;`],
 
-    [`$dialogue @org.thingpedia.dialogue.transaction.execute ; ` +
-     `now => @com.thecatapi.get => notify ;`,
+    [`$dialogue @org.thingpedia.dialogue.transaction . execute ; ` +
+     `@com.thecatapi . get ( ) ;`,
     `get a cat picture`, {},
     `$dialogue @org.thingpedia.dialogue.transaction.execute;
-now => @com.thecatapi.get() => notify;`],
+@com.thecatapi.get();`],
 
-    [`$dialogue @org.thingpedia.dialogue.transaction.execute ; ` +
-     `now => @com.thecatapi.get => notify ` +
-     `#[ results = [ { param:image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , param:picture_url = PICTURE_0 , param:link = URL_0 } ] ] ;`,
+    [`$dialogue @org.thingpedia.dialogue.transaction . execute ; ` +
+     `@com.thecatapi . get ( ) ` +
+     `#[ results = [ { image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , picture_url = PICTURE_0 , link = URL_0 } ] ] ;`,
     `here is your cat picture`, { 'GENERIC_ENTITY_com.thecatapi:image_id_0': { value: '1234', display: null }, PICTURE_0: 'https://example.com/1', URL_0: 'https://example.com/2' },
     `$dialogue @org.thingpedia.dialogue.transaction.execute;
-now => @com.thecatapi.get() => notify
+@com.thecatapi.get()
 #[results=[
   { image_id="1234"^^com.thecatapi:image_id, picture_url="https://example.com/1"^^tt:picture, link="https://example.com/2"^^tt:url }
 ]];`],
 
-    [`$dialogue @org.thingpedia.dialogue.transaction.execute ; ` +
-     `now => @com.thecatapi.get => notify ` +
-     `#[ results = [ { param:image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , param:picture_url = PICTURE_0 , param:link = URL_0 } , { param:image_id = GENERIC_ENTITY_com.thecatapi:image_id_1 , param:picture_url = PICTURE_1 , param:link = URL_1 } ] ] ;`,
-    `here are your cat pictures`, { 'GENERIC_ENTITY_com.thecatapi:image_id_0': { value: '1234', display: null }, PICTURE_0: 'https://example.com/1', URL_0: 'https://example.com/2', 'GENERIC_ENTITY_com.thecatapi:image_id_1': { value: '2345', display: null }, PICTURE_1: 'https://example.com/3', URL_1: 'https://example.com/4' },
-    `$dialogue @org.thingpedia.dialogue.transaction.execute;
-now => @com.thecatapi.get() => notify
-#[results=[
-  { image_id="1234"^^com.thecatapi:image_id, picture_url="https://example.com/1"^^tt:picture, link="https://example.com/2"^^tt:url },
-  { image_id="2345"^^com.thecatapi:image_id, picture_url="https://example.com/3"^^tt:picture, link="https://example.com/4"^^tt:url }
-]];`],
-
-    [`$dialogue @org.thingpedia.dialogue.transaction.execute ; ` +
-     `now => @com.thecatapi.get => notify ` +
-     `#[ results = [ { param:image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , param:picture_url = PICTURE_0 , param:link = URL_1 } ] ] ; ` +
-     `now => @com.twitter.post_picture param:picture_url:Entity(tt:picture) = PICTURE_0 ;`,
+    [`$dialogue @org.thingpedia.dialogue.transaction . execute ; ` +
+     `@com.thecatapi . get ( ) ` +
+     `#[ results = [ { image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , picture_url = PICTURE_0 , link = URL_1 } ] ] ; ` +
+     `@com.twitter . post_picture ( picture_url = PICTURE_0 ) ;`,
     `now post it on twitter`, { 'GENERIC_ENTITY_com.thecatapi:image_id_0': { value: '1234', display: null }, PICTURE_0: 'https://example.com/1', URL_1: 'https://example.com/2' },
     `$dialogue @org.thingpedia.dialogue.transaction.execute;
-now => @com.thecatapi.get() => notify
+@com.thecatapi.get()
 #[results=[
   { image_id="1234"^^com.thecatapi:image_id, picture_url="https://example.com/1"^^tt:picture, link="https://example.com/2"^^tt:url }
 ]];
-now => @com.twitter.post_picture(picture_url="https://example.com/1"^^tt:picture);`],
+@com.twitter.post_picture(picture_url="https://example.com/1"^^tt:picture);`],
 
-    [`$dialogue @org.thingpedia.dialogue.transaction.execute ; ` +
-     `now => @com.thecatapi.get => notify ` +
-     `#[ results = [ { param:image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , param:picture_url = PICTURE_0 , param:link = URL_1 } ] ] ; ` +
-     `now => @com.twitter.post_picture param:picture_url:Entity(tt:picture) = PICTURE_0 ` +
-     `#[ confirm = enum:confirmed ] ;`,
+    [`$dialogue @org.thingpedia.dialogue.transaction . execute ; ` +
+     `@com.thecatapi . get ( ) ` +
+     `#[ results = [ { image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , picture_url = PICTURE_0 , link = URL_1 } ] ] ; ` +
+     `@com.twitter . post_picture ( picture_url = PICTURE_0 ) ` +
+     `#[ confirm = enum confirmed ] ;`,
     `confirm posting it on twitter`, { 'GENERIC_ENTITY_com.thecatapi:image_id_0': { value: '1234', display: null }, PICTURE_0: 'https://example.com/1', URL_1: 'https://example.com/2' },
     `$dialogue @org.thingpedia.dialogue.transaction.execute;
-now => @com.thecatapi.get() => notify
+@com.thecatapi.get()
 #[results=[
   { image_id="1234"^^com.thecatapi:image_id, picture_url="https://example.com/1"^^tt:picture, link="https://example.com/2"^^tt:url }
 ]];
-now => @com.twitter.post_picture(picture_url="https://example.com/1"^^tt:picture)
-#[confirm=enum(confirmed)];`],
+@com.twitter.post_picture(picture_url="https://example.com/1"^^tt:picture)
+#[confirm=enum confirmed];`],
 
-    [`$dialogue @org.thingpedia.dialogue.transaction.execute ; ` +
-     `now => @com.thecatapi.get => notify ` +
-     `#[ results = [ { param:image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , param:picture_url = PICTURE_0 , param:link = URL_0 } ] ] ; ` +
-     `now => @com.twitter.post_picture param:picture_url:Entity(tt:picture) = PICTURE_0 ` +
-     `#[ results = [ { param:tweet_id = GENERIC_ENTITY_com.twitter:tweet_id_0 , param:link = URL_1 } ] ] ;`,
+    [`$dialogue @org.thingpedia.dialogue.transaction . execute ; ` +
+     `@com.thecatapi . get ( ) ` +
+     `#[ results = [ { image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , picture_url = PICTURE_0 , link = URL_0 } ] ] ; ` +
+     `@com.twitter . post_picture ( picture_url = PICTURE_0 ) ` +
+     `#[ results = [ { tweet_id = GENERIC_ENTITY_com.twitter:tweet_id_0 , link = URL_1 } ] ] ;`,
     `here is your twitter picture`, {
         'GENERIC_ENTITY_com.thecatapi:image_id_0': { value: '1234', display: null },
         PICTURE_0: 'https://example.com/1',
@@ -507,19 +455,19 @@ now => @com.twitter.post_picture(picture_url="https://example.com/1"^^tt:picture
         URL_1: 'https://example.com/3'
     },
     `$dialogue @org.thingpedia.dialogue.transaction.execute;
-now => @com.thecatapi.get() => notify
+@com.thecatapi.get()
 #[results=[
   { image_id="1234"^^com.thecatapi:image_id, picture_url="https://example.com/1"^^tt:picture, link="https://example.com/2"^^tt:url }
 ]];
-now => @com.twitter.post_picture(picture_url="https://example.com/1"^^tt:picture)
+@com.twitter.post_picture(picture_url="https://example.com/1"^^tt:picture)
 #[results=[
   { tweet_id="1111"^^com.twitter:tweet_id, link="https://example.com/3"^^tt:url }
 ]];`],
 
-    [`$dialogue @org.thingpedia.dialogue.transaction.execute ; ` +
-     `now => @com.thecatapi.get => notify ` +
-     `#[ results = [ { param:image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , param:picture_url = PICTURE_0 , param:link = URL_0 } ] ] ; ` +
-     `now => @com.twitter.post_picture param:picture_url:Entity(tt:picture) = PICTURE_0 ` +
+    [`$dialogue @org.thingpedia.dialogue.transaction . execute ; ` +
+     `@com.thecatapi . get ( ) ` +
+     `#[ results = [ { image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , picture_url = PICTURE_0 , link = URL_0 } ] ] ; ` +
+     `@com.twitter . post_picture ( picture_url = PICTURE_0 ) ` +
      `#[ results = [ ] ] #[ error = QUOTED_STRING_0 ] ;`,
     `sorry , that did not work : QUOTED_STRING_0`, {
         'GENERIC_ENTITY_com.thecatapi:image_id_0': { value: '1234', display: null },
@@ -530,20 +478,19 @@ now => @com.twitter.post_picture(picture_url="https://example.com/1"^^tt:picture
         QUOTED_STRING_0: 'something bad happened'
     },
     `$dialogue @org.thingpedia.dialogue.transaction.execute;
-now => @com.thecatapi.get() => notify
+@com.thecatapi.get()
 #[results=[
   { image_id="1234"^^com.thecatapi:image_id, picture_url="https://example.com/1"^^tt:picture, link="https://example.com/2"^^tt:url }
 ]];
-now => @com.twitter.post_picture(picture_url="https://example.com/1"^^tt:picture)
-#[results=[
-]]
+@com.twitter.post_picture(picture_url="https://example.com/1"^^tt:picture)
+#[results=[]]
 #[error="something bad happened"];`],
 
-    [`$dialogue @org.thingpedia.dialogue.transaction.execute ; ` +
-     `now => @com.thecatapi.get => notify ` +
-     `#[ results = [ { param:image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , param:picture_url = PICTURE_0 , param:link = URL_0 } ] ] ; ` +
-     `now => @com.twitter.post_picture param:picture_url:Entity(tt:picture) = PICTURE_0 ` +
-     `#[ results = [ ] ] #[ error = enum:my_error_code ] ;`,
+    [`$dialogue @org.thingpedia.dialogue.transaction . execute ; ` +
+     `@com.thecatapi . get ( ) ` +
+     `#[ results = [ { image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , picture_url = PICTURE_0 , link = URL_0 } ] ] ; ` +
+     `@com.twitter . post_picture ( picture_url = PICTURE_0 ) ` +
+     `#[ results = [ ] ] #[ error = enum my_error_code ] ;`,
     `sorry , that did not work : QUOTED_STRING_0`, {
         'GENERIC_ENTITY_com.thecatapi:image_id_0': { value: '1234', display: null },
         PICTURE_0: 'https://example.com/1',
@@ -552,123 +499,127 @@ now => @com.twitter.post_picture(picture_url="https://example.com/1"^^tt:picture
         URL_1: 'https://example.com/3'
     },
     `$dialogue @org.thingpedia.dialogue.transaction.execute;
-now => @com.thecatapi.get() => notify
+@com.thecatapi.get()
 #[results=[
   { image_id="1234"^^com.thecatapi:image_id, picture_url="https://example.com/1"^^tt:picture, link="https://example.com/2"^^tt:url }
 ]];
-now => @com.twitter.post_picture(picture_url="https://example.com/1"^^tt:picture)
-#[results=[
-]]
-#[error=enum(my_error_code)];`],
+@com.twitter.post_picture(picture_url="https://example.com/1"^^tt:picture)
+#[results=[]]
+#[error=enum my_error_code];`],
 
-    [`$dialogue @org.thingpedia.dialogue.transaction.execute ; ` +
-     `now => @com.thecatapi.get => notify ` +
-     `#[ results = [ { param:image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , param:picture_url = PICTURE_0 , param:link = URL_0 } ] ] ` +
+    [`$dialogue @org.thingpedia.dialogue.transaction . execute ; ` +
+     `@com.thecatapi . get ( ) ` +
+     `#[ results = [ { image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , picture_url = PICTURE_0 , link = URL_0 } ] ] ` +
      `#[ count = NUMBER_0 ] ;`,
     `i found NUMBER_0 cat pictures , here is one`, { 'GENERIC_ENTITY_com.thecatapi:image_id_0': { value: '1234', display: null }, PICTURE_0: 'https://example.com/1', URL_0: 'https://example.com/2', NUMBER_0: 55 },
     `$dialogue @org.thingpedia.dialogue.transaction.execute;
-now => @com.thecatapi.get() => notify
+@com.thecatapi.get()
 #[results=[
   { image_id="1234"^^com.thecatapi:image_id, picture_url="https://example.com/1"^^tt:picture, link="https://example.com/2"^^tt:url }
 ]]
 #[count=55];`],
 
-    [`$dialogue @org.thingpedia.dialogue.transaction.execute ; ` +
-     `now => @com.thecatapi.get => notify ` +
-     `#[ results = [ { param:image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , param:picture_url = PICTURE_0 , param:link = URL_0 } ] ] ` +
+    [`$dialogue @org.thingpedia.dialogue.transaction . execute ; ` +
+     `@com.thecatapi . get ( ) ` +
+     `#[ results = [ { image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , picture_url = PICTURE_0 , link = URL_0 } ] ] ` +
      `#[ count = NUMBER_0 ] ` +
      `#[ more = true ] ;`,
     `i found more than NUMBER_0 cat pictures , here is one`, { 'GENERIC_ENTITY_com.thecatapi:image_id_0': { value: '1234', display: null }, PICTURE_0: 'https://example.com/1', URL_0: 'https://example.com/2', NUMBER_0: 55 },
     `$dialogue @org.thingpedia.dialogue.transaction.execute;
-now => @com.thecatapi.get() => notify
+@com.thecatapi.get()
 #[results=[
   { image_id="1234"^^com.thecatapi:image_id, picture_url="https://example.com/1"^^tt:picture, link="https://example.com/2"^^tt:url }
 ]]
 #[count=55]
 #[more=true];`],
 
-    [`$dialogue @org.thingpedia.dialogue.transaction.sys_search_question param:serveCuisine ; ` +
-     `now => @org.schema.restaurant => notify ;`,
+    [`$dialogue @org.thingpedia.dialogue.transaction . sys_search_question ( serveCuisine ) ; ` +
+     `@org.schema . restaurant ( ) ;`,
      'what kind of cuisine are you looking for ?', {},
      `$dialogue @org.thingpedia.dialogue.transaction.sys_search_question(serveCuisine);
-now => @org.schema.restaurant() => notify;`],
+@org.schema.restaurant();`],
 
-    [`$dialogue @org.thingpedia.dialogue.transaction.sys_search_question param:price , param:serveCuisine ; ` +
-     `now => @org.schema.restaurant => notify ;`,
+    [`$dialogue @org.thingpedia.dialogue.transaction . sys_search_question ( price , serveCuisine ) ; ` +
+     `@org.schema . restaurant ( ) ;`,
      'what kind of cuisine and price are you looking for ?', {},
      `$dialogue @org.thingpedia.dialogue.transaction.sys_search_question(price, serveCuisine);
-now => @org.schema.restaurant() => notify;`],
+@org.schema.restaurant();`],
 
-    [`bookkeeping answer @com.google.contacts.get_contacts`,
+    [`$answer ( null ^^tt:function ( " google contacts " ) ) ;`,
     `google contacts`, {},
-    `bookkeeping(answer("com.google.contacts:get_contacts"^^tt:function));`],
+    `$answer(null^^tt:function("google contacts"));`],
 
-    [`now => ( @com.yelp.restaurant ) filter true param:cuisines:Array(Entity(com.yelp:restaurant_cuisine)) => notify`,
+    [`$answer ( @com.google . contacts ) ;`,
+    ``, {},
+    `$answer("com.google.contacts"^^tt:function);`],
+
+    [`@com.yelp . restaurant ( ) filter true ( cuisines ) ;`,
     `i 'm looking for a restaurant , i do n't care what cuisine`, {},
-    `now => (@com.yelp.restaurant()), true(cuisines) => notify;`],
+    `@com.yelp.restaurant() filter true(cuisines);`],
 
-    ['now => ( @org.schema.full.Recipe ) filter param:nutrition.fatContent:Measure(kg) >= MEASURE_kg_0 and param:nutrition.sugarContent:Measure(kg) >= MEASURE_kg_0 => notify',
+    ['@org.schema.full . Recipe ( ) filter nutrition.fatContent >= MEASURE_kg_0 && nutrition.sugarContent >= MEASURE_kg_0 ;',
      `yeah please find a recipe with that fat content and that sugar content`, { MEASURE_kg_0: { value: 13, unit: 'kg' } },
-     `now => (@org.schema.full.Recipe()), (nutrition.fatContent >= 13kg && nutrition.sugarContent >= 13kg) => notify;`],
+     `@org.schema.full.Recipe() filter nutrition.fatContent >= 13kg && nutrition.sugarContent >= 13kg;`],
 
-    ['now => ( @com.uber.price_estimate ) filter param:low_estimate:Currency <= NUMBER_0 unit:$usd => notify',
+    ['@com.uber . price_estimate ( ) filter low_estimate <= NUMBER_0 $usd ;',
      'is it less than $ NUMBER_0 ?', { NUMBER_0: 1000 },
-     'now => (@com.uber.price_estimate()), low_estimate <= 1000$usd => notify;'],
+     '@com.uber.price_estimate() filter low_estimate <= 1000$usd;'],
 
-    ['now => @com.twitter.post attribute:id:Entity(tt:device_id) = GENERIC_ENTITY_tt:device_id_0 param:status:String = QUOTED_STRING_0',
+    ['@com.twitter ( id = GENERIC_ENTITY_tt:device_id_0 ) . post ( status = QUOTED_STRING_0 ) ;',
      'post QUOTED_STRING_0 on it', { 'GENERIC_ENTITY_tt:device_id_0': { value: 'twitter-account-foo', display: "Twitter Account foo" },
                                      QUOTED_STRING_0: 'hello' },
-     `now => @com.twitter(id="twitter-account-foo", name="Twitter Account foo").post(status="hello");`],
+     `@com.twitter(id="twitter-account-foo"^^tt:device_id("Twitter Account foo")).post(status="hello");`],
 
-    ['now => @com.twitter.post attribute:id:Entity(tt:device_id) = GENERIC_ENTITY_tt:device_id_0 param:status:String = QUOTED_STRING_0',
+    ['@com.twitter ( id = GENERIC_ENTITY_tt:device_id_0 ) . post ( status = QUOTED_STRING_0 ) ;',
      'post QUOTED_STRING_0 on it', { 'GENERIC_ENTITY_tt:device_id_0': { value: 'twitter-account-foo' },
                                      QUOTED_STRING_0: 'hello' },
-     `now => @com.twitter(id="twitter-account-foo").post(status="hello");`],
+     `@com.twitter(id="twitter-account-foo"^^tt:device_id).post(status="hello");`],
 
-    [`now => @org.thingpedia.weather.sunrise param:date:Date = new Date ( , , NUMBER_0 , ) => notify`,
+    [`@org.thingpedia.weather . sunrise ( date = new Date ( , , NUMBER_0 ) ) ;`,
      `get sunrise sunset on the NUMBER_0 th`, { NUMBER_0: 25 },
-     `now => @org.thingpedia.weather.sunrise(date=new Date(, , 25)) => notify;`],
+     `@org.thingpedia.weather.sunrise(date=new Date(, , 25));`],
 
-    [`now => @org.thingpedia.weather.sunrise param:date:Date = new Date ( , , 10 , TIME_0 ) => notify`,
+    [`@org.thingpedia.weather . sunrise ( date = new Date ( , , 10 , TIME_0 ) ) ;`,
      `get sunrise sunset on the 10 th at TIME_0`, { TIME_0: { hour: 5, minute: 0 } },
-     `now => @org.thingpedia.weather.sunrise(date=new Date(, , 10, 5, 0, 0)) => notify;`],
+     `@org.thingpedia.weather.sunrise(date=new Date(, , 10, new Time(5, 0)));`],
 
-    [`now => @org.thingpedia.weather.sunrise param:date:Date = new Date ( NUMBER_0 , 3 , , ) => notify`,
+    [`@org.thingpedia.weather . sunrise ( date = new Date ( NUMBER_0 , 3 ) ) ;`,
      `get sunrise sunset on March, NUMBER_0`, { NUMBER_0: 2020 },
-     `now => @org.thingpedia.weather.sunrise(date=new Date(2020, 3, )) => notify;`],
+     `@org.thingpedia.weather.sunrise(date=new Date("2020-03-01T08:00:00.000Z"));`],
 
-    [`now => @org.thingpedia.weather.sunrise param:date:Date = new Date ( 10 , , , ) => notify`,
-     `get sunrise sunset in the 10s`, {},
-     `now => @org.thingpedia.weather.sunrise(date=new Date(2010, , )) => notify;`],
+    [`@org.thingpedia.weather . sunrise ( date = new Date ( 10 ) ) ;`,
+     `get sunrise sunset in the 10 s`, {},
+     `@org.thingpedia.weather.sunrise(date=new Date("2010-01-01T08:00:00.000Z"));`],
 
-    [`now => @org.thingpedia.weather.sunrise param:date:Date = new Date ( enum:monday ) => notify`,
+    [`@org.thingpedia.weather . sunrise ( date = new Date ( NUMBER_0 ) ) ;`,
+     `get sunrise sunset in the NUMBER_0 s`, { NUMBER_0: 20 },
+     `@org.thingpedia.weather.sunrise(date=new Date("2020-01-01T08:00:00.000Z"));`],
+
+    [`@org.thingpedia.weather . sunrise ( date = new Date ( NUMBER_0 ) ) ;`,
+     `get sunrise sunset in the NUMBER_0 s`, { NUMBER_0: 90 },
+     `@org.thingpedia.weather.sunrise(date=new Date("1990-01-01T08:00:00.000Z"));`],
+
+    [`@org.thingpedia.weather . sunrise ( date = new Date ( enum monday ) ) ;`,
      `get sunrise sunset on Monday`, {},
-     `now => @org.thingpedia.weather.sunrise(date=new Date(monday)) => notify;`],
+     `@org.thingpedia.weather.sunrise(date=new Date(enum monday));`],
 
-    [`now => @org.thingpedia.weather.sunrise param:date:Date = new Date ( enum:monday , TIME_0 ) => notify`,
+    [`@org.thingpedia.weather . sunrise ( date = new Date ( enum monday , TIME_0 ) ) ;`,
      `get sunrise sunset on Monday`, { TIME_0: { hour: 5, minute: 0 } },
-     `now => @org.thingpedia.weather.sunrise(date=new Date(monday, 5, 0, 0)) => notify;`],
+     `@org.thingpedia.weather.sunrise(date=new Date(enum monday, new Time(5, 0)));`],
 
-    [`now => ( @com.yelp.restaurant ) filter param:openingHours:RecurrentTimeSpecification == new RecurrentTimeSpecification ( { beginTime = time:0:0:0 , endTime = time:24:0:0 ,`
-    + ` dayOfWeek = enum:friday } , { beginTime = time:0:0:0 , endTime = time:24:0:0 , dayOfWeek = enum:saturday } ) => notify`,
-    `restaurants open 24 hours on friday and saturday`, {},
-    `now => (@com.yelp.restaurant()), openingHours == new RecurrentTimeSpecification({ beginTime = new Time(0, 0), endTime = new Time(24, 0), dayOfWeek = enum(friday), }, { beginTime = new Time(0, 0), endTime = new Time(24, 0), dayOfWeek = enum(saturday), }) => notify;`],
+    [`@com.yelp . restaurant ( ) filter openingHours == new RecurrentTimeSpecification ( { beginTime = new Time ( 0 , 0 ) , endTime = new Time ( NUMBER_0 , 0 ) ,`
+    + ` dayOfWeek = enum friday } , { beginTime = new Time ( 0 , 0 ) , endTime = new Time ( NUMBER_0 , 0 ) , dayOfWeek = enum saturday } ) ;`,
+    `restaurants open NUMBER_0 hours on friday and saturday`, { NUMBER_0: 24 },
+    `@com.yelp.restaurant() filter openingHours == new RecurrentTimeSpecification({ beginTime=new Time(0, 0), endTime=new Time(24, 0), dayOfWeek=enum friday }, { beginTime=new Time(0, 0), endTime=new Time(24, 0), dayOfWeek=enum saturday });`],
 
-    ['let param:foo = ( @org.thingpedia.weather.sunrise param:date:Date = new Date ( enum:monday ) )',
+    ['let foo = @org.thingpedia.weather . sunrise ( date = new Date ( enum monday ) ) ;',
      'let foo be the weather on monday', {},
-     'let result foo := @org.thingpedia.weather.sunrise(date=new Date(monday));'],
-];
+     'let foo = @org.thingpedia.weather.sunrise(date=new Date(enum monday));'],
 
-function stripTypeAnnotations(program) {
-    return program.split(' ').map((token) => {
-        if (token.startsWith('param:'))
-            return 'param:' + token.split(':')[1];
-        else if (token.startsWith('attribute:'))
-            return 'attribute:' + token.split(':')[1];
-        else
-            return token;
-    }).join(' ');
-}
+    ['timer ( base = $now , interval = NUMBER_0 min ) => @com.tesla.car . get_mobile_enabled ( ) ;',
+     'check the status of my tesla car every NUMBER_0 minutes', { NUMBER_0: 44 },
+     'timer(base=$now, interval=44min) => @com.tesla.car.get_mobile_enabled();'],
+];
 
 async function testCase(test, i) {
     if (test.length !== 4)
@@ -678,8 +629,8 @@ async function testCase(test, i) {
     console.log('Test Case #' + (i+1));
     try {
         sequence = sequence.split(' ');
-        let program = NNSyntax.fromNN(sequence, entities);
-        let generated = program.prettyprint(true);
+        let program = Grammar.parse(sequence, Grammar.SyntaxType.Tokenized, entities);
+        let generated = program.prettyprint();
 
         if (generated !== expected) {
             console.error('Test Case #' + (i+1) + ' failed (wrong program)');
@@ -693,7 +644,8 @@ async function testCase(test, i) {
             return;
         await program.typecheck(schemaRetriever);
 
-        let reconstructed = NNSyntax.toNN(program, sentence, entities).join(' ');
+        let entityRetriever = new Grammar.EntityRetriever(sentence, entities);
+        let reconstructed = Grammar.serialize(program, Grammar.SyntaxType.Tokenized, entityRetriever).join(' ');
         if (reconstructed !== test[0]) {
             console.error('Test Case #' + (i+1) + ' failed (wrong NN syntax)');
             console.error('Expected:', test[0]);
@@ -701,25 +653,7 @@ async function testCase(test, i) {
             if (process.env.TEST_MODE)
                 throw new Error(`testNNSyntax ${i+1} FAILED`);
         }
-
-        let withoutTypeAnnotations = NNSyntax.toNN(program, sentence, entities, { typeAnnotations: false }).join(' ');
-        if (withoutTypeAnnotations !== stripTypeAnnotations(test[0])) {
-            console.error('Test Case #' + (i+1) + ' failed (wrong NN syntax without type annotations)');
-            console.error('Expected:', stripTypeAnnotations(test[0]));
-            console.error('Generated:', withoutTypeAnnotations);
-            if (process.env.TEST_MODE)
-                throw new Error(`testNNSyntax ${i+1} FAILED`);
-        }
-
-        /*let parser = new NNOutputParser();
-        let reduces = parser.getReduceSequence({
-            [Symbol.iterator]() {
-                return new SimpleSequenceLexer(sequence);
-
-            }
-        });
-        console.log('Reduces:', reduces);*/
-    } catch (e) {
+    } catch(e) {
         console.error('Test Case #' + (i+1) + ' failed with exception');
         console.error(sequence.join(' '));
         console.error(e.stack);
@@ -728,10 +662,9 @@ async function testCase(test, i) {
     }
 }
 
-async function main() {
-    for (let i = 0; i < TEST_CASES.length; i++)
+export default async function main(max = Infinity) {
+    for (let i = 0; i < Math.min(TEST_CASES.length, max); i++)
         await testCase(TEST_CASES[i], i);
 }
-module.exports = main;
 if (!module.parent)
-    main();
+    main(parseInt(process.argv[2])||Infinity);

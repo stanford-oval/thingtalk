@@ -21,14 +21,12 @@
 import assert from 'assert';
 
 import AstNode, { SourceRange } from './base';
-import { Input, Statement, Rule, Command } from './program';
+import { Input, ExpressionStatement } from './program';
 import * as Optimizer from '../optimize';
-import * as Typechecking from '../typecheck';
-import { prettyprintStatement, prettyprintHistoryItem } from '../prettyprint';
-import { Selector, DeviceSelector, Invocation } from './expression';
+import TypeChecker from '../typecheck';
+import { DeviceSelector, Invocation } from './expression';
 import { Value, NumberValue } from './values';
 import { ExpressionSignature, FunctionDef } from './function_def';
-import { InvocationAction } from './primitive';
 import NodeVisitor from './visitor';
 import {
     OldSlot,
@@ -37,6 +35,9 @@ import {
     recursiveYieldArraySlots
 } from './slots';
 import type SchemaRetriever from '../schema';
+
+import { TokenStream } from '../new-syntax/tokenstream';
+import List from '../utils/list';
 
 type ResultMap = { [key : string] : Value };
 type RawResultMap = { [key : string] : unknown };
@@ -57,6 +58,10 @@ export class DialogueHistoryResultItem extends AstNode {
         this.raw = raw;
     }
 
+    toSource() : TokenStream {
+        return new Value.Object(this.value).toSource();
+    }
+
     clone() : DialogueHistoryResultItem {
         const newValue : ResultMap = {};
         Object.assign(newValue, this.value);
@@ -72,7 +77,7 @@ export class DialogueHistoryResultItem extends AstNode {
         visitor.exit(this);
     }
 
-    *iterateSlots2(schema : ExpressionSignature|null) : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2(schema : ExpressionSignature|null) : Generator<DeviceSelector|AbstractSlot, void> {
         for (const key in this.value) {
             const arg = (schema ? schema.getArgument(key) : null) || null;
             yield* recursiveYieldArraySlots(new ResultSlot(null, {}, arg, this.value, key));
@@ -137,6 +142,31 @@ export class DialogueHistoryResultList extends AstNode {
         this.error = error;
     }
 
+    toSource() : TokenStream {
+        let list : TokenStream;
+        if (this.results.length === 0) {
+            list = List.concat('#[', 'results', '=', '[', ']', ']');
+        } else {
+            list = List.concat('#[', 'results', '=', '[', '\n', '\t+');
+            let first = true;
+            for (const result of this.results) {
+                if (first)
+                    first = false;
+                else
+                    list = List.concat(list, ',', '\n');
+                list = List.concat(list, result.toSource());
+            }
+            list = List.concat(list, '\n', '\t-', ']', ']');
+        }
+        if (!(this.count instanceof Value.Number && this.count.value <= this.results.length))
+            list = List.concat(list, '\n', '#[', 'count', '=', this.count.toSource(), ']');
+        if (this.more)
+            list = List.concat(list, '\n', '#[', 'more', '=', 'true', ']');
+        if (this.error)
+            list = List.concat(list, '\n', '#[', 'error', '=', this.error.toSource(), ']');
+        return list;
+    }
+
     clone() : DialogueHistoryResultList {
         return new DialogueHistoryResultList(this.location, this.results.map((r) => r.clone()), this.count.clone(), this.more, this.error);
     }
@@ -152,7 +182,7 @@ export class DialogueHistoryResultList extends AstNode {
         visitor.exit(this);
     }
 
-    *iterateSlots2(schema : ExpressionSignature|null) : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2(schema : ExpressionSignature|null) : Generator<DeviceSelector|AbstractSlot, void> {
         for (const result of this.results)
             yield* result.iterateSlots2(schema);
     }
@@ -180,7 +210,6 @@ export class DialogueHistoryResultList extends AstNode {
 }
 
 export type ConfirmationState = 'proposed' | 'accepted' | 'confirmed';
-type ExecutableStatement = Rule | Command;
 
 /**
  * A single item in the dialogue state. Consists of a program and optionally
@@ -189,20 +218,20 @@ type ExecutableStatement = Rule | Command;
  * @alias Ast.DialogueHistoryItem
  */
 export class DialogueHistoryItem extends AstNode {
-    stmt : ExecutableStatement;
+    stmt : ExpressionStatement;
     results : DialogueHistoryResultList|null;
     confirm : ConfirmationState;
 
     constructor(location : SourceRange|null,
-                stmt : ExecutableStatement,
+                stmt : ExpressionStatement,
                 results : DialogueHistoryResultList|null,
-                confirm : ConfirmationState|boolean) {
+                confirm : string|boolean) {
         super(location);
-        assert(stmt instanceof Statement);
+        assert(stmt instanceof ExpressionStatement);
         assert(results === null || results instanceof DialogueHistoryResultList);
         if (typeof confirm === 'boolean')
             confirm = confirm ? 'confirmed' : 'accepted';
-        assert(['proposed', 'accepted', 'confirmed'].includes(confirm));
+        assert(confirm === 'proposed' || confirm === 'accepted' || confirm === 'confirmed');
         assert(confirm === 'confirmed' || results === null);
 
         this.stmt = stmt;
@@ -210,22 +239,27 @@ export class DialogueHistoryItem extends AstNode {
         this.confirm = confirm;
     }
 
+    toSource() : TokenStream {
+        // note: we punch through to stmt.expression because stmt.toSource() will
+        // add the semicolon, which we don't want
+        if (this.results !== null)
+            return List.concat(this.stmt.expression.toSource(), '\n', this.results.toSource(), ';');
+        else if (this.confirm !== 'accepted')
+            return List.concat(this.stmt.expression.toSource(), '\n', '#[', 'confirm', '=', new Value.Enum(this.confirm).toSource(), ']', ';');
+        else
+            return List.concat(this.stmt.expression.toSource(), ';');
+    }
+
     private _getFunctions() {
         const functions = new Set;
         const visitor = new class extends NodeVisitor {
             visitInvocation(invocation : Invocation) {
-                assert(invocation.selector.isDevice);
-                functions.add('call:' + (invocation.selector as DeviceSelector).kind
-                    + ':' + invocation.channel);
+                functions.add(`call:${invocation.selector.kind}:${invocation.channel}`);
                 return false;
             }
         };
         this.stmt.visit(visitor);
         return functions;
-    }
-
-    prettyprint(prefix = '') : string {
-        return prettyprintHistoryItem(this, prefix);
     }
 
     compatible(other : DialogueHistoryItem) : boolean {
@@ -278,7 +312,7 @@ export class DialogueHistoryItem extends AstNode {
 
         // HACK prettyprint to compare for equality is quite expensive, we should open-code
         // equality properly
-        if (prettyprintStatement(this.stmt) !== prettyprintStatement(other.stmt))
+        if (this.stmt.prettyprint() !== other.stmt.prettyprint())
             return false;
 
         if (this.results === other.results)
@@ -314,21 +348,12 @@ export class DialogueHistoryItem extends AstNode {
         yield* this.stmt.iterateSlots();
         // no slots in a HistoryResult
     }
-    *iterateSlots2() : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
         yield* this.stmt.iterateSlots2();
         if (this.results === null)
             return;
 
-        let stmtSchema : ExpressionSignature|null = null;
-        if (this.stmt instanceof Command) {
-            if (this.stmt.actions.every((a) => a.isNotify)) {
-                stmtSchema = this.stmt.table ? this.stmt.table.schema : null;
-            } else {
-                const action = this.stmt.actions[0];
-                assert(action instanceof InvocationAction);
-                stmtSchema = action.invocation.schema;
-            }
-        }
+        const stmtSchema = this.stmt.expression.schema!;
         yield* this.results.iterateSlots2(stmtSchema);
     }
 }
@@ -394,13 +419,24 @@ export class DialogueState extends Input {
         return this;
     }
 
+    toSource() : TokenStream {
+        let list : TokenStream = List.concat('$dialogue', '@' + this.policy, '.', this.dialogueAct);
+        if (this.dialogueActParam)
+            list = List.concat(list, '(', List.join(this.dialogueActParam.map((p) => List.singleton(p)), ','), ')');
+        list = List.concat(list, ';');
+        for (const item of this.history)
+            list = List.concat(list, '\n', item.toSource());
+        return list;
+    }
+
     clone() : DialogueState {
         return new DialogueState(this.location, this.policy, this.dialogueAct, this.dialogueActParam,
             this.history.map((item) => item.clone()));
     }
 
     async typecheck(schemas : SchemaRetriever, getMeta = false) : Promise<this> {
-        await Typechecking.typeCheckDialogue(this, schemas, getMeta);
+        const typeChecker = new TypeChecker(schemas, getMeta);
+        await typeChecker.typeCheckDialogue(this);
         return this;
     }
 
@@ -417,7 +453,7 @@ export class DialogueState extends Input {
         for (const item of this.history)
             yield* item.iterateSlots();
     }
-    *iterateSlots2() : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
         for (const item of this.history)
             yield* item.iterateSlots2();
     }

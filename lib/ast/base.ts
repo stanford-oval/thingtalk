@@ -26,7 +26,6 @@ import type {
     ExternalBooleanExpression
 } from './expression';
 import type { Value } from './values';
-import type { Declaration } from './program';
 import type {
     InvocationAction,
     VarRefAction,
@@ -34,39 +33,27 @@ import type {
     VarRefTable,
     VarRefStream
 } from './primitive';
+import type {
+    InvocationExpression,
+    FunctionCallExpression
+} from './expression2';
+import {
+    SourceRange,
+    SourceLocation
+} from '../utils/source_locations';
 
-/**
- * A single point in the source code input stream.
- *
- * @typedef {Object} Ast~SourceLocation
- * @property {number|undefined} offset - the character position in the stream (0-based)
- * @property {number|undefined} line - the line number (1-based)
- * @property {number|undefined} column - the column number (1-based)
- * @property {number|undefined} token - the token index (0-based)
- */
+import { TokenStream, ConstantToken } from '../new-syntax/tokenstream';
+import {
+    SyntaxType,
+    serialize,
+} from '../syntax_api';
+import List from '../utils/list';
 
-export interface SourceLocation {
-    offset : number|undefined;
-    line : number|undefined;
-    column : number|undefined;
-    token : number|undefined;
-}
-
-/**
- * The interval in the source code covered by a single
- * token or source code span.
- *
- * @typedef {Object} Ast~SourceRange
- * @property {Ast~SourceLocation} start - the beginning of the range
- *           (index of the first character)
- * @property {Ast~SourceLocation} end - the end of the range, immediately
- *           after the end of the range
- */
-
-export interface SourceRange {
-    start : SourceLocation;
-    end : SourceLocation;
-}
+// reexport those types for the benefit of ThingTalk API consumers
+export {
+    SourceRange,
+    SourceLocation
+};
 
 export type NLAnnotationMap = { [key : string] : any };
 export type AnnotationMap = { [key : string] : Value };
@@ -80,7 +67,55 @@ export type Primitive = Invocation |
     VarRefTable |
     VarRefAction |
     VarRefStream |
+    FunctionCallExpression |
     ExternalBooleanExpression;
+
+export function implAnnotationsToSource(map : AnnotationMap, prefix = '\n') : TokenStream {
+    let syntax : TokenStream = List.Nil;
+    for (const key in map) {
+        syntax = List.concat(syntax,
+            prefix, '#[', key, '=', map[key].toSource(), ']');
+    }
+    return syntax;
+}
+
+export function toJSON(value : unknown) : TokenStream {
+    if (Array.isArray(value)) {
+        return List.concat('[', List.join(value.map(toJSON), ','), ']');
+    } else if (typeof value === 'object' && value !== null) {
+        let list : TokenStream = List.singleton('{');
+        let first = true;
+        const object = value as { [key : string] : unknown };
+        for (const key in object) {
+            const inner = object[key];
+            if (first) {
+                list = List.concat(list, '\n', '\t+');
+                first = false;
+            } else {
+                list = List.concat(list, ',', '\n');
+            }
+            list = List.concat(list, key, '=', toJSON(inner));
+        }
+        if (first)
+            list = List.concat(list, '}');
+        else
+            list = List.concat(list, '\n', '\t-', '}');
+        return list;
+    } else if (typeof value === 'string') {
+        return List.singleton(new ConstantToken('QUOTED_STRING', value));
+    } else {
+        return List.singleton(String(value));
+    }
+}
+
+export function nlAnnotationsToSource(map : NLAnnotationMap, prefix = '\n') : TokenStream {
+    let syntax : TokenStream = List.Nil;
+    for (const key of Object.keys(map)) {
+        syntax = List.concat(syntax,
+            prefix, '#_[', key, '=', toJSON(map[key]), ']');
+    }
+    return syntax;
+}
 
 /**
  * Base class of AST nodes.
@@ -111,20 +146,16 @@ export default abstract class Node {
         this.location = location;
     }
 
-    /* istanbul ignore next */
     /**
      * Traverse the current subtree using the visitor pattern.
      * See {@link Ast.NodeVisitor} for details and example usage.
      *
      * @param {Ast.NodeVisitor} visitor - the visitor to use.
-     * @abstract
      */
     abstract visit(visitor : NodeVisitor) : void;
 
-    /* istanbul ignore next */
     abstract clone() : Node;
 
-    /* istanbul ignore next */
     /**
      * Optimize this AST node.
      *
@@ -134,6 +165,19 @@ export default abstract class Node {
      */
     optimize() : Node|null {
         return this;
+    }
+
+    /* istanbul ignore next */
+    /**
+     * Convert this AST node to a sequence of tokens.
+     */
+    abstract toSource() : TokenStream;
+
+    /**
+     * Convert this AST node to a normalized surface form in ThingTalk.
+     */
+    prettyprint() : string {
+        return serialize(this, SyntaxType.Normal);
     }
 
     /**
@@ -147,11 +191,11 @@ export default abstract class Node {
      *                                  in the iteration
      * @deprecated Use {@link Ast.NodeVisitor}.
      */
-    iteratePrimitives(includeVarRef : false) : Array<[('action'|'query'|'stream'|'filter'), Invocation|ExternalBooleanExpression]>;
-    iteratePrimitives(includeVarRef : boolean) : Array<[('action'|'query'|'stream'|'filter'), Primitive]>;
-    iteratePrimitives(includeVarRef : boolean) : Array<[('action'|'query'|'stream'|'filter'), Primitive]> {
+    iteratePrimitives(includeVarRef : false) : Array<[('action'|'query'|'stream'|'filter'|'expression'), Invocation|ExternalBooleanExpression]>;
+    iteratePrimitives(includeVarRef : boolean) : Array<[('action'|'query'|'stream'|'filter'|'expression'), Primitive]>;
+    iteratePrimitives(includeVarRef : boolean) : Array<[('action'|'query'|'stream'|'filter'|'expression'), Primitive]> {
         // we cannot yield from inside the visitor, so we buffer everything
-        const buffer : Array<[('action'|'query'|'stream'|'filter'), Primitive]> = [];
+        const buffer : Array<[('action'|'query'|'stream'|'filter'|'expression'), Primitive]> = [];
         const visitor = new class extends NodeVisitor {
             visitVarRefAction(node : VarRefAction) {
                 if (includeVarRef)
@@ -176,15 +220,24 @@ export default abstract class Node {
                     buffer.push(['stream', node]);
                 return true;
             }
-            visitExternalBooleanExpression(node : ExternalBooleanExpression) {
-                buffer.push(['filter', node]);
+            visitFunctionCallExpression(node : FunctionCallExpression) {
+                if (!includeVarRef)
+                    return true;
+                if (node.schema)
+                    buffer.push([node.schema.functionType, node]);
+                else
+                    buffer.push(['expression', node]);
                 return true;
             }
-
-            visitDeclaration(node : Declaration) {
-                // if the declaration refers to a nested scope, we don't recurse into it
-                if (node.type === 'program' || node.type === 'procedure')
-                    return false;
+            visitInvocationExpression(node : InvocationExpression) {
+                if (node.schema)
+                    buffer.push([node.schema.functionType, node.invocation]);
+                else
+                    buffer.push(['expression', node.invocation]);
+                return true;
+            }
+            visitExternalBooleanExpression(node : ExternalBooleanExpression) {
+                buffer.push(['filter', node]);
                 return true;
             }
         };

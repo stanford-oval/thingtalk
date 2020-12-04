@@ -15,12 +15,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-"use strict";
 
-const assert = require('assert');
+import assert from 'assert';
 
-const __builtin = require('../lib/builtin/values');
-const { equality, like } = require('../lib/builtin/primitive_ops');
+import * as __builtin from '../lib/builtin/values';
+import { equality, like } from '../lib/builtin/primitive_ops';
 
 function testValueOf(what, expected) {
     assert.strictEqual(+what, expected);
@@ -33,12 +32,13 @@ function testToString(what, expected) {
 function testEval(obj) {
     const jsSource = obj.toJSSource();
 
+    // eslint-disable-next-line no-eval
     const newobj = eval(jsSource);
     assert(equality(newobj, obj));
     assert.strictEqual(String(newobj), String(obj));
 }
 
-function main() {
+export default function main() {
     assert.throws(() => new __builtin.Time());
     assert.throws(() => new __builtin.Time('x', 'x'));
     assert.throws(() => new __builtin.Time('x', -1));
@@ -149,6 +149,5 @@ function main() {
     assert(!like("john legend", "john the legend"));
     assert(!like("21", "twenty one"));
 }
-module.exports = main;
 if (!module.parent)
     main();

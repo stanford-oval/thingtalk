@@ -21,7 +21,7 @@
 import assert from 'assert';
 import interpolate from 'string-interp';
 
-import { stringEscape } from '../escaping';
+import { stringEscape } from '../utils/escaping';
 import * as I18n from '../i18n';
 
 /**

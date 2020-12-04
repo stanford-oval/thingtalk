@@ -17,143 +17,113 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
-const Ast = require('../lib/ast');
-const NNSyntax = require('../lib/nn-syntax');
-//const NNOutputParser = require('../lib/nn_output_parser');
-const SchemaRetriever = require('../lib/schema').default;
+import assert from 'assert';
 
-const _mockSchemaDelegate = require('./mock_schema_delegate');
+import * as Grammar from '../lib/syntax_api';
+import SchemaRetriever from '../lib/schema';
+
+import _mockSchemaDelegate from './mock_schema_delegate';
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
-/*class SimpleSequenceLexer {
-    constructor(sequence) {
-        this._sequence = sequence;
-        this._i = 0;
-    }
-
-    next() {
-        if (this._i >= this._sequence.length)
-            return { done: true };
-
-        let next = this._sequence[this._i++];
-        if (/^[A-Z]/.test(next)) {
-            // entity
-            next = next.substring(0, next.lastIndexOf('_'));
-        } else if (next.startsWith('@')) {
-            next = 'FUNCTION';
-        } else if (next.startsWith('enum:')) {
-            next = 'ENUM';
-        } else if (next.startsWith('param:')) {
-            next = 'PARAM_NAME';
-        } else if (next.startsWith('unit:')) {
-            next = 'UNIT';
-        }
-        return { done: false, value: next };
-    }
-}*/
-
 const TEST_CASES = [
-    [`monitor ( @com.xkcd.get_comic ) => notify`, {}],
+    [`monitor ( @com.xkcd . get_comic ( ) ) ;`, {}],
 
-    [`now => @com.twitter.post param:status:String = QUOTED_STRING_0`,
+    [`@com.twitter . post ( status = QUOTED_STRING_0 ) ;`,
      {'QUOTED_STRING_0': 'hello'}],
 
-    [`now => @com.twitter.post param:status:String = ""`, {}],
+    [`@com.twitter . post ( status = "" ) ;`, {}],
 
-    [`now => @com.xkcd.get_comic param:number:Number = NUMBER_0 => notify`,
+    [`@com.xkcd . get_comic ( number = NUMBER_0 ) ;`,
      {'NUMBER_0': 1234}],
 
-    [`now => @com.xkcd.get_comic param:number:Number = NUMBER_0 => @com.twitter.post on param:status:String = param:title:String`,
+    [`@com.xkcd . get_comic ( number = NUMBER_0 ) => @com.twitter . post ( status = title ) ;`,
      {'NUMBER_0': 1234}],
 
-    [`now => ( @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_0 param:low:Number = NUMBER_1 ) join ( @com.xkcd.get_comic ) on param:number:Number = param:random:Number => notify`,
+    [`@org.thingpedia.builtin.thingengine.builtin . get_random_between ( high = NUMBER_0 , low = NUMBER_1 ) => @com.xkcd . get_comic ( number = random ) ;`,
      {'NUMBER_0': 55, 'NUMBER_1': 1024}],
 
-    [`( ( timer base = now , interval = DURATION_0 ) => ( @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_0 param:low:Number = NUMBER_1 ) ) => ( @com.xkcd.get_comic ) on param:number:Number = param:random:Number => notify`,
+    [`timer ( base = $now , interval = DURATION_0 ) => @org.thingpedia.builtin.thingengine.builtin . get_random_between ( high = NUMBER_0 , low = NUMBER_1 ) => @com.xkcd . get_comic ( number = random ) ;`,
     {'NUMBER_0': 55, 'NUMBER_1': 1024, DURATION_0: { value: 24, unit: 'h'}}],
 
-    [`( timer base = now , interval = DURATION_0 ) => ( ( @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_0 param:low:Number = NUMBER_1 ) join ( @com.xkcd.get_comic ) on param:number:Number = param:random:Number ) => notify`,
+    [`timer ( base = $now , interval = DURATION_0 ) => @org.thingpedia.builtin.thingengine.builtin . get_random_between ( high = NUMBER_0 , low = NUMBER_1 ) => @com.xkcd . get_comic ( number = random ) ;`,
      {'NUMBER_0': 55, 'NUMBER_1': 1024, DURATION_0: { value: 24, unit: 'h'}}],
 
-    [`now => @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_0 param:low:Number = NUMBER_1 => notify`,
+    [`@org.thingpedia.builtin.thingengine.builtin . get_random_between ( high = NUMBER_0 , low = NUMBER_1 ) ;`,
     {'NUMBER_0': 55, 'NUMBER_1': 1024}],
 
-    [`now => @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_0 param:low:Number = NUMBER_1 => notify`,
+    [`@org.thingpedia.builtin.thingengine.builtin . get_random_between ( high = NUMBER_0 , low = NUMBER_1 ) ;`,
     {'NUMBER_0': 1024, 'NUMBER_1': 55}],
 
-    [`monitor ( @thermostat.get_temperature ) => notify`, {}],
+    [`monitor ( @thermostat . get_temperature ( ) ) ;`, {}],
 
-    [`monitor ( ( @thermostat.get_temperature ) filter param:value:Measure(C) >= MEASURE_C_0 ) => notify`,
+    [`monitor ( @thermostat . get_temperature ( ) filter value >= MEASURE_C_0 ) ;`,
      {'MEASURE_C_0': { unit: 'F', value: 70 }}],
 
-    [`now => ( @com.bing.image_search ) filter param:width:Number >= NUMBER_0 or param:height:Number >= NUMBER_1 => notify`,
+    [`@com.bing . image_search ( ) filter height >= NUMBER_0 || width >= NUMBER_1 ;`,
     { NUMBER_0: 100, NUMBER_1:200 }],
 
-    [`now => ( @com.bing.image_search ) filter param:width:Number <= NUMBER_0 and param:width:Number >= NUMBER_1 or param:height:Number >= NUMBER_2 => notify`,
+    [`@com.bing . image_search ( ) filter ( height >= NUMBER_0 || width <= NUMBER_1 ) && width >= NUMBER_2 ;`,
     {NUMBER_0: 100, NUMBER_1:200, NUMBER_2: 500}],
 
-    [`now => ( @com.bing.image_search ) filter param:width:Number >= NUMBER_0 or param:height:Number >= NUMBER_0 => notify`,
+    [`@com.bing . image_search ( ) filter height >= NUMBER_0 || width >= NUMBER_0 ;`,
     {NUMBER_0: 100}],
 
-    [`now => ( @com.bing.image_search ) filter param:width:Number >= NUMBER_0 => notify`,
+    [`@com.bing . image_search ( ) filter width >= NUMBER_0 ;`,
      {NUMBER_0: 100 }],
 
-    ['monitor ( ( @com.instagram.get_pictures param:count:Number = NUMBER_0 ) filter param:caption:String in_array [ QUOTED_STRING_0 , QUOTED_STRING_1 ] ) => notify',
+    ['monitor ( @com.instagram . get_pictures ( count = NUMBER_0 ) filter in_array ( caption , [ QUOTED_STRING_0 , QUOTED_STRING_1 ] ) ) ;',
     {NUMBER_0: 100, QUOTED_STRING_0: 'abc', QUOTED_STRING_1: 'def'}],
 
-    ['timer base = now , interval = DURATION_0 => notify',
+    ['timer ( base = $now , interval = DURATION_0 ) ;',
      {DURATION_0: { value: 24, unit: 'h'}}],
 
-    ['monitor ( ( @com.phdcomics.get_post ) filter not param:title:String =~ QUOTED_STRING_0 ) => notify',
+    ['monitor ( @com.phdcomics . get_post ( ) filter ! ( title =~ QUOTED_STRING_0 ) ) ;',
      {QUOTED_STRING_0: 'abc'}],
 
-    ['now => ( @com.uber.price_estimate param:end:Location = location:home param:start:Location = location:work ) filter param:low_estimate:Currency >= CURRENCY_0 => notify',
+    ['@com.uber . price_estimate ( end = $location . home , start = $location . work ) filter low_estimate >= CURRENCY_0 ;',
      {CURRENCY_0: { value: 50, unit: 'usd' } }],
 
-    ['now => ( @com.nytimes.get_front_page ) filter param:updated:Date >= now - DURATION_0 => notify',
+    ['@com.nytimes . get_front_page ( ) filter updated >= $now - DURATION_0 ;',
      { DURATION_0: { value: 24, unit: 'h' } }],
 
-    [`executor = USERNAME_0 : now => @com.twitter.post`,
+    [`#[ executor = USERNAME_0 ] @com.twitter . post ( ) ;`,
      { USERNAME_0: 'bob' }],
 
-
-    [`policy param:source:Entity(tt:contact) == USERNAME_0 : now => @com.twitter.post filter param:status:String =~ QUOTED_STRING_0`,
+    [`$policy { source == USERNAME_0 : now => @com.twitter . post filter status =~ QUOTED_STRING_0 ; }`,
      { USERNAME_0: 'bob', QUOTED_STRING_0: 'foo' }],
 
-    [`now => @org.thingpedia.weather.sunrise param:date:Date = DATE_0 => notify`,
+    [`@org.thingpedia.weather . sunrise ( date = DATE_0 ) ;`,
      { DATE_0: new Date(2018, 5, 23, 0, 0, 0) }],
 
-    [`now => @org.thingpedia.weather.sunrise param:date:Date = DATE_0 => notify`,
+    [`@org.thingpedia.weather . sunrise ( date = DATE_0 ) ;`,
      { DATE_0: new Date(2018, 5, 23, 10, 40, 0) }],
 
-    ['now => ( @com.bing.web_search ) join ( @com.yandex.translate.translate param:target_language:Entity(tt:iso_lang_code) = GENERIC_ENTITY_tt:iso_lang_code_0 ) on param:text:String = event => notify',
+    ['@com.bing . web_search ( ) => @com.yandex.translate . translate ( target_language = GENERIC_ENTITY_tt:iso_lang_code_0 , text = $result ) ;',
     { 'GENERIC_ENTITY_tt:iso_lang_code_0': { value: 'it', display: "Italian" } }],
 
-    ['now => ( @com.gmail.inbox ) [ 1 : NUMBER_0 ] => notify',
+    ['@com.gmail . inbox ( ) [ 1 : NUMBER_0 ] ;',
     { NUMBER_0: 15 }],
 
-    ['now => ( @com.gmail.inbox ) [ NUMBER_0 : NUMBER_1 ] => notify',
+    ['@com.gmail . inbox ( ) [ NUMBER_0 : NUMBER_1 ] ;',
     { NUMBER_0: 21, NUMBER_1: 23 }],
 
-    ['now => ( @com.gmail.inbox ) [ NUMBER_0 , NUMBER_1 , NUMBER_2 ] => notify',
+    ['@com.gmail . inbox ( ) [ NUMBER_0 , NUMBER_1 , NUMBER_2 ] ;',
     { NUMBER_0: 21, NUMBER_1: 28, NUMBER_2: 22 }],
 
-    ['now => ( @com.gmail.inbox ) [ NUMBER_0 , NUMBER_1 , NUMBER_0 ] => notify',
+    ['@com.gmail . inbox ( ) [ NUMBER_0 , NUMBER_1 , NUMBER_0 ] ;',
     { NUMBER_0: 22, NUMBER_1: 29 }],
 
-    ['bookkeeping answer LOCATION_0',
+    ['$answer ( LOCATION_0 ) ;',
      { LOCATION_0: { latitude: 0, longitude: 0, display: "North Pole" } }],
 
-    ['bookkeeping answer TIME_0',
+    ['$answer ( TIME_0 ) ;',
      { TIME_0: { hour: 18, minute: 0, second: 0 } }],
 
-    ['now => @com.thecatapi.get param:count:Number = NUMBER_0 => notify',
+    ['@com.thecatapi . get ( count = NUMBER_0 ) ;',
      { NUMBER_0: 13 }],
 
-    ['now => ( @org.schema.full.Recipe ) filter param:nutrition.fatContent:Measure(kg) >= MEASURE_kg_0 => notify',
+    ['@org.schema.full . Recipe ( ) filter nutrition.fatContent >= MEASURE_kg_0 ;',
      { MEASURE_kg_0: { value: 13, unit: 'kg' } }]
 ];
 
@@ -165,11 +135,12 @@ async function testCase(test, i) {
     console.log('Test Case #' + (i+1));
     try {
         sequence = sequence.split(' ');
-        let program = NNSyntax.fromNN(sequence, entities);
+        let program = Grammar.parse(sequence, Grammar.SyntaxType.Tokenized, entities);
         await program.typecheck(schemaRetriever);
 
         const into = {};
-        let reconstructed = NNSyntax.toNN(program, '', into, { allocateEntities: true }).join(' ');
+        const allocator = new Grammar.SequentialEntityAllocator(into);
+        let reconstructed = Grammar.serialize(program, Grammar.SyntaxType.Tokenized, allocator).join(' ');
         if (reconstructed !== test[0]) {
             console.error('Test Case #' + (i+1) + ' failed (wrong NN syntax)');
             console.error('Expected:', test[0]);
@@ -179,7 +150,7 @@ async function testCase(test, i) {
         }
 
         assert.deepStrictEqual(into, entities);
-    } catch (e) {
+    } catch(e) {
         console.error('Test Case #' + (i+1) + ' failed with exception');
         console.error(sequence.join(' '));
         console.error(e);
@@ -188,10 +159,9 @@ async function testCase(test, i) {
     }
 }
 
-async function main() {
+export default async function main() {
     for (let i = 0; i < TEST_CASES.length; i++)
         await testCase(TEST_CASES[i], i);
 }
-module.exports = main;
 if (!module.parent)
     main();

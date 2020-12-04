@@ -17,12 +17,11 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const Grammar = require('../lib/grammar_api');
-const Mixins = require('./mixins.json');
-const fs = require('fs');
-const util = require('util');
+import * as Grammar from '../lib/syntax_api';
+import Mixins from './mixins.json';
+import * as fs from 'fs';
+import * as util from 'util';
 
 function uniform(array, rng = Math.random) {
     return array[Math.floor(rng() * array.length)];
@@ -37,7 +36,7 @@ function exampleToCode(example) {
     return clone.prettyprint();
 }
 
-module.exports = class FileThingpediaClient {
+export default class FileThingpediaClient {
     constructor(args) {
         this._locale = args.locale;
         this._devices = null;
@@ -183,4 +182,4 @@ module.exports = class FileThingpediaClient {
         }).filter((e) => !!e);
         return [devices, examples];
     }
-};
+}

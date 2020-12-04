@@ -15,12 +15,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-"use strict";
 
-const assert = require('assert');
+import assert from 'assert';
 
-const { parseDate, normalizeDate } = require('../lib/date_utils');
-const { DateEdge, DatePiece, Time } = require('../lib/ast');
+import { parseDate, normalizeDate } from '../lib/utils/date_utils';
+import { DateEdge, DatePiece, Time, Value } from '../lib/ast';
 
 function test(value, expected) {
     expected = parseDate(expected);
@@ -28,7 +27,7 @@ function test(value, expected) {
     assert.strictEqual(+normalizeDate(value), +expected);
 }
 
-function main() {
+export default function main() {
     test(parseDate({ year: 2018, month: 5, day: 23 }), new Date(2018, 4, 23));
     test(parseDate({ year: 2018, month: 5, day: 23, hour: 10 }), new Date(2018, 4, 23, 10));
     test(parseDate({ year: 2018, month: 5, day: 23, hour: 10, minute: 15 }), new Date(2018, 4, 23, 10, 15));
@@ -111,8 +110,7 @@ function main() {
     eleven_thirty.setMinutes(30);
     eleven_thirty.setSeconds(0);
     eleven_thirty.setMilliseconds(0);
-    test(new DatePiece(null, null, 25, new Time.Absolute(11, 30, 0)), eleven_thirty);
+    test(new DatePiece(null, null, 25, new Value.Time(new Time.Absolute(11, 30, 0))), eleven_thirty);
 }
-module.exports = main;
 if (!module.parent)
     main();

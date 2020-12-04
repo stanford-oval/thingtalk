@@ -18,45 +18,37 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import * as Ast from '../ast';
+import { TokenStream } from '../new-syntax/tokenstream';
+import List from '../utils/list';
 
-export interface MeasureEntity {
-    unit : string;
-    value : number;
-}
-export interface LocationEntity {
-    latitude : number;
-    longitude : number;
-    display ?: string|null;
-}
-export interface TimeEntity {
-    hour : number;
-    minute : number;
-    second : number;
-}
-export interface GenericEntity {
-    value : string|null;
-    display ?: string|null;
-}
-export interface DateEntity {
-    year : number;
-    month : number;
-    day : number;
-    hour ?: number;
-    minute ?: number;
-    second ?: number;
+export enum SyntaxPriority {
+    // priority of table-like expressions
+    Chain = 0,
+    Projection = 1,
+    Filter = 2,
+    Alias = 3,
+    Index = 4,
+
+    // low-priority scalar expression
+    ArrayField = 5,
+
+    // priority of boolean expressions
+    Or = 6,
+    And = 7,
+    Comp = 8,
+    Not = 9,
+
+    // priority of scalar expression
+    Add = 10,
+    Mul = 11,
+    Exp = 12,
+
+    Primary = 13,
 }
 
-export type AnyEntity =
-    MeasureEntity |
-    LocationEntity |
-    TimeEntity |
-    DateEntity |
-    GenericEntity |
-    Ast.Value |
-    Date |
-    string |
-    number |
-    undefined;
-
-export type EntityMap = { [key : string] : AnyEntity };
+export function addParenthesis(p1 : SyntaxPriority, p2 : SyntaxPriority, syntax : TokenStream) : TokenStream {
+    if (p1 > p2)
+        return List.concat('(', syntax, ')');
+    else
+        return List.concat(syntax);
+}

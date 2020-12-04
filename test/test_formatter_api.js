@@ -17,19 +17,16 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const Q = require('q');
-Q.longStackSupport = true;
+import assert from 'assert';
 
-const SchemaRetriever = require('../lib/schema').default;
-const assert = require('assert');
+import SchemaRetriever from '../lib/schema';
 
-const Formatter = require('../lib/runtime/formatter').default;
-const builtin = require('../lib/builtin/values');
-const I18n = require('../lib/i18n');
+import Formatter from '../lib/runtime/formatter';
+import * as builtin from '../lib/builtin/values';
+import * as I18n from '../lib/i18n';
 
-const _mockSchemaDelegate = require('./mock_schema_delegate');
+import _mockSchemaDelegate from './mock_schema_delegate';
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 const formatter = new Formatter('en-US', 'America/Los_Angeles', schemaRetriever);
@@ -42,7 +39,7 @@ function complexFormatFunction(argMap, hint, formatter) {
     return [argMap.v1 + ' ' + argMap.v2, argMap.v3];
 }
 
-function main() {
+export default function main() {
     let date = new Date(2018, 4, 23, 21, 18, 0);
     let date2 = new Date(2018, 12, 7, 10, 30, 0);
 
@@ -280,6 +277,5 @@ function main() {
         location: new builtin.Location(-90, 0, 'South pole')
     })), '[{"type":"map","lat":-90,"lon":0,"display":null},{"type":"map","lat":-90,"lon":0,"display":null}]');
 }
-module.exports = main;
 if (!module.parent)
     main();

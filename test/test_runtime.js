@@ -17,19 +17,17 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const Q = require('q');
-Q.longStackSupport = true;
-const assert = require('assert');
 
-const Compiler = require('../lib/compiler').default;
-const SchemaRetriever = require('../lib/schema').default;
+import assert from 'assert';
 
-const ExecEnvironment = require('../lib/runtime/exec_environment').default;
-const builtin = require('../lib/builtin/values');
+import Compiler from '../lib/compiler';
+import SchemaRetriever from '../lib/schema';
 
-const _mockSchemaDelegate = require('./mock_schema_delegate');
+import ExecEnvironment from '../lib/runtime/exec_environment';
+import * as builtin from '../lib/builtin/values';
+
+import _mockSchemaDelegate from './mock_schema_delegate';
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 class MockAssistant {
@@ -209,28 +207,7 @@ const TEST_CASES = [
     }
     ]],
 
-    [`now => @com.xkcd.get_comic() => { notify; @com.twitter.post(status=title); };`,
-    null,
-    { 'com.xkcd:get_comic': [
-        { number: 1234, title: 'Douglas Engelbart (1925-2013)',
-          link: 'https://xkcd.com/1234/',
-          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' }
-    ]},
-    [
-    { type: 'output',
-      outputType: 'com.xkcd:get_comic',
-      value: { number: 1234, title: 'Douglas Engelbart (1925-2013)',
-        link: 'https://xkcd.com/1234/',
-        picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' }
-    },
-    {
-     type: 'action',
-     fn: 'com.twitter:post',
-     params: { status: 'Douglas Engelbart (1925-2013)' }
-    }
-    ]],
-
-    [`now => @com.xkcd.get_comic(), number <= 1000 => { notify; @com.twitter.post(status=title); };`,
+    [`now => @com.xkcd.get_comic(), number <= 1000 => @com.twitter.post(status=title);`,
     null,
     { 'com.xkcd:get_comic': [
         { number: 1234, title: 'Douglas Engelbart (1925-2013)',
@@ -239,7 +216,7 @@ const TEST_CASES = [
     ]},
     []],
 
-    [`now => @com.xkcd.get_comic(), number >= 1234 => { notify; @com.twitter.post(status=title); };`,
+    [`now => @com.xkcd.get_comic(), number >= 1234 => @com.twitter.post(status=title);`,
     null,
     { 'com.xkcd:get_comic': [
         { number: 1234, title: 'Douglas Engelbart (1925-2013)',
@@ -247,12 +224,6 @@ const TEST_CASES = [
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' }
     ]},
     [
-    { type: 'output',
-      outputType: 'com.xkcd:get_comic',
-      value: { number: 1234, title: 'Douglas Engelbart (1925-2013)',
-        link: 'https://xkcd.com/1234/',
-        picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' }
-    },
     {
      type: 'action',
      fn: 'com.twitter:post',
@@ -260,7 +231,7 @@ const TEST_CASES = [
     }
     ]],
 
-    [`now => @com.xkcd.get_comic() => @com.twitter.post(status=$event);`,
+    [`now => @com.xkcd.get_comic() => @com.twitter.post(status=$result);`,
     null,
     { 'com.xkcd:get_comic': [
         { number: 1234, title: 'Douglas Engelbart (1925-2013)',
@@ -279,7 +250,7 @@ some alt text` }
     }
     ]],
 
-    [`now => @com.xkcd.get_comic() => @com.twitter.post(status=$event.program_id);`,
+    [`now => @com.xkcd.get_comic() => @com.twitter.post(status=$program_id);`,
     null,
     { 'com.xkcd:get_comic': [
         { number: 1234, title: 'Douglas Engelbart (1925-2013)',
@@ -295,7 +266,7 @@ some alt text` }
     }
     ]],
 
-    [`now => @com.xkcd.get_comic() => @com.twitter.post(status=$event.type);`,
+    [`now => @com.xkcd.get_comic() => @com.twitter.post(status=$type);`,
     null,
     { 'com.xkcd:get_comic': [
         { number: 1234, title: 'Douglas Engelbart (1925-2013)',
@@ -311,7 +282,7 @@ some alt text` }
     }
     ]],
 
-    [`now => @com.twitter.post(status=$event.program_id);`,
+    [`now => @com.twitter.post(status=$program_id);`,
     null,
     {},
     [
@@ -322,7 +293,7 @@ some alt text` }
     }
     ]],
 
-    [`monitor @com.xkcd.get_comic() => @com.twitter.post(status=title);`,
+    [`monitor(@com.xkcd.get_comic()) => @com.twitter.post(status=title);`,
     { fn: 'com.xkcd:get_comic',
       value: [
         { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
@@ -339,7 +310,7 @@ some alt text` }
     }
     ]],
 
-    [`monitor @com.xkcd.get_comic(), number >= 1235 => @com.twitter.post(status=title);`,
+    [`monitor(@com.xkcd.get_comic(), number >= 1235) => @com.twitter.post(status=title);`,
     { fn: 'com.xkcd:get_comic',
       value: [
         { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
@@ -359,7 +330,7 @@ some alt text` }
     }
     ]],
 
-    [`monitor @com.xkcd.get_comic(), number >= 1234 => @com.twitter.post(status=title);`,
+    [`monitor(@com.xkcd.get_comic(), number >= 1234) => @com.twitter.post(status=title);`,
     { fn: 'com.xkcd:get_comic',
       value: [
         { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
@@ -384,7 +355,7 @@ some alt text` }
     }
     ]],
 
-    [`monitor @com.xkcd.get_comic() => @com.twitter.post(status=title);`,
+    [`monitor(@com.xkcd.get_comic()) => @com.twitter.post(status=title);`,
     { fn: 'com.xkcd:get_comic',
       value: [
         { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
@@ -421,7 +392,7 @@ some alt text` }
     }
     ]],
 
-    [`monitor @com.xkcd.get_comic(), number >= 1234 => @com.twitter.post(status=title);`,
+    [`monitor(@com.xkcd.get_comic(), number >= 1234) => @com.twitter.post(status=title);`,
     { fn: 'com.xkcd:get_comic',
       value: [
         { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
@@ -449,7 +420,7 @@ some alt text` }
     }
     ]],
 
-    [`monitor @com.xkcd.get_comic(), number >= 1234 => @com.twitter.post(status=title);`,
+    [`monitor(@com.xkcd.get_comic(), number >= 1234) => @com.twitter.post(status=title);`,
     { fn: 'com.xkcd:get_comic',
       value: [
         { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
@@ -482,7 +453,7 @@ some alt text` }
     }
     ]],
 
-    [`monitor @com.xkcd.get_comic(), number >= 1234 => @com.twitter.post(status=title);`,
+    [`monitor(@com.xkcd.get_comic(), number >= 1234) => @com.twitter.post(status=title);`,
     { fn: 'com.xkcd:get_comic',
       value: [
         { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
@@ -515,7 +486,7 @@ some alt text` }
     },
     ]],
 
-    [`monitor @com.xkcd.get_comic(), number >= 1234 => @com.twitter.post(status=title);`,
+    [`monitor(@com.xkcd.get_comic(), number >= 1234) => @com.twitter.post(status=title);`,
     { fn: 'com.xkcd:get_comic',
       value: [
         { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
@@ -556,7 +527,7 @@ some alt text` }
     },
     ]],
 
-    [`monitor @com.xkcd.get_comic(), number >= 1234 => @com.twitter.post(status=title);`,
+    [`monitor(@com.xkcd.get_comic(), number >= 1234) => @com.twitter.post(status=title);`,
     { fn: 'com.xkcd:get_comic',
       value: [
         { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
@@ -597,7 +568,7 @@ some alt text` }
     },
     ]],
 
-    [`monitor @com.xkcd.get_comic(), number >= 1234 => @com.twitter.post(status=title);`,
+    [`monitor(@com.xkcd.get_comic(), number >= 1234) => @com.twitter.post(status=title);`,
     { fn: 'com.xkcd:get_comic',
       value: [
         { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
@@ -625,7 +596,7 @@ some alt text` }
     }
     ]],
 
-    [`monitor @com.xkcd.get_comic() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code) on (text=title) => @com.twitter.post(status=translated_text);`,
+    [`monitor(@com.xkcd.get_comic()) => @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code, text=title) => @com.twitter.post(status=translated_text);`,
     { fn: 'com.xkcd:get_comic',
       value: [
         { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
@@ -651,7 +622,7 @@ some alt text` }
     }
     ]],
 
-    [`monitor @com.xkcd.get_comic() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code) on (text=title) => @com.twitter.post(status=translated_text);`,
+    [`monitor(@com.xkcd.get_comic()) => @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code, text=title) => @com.twitter.post(status=translated_text);`,
     { fn: 'com.xkcd:get_comic',
       value: [
         { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
@@ -687,7 +658,7 @@ some alt text` }
     }
     ]],
 
-    [`monitor @com.xkcd.get_comic() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code) on (text=title) => @com.twitter.post(status=translated_text);`,
+    [`monitor(@com.xkcd.get_comic()) => @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code, text=title) => @com.twitter.post(status=translated_text);`,
     { fn: 'com.xkcd:get_comic',
       value: [
         { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
@@ -723,7 +694,7 @@ some alt text` }
     }
     ]],
 
-    [`(monitor @com.xkcd.get_comic() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code) on (text=title)), translated_text =~ "deciso" => @com.twitter.post(status=translated_text);`,
+    [`monitor(@com.xkcd.get_comic()) => @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code, text=title), translated_text =~ "deciso" => @com.twitter.post(status=translated_text);`,
     { fn: 'com.xkcd:get_comic',
       value: [
         { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
@@ -754,7 +725,7 @@ some alt text` }
     }
     ]],
 
-    [`(monitor @com.xkcd.get_comic() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code) on (text=title)), translated_text == "Deciso" => @com.twitter.post(status=translated_text);`,
+    [`monitor(@com.xkcd.get_comic()) => @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code, text=title), translated_text == "Deciso" => @com.twitter.post(status=translated_text);`,
     { fn: 'com.xkcd:get_comic',
       value: [
         { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
@@ -785,7 +756,7 @@ some alt text` }
     }
     ]],
 
-    [`(monitor @com.xkcd.get_comic() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code), translated_text =~ "deciso" on (text=title)) => @com.twitter.post(status=translated_text);`,
+    [`monitor(@com.xkcd.get_comic()) => @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code,text=title), translated_text =~ "deciso" => @com.twitter.post(status=translated_text);`,
     { fn: 'com.xkcd:get_comic',
       value: [
         { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
@@ -817,7 +788,7 @@ some alt text` }
     ]],
 
     [
-    `now => (@com.xkcd.get_comic() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code), translated_text =~ "deciso" on (text=title)) => notify;`,
+    `now => @com.xkcd.get_comic() => @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code, text=title), translated_text =~ "deciso" => notify;`,
     {},
     {
         'com.xkcd:get_comic': [() => {
@@ -853,7 +824,7 @@ some alt text` }
     ],
 
     [
-    `now => (@com.xkcd.get_comic() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code) on (text=title)), translated_text =~ "deciso" => notify;`,
+    `now => @com.xkcd.get_comic() => @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code, text=title), translated_text =~ "deciso" => notify;`,
     {},
     {
         'com.xkcd:get_comic': [() => {
@@ -889,7 +860,7 @@ some alt text` }
     ],
 
     [
-    `now => (@com.xkcd.get_comic() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code) on (text=title)), translated_text =~ "fuffa" => notify;`,
+    `now => @com.xkcd.get_comic() => @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code, text=title), translated_text =~ "fuffa" => notify;`,
     {},
     {
         'com.xkcd:get_comic': [() => {
@@ -914,7 +885,7 @@ some alt text` }
     ],
 
     [
-    `now => @com.tesla.car.get_drive_state() join @com.tesla.car.get_charge_state(),  charge_port_latch == "Engaged" => notify;`,
+    `now => @com.tesla.car.get_drive_state() => @com.tesla.car.get_charge_state(),  charge_port_latch == "Engaged" => notify;`,
     {},
     {
         'com.tesla.car:get_drive_state': [() => {
@@ -938,7 +909,7 @@ some alt text` }
     ],
 
     [
-    `now => @com.tesla.car.get_drive_state() join @com.tesla.car.get_charge_state(),  !(charge_port_latch == "Engaged") => notify;`,
+    `now => @com.tesla.car.get_drive_state() => @com.tesla.car.get_charge_state(),  !(charge_port_latch == "Engaged") => notify;`,
     {},
     {
         'com.tesla.car:get_drive_state': [() => {
@@ -956,7 +927,7 @@ some alt text` }
     ],
 
     [
-    `now => (aggregate count of @com.xkcd.get_comic()) => notify;`,
+    `now => count(@com.xkcd.get_comic()) => notify;`,
     {},
     {
         'com.xkcd:get_comic': [{
@@ -977,7 +948,7 @@ some alt text` }
     ],
 
     [
-    `now => (aggregate count of @com.xkcd.get_comic()) => notify;`,
+    `now => count(@com.xkcd.get_comic()) => notify;`,
     {},
     {
         'com.xkcd:get_comic': [{
@@ -1002,7 +973,7 @@ some alt text` }
     ],
 
     [
-    `now => (aggregate count title of @com.xkcd.get_comic()) => notify;`,
+    `now => count(title of @com.xkcd.get_comic()) => notify;`,
     {},
     {
         'com.xkcd:get_comic': [{
@@ -1027,7 +998,7 @@ some alt text` }
     ],
 
     [
-    `now => (aggregate min file_size of @com.google.drive.list_drive_files()) => notify;`,
+    `now => min(file_size of @com.google.drive.list_drive_files()) => notify;`,
     {},
     {
         'com.google.drive:list_drive_files': [{
@@ -1061,7 +1032,7 @@ some alt text` }
     ],
 
     [
-    `now => (aggregate avg file_size of @com.google.drive.list_drive_files()) => notify;`,
+    `now => avg(file_size of @com.google.drive.list_drive_files()) => notify;`,
     {},
     {
         'com.google.drive:list_drive_files': [{
@@ -1095,7 +1066,7 @@ some alt text` }
     ],
 
     [
-    `now => (sort file_size asc of @com.google.drive.list_drive_files())[1] => notify;`,
+    `now => sort(file_size asc of @com.google.drive.list_drive_files())[1] => notify;`,
     {},
     {
         'com.google.drive:list_drive_files': [{
@@ -1149,7 +1120,7 @@ some alt text` }
     ],
 
     [
-    `now => (sort file_size asc of @com.google.drive.list_drive_files())[1] => notify;`,
+    `now => sort(file_size asc of @com.google.drive.list_drive_files())[1] => notify;`,
     {},
     {
         'com.google.drive:list_drive_files': [{
@@ -1203,7 +1174,7 @@ some alt text` }
     ],
 
     [
-    `now => (sort file_size asc of @com.google.drive.list_drive_files())[-1] => notify;`,
+    `now => sort(file_size asc of @com.google.drive.list_drive_files())[-1] => notify;`,
     {},
     {
         'com.google.drive:list_drive_files': [{
@@ -1257,7 +1228,7 @@ some alt text` }
     ],
 
     [
-    `now => (sort file_size asc of @com.google.drive.list_drive_files())[2] => notify;`,
+    `now => sort(file_size asc of @com.google.drive.list_drive_files())[2] => notify;`,
     {},
     {
         'com.google.drive:list_drive_files': [{
@@ -1311,7 +1282,7 @@ some alt text` }
     ],
 
     [
-    `now => (sort file_size asc of @com.google.drive.list_drive_files())[2] => notify;`,
+    `now => sort(file_size asc of @com.google.drive.list_drive_files())[2] => notify;`,
     {},
     {
         'com.google.drive:list_drive_files': [{
@@ -1365,7 +1336,7 @@ some alt text` }
     ],
 
     [
-    `now => (sort file_size asc of @com.google.drive.list_drive_files())[2] => notify;`,
+    `now => sort(file_size asc of @com.google.drive.list_drive_files())[2] => notify;`,
     {},
     {
         'com.google.drive:list_drive_files': [{
@@ -1419,7 +1390,7 @@ some alt text` }
     ],
 
     [
-    `now => (sort file_size asc of @com.google.drive.list_drive_files())[1:2] => notify;`,
+    `now => sort(file_size asc of @com.google.drive.list_drive_files())[1:2] => notify;`,
     {},
     {
         'com.google.drive:list_drive_files': [{
@@ -1487,7 +1458,7 @@ some alt text` }
     ],
 
     [
-    `now => (sort file_size asc of @com.google.drive.list_drive_files())[2:2] => notify;`,
+    `now => sort(file_size asc of @com.google.drive.list_drive_files())[2:2] => notify;`,
     {},
     {
         'com.google.drive:list_drive_files': [{
@@ -1555,7 +1526,7 @@ some alt text` }
     ],
 
     [
-    `now => (sort file_size asc of @com.google.drive.list_drive_files())[2:3] => notify;`,
+    `now => sort(file_size asc of @com.google.drive.list_drive_files())[2:3] => notify;`,
     {},
     {
         'com.google.drive:list_drive_files': [{
@@ -1623,7 +1594,7 @@ some alt text` }
     ],
 
     [
-    `now => (sort file_size asc of @com.google.drive.list_drive_files()) => notify;`,
+    `now => sort(file_size asc of @com.google.drive.list_drive_files()) => notify;`,
     {},
     {
         'com.google.drive:list_drive_files': [{
@@ -1706,7 +1677,7 @@ some alt text` }
     ],
 
     [
-    `now => (sort file_size desc of @com.google.drive.list_drive_files()) => notify;`,
+    `now => sort(file_size desc of @com.google.drive.list_drive_files()) => notify;`,
     {},
     {
         'com.google.drive:list_drive_files': [{
@@ -2096,7 +2067,7 @@ some alt text` }
 
     // sort + advanced indexing is not a special case
     [
-    `now => (sort file_size asc of @com.google.drive.list_drive_files())[-1, 1] => notify;`,
+    `now => sort(file_size asc of @com.google.drive.list_drive_files())[-1, 1] => notify;`,
     {},
     {
         'com.google.drive:list_drive_files': [{
@@ -2164,7 +2135,7 @@ some alt text` }
 
     ],
 
-    [`let query q(p_query : String) := @com.bing.web_search(query=p_query);
+    /*[`let query q(p_query : String) := @com.bing.web_search(query=p_query);
       let action a(p_status : String) := @com.twitter.post(status=p_status);
 
       now => q(p_query="foo") => a(p_status=link);
@@ -2192,14 +2163,16 @@ some alt text` }
        params: { status: 'no' }
      }],
 
-     ],
+     ],*/
 
 
-     [`let result cat := @com.thecatapi.get();
-      let action a(p_picture_url : Entity(tt:picture)) := @com.twitter.post_picture(caption="cat", picture_url=p_picture_url);
+     [`let cat = @com.thecatapi.get();
+      function a(p_picture_url : Entity(tt:picture)) {
+         @com.twitter.post_picture(caption="cat", picture_url=p_picture_url);
+      }
 
-      now => cat => notify;
-      now => cat => a(p_picture_url=picture_url);`,
+      now => cat() => notify;
+      now => cat() => a(p_picture_url=picture_url);`,
      {},
      {
         'com.thecatapi:get': [(() => {
@@ -2234,11 +2207,13 @@ some alt text` }
 
      ],
 
-     [`let result cat := @com.thecatapi.get();
-      let action a(p_picture_url : Entity(tt:picture)) := @com.twitter.post_picture(caption="cat", picture_url=p_picture_url);
+     [`let cat = @com.thecatapi.get();
+      function a(p_picture_url : Entity(tt:picture)) {
+         @com.twitter.post_picture(caption="cat", picture_url=p_picture_url);
+      }
 
-      now => cat => notify;
-      timer(base=makeDate(), interval=1h) => cat => a(p_picture_url=picture_url);`,
+      now => cat() => notify;
+      timer(base=$now, interval=1h) => cat() => a(p_picture_url=picture_url);`,
      {},
      {
         'com.thecatapi:get': [(() => {
@@ -2283,12 +2258,14 @@ some alt text` }
 
      ],
 
-     [`let result cat := @com.thecatapi.get();
-      let action a(p_picture_url : Entity(tt:picture)) := @com.twitter.post_picture(caption="cat", picture_url=p_picture_url);
+     [`let cat = @com.thecatapi.get();
+      function a(p_picture_url : Entity(tt:picture)) {
+         @com.twitter.post_picture(caption="cat", picture_url=p_picture_url);
+      }
 
       // reversed order in the program, but it won't matter, the output will be first because "now =>"
-      timer(base=makeDate(), interval=1h) => cat => a(p_picture_url=picture_url);
-      now => cat => notify;
+      timer(base=$now, interval=1h) => cat() => a(p_picture_url=picture_url);
+      now => cat() => notify;
       `,
      {},
      {
@@ -2335,11 +2312,13 @@ some alt text` }
      ],
 
 
-     [`let result cat := @com.thecatapi.get();
-      let action a(p_picture_url : Entity(tt:picture)) := @com.twitter.post_picture(caption="cat", picture_url=p_picture_url);
+     [`let cat = @com.thecatapi.get();
+      function a(p_picture_url : Entity(tt:picture)) {
+        @com.twitter.post_picture(caption="cat", picture_url=p_picture_url);
+      }
 
-      now => cat => notify;
-      attimer(time=[makeTime(9, 0), makeTime(15, 0)]) => cat => a(p_picture_url=picture_url);
+      cat();
+      attimer(time=[new Time(9, 0), new Time(15, 0)]) => cat() => a(p_picture_url=picture_url);
       `,
      {},
      {
@@ -2380,13 +2359,13 @@ some alt text` }
 
      ],
 
-    [`let procedure p1(p_foo : String) := {
-        let procedure p2(p_bar : String) := {
+    [`function p1(p_foo : String) {
+        function p2(p_bar : String) {
             now => @com.tumblr.blog.post_text(title = p_foo, body = p_bar);
-        };
+        }
         now => p2(p_bar = "body one");
         now => p2(p_bar = "body two");
-    };
+    }
     now => p1(p_foo = "title one");
     now => p1(p_foo = "title two");`,
     {},
@@ -2417,14 +2396,14 @@ some alt text` }
 
     ],
 
-    [`let procedure p1(p_foo : String) := {
-        let procedure p2(p_bar : String) := {
+    [`function p1(p_foo : String) {
+        function p2(p_bar : String) {
             now => @com.tumblr.blog.post_text(title = p_foo, body = p_bar);
-        };
+        }
         now => p2(p_bar = "body one");
         now => p2(p_bar = "body two");
-    };
-    timer(base=makeDate(), interval=1h) => p1(p_foo = "title one");
+    }
+    timer(base=$now, interval=1h) => p1(p_foo = "title one");
     `,
     {},
     {},
@@ -2476,7 +2455,7 @@ some alt text` }
     { type: 'output',
       outputType: 'org.wikidata:query',
       value: {
-        query: 'now => (@org.wikidata.city()), id =~ "palo alto" => notify;'
+        query: '@org.wikidata.city() filter id =~ "palo alto";'
       }
     }]],
 
@@ -2492,7 +2471,7 @@ some alt text` }
     {
         type: 'action',
         fn: 'com.twitter:post',
-        params: { status: 'now => (@org.wikidata.city()), postal_code =~ "94305" => notify;' }
+        params: { status: '@org.wikidata.city() filter postal_code =~ "94305";' }
     }]],
 ];
 
@@ -2523,7 +2502,7 @@ async function test(i) {
 
         if (actions.length !== 0)
             throw new Error(`Left-over actions in test ${i+1}`);
-    } catch (e) {
+    } catch(e) {
         console.error('Test Case #' + (i+1) + ': failed with exception');
         console.error('Code: ' + code);
         console.error('Error: ' + e.message);
@@ -2533,10 +2512,9 @@ async function test(i) {
     }
 }
 
-async function main() {
+export default async function main() {
     for (let i = 0; i < TEST_CASES.length; i++)
         await test(i);
 }
-module.exports = main;
 if (!module.parent)
     main();

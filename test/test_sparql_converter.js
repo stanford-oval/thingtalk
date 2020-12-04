@@ -15,15 +15,16 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-"use strict";
 
-const AppGrammar = require("../lib/grammar_api");
-const SchemaRetriever = require("../lib/schema").default;
-const Helper = require("../lib/helper");
 
-const _mockSchemaDelegate = require("./mock_schema_delegate");
-const _mockMemoryClient = require("./mock_memory_client");
-var assert = require("assert");
+import assert from 'assert';
+
+import * as AppGrammar from "../lib/syntax_api";
+import SchemaRetriever from "../lib/schema";
+import * as Helper from "../lib/helper";
+
+import _mockSchemaDelegate from "./mock_schema_delegate";
+import _mockMemoryClient from "./mock_memory_client";
 
 const _schemaRetriever = new SchemaRetriever(
     _mockSchemaDelegate,
@@ -86,7 +87,7 @@ LIMIT 5 OFFSET 0`,
 
 [
 `// Test for handling dates within filters
-now => @org.wikidata.city(), inception == makeDate(1894, 1, 1) => notify;`,
+now => @org.wikidata.city(), inception == new Date(1894, 1, 1) => notify;`,
 `SELECT DISTINCT (?table0 as ?id) (?table0Label as ?idLabel) 
 WHERE {
   ?table0 wdt:P571 ?p0.
@@ -136,7 +137,7 @@ LIMIT 5 OFFSET 0`,
 [
 `// Test for handling joins and aliases
 // This causes a time out, so this is not tested if it can get a result or not
-now => (((@org.wikidata.city() as lhs), postal_code =~ "94301") join (@org.wikidata.city())), contains(twinned_administrative_body, lhs.id) => notify;`,
+now => (((@org.wikidata.city() as lhs), postal_code =~ "94301") => (@org.wikidata.city())), contains(twinned_administrative_body, lhs.id) => notify;`,
 `SELECT DISTINCT (?table1 as ?id) (?table1Label as ?idLabel) (?table0 as ?lhs__id) (?table0Label as ?lhs__idLabel) 
 WHERE {
   ?table0 wdt:P281 ?p16.
@@ -158,7 +159,7 @@ LIMIT 5 OFFSET 0`,
 ],
 [
 `// Test for sorts and indexing
-now => sort area desc of (@org.wikidata.city(), country == "Q30"^^org.wikidata:country)[1] => notify;`,
+now => sort(area desc of (@org.wikidata.city(), country == "Q30"^^org.wikidata:country))[1] => notify;`,
 `SELECT DISTINCT (?table0 as ?id) (?table0Label as ?idLabel) 
 WHERE {
   ?table0 wdt:P17 ?p3.
@@ -174,7 +175,7 @@ ORDER BY desc(?p15) LIMIT 1 OFFSET 0`,
 ],
 [
 `// Test for slicing
-now => sort area desc of (@org.wikidata.city(), country == "Q30"^^org.wikidata:country)[2:4] => notify;`,
+now => sort(area desc of (@org.wikidata.city(), country == "Q30"^^org.wikidata:country))[2:4] => notify;`,
 `SELECT DISTINCT (?table0 as ?id) (?table0Label as ?idLabel) 
 WHERE {
   ?table0 wdt:P17 ?p3.
@@ -190,7 +191,7 @@ ORDER BY desc(?p15) LIMIT 2 OFFSET 2`,
 ],
 [
 `// Test for handling and statements
-now => @org.wikidata.city(), country == "Q30"^^org.wikidata:country && inception == makeDate(1894, 1, 1) => notify;`,
+now => @org.wikidata.city(), country == "Q30"^^org.wikidata:country && inception == new Date(1894, 1, 1) => notify;`,
 `SELECT DISTINCT (?table0 as ?id) (?table0Label as ?idLabel) 
 WHERE {
   ?table0 wdt:P17 ?p3.
@@ -211,7 +212,7 @@ LIMIT 5 OFFSET 0`,
 async function test(index) {
     let thingtalk = TEST_CASES[index][0];
     let expected = TEST_CASES[index][1];
-    await AppGrammar.parseAndTypecheck(thingtalk, _schemaRetriever).then(
+    await AppGrammar.parse(thingtalk).typecheck(_schemaRetriever).then(
         (program) => {
             //convert from ast to sparql
             let generated = Helper.toSparql(program);
@@ -220,12 +221,10 @@ async function test(index) {
     );
 }
 
-async function main() {
-    for (var i = 0; i < TEST_CASES.length; i++) {
+export default async function main() {
+    for (let i = 0; i < TEST_CASES.length; i++) {
         console.log("TEST CASE #" + (i + 1));
         await test(i);
     }
 }
-
-module.exports = main;
 if (!module.parent) main();

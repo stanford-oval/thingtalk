@@ -15,10 +15,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-"use strict";
 
-const Q = require('q');
-Q.longStackSupport = true;
 process.on('unhandledRejection', (up) => { throw up; });
 
 process.env.TEST_MODE = '1';
@@ -26,40 +23,56 @@ process.env.TEST_MODE = '1';
 async function seq(array) {
     for (let fn of array) {
         console.log(`Running ${fn}`);
-        await require(fn)();
+        await (await import(fn)).default();
     }
 }
 
+// the order should roughly be most basic unit test to more functional tests
+// so that things fail in an approximately cascading order
+
 seq([
+    // test the library packaging
     ('./test_version'),
+
+    // test low-level utilities and in-memory data structures
     ('./test_date_utils'),
     ('./test_utils'),
     ('./test_builtin_values'),
     ('./test_builtin_sort_index'),
     ('./test_ast'),
-    ('./test_generated_parser'),
+    ('./test_schema_retriever'),
     ('./test_compound_type'),
+
+    // test syntax (first test that the parser we generated is good, then use it)
+    ('./test_generated_parser'),
+    ('./test_new_grammar'),
+    ('./test_legacy_grammar'),
     ('./test_prettyprint'),
-    ('./test_grammar'),
     ('./test_optimize'),
     ('./test_typecheck'),
-    ('./test_sparql_converter'),
     ('./test_nn_syntax'),
     ('./test_nn_syntax_allocator'),
+    ('./test_nn_syntax_allocator_2'),
+    ('./test_legacy_nn_syntax'),
+
+    // test AST transformations
     ('./test_compiler'),
-    ('./test_builtin'),
     ('./test_describe'),
     ('./test_describe_api'),
     ('./test_describe_policy'),
-    ('./test_permissions'),
-    ('./test_lowerings'),
     ('./test_declaration_program'),
     ('./test_example_program'),
     ('./test_convert_program_to_policy'),
     ('./test_iteration_apis'),
+
+    // test runtime APIs
+    ('./test_builtin'),
     ('./test_runtime'),
     ('./test_formatter'),
     ('./test_formatter_api'),
-    ('./test_schema_retriever'),
+
+    // test converters and integrations
+    ('./test_permissions'),
+    ('./test_sparql_converter'),
     //('./test_sql_compiler'),
 ]);

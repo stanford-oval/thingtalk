@@ -22,14 +22,13 @@ import * as Units from 'thingtalk-units';
 
 import * as Ast from './ast';
 import Compiler, { CompiledProgram } from './compiler';
-import * as Grammar from './grammar_api';
+import * as Syntax from './syntax_api';
 import ExecEnvironment from './runtime/exec_environment';
 import Type from './type';
 import SchemaRetriever from './schema';
 import * as Describe from './describe';
 import Formatter from './runtime/formatter';
 import PermissionChecker from './permission_checker';
-import * as NNSyntax from './nn-syntax';
 import * as Helper from './helper';
 import * as I18n from './i18n';
 import * as Builtin from './builtin';
@@ -50,8 +49,7 @@ export {
     Type,
 
     // Syntax support
-    Grammar,
-    NNSyntax,
+    Syntax,
 
     // Compiler and runtime
     Compiler,

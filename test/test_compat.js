@@ -7,11 +7,11 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
-"use strict";
 
-const assert = require('assert');
 
-const { applyCompatibility } = require('../lib/nn-syntax'); //(locale, results, entities, thingtalk_version)
+import assert from 'assert';
+
+import { applyCompatibility } from '../lib/nn-syntax'; //(locale, results, entities, thingtalk_version)
 
 const TEST_CASES = [
     [
@@ -115,10 +115,9 @@ async function test(i) {
     assert.strictEqual(results[0].join(' '), expected);
 }
 
-async function main() {
+export default async function main() {
     for (let i = 0; i < TEST_CASES.length; i++)
         await test(i);
 }
-module.exports = main;
 if (!module.parent)
     main();

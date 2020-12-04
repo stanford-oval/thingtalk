@@ -17,23 +17,22 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
+import assert from 'assert';
 
-const Grammar = require('../lib/grammar_api');
-const Ast = require('../lib/ast');
-const SchemaRetriever = require('../lib/schema').default;
-const Type = require('../lib/type').default;
+import * as Grammar from '../lib/syntax_api';
+import * as Ast from '../lib/ast';
+import SchemaRetriever from '../lib/schema';
+import Type from '../lib/type';
 
-const _mockSchemaDelegate = require('./mock_schema_delegate');
+import _mockSchemaDelegate from './mock_schema_delegate';
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 function assertArrayEquals(testCase, array, expected) {
-    assert.strictEqual(array.length, expected.length);
+    //assert.strictEqual(array.length, expected.length);
 
     let failed = false;
-    for (let i = 0; i < array.length; i++) {
+    for (let i = 0; i < Math.max(array.length, expected.length); i++) {
         if (array[i] !== expected[i]) {
             console.error(`Test Case #${testCase+1}/${i+1}: does not match what expected`);
             console.error('Expected: ' + expected[i]);
@@ -45,7 +44,7 @@ function assertArrayEquals(testCase, array, expected) {
         throw new Error(`testIterationAPIs ${testCase} FAILED`);
 }
 
-var TEST_CASES = [
+let TEST_CASES = [
     [`now => @com.xkcd.get_comic() => notify;`,
     ['query: Invocation(Device(com.xkcd, , ), get_comic, , )'],
     ['Device(com.xkcd, , ) com.xkcd:get_comic'],
@@ -87,7 +86,7 @@ var TEST_CASES = [
      'InputParamSlot(status : String) in_param.status What do you want to post?'],
      ],
 
-    [`monitor (@com.xkcd.get_comic(number=1234)) => @com.facebook.post(status=$event);`,
+    [`monitor (@com.xkcd.get_comic(number=1234)) => @com.facebook.post(status=$result);`,
     ['query: Invocation(Device(com.xkcd, , ), get_comic, InputParam(number, Number(1234)), )',
      'action: Invocation(Device(com.facebook, , ), post, InputParam(status, Event(null)), )'],
     ['Device(com.xkcd, , ) com.xkcd:get_comic',
@@ -100,7 +99,7 @@ var TEST_CASES = [
      'InputParamSlot(status : String) in_param.status What do you want to post?'],
     ],
 
-    [`now => aggregate count of @com.xkcd.get_comic(number=1234) => @com.facebook.post(status=$event);`,
+    [`now => count(@com.xkcd.get_comic(number=1234)) => @com.facebook.post(status=$result);`,
     ['query: Invocation(Device(com.xkcd, , ), get_comic, InputParam(number, Number(1234)), )',
      'action: Invocation(Device(com.facebook, , ), post, InputParam(status, Event(null)), )'],
     ['Device(com.xkcd, , ) com.xkcd:get_comic',
@@ -113,95 +112,112 @@ var TEST_CASES = [
      'InputParamSlot(status : String) in_param.status What do you want to post?'],
     ],
 
-    [`now => aggregate avg temperature of (@com.instagram.get_pictures() join @org.thingpedia.weather.current() on (location=location)) => notify;`,
+    [`now => avg(temperature of (@com.instagram.get_pictures() => @org.thingpedia.weather.current(location=location))) => notify;`,
     ['query: Invocation(Device(com.instagram, , ), get_pictures, , )',
-     'query: Invocation(Device(org.thingpedia.weather, , ), current, , )'],
+     'query: Invocation(Device(org.thingpedia.weather, , ), current, InputParam(location, VarRef(location)), )'],
     ['Device(com.instagram, , ) com.instagram:get_pictures',
-     'Device(org.thingpedia.weather, , ) org.thingpedia.weather:current'],
-    ['Selector(@com.instagram)',
-     'Selector(@org.thingpedia.weather)'],
-    ],
-
-    [`now => sort temperature asc of (@com.instagram.get_pictures() join @org.thingpedia.weather.current() on (location=location)) => notify;`,
-    ['query: Invocation(Device(com.instagram, , ), get_pictures, , )',
-     'query: Invocation(Device(org.thingpedia.weather, , ), current, , )'],
-    ['Device(com.instagram, , ) com.instagram:get_pictures',
-     'Device(org.thingpedia.weather, , ) org.thingpedia.weather:current'],
-    ['Selector(@com.instagram)',
-     'Selector(@org.thingpedia.weather)'],
-    ],
-
-    [`now => (@com.instagram.get_pictures() join @org.thingpedia.weather.current() on (location=location))[1,2] => notify;`,
-    ['query: Invocation(Device(com.instagram, , ), get_pictures, , )',
-     'query: Invocation(Device(org.thingpedia.weather, , ), current, , )'],
-    ['Device(com.instagram, , ) com.instagram:get_pictures',
-     'Device(org.thingpedia.weather, , ) org.thingpedia.weather:current'],
+     'Device(org.thingpedia.weather, , ) org.thingpedia.weather:current',
+     'InputParam(location, VarRef(location)) org.thingpedia.weather:current'],
     ['Selector(@com.instagram)',
      'Selector(@org.thingpedia.weather)',
-     'ArrayIndexSlot([0] : Number) table.index.0 What is the index of the first result you would like?',
-     'ArrayIndexSlot([1] : Number) table.index.1 What is the index of the second result you would like?'],
+     'InputParamSlot(location : Location) in_param.location What location do you want the current weather for?'],
     ],
 
-    [`now => (@com.instagram.get_pictures() join @org.thingpedia.weather.current() on (location=location))[1:2] => notify;`,
+    [`now => sort(temperature asc of (@com.instagram.get_pictures() => @org.thingpedia.weather.current(location=location))) => notify;`,
     ['query: Invocation(Device(com.instagram, , ), get_pictures, , )',
-     'query: Invocation(Device(org.thingpedia.weather, , ), current, , )'],
+     'query: Invocation(Device(org.thingpedia.weather, , ), current, InputParam(location, VarRef(location)), )'],
     ['Device(com.instagram, , ) com.instagram:get_pictures',
-     'Device(org.thingpedia.weather, , ) org.thingpedia.weather:current'],
+     'Device(org.thingpedia.weather, , ) org.thingpedia.weather:current',
+     'InputParam(location, VarRef(location)) org.thingpedia.weather:current'],
     ['Selector(@com.instagram)',
      'Selector(@org.thingpedia.weather)',
+     'InputParamSlot(location : Location) in_param.location What location do you want the current weather for?',
+     'FieldSlot(value : Number) sort.value What value would you like?'],
+    ],
+
+    [`now => (@com.instagram.get_pictures() => @org.thingpedia.weather.current(location=location))[1,2] => notify;`,
+    ['query: Invocation(Device(com.instagram, , ), get_pictures, , )',
+     'query: Invocation(Device(org.thingpedia.weather, , ), current, InputParam(location, VarRef(location)), )'],
+    ['Device(com.instagram, , ) com.instagram:get_pictures',
+     'Device(org.thingpedia.weather, , ) org.thingpedia.weather:current',
+     'InputParam(location, VarRef(location)) org.thingpedia.weather:current'],
+    ['Selector(@com.instagram)',
+     'Selector(@org.thingpedia.weather)',
+     'InputParamSlot(location : Location) in_param.location What location do you want the current weather for?',
+     'ArrayIndexSlot([0] : Number) expression.index.0 What is the index of the first result you would like?',
+     'ArrayIndexSlot([1] : Number) expression.index.1 What is the index of the second result you would like?'],
+    ],
+
+    [`now => (@com.instagram.get_pictures() => @org.thingpedia.weather.current(location=location))[1:2] => notify;`,
+    ['query: Invocation(Device(com.instagram, , ), get_pictures, , )',
+     'query: Invocation(Device(org.thingpedia.weather, , ), current, InputParam(location, VarRef(location)), )'],
+    ['Device(com.instagram, , ) com.instagram:get_pictures',
+     'Device(org.thingpedia.weather, , ) org.thingpedia.weather:current',
+     'InputParam(location, VarRef(location)) org.thingpedia.weather:current'],
+    ['Selector(@com.instagram)',
+     'Selector(@org.thingpedia.weather)',
+     'InputParamSlot(location : Location) in_param.location What location do you want the current weather for?',
      'FieldSlot(base : Number) slice.base What is the first result you would like?',
      'FieldSlot(limit : Number) slice.limit How many results would you like?'],
     ],
 
-    [`monitor (@com.instagram.get_pictures() join @org.thingpedia.weather.current() on (location=location)) => notify;`,
+    [`monitor (@com.instagram.get_pictures() => @org.thingpedia.weather.current(location=location)) => notify;`,
     ['query: Invocation(Device(com.instagram, , ), get_pictures, , )',
-     'query: Invocation(Device(org.thingpedia.weather, , ), current, , )'],
+     'query: Invocation(Device(org.thingpedia.weather, , ), current, InputParam(location, VarRef(location)), )'],
     ['Device(com.instagram, , ) com.instagram:get_pictures',
-     'Device(org.thingpedia.weather, , ) org.thingpedia.weather:current'],
+     'Device(org.thingpedia.weather, , ) org.thingpedia.weather:current',
+     'InputParam(location, VarRef(location)) org.thingpedia.weather:current'],
     ['Selector(@com.instagram)',
-     'Selector(@org.thingpedia.weather)'],
+     'Selector(@org.thingpedia.weather)',
+     'InputParamSlot(location : Location) in_param.location What location do you want the current weather for?'],
     ],
 
-    [`(monitor @com.washingtonpost.get_article() join @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code) on (text=title)) => notify;`,
+    [`monitor(@com.washingtonpost.get_article()) => @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code, text=title) => notify;`,
     ['query: Invocation(Device(com.washingtonpost, , ), get_article, InputParam(section, Undefined(true)), )',
-     'query: Invocation(Device(com.yandex.translate, , ), translate, InputParam(target_language, Entity(zh, tt:iso_lang_code, null)), )'],
+     'query: Invocation(Device(com.yandex.translate, , ), translate, InputParam(target_language, Entity(zh, tt:iso_lang_code, null)),InputParam(text, VarRef(title)), )'],
     ['Device(com.washingtonpost, , ) com.washingtonpost:get_article',
      'InputParam(section, Undefined(true)) com.washingtonpost:get_article',
      'Device(com.yandex.translate, , ) com.yandex.translate:translate',
-     'InputParam(target_language, Entity(zh, tt:iso_lang_code, null)) com.yandex.translate:translate'],
+     'InputParam(target_language, Entity(zh, tt:iso_lang_code, null)) com.yandex.translate:translate',
+     'InputParam(text, VarRef(title)) com.yandex.translate:translate'],
     ['Selector(@com.washingtonpost)',
      'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle)) in_param.section What section do you want to read?',
      'Selector(@com.yandex.translate)',
-     'InputParamSlot(target_language : Entity(tt:iso_lang_code)) in_param.target_language What\'s the target language? Use an ISO language code like it, en or zh.'],
+     'InputParamSlot(target_language : Entity(tt:iso_lang_code)) in_param.target_language What\'s the target language? Use an ISO language code like it, en or zh.',
+     'InputParamSlot(text : String) in_param.text What do you want to translate?'],
     ],
 
-    [`monitor @com.washingtonpost.get_article() join @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code) on (text=title) => notify;`,
+    [`monitor(@com.washingtonpost.get_article()) => @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code, text=title) => notify;`,
     ['query: Invocation(Device(com.washingtonpost, , ), get_article, InputParam(section, Undefined(true)), )',
-     'query: Invocation(Device(com.yandex.translate, , ), translate, InputParam(target_language, Entity(zh, tt:iso_lang_code, null)), )'],
+     'query: Invocation(Device(com.yandex.translate, , ), translate, InputParam(target_language, Entity(zh, tt:iso_lang_code, null)),InputParam(text, VarRef(title)), )'],
     ['Device(com.washingtonpost, , ) com.washingtonpost:get_article',
      'InputParam(section, Undefined(true)) com.washingtonpost:get_article',
      'Device(com.yandex.translate, , ) com.yandex.translate:translate',
-     'InputParam(target_language, Entity(zh, tt:iso_lang_code, null)) com.yandex.translate:translate'],
+     'InputParam(target_language, Entity(zh, tt:iso_lang_code, null)) com.yandex.translate:translate',
+     'InputParam(text, VarRef(title)) com.yandex.translate:translate'],
     ['Selector(@com.washingtonpost)',
      'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle)) in_param.section What section do you want to read?',
      'Selector(@com.yandex.translate)',
-     'InputParamSlot(target_language : Entity(tt:iso_lang_code)) in_param.target_language What\'s the target language? Use an ISO language code like it, en or zh.'],
+     'InputParamSlot(target_language : Entity(tt:iso_lang_code)) in_param.target_language What\'s the target language? Use an ISO language code like it, en or zh.',
+     'InputParamSlot(text : String) in_param.text What do you want to translate?'],
     ],
 
-    [`monitor @com.washingtonpost.get_article(section=enum(world)) join @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code) on (text=title) => notify;`,
+    [`monitor(@com.washingtonpost.get_article(section=enum(world))) => @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code, text=title) => notify;`,
     ['query: Invocation(Device(com.washingtonpost, , ), get_article, InputParam(section, Enum(world)), )',
-     'query: Invocation(Device(com.yandex.translate, , ), translate, InputParam(target_language, Entity(zh, tt:iso_lang_code, null)), )'],
+     'query: Invocation(Device(com.yandex.translate, , ), translate, InputParam(target_language, Entity(zh, tt:iso_lang_code, null)),InputParam(text, VarRef(title)), )'],
     ['Device(com.washingtonpost, , ) com.washingtonpost:get_article',
      'InputParam(section, Enum(world)) com.washingtonpost:get_article',
      'Device(com.yandex.translate, , ) com.yandex.translate:translate',
-     'InputParam(target_language, Entity(zh, tt:iso_lang_code, null)) com.yandex.translate:translate'],
+     'InputParam(target_language, Entity(zh, tt:iso_lang_code, null)) com.yandex.translate:translate',
+     'InputParam(text, VarRef(title)) com.yandex.translate:translate'],
     ['Selector(@com.washingtonpost)',
      'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle)) in_param.section What section do you want to read?',
      'Selector(@com.yandex.translate)',
-     'InputParamSlot(target_language : Entity(tt:iso_lang_code)) in_param.target_language What\'s the target language? Use an ISO language code like it, en or zh.'],
+     'InputParamSlot(target_language : Entity(tt:iso_lang_code)) in_param.target_language What\'s the target language? Use an ISO language code like it, en or zh.',
+     'InputParamSlot(text : String) in_param.text What do you want to translate?'],
     ],
 
-    [`monitor @com.washingtonpost.get_article(section=enum(world)) => notify;`,
+    [`monitor(@com.washingtonpost.get_article(section=enum(world))) => notify;`,
     ['query: Invocation(Device(com.washingtonpost, , ), get_article, InputParam(section, Enum(world)), )'],
     ['Device(com.washingtonpost, , ) com.washingtonpost:get_article',
      'InputParam(section, Enum(world)) com.washingtonpost:get_article'],
@@ -209,7 +225,7 @@ var TEST_CASES = [
      'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle)) in_param.section What section do you want to read?'],
     ],
 
-    [`monitor @com.washingtonpost.get_article(section=enum(world)), title =~ "lol" => notify;`,
+    [`monitor(@com.washingtonpost.get_article(section=enum(world)), title =~ "lol") => notify;`,
     ['query: Invocation(Device(com.washingtonpost, , ), get_article, InputParam(section, Enum(world)), )'],
     ['Device(com.washingtonpost, , ) com.washingtonpost:get_article',
      'InputParam(section, Enum(world)) com.washingtonpost:get_article',
@@ -219,7 +235,7 @@ var TEST_CASES = [
      'FilterSlot(title =~ : String) filter.=~.title What should the title contain?'],
     ],
 
-    [`monitor @com.washingtonpost.get_article(section=enum(world)), title =~ "lol" || title =~ "bar" => notify;`,
+    [`monitor(@com.washingtonpost.get_article(section=enum(world)), title =~ "lol" || title =~ "bar") => notify;`,
     ['query: Invocation(Device(com.washingtonpost, , ), get_article, InputParam(section, Enum(world)), )'],
     ['Device(com.washingtonpost, , ) com.washingtonpost:get_article',
      'InputParam(section, Enum(world)) com.washingtonpost:get_article',
@@ -254,38 +270,41 @@ var TEST_CASES = [
      'ArrayIndexSlot([1] : String) filter.in_array~.title.1 What would you like the second title to be?'],
     ],
 
-    ['now => (@com.bing.web_search() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code("Italian")) on (text=$event)) => notify;',
+    ['now => (@com.bing.web_search() => @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code("Italian"), text=$result)) => notify;',
     ['query: Invocation(Device(com.bing, , ), web_search, InputParam(query, Undefined(true)), )',
-     'query: Invocation(Device(com.yandex.translate, , ), translate, InputParam(target_language, Entity(it, tt:iso_lang_code, Italian)), )'],
+     'query: Invocation(Device(com.yandex.translate, , ), translate, InputParam(target_language, Entity(it, tt:iso_lang_code, Italian)),InputParam(text, Event(null)), )'],
     ['Device(com.bing, , ) com.bing:web_search',
      'InputParam(query, Undefined(true)) com.bing:web_search',
      'Device(com.yandex.translate, , ) com.yandex.translate:translate',
-     'InputParam(target_language, Entity(it, tt:iso_lang_code, Italian)) com.yandex.translate:translate'],
+     'InputParam(target_language, Entity(it, tt:iso_lang_code, Italian)) com.yandex.translate:translate',
+     'InputParam(text, Event(null)) com.yandex.translate:translate'
+    ],
     ['Selector(@com.bing)',
      'InputParamSlot(query : String) in_param.query What do you want to search?',
      'Selector(@com.yandex.translate)',
-     'InputParamSlot(target_language : Entity(tt:iso_lang_code)) in_param.target_language What\'s the target language? Use an ISO language code like it, en or zh.'],
+     'InputParamSlot(target_language : Entity(tt:iso_lang_code)) in_param.target_language What\'s the target language? Use an ISO language code like it, en or zh.',
+     'InputParamSlot(text : String) in_param.text What do you want to translate?'],
     ],
 
-    ['monitor @com.bing.web_search() join @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code("Italian")) on (text=$event) => notify;',
+    ['monitor(@com.bing.web_search()) => @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code("Italian"), text=$result) => notify;',
     ['query: Invocation(Device(com.bing, , ), web_search, InputParam(query, Undefined(true)), )',
-     'query: Invocation(Device(com.yandex.translate, , ), translate, InputParam(target_language, Entity(it, tt:iso_lang_code, Italian)), )'],
+     'query: Invocation(Device(com.yandex.translate, , ), translate, InputParam(target_language, Entity(it, tt:iso_lang_code, Italian)),InputParam(text, Event(null)), )'],
     ['Device(com.bing, , ) com.bing:web_search',
      'InputParam(query, Undefined(true)) com.bing:web_search',
      'Device(com.yandex.translate, , ) com.yandex.translate:translate',
-     'InputParam(target_language, Entity(it, tt:iso_lang_code, Italian)) com.yandex.translate:translate'],
+     'InputParam(target_language, Entity(it, tt:iso_lang_code, Italian)) com.yandex.translate:translate',
+     'InputParam(text, Event(null)) com.yandex.translate:translate'],
     ['Selector(@com.bing)',
      'InputParamSlot(query : String) in_param.query What do you want to search?',
      'Selector(@com.yandex.translate)',
-     'InputParamSlot(target_language : Entity(tt:iso_lang_code)) in_param.target_language What\'s the target language? Use an ISO language code like it, en or zh.'],
+     'InputParamSlot(target_language : Entity(tt:iso_lang_code)) in_param.target_language What\'s the target language? Use an ISO language code like it, en or zh.',
+     'InputParamSlot(text : String) in_param.text What do you want to translate?'],
     ],
 
-    ['dataset @com.twitter language \'en\' {\n' +
+    ['dataset @com.twitter #[language=\'en\'] {\n' +
     '    stream (p_author : Entity(tt:username)) := monitor (@com.twitter.search()), author == p_author\n' +
     '    #_[utterances=[\'monitor ${p_author}\\\'s tweets\']];\n' +
-    '    program := {\n' +
-    '        monitor (@com.twitter.search()) => notify;\n' +
-    '    }\n' +
+    '    program := monitor (@com.twitter.search())\n' +
     '    #_[utterances=[\'notify me about new tweets\']];\n' +
     '}',
     ['query: Invocation(Device(com.twitter, , ), search, , )',
@@ -300,80 +319,88 @@ var TEST_CASES = [
      'Selector(@com.twitter)'],
     ],
 
-    [`let program p1(p_query : String) := {
+    [`function p1(p_query : String) {
         monitor (@com.bing.web_search(query=p_query)) => notify;
-    };
-
-    oninput => {
-        // this should have a query=$? added
-        p1();
-    }`,
-    ['action: VarRef(p1, InputParam(p_query, Undefined(true)), )'],
-    ['InputParam(p_query, Undefined(true)) p1'],
-
-    // FIXME typechecking of VarRef calls messes with the .schema in a way that
-    // prevents us from knowing the correct slot type
-    ['InputParamSlot(p_query : Any) in_param.p_query Please tell me the query.']
+    }
+    p1(p_query="foo");`,
+    [
+    'query: Invocation(Device(com.bing, , ), web_search, InputParam(query, VarRef(p_query)), )',
+    'stream: FunctionCallExpression(p1, InputParam(p_query, String(foo)))'],
+    ['InputParam(p_query, String(foo)) p1'],
+    ['InputParamSlot(p_query : String) in_param.p_query Please tell me the query.'
+    ]
     ],
 
-    [`executor = $? : now => @com.twitter.post();`,
+    [`#[executor = $?] now => @com.twitter.post();`,
 
     [`action: Invocation(Device(com.twitter, , ), post, InputParam(status, Undefined(true)), )`],
     ['Device(com.twitter, , ) com.twitter:post',
      'InputParam(status, Undefined(true)) com.twitter:post'],
-    ['FieldSlot(principal : Entity(tt:contact)) program.principal Who should run this command?',
+    ['FieldSlot(executor : Entity(tt:contact)) program.executor Who should run this command?',
      'Selector(@com.twitter)',
      'InputParamSlot(status : String) in_param.status What do you want to tweet?']
     ],
 
     [`attimer(time=$?) => @com.twitter.post();`,
 
-    [`action: Invocation(Device(com.twitter, , ), post, InputParam(status, Undefined(true)), )`],
-    ['Device(com.twitter, , ) com.twitter:post',
+    [
+    `stream: FunctionCallExpression(attimer, InputParam(time, Undefined(true)))`,
+    `action: Invocation(Device(com.twitter, , ), post, InputParam(status, Undefined(true)), )`],
+    [`InputParam(time, Undefined(true)) attimer`,
+     'Device(com.twitter, , ) com.twitter:post',
      'InputParam(status, Undefined(true)) com.twitter:post'],
-    ['ArrayIndexSlot([0] : Time) attimer.time.0 When do you want your command to run?',
+    ['InputParamSlot(time : Array(Time)) in_param.time Please tell me the time.',
      'Selector(@com.twitter)',
      'InputParamSlot(status : String) in_param.status What do you want to tweet?']
     ],
 
     [`attimer(time=[$?, $?]) => @com.twitter.post();`,
 
-    [`action: Invocation(Device(com.twitter, , ), post, InputParam(status, Undefined(true)), )`],
-    ['Device(com.twitter, , ) com.twitter:post',
+    [
+    `stream: FunctionCallExpression(attimer, InputParam(time, Array(Undefined(true),Undefined(true))))`,
+    `action: Invocation(Device(com.twitter, , ), post, InputParam(status, Undefined(true)), )`],
+    [`InputParam(time, Array(Undefined(true),Undefined(true))) attimer`,
+     'Device(com.twitter, , ) com.twitter:post',
      'InputParam(status, Undefined(true)) com.twitter:post'],
-    ['ArrayIndexSlot([0] : Time) attimer.time.0 What is the first time you would like your command to run?',
-     'ArrayIndexSlot([1] : Time) attimer.time.1 What is the second time you would like your command to run?',
+    ['InputParamSlot(time : Array(Time)) in_param.time Please tell me the time.',
+     'ArrayIndexSlot([0] : Time) in_param.time.0 What would you like the first time to be?',
+     'ArrayIndexSlot([1] : Time) in_param.time.1 What would you like the second time to be?',
      'Selector(@com.twitter)',
      'InputParamSlot(status : String) in_param.status What do you want to tweet?']
     ],
 
     [`attimer(time=[$?, $?], expiration_date=$?) => @com.twitter.post();`,
 
-    [`action: Invocation(Device(com.twitter, , ), post, InputParam(status, Undefined(true)), )`],
-    ['Device(com.twitter, , ) com.twitter:post',
+    [
+    `stream: FunctionCallExpression(attimer, InputParam(expiration_date, Undefined(true)),InputParam(time, Array(Undefined(true),Undefined(true))))`,
+    `action: Invocation(Device(com.twitter, , ), post, InputParam(status, Undefined(true)), )`],
+    [`InputParam(expiration_date, Undefined(true)) attimer`,
+     `InputParam(time, Array(Undefined(true),Undefined(true))) attimer`,
+     'Device(com.twitter, , ) com.twitter:post',
      'InputParam(status, Undefined(true)) com.twitter:post'],
-    ['ArrayIndexSlot([0] : Time) attimer.time.0 What is the first time you would like your command to run?',
-     'ArrayIndexSlot([1] : Time) attimer.time.1 What is the second time you would like your command to run?',
-     'FieldSlot(expiration_date : Date) attimer.expiration_date When should your command stop?',
+    ['InputParamSlot(expiration_date : Date) in_param.expiration_date Please tell me the expiration date.',
+     'InputParamSlot(time : Array(Time)) in_param.time Please tell me the time.',
+     'ArrayIndexSlot([0] : Time) in_param.time.0 What would you like the first time to be?',
+     'ArrayIndexSlot([1] : Time) in_param.time.1 What would you like the second time to be?',
      'Selector(@com.twitter)',
      'InputParamSlot(status : String) in_param.status What do you want to tweet?']
     ],
 
-    [`source == $? : now => @com.twitter.post;`,
+    [`$policy { source == $? : now => @com.twitter.post; }`,
 
     [],
     ['Atom(source, ==, Undefined(true))'],
     ['FilterSlot(source == : Entity(tt:contact)) filter.==.$source Who is allowed to ask you for this command?']
     ],
 
-    [`in_array(source, $?) : now => @com.twitter.post;`,
+    [`$policy { in_array(source, $?) : now => @com.twitter.post; }`,
 
     [],
     ['Atom(source, in_array, Undefined(true))'],
     ['FilterSlot(source in_array : Array(Entity(tt:contact))) filter.in_array.$source Who is allowed to ask you for this command?']
     ],
 
-    [`in_array(source, [$?, $?]) : now => @com.twitter.post;`,
+    [`$policy { in_array(source, [$?, $?]) : now => @com.twitter.post; }`,
 
     [],
     ['Atom(source, in_array, Array(Undefined(true),Undefined(true)))'],
@@ -382,7 +409,7 @@ var TEST_CASES = [
     'ArrayIndexSlot([1] : Entity(tt:contact)) filter.in_array.$source.1 Who is the second friend who is allowed to ask you for this command?']
     ],
 
-    [`now => @org.schema.restaurant(), count(review filter { author =~ "bob" }) >= 1 => notify;`,
+    [`now => @org.schema.restaurant(), count(review filter author =~ "bob") >= 1 => notify;`,
 
     ['query: Invocation(Device(org.schema, , ), restaurant, , )'],
     ['Device(org.schema, , ) org.schema:restaurant'],
@@ -424,48 +451,48 @@ now => [food] of ((@uk.ac.cam.multiwoz.Restaurant.Restaurant()), true) => notify
      'ResultSlot(food : String) result.food what would you like to eat,what are you in the mood for']
     ],
 
-    [`now => compute distance(geo, $context.location.current_location) of @com.yelp.restaurant() => notify;`,
+    [`now => [distance(geo, $location.current_location)] of @com.yelp.restaurant() => notify;`,
     ['query: Invocation(Device(com.yelp, , ), restaurant, , )'],
     ['Device(com.yelp, , ) com.yelp:restaurant'],
     ['Selector(@com.yelp)',
-    'FieldSlot(expression : Measure(m)) compute.expression What expression would you like?',
-    'ComputationOperandSlot(distance[0] : Location) compute.expression.distance.0 What is the first operand to distance you would like?',
-    'ComputationOperandSlot(distance[1] : Location) compute.expression.distance.1 What is the second operand to distance you would like?']
+    'ArrayIndexSlot([0] : Measure(m)) expression.computations.0 What parameter would you like?',
+    'ComputationOperandSlot(distance[0] : Location) expression.computations.0.distance.0 What is the first operand to distance you would like?',
+    'ComputationOperandSlot(distance[1] : Location) expression.computations.0.distance.1 What is the second operand to distance you would like?']
     ],
 
-    [`monitor @security-camera.current_event(), (has_person == true && @org.thingpedia.builtin.thingengine.builtin.get_gps() { location == new Location(1, 2) })  => notify;`,
+    [`monitor( @security-camera.current_event()), (has_person == true && any(@org.thingpedia.builtin.thingengine.builtin.get_gps(), location == new Location(1, 2)))  => notify;`,
     ['query: Invocation(Device(security-camera, , ), current_event, , )',
      'filter: External(Device(org.thingpedia.builtin.thingengine.builtin, , ), get_gps, , Atom(location, ==, Location(Absolute(1, 2, null))))'],
     [
     'Device(security-camera, , ) security-camera:current_event',
-    'Atom(has_person, ==, Boolean(true)) security-camera:current_event',
     'Device(org.thingpedia.builtin.thingengine.builtin, , ) org.thingpedia.builtin.thingengine.builtin:get_gps',
-    'Atom(location, ==, Location(Absolute(1, 2, null))) security-camera:current_event'
+    'Atom(location, ==, Location(Absolute(1, 2, null))) security-camera:current_event',
+    'Atom(has_person, ==, Boolean(true)) security-camera:current_event',
     ],
     [
     'Selector(@security-camera)',
-    'FilterSlot(has_person == : Boolean) filter.==.has_person Do you want events with people in front of the camera?',
     'Selector(@org.thingpedia.builtin.thingengine.builtin)',
-    'FilterSlot(location == : Location) filter.==.location What location are you interested in?'
+    'FilterSlot(location == : Location) filter.==.location What location are you interested in?',
+    'FilterSlot(has_person == : Boolean) filter.==.has_person Do you want events with people in front of the camera?',
     ]]
 ];
 
 async function test(i) {
     console.log('Test Case #' + (i+1));
-    var [code, expectedPrim, expectedSlots, expectedSlots2] = TEST_CASES[i];
+    let [code, expectedPrim, expectedSlots, expectedSlots2] = TEST_CASES[i];
 
     try {
-        const prog = await Grammar.parseAndTypecheck(code, schemaRetriever, true);
+        const prog = await Grammar.parse(code).typecheck(schemaRetriever, true);
         const generatedSlots = Array.from(prog.iterateSlots()).map(([schema, slot, prim, scope]) => {
             if (!prim)
                 return String(slot);
-            else if (prim.isVarRef)
+            else if (prim instanceof Ast.FunctionCallExpression)
                 return `${slot} ${prim.name}`;
             else
                 return `${slot} ${prim.selector.kind}:${prim.channel}`;
         });
         const generatedSlots2 = Array.from(prog.iterateSlots2()).map((slot) => {
-            if (slot instanceof Ast.Selector)
+            if (slot instanceof Ast.DeviceSelector)
                 return `Selector(@${slot.kind})`;
 
             assert(slot.type instanceof Type);
@@ -491,10 +518,9 @@ async function test(i) {
     }
 }
 
-async function main() {
+export default async function main() {
     for (let i = 0; i < TEST_CASES.length; i++)
         await test(i);
 }
-module.exports = main;
 if (!module.parent)
     main();

@@ -18,14 +18,11 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
+import assert from 'assert';
 
-const Q = require('q');
-Q.longStackSupport = true;
-const Ast = require('../lib/ast');
-const Describe = require('../lib/describe');
+import * as Ast from '../lib/ast';
+import * as Describe from '../lib/describe';
 
 const gettext = {
     locale: 'en-US',
@@ -104,9 +101,8 @@ async function testDescribeArg() {
     assert.strictEqual(describer3.describeArg(date2), '10/12/2018, 10:00:00 PM');
 }
 
-async function main() {
+export default async function main() {
     await testDescribeArg();
 }
-module.exports = main;
 if (!module.parent)
     main();

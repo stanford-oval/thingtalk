@@ -25,6 +25,7 @@ import type { ClassDef } from './class_def';
 import type { FunctionDef, ArgumentDef } from './function_def';
 import type * as Prog from './program';
 import type * as Exp from './expression';
+import type * as Exp2 from './expression2';
 import type * as Prim from './primitive';
 import type * as D from './dialogues';
 
@@ -178,27 +179,19 @@ export default abstract class NodeVisitor {
     // bookkeeping
 
     /* istanbul ignore next */
-    visitBookkeeping(node : BK.Bookkeeping) : boolean {
+    visitControlCommand(node : BK.ControlCommand) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitSpecialBookkeepingIntent(node : BK.SpecialBookkeepingIntent) : boolean {
+    visitSpecialControlIntent(node : BK.SpecialControlIntent) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitChoiceBookkeepingIntent(node : BK.ChoiceBookkeepingIntent) : boolean {
+    visitChoiceControlIntent(node : BK.ChoiceControlIntent) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitCommandListBookkeepingIntent(node : BK.CommandListBookkeepingIntent) : boolean {
-        return true;
-    }
-    /* istanbul ignore next */
-    visitAnswerBookkeepingIntent(node : BK.AnswerBookkeepingIntent) : boolean {
-        return true;
-    }
-    /* istanbul ignore next */
-    visitPredicateBookkeepingIntent(node : BK.PredicateBookkeepingIntent) : boolean {
+    visitAnswerControlIntent(node : BK.AnswerControlIntent) : boolean {
         return true;
     }
 
@@ -216,10 +209,6 @@ export default abstract class NodeVisitor {
         return true;
     }
     /* istanbul ignore next */
-    visitClassImportStmt(node : Prog.ClassImportStmt) : boolean {
-        return true;
-    }
-    /* istanbul ignore next */
     visitMixinImportStmt(node : Prog.MixinImportStmt) : boolean {
         return true;
     }
@@ -231,10 +220,6 @@ export default abstract class NodeVisitor {
     // expressions
     /* istanbul ignore next */
     visitDeviceSelector(node : Exp.DeviceSelector) : boolean {
-        return true;
-    }
-    /* istanbul ignore next */
-    visitBuiltinSelector(node : Exp.BuiltinSelector) : boolean {
         return true;
     }
     /* istanbul ignore next */
@@ -400,9 +385,55 @@ export default abstract class NodeVisitor {
         return true;
     }
 
+    // new-style expressions
+    /* istanbul ignore next */
+    visitFunctionCallExpression(node : Exp2.FunctionCallExpression) : boolean {
+        return true;
+    }
+    /* istanbul ignore next */
+    visitInvocationExpression(node : Exp2.InvocationExpression) : boolean {
+        return true;
+    }
+    /* istanbul ignore next */
+    visitMonitorExpression(node : Exp2.MonitorExpression) : boolean {
+        return true;
+    }
+    /* istanbul ignore next */
+    visitFilterExpression(node : Exp2.FilterExpression) : boolean {
+        return true;
+    }
+    /* istanbul ignore next */
+    visitProjectionExpression(node : Exp2.ProjectionExpression) : boolean {
+        return true;
+    }
+    /* istanbul ignore next */
+    visitAliasExpression(node : Exp2.AliasExpression) : boolean {
+        return true;
+    }
+    /* istanbul ignore next */
+    visitAggregationExpression(node : Exp2.AggregationExpression) : boolean {
+        return true;
+    }
+    /* istanbul ignore next */
+    visitSortExpression(node : Exp2.SortExpression) : boolean {
+        return true;
+    }
+    /* istanbul ignore next */
+    visitIndexExpression(node : Exp2.IndexExpression) : boolean {
+        return true;
+    }
+    /* istanbul ignore next */
+    visitSliceExpression(node : Exp2.SliceExpression) : boolean {
+        return true;
+    }
+    /* istanbul ignore next */
+    visitChainExpression(node : Exp2.ChainExpression) : boolean {
+        return true;
+    }
+
     // statements and inputs
     /* istanbul ignore next */
-    visitDeclaration(node : Prog.Declaration) : boolean {
+    visitFunctionDeclaration(node : Prog.FunctionDeclaration) : boolean {
         return true;
     }
     /* istanbul ignore next */
@@ -418,7 +449,7 @@ export default abstract class NodeVisitor {
         return true;
     }
     /* istanbul ignore next */
-    visitOnInputChoice(node : Prog.OnInputChoice) : boolean {
+    visitExpressionStatement(node : Prog.ExpressionStatement) : boolean {
         return true;
     }
     /* istanbul ignore next */

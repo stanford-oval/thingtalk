@@ -17,51 +17,64 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
-const Ast = require('../lib/ast');
-const NNSyntax = require('../lib/nn-syntax');
-//const NNOutputParser = require('../lib/nn_output_parser');
-const SchemaRetriever = require('../lib/schema').default;
 
-const _mockSchemaDelegate = require('./mock_schema_delegate');
+import assert from 'assert';
+
+import * as Grammar from '../lib/syntax_api';
+import SchemaRetriever from '../lib/schema';
+
+import _mockSchemaDelegate from './mock_schema_delegate';
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 
 const TEST_CASES = [
-    [`now => @com.twitter.post param:status:String = " hello "`,
+    [`now => @com.twitter.post ( status = " hello " ) ;`,
      {'QUOTED_STRING_0': 'hello'},
-     `now => @com.twitter.post param:status:String = " world "`,
+     `now => @com.twitter.post ( status = " world " ) ;`,
      {'QUOTED_STRING_0': 'hello', 'QUOTED_STRING_1': 'world'}
     ],
 
-    [`now => @org.thingpedia.weather.current param:location:Location = location: " stanford california " => notify`,
+    [`now => @org.thingpedia.weather.current ( location = new Location ( " stanford california " ) ) => notify ;`,
      {'LOCATION_0': { display: 'stanford california', latitude: NaN, longitude: NaN }},
-     `now => @org.thingpedia.weather.current param:location:Location = location: " palo alto california " => notify`,
+     `now => @org.thingpedia.weather.current ( location = new Location ( " palo alto california " ) ) => notify ;`,
      {
          'LOCATION_0': { display: 'stanford california', latitude: NaN, longitude: NaN },
          'LOCATION_1': { display: 'palo alto california', latitude: NaN, longitude: NaN },
      },
     ],
 
-    [`now => @org.thingpedia.weather.current param:location:Location = location: " stanford california " => notify`,
+    [`now => @org.thingpedia.weather.current ( location = new Location ( " stanford california " ) ) => notify ;`,
      {'LOCATION_0': { display: 'stanford california', latitude: NaN, longitude: NaN }},
-     `now => @org.thingpedia.weather.current param:location:Location = location: " stanford california " => notify`,
+     `now => @org.thingpedia.weather.current ( location = new Location ( " stanford california " ) ) => notify ;`,
      {'LOCATION_0': { display: 'stanford california', latitude: NaN, longitude: NaN }},
     ],
 
     [
-     `now => @com.cryptonator.get_price param:currency:Entity(tt:cryptocurrency_code) = " btc " ^^tt:cryptocurrency_code => notify`,
+     `now => @com.cryptonator.get_price ( currency = " btc " ^^tt:cryptocurrency_code ) => notify ;`,
+     {'GENERIC_ENTITY_tt:cryptocurrency_code_0': { value: 'btc', display: null }},
+     `now => @com.cryptonator.get_price ( currency = " btc " ^^tt:cryptocurrency_code ) => notify ;`,
+     {'GENERIC_ENTITY_tt:cryptocurrency_code_0': { value: 'btc', display: null }}
+    ],
+
+    [
+     `now => @com.cryptonator.get_price ( currency = " btc " ^^tt:cryptocurrency_code ) => notify ;`,
+     {'GENERIC_ENTITY_tt:cryptocurrency_code_0': { value: 'btc', display: null }},
+     `now => @com.cryptonator.get_price ( currency = " eth " ^^tt:cryptocurrency_code ) => notify ;`,
+     {'GENERIC_ENTITY_tt:cryptocurrency_code_0': { value: 'btc', display: null }, 'GENERIC_ENTITY_tt:cryptocurrency_code_1': { value: 'eth', display: null }}
+    ],
+
+    [
+     `now => @com.cryptonator.get_price ( currency = null ^^tt:cryptocurrency_code ( " btc " ) ) => notify ;`,
      {'GENERIC_ENTITY_tt:cryptocurrency_code_0': { display: 'btc', value: null }},
-     `now => @com.cryptonator.get_price param:currency:Entity(tt:cryptocurrency_code) = " btc " ^^tt:cryptocurrency_code => notify`,
+     `now => @com.cryptonator.get_price ( currency = null ^^tt:cryptocurrency_code ( " btc " ) ) => notify ;`,
      {'GENERIC_ENTITY_tt:cryptocurrency_code_0': { display: 'btc', value: null }}
     ],
 
     [
-     `now => @com.cryptonator.get_price param:currency:Entity(tt:cryptocurrency_code) = " btc " ^^tt:cryptocurrency_code => notify`,
+     `now => @com.cryptonator.get_price ( currency = null ^^tt:cryptocurrency_code ( " btc " ) ) => notify ;`,
      {'GENERIC_ENTITY_tt:cryptocurrency_code_0': { display: 'btc', value: null }},
-     `now => @com.cryptonator.get_price param:currency:Entity(tt:cryptocurrency_code) = " eth " ^^tt:cryptocurrency_code => notify`,
+     `now => @com.cryptonator.get_price ( currency = null ^^tt:cryptocurrency_code ( " eth " ) ) => notify ;`,
      {'GENERIC_ENTITY_tt:cryptocurrency_code_0': { display: 'btc', value: null }, 'GENERIC_ENTITY_tt:cryptocurrency_code_1': { display: 'eth', value: null }}
     ],
 ];
@@ -73,18 +86,20 @@ async function testCase(test, i) {
 
     console.log('Test Case #' + (i+1));
     try {
-        let program1 = NNSyntax.fromNN(sequence1.split(' '), {});
+        let program1 = Grammar.parse(sequence1.split(' '), Grammar.SyntaxType.Tokenized, {});
         await program1.typecheck(schemaRetriever);
 
         const into = {};
-        NNSyntax.toNN(program1, '', into, { allocateEntities: true }).join(' ');
+        const allocator1 = new Grammar.SequentialEntityAllocator(into);
+        Grammar.serialize(program1, Grammar.SyntaxType.Tokenized, allocator1).join(' ');
         assert.deepStrictEqual(into, entities1);
 
-        let program2 = NNSyntax.fromNN(sequence2.split(' '), {});
+        const allocator2 = new Grammar.SequentialEntityAllocator(into);
+        const program2 = Grammar.parse(sequence2.split(' '), Grammar.SyntaxType.Tokenized, {});
         await program2.typecheck(schemaRetriever);
-        NNSyntax.toNN(program2, '', into, { allocateEntities: true }).join(' ');
+        Grammar.serialize(program2, Grammar.SyntaxType.Tokenized, allocator2).join(' ');
         assert.deepStrictEqual(into, entities2);
-    } catch (e) {
+    } catch(e) {
         console.error('Test Case #' + (i+1) + ' failed with exception');
         console.error(sequence1);
         console.error(e);
@@ -93,10 +108,9 @@ async function testCase(test, i) {
     }
 }
 
-async function main() {
+export default async function main() {
     for (let i = 0; i < TEST_CASES.length; i++)
         await testCase(TEST_CASES[i], i);
 }
-module.exports = main;
 if (!module.parent)
     main();

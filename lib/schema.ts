@@ -21,8 +21,8 @@
 import assert from 'assert';
 
 import Type from './type';
-import * as Grammar from './grammar_api';
-import { typeCheckClass } from './typecheck';
+import * as Grammar from './syntax_api';
+import TypeChecker from './typecheck';
 import { ClassDef } from './ast/class_def';
 import {
     FunctionDef,
@@ -32,7 +32,7 @@ import {
 import { Library } from './ast/program';
 import type { FormatSpec } from './runtime/formatter';
 
-import Cache from './cache';
+import Cache from './utils/cache';
 
 function delay(timeout : number) : Promise<void> {
     return new Promise((resolve, reject) => {
@@ -226,7 +226,7 @@ export default class SchemaRetriever {
 
     private async _getManifestRequest(kind : string) {
         const code = await this._thingpediaClient.getDeviceCode(kind);
-        const parsed = await Grammar.parseAndTypecheck(code, this);
+        const parsed = await Grammar.parse(code).typecheck(this);
         assert(parsed instanceof Library && parsed.classes.length > 0);
         return parsed.classes[0];
     }
@@ -274,7 +274,8 @@ export default class SchemaRetriever {
 
         await Promise.all(parsed.classes.map(async (classDef) => {
             try {
-                await typeCheckClass(classDef, this, {}, isMeta === 'everything', true);
+                const typeChecker = new TypeChecker(this, isMeta === 'everything');
+                await typeChecker.typeCheckClass(classDef, true);
                 this._classCache[isMeta].set(classDef.kind, classDef);
                 result[classDef.kind] = classDef;
                 missing.delete(classDef.kind);
@@ -345,10 +346,11 @@ export default class SchemaRetriever {
         return this._getClass(kind, 'everything');
     }
 
-    _where(where : FunctionType) : ('queries'|'actions') {
+    _where(where : FunctionType | 'both') : ('queries'|'actions'|'both') {
         switch (where) {
             case 'query': return 'queries';
             case 'action': return 'actions';
+            case 'both': return 'both';
             default: throw new TypeError('unexpected function type ' + where);
         }
     }
@@ -371,21 +373,27 @@ export default class SchemaRetriever {
      * @async
      */
     async getSchema(kind : string,
-                    functionType : FunctionType,
+                    functionType : FunctionType | 'both',
                     name : string) : Promise<Type[]> {
         return (await this.getSchemaAndNames(kind, functionType, name)).types;
     }
 
     private async _getFunction(kind : string,
-                               functionType : FunctionType,
+                               functionType : FunctionType | 'both',
                                name : string,
                                useMeta : MetadataLevel) : Promise<FunctionDef> {
         const where = this._where(functionType);
         const classDef = await this._getClass(kind, useMeta);
-        if (!(name in classDef[where]))
-            throw new TypeError(`Class ${kind} has no ${functionType} ${name}`);
-        const fndef = classDef[where][name];
-        return fndef;
+
+        if (where === 'both') {
+            if (!(name in classDef.queries) && !(name in classDef.actions))
+                throw new TypeError(`Class ${kind} has no function ${name}`);
+            return classDef.queries[name] || classDef.actions[name];
+        } else {
+            if (!(name in classDef[where]))
+                throw new TypeError(`Class ${kind} has no ${functionType} ${name}`);
+            return classDef[where][name];
+        }
     }
 
     /**
@@ -404,7 +412,7 @@ export default class SchemaRetriever {
      * @async
      */
     getSchemaAndNames(kind : string,
-                      functionType : FunctionType,
+                      functionType : FunctionType | 'both',
                       name : string) : Promise<FunctionDef> {
         return this._getFunction(kind, functionType, name, 'basic');
     }
@@ -423,7 +431,7 @@ export default class SchemaRetriever {
      * @async
      */
     getMeta(kind : string,
-            functionType : FunctionType,
+            functionType : FunctionType | 'both',
             name : string) : Promise<FunctionDef> {
         return this._getFunction(kind, functionType, name, 'everything');
     }

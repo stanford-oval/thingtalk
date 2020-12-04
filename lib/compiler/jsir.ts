@@ -21,7 +21,7 @@
 import assert from 'assert';
 import * as Builtin from '../builtin';
 import * as Ast from '../ast';
-import { stringEscape } from '../escaping';
+import { stringEscape } from '../utils/escaping';
 import type ExecEnvironment from '../runtime/exec_environment';
 
 // A register-based IR for ThingTalk to JS

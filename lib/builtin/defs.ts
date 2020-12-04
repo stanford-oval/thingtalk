@@ -19,7 +19,11 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import Type from '../type';
-import { FunctionDef } from '../ast/function_def';
+import {
+    ArgDirection,
+    FunctionDef,
+    ArgumentDef
+} from '../ast/function_def';
 
 // Definitions of ThingTalk operators
 
@@ -348,35 +352,45 @@ export const Aggregations : { [op : string] : OpDefinition } = {
     }
 };
 
-function builtinFunction(name : string) : FunctionDef {
-    return new FunctionDef(null, 'action', null, name, [], {
-        is_list: false, is_monitorable: false
-    }, [], {});
-}
+const TIMER_SCHEMA = new FunctionDef(null,
+    'stream',
+    null, // class
+    'timer',
+    [], // extends
+    {
+        is_list: false,
+        is_monitorable: true
+    },
+    [
+        new ArgumentDef(null, ArgDirection.IN_REQ, 'base', Type.Date),
+        new ArgumentDef(null, ArgDirection.IN_REQ, 'interval', new Type.Measure('ms')),
+        new ArgumentDef(null, ArgDirection.IN_OPT, 'frequency', Type.Number),
+    ],
+    {}
+);
+
+const AT_TIMER_SCHEMA = new FunctionDef(null,
+    'stream',
+    null, // class
+    'attimer',
+    [], // extends
+    {
+        is_list: false,
+        is_monitorable: true
+    },
+    [
+        new ArgumentDef(null, ArgDirection.IN_REQ, 'time', new Type.Array(Type.Time)),
+        new ArgumentDef(null, ArgDirection.IN_OPT, 'expiration_date', Type.Date),
+    ],
+    {}
+);
+
 /**
- * Definitions (type signatures) of builtin ThingTalk actions.
+ * Definitions (type signatures) of builtin ThingTalk functions.
  *
- * These are the actions that can be called with a {@link Ast.Selector.Builtin}
- * selector.
- *
- * @alias Builtin.Actions
- * @constant
- * @package
+ * These are functions that are predefined and can be called without the @-sign.
  */
-export const Actions = {
-    'notify': builtinFunction('notify'),
-    'return': builtinFunction('return'),
-    'save': builtinFunction('save'),
-};
-/**
- * Definitions (type signatures) of builtin ThingTalk queries.
- *
- * These are the queries that can be called with a {@link Ast.Selector.Builtin}
- * selector. In this version of ThingTalk, there are no such queries.
- *
- * @alias Builtin.Queries
- * @constant
- * @package
- */
-export const Queries = {
+export const Functions : { [key : string] : FunctionDef } = {
+    'timer': TIMER_SCHEMA,
+    'attimer': AT_TIMER_SCHEMA
 };

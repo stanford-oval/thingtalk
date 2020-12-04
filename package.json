@@ -18,6 +18,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "dependencies": {
+    "@types/semver": "^7.3.4",
     "byline": "^5.0.0",
     "consumer-queue": "^1.0.0",
     "semver": "^7.3.2",
@@ -35,7 +36,6 @@
     "eslint": "^7.13.0",
     "nyc": "^15.0.0",
     "pegjs": "~0.10.0",
-    "q": "^1.5.1",
     "seedrandom": "^3.0.0",
     "source-map-support": "^0.5.19",
     "ts-node": "^9.0.0",
@@ -45,7 +45,7 @@
   "scripts": {
     "update-pot": "xgettext -f po/POTFILES -x po/POTFILES.skip -o po/${npm_package_name}.pot --from-code UTF-8 --package-name ${npm_package_name} --package-version ${npm_package_version}",
     "update-po": "for i in po/*.po ; do msgmerge -U $i po/${npm_package_name}.pot ; done",
-    "lint": "eslint --ext .js,.jsx,.ts,.tsx ./lib",
+    "lint": "eslint --ext .js,.jsx,.ts,.tsx ./lib ./tools ./test",
     "test": "nyc ts-node ./test/test_all",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "prepare": "make",

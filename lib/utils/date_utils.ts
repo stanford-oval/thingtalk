@@ -20,7 +20,7 @@
 
 import assert from 'assert';
 
-import { DateEdge, DatePiece, WeekDayDate, AbsoluteTime } from './ast/values';
+import { DateEdge, DatePiece, WeekDayDate, AbsoluteTime } from '../ast/values';
 
 const TIME_UNITS = ['ms', 's', 'min', 'h', 'day', 'week', 'mon', 'year'];
 const SET_ZERO : Array<(d : Date) => void> = [(d) => {},
@@ -125,9 +125,9 @@ export function normalizeDate(value : Date|WeekDayDate|DateEdge|DatePiece|null) 
     else if (value instanceof Date)
         return value;
     else if (value instanceof WeekDayDate)
-        return createWeekDayDate(value.weekday, value.time);
+        return createWeekDayDate(value.weekday, value.time ? value.time.value as AbsoluteTime : null);
     else if (value instanceof DatePiece)
-        return createDatePiece(value.year, value.month, value.day, value.time);
+        return createDatePiece(value.year, value.month, value.day, value.time ? value.time.value as AbsoluteTime : null);
     else
         return createEdgeDate(value.edge, value.unit);
 }

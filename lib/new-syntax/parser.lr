@@ -1,0 +1,1931 @@
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingTalk
+//
+// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+
+{
+import assert from 'assert';
+import * as Ast from '../ast';
+import Type, { TypeMap } from '../type';
+import { KEYWORDS, FORBIDDEN_KEYWORDS } from './keywords';
+import { TypeOfToken } from './token';
+
+import { parseDate } from '../utils/date_utils';
+
+type DialogueHistoryAnnotation =
+      { key : 'results', value : Ast.DialogueHistoryResultItem[] }
+    | { key : 'error', value : Ast.Value }
+    | { key : 'count', value : Ast.Value }
+    | { key : 'more', value : true };
+
+function makeInput($ : $runtime.ParserInterface, statements : Ast.Statement[], annotations : Ast.AnnotationSpec) {
+    const classes : Ast.ClassDef[] = [];
+    const datasets : Ast.Dataset[] = [];
+    const declarations : Ast.FunctionDeclaration[] = [];
+    const executable : Ast.ExecutableStatement[] = [];
+
+    for (const stmt of statements) {
+        if (stmt instanceof Ast.ClassDef) {
+            classes.push(stmt);
+        } else if (stmt instanceof Ast.Dataset) {
+            datasets.push(stmt);
+        } else if (stmt instanceof Ast.FunctionDeclaration) {
+            declarations.push(stmt);
+        } else {
+            assert(stmt instanceof Ast.ExpressionStatement || stmt instanceof Ast.Assignment);
+            executable.push(stmt);
+        }
+    }
+
+    if (datasets.length > 0) {
+        if (declarations.length > 0 || executable.length > 0)
+            $.error(`Cannot mix dataset with ThingTalk statements other than class`);
+        return new Ast.Library($.location, classes, datasets);
+    }
+    if (classes.length > 0 && declarations.length === 0 && executable.length === 0)
+        return new Ast.Library($.location, classes, datasets);
+
+    return new Ast.Program($.location, classes, declarations, executable, annotations);
+}
+
+function makeClassDef($ : $runtime.ParserInterface,
+                      name : string,
+                      _extends : string[]|null,
+                      members : Ast.ClassMember[],
+                      annotations : Ast.AnnotationSpec,
+                      is_abstract : boolean) {
+    const queries : { [key : string] : Ast.FunctionDef } = {};
+    const actions : { [key : string] : Ast.FunctionDef } = {};
+    const imports : Ast.MixinImportStmt[] = [];
+    const entities : Ast.EntityDef[] = [];
+
+    for (const ast of members) {
+        if (ast instanceof Ast.FunctionDef) {
+          switch (ast.functionType) {
+          case 'query':
+              queries[ast.name] = ast;
+              break;
+          case 'action':
+              actions[ast.name] = ast;
+              break;
+          }
+        } else if (ast instanceof Ast.MixinImportStmt) {
+          imports.push(ast);
+        } else if (ast instanceof Ast.EntityDef) {
+          entities.push(ast);
+        }
+    }
+
+    const options = { is_abstract: !!is_abstract };
+    return new Ast.ClassDef($.location, name, _extends, { queries, actions, imports, entities }, annotations, options);
+}
+
+function splitStatements(stmts : Array<Ast.FunctionDeclaration|Ast.ExecutableStatement>) : [Ast.FunctionDeclaration[], Ast.ExecutableStatement[]] {
+    const declarations : Ast.FunctionDeclaration[] = [];
+    const executable : Ast.ExecutableStatement[] = [];
+
+    for (const stmt of stmts) {
+        if (stmt instanceof Ast.FunctionDeclaration)
+            declarations.push(stmt);
+        else
+            executable.push(stmt);
+    }
+    return [declarations, executable];
+}
+
+function isIdentifier(name : string) {
+    return /^[A-Za-z_][A-Za-z0-9_]*$/.test(name) && !KEYWORDS.has(name) && !FORBIDDEN_KEYWORDS.has(name);
+}
+
+interface AnnotationEntry {
+    type : 'nl'|'impl';
+    name : string;
+    value : Ast.Value;
+}
+
+function checkExampleAnnotations($ : $runtime.ParserInterface, annotations : AnnotationEntry[]) : [number, string[], string[], Ast.AnnotationMap] {
+    let id = -1;
+    const utterances : string[] = [];
+    const preprocessed : string[] = [];
+    const other : Ast.AnnotationMap = {};
+
+    for (const annotation of annotations) {
+        if (annotation.type === 'impl') {
+            if (annotation.name === 'id') {
+                if (!(annotation.value instanceof Ast.NumberValue))
+                    return $.error(`Example id annotation must be a number`);
+                id = annotation.value.toJS();
+            } else {
+                other[annotation.name] = annotation.value;
+            }
+        } else {
+            if (!(annotation.value instanceof Ast.ArrayValue) && !(annotation.value instanceof Ast.StringValue))
+                return $.error(`An array is expected for ${annotation.name} annotation`);
+            if (annotation.value instanceof Ast.StringValue)
+                annotation.value = new Ast.ArrayValue([annotation.value]);
+
+            switch (annotation.name) {
+            case 'utterances':
+                utterances.push(...(annotation.value.toJS() as string[]));
+                break;
+            case 'preprocessed':
+                preprocessed.push(...(annotation.value.toJS() as string[]));
+                break;
+            default:
+                return $.error(`Invalid example annotation ${annotation.name}, expected utterances or preprocessed`);
+            }
+        }
+    }
+
+    return [id, utterances, preprocessed, other];
+}
+
+// split annotations between nl and impl
+function splitAnnotations(annotations : AnnotationEntry[]) {
+    const nl_annotations : Ast.NLAnnotationMap = {};
+    const impl_annotations : Ast.AnnotationMap = {};
+    for (const a of annotations) {
+        if (a.type === 'nl')
+            nl_annotations[a.name] = a.value.toJS();
+        else if (a.type === 'impl')
+            impl_annotations[a.name] = a.value;
+        else
+            throw new TypeError();
+    }
+
+    return { nl: nl_annotations, impl: impl_annotations };
+}
+
+function parseIncompleteDate($ : $runtime.ParserInterface,
+                             params : Array<number|','>,
+                             time : Ast.AbsoluteTime|null) : Ast.DateValue {
+    const parts : Array<number|null> = [];
+
+    // params is the raw sequence of numbers and commas
+    // (which is unfortunately too messy to model as SLR grammar)
+    // convert it to a sequence of possibly empty parameters
+
+    let hadNumber = false;
+    for (const p of params) {
+        if (p === ',') {
+            if (hadNumber)
+                hadNumber = false;
+            else
+                parts.push(null);
+        } else {
+            if (hadNumber)
+                return $.error(`Expected , between numbers in Date constructor`);
+            else
+                parts.push(p);
+            hadNumber = true;
+        }
+    }
+
+    if (parts.length > 6 || (time && parts.length > 3))
+        return $.error(`Too many values in Date constructor`);
+    if (parts.length === 4) // 4 would be year month day hour without minute or second, which is not allowed
+        return $.error(`Wrong number of values in Date constructor (must be 1, 2, 3, 5, or 6)`);
+    if (parts.length === 0 || parts.every((p) => p === null))
+        return $.error(`Not enough values in Date constructor`);
+
+    if (parts[0] !== null) {
+        // absolute date, or incomplete date where the incomplete parts
+        // are all to the right of the specified parts
+        // (these are exactly equivalent because the incomplete bits are
+        // set to 1 or 0)
+
+        const d = new Date;
+        if (parts.length === 1 && !time) {
+            let unix_or_year = parts[0];
+
+            // treat it as year between 10000 BC and 3000 AD
+            // (in Unix, that would be a 10 seconds before midnight 31/12/1969
+            // to 3 seconds later - we can leave with that window of time not
+            // covered properly...)
+            if (unix_or_year >= -10000 && unix_or_year < 3000) {
+                if (unix_or_year >= 0 && unix_or_year < 100) { // then assume 1950-2050
+                    if (unix_or_year >= 50)
+                        unix_or_year += 1900;
+                    else
+                        unix_or_year += 2000;
+                }
+
+                d.setFullYear(unix_or_year);
+                d.setMonth(0);
+                d.setDate(1);
+                d.setHours(0);
+                d.setMinutes(0);
+                d.setSeconds(0);
+                d.setMilliseconds(0);
+            } else {
+                d.setTime(unix_or_year);
+            }
+        } else {
+            let year = parts[0];
+            if (year >= 0 && year < 100) { // then assume 1950-2050
+                if (year >= 50)
+                    year += 1900;
+                else
+                    year += 2000;
+            }
+
+            d.setFullYear(year);
+            d.setMonth((parts[1] || 1) - 1);
+            d.setDate(parts[2] || 1);
+            if (time) {
+                d.setHours(time.hour);
+                d.setMinutes(time.minute);
+                d.setSeconds(time.second);
+            } else {
+                d.setHours(parts[3] || 0);
+                d.setMinutes(parts[4] || 0);
+                d.setSeconds(parts[5] || 0);
+            }
+            d.setMilliseconds(0);
+        }
+        return new Ast.Value.Date(d);
+    } else {
+        const year = parts[0]||null;
+        const month = parts[1]||null;
+        const day = parts[2]||null;
+
+        if (parts.length > 3)
+            time = new Ast.Time.Absolute(parts[3] || 0, parts[4] || 0, parts[5] || 0);
+        return new Ast.Value.Date(new Ast.DatePiece(year, month, day,
+            time ? new Ast.Value.Time(time) : null));
+    }
+}
+
+}
+
+terminal CLASS_OR_FUNCTION_REF : TypeOfToken<'CLASS_OR_FUNCTION_REF'>;
+terminal SLOT : TypeOfToken<'SLOT'>;
+terminal QUOTED_STRING : TypeOfToken<'QUOTED_STRING'>;
+terminal NUMBER : TypeOfToken<'NUMBER'>;
+terminal MEASURE : TypeOfToken<'MEASURE'>;
+terminal DURATION : TypeOfToken<'DURATION'>;
+terminal CURRENCY : TypeOfToken<'CURRENCY'>;
+terminal LOCATION : TypeOfToken<'LOCATION'>;
+terminal TIME : TypeOfToken<'TIME'>;
+terminal DATE : TypeOfToken<'DATE'>;
+terminal GENERIC_ENTITY : TypeOfToken<'GENERIC_ENTITY'>;
+terminal ENTITY_NAME : TypeOfToken<'ENTITY_NAME'>;
+terminal USERNAME : TypeOfToken<'USERNAME'>;
+terminal HASHTAG : TypeOfToken<'HASHTAG'>;
+terminal URL : TypeOfToken<'URL'>;
+terminal PHONE_NUMBER : TypeOfToken<'PHONE_NUMBER'>;
+terminal EMAIL_ADDRESS : TypeOfToken<'EMAIL_ADDRESS'>;
+terminal PATH_NAME : TypeOfToken<'PATH_NAME'>;
+terminal PICTURE : TypeOfToken<'PICTURE'>;
+terminal TYPE_ANNOT : TypeOfToken<'TYPE_ANNOT'>;
+terminal IDENTIFIER : TypeOfToken<'IDENTIFIER'>;
+terminal DOLLARIDENTIFIER : TypeOfToken<'DOLLARIDENTIFIER'>;
+terminal ENTITY_NAME : TypeOfToken<'ENTITY_NAME'>;
+
+
+input : Ast.Input = {
+    program_or_library;
+    control_command;
+    policy;
+    dialogue_state;
+}
+
+special_command : string = {
+    '$yes';
+    '$no';
+    '$failed';
+    '$train';
+    '$debug';
+    '$nevermind';
+    '$stop';
+    '$help';
+    '$wakeup';
+}
+
+control_command : Ast.ControlCommand = {
+    special:special_command ';' => new Ast.ControlCommand($.location, new Ast.ControlIntent.Special($.location, special.substring(1)));
+    '$choice' '(' num:literal_number ')' ';' => new Ast.ControlCommand($.location, new Ast.ControlIntent.Choice($.location, num));
+    '$answer' '(' v:value ')' ';' => new Ast.ControlCommand($.location, new Ast.ControlIntent.Answer($.location, v));
+}
+
+program_or_library : Ast.Program|Ast.Library = {
+    stmts:toplevel_statement_list => makeInput($, stmts, {});
+    annot:annotation_spec stmts:toplevel_statement_list => makeInput($, stmts, annot);
+}
+
+thingpedia_function_name : { kind : string; name : string } = {
+    name:CLASS_OR_FUNCTION_REF => {
+        const lastDot = name.value.lastIndexOf('.');
+        const className = name.value.substring(0, lastDot);
+        const functionName = name.value.substring(lastDot+1);
+
+        // we check that the function name is a valid identifier because the lexer will greedly parse through things
+        // that are not identifiers but are allowed in the class name
+        if (!isIdentifier(functionName))
+            $.error(`${name.value} is not a valid identifier`); //`
+        return { kind: className, name: functionName };
+    };
+
+    kind:CLASS_OR_FUNCTION_REF '.' name:function_name => {
+        return { kind: kind.value, name };
+    };
+}
+
+dialogue_state : Ast.DialogueState = {
+    '$dialogue' dialogueAct:thingpedia_function_name ';' history:dialogue_history_item_list => {
+        return new Ast.DialogueState($.location, dialogueAct.kind, dialogueAct.name, null, history);
+    };
+    '$dialogue' dialogueAct:thingpedia_function_name '(' pnames:identifier_list ')' ';' history:dialogue_history_item_list => {
+        return new Ast.DialogueState($.location, dialogueAct.kind, dialogueAct.name, pnames, history);
+    };
+
+    '$dialogue' dialogueAct:thingpedia_function_name ';' => {
+        return new Ast.DialogueState($.location, dialogueAct.kind, dialogueAct.name, null, []);
+    };
+    '$dialogue' dialogueAct:thingpedia_function_name '(' pnames:identifier_list ')' ';' => {
+        return new Ast.DialogueState($.location, dialogueAct.kind, dialogueAct.name, pnames, []);
+    };
+}
+
+dialogue_history_item_list : Ast.DialogueHistoryItem[] = {
+    item:dialogue_history_item => [item];
+    list:dialogue_history_item_list item:dialogue_history_item => {
+        list.push(item);
+        return list;
+    };
+}
+
+dialogue_history_item : Ast.DialogueHistoryItem = {
+    rule:expression_statement ';' => new Ast.DialogueHistoryItem($.location, rule, null, 'accepted');
+
+    // note: the syntax here is very hard-coded because we don't want the AST
+    // to be generic, otherwise it's hard to manipulate
+
+    // results
+    rule:expression_statement results:dialogue_result_annotation_bag ';' => new Ast.DialogueHistoryItem($.location, rule, results, 'confirmed');
+
+    // confirm
+    rule:expression_statement '#[' 'confirm' '=' venum:enum_literal ']' ';' => new Ast.DialogueHistoryItem($.location, rule, null, venum);
+}
+
+dialogue_result_annotation_list : DialogueHistoryAnnotation[] = {
+    ann:dialogue_result_annotation => [ann];
+
+    list:dialogue_result_annotation_list ann:dialogue_result_annotation => list.concat([ann]);
+}
+
+dialogue_result_annotation_bag : Ast.DialogueHistoryResultList = {
+    list:dialogue_result_annotation_list => {
+        let results, _error, more, count;
+
+        for (const annot of list) {
+            switch (annot.key) {
+            case 'results':
+                if (results !== undefined)
+                    return $.error(`Duplicate history annotation #[results]`);
+                results = annot.value;
+                break;
+            case 'error':
+                if (_error !== undefined)
+                    return $.error(`Duplicate history annotation #[results]`);
+                _error = annot.value;
+                break;
+            case 'more':
+                if (more !== undefined)
+                    return $.error(`Duplicate history annotation #[more]`);
+                more = annot.value;
+                break;
+            case 'count':
+                if (count !== undefined)
+                    return $.error(`Duplicate history annotation #[count]`);
+                count = annot.value;
+                break;
+            }
+        }
+        if (results === undefined)
+            return $.error(`Missing history annotation #[results]`);
+        if (count === undefined)
+            count = new Ast.Value.Number(results.length);
+
+        return new Ast.DialogueHistoryResultList($.location, results, count, more, _error);
+    };
+}
+
+dialogue_result_annotation : DialogueHistoryAnnotation = {
+    '#[' 'results' '=' results:dialogue_result_list ']' => ({ key: 'results', value: results });
+    '#[' 'count' '=' count:value ']' => ({ key: 'count', value: count });
+    '#[' 'more' '=' 'true' ']' => ({ key: 'more', value: true });
+    '#[' 'error' '=' error:value ']' => ({ key: 'error', value: error });
+}
+
+dialogue_result_list : Ast.DialogueHistoryResultItem[] = {
+    '[' ']' => [];
+    '[' list:dialogue_result_list_nonempty ']' => list;
+}
+
+dialogue_result_list_nonempty : Ast.DialogueHistoryResultItem[] = {
+    value:object_literal_value => [new Ast.DialogueHistoryResultItem($.location, value.value)];
+
+    list:dialogue_result_list_nonempty ',' value:object_literal_value => {
+        list.push(new Ast.DialogueHistoryResultItem(null, value.value));
+        return list;
+    };
+}
+
+policy : Ast.PermissionRule = {
+    //'true' ':' policy:policy_body => policy;
+    '$policy' '{' user:or_filter ':' policy:policy_body ';' '}' => {
+        const clone = policy.clone();
+        clone.principal = user;
+        return clone;
+    };
+}
+
+policy_body : Ast.PermissionRule = {
+    'now' '=>' action:policy_fn => {
+        return new Ast.PermissionRule($.location, Ast.BooleanExpression.True, Ast.PermissionFunction.Builtin, action);
+    };
+    query:policy_fn '=>' 'notify' => {
+        return new Ast.PermissionRule($.location, Ast.BooleanExpression.True, query, Ast.PermissionFunction.Builtin);
+    };
+    query:policy_fn '=>' action:policy_fn => {
+        return new Ast.PermissionRule($.location, Ast.BooleanExpression.True, query, action);
+    };
+}
+
+policy_fn : Ast.PermissionFunction = {
+    '*' => Ast.PermissionFunction.Star;
+    klass:CLASS_OR_FUNCTION_REF '.' '*' => new Ast.PermissionFunction.ClassStar($.location, klass.value);
+    fn:thingpedia_function_name => new Ast.PermissionFunction.Specified($.location, fn.kind, fn.name, Ast.BooleanExpression.True, null);
+    fn:thingpedia_function_name 'filter' filter:or_filter => new Ast.PermissionFunction.Specified($.location, fn.kind, fn.name, filter, null);
+    fn:thingpedia_function_name ',' filter:or_filter => new Ast.PermissionFunction.Specified($.location, fn.kind, fn.name, filter, null);
+}
+
+annotation_spec : Ast.AnnotationSpec = {
+    list:annotation_list => splitAnnotations(list);
+}
+
+annotation : AnnotationEntry = {
+    '#_[' name:variable_name '=' value:value ']' => ({ type: 'nl', name, value });
+    '#[' name:variable_name '=' value:value ']' => ({ type: 'impl', name, value });
+}
+
+annotation_list : AnnotationEntry[] = {
+    annotation => [annotation];
+    list:annotation_list annotation => list.concat([annotation]);
+}
+
+statement_list : Array<Ast.FunctionDeclaration|Ast.ExecutableStatement> = {
+    stmt:statement => [stmt];
+
+    list:statement_list stmt:statement => {
+        list.push(stmt);
+        return list;
+    };
+}
+
+toplevel_statement_list : Ast.Statement[] = {
+    stmt:toplevel_statement => [stmt];
+    stmt:statement => [stmt];
+
+    list:toplevel_statement_list stmt:toplevel_statement => list.concat([stmt]);
+    list:toplevel_statement_list stmt:statement => list.concat([stmt]);
+}
+
+toplevel_statement : (Ast.ClassDef|Ast.Dataset) = {
+    class_def;
+    dataset_def;
+}
+
+class_specifier : boolean = {
+    'class' => false;
+    'abstract' 'class' => true;
+}
+
+class_def : Ast.ClassDef = {
+    is_abstract:class_specifier name:CLASS_OR_FUNCTION_REF class_body
+        => makeClassDef($, name.value, null, class_body, {}, is_abstract);
+    is_abstract:class_specifier name:CLASS_OR_FUNCTION_REF 'extends' _extends:class_ref_list class_body
+        => makeClassDef($, name.value, _extends, class_body, {}, is_abstract);
+    is_abstract:class_specifier name:CLASS_OR_FUNCTION_REF annot:annotation_spec class_body
+        => makeClassDef($, name.value, null, class_body, annot, is_abstract);
+    is_abstract:class_specifier name:CLASS_OR_FUNCTION_REF 'extends' _extends:class_ref_list annot:annotation_spec class_body
+        => makeClassDef($, name.value, _extends, class_body, annot, is_abstract);
+}
+
+class_body : Ast.ClassMember[] = {
+    '{' '}' => [];
+    '{' stmts:class_stmt_list '}' => stmts;
+}
+
+class_ref_list : string[] = {
+    name:CLASS_OR_FUNCTION_REF => [name.value];
+    list:class_ref_list ',' name:CLASS_OR_FUNCTION_REF => list.concat([name.value]);
+}
+
+class_stmt_list : Ast.ClassMember[] = {
+    stmt:class_stmt => [stmt];
+    list:class_stmt_list stmt:class_stmt => list.concat([stmt]);
+}
+
+function_type_decl : [('query'|'action'), boolean, boolean] = {
+    'query' => ['query', false, false];
+    'monitorable' 'query' => ['query', false, true];
+    'monitorable' 'list' 'query' => ['query', true, true];
+    'list' 'monitorable' 'query' => ['query', true, true];
+    'list' 'query' => ['query', true, false];
+    'action' => ['action', false, false];
+    'list' 'action' => ['action', true, false];
+}
+
+class_stmt : Ast.ClassMember = {
+    'import' facets:identifier_list 'from' name:CLASS_OR_FUNCTION_REF in_param_list ';'
+        => new Ast.MixinImportStmt($.location, facets, name.value, in_param_list);
+
+    'entity' name:variable_name annotations:annotation_spec ';'
+        => new Ast.EntityDef($.location, name, annotations);
+
+    fntype:function_type_decl name:function_name args:decl_param_list ';' => {
+        const [functionType, is_list, is_monitorable] = fntype;
+        return new Ast.FunctionDef($.location, functionType, null, name, [], { is_list, is_monitorable }, args);
+    };
+
+    fntype:function_type_decl name:function_name args:decl_param_list annot:annotation_spec ';' => {
+        const [functionType, is_list, is_monitorable] = fntype;
+        return new Ast.FunctionDef($.location, functionType, null, name, [], { is_list, is_monitorable }, args, annot);
+    };
+
+    fntype:function_type_decl name:function_name 'extends' extends_:identifier_list args:decl_param_list ';' => {
+        const [functionType, is_list, is_monitorable] = fntype;
+        return new Ast.FunctionDef($.location, functionType, null, name, extends_, { is_list, is_monitorable }, args);
+    };
+
+    fntype:function_type_decl name:function_name 'extends' extends_:identifier_list args:decl_param_list annot:annotation_spec ';' => {
+        const [functionType, is_list, is_monitorable] = fntype;
+        return new Ast.FunctionDef($.location, functionType, null, name, extends_, { is_list, is_monitorable }, args, annot);
+    };
+
+}
+
+decl_param_list : Ast.ArgumentDef[] = {
+    '(' ')' => [];
+    '(' decl_param_list_nonempty ')' => decl_param_list_nonempty;
+}
+
+decl_param_list_nonempty : Ast.ArgumentDef[] = {
+    decl_param => [decl_param];
+    decl_param_list_nonempty ',' decl_param => decl_param_list_nonempty.concat([decl_param]);
+}
+
+decl_param : Ast.ArgumentDef = {
+    name:variable_name type:type_annot => new Ast.ArgumentDef($.location, Ast.ArgDirection.IN_REQ, name, type);
+    arg_direction name:variable_name type:type_annot => new Ast.ArgumentDef($.location, arg_direction, name, type);
+
+    name:variable_name type:type_annot annot:annotation_spec
+        => new Ast.ArgumentDef($.location, Ast.ArgDirection.IN_REQ, name, type, annot);
+    arg_direction name:variable_name type:type_annot annot:annotation_spec
+        => new Ast.ArgumentDef($.location, arg_direction, name, type, annot);
+}
+
+udf_decl_param_list : TypeMap = {
+    '(' ')' => ({});
+    '(' list:udf_decl_param_list_nonempty ')' => {
+        const typeMap : TypeMap = {};
+        for (const [name, type] of list)
+            typeMap[name] = type;
+        return typeMap;
+    };
+}
+
+udf_decl_param_list_nonempty : Array<[string, Type]> = {
+    p:udf_decl_param => [p];
+    list:udf_decl_param_list_nonempty ',' p:udf_decl_param => {
+        list.push(p);
+        return list;
+    };
+}
+
+udf_decl_param : [string, Type] = {
+    name:variable_name type:type_annot => [name, type];
+}
+
+arg_direction : Ast.ArgDirection = {
+    'in' 'req' => Ast.ArgDirection.IN_REQ;
+    'in' 'opt' => Ast.ArgDirection.IN_OPT;
+    'out' => Ast.ArgDirection.OUT;
+}
+
+dataset_def : Ast.Dataset = {
+    'dataset' name:CLASS_OR_FUNCTION_REF dataset_body =>
+        new Ast.Dataset($.location, name.value, dataset_body, {});
+
+    'dataset' name:CLASS_OR_FUNCTION_REF annot:annotation_spec dataset_body
+        => new Ast.Dataset($.location, name.value, dataset_body, annot);
+
+    'dataset' name:CLASS_OR_FUNCTION_REF 'language' lang:any_string dataset_body =>
+        new Ast.Dataset($.location, name.value, dataset_body, { impl: { language: new Ast.Value.String(lang) } });
+
+    'dataset' name:CLASS_OR_FUNCTION_REF 'language' lang:any_string annot:annotation_spec dataset_body
+        => {
+            annot.impl!.language = new Ast.Value.String(lang);
+            return new Ast.Dataset($.location, name.value, dataset_body, annot);
+        };
+}
+
+dataset_body : Ast.Example[] = {
+    '{' '}' => [];
+    '{' example_list '}' => example_list;
+}
+
+example_list : Ast.Example[] = {
+    example => [example];
+    example_list example => example_list.concat([example]);
+}
+
+assignment_compat = {
+    '=';
+    ':=';
+}
+
+example : Ast.Example = {
+    'stream' params:udf_decl_param_list assignment_compat expr:chain_expression annot:annotation_list ';' => {
+        const [id, utterances, preprocessed, other] = checkExampleAnnotations($, annot);
+        return new Ast.Example($.location, id, 'stream', params, expr, utterances, preprocessed, other);
+    };
+    'stream' params:udf_decl_param_list assignment_compat expr:chain_expression ';' =>
+        new Ast.Example($.location, -1, 'stream', params, expr, [], [], {});
+    'stream' assignment_compat expr:chain_expression annot:annotation_list ';' => {
+        const [id, utterances, preprocessed, other] = checkExampleAnnotations($, annot);
+        return new Ast.Example($.location, id, 'stream', {}, expr, utterances, preprocessed, other);
+    };
+    'stream' assignment_compat expr:chain_expression ';' =>
+        new Ast.Example($.location, -1, 'stream', {}, expr, [], [], {});
+
+    'query' params:udf_decl_param_list assignment_compat expr:chain_expression annot:annotation_list ';' => {
+        const [id, utterances, preprocessed, other] = checkExampleAnnotations($, annot);
+        return new Ast.Example($.location, id, 'query', params, expr, utterances, preprocessed, other);
+    };
+    'query' params:udf_decl_param_list assignment_compat expr:chain_expression ';' =>
+        new Ast.Example($.location, -1, 'query', params, expr, [], [], {});
+    'query' assignment_compat expr:chain_expression annot:annotation_list ';' => {
+        const [id, utterances, preprocessed, other] = checkExampleAnnotations($, annot);
+        return new Ast.Example($.location, id, 'query', {}, expr, utterances, preprocessed, other);
+    };
+    'query' assignment_compat expr:chain_expression ';' =>
+        new Ast.Example($.location, -1, 'query', {}, expr, [], [], {});
+
+
+    'action' params:udf_decl_param_list assignment_compat expr:chain_expression annot:annotation_list ';' => {
+        const [id, utterances, preprocessed, other] = checkExampleAnnotations($, annot);
+        return new Ast.Example($.location, id, 'action', params, expr, utterances, preprocessed, other);
+    };
+    'action' params:udf_decl_param_list assignment_compat expr:chain_expression ';' =>
+        new Ast.Example($.location, -1, 'action', params, expr, [], [], {});
+    'action' assignment_compat expr:chain_expression annot:annotation_list ';' => {
+        const [id, utterances, preprocessed, other] = checkExampleAnnotations($, annot);
+        return new Ast.Example($.location, id, 'action', {}, expr, utterances, preprocessed, other);
+    };
+    'action' assignment_compat expr:chain_expression ';' =>
+        new Ast.Example($.location, -1, 'action', {}, expr, [], [], {});
+
+    'program' params:udf_decl_param_list assignment_compat expr:chain_expression annot:annotation_list ';' => {
+        const [id, utterances, preprocessed, other] = checkExampleAnnotations($, annot);
+        return new Ast.Example($.location, id, 'program', params, expr, utterances, preprocessed, other);
+    };
+    'program' params:udf_decl_param_list assignment_compat expr:chain_expression ';' =>
+        new Ast.Example($.location, -1, 'program', params, expr, [], [], {});
+    'program' assignment_compat expr:chain_expression annot:annotation_list ';' => {
+        const [id, utterances, preprocessed, other] = checkExampleAnnotations($, annot);
+        return new Ast.Example($.location, id, 'program', {}, expr, utterances, preprocessed, other);
+    };
+    'program' assignment_compat expr:chain_expression ';' =>
+        new Ast.Example($.location, -1, 'program', {}, expr, [], [], {});
+
+    'program' params:udf_decl_param_list assignment_compat '{' expr:chain_expression '}' annot:annotation_list ';' => {
+        const [id, utterances, preprocessed, other] = checkExampleAnnotations($, annot);
+        return new Ast.Example($.location, id, 'program', params, expr, utterances, preprocessed, other);
+    };
+    'program' params:udf_decl_param_list assignment_compat '{' expr:chain_expression '}' ';' =>
+        new Ast.Example($.location, -1, 'program', params, expr, [], [], {});
+    'program' assignment_compat '{' expr:chain_expression '}' annot:annotation_list ';' => {
+        const [id, utterances, preprocessed, other] = checkExampleAnnotations($, annot);
+        return new Ast.Example($.location, id, 'program', {}, expr, utterances, preprocessed, other);
+    };
+    'program' assignment_compat '{' expr:chain_expression '}' ';' =>
+        new Ast.Example($.location, -1, 'program', {}, expr, [], [], {});
+}
+
+// Executable Statements
+
+udf_declaration : Ast.FunctionDeclaration = {
+    'function' name:udf_function_name params:udf_decl_param_list '{' stmts:statement_list '}' => {
+        const [declarations, executable] = splitStatements(stmts);
+        return new Ast.FunctionDeclaration($.location, name, params, declarations, executable, {}, null);
+    };
+
+    'function' name:udf_function_name params:udf_decl_param_list annot:annotation_spec '{' stmts:statement_list '}' => {
+        const [declarations, executable] = splitStatements(stmts);
+        return new Ast.FunctionDeclaration($.location, name, params, declarations, executable, annot, null);
+    };
+}
+
+statement : Ast.FunctionDeclaration|Ast.ExecutableStatement = {
+    udf_declaration;
+    expr:expression_statement ';' => expr;
+
+    'let' name:variable_name '=' expr:chain_expression ';'
+        => new Ast.Assignment($.location, name, expr, null);
+}
+
+expression_statement : Ast.ExpressionStatement = {
+    expr:toplevel_chain_expression => new Ast.ExpressionStatement($.location, expr);
+
+    // redundant forms for compatibility
+    'now' '=>' expr:toplevel_chain_expression => new Ast.ExpressionStatement($.location, expr);
+}
+
+chain_expression : Ast.ChainExpression = {
+    list:chain_expression_list => new Ast.ChainExpression($.location, list, null);
+}
+
+toplevel_chain_expression : Ast.ChainExpression = {
+    list:chain_expression_list => new Ast.ChainExpression($.location, list, null);
+
+    // redundant forms for compatibility
+    list:chain_expression_list '=>' 'notify' => new Ast.ChainExpression($.location, list, null);
+}
+
+// A note on the priority of expressions:
+//
+// The order, from least to highest priority, is
+//
+// - chain
+// - projections/computation
+// - filters
+// - alias
+// - index/slice
+// - sort/aggregate/monitor/function call/invocation/parenthesis
+//
+// so for example:
+// ```
+// [foo, bar] of @com.foo() filter foo > 5
+// ```
+// parses as
+// ```
+// [foo, bar] of ((@com.foo()) filter foo > 5)
+// ```
+// (this is DIFFERENT from Old ThingTalk - but the same after optimization!)
+//
+// ```
+// [foo, bar] of @com.foo(), foo > 5
+// ```
+// parses as
+// ```
+// [foo, bar] of ((@com.foo()) filter foo > 5)
+// ```
+//
+// ```
+// [foo, bar] of @com.foo() as lol
+// ```
+// parses as
+// ```
+// [foo, bar] of ((@com.foo()) as lol)
+// ```
+//
+// ```
+// [foo, bar] of [foo, bar, baz] of @com.foo()
+// ```
+// parses as
+// ```
+// [foo, bar] of ([foo, bar, baz] of (@com.foo()))
+// ```
+//
+// ```
+// @com.foo() as lol filter foo > 5
+// ```
+// parses as
+// ```
+// ((@com.foo() as lol) filter foo > 5
+// ```
+//
+// ```
+// @com.foo() as lol, foo > 5
+// ```
+// parses as
+// ```
+// ((@com.foo() as lol) filter foo > 5
+// ```
+//
+// ```
+// @com.foo() filter foo > 5 as lol
+// ```
+// is not valid
+//
+// ```
+// @com.foo(), foo > 5 as lol
+// ```
+// is not valid
+//
+// ```
+// @com.foo() filter foo > 5[1]
+// ```
+// is not valid
+//
+// ```
+// @com.foo() as foo > 5[1]
+// ```
+// is not valid
+//
+// ```
+// sort(@com.foo()) as foo
+// ```
+// parses as
+// ```
+// (sort(@com.foo())) as foo
+// ```
+
+chain_expression_list : Ast.Expression[] = {
+    expr:projection_expression => [expr];
+
+    list:chain_expression_list '=>' expr:projection_expression => {
+        list.push(expr);
+        return list;
+    };
+}
+
+projection_expression : Ast.Expression = {
+    filter_expression;
+
+    '[' args:projection_param_list ']' 'of' expr:projection_expression => {
+        const names : string[] = [], computations : Ast.Value[] = [],
+            aliases : Array<string|null> = [];
+        for (const [value, alias] of args) {
+            if (value instanceof Ast.VarRefValue &&
+                (alias === null || alias === value.name)) {
+                names.push(value.name);
+            } else {
+                computations.push(value);
+                aliases.push(alias);
+            }
+        }
+        return new Ast.ProjectionExpression($.location, expr, names, computations, aliases, null);
+    };
+}
+
+projection_param_list : Array<[Ast.Value, string|null]> = {
+    p:projection_param => [p];
+
+    list:projection_param_list ',' p:projection_param => {
+        list.push(p);
+        return list;
+    };
+}
+
+projection_param : [Ast.Value, string|null] = {
+    v:value => [v, null];
+
+    v:value 'as' alias:variable_name => [v, alias];
+}
+
+filter_expression : Ast.Expression = {
+    alias_expression;
+
+    expr:filter_expression ',' filter:or_filter
+        => new Ast.FilterExpression($.location, expr, filter, null);
+    expr:filter_expression 'filter' filter:or_filter
+        => new Ast.FilterExpression($.location, expr, filter, null);
+}
+
+alias_expression : Ast.Expression = {
+    index_slice_expression;
+
+    expr:alias_expression 'as' name:variable_name =>
+        new Ast.AliasExpression($.location, expr, name, null);
+}
+
+index_slice_expression : Ast.Expression = {
+    primary_expression;
+
+    expr:primary_expression '[' begin:value ':' count:value ']'
+        => new Ast.SliceExpression($.location, expr, begin, count, null);
+    expr:primary_expression '[' indices:array_literal_values ']'
+        => new Ast.IndexExpression($.location, expr, indices, null);
+}
+
+primary_expression : Ast.Expression = {
+    '(' expr:chain_expression ')' => expr;
+
+    'sort' '(' spec:sort_specifier 'of' expr:chain_expression ')'
+        => new Ast.SortExpression($.location, expr, spec[0], spec[1], null);
+
+    op:aggr_op '(' name:variable_name 'of' expr:chain_expression ')'
+        => new Ast.AggregationExpression($.location, expr, name, op, null);
+    'count' '(' name:variable_name 'of' expr:chain_expression ')'
+        => new Ast.AggregationExpression($.location, expr, name, 'count', null);
+    'count' '(' expr:chain_expression ')'
+        => new Ast.AggregationExpression($.location, expr, '*', 'count', null);
+
+    'monitor' '(' expr:chain_expression ')'
+        => new Ast.MonitorExpression($.location, expr, null, null);
+
+    'monitor' '(' args:variable_name_list 'of' expr:chain_expression ')'
+        => new Ast.MonitorExpression($.location, expr, args, null);
+
+    name:udf_function_name in_params:in_param_list
+        => new Ast.FunctionCallExpression($.location, name, in_params, null);
+
+    call:thingpedia_call
+        => new Ast.InvocationExpression($.location, call, null);
+}
+
+thingpedia_call : Ast.Invocation = {
+    name:CLASS_OR_FUNCTION_REF in_params:in_param_list => {
+        const lastDot = name.value.lastIndexOf('.');
+        const className = name.value.substring(0, lastDot);
+        const functionName = name.value.substring(lastDot+1);
+
+        // we check that the function name is a valid identifier because the lexer will greedly parse through things
+        // that are not identifiers but are allowed in the class name
+        if (!isIdentifier(functionName))
+            $.error(`${name.value} is not a valid function name`); //`
+        return new Ast.Invocation($.location, new Ast.DeviceSelector($.location, className, null, null), functionName, in_params, null);
+    };
+
+    className:CLASS_OR_FUNCTION_REF '.' functionName:function_name in_params:in_param_list
+        => new Ast.Invocation($.location, new Ast.DeviceSelector($.location, className.value, null, null), functionName, in_params, null);
+
+    className:CLASS_OR_FUNCTION_REF device_params:in_param_list '.' functionName:function_name in_params:in_param_list => {
+        let id : string|null = null, all = false;
+        const other = [];
+        for (const attr of device_params) {
+            if (attr.name === 'id') {
+                id = String(attr.value.toJS());
+                const value = attr.value;
+                if (value instanceof Ast.EntityValue && value.display)
+                    other.push(new Ast.InputParam($.location, 'name', new Ast.Value.String(value.display)));
+            } else if (attr.name === 'all') {
+                all = !!attr.value.toJS();
+            } else {
+                other.push(attr);
+            }
+        }
+        const selector = new Ast.DeviceSelector($.location, className.value, id, null, other, all);
+        return new Ast.Invocation($.location, selector, functionName, in_params, null);
+    };
+}
+
+in_param_list : Ast.InputParam[] = {
+    '(' ')' => [];
+    '(' in_param_list_nonempty ')' => in_param_list_nonempty;
+}
+
+in_param_list_nonempty : Ast.InputParam[] = {
+    in_param => [in_param];
+    in_param_list_nonempty ',' in_param => in_param_list_nonempty.concat([in_param]);
+}
+
+in_param : Ast.InputParam = {
+    // "all" is a valid input parameter to a device selector
+    // for reason of grammar ambiguity with function call shorthands
+    // device selectors and in_param_list MUST be the same, so "all" is
+    // allowed as input parameter, even though it is a keyword
+    // it will be killed in typechecking because you cannot declare a function parameter called "all"
+    'all' '=' value => new Ast.InputParam($.location, 'all', value);
+
+    name:variable_name '=' value => new Ast.InputParam($.location, name, value);
+}
+
+sort_specifier : [Ast.Value, 'asc'|'desc'] = {
+    value 'asc' => [value, 'asc'];
+    value 'desc' => [value, 'desc'];
+}
+
+or_filter : Ast.BooleanExpression = {
+    and_filter;
+    f1:or_filter '||' f2:and_filter => new Ast.BooleanExpression.Or($.location, [f1, f2]);
+}
+
+and_filter : Ast.BooleanExpression = {
+    unary_filter;
+    f1:and_filter '&&' f2:unary_filter => new Ast.BooleanExpression.And($.location, [f1, f2]);
+}
+
+unary_filter : Ast.BooleanExpression = {
+    comparison_filter;
+
+    atom_filter;
+    '!' f:atom_filter => new Ast.BooleanExpression.Not($.location, f);
+}
+
+// filter values cause a lot of ambiguity
+//
+//
+// a filter value followed by a '+' operator could be interpreted as adding to the
+// whole filter value or adding to operand of the filter
+//
+// we solve the ambiguity as if the "filter" keyword takes priority
+// that is
+// ```
+// a filter b > c + d
+// ```
+// is parsed as
+// ```
+// (a filter b > c) + d
+// ```
+//
+// a value in the RHS of a comparison followed by "filter" could be
+// a nested filter expression or a filter value
+//
+// the ambiguous example is:
+// ```
+// @com.foo() filter b > c filter f(...)
+// ```
+// we interpret that as:
+// ```
+// ((@com.foo() filter b > c) filter f(...))
+// ```
+//
+// a value in the LHS of a comparison containing filter also causes ambiguity
+
+comparison_filter : Ast.BooleanExpression = {
+    /*pname:variable_name op:comparison_op rhs:add_expr =>
+        new Ast.BooleanExpression.Atom($.location, pname, op, rhs);*/
+    lhs:filter_lhs_add_expr op:comparison_op rhs:add_expr => {
+        if (lhs instanceof Ast.VarRefValue)
+            return new Ast.BooleanExpression.Atom($.location, lhs.name, op, rhs);
+        else
+            return new Ast.BooleanExpression.Compute($.location, lhs, op, rhs);
+    };
+}
+
+non_ambiguous_unary_filter : Ast.BooleanExpression = {
+    non_ambiguous_comparison_filter;
+
+    atom_filter;
+    '!' f:atom_filter => new Ast.BooleanExpression.Not($.location, f);
+}
+
+non_ambiguous_comparison_filter : Ast.BooleanExpression = {
+    /*pname:variable_name op:comparison_op rhs:primary_value =>
+        new Ast.BooleanExpression.Atom($.location, pname, op, rhs);*/
+    lhs:filter_lhs_add_expr op:comparison_op rhs:primary_value => {
+        if (lhs instanceof Ast.VarRefValue)
+            return new Ast.BooleanExpression.Atom($.location, lhs.name, op, rhs);
+        else
+            return new Ast.BooleanExpression.Compute($.location, lhs, op, rhs);
+    };
+}
+
+// to avoid ambiguity with constant boolean expressions, the LHS of a comparison
+// filter cannot be a boolean constant (place that on the RHS instead)
+
+filter_lhs_array_field_value : Ast.Value = {
+    field:qualified_name 'of' value:filter_lhs_filter_value => new Ast.Value.ArrayField(value, field);
+
+    filter_lhs_filter_value;
+}
+filter_lhs_filter_value : Ast.Value = {
+    filter_lhs_add_expr;
+
+    value:filter_lhs_add_expr 'filter' filter:non_ambiguous_unary_filter => new Ast.Value.Filter(value, filter);
+}
+filter_lhs_add_expr : Ast.Value = {
+    filter_lhs_mul_expr;
+
+    lhs:filter_lhs_add_expr '+' rhs:filter_lhs_mul_expr => new Ast.Value.Computation('+', [lhs, rhs]);
+    lhs:filter_lhs_add_expr '-' rhs:filter_lhs_mul_expr => new Ast.Value.Computation('-', [lhs, rhs]);
+}
+filter_lhs_mul_expr : Ast.Value = {
+    filter_lhs_exp_expr;
+
+    lhs:filter_lhs_mul_expr '*' rhs:filter_lhs_exp_expr => new Ast.Value.Computation('*', [lhs, rhs]);
+    lhs:filter_lhs_mul_expr '/' rhs:filter_lhs_exp_expr => new Ast.Value.Computation('/', [lhs, rhs]);
+    lhs:filter_lhs_mul_expr '%' rhs:filter_lhs_exp_expr => new Ast.Value.Computation('%', [lhs, rhs]);
+}
+filter_lhs_exp_expr : Ast.Value = {
+    filter_lhs_primary_value;
+
+    lhs:filter_lhs_exp_expr '**' rhs:filter_lhs_primary_value => new Ast.Value.Computation('**', [lhs, rhs]);
+}
+filter_lhs_primary_value : Ast.Value = {
+    '(' value:filter_lhs_array_field_value ')' => value;
+
+    constant_non_Boolean;
+    scalar_function;
+    undefined_value;
+    context_value;
+    object_literal_value;
+    array_value;
+    var_ref_value;
+    event_value;
+}
+
+comparison_op : string = {
+    '==';
+    '>=';
+    '<=';
+    '=~';
+    '~=';
+}
+
+function_like_comparison_op : string = {
+    'starts_with';
+    'ends_with';
+    'prefix_of';
+    'suffix_of';
+    'contains';
+    'contains~';
+    '~contains';
+    'in_array';
+    'in_array~';
+    '~in_array';
+}
+
+aggr_op : ('min'|'max'|'sum'|'avg') = {
+    'min';
+    'max';
+    'sum';
+    'avg';
+}
+
+scalar_op : 'distance' = {
+    'distance' => 'distance';
+}
+
+atom_filter : Ast.BooleanExpression = {
+    'true' => Ast.BooleanExpression.True;
+    'false' => Ast.BooleanExpression.False;
+
+    '(' filter:or_filter ')' => filter;
+
+    'true' '(' pname:variable_name ')' => new Ast.BooleanExpression.DontCare($.location, pname);
+
+    op:function_like_comparison_op '(' lhs:value ',' rhs:value ')' => {
+        if (lhs instanceof Ast.VarRefValue)
+            return new Ast.BooleanExpression.Atom($.location, lhs.name, op, rhs);
+        else
+            return new Ast.BooleanExpression.Compute($.location, lhs, op, rhs);
+    };
+
+    // TODO subqueries
+
+    'any' '(' inv:thingpedia_call 'filter' filter:or_filter ')' =>
+        new Ast.BooleanExpression.External($.location, inv.selector, inv.channel, inv.in_params, filter, null);
+    'any' '(' inv:thingpedia_call ',' filter:or_filter ')' =>
+        new Ast.BooleanExpression.External($.location, inv.selector, inv.channel, inv.in_params, filter, null);
+}
+
+primary_value : Ast.Value = {
+    '(' value ')' => value;
+
+    scalar_function;
+    undefined_value;
+    context_value;
+    object_literal_value;
+    array_value;
+    constant_value;
+    var_ref_value;
+    event_value;
+}
+
+var_ref_value : Ast.VarRefValue = {
+    name:qualified_name => new Ast.Value.VarRef(name);
+}
+
+qualified_name : string = {
+    name:variable_name => name;
+    prefix:qualified_name '.' name:variable_name => prefix + '.' + name;
+}
+
+value : Ast.Value = {
+    array_field_value;
+}
+
+array_field_value : Ast.Value = {
+    field:qualified_name 'of' value:filter_value => new Ast.Value.ArrayField(value, field);
+
+    filter_value;
+}
+
+filter_value : Ast.Value = {
+    add_expr;
+
+    value:add_expr 'filter' filter:non_ambiguous_unary_filter => new Ast.Value.Filter(value, filter);
+}
+
+add_expr : Ast.Value = {
+    mul_expr;
+
+    lhs:add_expr '+' rhs:mul_expr => new Ast.Value.Computation('+', [lhs, rhs]);
+    lhs:add_expr '-' rhs:mul_expr => new Ast.Value.Computation('-', [lhs, rhs]);
+}
+mul_expr : Ast.Value = {
+    exp_expr;
+
+    lhs:mul_expr '*' rhs:exp_expr => new Ast.Value.Computation('*', [lhs, rhs]);
+    lhs:mul_expr '/' rhs:exp_expr => new Ast.Value.Computation('/', [lhs, rhs]);
+    lhs:mul_expr '%' rhs:exp_expr => new Ast.Value.Computation('%', [lhs, rhs]);
+}
+exp_expr : Ast.Value = {
+    primary_value;
+
+    lhs:exp_expr '**' rhs:primary_value => new Ast.Value.Computation('**', [lhs, rhs]);
+}
+
+scalar_function : Ast.ComputationValue = {
+    op:scalar_op '(' operands:array_literal_values ')' => new Ast.Value.Computation(op, operands);
+    op:aggr_op '(' operands:array_literal_values ')' => new Ast.Value.Computation(op, operands);
+    'count' '(' operands:array_literal_values ')' => new Ast.Value.Computation('count', operands);
+}
+
+undefined_value : Ast.UndefinedValue = {
+    '$undefined' => new Ast.Value.Undefined(true);
+    '$?' => new Ast.Value.Undefined(true);
+}
+
+event_value : Ast.EventValue = {
+    '$result' => new Ast.Value.Event(null);
+    '$type' => new Ast.Value.Event('type');
+    '$program_id' => new Ast.Value.Event('program_id');
+}
+
+context_value : Ast.ContextRefValue = {
+    '$context' '.' name:variable_name type:type_annot => new Ast.Value.ContextRef(name, type);
+}
+
+array_value : Ast.ArrayValue = {
+    '[' ']' => new Ast.Value.Array([]);
+    '[' values:array_literal_values ']' => new Ast.Value.Array(values);
+}
+
+object_literal_value : Ast.ObjectValue = {
+    '{' '}' => new Ast.Value.Object({});
+    '{' values:object_literal_entry_list '}' => new Ast.Value.Object(values);
+    '{' values:object_literal_entry_list ',' '}' => new Ast.Value.Object(values);
+}
+
+object_literal_entry_list : { [key : string] : Ast.Value } = {
+    name:qualified_name '=' value:value => ({ [name]: value });
+    obj:object_literal_entry_list ',' name:qualified_name '=' value:value => {
+        obj[name] = value;
+        return obj;
+    };
+}
+
+constant_RecurrentTimeSpecification : Ast.Value = {
+    'new' 'RecurrentTimeSpecification' '(' rules:recurrent_time_rule_list ')' =>
+        new Ast.Value.RecurrentTimeSpecification(rules);
+}
+
+recurrent_time_rule_list : Ast.RecurrentTimeRule[] = {
+    first:recurrent_time_rule => [first];
+
+    head:recurrent_time_rule_list ',' tail:recurrent_time_rule => head.concat([tail]);
+}
+
+recurrent_time_rule : Ast.RecurrentTimeRule = {
+    '{' list:recurrent_time_item_list '}' => {
+        const obj : { [key : string] : unknown } = {};
+        for (const item of list) {
+            if (obj[item[0]])
+                return $.error(`Duplicate recurrent time rule key ${item[0]}`);
+            obj[item[0]] = item[1];
+        }
+        return new Ast.RecurrentTimeRule(obj as any);
+    };
+}
+
+recurrent_time_item_list : Array<[string, any]> = {
+    first:recurrent_time_item => [first];
+
+    head:recurrent_time_item_list ',' tail:recurrent_time_item => head.concat([tail]);
+}
+
+recurrent_time_item : [string, any] = {
+    'beginDate' '=' v:absolute_or_edge_date => ['beginDate', v.value];
+    'endDate' '=' v:absolute_or_edge_date => ['endDate', v.value];
+
+    'beginTime' '=' v:absolute_time => ['beginTime', v];
+    'endTime' '=' v:absolute_time => ['endTime', v];
+
+    'frequency' '=' v:literal_number => ['frequency', v];
+    'interval' '=' v:constant_Measure => ['interval', v];
+
+    'dayOfWeek' '=' v:enum_literal => ['dayOfWeek', v];
+
+    'subtract' '=' 'true' => ['subtract', true];
+    'subtract' '=' 'false' => ['subtract', false];
+}
+
+constant_value : Ast.Value = {
+    constant_Boolean;
+    constant_non_Boolean;
+}
+
+constant_non_Boolean : Ast.Value = {
+    constant_String;
+    constant_Measure;
+    constant_Number;
+    constant_Currency;
+    constant_Location;
+    constant_Date;
+    constant_Time;
+    constant_Entity__unknown;
+    constant_Entity__tt__username;
+    constant_Entity__tt__hashtag;
+    constant_Entity__tt__phone_number;
+    constant_Entity__tt__email_address;
+    constant_Entity__tt__path_name;
+    constant_Entity__tt__url;
+    constant_Entity__tt__device;
+    constant_Entity__tt__function;
+    constant_Entity__tt__picture;
+    constant_Enum;
+    constant_RecurrentTimeSpecification;
+    constant_ArgMap;
+    slot:SLOT => (slot.value === undefined ? new Ast.Value.Undefined(true) : slot.value);
+}
+
+array_literal_values : Ast.Value[] = {
+    value => [value];
+    array:array_literal_values ',' v:value => array.concat([v]);
+}
+
+constant_Boolean : Ast.BooleanValue = {
+    'true' => new Ast.Value.Boolean(true);
+    'false' => new Ast.Value.Boolean(false);
+}
+
+any_string : string = {
+    str:QUOTED_STRING => str.value;
+}
+
+constant_String : Ast.StringValue = {
+    str:any_string => new Ast.Value.String(str);
+}
+
+literal_number : number = {
+    num:NUMBER => num.value;
+}
+
+any_number : number = {
+    num:literal_number => num;
+    '-' num:literal_number => -num;
+}
+
+constant_Measure : Ast.MeasureValue = {
+    tok:MEASURE => new Ast.Value.Measure(tok.value.value, tok.value.unit);
+    tok:DURATION => new Ast.Value.Measure(tok.value.value, tok.value.unit);
+
+    num:any_number unit:unit_name => new Ast.Value.Measure(num, unit);
+}
+
+constant_Number : Ast.NumberValue = {
+    num:any_number => new Ast.Value.Number(num);
+}
+
+constant_Currency : Ast.CurrencyValue = {
+    tok:CURRENCY => new Ast.Value.Currency(tok.value.value, tok.value.unit);
+
+    num:any_number tok:DOLLARIDENTIFIER => new Ast.Value.Currency(num, tok.value);
+}
+
+constant_Location : Ast.LocationValue = {
+    loc:LOCATION => new Ast.Value.Location(new Ast.Location.Absolute(loc.value.latitude, loc.value.longitude, loc.value.display||null));
+
+    '$location' '.' name:variable_name => new Ast.Value.Location(new Ast.Location.Relative(name));
+
+    'new' 'Location' '(' lat:any_number ',' lon:any_number ',' display:any_string ')' => {
+        return new Ast.Value.Location(new Ast.Location.Absolute(lat, lon, display));
+    };
+    'new' 'Location' '(' lat:any_number ',' lon:any_number ')' => {
+        return new Ast.Value.Location(new Ast.Location.Absolute(lat, lon, null));
+    };
+    'new' 'Location' '(' name:any_string ')' => {
+        return new Ast.Value.Location(new Ast.Location.Unresolved(name));
+    };
+}
+
+// Note that while keeping digits in ranges [0-23],[0-59],[0-59] is not enforced
+// here, it is enforced in tonn_converter, rendering it unnecessary to do so here
+absolute_time : Ast.AbsoluteTime = {
+    time:TIME => new Ast.Time.Absolute(time.value.hour, time.value.minute, time.value.second||0);
+
+    'new' 'Time' '(' hour:any_number ',' minute:any_number ',' second:any_number ')'
+        => new Ast.Time.Absolute(hour, minute, second);
+    'new' 'Time' '(' hour:any_number ',' minute:any_number ',' ')'
+        => new Ast.Time.Absolute(hour, minute, 0);
+    'new' 'Time' '(' hour:any_number ',' minute:any_number ')'
+        => new Ast.Time.Absolute(hour, minute, 0);
+}
+
+constant_Time : Ast.TimeValue = {
+    time:absolute_time => new Ast.Value.Time(time);
+
+    '$time' '.' name:variable_name => new Ast.Value.Time(new Ast.Time.Relative(name));
+}
+
+// start_of/end_of with less than 1h are not supported
+// (they don't make sense)
+constant_Date : Ast.DateValue = {
+    '$now' => new Ast.Value.Date(null);
+    'new' 'Date' '(' ')' => new Ast.Value.Date(null);
+
+    absolute_or_edge_date;
+}
+
+date_param_list : Array<number|','> = {
+    num:any_number => [num];
+    ',' => [','];
+
+    list:date_param_list ',' => {
+        list.push(',');
+        return list;
+    };
+    list:date_param_list num:any_number => {
+        list.push(num);
+        return list;
+    };
+}
+
+absolute_or_edge_date : Ast.DateValue = {
+    abs:DATE => new Ast.Value.Date(parseDate(abs.value));
+    'new' 'Date' '(' iso:any_string ')' => {
+        return new Ast.Value.Date(new Date(iso));
+    };
+
+    'new' 'Date' '(' params:date_param_list ')' =>
+        parseIncompleteDate($, params, null);
+
+    'new' 'Date' '(' params:date_param_list ',' time:absolute_time ')' =>
+        parseIncompleteDate($, params, time);
+
+    /*'new' 'Date' '(' year:constant_Number ',' month:constant_Number ',' day:constant_Number ')' => {
+        const d = new Date;
+        d.setFullYear(year.value);
+        d.setMonth(month.value-1);
+        d.setDate(day.value);
+        d.setHours(0);
+        d.setMinutes(0);
+        d.setSeconds(0);
+        d.setMilliseconds(0);
+        return new Ast.Value.Date(d);
+    };
+    'new' 'Date' '(' year:constant_Number ',' month:constant_Number ',' day:constant_Number ','
+                     hours:constant_Number ',' minutes:constant_Number ',' seconds:constant_Number ')' => {
+        const d = new Date;
+        d.setFullYear(year.value);
+        d.setMonth(month.value-1);
+        d.setDate(day.value);
+        d.setHours(hours.value);
+        d.setMinutes(minutes.value);
+        d.setSeconds(seconds.value);
+        d.setMilliseconds(0);
+        return new Ast.Value.Date(d);
+    };
+    'new' 'Date' '(' year:constant_Number ',' month:constant_Number ',' day:constant_Number ','
+                     hours:constant_Number ',' minutes:constant_Number ')' => {
+        const d = new Date;
+        d.setFullYear(year.value);
+        d.setMonth(month.value-1);
+        d.setDate(day.value);
+        d.setHours(hours.value);
+        d.setMinutes(minutes.value);
+        d.setSeconds(0);
+        d.setMilliseconds(0);
+        return new Ast.Value.Date(d);
+    };
+    'new' 'Date' '(' year:constant_Number ',' month:constant_Number ',' day:constant_Number ','
+                     time:absolute_time ')' => {
+        const d = new Date;
+        d.setFullYear(year.value);
+        d.setMonth(month.value-1);
+        d.setDate(day.value);
+        d.setHours(time.hour);
+        d.setMinutes(time.minute);
+        d.setSeconds(time.second);
+        d.setMilliseconds(0);
+        return new Ast.Value.Date(d);
+    };
+
+    'new' 'Date' '(' unix_or_year:constant_Number ')' => {
+        const v = unix_or_year.value;
+
+
+    };
+
+
+    'new' 'Date' '(' year:constant_Number ',' ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(year.value, null, null, null));
+    };
+    'new' 'Date' '(' year:constant_Number ',' ',' ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(year.value, null, null, null));
+    };
+    'new' 'Date' '(' year:constant_Number ',' ',' ',' ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(year.value, null, null, null));
+    };
+
+    'new' 'Date' '(' ',' month:constant_Number ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(null, month.value, null, null));
+    };
+    'new' 'Date' '(' ',' month:constant_Number ',' ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(null, month.value, null, null));
+    };
+    'new' 'Date' '(' ',' month:constant_Number ',' ',' ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(null, month.value, null, null));
+    };
+
+    'new' 'Date' '(' ',' ',' day:constant_Number ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(null, null, day.value, null));
+    };
+    'new' 'Date' '(' ',' ',' day:constant_Number ',' ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(null, null, day.value, null));
+    };
+
+    'new' 'Date' '(' year:constant_Number ',' month:constant_Number ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(year.value, month.value, null, null));
+    };
+    'new' 'Date' '(' year:constant_Number ',' month:constant_Number ',' ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(year.value, month.value, null, null));
+    };
+    'new' 'Date' '(' year:constant_Number ',' month:constant_Number ',' ',' ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(year.value, month.value, null, null));
+    };
+
+    'new' 'Date' '(' ',' month:constant_Number ',' day:constant_Number ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(null, month.value, day.value, null));
+    };
+    'new' 'Date' '(' ',' month:constant_Number ',' day:constant_Number ',' ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(null, month.value, day.value, null));
+    };
+
+    'new' 'Date' '(' ',' ',' day:constant_Number ',' time:absolute_time ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(null, null, day.value, new Ast.Value.Time(time)));
+    };
+    'new' 'Date' '(' ',' ',' day:constant_Number ',' hours:constant_Number ',' minutes:constant_Number ',' seconds:constant_Number ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(null, null, day.value,
+            new Ast.Value.Time(new Ast.Time.Absolute(hours.value, minutes.value, seconds.value))));
+    };
+    'new' 'Date' '(' ',' ',' day:constant_Number ',' hours:constant_Number ',' minutes:constant_Number ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(null, null, day.value,
+            new Ast.Value.Time(new Ast.Time.Absolute(hours.value, minutes.value, 0))));
+    };
+    'new' 'Date' '(' ',' ',' day:constant_Number ',' hours:constant_Number ',' minutes:constant_Number ',' ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(null, null, day.value,
+            new Ast.Value.Time(new Ast.Time.Absolute(hours.value, minutes.value, 0))));
+    };
+
+    'new' 'Date' '(' ',' month:constant_Number ',' day:constant_Number ',' time:absolute_time ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(null, month.value, day.value, new Ast.Value.Time(time)));
+    };
+    'new' 'Date' '(' ',' month:constant_Number ',' day:constant_Number ',' hours:constant_Number ',' minutes:constant_Number ',' seconds:constant_Number ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(null, month.value, day.value,
+            new Ast.Value.Time(new Ast.Time.Absolute(hours.value, minutes.value, seconds.value))));
+    };
+    'new' 'Date' '(' ',' month:constant_Number ',' day:constant_Number ',' hours:constant_Number ',' minutes:constant_Number ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(null, month.value, day.value,
+            new Ast.Value.Time(new Ast.Time.Absolute(hours.value, minutes.value, 0))));
+    };
+    'new' 'Date' '(' ',' month:constant_Number ',' day:constant_Number ',' hours:constant_Number ',' minutes:constant_Number ',' ')' => {
+        return new Ast.Value.Date(new Ast.DatePiece(null, month.value, day.value,
+            new Ast.Value.Time(new Ast.Time.Absolute(hours.value, minutes.value, 0))));
+    };
+    */
+
+    'new' 'Date' '(' weekday:enum_literal ')' => {
+        const d = new Ast.WeekDayDate(weekday, null);
+        return new Ast.Value.Date(d);
+    };
+    'new' 'Date' '(' weekday:enum_literal ',' time:absolute_time ')' => {
+        const d = new Ast.WeekDayDate(weekday, new Ast.Value.Time(time));
+        return new Ast.Value.Date(d);
+    };
+    'new' 'Date' '(' weekday:enum_literal ',' hours:constant_Number ',' minutes:constant_Number ',' seconds:constant_Number ')' => {
+        const d = new Ast.WeekDayDate(weekday, new Ast.Value.Time(new Ast.Time.Absolute(hours.value, minutes.value, seconds.value)));
+        return new Ast.Value.Date(d);
+    };
+    'new' 'Date' '(' weekday:enum_literal ',' hours:constant_Number ',' minutes:constant_Number ',' ')' => {
+        const d = new Ast.WeekDayDate(weekday, new Ast.Value.Time(new Ast.Time.Absolute(hours.value, minutes.value, 0)));
+        return new Ast.Value.Date(d);
+    };
+    'new' 'Date' '(' weekday:enum_literal ',' hours:constant_Number ',' minutes:constant_Number ')' => {
+        const d = new Ast.WeekDayDate(weekday, new Ast.Value.Time(new Ast.Time.Absolute(hours.value, minutes.value, 0)));
+        return new Ast.Value.Date(d);
+    };
+
+    '$start_of' '(' unit:unit_name ')' => new Ast.Value.Date(new Ast.DateEdge('start_of', unit));
+    '$end_of' '(' unit:unit_name ')' => new Ast.Value.Date(new Ast.DateEdge('end_of', unit));
+}
+
+constant_Enum : Ast.EnumValue = {
+    v:enum_literal => new Ast.Value.Enum(v);
+}
+
+enum_literal : string = {
+    'enum' '(' venum:identifier_or_keyword ')' => venum;
+    'enum' venum:identifier_or_keyword => venum;
+}
+
+constant_Entity__unknown : Ast.EntityValue = {
+    'null' entity:ENTITY_NAME '(' display:any_string ')'
+        => new Ast.Value.Entity(null, entity.value, display);
+
+    str:any_string entity:ENTITY_NAME '(' display:any_string ')'
+        => new Ast.Value.Entity(str, entity.value, display);
+    str:any_string entity:ENTITY_NAME
+        => new Ast.Value.Entity(str, entity.value, null);
+
+    entity:GENERIC_ENTITY => new Ast.Value.Entity(entity.value.value, entity.value.type, entity.value.display);
+}
+
+constant_Entity__tt__username      : Ast.EntityValue = entity:USERNAME      => new Ast.Value.Entity(entity.value, 'tt:username', null);
+constant_Entity__tt__hashtag       : Ast.EntityValue = entity:HASHTAG       => new Ast.Value.Entity(entity.value, 'tt:hashtag', null);
+constant_Entity__tt__url           : Ast.EntityValue = entity:URL           => new Ast.Value.Entity(entity.value, 'tt:url', null);
+constant_Entity__tt__phone_number  : Ast.EntityValue = entity:PHONE_NUMBER  => new Ast.Value.Entity(entity.value, 'tt:phone_number', null);
+constant_Entity__tt__email_address : Ast.EntityValue = entity:EMAIL_ADDRESS => new Ast.Value.Entity(entity.value, 'tt:email_address', null);
+constant_Entity__tt__path_name     : Ast.EntityValue = entity:PATH_NAME     => new Ast.Value.Entity(entity.value, 'tt:path_name', null);
+constant_Entity__tt__picture       : Ast.EntityValue = entity:PICTURE       => new Ast.Value.Entity(entity.value, 'tt:picture', null);
+
+constant_Entity__tt__device : Ast.EntityValue = {
+    className:CLASS_OR_FUNCTION_REF => new Ast.Value.Entity(className.value, 'tt:device', null);
+}
+
+constant_Entity__tt__function : Ast.EntityValue = {
+    className:CLASS_OR_FUNCTION_REF '.' name:variable_name => new Ast.Value.Entity(className.value + '.' + name, 'tt:function', null);
+}
+
+constant_ArgMap : Ast.ArgMapValue = {
+    'new' 'ArgMap' '(' ')' => new Ast.Value.ArgMap({});
+    'new' 'ArgMap' '(' argmap_list ')' => new Ast.Value.ArgMap(argmap_list);
+}
+
+argmap_list : { [key : string] : Type } = {
+    name:variable_name type:type_annot => ({ [name]: type });
+
+    list:argmap_list ',' name:variable_name type:type_annot => {
+        list[name] = type;
+        return list;
+    };
+}
+
+type_annot : Type = {
+    ':' type_ref => type_ref;
+    type:TYPE_ANNOT => type.value;
+}
+
+type_ref : Type = {
+    // Any & Invalid are explicitly excluded here
+    'ArgMap' => Type.ArgMap;
+    'Boolean' => Type.Boolean;
+    'Currency' => Type.Currency;
+    'Date' => Type.Date;
+    'Location' => Type.Location;
+    'Number' => Type.Number;
+    'Time' => Type.Time;
+    'String' => Type.String;
+    'Object' => Type.Object;
+    'RecurrentTimeSpecification' => Type.RecurrentTimeSpecification;
+
+    name:IDENTIFIER => new Type.Unknown(name.value);
+
+    'Array' '(' elem:type_ref ')' => new Type.Array(elem);
+    'Entity' '(' name:ENTITY_NAME ')' => new Type.Entity(name.value);
+    'Measure' '(' name:unit_name ')' => new Type.Measure(name);
+    'Enum' '(' entries:enum_list ')' => new Type.Enum(entries);
+
+    '{' fields:compound_type_field_map '}' => new Type.Compound(null, fields);
+}
+
+compound_type_field_map : { [key : string] : Ast.ArgumentDef } = {
+    list:compound_type_field_list => {
+        const fields : { [key : string] : Ast.ArgumentDef } = {};
+        for (const arg of list)
+            fields[arg.name] = arg;
+        return fields;
+    };
+
+    list:compound_type_field_list ',' => {
+        const fields : { [key : string] : Ast.ArgumentDef } = {};
+        for (const arg of list)
+            fields[arg.name] = arg;
+        return fields;
+    };
+}
+
+compound_type_field_list : Ast.ArgumentDef[] = {
+    field:compound_type_field => [field];
+
+    list:compound_type_field_list ',' field:compound_type_field => {
+        list.push(field);
+        return list;
+    };
+}
+
+compound_type_field : Ast.ArgumentDef = {
+    name:variable_name type:type_annot
+        => new Ast.ArgumentDef($.location, null, name, type, {});
+
+    name:variable_name type:type_annot annot:annotation_spec
+        => new Ast.ArgumentDef($.location, null, name, type, annot);
+}
+
+enum_list : string[] = {
+    v:identifier_or_keyword => [v];
+    enum_list ',' v:identifier_or_keyword => enum_list.concat([v]);
+}
+
+
+identifier_list : string[] = {
+    name:function_name => [name];
+    list:identifier_list ',' name:function_name => list.concat([name]);
+}
+
+// a contextual keyword (as defined in lexer.ts CONTEXTUAL_KEYWORDS)
+contextual_keyword : string = {
+    'action';
+    'entity';
+    'from';
+    'language';
+    'list';
+    'monitorable';
+    'program';
+    'query';
+    'stream';
+
+    'error';
+    'confirm';
+    'more';
+    'results';
+
+    'beginDate';
+    'beginTime';
+    'dayOfWeek';
+    'endDate';
+    'endTime';
+    'frequency';
+    'interval';
+    'subtract';
+
+    'asc';
+    'desc';
+}
+
+// an identifier or a contextual keyword (as defined in lexer.ts CONTEXTUAL_KEYWORDS)
+variable_name : string = {
+    name:IDENTIFIER => name.value;
+
+    contextual_keyword;
+    function_like_comparison_op;
+    aggr_op;
+    scalar_op;
+    'count';
+}
+
+// this is identical to variable_name, except it is always followed by (
+// whereas variable_name must never be followed by (
+// this solves the ambiguity with function-like operators
+function_name : string = {
+    name:IDENTIFIER => name.value;
+
+    contextual_keyword;
+    function_like_comparison_op;
+    aggr_op;
+    scalar_op;
+    'count';
+}
+
+// this is almost like function_name, but it is used for user-defined
+// functions ("function foo() {}" statement, not Thingpedia functions),
+// those functions cannot use the same name as predefined functions
+udf_function_name : string = {
+    name:IDENTIFIER => name.value;
+
+    contextual_keyword;
+}
+
+variable_name_list : string[] = {
+    name:variable_name => [name];
+
+    list:variable_name_list ',' name:variable_name => {
+        list.push(name);
+        return list;
+    };
+}
+
+unit_name : string = {
+    name:IDENTIFIER => name.value;
+    'min' => 'min';
+    'in' => 'in';
+}
+
+// keep this updated based on lexer.ts KEYWORDS
+identifier_or_keyword : string = {
+    function_name;
+
+    // keywords shared with javascript
+    'class';
+    'enum';
+    'extends';
+    'import';
+    'in';
+    'let';
+    'new';
+    'null';
+    'of';
+    'true';
+    'false';
+
+    // ThingTalk-specific keywords
+    'abstract';
+    'all';
+    'any';
+    'as';
+    'dataset';
+    'filter';
+    'function';
+    'mixin';
+    'monitor';
+    'notify';
+    'now';
+    'out';
+    'opt';
+    'req';
+    'sort';
+
+    // reserved words from JavaScript
+    'await';
+    'break';
+    'case';
+    'catch';
+    'const';
+    'continue';
+    'debugger';
+    'delete';
+    'do';
+    'export';
+    'finally';
+    'for';
+    'if';
+    'implements';
+    'instanceof';
+    'interface';
+    'package';
+    'private';
+    'protected';
+    'public';
+    'return';
+    'static';
+    'super';
+    'switch';
+    'this';
+    'throw';
+    'try';
+    'typeof';
+    'var';
+    'void';
+    'while';
+    'with';
+    'yield';
+
+    // reserved words from the old ThingTalk syntax
+    'aggregate';
+    'bookkeeping';
+    'compute';
+    'edge';
+    'join';
+    'oninput';
+
+    // all current types are keywords
+    // all initial uppercase tokens might become keywords in the future!
+    'Any';
+    'ArgMap';
+    'Array';
+    'Boolean';
+    'Compound';
+    'Currency';
+    'Date';
+    'Entity';
+    'Enum';
+    'Location';
+    'Measure';
+    'Number';
+    'Object';
+    'RecurrentTimeSpecification';
+    'String';
+    'Time';
+}

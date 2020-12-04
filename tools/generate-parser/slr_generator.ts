@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -17,7 +17,6 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
 // Generate and SLR parser, given a grammar
 // This is JavaScript version of almond-nnparser/grammar/slr.py
@@ -25,6 +24,10 @@
 const DEBUG = false;
 
 class ItemSetInfo {
+    id : number;
+    intransitions : Array<[number, string]>;
+    outtransitions : Array<[number, string]>;
+
     constructor() {
         this.id = 0;
         this.intransitions = [];
@@ -32,11 +35,15 @@ class ItemSetInfo {
     }
 }
 
-function arrayEquals(a, b) {
+type EqualityComparable = {
+    equals(other : unknown) : boolean;
+};
+
+function arrayEquals(a : any[], b : any[]) : boolean {
     if (a.length !== b.length)
         return false;
 
-    for (var i = 0; i < a.length; i++) {
+    for (let i = 0; i < a.length; i++) {
         if (a[i] === b[i])
             continue;
         if (Array.isArray(a[i])) {
@@ -50,63 +57,84 @@ function arrayEquals(a, b) {
     return true;
 }
 
-class ItemSet {
-    constructor(rules) {
+function strictArrayEquals<T>(a : T[], b : T[]) : boolean {
+    if (a.length !== b.length)
+        return false;
+
+    for (let i = 0; i < a.length; i++) {
+        if (a[i] !== b[i])
+            return false;
+    }
+    return true;
+}
+
+class ItemSet implements EqualityComparable {
+    rules : Array<Tuple<[number, string[]]>>;
+    info : ItemSetInfo;
+
+    constructor(rules : Iterable<Tuple<[number, string[]]>>) {
         this.rules = Array.from(rules);
+        this.info = new ItemSetInfo();
     }
 
-    equals(other) {
+    equals(other : ItemSet) : boolean {
         return arrayEquals(this.rules, other.rules);
     }
 }
 
 // a python-like tuple, that compares .equals() if all elements compare equals
-class Tuple {
-    constructor(...args) {
+class Tuple<ArgTypes extends unknown[]> implements EqualityComparable {
+    stuff : ArgTypes;
+
+    constructor(...args : ArgTypes) {
         this.stuff = args;
     }
 
-    equals(other) {
+    equals(other : Tuple<ArgTypes>) : boolean {
         return arrayEquals(this.stuff, other.stuff);
     }
 
-    get(i) {
+    get<K extends number>(i : K) : ArgTypes[K] {
         return this.stuff[i];
     }
-    slice(from, to) {
+    slice(from : number, to : number) : any[] {
         return this.stuff.slice(from, to);
     }
 }
 
 // A map that respects equals
 // Not asymptotically efficient
-class EqualsMap {
-    constructor(iterable) {
+class EqualsMap<K extends EqualityComparable, V> {
+    private _keys : K[];
+    private _values : V[];
+    private _size : number;
+
+    constructor(iterable ?: Iterable<[K, V]>) {
         this._keys = [];
         this._values = [];
         this._size = 0;
         if (!iterable)
             return;
-        for (let [key, value] of iterable)
+        for (const [key, value] of iterable)
             this.set(key, value);
     }
 
-    *[Symbol.iterator]() {
+    *[Symbol.iterator]() : Iterator<[K, V]> {
         for (let i = 0; i < this._keys.length; i++)
             yield [this._keys[i], this._values[i]];
     }
-    keys() {
+    keys() : Iterable<K> {
         return this._keys;
     }
-    values() {
+    values() : Iterable<V> {
         return this._values;
     }
 
-    get size() {
+    get size() : number {
         return this._size;
     }
 
-    set(key, value) {
+    set(key : K, value : V) : this {
         for (let i = 0; i < this._keys.length; i++) {
             if (this._keys[i].equals(key)) {
                 this._values[i] = value;
@@ -118,14 +146,14 @@ class EqualsMap {
         this._size++;
         return this;
     }
-    get(key) {
+    get(key : K) : V|undefined {
         for (let i = 0; i < this._keys.length; i++) {
             if (this._keys[i].equals(key))
                 return this._values[i];
         }
         return undefined;
     }
-    delete(key) {
+    delete(key : K) : this {
         let idx = -1;
         for (let i = 0; i < this._keys.length; i++) {
             if (this._keys[i].equals(key)) {
@@ -140,7 +168,7 @@ class EqualsMap {
         this._size--;
         return this;
     }
-    has(element) {
+    has(element : K) : boolean {
         for (let i = 0; i < this._keys.length; i++) {
             if (this._keys[i].equals(element))
                 return true;
@@ -149,41 +177,50 @@ class EqualsMap {
     }
 }
 
-class EqualsSet {
-    constructor(iterable) {
-        this._map = new EqualsMap();
+class EqualsSet<K extends EqualityComparable> {
+    private _map : EqualsMap<K, undefined>;
+
+    constructor(iterable ?: Iterable<K>) {
+        this._map = new EqualsMap<K, undefined>();
         if (!iterable)
             return;
-        for (let v of iterable)
+        for (const v of iterable)
             this.add(v);
     }
 
-    *[Symbol.iterator]() {
-        for (let [key, ] of this._map)
+    *[Symbol.iterator]() : Iterator<K> {
+        for (const [key, ] of this._map)
             yield key;
     }
 
-    get size() {
+    get size() : number {
         return this._map.size;
     }
-    add(v) {
+    add(v : K) : this {
         this._map.set(v, undefined);
         return this;
     }
-    has(v) {
+    has(v : K) : boolean {
         return this._map.has(v);
     }
-    delete(v) {
+    delete(v : K) : this {
         this._map.delete(v);
         return this;
     }
 }
 
-function setEquals(one, two) {
+interface SetLike<T> {
+    size : number;
+    values() : Iterable<T>;
+    [Symbol.iterator]() : Iterator<T>;
+    has(x : T) : boolean;
+}
+
+function setEquals<T>(one : SetLike<T>, two : SetLike<T>) : boolean {
     if (one.size !== two.size)
         return false;
 
-    for (let elem of one.values()) {
+    for (const elem of one.values()) {
         if (!two.has(elem))
             return false;
     }
@@ -193,32 +230,54 @@ function setEquals(one, two) {
 
 const ITEM_SET_MARKER = '[ItemSetSep]';
 
-class Terminal {
-    constructor(symbol) {
+export class Terminal implements EqualityComparable {
+    isTerminal ! : boolean;
+    isNonTerminal ! : boolean;
+    symbol : string;
+    isConstant : boolean;
+
+    constructor(symbol : string, isConstant : boolean) {
         this.symbol = symbol;
+        this.isConstant = isConstant;
     }
 
-    equals(x) {
+    equals(x : unknown) : boolean {
         return x instanceof Terminal && x.symbol === this.symbol;
     }
 
-    toString() {
+    toString() : string {
         return `T:${this.symbol}`;
+    }
+
+    toWSN() : string {
+        if (this.isConstant)
+            return '"' + this.symbol.replace(/"/g, '""') + '"';
+        else
+            return this.symbol;
     }
 }
 Terminal.prototype.isTerminal = true;
+Terminal.prototype.isNonTerminal = false;
 
-class NonTerminal {
-    constructor(symbol) {
+export class NonTerminal implements EqualityComparable {
+    isTerminal ! : boolean;
+    isNonTerminal ! : boolean;
+    symbol : string;
+
+    constructor(symbol : string) {
         this.symbol = symbol;
     }
 
-    equals(x) {
+    equals(x : unknown) : boolean {
         return x instanceof NonTerminal && x.symbol === this.symbol;
     }
 
-    toString() {
+    toString() : string {
         return `NT:${this.symbol}`;
+    }
+
+    toWSN() : string {
+        return this.symbol;
     }
 }
 NonTerminal.prototype.isTerminal = false;
@@ -228,17 +287,38 @@ const ROOT_NT = new NonTerminal('$ROOT');
 
 // special tokens start with a space
 // so they sort earlier than all other tokens
-const PAD_TOKEN = new Terminal(' 0PAD');
-const EOF_TOKEN = new Terminal(' 1EOF');
-const START_TOKEN = new Terminal(' 2START');
+const PAD_TOKEN = new Terminal(' 0PAD', false);
+const EOF_TOKEN = new Terminal(' 1EOF', false);
+const START_TOKEN = new Terminal(' 2START', false);
 
-class SLRParserGenerator {
-    // Construct a shift-reduce parser given an SLR grammar.
+export type ProcessedRule = [Array<NonTerminal|Terminal>, string];
+export type ProcessedGrammar = { [key : string] : ProcessedRule[] };
 
-    constructor(grammar, startSymbol) {
+type ActionTable = Array<{ [key : string] : ['accept'|'shift'|'reduce', number] }>;
+type GotoTable = Array<{ [key : string] : number }>;
+
+/**
+ * Construct a shift-reduce parser given an SLR grammar.
+ */
+export class SLRParserGenerator {
+    private _startSymbol : string;
+    rules ! : Array<[string, ...ProcessedRule]>;
+    grammar ! : Map<string, number[]>;
+    terminals ! : string[];
+    nonTerminals ! : string[];
+    gotoTable ! : GotoTable;
+    actionTable ! : ActionTable;
+
+    private _itemSets ! : ItemSet[];
+    private _nStates ! : number;
+    private _firstSets ! : Map<string, Set<string>>;
+    private _followSets ! : Map<string, Set<string>>;
+    private _stateTransitionMatrix ! : Array<Map<string, number>>;
+
+    constructor(grammar : ProcessedGrammar, startSymbol : string, rootType : string) {
         // optimizations first
         this._startSymbol = startSymbol;
-        grammar[ROOT_NT.symbol] = [[[new NonTerminal(startSymbol), EOF_TOKEN], `async ($, $0) => $0`]];
+        grammar[ROOT_NT.symbol] = [[[new NonTerminal(startSymbol), EOF_TOKEN], `($ : $runtime.ParserInterface, $0 : ${rootType}) : ${rootType} => $0`]];
         this._numberRules(grammar);
         this._extractTerminalsNonTerminals();
         this._buildFirstSets();
@@ -255,15 +335,15 @@ class SLRParserGenerator {
         return this.terminals.length + this.nonTerminals.indexOf(this._startSymbol);
     }
 
-    _checkFirstSets() {
-        for (let [lhs, firstSet] of this._firstSets) {
+    private _checkFirstSets() {
+        for (const [lhs, firstSet] of this._firstSets) {
             if (firstSet.size === 0)
                 console.log("WARNING: non-terminal " + lhs + " cannot start with any terminal");
         }
     }
 
-    _checkFollowSets() {
-        for (let [lhs, followSet] of this._followSets) {
+    private _checkFollowSets() {
+        for (const [lhs, followSet] of this._followSets) {
             if (lhs === '$ROOT')
                 continue;
             if (followSet.size === 0)
@@ -271,15 +351,15 @@ class SLRParserGenerator {
         }
     }
 
-    _extractTerminalsNonTerminals() {
-        let terminals = new Set();
+    private _extractTerminalsNonTerminals() {
+        const terminals = new Set<string>();
         terminals.add(PAD_TOKEN.symbol);
         terminals.add(EOF_TOKEN.symbol);
         terminals.add(START_TOKEN.symbol);
-        let nonTerminals = new Set();
-        for (let [lhs, rule,] of this.rules) {
+        const nonTerminals = new Set<string>();
+        for (const [lhs, rule,] of this.rules) {
             nonTerminals.add(lhs);
-            for (let rhs of rule) {
+            for (const rhs of rule) {
                 if (rhs.isTerminal)
                     terminals.add(rhs.symbol);
                 else
@@ -298,40 +378,40 @@ class SLRParserGenerator {
     }
 
     printRules() {
-        for (let [lhs, rhs,] of this.rules)
+        for (const [lhs, rhs,] of this.rules)
             console.log(lhs, '->', rhs.join(' '));
     }
 
-    _numberRules(grammar) {
+    private _numberRules(grammar : ProcessedGrammar) {
         this.rules = [];
         this.grammar = new Map;
-        for (let lhs in grammar) {
-            let rules = grammar[lhs];
+        for (const lhs in grammar) {
+            const rules = grammar[lhs];
             if (!Array.isArray(rules))
                 throw new TypeError('Invalid definition for non-terminal ' + lhs);
             if (rules.some((x) => !Array.isArray(x) || x.length !== 2))
                 throw new TypeError('Invalid definition for non-terminal ' + lhs);
 
             this.grammar.set(lhs, []);
-            for (let [rule, action] of rules) {
-                let ruleId = this.rules.length;
-                for (let rhs of rule) {
+            for (const [rule, action] of rules) {
+                const ruleId = this.rules.length;
+                for (const rhs of rule) {
                     if (rhs.isNonTerminal && !(rhs.symbol in grammar))
                         throw new TypeError('Missing non-terminal ' + rhs);
                 }
 
                 this.rules.push([lhs, rule, action]);
-                this.grammar.get(lhs).push(ruleId);
+                this.grammar.get(lhs)!.push(ruleId);
                 if (DEBUG)
                     console.log(ruleId, lhs, '->', rule);
             }
         }
     }
 
-    *_itemSetFollowers(itemSet) {
-        let set = new Set;
-        for (let rule of itemSet.rules) {
-            let rhs = rule.get(1);
+    private *_itemSetFollowers(itemSet : ItemSet) {
+        const set = new Set<string>();
+        for (const rule of itemSet.rules) {
+            const rhs = rule.get(1);
             for (let i = 0; i < rhs.length-1; i++) {
                 if (rhs[i] === ITEM_SET_MARKER && rhs[i+1] !== EOF_TOKEN.toString())
                     set.add(rhs[i+1].toString());
@@ -340,9 +420,9 @@ class SLRParserGenerator {
         yield* set;
     }
 
-    *_advance(itemSet, token) {
-        for (let rule of itemSet.rules) {
-            let [rule_id, rhs] = rule.stuff;
+    private *_advance(itemSet : ItemSet, token : string) {
+        for (const rule of itemSet.rules) {
+            const [rule_id, rhs] = rule.stuff;
             for (let i = 0; i < rhs.length-1; i++) {
                 if (rhs[i] === ITEM_SET_MARKER && rhs[i+1] === token) {
                     yield new Tuple(rule_id, rhs.slice(0, i).concat([token, ITEM_SET_MARKER], rhs.slice(i+2)));
@@ -352,22 +432,22 @@ class SLRParserGenerator {
         }
     }
 
-    *_makeItemSet(lhs) {
-        for (let ruleId of this.grammar.get(lhs)) {
-            let [, rhs, ] = this.rules[ruleId];
+    private *_makeItemSet(lhs : string) : Generator<Tuple<[number, string[]]>, void> {
+        for (const ruleId of this.grammar.get(lhs)!) {
+            const [, rhs, ] = this.rules[ruleId];
             yield new Tuple(ruleId, [ITEM_SET_MARKER].concat(rhs.map((h) => h.toString())));
         }
     }
 
-    _close(items) {
-        let itemSet = new EqualsSet(items);
-        let stack = Array.from(itemSet);
+    private _close(items : Iterable<Tuple<[number, string[]]>>) {
+        const itemSet = new EqualsSet(items);
+        const stack = Array.from(itemSet);
         while (stack.length > 0) {
-            let item = stack.pop();
-            let rhs = item.get(1);
+            const item = stack.pop()!;
+            const rhs = item.get(1);
             for (let i = 0; i < rhs.length-1; i++) {
                 if (rhs[i] === ITEM_SET_MARKER && rhs[i+1].startsWith('NT:')) {
-                    for (let newRule of this._makeItemSet(rhs[i+1].substring(3))) {
+                    for (const newRule of this._makeItemSet(rhs[i+1].substring(3))) {
                         if (!itemSet.has(newRule)) {
                             itemSet.add(newRule);
                             stack.push(newRule);
@@ -377,30 +457,30 @@ class SLRParserGenerator {
                 }
             }
         }
-        itemSet = Array.from(itemSet);
-        itemSet.sort();
-        return itemSet;
+        const itemSetArray = Array.from(itemSet);
+        itemSetArray.sort();
+        return itemSetArray;
     }
 
-    _generateAllItemSets() {
-        const itemSets = new EqualsMap();
+    private _generateAllItemSets() {
+        const itemSets = new EqualsMap<ItemSet, ItemSetInfo>();
         let i = 0;
-        let itemSet0 = new ItemSet(this._close(this._makeItemSet(ROOT_NT.symbol)));
-        let itemSet0Info = new ItemSetInfo();
-        itemSets.set(itemSet0, itemSet0Info);
+        const itemSet0 = new ItemSet(this._close(this._makeItemSet(ROOT_NT.symbol)));
+        itemSets.set(itemSet0, itemSet0.info);
         i++;
         const queue = [];
         queue.push(itemSet0);
         while (queue.length > 0) {
-            let itemSet = queue.shift();
-            let myInfo = itemSets.get(itemSet);
-            for (let nextToken of this._itemSetFollowers(itemSet)) {
-                let newset = new ItemSet(this._close(this._advance(itemSet, nextToken)));
+            const itemSet = queue.shift()!;
+            const myInfo = itemSets.get(itemSet)!;
+            for (const nextToken of this._itemSetFollowers(itemSet)) {
+                const newset : ItemSet = new ItemSet(this._close(this._advance(itemSet, nextToken)));
                 let info;
                 if (itemSets.has(newset)) {
-                    info = itemSets.get(newset);
+                    info = itemSets.get(newset)!;
+                    newset.info = info;
                 } else {
-                    info = new ItemSetInfo();
+                    info = newset.info;
                     info.id = i++;
                     itemSets.set(newset, info);
                     queue.push(newset);
@@ -412,33 +492,33 @@ class SLRParserGenerator {
 
         if (DEBUG)
             console.log();
-        for (let [itemSet, info] of itemSets) {
+        for (const [itemSet, info] of itemSets) {
             itemSet.info = info;
             if (DEBUG) {
                 console.log("Item Set", itemSet.info.id, itemSet.info.intransitions);
-                for (let rule of itemSet.rules) {
-                    let [rule_id, rhs] = rule.stuff;
-                    let [lhs,,] = this.rules[rule_id];
+                for (const rule of itemSet.rules) {
+                    const [rule_id, rhs] = rule.stuff;
+                    const [lhs,,] = this.rules[rule_id];
                     console.log(rule_id, lhs, '->', rhs);
                 }
                 console.log();
             }
         }
 
-        let itemSetList = [];
-        for (let [itemSet,] of itemSets)
+        const itemSetList = [];
+        for (const [itemSet,] of itemSets)
             itemSetList[itemSet.info.id] = itemSet;
         this._itemSets = itemSetList;
         this._nStates = this._itemSets.length;
     }
 
-    _buildStateTransitionMatrix() {
+    private _buildStateTransitionMatrix() {
         this._stateTransitionMatrix = [];
         for (let i = 0; i < this._nStates; i++)
             this._stateTransitionMatrix[i] = new Map;
 
-        for (let itemSet of this._itemSets) {
-            for (let [nextId, nextToken] of itemSet.info.outtransitions) {
+        for (const itemSet of this._itemSets) {
+            for (const [nextId, nextToken] of itemSet.info.outtransitions) {
                 if (this._stateTransitionMatrix[itemSet.info.id].has(nextToken))
                     throw new Error("Ambiguous transition from " + itemSet.info.id +  " through " + nextToken + " to " + this._stateTransitionMatrix[itemSet.info.id].get(nextToken) + " and " + nextId);
                 this._stateTransitionMatrix[itemSet.info.id].set(nextToken, nextId);
@@ -452,17 +532,17 @@ class SLRParserGenerator {
         }
     }
 
-    _buildFirstSets() {
-        const firstSets = new Map;
-        for (let nonterm of this.nonTerminals)
-            firstSets.set(nonterm, new Set());
+    private _buildFirstSets() {
+        const firstSets = new Map<string, Set<string>>();
+        for (const nonterm of this.nonTerminals)
+            firstSets.set(nonterm, new Set<string>());
         let progress = true;
         while (progress) {
             progress = false;
-            for (let [lhs, rules] of this.grammar) {
-                let union = new Set();
-                for (let rule_id of rules) {
-                    let [, rule,] = this.rules[rule_id];
+            for (const [lhs, rules] of this.grammar) {
+                const union = new Set<string>();
+                for (const rule_id of rules) {
+                    const [, rule,] = this.rules[rule_id];
                     let firstSetRule;
                     // Note: our grammar doesn't include rules of the form A -> epsilon
                     // because it's meant for an SLR parser not an LL parser, so this is
@@ -470,11 +550,11 @@ class SLRParserGenerator {
                     if (rule[0].isTerminal)
                         firstSetRule = new Set([rule[0].symbol]);
                     else
-                        firstSetRule = firstSets.get(rule[0].symbol) || new Set;
-                    for (let elem of firstSetRule)
+                        firstSetRule = firstSets.get(rule[0].symbol) || new Set<string>();
+                    for (const elem of firstSetRule)
                         union.add(elem);
                 }
-                if (!setEquals(union, firstSets.get(lhs))) {
+                if (!setEquals(union, firstSets.get(lhs)!)) {
                     firstSets.set(lhs, union);
                     progress = true;
                 }
@@ -485,22 +565,22 @@ class SLRParserGenerator {
         if (DEBUG) {
             console.log();
             console.log("First sets");
-            for (let [nonterm, firstSet] of firstSets)
+            for (const [nonterm, firstSet] of firstSets)
                 console.log(nonterm, "->", firstSet);
         }
     }
 
-    _buildFollowSets() {
-        const followSets = new Map;
-        for (let nonterm of this.nonTerminals)
-            followSets.set(nonterm, new Set());
+    private _buildFollowSets() {
+        const followSets = new Map<string, Set<string>>();
+        for (const nonterm of this.nonTerminals)
+            followSets.set(nonterm, new Set<string>());
 
         let progress = true;
-        function _addAll(fromSet, intoSet) {
+        function _addAll<T>(fromSet : Set<T>, intoSet : Set<T>) : boolean {
             if (!fromSet)
                 return false;
             let progress = false;
-            for (let v of fromSet) {
+            for (const v of fromSet) {
                 if (!intoSet.has(v)) {
                     intoSet.add(v);
                     progress = true;
@@ -511,21 +591,21 @@ class SLRParserGenerator {
 
         while (progress) {
             progress = false;
-            for (let [lhs, rule,] of this.rules) {
+            for (const [lhs, rule,] of this.rules) {
                 for (let i = 0; i < rule.length-1; i++) {
                     if (rule[i].isNonTerminal) {
                         if (rule[i+1].isNonTerminal) {
-                            progress = _addAll(this._firstSets.get(rule[i+1].symbol), followSets.get(rule[i].symbol)) || progress;
+                            progress = _addAll(this._firstSets.get(rule[i+1].symbol)!, followSets.get(rule[i].symbol)!) || progress;
                         } else {
-                            if (!followSets.get(rule[i].symbol).has(rule[i+1].symbol)) {
-                                followSets.get(rule[i].symbol).add(rule[i+1].symbol);
+                            if (!followSets.get(rule[i].symbol)!.has(rule[i+1].symbol)) {
+                                followSets.get(rule[i].symbol)!.add(rule[i+1].symbol);
                                 progress = true;
                             }
                         }
                     }
                 }
                 if (rule[rule.length-1].isNonTerminal)
-                    progress = _addAll(followSets.get(lhs), followSets.get(rule[rule.length-1].symbol)) || progress;
+                    progress = _addAll(followSets.get(lhs)!, followSets.get(rule[rule.length-1].symbol)!) || progress;
             }
         }
 
@@ -533,32 +613,32 @@ class SLRParserGenerator {
         if (DEBUG) {
             console.log();
             console.log("Follow sets");
-            for (let [nonterm, followSet] of followSets)
+            for (const [nonterm, followSet] of followSets)
                 console.log(nonterm, "->", followSet);
         }
     }
 
-    _recursivePrintItemSet(itemSetId, printed, recurse = 0) {
+    private _recursivePrintItemSet(itemSetId : number, printed : Set<number>, recurse = 0) {
         if (printed.has(itemSetId))
             return;
         printed.add(itemSetId);
 
         const itemSet = this._itemSets[itemSetId];
         console.error("Item Set", itemSetId, itemSet.info.intransitions);
-        for (let rule of itemSet.rules) {
-            let [ruleId, rhs] = rule.stuff;
-            let [lhs,,] = this.rules[ruleId];
+        for (const rule of itemSet.rules) {
+            const [ruleId, rhs] = rule.stuff;
+            const [lhs,,] = this.rules[ruleId];
             console.error(ruleId, lhs, '->', rhs);
         }
         console.error();
 
         if (recurse > 0) {
-            for (let [from,] of itemSet.info.intransitions)
+            for (const [from,] of itemSet.info.intransitions)
                 this._recursivePrintItemSet(from, printed, recurse - 1);
         }
     }
 
-    _buildParseTables() {
+    private _buildParseTables() {
         this.gotoTable = [];
         this.actionTable = [];
         for (let i = 0; i < this._nStates; i++) {
@@ -566,52 +646,54 @@ class SLRParserGenerator {
             this.actionTable[i] = Object.create(null);
         }
 
-        for (let nonterm of this.nonTerminals) {
+        for (const nonterm of this.nonTerminals) {
             for (let i = 0; i < this._nStates; i++) {
                 if (this._stateTransitionMatrix[i].has('NT:' + nonterm))
-                    this.gotoTable[i][nonterm] = this._stateTransitionMatrix[i].get('NT:' +nonterm);
+                    this.gotoTable[i][nonterm] = this._stateTransitionMatrix[i].get('NT:' +nonterm)!;
             }
         }
-        for (let term of this.terminals) {
+        for (const term of this.terminals) {
             for (let i = 0; i < this._nStates; i++) {
                 if (this._stateTransitionMatrix[i].has('T:' + term))
-                    this.actionTable[i][term] = ['shift', this._stateTransitionMatrix[i].get('T:' + term)];
+                    this.actionTable[i][term] = ['shift', this._stateTransitionMatrix[i].get('T:' + term)!];
             }
         }
 
-        for (let itemSet of this._itemSets) {
-            for (let item of itemSet.rules) {
-                let rhs = item.get(1);
+        for (const itemSet of this._itemSets) {
+            for (const item of itemSet.rules) {
+                const rhs = item.get(1);
                 for (let i = 0; i < rhs.length-1; i++) {
                     if (rhs[i] === ITEM_SET_MARKER && rhs[i+1] === EOF_TOKEN.toString())
-                        this.actionTable[itemSet.info.id][EOF_TOKEN.symbol] = ['accept'];
+                        this.actionTable[itemSet.info.id][EOF_TOKEN.symbol] = ['accept', 0];
                 }
             }
         }
 
-        for (let itemSet of this._itemSets) {
-            for (let item of itemSet.rules) {
-                let [ruleId, rhs] = item.stuff;
+        for (const itemSet of this._itemSets) {
+            for (const item of itemSet.rules) {
+                const [ruleId, rhs] : [number, string[]] = item.stuff;
                 if (rhs[rhs.length-1] !== ITEM_SET_MARKER)
                     continue;
-                let [lhs,,] = this.rules[ruleId];
-                for (let term of this.terminals) {
-                    if (this._followSets.get(lhs).has(term)) {
-                        if (term in this.actionTable[itemSet.info.id] && !arrayEquals(this.actionTable[itemSet.info.id][term], ['reduce', ruleId])) {
+                const [lhs,,] = this.rules[ruleId];
+                for (const term of this.terminals) {
+                    if (this._followSets.get(lhs)!.has(term)) {
+                        const existing = this.actionTable[itemSet.info.id][term];
+                        if (existing) {
+                            if (strictArrayEquals(existing, ['reduce', ruleId]))
+                                continue;
 
-                            let printed = new Set;
+                            const printed = new Set<number>();
                             this._recursivePrintItemSet(itemSet.info.id, printed);
-
-                            throw new Error("Conflict for state " + itemSet.info.id + " terminal " + term + " want " + ["reduce", ruleId] + " have " + this.actionTable[itemSet.info.id][term]);
+                            if (existing[0] === 'shift')
+                                console.log(`WARNING: ignored shift-reduce conflict at state ${itemSet.info.id} terminal ${term} want ${["reduce", ruleId]} have ${existing}`);
+                            else
+                                throw new Error(`Conflict for state ${itemSet.info.id} terminal ${term} want ${["reduce", ruleId]} have ${existing}`);
+                        } else {
+                            this.actionTable[itemSet.info.id][term] = ['reduce', ruleId];
                         }
-                        this.actionTable[itemSet.info.id][term] = ['reduce', ruleId];
                     }
                 }
             }
         }
     }
 }
-SLRParserGenerator.Terminal = Terminal;
-SLRParserGenerator.NonTerminal = NonTerminal;
-
-module.exports = SLRParserGenerator;

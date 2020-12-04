@@ -23,10 +23,24 @@ import Node, { SourceRange } from './base';
 import { ExpressionSignature } from './function_def';
 import {
     Invocation,
-    Selector,
+    DeviceSelector,
     InputParam,
     BooleanExpression
 } from './expression';
+import {
+    Expression,
+    FunctionCallExpression,
+    InvocationExpression,
+    FilterExpression,
+    ProjectionExpression,
+    AliasExpression,
+    SortExpression,
+    IndexExpression,
+    SliceExpression,
+    AggregationExpression,
+    MonitorExpression,
+    ChainExpression
+} from './expression2';
 import { Value } from './values';
 import {
     iterateSlots2InputParams,
@@ -41,7 +55,9 @@ import {
 } from './slots';
 import Type from '../type';
 import NodeVisitor from './visitor';
-import * as Builtin from '../builtin/defs';
+
+import { TokenStream } from '../new-syntax/tokenstream';
+import List from '../utils/list';
 
 /**
  * The base class of all ThingTalk query expressions.
@@ -89,13 +105,19 @@ export abstract class Table extends Node {
         this.schema = schema;
     }
 
+    toSource() : TokenStream {
+        throw new Error(`Legacy AST node cannot be converted to source, convert to Expression first`);
+    }
+
+    abstract toExpression(extra_in_params : InputParam[]) : Expression;
+
     abstract clone() : Table;
 
     /**
      * Iterate all slots (scalar value nodes) in this table.
      *
      * @param scope - available names for parameter passing
-     * @deprecated Use {@link Ast.Table#iterateSlots2} instead.
+     * @deprecated Use {@link Table#iterateSlots2} instead.
      */
     abstract iterateSlots(scope : ScopeMap) : Generator<OldSlot, [InvocationLike|null, ScopeMap]>;
 
@@ -104,7 +126,7 @@ export abstract class Table extends Node {
      *
      * @param scope - available names for parameter passing
      */
-    abstract iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]>;
+    abstract iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]>;
 }
 Table.prototype.isVarRef = false;
 Table.prototype.isInvocation = false;
@@ -135,6 +157,15 @@ export class VarRefTable extends Table {
         this.in_params = in_params;
     }
 
+    toExpression(extra_in_params : InputParam[]) {
+        return new FunctionCallExpression(this.location, this.name,
+            this.in_params.concat(extra_in_params), this.schema);
+    }
+
+    toSource() : TokenStream {
+        return List.concat(this.name, '(', List.join(this.in_params.map((ip) => ip.toSource()), ','), ')');
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitVarRefTable(this)) {
@@ -159,7 +190,7 @@ export class VarRefTable extends Table {
         return [this, makeScope(this)];
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         return yield* iterateSlots2InputParams(this, scope);
     }
 }
@@ -176,6 +207,16 @@ export class InvocationTable extends Table {
 
         assert(invocation instanceof Invocation);
         this.invocation = invocation;
+    }
+
+    toExpression(extra_in_params : InputParam[]) {
+        const invocation = this.invocation.clone();
+        invocation.in_params.push(...extra_in_params);
+        return new InvocationExpression(this.location, invocation, this.schema);
+    }
+
+    toSource() : TokenStream {
+        return this.invocation.toSource();
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -196,7 +237,7 @@ export class InvocationTable extends Table {
         return yield* this.invocation.iterateSlots(scope);
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         return yield* this.invocation.iterateSlots2(scope);
     }
 }
@@ -218,6 +259,10 @@ export class FilteredTable extends Table {
 
         assert(filter instanceof BooleanExpression);
         this.filter = filter;
+    }
+
+    toExpression(extra_in_params : InputParam[]) {
+        return new FilterExpression(this.location, this.table.toExpression(extra_in_params), this.filter, this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -244,7 +289,7 @@ export class FilteredTable extends Table {
         return [prim, newScope];
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         const [prim, newScope] = yield* this.table.iterateSlots2(scope);
         yield* this.filter.iterateSlots2(this.table.schema, prim, newScope);
         return [prim, newScope];
@@ -267,6 +312,10 @@ export class ProjectionTable extends Table {
 
         assert(Array.isArray(args));
         this.args = args;
+    }
+
+    toExpression(extra_in_params : InputParam[]) {
+        return new ProjectionExpression(this.location, this.table.toExpression(extra_in_params), this.args, [], [], this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -293,7 +342,7 @@ export class ProjectionTable extends Table {
         return [prim, newScope];
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         const [prim, nestedScope] = yield* this.table.iterateSlots2(scope);
         const newScope : ScopeMap = {};
         for (const name of this.args)
@@ -330,6 +379,10 @@ export class ComputeTable extends Table {
         this.type = type;
     }
 
+    toExpression(extra_in_params : InputParam[]) {
+        return new ProjectionExpression(this.location, this.table.toExpression(extra_in_params), [], [this.expression], [this.alias], this.schema);
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitComputeTable(this)) {
@@ -354,7 +407,7 @@ export class ComputeTable extends Table {
         return yield* this.table.iterateSlots(scope);
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         const [prim, innerScope] = yield* this.table.iterateSlots2(scope);
         yield* recursiveYieldArraySlots(new FieldSlot(prim, innerScope, this.type as Type, this, 'compute', 'expression'));
         return [prim, innerScope];
@@ -380,6 +433,10 @@ export class AliasTable extends Table {
         this.name = name;
     }
 
+    toExpression(extra_in_params : InputParam[]) {
+        return new AliasExpression(this.location, this.table.toExpression(extra_in_params), this.name, this.schema);
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitAliasTable(this))
@@ -400,7 +457,7 @@ export class AliasTable extends Table {
         return yield* this.table.iterateSlots(scope);
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         return yield* this.table.iterateSlots2(scope);
     }
 }
@@ -438,6 +495,10 @@ export class AggregationTable extends Table {
         this.overload = overload;
     }
 
+    toExpression(extra_in_params : InputParam[]) {
+        return new AggregationExpression(this.location, this.table.toExpression(extra_in_params), this.field, this.operator, this.schema);
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitAggregationTable(this))
@@ -461,12 +522,13 @@ export class AggregationTable extends Table {
         return yield* this.table.iterateSlots(scope);
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         return yield* this.table.iterateSlots2(scope);
     }
 }
 Table.Aggregation = AggregationTable;
 Table.Aggregation.prototype.isAggregation = true;
+
 export class SortedTable extends Table {
     table : Table;
     field : string;
@@ -487,6 +549,11 @@ export class SortedTable extends Table {
 
         assert(direction === 'asc' || direction === 'desc');
         this.direction = direction;
+    }
+
+    toExpression(extra_in_params : InputParam[]) {
+        return new SortExpression(this.location, this.table.toExpression(extra_in_params),
+            new Value.VarRef(this.field), this.direction, this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -510,7 +577,7 @@ export class SortedTable extends Table {
         return yield* this.table.iterateSlots(scope);
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         return yield* this.table.iterateSlots2(scope);
     }
 }
@@ -532,6 +599,10 @@ export class IndexTable extends Table {
 
         assert(Array.isArray(indices));
         this.indices = indices;
+    }
+
+    toExpression(extra_in_params : InputParam[]) {
+        return new IndexExpression(this.location, this.table.toExpression(extra_in_params), this.indices, this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -557,7 +628,7 @@ export class IndexTable extends Table {
         return yield* this.table.iterateSlots(scope);
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         const [prim, innerScope] = yield* this.table.iterateSlots2(scope);
         for (let i = 0; i < this.indices.length; i++)
             yield* recursiveYieldArraySlots(new ArrayIndexSlot(prim, innerScope, Type.Number, this.indices, 'table.index', i));
@@ -589,6 +660,10 @@ export class SlicedTable extends Table {
         this.limit = limit;
     }
 
+    toExpression(extra_in_params : InputParam[]) {
+        return new SliceExpression(this.location, this.table.toExpression(extra_in_params), this.base, this.limit, this.schema);
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitSlicedTable(this)) {
@@ -613,7 +688,7 @@ export class SlicedTable extends Table {
         return yield* this.table.iterateSlots(scope);
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         const [prim, innerScope] = yield* this.table.iterateSlots2(scope);
         yield* recursiveYieldArraySlots(new FieldSlot(prim, innerScope, Type.Number, this, 'slice', 'base'));
         yield* recursiveYieldArraySlots(new FieldSlot(prim, innerScope, Type.Number, this, 'slice', 'limit'));
@@ -645,6 +720,15 @@ export class JoinTable extends Table {
         this.in_params = in_params;
     }
 
+    toExpression(extra_in_params : InputParam[]) {
+        // we need typechecking to implement this correctly, but typechecking
+        // happens after the conversion so it is too late
+        if (extra_in_params.length > 0)
+            throw new Error(`Cannot carry extra_in_params across a join`);
+
+        return new ChainExpression(this.location, [this.lhs.toExpression([]), this.rhs.toExpression(this.in_params)], this.schema);
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitJoinTable(this)) {
@@ -674,7 +758,7 @@ export class JoinTable extends Table {
         return [null, newScope];
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         const [, leftScope] = yield* this.lhs.iterateSlots2(scope);
         const [, rightScope] = yield* this.rhs.iterateSlots2(scope);
         const newScope : ScopeMap = {};
@@ -731,6 +815,12 @@ export abstract class Stream extends Node {
         this.schema = schema;
     }
 
+    toSource() : TokenStream {
+        throw new Error(`Legacy AST node cannot be converted to source, convert to Expression first`);
+    }
+
+    abstract toExpression() : Expression;
+
     abstract clone() : Stream;
 
     /**
@@ -746,7 +836,7 @@ export abstract class Stream extends Node {
      *
      * @param scope - available names for parameter passing
      */
-    abstract iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]>;
+    abstract iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]>;
 }
 Stream.prototype.isVarRef = false;
 Stream.prototype.isTimer = false;
@@ -777,6 +867,14 @@ export class VarRefStream extends Stream {
         this.in_params = in_params;
     }
 
+    toExpression() {
+        return new FunctionCallExpression(this.location, this.name, this.in_params, this.schema);
+    }
+
+    toSource() : TokenStream {
+        return List.concat(this.name, '(', List.join(this.in_params.map((ip) => ip.toSource()), ','), ')');
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitVarRefStream(this)) {
@@ -801,7 +899,7 @@ export class VarRefStream extends Stream {
         return [this, makeScope(this)];
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         return yield* iterateSlots2InputParams(this, scope);
     }
 }
@@ -830,6 +928,14 @@ export class TimerStream extends Stream {
         this.frequency = frequency;
     }
 
+    toExpression() {
+        const args = [new InputParam(null, 'base', this.base),
+                      new InputParam(null, 'interval', this.interval)];
+        if (this.frequency)
+            args.push(new InputParam(null, 'frequency', this.frequency));
+        return new FunctionCallExpression(this.location, 'timer', args, this.schema);
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitTimerStream(this)) {
@@ -856,7 +962,7 @@ export class TimerStream extends Stream {
         return [null, {}];
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         // no primitive here
         yield* recursiveYieldArraySlots(new FieldSlot(null, scope, Type.Date, this, 'timer', 'base'));
         yield* recursiveYieldArraySlots(new FieldSlot(null, scope, new Type.Measure('ms'), this, 'timer', 'interval'));
@@ -881,6 +987,13 @@ export class AtTimerStream extends Stream {
 
         assert(expiration_date === null || expiration_date instanceof Value);
         this.expiration_date = expiration_date;
+    }
+
+    toExpression() {
+        const in_params = [new InputParam(null, 'time', new Value.Array(this.time))];
+        if (this.expiration_date)
+            in_params.push(new InputParam(null, 'expiration_date', this.expiration_date));
+        return new FunctionCallExpression(this.location, 'attimer', in_params, this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -908,7 +1021,7 @@ export class AtTimerStream extends Stream {
         return [null, {}];
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         for (let i = 0; i < this.time.length; i++)
             yield* recursiveYieldArraySlots(new ArrayIndexSlot(null, scope, Type.Time, this.time, 'attimer.time', i));
         if (this.expiration_date !== null)
@@ -936,6 +1049,10 @@ export class MonitorStream extends Stream {
         this.args = args;
     }
 
+    toExpression() {
+        return new MonitorExpression(this.location, this.table.toExpression([]), this.args, this.schema);
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitMonitorStream(this))
@@ -956,7 +1073,7 @@ export class MonitorStream extends Stream {
         return yield* this.table.iterateSlots(scope);
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         return yield* this.table.iterateSlots2(scope);
     }
 }
@@ -973,6 +1090,10 @@ export class EdgeNewStream extends Stream {
 
         assert(stream instanceof Stream);
         this.stream = stream;
+    }
+
+    toExpression() : never {
+        throw new Error('`edge on new` is not supported in the new syntax');
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -994,7 +1115,7 @@ export class EdgeNewStream extends Stream {
         return yield* this.stream.iterateSlots(scope);
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         return yield* this.stream.iterateSlots2(scope);
     }
 }
@@ -1016,6 +1137,10 @@ export class EdgeFilterStream extends Stream {
 
         assert(filter instanceof BooleanExpression);
         this.filter = filter;
+    }
+
+    toExpression() {
+        return new FilterExpression(this.location, this.stream.toExpression(), this.filter, this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -1042,7 +1167,7 @@ export class EdgeFilterStream extends Stream {
         return [prim, newScope];
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         const [prim, newScope] = yield* this.stream.iterateSlots2(scope);
         yield* this.filter.iterateSlots2(this.stream.schema, prim, newScope);
         return [prim, newScope];
@@ -1066,6 +1191,21 @@ export class FilteredStream extends Stream {
 
         assert(filter instanceof BooleanExpression);
         this.filter = filter;
+    }
+
+    toExpression() : Expression {
+        // catch a common case that we can handle before bailing
+        if (this.stream instanceof MonitorStream) {
+            return new MonitorExpression(this.location,
+                new FilterExpression(this.location,
+                this.stream.table.toExpression([]),
+                this.filter,
+                this.schema),
+                this.stream.args,
+                this.stream.schema);
+        }
+
+        throw new Error('stream filter is not supported in the new syntax (push the filter down inside the monitor)');
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -1092,7 +1232,7 @@ export class FilteredStream extends Stream {
         return [prim, newScope];
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         const [prim, newScope] = yield* this.stream.iterateSlots2(scope);
         yield* this.filter.iterateSlots2(this.stream.schema, prim, newScope);
         return [prim, newScope];
@@ -1116,6 +1256,10 @@ export class ProjectionStream extends Stream {
 
         assert(Array.isArray(args));
         this.args = args;
+    }
+
+    toExpression() {
+        return new ProjectionExpression(this.location, this.stream.toExpression(), this.args, [], [], this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -1142,7 +1286,7 @@ export class ProjectionStream extends Stream {
         return [prim, newScope];
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         const [prim, nestedScope] = yield* this.stream.iterateSlots2(scope);
         const newScope : ScopeMap = {};
         for (const name of this.args)
@@ -1179,6 +1323,10 @@ export class ComputeStream extends Stream {
         this.type = type;
     }
 
+    toExpression() {
+        return new ProjectionExpression(this.location, this.stream.toExpression(), [], [this.expression], [this.alias], this.schema);
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitComputeStream(this)) {
@@ -1203,7 +1351,7 @@ export class ComputeStream extends Stream {
         return yield* this.stream.iterateSlots(scope);
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         const [prim, innerScope] = yield* this.stream.iterateSlots2(scope);
         yield* recursiveYieldArraySlots(new FieldSlot(prim, innerScope, this.type as Type, this, 'compute', 'expression'));
         return [prim, innerScope];
@@ -1229,6 +1377,10 @@ export class AliasStream extends Stream {
         this.name = name;
     }
 
+    toExpression() {
+        return new AliasExpression(this.location, this.stream.toExpression(), this.name, this.schema);
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitAliasStream(this))
@@ -1249,7 +1401,7 @@ export class AliasStream extends Stream {
         return yield* this.stream.iterateSlots(scope);
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         return yield* this.stream.iterateSlots2(scope);
     }
 }
@@ -1276,6 +1428,15 @@ export class JoinStream extends Stream {
 
         assert(Array.isArray(in_params));
         this.in_params = in_params;
+    }
+
+    toExpression() {
+        const lhs = this.stream.toExpression();
+        // flatten chain expressions, or typechecking will fail
+        if (lhs instanceof ChainExpression)
+            return new ChainExpression(this.location, [...lhs.expressions, this.table.toExpression(this.in_params)], this.schema);
+        else
+            return new ChainExpression(this.location, [lhs, this.table.toExpression(this.in_params)], this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -1307,7 +1468,7 @@ export class JoinStream extends Stream {
         return [null, newScope];
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         const [, leftScope] = yield* this.stream.iterateSlots2(scope);
         const [, rightScope] = yield* this.table.iterateSlots2(scope);
         const newScope = {};
@@ -1366,9 +1527,11 @@ export abstract class Action extends Node {
      * @param {string} [what=notify] - what action to create
      * @return {Ast.Action} the action node
      */
-    static notifyAction(what : keyof typeof Builtin.Actions = 'notify') : NotifyAction {
-        return new NotifyAction(null, what, Builtin.Actions[what]);
+    static notifyAction(what : 'notify' = 'notify') : NotifyAction {
+        return new NotifyAction(null, what, null);
     }
+
+    abstract toExpression() : Expression;
 
     abstract clone() : Action;
 
@@ -1385,7 +1548,7 @@ export abstract class Action extends Node {
      *
      * @param scope - available names for parameter passing
      */
-    abstract iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, void>;
+    abstract iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void>;
 }
 Action.prototype.isVarRef = false;
 Action.prototype.isInvocation = false;
@@ -1433,6 +1596,14 @@ export class VarRefAction extends Action {
         this.in_params = in_params;
     }
 
+    toExpression() {
+        return new FunctionCallExpression(this.location, this.name, this.in_params, this.schema);
+    }
+
+    toSource() : TokenStream {
+        return List.concat(this.name, '(', List.join(this.in_params.map((ip) => ip.toSource()), ','), ')');
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitVarRefAction(this)) {
@@ -1460,7 +1631,7 @@ export class VarRefAction extends Action {
             yield [this.schema, in_param, this, scope];
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
         yield* iterateSlots2InputParams(this, scope);
     }
 }
@@ -1495,6 +1666,14 @@ export class InvocationAction extends Action {
         this.invocation = invocation;
     }
 
+    toExpression() {
+        return new InvocationExpression(this.location, this.invocation, this.schema);
+    }
+
+    toSource() : TokenStream {
+        return this.invocation.toSource();
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitInvocationAction(this))
@@ -1514,7 +1693,7 @@ export class InvocationAction extends Action {
         yield* this.invocation.iterateSlots(scope);
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
         yield* this.invocation.iterateSlots2(scope);
     }
 }
@@ -1528,8 +1707,7 @@ Action.Invocation.prototype.isInvocation = true;
  * @extends Ast.Action
  */
 export class NotifyAction extends Action {
-    name : keyof typeof Builtin.Actions;
-    invocation : Invocation;
+    name : 'notify';
 
     /**
      * Construct a new notify action.
@@ -1539,15 +1717,23 @@ export class NotifyAction extends Action {
      * @param schema - type signature of this action
      */
     constructor(location : SourceRange|null,
-                name : keyof typeof Builtin.Actions,
-                schema : ExpressionSignature|null) {
-        super(location, schema || Builtin.Actions[name]);
+                name : 'notify',
+                schema : ExpressionSignature|null = null) {
+        super(location, schema);
 
-        assert(['notify', 'return', 'save'].includes(name));
+        // we used to support "return" and "save", but those are gone
+        // in new syntax so let's make sure we don't create ASTs for them
+        // (or we'll lose information when we convert)
+        assert(name === 'notify');
         this.name = name;
+    }
 
-        // compatibility interface
-        this.invocation = new Invocation(null, Selector.Builtin, name, [], this.schema);
+    toExpression() : never {
+        throw new Error(`notify actions no longer exist`);
+    }
+
+    toSource() : TokenStream {
+        return List.singleton(this.name);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -1566,7 +1752,7 @@ export class NotifyAction extends Action {
     *iterateSlots(scope : ScopeMap) : Generator<OldSlot, void> {
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
     }
 }
 Action.Notify = NotifyAction;
@@ -1596,7 +1782,7 @@ export abstract class PermissionFunction extends Node {
         return [null, {}];
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         return [null, {}];
     }
 }
@@ -1648,6 +1834,13 @@ export class SpecifiedPermissionFunction extends PermissionFunction {
         this.schema = schema;
     }
 
+    toSource() : TokenStream {
+        if (this.filter.isTrue)
+            return List.concat('@' + this.kind, '.', this.channel);
+        return List.concat('@' + this.kind, '.', this.channel, 'filter',
+            this.filter.toSource());
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitSpecifiedPermissionFunction(this))
@@ -1670,7 +1863,7 @@ export class SpecifiedPermissionFunction extends PermissionFunction {
         return [this, makeScope(this)];
     }
 
-    *iterateSlots2(scope : ScopeMap) : Generator<Selector|AbstractSlot, [InvocationLike, ScopeMap]> {
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike, ScopeMap]> {
         yield* this.filter.iterateSlots2(this.schema, this, scope);
         return [this, makeScope(this)];
     }
@@ -1689,8 +1882,12 @@ export class BuiltinPermissionFunction extends PermissionFunction {
         visitor.exit(this);
     }
 
+    toSource() : TokenStream {
+        return List.singleton('notify');
+    }
+
     clone() : BuiltinPermissionFunction {
-        return new BuiltinPermissionFunction();
+        return this;
     }
 }
 BuiltinPermissionFunction.prototype.isBuiltin = true;
@@ -1729,6 +1926,10 @@ export class ClassStarPermissionFunction extends PermissionFunction {
         this.kind = kind;
     }
 
+    toSource() : TokenStream {
+        return List.concat('@' + this.kind, '.', '*');
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         visitor.visitClassStarPermissionFunction(this);
@@ -1753,8 +1954,12 @@ export class StarPermissionFunction extends PermissionFunction {
         visitor.exit(this);
     }
 
+    toSource() : TokenStream {
+        return List.singleton('*');
+    }
+
     clone() : StarPermissionFunction {
-        return new StarPermissionFunction();
+        return this;
     }
 }
 StarPermissionFunction.prototype.isStar = true;

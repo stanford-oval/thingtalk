@@ -20,7 +20,7 @@
 
 import assert from 'assert';
 import * as Ast from '../ast';
-import { NotImplementedError } from '../errors';
+import { NotImplementedError } from '../utils/errors';
 import { getScalarExpressionName } from '../utils';
 
 import { PointWiseOp, StreamOp, TableOp, RuleOp, QueryInvocationHints } from './ops';
@@ -30,8 +30,7 @@ import * as Ops from './ops';
 import { getDefaultProjection, getExpressionParameters } from './utils';
 import ReduceOp, { SimpleAggregationType } from './reduceop';
 
-function sameDevice(lhs : Ast.Selector, rhs : Ast.Selector) : boolean {
-    assert(lhs instanceof Ast.DeviceSelector && rhs instanceof Ast.DeviceSelector);
+function sameDevice(lhs : Ast.DeviceSelector, rhs : Ast.DeviceSelector) : boolean {
     if (lhs.kind !== rhs.kind)
         return false;
     if (lhs.id !== rhs.id)

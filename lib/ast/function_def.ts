@@ -25,13 +25,17 @@ import Node, {
     NLAnnotationMap,
     AnnotationMap,
     AnnotationSpec,
+    implAnnotationsToSource,
+    nlAnnotationsToSource,
 } from './base';
 import Type, { TypeMap, ArrayType, CompoundType } from '../type';
-import { prettyprintType, prettyprintAnnotations } from '../prettyprint';
 import { Value } from './values';
 import { ClassDef } from './class_def';
 import NodeVisitor from './visitor';
 import { clean } from '../utils';
+
+import { TokenStream } from '../new-syntax/tokenstream';
+import List from '../utils/list';
 
 // Class and function definitions
 
@@ -74,6 +78,7 @@ export class ArgumentDef extends Node {
     is_input : boolean;
     required : boolean;
     unique : boolean;
+    private _is_compound_field : boolean;
 
     /**
      * Construct a new argument definition.
@@ -90,7 +95,8 @@ export class ArgumentDef extends Node {
                 direction : ArgDirection|null,
                 name : string,
                 type : Type,
-                annotations : AnnotationSpec = {}) {
+                annotations : AnnotationSpec = {},
+                is_compound_field = false) {
         super(location);
 
         /**
@@ -132,11 +138,25 @@ export class ArgumentDef extends Node {
          */
         this.impl_annotations = annotations.impl || {};
 
+        this._is_compound_field = is_compound_field || this.direction === null;
+
         this.unique = this.impl_annotations.unique && this.impl_annotations.unique.isBoolean && this.impl_annotations.unique.toJS() === true;
         if (this.direction && type instanceof CompoundType)
             this._updateFields(type);
         if (this.type instanceof ArrayType && this.type.elem instanceof CompoundType)
             this._flattenCompoundArray();
+    }
+
+    toSource() : TokenStream {
+        let list : TokenStream;
+        if (!this.direction || this._is_compound_field)
+            list = List.concat(this.name, ':', this.type.toSource());
+        else
+            list = List.concat(...this.direction.split(' '), this.name, ':', this.type.toSource());
+        list = List.concat(list,
+            nlAnnotationsToSource(this.nl_annotations),
+            implAnnotationsToSource(this.impl_annotations));
+        return list;
     }
 
     private _updateFields(type : CompoundType) {
@@ -163,7 +183,7 @@ export class ArgumentDef extends Node {
     }
 
     // iteratively flatten compound fields inside an array
-    private*_iterateCompoundArrayFields(compound : CompoundType, prefix = '') : Generator<[string, ArgumentDef], void> {
+    private *_iterateCompoundArrayFields(compound : CompoundType, prefix = '') : Generator<[string, ArgumentDef], void> {
         for (const fname in compound.fields) {
             const field = compound.fields[fname].clone();
             yield [prefix + fname, field];
@@ -240,33 +260,14 @@ export class ArgumentDef extends Node {
         const impl = {};
         Object.assign(impl, this.impl_annotations);
 
-        return new ArgumentDef(this.location, this.direction, this.name, this.type, { nl, impl });
+        return new ArgumentDef(this.location, this.direction, this.name, this.type, { nl, impl },
+            this._is_compound_field);
     }
 
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         visitor.visitArgumentDef(this);
         visitor.exit(this);
-    }
-
-    /**
-     * Convert this AST node to a string of ThingTalk code.
-     *
-     * @param {string} [prefix] - an optional prefix to apply when printing the type
-     * @return {string} - the ThingTalk code that corresponds to this argument definition
-     */
-    toString(prefix = '') : string {
-        return `${this.direction} ${this.name}: ${prettyprintType(this.type, prefix)}${prettyprintAnnotations(this, prefix, true)}`;
-    }
-
-    /**
-     * Convert this argument definition to prettyprinted ThingTalk code.
-     *
-     * @param {string} [prefix] - prefix each output line with this string (for indentation)
-     * @return {string} the prettyprinted code
-     */
-    prettyprint(prefix = '') : string {
-        return `${prefix}${this}`;
     }
 
     /**
@@ -455,6 +456,10 @@ export class ExpressionSignature extends Node {
         this._class = klass;
     }
 
+    toSource() : TokenStream {
+        throw new Error(`Non-function ExpressionSignature cannot be converted to source code`);
+    }
+
     visit(visitor : NodeVisitor) : void {
         throw new Error('Unimplemented method');
     }
@@ -462,7 +467,7 @@ export class ExpressionSignature extends Node {
     /**
      * The names of the arguments defined by this expression signature.
      *
-     * This does include arguments inherited from parent functions.
+     * This does not include arguments inherited from parent functions.
      *
      * @type {string[]}
      * @readonly
@@ -697,8 +702,11 @@ export class ExpressionSignature extends Node {
         if (this.extends.length > 0) {
             if (!this.class)
                 throw new Error(`Class information missing from the function definition.`);
-            for (const fname of this.extends)
-                yield *this.class.getFunction(this.functionType, fname)!.iterateArguments(returned);
+            for (const fname of this.extends) {
+                const parent = this.class.getFunction('query', fname);
+                assert(parent);
+                yield *parent.iterateArguments(returned);
+            }
         }
     }
 
@@ -818,6 +826,17 @@ export class ExpressionSignature extends Node {
     filterArguments(filter : ArgumentFilterCallback) : ExpressionSignature {
         const args = this._flattenSubFunctionArguments().filter(filter);
         return this._cloneInternal(args, true);
+    }
+
+    /**
+     * Clone this expression signature into a signature of the given type.
+     *
+     * This is used during typechecking to convert a table into a stream.
+     */
+    asType(type : FunctionType) : ExpressionSignature {
+        const clone = this.clone();
+        clone._functionType = type;
+        return clone;
     }
 
     /**
@@ -993,11 +1012,15 @@ export class FunctionDef extends ExpressionSignature {
                 _extends : string[],
                 qualifiers : FunctionQualifiers,
                 args : ArgumentDef[],
-                annotations : AnnotationSpec) {
+                annotations : AnnotationSpec = {}) {
         // load up options for function signature from qualifiers and annotations
         const options : ExpressionSignatureConstructorOptions = {};
         options.is_list = qualifiers.is_list || false;
         options.is_monitorable = qualifiers.is_monitorable || false;
+        if (functionType === 'action') {
+            assert(!options.is_list);
+            assert(!options.is_monitorable);
+        }
 
         if (annotations.impl) {
             if ('require_filter' in annotations.impl)
@@ -1024,6 +1047,59 @@ export class FunctionDef extends ExpressionSignature {
         // delay setting the default #[minimal_projection] if the class is not yet constructed
         if (this._class !== null)
             this._setMinimalProjection();
+    }
+
+    toSource() : TokenStream {
+        // this is somewhat ugly
+        // we first generate in turn:
+        // - the type of function (query / action)
+        // - the name
+        // - the parenthesis
+        // - the parent functions (`extends foo, bar, baz`)
+        //
+        // we set a tab stop at this position
+        //
+        // then we generate all the arguments
+        // arguments are separated by ',' and '\n'
+        // '\n' respects the tab stop so it is aligned at the parenthesis
+        //
+        // after the arguments we remove the tab stop and do the metadata/annotations
+        // finally, we add ';' and newlines
+
+        let list : TokenStream = List.concat(this.functionType, ' ', this.name);
+
+        if (this._extends.length > 0)
+            list = List.concat(list, 'extends', List.join(this._extends.map((e) => List.singleton(e)), ','));
+
+        // set a tab stop immediately after the parenthesis
+        list = List.concat(list, '(', '\t=+');
+
+        let first = true;
+        for (const argname of this.args) {
+            if (argname.indexOf('.') >= 0)
+                continue;
+
+            const arg = this._argmap[argname];
+            if (first) {
+                list = List.concat(list, arg.toSource());
+                first = false;
+            } else {
+                list = List.concat(list, ',', '\n', arg.toSource());
+            }
+        }
+
+        // remove the tab stop
+        list = List.concat(list, ')', '\t=-',
+            nlAnnotationsToSource(this.nl_annotations),
+            implAnnotationsToSource(this.impl_annotations),
+            ';');
+
+        if (this.is_list)
+            list = List.concat('list', list);
+        if (this.is_monitorable)
+            list = List.concat('monitorable', list);
+
+        return list;
     }
 
     clone() : FunctionDef {
@@ -1119,43 +1195,8 @@ export class FunctionDef extends ExpressionSignature {
             return undefined;
     }
 
-    /**
-     * Convert this function definition to prettyprinted ThingTalk code.
-     *
-     * @param {string} [prefix] - prefix each output line with this string (for indentation)
-     * @return {string} the prettyprinted code
-     */
-    toString(prefix = '') : string {
-        const annotations = prettyprintAnnotations(this);
-
-        const extendclause = this._extends.length > 0 ? ` extends ${this._extends.join(', ')}` : '';
-        const firstline = `${prefix}${this.is_monitorable ? 'monitorable ' : ''}${this.is_list ? 'list ' : ''}${this.functionType} ${this.name}${extendclause}`;
-        // skip arguments flattened from compound param
-        const args = this.args.filter((a) => !a.includes('.'));
-
-        const padding = ' '.repeat(firstline.length+1);
-        if (args.length === 0)
-            return `${firstline}()${annotations};`;
-        if (args.length === 1)
-            return `${firstline}(${this._argmap[args[0]].toString(padding)})${annotations};`;
-
-        let buffer = `${firstline}(${this._argmap[args[0]].toString(padding)},\n`;
-        for (let i = 1; i < args.length-1; i++)
-            buffer += `${padding}${this._argmap[args[i]].toString(padding)},\n`;
-        buffer += `${padding}${this._argmap[args[args.length-1]].toString(padding)})${annotations};`;
-        return buffer;
-    }
-
-    /**
-     * Convert this function definition to prettyprinted ThingTalk code.
-     *
-     * This is an alias for {@link Ast.FunctionDef#toString}.
-     *
-     * @param {string} [prefix] - prefix each output line with this string (for indentation)
-     * @return {string} the prettyprinted code
-     */
-    prettyprint(prefix = '') : string {
-        return this.toString(prefix);
+    toString() : string {
+        return this.prettyprint();
     }
 
     visit(visitor : NodeVisitor) : void {

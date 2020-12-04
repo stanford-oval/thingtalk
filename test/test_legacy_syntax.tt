@@ -50,12 +50,6 @@ monitor @com.twitter.home_timeline(), @com.twitter.post() { text =~ "lol" } => n
 
 ====
 
-executor = "bob"^^tt:username : { // TestReturn
-    monitor @com.twitter.home_timeline() => return;
-}
-
-====
-
 executor = self : { // ExplicitSelf
     now => @org.thingpedia.builtin.thingengine.builtin.say(message="lol");
 }
@@ -577,11 +571,6 @@ now => @security-camera.set_power(power=enum(on));
 
 ====
 
-// ** typecheck: expect TypeError **
-now => notify;
-
-====
-
 let action x := \(status : String) -> @com.twitter.post(status=status);
 
 ====
@@ -632,18 +621,6 @@ now => @com.twitter.follow(user_name=null^^tt:username("donald trump"));
     #_[canonical='power status of foo']
     #_[confirmation='status of foo']
     #[poll_interval=10];
-  }
-}
-
-====
-
-// ** typecheck: expect TypeError **
-// action is not monitorable
-{
-  class @com.foo {
-    monitorable action set_power(in req power : Enum(on,off) #_[prompt='do you want turn on or off?'])
-    #_[canonical='set power of foo']
-    #_[confirmation='turn $power foo'];
   }
 }
 
@@ -747,7 +724,7 @@ dataset @com.twitter language 'en' {
 
 // ** typecheck: expect TypeError **
 // wrong type
-dataset foo {
+dataset @foo {
     stream (p_author : Number) := monitor (@com.twitter.search()), author == p_author
     #_[utterances=['monitor ${p_author}\'s tweets']];
 }
@@ -961,26 +938,6 @@ let query cat := @com.thecatapi.get();
 
 ====
 
-// oninput
-now => @com.thecatapi.get() => notify;
-oninput => {
-  @uk.co.thedogapi.get() => @com.twitter.post();
-  @com.facebook.post();
-};
-
-====
-
-// ** typecheck: expect TypeError **
-// a bare notify under oninput will not typecheck
-// (same as "now => notify;")
-
-now => @com.thecatapi.get() => notify;
-oninput => {
-  notify;
-};
-
-====
-
 // assignment statements
 let result cat := @com.thecatapi.get();
 now => cat => notify;
@@ -1019,26 +976,6 @@ let result cat := @com.thecatapi.get();
 let result cat := @com.thecatapi.get();
 now => cat => notify;
 now => cat => @com.facebook.post();
-
-====
-
-// assignment statements used oninput
-let result cat := @com.thecatapi.get();
-now => cat => notify;
-oninput => {
-  cat => @com.facebook.post();
-};
-
-====
-
-// oninput is hoisted to the end of the program,
-// so this actually typechecks
-oninput => {
-  cat => @com.facebook.post();
-};
-let result cat := @com.thecatapi.get();
-now => cat => notify;
-
 
 ====
 
@@ -1146,11 +1083,6 @@ let procedure p4(p_query : String) := {
 };
 
 now => p1();
-oninput => {
-  p2();
-  p3();
-  p4(p_query="foo");
-}
 
 ====
 
@@ -1247,33 +1179,12 @@ bookkeeping(yes);
 bookkeeping(no);
 
 ====
-// bookkeeping statements: special
-// ** typecheck: expect TypeError **
-bookkeeping(foo);
-
-====
-// bookkeeping statements: commands
-bookkeeping(commands(device="com.twitter"^^tt:device, category="social-network"));
-
-====
-// bookkeeping statements: commands
-bookkeeping(commands(device=$?, category="social-network"));
-
-====
-// bookkeeping statements: commands
-bookkeeping(commands(category="social-network"));
-
-====
 // bookkeeping statements: choice
 bookkeeping(choice(0));
 
 ====
 // bookkeeping statements: answer
 bookkeeping(answer(42));
-
-====
-// bookkeeping statements: predicate
-bookkeeping(predicate(foo == 42));
 
 ====
 

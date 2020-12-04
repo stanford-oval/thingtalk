@@ -17,11 +17,10 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
+import assert from 'assert';
 
-const Builtin = require('../lib/builtin');
+import * as Builtin from '../lib/builtin';
 
 function testSort() {
     const array = [
@@ -106,7 +105,7 @@ function testIndex() {
         ['a', 'd', 'a', 'e', 'e']);
 }
 
-function main() {
+export default function main() {
     console.log('testSort');
     testSort();
     console.log('testSlice');
@@ -114,6 +113,5 @@ function main() {
     console.log('testIndex');
     testIndex();
 }
-module.exports = main;
 if (!module.parent)
     main();

@@ -17,108 +17,133 @@
 // limitations under the License.
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
-"use strict";
 
-const AppGrammar = require('../lib/grammar_api');
-const SchemaRetriever = require('../lib/schema').default;
-const _mockSchemaDelegate = require('./mock_schema_delegate');
+
+import * as AppGrammar from '../lib/syntax_api';
+import SchemaRetriever from '../lib/schema';
+import _mockSchemaDelegate from './mock_schema_delegate';
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 const TEST_CASES = [
     [
         `now => [text] of (@com.twitter.home_timeline()) => @com.twitter.post(status=text);`,
-        `now => @com.twitter.home_timeline() => @com.twitter.post(status=text);`
+        `@com.twitter.home_timeline() => @com.twitter.post(status=text);`
     ],
     [
         `now => ([text] of @com.twitter.home_timeline()), text =~ "lol" => notify;`,
-        `now => [text] of ((@com.twitter.home_timeline()), text =~ "lol") => notify;`
+        `[text] of @com.twitter.home_timeline() filter text =~ "lol";`
     ],
     [
         `now => ([text] of @com.twitter.home_timeline()), text =~ "lol" => @com.twitter.post(status=text);`,
-        `now => (@com.twitter.home_timeline()), text =~ "lol" => @com.twitter.post(status=text);`
+        `@com.twitter.home_timeline() filter text =~ "lol" => @com.twitter.post(status=text);`
     ],
     [
         `monitor ([text] of (@com.twitter.home_timeline())) => @com.twitter.post(status=text);`,
-        `monitor (@com.twitter.home_timeline()) on new [text] => @com.twitter.post(status=text);`
+        `monitor(text of @com.twitter.home_timeline()) => @com.twitter.post(status=text);`
     ],
     [
         `monitor (([text] of @com.twitter.home_timeline()), text =~ "lol") => notify;`,
-        `[text] of (monitor ((@com.twitter.home_timeline()), text =~ "lol") on new [text]) => notify;`
+        `[text] of monitor(text of @com.twitter.home_timeline() filter text =~ "lol");`
     ],
     [
         `monitor (([text] of @com.twitter.home_timeline()), text =~ "lol") => @com.twitter.post(status=text);`,
-        `monitor ((@com.twitter.home_timeline()), text =~ "lol") on new [text] => @com.twitter.post(status=text);`
+        `monitor(text of @com.twitter.home_timeline() filter text =~ "lol") => @com.twitter.post(status=text);`
     ],
     [
-        `now => [count] of aggregate count of (@com.twitter.home_timeline()) => notify;`,
-        `now => aggregate count of (@com.twitter.home_timeline()) => notify;`
+        `now => [count] of count(@com.twitter.home_timeline()) => notify;`,
+        `count(@com.twitter.home_timeline());`
     ],
 
     [
         `now => [text] of [text, author] of @com.twitter.home_timeline() => notify;`,
-        `now => [text] of (@com.twitter.home_timeline()) => notify;`,
+        `[text] of @com.twitter.home_timeline();`,
     ],
 
     [
         `now => [text] of (([text, author] of @com.twitter.home_timeline()), text =~ "lol") => notify;`,
-        `now => [text] of ((@com.twitter.home_timeline()), text =~ "lol") => notify;`
+        `[text] of @com.twitter.home_timeline() filter text =~ "lol";`
     ],
 
     [
         `monitor ([text, author] of @com.twitter.home_timeline()) => notify;`,
-        `[text, author] of (monitor (@com.twitter.home_timeline()) on new [text, author]) => notify;`
+        `[text, author] of monitor(text, author of @com.twitter.home_timeline());`
     ],
 
     [
-        `monitor ([text, author] of @com.twitter.home_timeline()) on new [text] => notify;`,
-        `[text, author] of (monitor (@com.twitter.home_timeline()) on new [text]) => notify;`
+        `monitor (text of [text, author] of @com.twitter.home_timeline()) => notify;`,
+        `[text, author] of monitor(text of @com.twitter.home_timeline());`
     ],
 
     [
         `monitor ([text, author] of @com.twitter.home_timeline()) => @com.twitter.post(status=text);`,
-        `monitor (@com.twitter.home_timeline()) on new [text, author] => @com.twitter.post(status=text);`
+        `monitor(text, author of @com.twitter.home_timeline()) => @com.twitter.post(status=text);`
     ],
 
     [
         `monitor (@com.twitter.home_timeline()), author == "bob"^^tt:username || author == "charlie"^^tt:username => notify;`,
-        `monitor ((@com.twitter.home_timeline()), in_array(author, ["bob"^^tt:username, "charlie"^^tt:username])) => notify;`
+        `monitor(@com.twitter.home_timeline()) filter in_array(author, ["bob"^^tt:username, "charlie"^^tt:username]);`
+    ],
+
+    [
+        `monitor (@com.twitter.home_timeline(), author == "bob"^^tt:username || author == "charlie"^^tt:username) => notify;`,
+        `monitor(@com.twitter.home_timeline() filter in_array(author, ["bob"^^tt:username, "charlie"^^tt:username]));`
     ],
 
     [
         `now => @org.schema.full.Restaurant(), id =~ "starbucks" || id =~ "mcdonalds" => notify;`,
-        `now => (@org.schema.full.Restaurant()), in_array~(id, ["starbucks", "mcdonalds"]) => notify;`
+        `@org.schema.full.Restaurant() filter in_array~(id, ["starbucks", "mcdonalds"]);`
+    ],
+
+    [
+        `now => @org.schema.restaurant(), 500mi >= distance(geo, $location.current_location) => notify;`,
+        `@org.schema.restaurant() filter distance(geo, $location.current_location) <= 500mi;`
+    ],
+
+    [
+        `now => @org.schema.restaurant(), 1 == 1 => notify;`,
+        `@org.schema.restaurant();`
+    ],
+
+    [
+        `now => @org.schema.restaurant(), 1 >= 1 => notify;`,
+        `@org.schema.restaurant();`
+    ],
+
+    [
+        `now => @org.schema.restaurant(), geo == geo => notify;`,
+        `@org.schema.restaurant();`
     ],
 
     [
 `$dialogue @org.thingpedia.dialogue.transaction.execute;
 now => [food] of ((@uk.ac.cam.multiwoz.Restaurant.Restaurant()), true) => notify
 #[results=[
-  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::0:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::9:", price_range=enum(moderate), area=enum(south) },
-  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::1:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::25:", price_range=enum(moderate), area=enum(centre) },
-  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::2:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::44:", price_range=enum(moderate), area=enum(north) },
-  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::3:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::17:", price_range=enum(expensive), area=enum(centre) },
-  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::4:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::18:", price_range=enum(expensive), area=enum(south) },
-  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::5:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::41:", price_range=enum(expensive), area=enum(north) },
-  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::6:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::41:", price_range=enum(cheap), area=enum(south) },
-  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::7:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::22:", price_range=enum(cheap), area=enum(south) },
-  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::8:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::5:", price_range=enum(moderate), area=enum(south) },
-  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::9:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::33:", price_range=enum(moderate), area=enum(south) }
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::0:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::9:", price_range=enum moderate, area=enum south },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::1:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::25:", price_range=enum moderate, area=enum centre },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::2:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::44:", price_range=enum moderate, area=enum north },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::3:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::17:", price_range=enum expensive, area=enum centre },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::4:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::18:", price_range=enum expensive, area=enum south },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::5:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::41:", price_range=enum expensive, area=enum north },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::6:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::41:", price_range=enum cheap, area=enum south },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::7:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::22:", price_range=enum cheap, area=enum south },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::8:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::5:", price_range=enum moderate, area=enum south },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::9:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::33:", price_range=enum moderate, area=enum south }
 ]]
 #[count=50]
 #[more=true];`,
 `$dialogue @org.thingpedia.dialogue.transaction.execute;
-now => [food] of (@uk.ac.cam.multiwoz.Restaurant.Restaurant()) => notify
+[food] of @uk.ac.cam.multiwoz.Restaurant.Restaurant()
 #[results=[
-  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::0:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::9:", price_range=enum(moderate), area=enum(south) },
-  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::1:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::25:", price_range=enum(moderate), area=enum(centre) },
-  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::2:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::44:", price_range=enum(moderate), area=enum(north) },
-  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::3:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::17:", price_range=enum(expensive), area=enum(centre) },
-  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::4:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::18:", price_range=enum(expensive), area=enum(south) },
-  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::5:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::41:", price_range=enum(expensive), area=enum(north) },
-  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::6:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::41:", price_range=enum(cheap), area=enum(south) },
-  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::7:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::22:", price_range=enum(cheap), area=enum(south) },
-  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::8:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::5:", price_range=enum(moderate), area=enum(south) },
-  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::9:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::33:", price_range=enum(moderate), area=enum(south) }
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::0:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::9:", price_range=enum moderate, area=enum south },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::1:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::25:", price_range=enum moderate, area=enum centre },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::2:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::44:", price_range=enum moderate, area=enum north },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::3:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::17:", price_range=enum expensive, area=enum centre },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::4:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::18:", price_range=enum expensive, area=enum south },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::5:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::41:", price_range=enum expensive, area=enum north },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::6:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::41:", price_range=enum cheap, area=enum south },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::7:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::22:", price_range=enum cheap, area=enum south },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::8:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::5:", price_range=enum moderate, area=enum south },
+  { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::9:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::33:", price_range=enum moderate, area=enum south }
 ]]
 #[count=50]
 #[more=true];`
@@ -126,38 +151,42 @@ now => [food] of (@uk.ac.cam.multiwoz.Restaurant.Restaurant()) => notify
 
     [`
 $dialogue @org.thingpedia.dialogue.transaction.execute;
-now => [distance] of compute (distance(geo, $context.location.current_location)) of @com.yelp.restaurant() => notify
+now => [distance(geo, $location.current_location)] of @com.yelp.restaurant() => notify
 #[results=[
 { distance=1.5604449514735575e-9 },
 { distance=0 }
 ]];
 `,
     `$dialogue @org.thingpedia.dialogue.transaction.execute;
-now => [distance] of (compute (distance(geo, $context.location.current_location)) of (@com.yelp.restaurant())) => notify
+[distance(geo, $location.current_location)] of @com.yelp.restaurant()
 #[results=[
   { distance=1.5604449514735575e-9 },
   { distance=0 }
 ]];`],
 
-    [`monitor @com.twitter.home_timeline(), text =~ "foo" || (text =~"bar" && !(text =~ "lol")) => notify;`,
-     `monitor ((@com.twitter.home_timeline()), ((text =~ "bar" && !(text =~ "lol")) || text =~ "foo")) => notify;`
+    [`monitor (@com.twitter.home_timeline(), text =~ "foo" || (text =~"bar" && !(text =~ "lol"))) => notify;`,
+     `monitor(@com.twitter.home_timeline() filter !(text =~ "lol") && text =~ "bar" || text =~ "foo");`
     ],
 
-    [`now => [aggregateRating.ratingValue] of ((sort distance asc of (compute (distance(geo, new Location("foo"))) of ((@org.schema.restaurant()), name =~ $context.selection : String)))[1]) => notify;`,
-    `now => [aggregateRating.ratingValue] of ((sort distance asc of (compute (distance(geo, new Location("foo"))) of ((@org.schema.restaurant()), name =~ $context.selection : String)))[1]) => notify;`
+    [`now => [aggregateRating.ratingValue] of (sort(distance(geo, new Location("foo")) asc of @org.schema.restaurant(), name =~ $context.selection : String)[1]) => notify;`,
+    `[aggregateRating.ratingValue] of sort(distance(geo, new Location("foo")) asc of @org.schema.restaurant() filter name =~ $context.selection : String)[1];`
     ],
 
-    [`now => compute distance(geo, $context.location.current_location) of compute distance(geo, $context.location.current_location) of @com.yelp.restaurant() => notify;`,
-     `now => compute (distance(geo, $context.location.current_location)) of (@com.yelp.restaurant()) => notify;`],
+/*
+    These tests checked that compute of compute was simplified. You cannot nest computes in ThingTalk 2.0,
+    because the first one removes all other parameters and you have nothing left to work with.
 
-    [`now => compute distance(geo, $context.location.current_location) of compute distance(geo, $context.location.home) of @com.yelp.restaurant() => notify;`,
-     `now => compute (distance(geo, $context.location.current_location)) of (compute (distance(geo, $context.location.home)) of (@com.yelp.restaurant())) => notify;`],
+    [`[distance(geo, $location.current_location)] of [distance(geo, $location.current_location)] of @com.yelp.restaurant() => notify;`,
+     `[distance(geo, $location.current_location)] of @com.yelp.restaurant();`],
 
-    [`now => compute distance(geo, $context.location.current_location) of compute rating + 2 of @com.yelp.restaurant() => notify;`,
-     `now => compute (distance(geo, $context.location.current_location)) of (compute (rating + 2) of (@com.yelp.restaurant())) => notify;`],
+    [`[distance(geo, $location.current_location)] of [distance(geo, $location.home)] of @com.yelp.restaurant() => notify;`,
+     `[distance(geo, $location.current_location)] of [distance(geo, $location.home)] of @com.yelp.restaurant();`],
 
-    [`now => compute distance(geo, $context.location.current_location) of compute rating + 2 of compute distance(geo, $context.location.current_location) of @com.yelp.restaurant() => notify;`,
-     `now => compute (rating + 2) of (compute (distance(geo, $context.location.current_location)) of (@com.yelp.restaurant())) => notify;`],
+    [`[distance(geo, $location.current_location)] of [rating + 2] of @com.yelp.restaurant() => notify;`,
+     `[distance(geo, $location.current_location)] of [rating + 2] of @com.yelp.restaurant();`],
+
+    [`now => compute distance(geo, $location.current_location) of compute rating + 2 of compute distance(geo, $location.current_location) of @com.yelp.restaurant() => notify;`,
+     `now => compute (rating + 2) of (compute (distance(geo, $location.current_location)) of (@com.yelp.restaurant())) => notify;`],
 
     [`now => compute result + 2 of compute rating + 2 of @com.yelp.restaurant() => notify;`,
      `now => compute (result + 2) of (compute (rating + 2) of (@com.yelp.restaurant())) => notify;`],
@@ -165,8 +194,8 @@ now => [distance] of (compute (distance(geo, $context.location.current_location)
     [`now => compute result + 2 of compute result + 2 of compute rating + 2 of @com.yelp.restaurant() => notify;`,
      `now => compute (result + 2) of (compute (result + 2) of (compute (rating + 2) of (@com.yelp.restaurant()))) => notify;`],
 
-    [`now => compute result + 2 of compute distance(geo, $context.location.current_location) of compute result + 2 of compute rating + 2 of @com.yelp.restaurant() => notify;`,
-     `now => compute (result + 2) of (compute (distance(geo, $context.location.current_location)) of (compute (result + 2) of (compute (rating + 2) of (@com.yelp.restaurant())))) => notify;`],
+    [`now => compute result + 2 of compute distance(geo, $location.current_location) of compute result + 2 of compute rating + 2 of @com.yelp.restaurant() => notify;`,
+     `now => compute (result + 2) of (compute (distance(geo, $location.current_location)) of (compute (result + 2) of (compute (rating + 2) of (@com.yelp.restaurant())))) => notify;`],
 
     [`now => compute result of compute rating + 2 of @com.yelp.restaurant() => notify;`,
      `now => compute (rating + 2) of (@com.yelp.restaurant()) => notify;`],
@@ -174,21 +203,41 @@ now => [distance] of (compute (distance(geo, $context.location.current_location)
     [`now => compute rating of @com.yelp.restaurant() => notify;`,
      `now => @com.yelp.restaurant() => notify;`],
 
-    [`now => compute distance(geo, $context.location.current_location) of (sort distance asc of compute distance(geo, $context.location.current_location) of @com.yelp.restaurant()) => notify;`,
-    `now => sort distance asc of (compute (distance(geo, $context.location.current_location)) of (@com.yelp.restaurant())) => notify;`],
+    [`now => compute distance(geo, $context.location.current_location) of (sort distance asc of compute distance(geo, $location.current_location) of @com.yelp.restaurant()) => notify;`,
+    `now => sort distance asc of (compute (distance(geo, $location.current_location)) of (@com.yelp.restaurant())) => notify;`],
 
-    [`$dialogue @org.thingpedia.dialogue.transaction.execute; now => compute distance(geo, $context.location.current_location) of (sort distance asc of compute distance(geo, $context.location.current_location) of @com.yelp.restaurant()) => notify;`,
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute; now => compute distance(geo, $location.current_location) of (sort distance asc of compute distance(geo, $location.current_location) of @com.yelp.restaurant()) => notify;`,
     `$dialogue @org.thingpedia.dialogue.transaction.execute;
-now => sort distance asc of (compute (distance(geo, $context.location.current_location)) of (@com.yelp.restaurant())) => notify;`]
+now => sort distance asc of (compute (distance(geo, $location.current_location)) of (@com.yelp.restaurant())) => notify;`]*/
 
+    // projection of chain to chain of projection
+    [`[link] of (@com.washingtonpost.get_article() => @com.bing.web_search(query=title));`,
+    `@com.washingtonpost.get_article() => [link] of @com.bing.web_search(query=title);`],
+
+    // nested chains
+    [`(@com.bing.web_search() => @com.yandex.translate.translate(text=title)) => @com.twitter.post(status=translated_text);`,
+    `@com.bing.web_search() => @com.yandex.translate.translate(text=title) => @com.twitter.post(status=translated_text);`],
+
+    // remove redundant device ID
+    ['@com.yelp(id="com.yelp").restaurant();',
+     '@com.yelp.restaurant();'],
+
+    // remove redundant device ID
+    ['@com.yelp(id="com.yelp", name="Yelp").restaurant();',
+     '@com.yelp.restaurant();'],
+
+    // remove redundant device ID
+    ['@com.yelp(id="com.yelp"^^tt:device_id("Yelp")).restaurant();',
+     '@com.yelp.restaurant();'],
 ];
 
 
-function test(i) {
+async function test(i) {
     console.log('Test Case #' + (i+1));
     let [testCase, expectedOptimized] = TEST_CASES[i];
 
-    return AppGrammar.parseAndTypecheck(testCase, schemaRetriever).then((prog) => {
+    try {
+        const prog = await AppGrammar.parse(testCase).typecheck(schemaRetriever);
         let optimized = prog.prettyprint();
         if (optimized !== expectedOptimized) {
             console.error('Test Case #' + (i+1) + ': optimized program does not match what expected');
@@ -197,21 +246,18 @@ function test(i) {
             if (process.env.TEST_MODE)
                 throw new Error(`testOptimize ${i+1} FAILED`);
         }
-    }).catch((e) => {
+    } catch(e) {
         console.error('Test Case #' + (i+1) + ': failed with exception');
         console.error('Error: ' + e.message);
-        console.error(e.stack);
+        console.error(e);
         if (process.env.TEST_MODE)
             throw e;
-    });
+    }
 }
 
-
-async function main() {
+export default async function main() {
     for (let i = 0; i < TEST_CASES.length; i++)
         await test(i);
 }
-
-module.exports = main;
 if (!module.parent)
     main();

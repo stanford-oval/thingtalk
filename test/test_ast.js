@@ -17,13 +17,12 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
+import assert from 'assert';
 
-const Ast = require('../lib/ast');
-const Type = require('../lib/type').default;
-const Builtin = require('../lib/builtin');
+import * as Ast from '../lib/ast';
+import Type from '../lib/type';
+import * as Builtin from '../lib/builtin';
 
 const VALUE_TESTS = [
     [Type.Boolean, true],
@@ -105,11 +104,10 @@ function testClone() {
     assert(clone.out !== fn.out);
 }
 
-function main() {
+export default function main() {
     testValues();
     testIsConstant();
     testClone();
 }
-module.exports = main;
 if (!module.parent)
     main();

@@ -50,7 +50,7 @@
 
 {
   const Ast = require('./meta_ast');
-  const { stringEscape } = require('../../lib/escaping');
+  const { stringEscape } = require('../../lib/utils/escaping');
 
   function take(array, idx) {
       return array.map(function(v) { return v[idx]; });
@@ -64,21 +64,23 @@ Grammar = initialComment:$(__) codeBlock:InitialCodeBlock? __ stmt:(Statement __
 InitialCodeBlock = '{' code:Code '}' { return code; }
 
 Statement
-  = NonTerminalDeclaration
-  / ImportStmt
+  = TerminalDeclaration
+  / NonTerminalDeclaration
 
-NonTerminalDeclaration
-  = name:Identifier __ '=' __ block:RuleBlock { return new Ast.Statement.NonTerminal(name, block); }
-  / name:Identifier __ '=' __ rule:Rule {
-    if (Array.isArray(rule))
-      return new Ast.Statement.NonTerminal(name, rule);
-    else
-      return new Ast.Statement.NonTerminal(name, [rule]);
+TerminalDeclaration
+  = TerminalToken __ name:Identifier __ ':' __ type:CodeNoSemicolon __ ';' {
+    return new Ast.TerminalStmt(name, type);
   }
 
-ImportStmt = ImportToken __ what:StringLiteral __ ';' {
-  return new Ast.Statement.Import(what);
-}
+NonTerminalDeclaration
+  = name:Identifier __ type:(':' __ CodeNoEqual)? '=' __ block:RuleBlock {
+    return new Ast.NonTerminalStmt(name, type ? type[2].trim() : undefined, block); }
+  / name:Identifier __ type:(':' __ CodeNoEqual)? '=' __ rule:Rule {
+    if (Array.isArray(rule))
+      return new Ast.NonTerminalStmt(name, type ? type[2].trim() : undefined, rule);
+    else
+      return new Ast.NonTerminalStmt(name, type ? type[2].trim() : undefined, [rule]);
+  }
 
 RuleBlock = '{' __ rules:(Rule __)* '}' {
     const out = [];
@@ -123,6 +125,7 @@ RuleHeadPart
 
 CodeNoSemicolon = $(StringLiteral / SingleLineComment / MultiLineComment / (![{}()\[\];] SourceCharacter)+ / '{' Code '}' / '(' Code ')' / '[' Code ']')*
 CodeNoComma = $(StringLiteral / SingleLineComment / MultiLineComment / (![{}()\[\],] SourceCharacter)+ / '{' Code '}' / '(' Code ')' / '[' Code ']')*
+CodeNoEqual = $(StringLiteral / SingleLineComment / MultiLineComment / (![{}()\[\]=] SourceCharacter)+ / '{' Code '}' / '(' Code ')' / '[' Code ']')*
 Code = $(StringLiteral / SingleLineComment / MultiLineComment / (![{}()\[\]] SourceCharacter)+ / '{' Code '}' / '(' Code ')' / '[' Code ']')*
 
 /* ---- Lexical Grammar ----- */
@@ -212,6 +215,7 @@ Keyword
   / ElseToken
   / ImportToken
   / ForToken
+  / TerminalToken
 
 FutureReservedWord
   = BreakToken
@@ -414,6 +418,7 @@ VoidToken       = "void"       !IdentifierPart
 WhileToken      = "while"      !IdentifierPart
 WithToken       = "with"       !IdentifierPart
 ChoiceToken     = "choice"     !IdentifierPart
+TerminalToken   = "terminal"   !IdentifierPart
 
 /* Skipped */
 

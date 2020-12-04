@@ -12,7 +12,8 @@ smt/
 yarn-error.log
 
 lib/grammar.js
-lib/nn-syntax/parser.js
+lib/nn-syntax/parser.ts
+lib/new-syntax/parser.ts
 
 tools/meta-sentence-generator/grammar.js
 tools/generate-parser/grammar.js

@@ -15,25 +15,22 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-"use strict";
 
-const Q = require('q');
-const Type = require('../lib/type').default;
+import Type from '../lib/type';
 
 class MockMemoryClient {
     constructor() {
         this._tables = new Map;
     }
 
-    getSchema(table, principal) {
+    async getSchema(table, principal) {
         //console.log('GetSchema for ' + table + ' owned by ' + principal);
-        return Q(this._tables.get(principal + ':' + table) || null);
+        return this._tables.get(principal + ':' + table) || null;
     }
 
-    createTable(table, args, types) {
+    async createTable(table, args, types) {
         console.log('CreateSchema for ' + table + ' ', args);
         this._tables.set('null:' + table, { args: args, types: types });
-        return Q();
     }
 
     // only to populate the mock client
@@ -53,4 +50,4 @@ _mockMemoryClient.createTable('auto+com.xkcd:get_comic:v_title:title,v_picture_u
 
 _mockMemoryClient._createRemoteTable('Q4', '1234', ['col1', 'col2'], [Type.String, Type.Number]);
 
-module.exports = _mockMemoryClient;
+export default _mockMemoryClient;

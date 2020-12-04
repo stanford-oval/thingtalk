@@ -15,18 +15,16 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-"use strict";
 
-const Q = require('q');
-Q.longStackSupport = true;
-const deq = require('deep-equal');
 
-const AppGrammar = require('../lib/grammar_api');
-const SqlCompiler = require('../lib/sql_compiler').default;
-const SchemaRetriever = require('../lib/schema');
+import deq from 'deep-equal';
 
-const _mockMemoryClient = require('./mock_memory_client');
-const _mockSchemaDelegate = require('./mock_schema_delegate');
+import * as AppGrammar from '../lib/syntax_api';
+import SqlCompiler from '../lib/sql_compiler';
+import * as SchemaRetriever from '../lib/schema';
+
+import _mockMemoryClient from './mock_memory_client';
+import _mockSchemaDelegate from './mock_schema_delegate';
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, _mockMemoryClient, true);
 
 const TEST_CASES = [
@@ -89,9 +87,9 @@ const TEST_CASES = [
 
 function test(i) {
     console.log('Test Case #' + (i+1));
-    let [testCase, versions, scope, expectedSql, expectedBinders, expectedOutputs] = TEST_CASES[i];
+    let [testCase, versions, scope, expectedSql, expectedBinders,] = TEST_CASES[i];
 
-    return AppGrammar.parseAndTypecheck(testCase, schemaRetriever).then((prog) => {
+    return AppGrammar.parse(testCase).typecheck(schemaRetriever).then((prog) => {
         let queries = prog.rules[0].queries;
 
         let sqlCompiler = new SqlCompiler(queries, versions, scope);
@@ -115,11 +113,9 @@ function test(i) {
     });
 }
 
-function loop(i) {
-    if (i === TEST_CASES.length)
-        return Q();
-
-    return Q(test(i)).then(() => loop(i+1));
+export default async function main() {
+    for (let i = 0; i < TEST_CASES.length; i++)
+        await test(i);
 }
-
-loop(0).done();
+if (!module.parent)
+    main();

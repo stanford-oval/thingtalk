@@ -18,6 +18,8 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import { SourceRange } from './source_locations';
+
 export class NotImplementedError extends Error {
     constructor(construct : string) {
         super('NOT IMPLEMENTED: ' + construct);
@@ -25,4 +27,24 @@ export class NotImplementedError extends Error {
 }
 
 export class NotCompilableError extends Error {
+}
+
+export class ThingTalkTypeError extends Error {
+    location : SourceRange | null;
+
+    constructor(message : string, location : SourceRange | null) {
+        super(message);
+        this.name = "TypeError";
+        this.location = location || null;
+    }
+}
+
+export class ThingTalkSyntaxError extends Error {
+    location : SourceRange | null;
+
+    constructor(message : string, location : SourceRange | null) {
+        super(message);
+        this.name = "SyntaxError";
+        this.location = location || null;
+    }
 }

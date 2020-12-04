@@ -102,7 +102,7 @@ export default class Scope {
         this._names[name] = value;
     }
 
-    private*_doIterate(seen : Set<string>) : Generator<[string, ScopeEntry], void> {
+    private *_doIterate(seen : Set<string>) : Generator<[string, ScopeEntry], void> {
         for (const name in this._names) {
             if (seen.has(name))
                 continue;

@@ -18,7 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import * as Ast from '../ast';
+import type * as Ast from '../ast';
 import Parser from './parser';
 import Lexer from './lexer';
 import ToNNConverter from './tonn_converter';
@@ -26,8 +26,7 @@ import { UnsynthesizableError } from './errors';
 import {
     AbstractEntityRetriever,
     EntityRetriever,
-    SequentialEntityAllocator,
-} from './entity-retriever';
+} from '../entity-retriever';
 import {
     MeasureEntity,
     LocationEntity,
@@ -35,8 +34,9 @@ import {
     GenericEntity,
     DateEntity,
     EntityMap,
+    EntityResolver,
     AnyEntity
-} from './entities';
+} from '../entities';
 import applyCompatibility from './compat';
 
 /**
@@ -55,7 +55,13 @@ import applyCompatibility from './compat';
  * @return {Ast.Input} - the parsed program
  * @alias NNSyntax.toNN
  */
-function fromNN(sequence : Iterable<string>, entities : EntityMap) : Ast.Input {
+function fromNN(input : string|string[], entities : EntityMap|EntityResolver) : Ast.Input {
+    let sequence : string[];
+    if (typeof input === 'string')
+        sequence = input.split(' ');
+    else
+        sequence = input;
+
     const parser = new Parser();
     return parser.parse({
         [Symbol.iterator]() {
@@ -65,39 +71,11 @@ function fromNN(sequence : Iterable<string>, entities : EntityMap) : Ast.Input {
 }
 
 interface SerializeOptions {
-    allocateEntities ?: boolean;
-    explicitStrings ?: boolean;
     typeAnnotations ?: boolean;
 }
 
-/**
- * Serialize a ThingTalk program to neural network syntax.
- *
- * @param {Ast.Input} program - the program to serialize
- * @param {string|Array<string>} sentence - the sentence associated with this program
- * @param {Object<string,any>|NNSyntax.AbstractEntityRetriever} entities - the entities contained
- *   in the sentence; this can be an object mapping entity tokens to values, or it can be an
- *   object to customize how entities are allocated (e.g. to support custom tokenization or
- *   heuristics)
- * @param {Object} [options={}] - additional options
- * @param {boolean} options.allocateEntities - allocate entities sequentially instead of
- *   retrieving them from the sentence; if `true`, `sentence` is ignored, and entities are added
- *   to `entities` as they are allocated
- * @param {boolean} options.explicitStrings - include string values explicitly when allocating
- *   entities sequentially
- * @param {boolean} options.typeAnnotations - include type annotations for parameters
- * @alias NNSyntax.toNN
- */
-function toNN(program : Ast.Input, sentence : string[], entities : EntityMap|AbstractEntityRetriever, options : SerializeOptions = {}) : string[] {
-    let entityRetriever : AbstractEntityRetriever;
-    if (options.allocateEntities)
-        entityRetriever = new SequentialEntityAllocator(entities as EntityMap, options.explicitStrings);
-    else if (entities instanceof AbstractEntityRetriever)
-        entityRetriever = entities;
-    else
-        entityRetriever = new EntityRetriever(sentence, entities);
-
-    const converter = new ToNNConverter(sentence, entityRetriever, options.typeAnnotations);
+function toNN(program : Ast.Input, entityRetriever : AbstractEntityRetriever, options : SerializeOptions) : string[] {
+    const converter = new ToNNConverter(entityRetriever, options.typeAnnotations);
     return converter.toNN(program);
 }
 

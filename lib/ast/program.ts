@@ -26,34 +26,36 @@ import Node, {
     NLAnnotationMap,
     AnnotationMap,
     AnnotationSpec,
+    implAnnotationsToSource,
+    nlAnnotationsToSource,
 } from './base';
 import NodeVisitor from './visitor';
-import { Value, ArrayValue, VarRefValue } from './values';
-import { Selector, InputParam, BooleanExpression } from './expression';
+import { Value, VarRefValue } from './values';
+import { DeviceSelector, InputParam, BooleanExpression } from './expression';
 import {
     Stream,
     Table,
     Action,
     PermissionFunction
 } from './primitive';
+import {
+    Expression,
+    ChainExpression
+} from './expression2';
 import { ClassDef } from './class_def';
 import { FunctionDef, ExpressionSignature } from './function_def';
 import {
-    recursiveYieldArraySlots,
-    AbstractSlot,
     FieldSlot,
+    AbstractSlot,
     OldSlot
 } from './slots';
-import {
-    prettyprint,
-    prettyprintExample,
-    prettyprintDataset
-} from '../prettyprint';
-import * as Typechecking from '../typecheck';
 import * as Optimizer from '../optimize';
+import TypeChecker from '../typecheck';
 import convertToPermissionRule from './convert_to_permission_rule';
-import lowerReturn, { Messaging } from './lower_return';
 import SchemaRetriever from '../schema';
+
+import { TokenStream } from '../new-syntax/tokenstream';
+import List from '../utils/list';
 
 /**
  * The base class of all AST nodes that represent complete ThingTalk
@@ -64,21 +66,6 @@ import SchemaRetriever from '../schema';
  * @abstract
  */
 export abstract class Statement extends Node {
-    static Rule : typeof Rule;
-    isRule ! : boolean;
-    static Command : typeof Command;
-    isCommand ! : boolean;
-    static Assignment : typeof Assignment;
-    isAssignment ! : boolean;
-    static OnInputChoice : typeof OnInputChoice;
-    isOnInputChoice ! : boolean;
-    static Declaration : typeof Declaration;
-    isDeclaration ! : boolean;
-    static Dataset : typeof Dataset;
-    isDataset ! : boolean;
-    static ClassDef : typeof ClassDef;
-    isClassDef ! : boolean;
-
     /**
      * Iterate all slots (scalar value nodes) in this statement.
      *
@@ -90,64 +77,43 @@ export abstract class Statement extends Node {
     /**
      * Iterate all slots (scalar value nodes) in this statement.
      */
-    abstract iterateSlots2() : Generator<Selector|AbstractSlot, void>;
+    abstract iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void>;
 
     /**
      * Clone this statement.
      */
     abstract clone() : Statement;
 }
-Statement.prototype.isRule = false;
-Statement.prototype.isCommand = false;
-Statement.prototype.isAssignment = false;
-Statement.prototype.isOnInputChoice = false;
-Statement.prototype.isDeclaration = false;
-Statement.prototype.isDataset = false;
-Statement.prototype.isClassDef = false;
 
-function declarationLikeToProgram(self : Declaration|Example) : Program {
+function declarationLikeToProgram(self : FunctionDeclaration|Example) : Program {
     const nametoslot : { [key : string] : number } = {};
 
     let i = 0;
     for (const name in self.args)
         nametoslot[name] = i++;
 
-    let program : Program;
-    if (self.type === 'action') {
-        program = new Program(null, [], [],
-            [new Statement.Command(null, null, [(self.value as Action).clone()])], null);
-    } else if (self.type === 'query') {
-        program = new Program(null, [], [],
-            [new Statement.Command(null, (self.value as Table).clone(), [Action.notifyAction()])], null);
-    } else if (self.type === 'stream') {
-        program = new Program(null, [], [],
-            [new Statement.Rule(null, (self.value as Stream).clone(), [Action.notifyAction()])], null);
+    let declarations : FunctionDeclaration[], statements : ExecutableStatement[];
+    if (self instanceof Example) {
+        declarations = [];
+        statements = [new ExpressionStatement(null, self.value)];
     } else {
-        program = (self.value as Program).clone();
+        declarations = self.declarations.map((d) => d.clone());
+        statements = self.statements.map((s) => s.clone());
     }
 
-    function recursiveHandleSlot(value : Value) : void {
-        if (value instanceof VarRefValue && value.name in nametoslot) {
-            value.name = '__const_SLOT_' + nametoslot[value.name];
-        } else if (value instanceof ArrayValue) {
-            for (const v of value.value)
-                recursiveHandleSlot(v);
+    const program = new Program(null, [], declarations, statements);
+    program.visit(new class extends NodeVisitor {
+        visitVarRefValue(value : VarRefValue) {
+            if (value.name in nametoslot)
+                value.name = '__const_SLOT_' + nametoslot[value.name];
+            return true;
         }
-    }
-
-    for (const slot of program.iterateSlots2()) {
-        if (slot instanceof Selector)
-            continue;
-        recursiveHandleSlot(slot.get());
-    }
-
+    });
     return program;
 }
 
-type DeclarationType = ('stream'|'query'|'action'|'program'|'procedure');
-
 /**
- * `let` statements, that bind a ThingTalk expression to a name.
+ * A ThingTalk function declaration.
  *
  * A declaration statement creates a new, locally scoped, function
  * implemented as ThingTalk expression. The name can then be invoked
@@ -156,11 +122,11 @@ type DeclarationType = ('stream'|'query'|'action'|'program'|'procedure');
  * @alias Ast.Statement.Declaration
  * @extends Ast.Statement
  */
-export class Declaration extends Statement {
+export class FunctionDeclaration extends Statement {
     name : string;
-    type : DeclarationType;
     args : TypeMap;
-    value : (Table|Stream|Action|Program);
+    declarations : FunctionDeclaration[];
+    statements : ExecutableStatement[];
     nl_annotations : NLAnnotationMap;
     impl_annotations : AnnotationMap;
     schema : FunctionDef|null;
@@ -180,11 +146,10 @@ export class Declaration extends Statement {
      */
     constructor(location : SourceRange|null,
                 name : string,
-                type : DeclarationType,
                 args : TypeMap,
-                value : (Table|Stream|Action|Program),
-                metadata : NLAnnotationMap = {},
-                annotations : AnnotationMap = {},
+                declarations : FunctionDeclaration[],
+                statements : ExecutableStatement[],
+                annotations : AnnotationSpec = {},
                 schema : FunctionDef|null = null) {
         super(location);
 
@@ -195,39 +160,50 @@ export class Declaration extends Statement {
          */
         this.name = name;
 
-        assert(['stream', 'query', 'action', 'program', 'procedure'].indexOf(type) >= 0);
-        /**
-         * What type of function is being declared, either `stream`, `query`, `action`,
-         * `program` or `procedure`.
-         */
-        this.type = type;
-
         assert(typeof args === 'object');
         /**
          * Arguments available to the function.
          */
         this.args = args;
 
-        assert(value instanceof Stream || value instanceof Table || value instanceof Action || value instanceof Program);
-        /**
-         * The declaration body.
-         */
-        this.value = value;
+        this.declarations = declarations;
+        this.statements = statements;
 
         /**
          * The declaration natural language annotations (translatable annotations).
          */
-        this.nl_annotations = metadata;
+        this.nl_annotations = annotations.nl || {};
         /**
          * The declaration annotations.
          */
-        this.impl_annotations = annotations;
+        this.impl_annotations = annotations.impl || {};
+
         /**
-         * The type definition corresponding to this declaration.
+         * The type definition corresponding to this function.
          *
          * This property is guaranteed not `null` after type-checking.
          */
         this.schema = schema;
+    }
+
+    toSource() : TokenStream {
+        let list : TokenStream = List.concat('function', this.name, '(', '\t=+');
+        let first = true;
+        for (const argname in this.args) {
+            const argtype = this.args[argname];
+            if (first)
+                first = false;
+            else
+                list = List.concat(list, ',', '\n');
+            list = List.concat(list, argname, ':', argtype.toSource());
+        }
+        list = List.concat(list, ')', '\t=-', ' ', '{', '\t+', '\n');
+        for (const stmt of this.declarations)
+            list = List.concat(list, stmt.toSource(), '\n');
+        for (const stmt of this.statements)
+            list = List.concat(list, stmt.toSource(), '\n');
+        list = List.concat(list, '\t-', '}');
+        return list;
     }
 
     get metadata() : NLAnnotationMap {
@@ -239,29 +215,25 @@ export class Declaration extends Statement {
 
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
-        if (visitor.visitDeclaration(this))
-            this.value.visit(visitor);
+        if (visitor.visitFunctionDeclaration(this)) {
+            for (const decl of this.declarations)
+                decl.visit(visitor);
+            for (const stmt of this.statements)
+                stmt.visit(visitor);
+        }
         visitor.exit(this);
     }
 
     *iterateSlots() : Generator<OldSlot, void> {
-        // if the declaration refers to a nested scope, we don't need to
+        // the declaration refers to a nested scope, we don't need to
         // slot fill it now
-        if (this.type === 'program' || this.type === 'procedure')
-            return;
-
-        yield* this.value.iterateSlots({});
     }
-    *iterateSlots2() : Generator<Selector|AbstractSlot, void> {
-        // if the declaration refers to a nested scope, we don't need to
+    *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
+        // the declaration refers to a nested scope, we don't need to
         // slot fill it now
-        if (this.type === 'program' || this.type === 'procedure')
-            return;
-
-        yield* this.value.iterateSlots2({});
     }
 
-    clone() : Declaration {
+    clone() : FunctionDeclaration {
         const newArgs = {};
         Object.assign(newArgs, this.args);
 
@@ -269,8 +241,10 @@ export class Declaration extends Statement {
         Object.assign(newMetadata, this.nl_annotations);
         const newAnnotations = {};
         Object.assign(newAnnotations, this.impl_annotations);
-        return new Declaration(this.location, this.name, this.type, newArgs,
-            this.value.clone(), newMetadata, newAnnotations, this.schema);
+        return new FunctionDeclaration(this.location, this.name, newArgs,
+            this.declarations.map((d) => d.clone()),
+            this.statements.map((s) => s.clone()),
+            { nl: newMetadata, impl: newAnnotations }, this.schema);
     }
 
     /**
@@ -285,8 +259,6 @@ export class Declaration extends Statement {
         return declarationLikeToProgram(this);
     }
 }
-Declaration.prototype.isDeclaration = true;
-Statement.Declaration = Declaration;
 
 /**
  * `let result` statements, that assign the value of a ThingTalk expression to a name.
@@ -299,9 +271,12 @@ Statement.Declaration = Declaration;
  */
 export class Assignment extends Statement {
     name : string;
-    value : Table;
+    /**
+     * The expression being assigned.
+     * @type {Ast.Table}
+     */
+    value : Expression;
     schema : ExpressionSignature|null;
-    isAction : boolean;
 
     /**
      * Construct a new assignment statement.
@@ -314,9 +289,8 @@ export class Assignment extends Statement {
      */
     constructor(location : SourceRange|null,
                 name : string,
-                value : Table,
-                schema : ExpressionSignature|null = null,
-                isAction : boolean) {
+                value : Expression,
+                schema : ExpressionSignature|null = null) {
         super(location);
 
         assert(typeof name === 'string');
@@ -326,11 +300,7 @@ export class Assignment extends Statement {
          */
         this.name = name;
 
-        assert(value instanceof Table);
-        /**
-         * The expression being assigned.
-         * @type {Ast.Table}
-         */
+        assert(value instanceof Expression);
         this.value = value;
 
         /**
@@ -341,14 +311,20 @@ export class Assignment extends Statement {
          * @type {Ast.ExpressionSignature|null}
          */
         this.schema = schema;
+    }
 
-        /**
-         * Whether this assignment calls an action or executes a query.
-         *
-         * This will be `undefined` before typechecking, and then either `true` or `false`.
-         * @type {boolean}
-         */
-        this.isAction = isAction;
+    toSource() : TokenStream {
+        return List.concat('let', this.name, ' ', '=', ' ', this.value.toSource(), ';');
+    }
+
+    /**
+     * Whether this assignment calls an action or executes a query.
+     *
+     * This will be `undefined` before typechecking, and then either `true` or `false`.
+     * @type {boolean}
+     */
+    get isAction() : boolean {
+        return this.schema!.functionType === 'action';
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -361,27 +337,22 @@ export class Assignment extends Statement {
     *iterateSlots() : Generator<OldSlot, void> {
         yield* this.value.iterateSlots({});
     }
-    *iterateSlots2() : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
         yield* this.value.iterateSlots2({});
     }
 
     clone() : Assignment {
-        return new Assignment(this.location, this.name, this.value.clone(), this.schema, this.isAction);
+        return new Assignment(this.location, this.name, this.value.clone(), this.schema);
     }
 }
-Assignment.prototype.isAssignment = true;
-Statement.Assignment = Assignment;
 
 /**
- * A statement that executes one or more actions for each element
- * of a stream.
- *
- * @alias Ast.Statement.Rule
- * @extends Ast.Statement
+ * @deprecated Use {@link ExpressionStatement} instead.
  */
 export class Rule extends Statement {
     stream : Stream;
     actions : Action[];
+    isRule = true;
 
     /**
      * Construct a new rule statement.
@@ -403,6 +374,16 @@ export class Rule extends Statement {
         this.actions = actions;
     }
 
+    toSource() : TokenStream {
+        assert(this.actions.length === 1);
+        return List.concat(this.stream.toSource(), '=>', this.actions[0].toSource(), ';');
+    }
+
+    toExpression() : ExpressionStatement {
+        const exprs = [this.stream.toExpression()].concat(this.actions.filter((a) => !a.isNotify).map((a) => a.toExpression()));
+        return new ExpressionStatement(this.location, new ChainExpression(this.location, exprs, null));
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitRule(this)) {
@@ -418,7 +399,7 @@ export class Rule extends Statement {
         for (const action of this.actions)
             yield* action.iterateSlots(scope);
     }
-    *iterateSlots2() : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
         const [,scope] = yield* this.stream.iterateSlots2({});
         for (const action of this.actions)
             yield* action.iterateSlots2(scope);
@@ -428,19 +409,14 @@ export class Rule extends Statement {
         return new Rule(this.location, this.stream.clone(), this.actions.map((a) => a.clone()));
     }
 }
-Rule.prototype.isRule = true;
-Statement.Rule = Rule;
 
 /**
- * A statement that executes one or more actions immediately, potentially
- * reading data from a query.
- *
- * @alias Ast.Statement.Command
- * @extends Ast.Statement
+ * @deprecated Use {@link ExpressionStatement} instead.
  */
 export class Command extends Statement {
     table : Table|null;
     actions : Action[];
+    isCommand = true;
 
     /**
      * Construct a new command statement.
@@ -462,6 +438,22 @@ export class Command extends Statement {
         this.actions = actions;
     }
 
+    toExpression() : ExpressionStatement {
+        const exprs : Expression[] = [];
+        if (this.table)
+            exprs.push(this.table.toExpression([]));
+        exprs.push(...this.actions.filter((a) => !a.isNotify).map((a) => a.toExpression()));
+        return new ExpressionStatement(this.location, new ChainExpression(this.location, exprs, null));
+    }
+
+    toSource() : TokenStream {
+        assert(this.actions.length === 1);
+        if (this.table)
+            return List.concat(this.table.toSource(), '=>', this.actions[0].toSource(), ';');
+        else
+            return List.concat(this.actions[0].toSource(), ';');
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitCommand(this)) {
@@ -480,7 +472,7 @@ export class Command extends Statement {
         for (const action of this.actions)
             yield* action.iterateSlots(scope);
     }
-    *iterateSlots2() : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
         let scope = {};
         if (this.table)
             [,scope] = yield* this.table.iterateSlots2({});
@@ -494,97 +486,93 @@ export class Command extends Statement {
             this.actions.map((a) => a.clone()));
     }
 }
-Command.prototype.isCommand = true;
-Statement.Command = Command;
 
 /**
- * A statement that interactively prompts the user for one or more choices.
- *
- * @alias Ast.Statement.OnInputChoice
- * @extends Ast.Statement
+ * A statement that evaluates an expression and presents the results
+ * to the user.
  */
-export class OnInputChoice extends Statement {
-    table : Table|null;
-    actions : Action[];
-    nl_annotations : NLAnnotationMap;
-    impl_annotations : AnnotationMap;
+export class ExpressionStatement extends Statement {
+    expression : ChainExpression;
 
-    /**
-     * Construct a new on-input statement.
-     *
-     * @param {Ast~SourceRange|null} location - the position of this node
-     *        in the source code
-     * @param {Ast.Table|null} table - the table to read from
-     * @param {Ast.Action[]} actions - the actions to execute
-     * @param {Object.<string, any>} [metadata={}] - natural language annotations of the statement (translatable annotations)
-     * @param {Object.<string, Ast.Value>} [annotations={}]- implementation annotations
-     */
     constructor(location : SourceRange|null,
-                table : Table|null,
-                actions : Action[],
-                metadata : NLAnnotationMap = {},
-                annotations : AnnotationMap = {}) {
+                expression : Expression) {
         super(location);
 
-        assert(table === null || table instanceof Table);
-        this.table = table;
+        if (!(expression instanceof ChainExpression))
+            this.expression = new ChainExpression(location, [expression], expression.schema);
+        else
+            this.expression = expression;
 
-        assert(Array.isArray(actions));
-        this.actions = actions;
-
-        this.nl_annotations = metadata;
-        this.impl_annotations = annotations;
+        assert(this.expression.expressions.length > 0);
     }
 
-    get metadata() : NLAnnotationMap {
-        return this.nl_annotations;
+    get first() : Expression {
+        return this.expression.first;
     }
-    get annotations() : AnnotationMap {
-        return this.impl_annotations;
+
+    get last() : Expression {
+        return this.expression.last;
+    }
+
+    get stream() : Expression|null {
+        const first = this.first;
+        if (first.schema!.functionType === 'stream')
+            return first;
+        else
+            return null;
+    }
+
+    get lastQuery() : Expression|null {
+        return this.expression.lastQuery;
+    }
+
+    toLegacy() : Rule|Command {
+        const last = this.last;
+        const action = last.schema!.functionType === 'action' ? last : null;
+        let head : Stream|Table|null = null;
+        if (action) {
+            const remaining = this.expression.expressions.slice(0, this.expression.expressions.length-1);
+            if (remaining.length > 0) {
+                const converted = new ChainExpression(null, remaining, null).toLegacy();
+                assert(converted instanceof Stream || converted instanceof Table);
+                head = converted;
+            }
+        } else {
+            const converted  = this.expression.toLegacy();
+            assert(converted instanceof Stream || converted instanceof Table);
+            head = converted;
+        }
+        const convertedAction = action ? action.toLegacy() : null;
+        assert(convertedAction === null || convertedAction instanceof Action);
+
+        if (head instanceof Stream)
+            return new Rule(this.location, head, convertedAction ? [convertedAction] : [Action.notifyAction()]);
+        else
+            return new Command(this.location, head, convertedAction ? [convertedAction] : [Action.notifyAction()]);
+    }
+
+    toSource() : TokenStream {
+        return List.concat(this.expression.toSource(), ';');
     }
 
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
-        if (visitor.visitOnInputChoice(this)) {
-            if (this.table !== null)
-                this.table.visit(visitor);
-            for (const action of this.actions)
-                action.visit(visitor);
-        }
+        if (visitor.visitExpressionStatement(this))
+            this.expression.visit(visitor);
         visitor.exit(this);
     }
 
     *iterateSlots() : Generator<OldSlot, void> {
-        let scope = {};
-        if (this.table)
-            [,scope] = yield* this.table.iterateSlots({});
-        for (const action of this.actions)
-            yield* action.iterateSlots(scope);
+        yield* this.expression.iterateSlots({});
     }
-    *iterateSlots2() : Generator<Selector|AbstractSlot, void> {
-        let scope = {};
-        if (this.table)
-            [,scope] = yield* this.table.iterateSlots2({});
-        for (const action of this.actions)
-            yield* action.iterateSlots2(scope);
+    *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
+        yield* this.expression.iterateSlots2({});
     }
 
-    clone() : OnInputChoice {
-        const newMetadata = {};
-        Object.assign(newMetadata, this.nl_annotations);
-
-        const newAnnotations = {};
-        Object.assign(newAnnotations, this.impl_annotations);
-        return new OnInputChoice(
-            this.location,
-            this.table !== null ? this.table.clone() : null,
-            this.actions.map((a) => a.clone()),
-            newMetadata,
-            newAnnotations);
+    clone() : ExpressionStatement {
+        return new ExpressionStatement(this.location, this.expression.clone());
     }
 }
-OnInputChoice.prototype.isOnInputChoice = true;
-Statement.OnInputChoice = OnInputChoice;
 
 /**
  * A statement that declares a ThingTalk dataset (collection of primitive
@@ -595,9 +583,9 @@ Statement.OnInputChoice = OnInputChoice;
  */
 export class Dataset extends Statement {
     name : string;
-    language : string;
     examples : Example[];
-    annotations : AnnotationMap;
+    nl_annotations : NLAnnotationMap;
+    impl_annotations : AnnotationMap;
 
     /**
      * Construct a new dataset.
@@ -610,32 +598,46 @@ export class Dataset extends Statement {
      */
     constructor(location : SourceRange|null,
                 name : string,
-                language : string,
                 examples : Example[],
-                annotations : AnnotationMap = {}) {
+                annotations : AnnotationSpec = {}) {
         super(location);
 
         assert(typeof name === 'string');
+        assert(!name.startsWith('@'));
         this.name = name;
-
-        assert(typeof language === 'string');
-        this.language = language;
 
         assert(Array.isArray(examples)); // of Example
         this.examples = examples;
 
-        assert(typeof annotations === 'object');
-        this.annotations = annotations;
+        this.impl_annotations = annotations.impl||{};
+        this.nl_annotations = annotations.nl||{};
     }
 
-    /**
-     * Convert this dataset to prettyprinted ThingTalk code.
-     *
-     * @param {string} [prefix] - prefix each output line with this string (for indentation)
-     * @return {string} the prettyprinted code
-     */
-    prettyprint(prefix = '') : string {
-        return prettyprintDataset(this, prefix);
+    toSource() : TokenStream {
+        let list : TokenStream = List.concat('dataset', '@' + this.name,
+            nlAnnotationsToSource(this.nl_annotations),
+            implAnnotationsToSource(this.impl_annotations),
+            ' ', '{', '\n', '\t+');
+
+        let first = true;
+        for (const ex of this.examples) {
+            // force an additional \n between examples
+            if (first)
+                first = false;
+            else
+                list = List.concat(list, '\n');
+            list = List.concat(list, ex.toSource(), '\n');
+        }
+        list = List.concat(list, '\t-', '}');
+        return list;
+    }
+
+    get language() : string|undefined {
+        const language = this.impl_annotations.language;
+        if (language)
+            return String(language.toJS());
+        else
+            return undefined;
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -651,20 +653,24 @@ export class Dataset extends Statement {
         for (const ex of this.examples)
             yield* ex.iterateSlots();
     }
-    *iterateSlots2() : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
         for (const ex of this.examples)
             yield* ex.iterateSlots2();
     }
 
+    optimize() : Dataset {
+        return Optimizer.optimizeDataset(this);
+    }
+
     clone() : Dataset {
+        const newMetadata = {};
+        Object.assign(newMetadata, this.nl_annotations);
         const newAnnotations = {};
-        Object.assign(newAnnotations, this.annotations);
+        Object.assign(newAnnotations, this.impl_annotations);
         return new Dataset(this.location,
-            this.name, this.language, this.examples.map((e) => e.clone()), newAnnotations);
+            this.name, this.examples.map((e) => e.clone()), { nl: newMetadata, impl: newAnnotations });
     }
 }
-Dataset.prototype.isDataset = true;
-Statement.Dataset = Dataset;
 
 /**
  * A collection of Statements from the same source file.
@@ -677,38 +683,26 @@ Statement.Dataset = Dataset;
  * @abstract
  */
 export abstract class Input extends Node {
-    static Bookkeeping : any;
-    isBookkeeping ! : boolean;
+    static ControlCommand : any;
+    isControlCommand ! : boolean;
     static Program : any;
     isProgram ! : boolean;
     static Library : any;
     isLibrary ! : boolean;
     static PermissionRule : any;
     isPermissionRule ! : boolean;
-    static Meta : any;
-    isMeta ! : boolean;
     static DialogueState : any;
     isDialogueState ! : boolean;
 
     *iterateSlots() : Generator<OldSlot, void> {
     }
-    *iterateSlots2() : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
     }
 
     optimize() : Input|null {
         return this;
     }
     abstract clone() : Input;
-
-    /**
-     * Convert this ThingTalk input to prettyprinted ThingTalk code.
-     *
-     * @param {string} [prefix] - prefix each output line with this string (for indentation)
-     * @return {string} the prettyprinted code
-     */
-    prettyprint(short = true) : string {
-        return prettyprint(this, short);
-    }
 
     /**
      * Typecheck this ThingTalk input.
@@ -719,16 +713,15 @@ export abstract class Input extends Node {
      * @param schemas - schema retriever object to retrieve Thingpedia information
      * @param [getMeta=false] - retreive natural language metadata during typecheck
      */
-    abstract typecheck(schemas : SchemaRetriever, getMeta : boolean) : Promise<this>;
+    abstract typecheck(schemas : SchemaRetriever, getMeta ?: boolean) : Promise<this>;
 }
-Input.prototype.isBookkeeping = false;
+Input.prototype.isControlCommand = false;
 Input.prototype.isProgram = false;
 Input.prototype.isLibrary = false;
 Input.prototype.isPermissionRule = false;
-Input.prototype.isMeta = false;
 Input.prototype.isDialogueState = false;
 
-export type ExecutableStatement = Assignment | Rule | Command;
+export type ExecutableStatement = Assignment | ExpressionStatement;
 
 /**
  * An executable ThingTalk program (containing at least one executable
@@ -739,10 +732,10 @@ export type ExecutableStatement = Assignment | Rule | Command;
  */
 export class Program extends Input {
     classes : ClassDef[];
-    declarations : Declaration[];
-    rules : ExecutableStatement[];
-    principal : Value|null;
-    oninputs : OnInputChoice[];
+    declarations : FunctionDeclaration[];
+    statements : ExecutableStatement[];
+    nl_annotations : NLAnnotationMap;
+    impl_annotations : AnnotationMap;
 
     /**
      * Construct a new ThingTalk program.
@@ -757,36 +750,52 @@ export class Program extends Input {
      */
     constructor(location : SourceRange|null,
                 classes : ClassDef[],
-                declarations : Declaration[],
-                rules : ExecutableStatement[],
-                principal : Value|null = null,
-                oninputs : OnInputChoice[] = []) {
+                declarations : FunctionDeclaration[],
+                statements : ExecutableStatement[],
+                { nl, impl } : AnnotationSpec = {}) {
         super(location);
         assert(Array.isArray(classes));
         this.classes = classes;
         assert(Array.isArray(declarations));
         this.declarations = declarations;
-        assert(Array.isArray(rules));
-        this.rules = rules;
-        assert(principal === null || principal instanceof Value);
-        this.principal = principal;
-        assert(Array.isArray(oninputs));
-        this.oninputs = oninputs;
+        assert(Array.isArray(statements));
+        this.statements = statements;
+
+        this.nl_annotations = nl || {};
+        this.impl_annotations = impl || {};
+    }
+
+    /**
+     * @deprecated
+     */
+    get principal() : Value|null {
+        return this.impl_annotations.executor || null;
+    }
+
+    toSource() : TokenStream {
+        let input : TokenStream = List.concat(
+            nlAnnotationsToSource(this.nl_annotations),
+            implAnnotationsToSource(this.impl_annotations),
+            '\n',
+        );
+        for (const classdef of this.classes)
+            input = List.concat(input, classdef.toSource(), '\n');
+        for (const decl of this.declarations)
+            input = List.concat(input, decl.toSource(), '\n');
+        for (const stmt of this.statements)
+            input = List.concat(input, stmt.toSource(), '\n');
+        return input;
     }
 
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitProgram(this)) {
-            if (this.principal !== null)
-                this.principal.visit(visitor);
             for (const classdef of this.classes)
                 classdef.visit(visitor);
             for (const decl of this.declarations)
                 decl.visit(visitor);
-            for (const rule of this.rules)
+            for (const rule of this.statements)
                 rule.visit(visitor);
-            for (const onInput of this.oninputs)
-                onInput.visit(visitor);
         }
         visitor.exit(this);
     }
@@ -794,35 +803,43 @@ export class Program extends Input {
     *iterateSlots() : Generator<OldSlot, void> {
         for (const decl of this.declarations)
             yield* decl.iterateSlots();
-        for (const rule of this.rules)
+        for (const rule of this.statements)
             yield* rule.iterateSlots();
-        for (const oninput of this.oninputs)
-            yield* oninput.iterateSlots();
     }
-    *iterateSlots2() : Generator<Selector|AbstractSlot, void> {
-        if (this.principal !== null)
-            yield* recursiveYieldArraySlots(new FieldSlot(null, {}, new Type.Entity('tt:contact'), this, 'program', 'principal'));
+    *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
+        if (this.principal)
+            yield new FieldSlot(null, {}, new Type.Entity('tt:contact'), this.impl_annotations, 'program', 'executor');
+
         for (const decl of this.declarations)
             yield* decl.iterateSlots2();
-        for (const rule of this.rules)
+        for (const rule of this.statements)
             yield* rule.iterateSlots2();
-        for (const oninput of this.oninputs)
-            yield* oninput.iterateSlots2();
     }
 
     clone() : Program {
+        // clone annotations
+        const nl : NLAnnotationMap = {};
+        Object.assign(nl, this.nl_annotations);
+        const impl : AnnotationMap = {};
+        Object.assign(impl, this.impl_annotations);
+        const annotations : AnnotationSpec = { nl, impl };
+
         return new Program(
             this.location,
             this.classes.map((c) => c.clone()),
             this.declarations.map((d) => d.clone()),
-            this.rules.map((r) => r.clone()),
-            this.principal !== null ? this.principal.clone() : null,
-            this.oninputs.map((o) => o.clone())
-        );
+            this.statements.map((s) => s.clone()),
+            annotations);
     }
 
-    optimize() : Program {
+    optimize() : Program|null {
         return Optimizer.optimizeProgram(this);
+    }
+
+    async typecheck(schemas : SchemaRetriever, getMeta = false) : Promise<this> {
+        const typeChecker = new TypeChecker(schemas, getMeta);
+        await typeChecker.typeCheckProgram(this);
+        return this;
     }
 
     /**
@@ -834,15 +851,6 @@ export class Program extends Input {
      */
     convertToPermissionRule(principal : string, contactName : string|null) : PermissionRule|null {
         return convertToPermissionRule(this, principal, contactName);
-    }
-
-    lowerReturn(messaging : Messaging) : Program[] {
-        return lowerReturn(this, messaging);
-    }
-
-    async typecheck(schemas : SchemaRetriever, getMeta = false) : Promise<this> {
-        await Typechecking.typeCheckProgram(this, schemas, getMeta);
-        return this;
     }
 }
 Program.prototype.isProgram = true;
@@ -885,6 +893,18 @@ export class PermissionRule extends Input {
         this.action = action;
     }
 
+    toSource() : TokenStream {
+        let list : TokenStream = List.concat('$policy', '{', '\t+', '\n',
+            this.principal.toSource(), ':');
+        if (this.query.isBuiltin)
+            list = List.concat(list, 'now');
+        else
+            list = List.concat(list, this.query.toSource());
+        list = List.concat(list, '=>', this.action.toSource(), ';',
+            '\t-', '\n', '}');
+        return list;
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitPermissionRule(this)) {
@@ -901,7 +921,7 @@ export class PermissionRule extends Input {
         const [,scope] = yield* this.query.iterateSlots({});
         yield* this.action.iterateSlots(scope);
     }
-    *iterateSlots2() : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
         yield* this.principal.iterateSlots2(null, null, {});
 
         const [,scope] = yield* this.query.iterateSlots2({});
@@ -914,7 +934,8 @@ export class PermissionRule extends Input {
     }
 
     async typecheck(schemas : SchemaRetriever, getMeta = false) : Promise<this> {
-        await Typechecking.typeCheckPermissionRule(this, schemas, getMeta);
+        const typeChecker = new TypeChecker(schemas, getMeta);
+        await typeChecker.typeCheckPermissionRule(this);
         return this;
     }
 }
@@ -949,6 +970,15 @@ export class Library extends Input {
         this.datasets = datasets;
     }
 
+    toSource() : TokenStream {
+        let input : TokenStream = List.Nil;
+        for (const classdef of this.classes)
+            input = List.concat(input, classdef.toSource(), '\n');
+        for (const dataset of this.datasets)
+            input = List.concat(input, dataset.toSource(), '\n');
+        return input;
+    }
+
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitLibrary(this)) {
@@ -964,7 +994,7 @@ export class Library extends Input {
         for (const dataset of this.datasets)
             yield* dataset.iterateSlots();
     }
-    *iterateSlots2() : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
         for (const dataset of this.datasets)
             yield* dataset.iterateSlots2();
     }
@@ -974,16 +1004,20 @@ export class Library extends Input {
             this.classes.map((c) => c.clone()), this.datasets.map((d) => d.clone()));
     }
 
+    optimize() : Library {
+        for (const d of this.datasets)
+            d.optimize();
+        return this;
+    }
+
     async typecheck(schemas : SchemaRetriever, getMeta = false) : Promise<this> {
-        await Typechecking.typeCheckMeta(this, schemas, getMeta);
+        const typeChecker = new TypeChecker(schemas, getMeta);
+        await typeChecker.typeCheckLibrary(this);
         return this;
     }
 }
 Library.prototype.isLibrary = true;
 Input.Library = Library;
-// API backward compat
-Library.prototype.isMeta = true;
-Input.Meta = Library;
 
 /**
  * A single example (primitive template) in a ThingTalk dataset
@@ -993,9 +1027,9 @@ Input.Meta = Library;
 export class Example extends Node {
     isExample = true;
     id : number;
-    type : DeclarationType;
+    type : string;
     args : TypeMap;
-    value : (Stream|Table|Action|Program);
+    value : Expression;
     utterances : string[];
     preprocessed : string[];
     annotations : AnnotationMap;
@@ -1015,9 +1049,9 @@ export class Example extends Node {
      */
     constructor(location : SourceRange|null,
                 id : number,
-                type : DeclarationType,
+                type : string,
                 args : TypeMap,
-                value : (Stream|Table|Action|Program),
+                value : Expression,
                 utterances : string[],
                 preprocessed : string[],
                 annotations : AnnotationMap) {
@@ -1026,13 +1060,12 @@ export class Example extends Node {
         assert(typeof id === 'number');
         this.id = id;
 
-        assert(['stream', 'query', 'action', 'program'].includes(type));
         this.type = type;
 
         assert(typeof args === 'object');
         this.args = args;
 
-        assert(value instanceof Stream || value instanceof Table || value instanceof Action || value instanceof Input);
+        assert(value instanceof Expression);
         this.value = value;
 
         assert(Array.isArray(utterances) && Array.isArray(preprocessed));
@@ -1041,6 +1074,38 @@ export class Example extends Node {
 
         assert(typeof annotations === 'object');
         this.annotations = annotations;
+    }
+
+    toSource() : TokenStream {
+        const annotations : AnnotationMap = {};
+        if (this.id >= 0)
+            annotations.id = new Value.Number(this.id);
+        Object.assign(annotations, this.annotations);
+        const metadata : NLAnnotationMap = {
+            utterances: this.utterances
+        };
+        if (this.preprocessed.length > 0)
+            metadata.preprocessed = this.preprocessed;
+
+        let args : TokenStream = List.Nil;
+        let first = true;
+        for (const argname in this.args) {
+            const argtype = this.args[argname];
+            if (first)
+                first = false;
+            else
+                args = List.concat(args, ',');
+            args = List.concat(args, argname, ':', argtype.toSource());
+        }
+
+        let list : TokenStream = List.singleton(this.type);
+        if (args !== List.Nil)
+             list = List.concat(list, ' ', '(', args, ')');
+        list = List.concat(list, ' ', '=', ' ', this.value.toSource(),
+            nlAnnotationsToSource(metadata),
+            implAnnotationsToSource(annotations),
+            ';');
+        return list;
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -1064,16 +1129,6 @@ export class Example extends Node {
     }
 
     /**
-     * Convert this example to prettyprinted ThingTalk code.
-     *
-     * @param {string} [prefix] - prefix each output line with this string (for indentation)
-     * @return {string} the prettyprinted code
-     */
-    prettyprint(prefix = '') : string {
-        return prettyprintExample(this, prefix);
-    }
-
-    /**
      * Typecheck this example.
      *
      * This method can be used to typecheck an example is isolation,
@@ -1083,8 +1138,9 @@ export class Example extends Node {
      * @param schemas - schema retriever object to retrieve Thingpedia information
      * @param [getMeta=false] - retrieve natural language metadata during typecheck
      */
-    async typecheck(schemas : SchemaRetriever, getMeta = false) : Promise<Example> {
-        await Typechecking.typeCheckExample(this, schemas, {}, getMeta);
+    async typecheck(schemas : SchemaRetriever, getMeta = false) : Promise<this> {
+        const typeChecker = new TypeChecker(schemas, getMeta);
+        await typeChecker.typeCheckExample(this);
         return this;
     }
 
@@ -1105,7 +1161,7 @@ export class Example extends Node {
      * @generator
      * @yields {Ast~AbstractSlot}
      */
-    *iterateSlots2() : Generator<Selector|AbstractSlot, void> {
+    *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
         yield* this.value.iterateSlots2({});
     }
 
@@ -1124,78 +1180,13 @@ export class Example extends Node {
 
 
 /**
- * An `import` statement inside a ThingTalk class.
- *
- * @alias Ast.ImportStmt
- * @extends Ast~Node
- * @abstract
- */
-export abstract class ImportStmt extends Node {
-    isImportStmt = true;
-    static Class : any;
-    isClass ! : boolean;
-    static Mixin : any;
-    isMixin ! : boolean;
-
-    abstract clone() : ImportStmt;
-}
-ImportStmt.prototype.isClass = false;
-ImportStmt.prototype.isMixin = false;
-
-/**
- * A `import` statement that imports a whole ThingTalk class.
- *
- * @alias Ast.ImportStmt.Class
- * @extends Ast.ImportStmt
- * @deprecated Class imports were never implemented and are unlikely to be implemented soon.
- */
-export class ClassImportStmt extends ImportStmt {
-    kind : string;
-    alias : string|null;
-
-    /**
-     * Construct a new class import statement.
-     *
-     * @param location - the position of this node in the source code
-     * @param kind - the class identifier to import
-     * @param alias - rename the imported class to the given alias
-     */
-    constructor(location : SourceRange|null,
-                kind : string,
-                alias : string|null) {
-        super(location);
-
-        assert(typeof kind === 'string');
-        this.kind = kind;
-
-        assert(alias === null || typeof alias === 'string');
-        this.alias = alias;
-    }
-
-    clone() : ClassImportStmt {
-        return new ClassImportStmt(this.location, this.kind, this.alias);
-    }
-
-    visit(visitor : NodeVisitor) : void {
-        visitor.enter(this);
-        visitor.visitClassImportStmt(this);
-        visitor.exit(this);
-    }
-}
-ImportStmt.Class = ClassImportStmt;
-ImportStmt.Class.prototype.isClass = true;
-
-/**
- * A `import` statement that imports a mixin.
+ * A `import` statement that imports a mixin inside a ThingTalk class.
  *
  * Mixins add implementation functionality to ThingTalk classes, such as specifying
  * how the class is loaded (which language, which format, which version of the SDK)
  * and how devices are configured.
- *
- * @alias Ast.ImportStmt.Mixin
- * @extends Ast.ImportStmt
  */
-export class MixinImportStmt extends ImportStmt {
+export class MixinImportStmt extends Node {
     facets : string[];
     module : string;
     in_params : InputParam[];
@@ -1224,6 +1215,12 @@ export class MixinImportStmt extends ImportStmt {
         this.in_params = in_params;
     }
 
+    toSource() : TokenStream {
+        return List.concat('import', List.join(this.facets.map((f) => List.singleton(f)), ','), ' ',
+            'from', ' ', '@' + this.module,
+            '(', List.join(this.in_params.map((ip) => ip.toSource()), ','), ')', ';');
+    }
+
     clone() : MixinImportStmt {
         return new MixinImportStmt(
             this.location,
@@ -1242,8 +1239,6 @@ export class MixinImportStmt extends ImportStmt {
         visitor.exit(this);
     }
 }
-ImportStmt.Mixin = MixinImportStmt;
-ImportStmt.Mixin.prototype.isMixin = true;
 
 /**
  * An `entity` statement inside a ThingTalk class.
@@ -1283,6 +1278,13 @@ export class EntityDef extends Node {
          * The entity annotations.
          */
         this.impl_annotations = annotations.impl || {};
+    }
+
+    toSource() : TokenStream {
+        return List.concat('entity', ' ', this.name, '\t+',
+            nlAnnotationsToSource(this.nl_annotations),
+            implAnnotationsToSource(this.impl_annotations),
+        '\t-', ';');
     }
 
     /**
