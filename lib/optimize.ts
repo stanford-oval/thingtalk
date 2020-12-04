@@ -182,11 +182,11 @@ function optimizeFilter(expr : Ast.BooleanExpression) : Ast.BooleanExpression {
         const op = expr.operator;
 
         // convert to atom filters if possible (easier to deal with as slots)
-        if (lhs instanceof Ast.VarRefValue) {
+        if (lhs instanceof Ast.VarRefValue && !lhs.name.startsWith('__const_')) {
             return optimizeFilter(new Ast.BooleanExpression.Atom(expr.location,
                 lhs.name, op, rhs));
         }
-        if (rhs instanceof Ast.VarRefValue) {
+        if (rhs instanceof Ast.VarRefValue && !rhs.name.startsWith('__const_')) {
             return optimizeFilter(new Ast.BooleanExpression.Atom(expr.location,
                 rhs.name, flipOperator(op), lhs));
         }

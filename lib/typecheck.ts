@@ -407,9 +407,7 @@ export default class TypeChecker {
             if (schema)
                 type_lhs = schema.inReq[name] || schema.inOpt[name] || schema.out[name];
             if (!type_lhs)
-                type_lhs = scope.get(name);
-            if (!type_lhs || !(type_lhs instanceof Type))
-                throw new TypeError('Invalid filter parameter ' + name);
+                type_lhs = await this._typeCheckValue(new Ast.Value.VarRef(name), scope);
             const type_rhs = await this._typeCheckValue(ast.value, scope);
             ast.overload = this._resolveFilterOverload(type_lhs, ast.operator, type_rhs);
             return;
