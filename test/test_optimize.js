@@ -20,9 +20,6 @@
 
 
 import * as AppGrammar from '../lib/syntax_api';
-import SchemaRetriever from '../lib/schema';
-import _mockSchemaDelegate from './mock_schema_delegate';
-const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 const TEST_CASES = [
     [
@@ -172,43 +169,87 @@ now => [distance(geo, $location.current_location)] of @com.yelp.restaurant() => 
     `[aggregateRating.ratingValue] of sort(distance(geo, new Location("foo")) asc of @org.schema.restaurant() filter name =~ $context.selection : String)[1];`
     ],
 
-/*
-    These tests checked that compute of compute was simplified. You cannot nest computes in ThingTalk 2.0,
-    because the first one removes all other parameters and you have nothing left to work with.
+    // remove redundant * projection
+    [`[*] of @com.yelp.restaurant() => notify;`,
+     `@com.yelp.restaurant();`],
 
-    [`[distance(geo, $location.current_location)] of [distance(geo, $location.current_location)] of @com.yelp.restaurant() => notify;`,
+    // remove redundant * projection
+    [`[distance(geo, $location.current_location)] of [*] of @com.yelp.restaurant() => notify;`,
      `[distance(geo, $location.current_location)] of @com.yelp.restaurant();`],
 
-    [`[distance(geo, $location.current_location)] of [distance(geo, $location.home)] of @com.yelp.restaurant() => notify;`,
-     `[distance(geo, $location.current_location)] of [distance(geo, $location.home)] of @com.yelp.restaurant();`],
+    // remove redundant projection
+    [`[distance(geo, $location.current_location)] of [geo] of @com.yelp.restaurant() => notify;`,
+     `[distance(geo, $location.current_location)] of @com.yelp.restaurant();`],
 
-    [`[distance(geo, $location.current_location)] of [rating + 2] of @com.yelp.restaurant() => notify;`,
-     `[distance(geo, $location.current_location)] of [rating + 2] of @com.yelp.restaurant();`],
+    // remove redundant computation
+    [`[distance(geo, $location.current_location)] of [*, distance(geo, $location.current_location)] of @com.yelp.restaurant() => notify;`,
+     `[distance(geo, $location.current_location)] of @com.yelp.restaurant();`],
 
-    [`now => compute distance(geo, $location.current_location) of compute rating + 2 of compute distance(geo, $location.current_location) of @com.yelp.restaurant() => notify;`,
-     `now => compute (rating + 2) of (compute (distance(geo, $location.current_location)) of (@com.yelp.restaurant())) => notify;`],
+    [`[*, distance(geo, $location.current_location)] of [*, distance(geo, $location.current_location)] of @com.yelp.restaurant() => notify;`,
+     `[*, distance(geo, $location.current_location)] of @com.yelp.restaurant();`],
 
-    [`now => compute result + 2 of compute rating + 2 of @com.yelp.restaurant() => notify;`,
-     `now => compute (result + 2) of (compute (rating + 2) of (@com.yelp.restaurant())) => notify;`],
+    [`[*, distance(geo, $location.current_location)] of [distance(geo, $location.current_location)] of @com.yelp.restaurant() => notify;`,
+     `[distance(geo, $location.current_location)] of @com.yelp.restaurant();`],
 
-    [`now => compute result + 2 of compute result + 2 of compute rating + 2 of @com.yelp.restaurant() => notify;`,
-     `now => compute (result + 2) of (compute (result + 2) of (compute (rating + 2) of (@com.yelp.restaurant()))) => notify;`],
+    // remove shadowed computation
+    [`[distance(geo, $location.current_location)] of [*, distance(geo, $location.home)] of @com.yelp.restaurant() => notify;`,
+     `[distance(geo, $location.current_location)] of @com.yelp.restaurant();`],
 
-    [`now => compute result + 2 of compute distance(geo, $location.current_location) of compute result + 2 of compute rating + 2 of @com.yelp.restaurant() => notify;`,
-     `now => compute (result + 2) of (compute (distance(geo, $location.current_location)) of (compute (result + 2) of (compute (rating + 2) of (@com.yelp.restaurant())))) => notify;`],
+    // collapse invisible compuations
+    [`[distance(geo, $location.current_location)] of [*, rating + 2] of @com.yelp.restaurant() => notify;`,
+     `[distance(geo, $location.current_location)] of @com.yelp.restaurant();`],
 
-    [`now => compute result of compute rating + 2 of @com.yelp.restaurant() => notify;`,
-     `now => compute (rating + 2) of (@com.yelp.restaurant()) => notify;`],
+    // collapse invisible computations
+    [`[distance(geo, $location.current_location)] of [geo, rating + 2] of @com.yelp.restaurant() => notify;`,
+     `[distance(geo, $location.current_location)] of @com.yelp.restaurant();`],
 
-    [`now => compute rating of @com.yelp.restaurant() => notify;`,
-     `now => @com.yelp.restaurant() => notify;`],
+    // collapse the use of the result
+    [`[geo, distance(geo, $location.current_location), result] of [geo, rating + 2] of @com.yelp.restaurant() => notify;`,
+     `[geo, distance(geo, $location.current_location), rating + 2] of @com.yelp.restaurant();`],
 
-    [`now => compute distance(geo, $context.location.current_location) of (sort distance asc of compute distance(geo, $location.current_location) of @com.yelp.restaurant()) => notify;`,
-    `now => sort distance asc of (compute (distance(geo, $location.current_location)) of (@com.yelp.restaurant())) => notify;`],
+    // preserve variable dependencies
+    [`[result + 2] of [rating + 2] of @com.yelp.restaurant() => notify;`,
+     `[result + 2] of [*, rating + 2] of @com.yelp.restaurant();`],
 
-    [`$dialogue @org.thingpedia.dialogue.transaction.execute; now => compute distance(geo, $location.current_location) of (sort distance asc of compute distance(geo, $location.current_location) of @com.yelp.restaurant()) => notify;`,
-    `$dialogue @org.thingpedia.dialogue.transaction.execute;
-now => sort distance asc of (compute (distance(geo, $location.current_location)) of (@com.yelp.restaurant())) => notify;`]*/
+    [`[result + 2] of [result + 2] of [rating + 2] of @com.yelp.restaurant() => notify;`,
+     `[result + 2] of [*, result + 2] of [*, rating + 2] of @com.yelp.restaurant();`],
+
+    // preserve variable dependencies, with alias
+    [`[foo + 2] of [rating + 2 as foo] of @com.yelp.restaurant() => notify;`,
+     `[foo + 2] of [*, rating + 2 as foo] of @com.yelp.restaurant();`],
+
+    // shadow, with alias
+    [`[rating + 2 as foo] of [*, rating + 3 as foo] of @com.yelp.restaurant() => notify;`,
+     `[rating + 2 as foo] of @com.yelp.restaurant();`],
+
+    [`[rating + 2 as foo] of [rating, rating + 3 as foo] of @com.yelp.restaurant() => notify;`,
+     `[rating + 2 as foo] of @com.yelp.restaurant();`],
+
+    [`[*, rating + 2 as foo] of [rating, rating + 3 as foo] of @com.yelp.restaurant() => notify;`,
+     `[rating, rating + 2 as foo] of @com.yelp.restaurant();`],
+
+    [`[*, rating + 2 as foo] of [*, rating + 3 as foo] of @com.yelp.restaurant() => notify;`,
+     `[*, rating + 2 as foo] of @com.yelp.restaurant();`],
+
+    // remove redundant projection at the top
+    [`[result] of [rating + 2] of @com.yelp.restaurant();`,
+     `[rating + 2] of @com.yelp.restaurant();`],
+
+    // remove redundant projection at the top, with alias
+    [`[foo] of [rating + 2 as foo] of @com.yelp.restaurant();`,
+     `[rating + 2 as foo] of @com.yelp.restaurant();`],
+
+    [`sort(distance asc of [distance(geo, $location.current_location)] of @com.yelp.restaurant());`,
+     `[distance(geo, $location.current_location)] of sort(distance(geo, $location.current_location) asc of @com.yelp.restaurant());`],
+
+    [`sort(distance asc of [*, distance(geo, $location.current_location)] of @com.yelp.restaurant());`,
+     `[*, distance(geo, $location.current_location)] of sort(distance(geo, $location.current_location) asc of @com.yelp.restaurant());`],
+
+    [`[distance(geo, $location.current_location)] of sort(distance asc of [distance(geo, $location.current_location)] of @com.yelp.restaurant());`,
+     `[distance(geo, $location.current_location)] of sort(distance(geo, $location.current_location) asc of @com.yelp.restaurant());`],
+
+    [`[distance(geo, $location.current_location)] of sort(distance asc of [*, distance(geo, $location.current_location)] of @com.yelp.restaurant());`,
+     `[distance(geo, $location.current_location)] of sort(distance(geo, $location.current_location) asc of @com.yelp.restaurant());`],
 
     // projection of chain to chain of projection
     [`[link] of (@com.washingtonpost.get_article() => @com.bing.web_search(query=title));`,
@@ -237,7 +278,7 @@ async function test(i) {
     let [testCase, expectedOptimized] = TEST_CASES[i];
 
     try {
-        const prog = await AppGrammar.parse(testCase).typecheck(schemaRetriever);
+        const prog = AppGrammar.parse(testCase);
         let optimized = prog.prettyprint();
         if (optimized !== expectedOptimized) {
             console.error('Test Case #' + (i+1) + ': optimized program does not match what expected');

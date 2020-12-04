@@ -380,7 +380,7 @@ export class ComputeTable extends Table {
     }
 
     toExpression(extra_in_params : InputParam[]) {
-        return new ProjectionExpression(this.location, this.table.toExpression(extra_in_params), [], [this.expression], [this.alias], this.schema);
+        return new ProjectionExpression(this.location, this.table.toExpression(extra_in_params), ['*'], [this.expression], [this.alias], this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {

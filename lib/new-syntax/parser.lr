@@ -888,9 +888,18 @@ projection_expression : Ast.Expression = {
 }
 
 projection_param_list : Array<[Ast.Value, string|null]> = {
+    '*' => [[new Ast.VarRefValue('*'), null]];
+    '*' ',' list:projection_nonstar_param_list => {
+        const arr : Array<[Ast.Value, string|null]> = [[new Ast.VarRefValue('*'), null]];
+        return arr.concat(list);
+    };
+    projection_nonstar_param_list;
+}
+
+projection_nonstar_param_list : Array<[Ast.Value, string|null]> = {
     p:projection_param => [p];
 
-    list:projection_param_list ',' p:projection_param => {
+    list:projection_nonstar_param_list ',' p:projection_param => {
         list.push(p);
         return list;
     };

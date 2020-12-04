@@ -1700,12 +1700,7 @@ $dialogue @org.thingpedia.dialogue.transaction.sys_search_question(serveCuisine)
 
 // explicit dontcare
 @org.schema.full.FoodEstablishment() filter true(servesCuisine);
-====
 
-// regression test for bug in projection with function inheritance
-// ** expect TypeError **
-// the projection is inside and masks the parameter, including inherited ones
-[distance(geo, $location.current_location)] of [address] of @org.schema.place();
 ====
 
 // procedures with actions and returned values
