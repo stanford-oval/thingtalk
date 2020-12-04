@@ -408,7 +408,7 @@ export class SLRParserGenerator {
         }
     }
 
-    private*_itemSetFollowers(itemSet : ItemSet) {
+    private *_itemSetFollowers(itemSet : ItemSet) {
         const set = new Set<string>();
         for (const rule of itemSet.rules) {
             const rhs = rule.get(1);
@@ -420,7 +420,7 @@ export class SLRParserGenerator {
         yield* set;
     }
 
-    private*_advance(itemSet : ItemSet, token : string) {
+    private *_advance(itemSet : ItemSet, token : string) {
         for (const rule of itemSet.rules) {
             const [rule_id, rhs] = rule.stuff;
             for (let i = 0; i < rhs.length-1; i++) {
@@ -432,7 +432,7 @@ export class SLRParserGenerator {
         }
     }
 
-    private*_makeItemSet(lhs : string) : Generator<Tuple<[number, string[]]>, void> {
+    private *_makeItemSet(lhs : string) : Generator<Tuple<[number, string[]]>, void> {
         for (const ruleId of this.grammar.get(lhs)!) {
             const [, rhs, ] = this.rules[ruleId];
             yield new Tuple(ruleId, [ITEM_SET_MARKER].concat(rhs.map((h) => h.toString())));

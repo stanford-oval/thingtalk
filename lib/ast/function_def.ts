@@ -183,7 +183,7 @@ export class ArgumentDef extends Node {
     }
 
     // iteratively flatten compound fields inside an array
-    private*_iterateCompoundArrayFields(compound : CompoundType, prefix = '') : Generator<[string, ArgumentDef], void> {
+    private *_iterateCompoundArrayFields(compound : CompoundType, prefix = '') : Generator<[string, ArgumentDef], void> {
         for (const fname in compound.fields) {
             const field = compound.fields[fname].clone();
             yield [prefix + fname, field];
