@@ -56,10 +56,6 @@ export class Rule {
 }
 
 export abstract class RuleHeadPart {
-    static NonTerminal : typeof NonTerminalRuleHead;
-    static Terminal : typeof TerminalRuleHead;
-    static StringLiteral : typeof StringLiteralRuleHead;
-
     isNonTerminal = false;
     isTerminal = false;
     isStringLiteral = false;
@@ -69,59 +65,58 @@ export abstract class RuleHeadPart {
     abstract getGeneratorInput() : slr.NonTerminal|slr.Terminal;
 }
 
-class NonTerminalRuleHead extends RuleHeadPart {
-    type = 'any';
+export namespace RuleHeadPart {
+    export class NonTerminal extends RuleHeadPart {
+        type = 'any';
 
-    constructor(public name : string,
-                public category : string) {
-        super();
-        this.isNonTerminal = true;
+        constructor(public name : string,
+                    public category : string) {
+            super();
+            this.isNonTerminal = true;
+        }
+
+        getGeneratorInput() {
+            return new slr.NonTerminal(this.category);
+        }
     }
 
-    getGeneratorInput() {
-        return new slr.NonTerminal(this.category);
+    export class Terminal extends RuleHeadPart {
+        private _type = 'any';
+
+        constructor(public name : string,
+                    public category : string) {
+            super();
+            this.isTerminal = true;
+        }
+
+        get type() : string {
+            return `$runtime.TokenWrapper<${this._type}>`;
+        }
+
+        set type(v : string) {
+            this._type = v;
+        }
+
+        getGeneratorInput() {
+            return new slr.Terminal(this.category, false);
+        }
+    }
+
+    export class StringLiteral extends RuleHeadPart {
+        type : string;
+
+        constructor(public value : string) {
+            super();
+            this.isStringLiteral = true;
+            this.type = stringEscape(value);
+        }
+
+        get name() {
+            return null;
+        }
+
+        getGeneratorInput() {
+            return new slr.Terminal(this.value, true);
+        }
     }
 }
-RuleHeadPart.NonTerminal = NonTerminalRuleHead;
-
-class TerminalRuleHead extends RuleHeadPart {
-    private _type = 'any';
-
-    constructor(public name : string,
-                public category : string) {
-        super();
-        this.isTerminal = true;
-    }
-
-    get type() : string {
-        return `$runtime.TokenWrapper<${this._type}>`;
-    }
-
-    set type(v : string) {
-        this._type = v;
-    }
-
-    getGeneratorInput() {
-        return new slr.Terminal(this.category, false);
-    }
-}
-RuleHeadPart.Terminal = TerminalRuleHead;
-
-class StringLiteralRuleHead extends RuleHeadPart {
-    type : string;
-
-    constructor(public value : string) {
-        super();
-        this.isStringLiteral = true;
-        this.type = stringEscape(value);
-    }
-
-    get name() {
-        return null;
-    }
-
-    getGeneratorInput() {
-        return new slr.Terminal(this.value, true);
-    }
-}
-RuleHeadPart.StringLiteral = StringLiteralRuleHead;
