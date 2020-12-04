@@ -1836,3 +1836,8 @@ function a(p_picture_url : Entity(tt:picture)) {
 
 cat();
 attimer(time=[new Time(9, 0), new Time(15, 0)]) => cat() => a(p_picture_url=picture_url);
+
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+now => @com.facebook.post();

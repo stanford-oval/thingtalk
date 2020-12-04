@@ -218,6 +218,17 @@ now => sort distance asc of (compute (distance(geo, $location.current_location))
     [`(@com.bing.web_search() => @com.yandex.translate.translate(text=title)) => @com.twitter.post(status=translated_text);`,
     `@com.bing.web_search() => @com.yandex.translate.translate(text=title) => @com.twitter.post(status=translated_text);`],
 
+    // remove redundant device ID
+    ['@com.yelp(id="com.yelp").restaurant();',
+     '@com.yelp.restaurant();'],
+
+    // remove redundant device ID
+    ['@com.yelp(id="com.yelp", name="Yelp").restaurant();',
+     '@com.yelp.restaurant();'],
+
+    // remove redundant device ID
+    ['@com.yelp(id="com.yelp"^^tt:device_id("Yelp")).restaurant();',
+     '@com.yelp.restaurant();'],
 ];
 
 

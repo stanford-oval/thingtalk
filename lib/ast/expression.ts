@@ -111,9 +111,6 @@ export class DeviceSelector extends Node {
     }
 
     toSource() : TokenStream {
-        if (this.id === null && !this.all && this.attributes.length === 0)
-            return List.singleton('@' + this.kind);
-
         this.attributes.sort((p1, p2) => {
             if (p1.name < p2.name)
                 return -1;
@@ -143,6 +140,8 @@ export class DeviceSelector extends Node {
 
             attributes.push(List.concat(attr.name, '=', attr.value.toSource()));
         }
+        if (attributes.length === 0)
+            return List.singleton('@' + this.kind);
         return List.concat('@' + this.kind, '(', List.join(attributes, ','), ')');
     }
 
