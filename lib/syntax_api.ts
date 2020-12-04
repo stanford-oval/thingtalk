@@ -34,6 +34,7 @@ import { surfaceLexer } from './new-syntax/lexer';
 import { nnLexer } from './new-syntax/nn-lexer';
 import { prettyprint } from './new-syntax/pretty';
 import { nnSerialize } from './new-syntax/nn-serializer';
+import { KEYWORDS, CONTEXTUAL_KEYWORDS } from './new-syntax/keywords';
 import {
     EntityMap,
     EntityResolver,
@@ -141,6 +142,9 @@ export function serialize(node : Ast.Node,
 
 // reexport entity API so Genie can subclass
 export {
+    KEYWORDS,
+    CONTEXTUAL_KEYWORDS,
+
     AbstractEntityRetriever,
     SequentialEntityAllocator,
     EntityRetriever,

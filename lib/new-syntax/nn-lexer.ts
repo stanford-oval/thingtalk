@@ -40,7 +40,7 @@ function isIdentifierLike(token : string) {
 }
 
 function isUnit(token : string) {
-    return isIdentifierLike(token) || token === 'in' || token === 'min';
+    return (isIdentifierLike(token) && !KEYWORDS.has(token) && !CONTEXTUAL_KEYWORDS.has(token)) || token === 'in' || token === 'min';
 }
 
 interface LanguagePack {
