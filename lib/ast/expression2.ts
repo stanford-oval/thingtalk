@@ -397,6 +397,8 @@ export class ProjectionExpression extends Expression {
         this.expression = expression;
 
         assert(Array.isArray(args));
+        // if there is a *, it's the only name projected
+        assert(args.every((x) => x !== '*') || args.length === 1);
         this.args = args;
 
         this.computations = computations;
@@ -425,7 +427,7 @@ export class ProjectionExpression extends Expression {
             addParenthesis(this.priority, this.expression.priority, this.expression.toSource()));
     }
 
-    toLegacy(into_params : InputParam[] = []) : legacy.ProjectionTable|legacy.ProjectionStream {
+    toLegacy(into_params : InputParam[] = []) : legacy.Table|legacy.Stream {
         const schema = this.schema!;
         assert(schema.functionType !== 'action');
 
@@ -441,6 +443,8 @@ export class ProjectionExpression extends Expression {
                     names.push(alias || getScalarExpressionName(value));
                 }
             }
+            if (names[0] === '*')
+                return table;
             return new legacy.ProjectionTable(this.location, table, names, this.schema);
         } else {
             let stream = inner as legacy.Stream;
@@ -452,6 +456,8 @@ export class ProjectionExpression extends Expression {
                     names.push(alias || getScalarExpressionName(value));
                 }
             }
+            if (names[0] === '*')
+                return stream;
             return new legacy.ProjectionStream(this.location, stream, names, this.schema);
         }
     }

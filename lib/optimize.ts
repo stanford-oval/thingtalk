@@ -19,12 +19,14 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
+import NodeVisitor from './ast/visitor';
 import * as Ast from './ast';
 
 import List from './utils/list';
 import {
     isUnaryExpressionOp,
-    flipOperator
+    flipOperator,
+    getScalarExpressionName
 } from './utils';
 
 function flattenAnd(expr : Ast.BooleanExpression) : Ast.BooleanExpression[] {
@@ -225,6 +227,33 @@ function compareInputParam(one : Ast.InputParam, two : Ast.InputParam) : -1|0|1 
     return 0;
 }
 
+class UsesParamVisitor extends NodeVisitor {
+    pname : string;
+    used = false;
+    constructor(pname : string) {
+        super();
+        this.pname = pname;
+    }
+
+    visitVarRefValue(value : Ast.VarRefValue) {
+        this.used = this.used || value.name === this.pname;
+        return true;
+    }
+    visitAtomBooleanExpressionValue(atom : Ast.AtomBooleanExpression) {
+        this.used = this.used || atom.name === this.pname;
+        return true;
+    }
+    // FIXME this is a bit sloppy in that it doesn't track shadowing
+    // by nested boolean expressions correctly
+    // we cannot do that because we run this code before typechecking
+}
+
+function valueUsesParam(expr : Ast.Value, pname : string) {
+    const visitor = new UsesParamVisitor(pname);
+    expr.visit(visitor);
+    return visitor.used;
+}
+
 function optimizeExpression(expression : Ast.Expression, allow_projection=true) : Ast.Expression|null {
     if (expression instanceof Ast.FunctionCallExpression) {
         expression.in_params.sort(compareInputParam);
@@ -236,7 +265,7 @@ function optimizeExpression(expression : Ast.Expression, allow_projection=true) 
     }
 
     if (expression instanceof Ast.ProjectionExpression) {
-        const optimized = optimizeExpression(expression.expression, allow_projection);
+        let optimized = optimizeExpression(expression.expression, allow_projection);
         if (!optimized)
             return null;
 
@@ -254,15 +283,106 @@ function optimizeExpression(expression : Ast.Expression, allow_projection=true) 
         }
 
         if (expression.computations.length === 0) {
+            if (expression.args[0] === '*')
+                return optimized;
             if (!allow_projection)
                 return optimized;
             if (optimized instanceof Ast.AggregationExpression)
                 return optimized;
+        }
 
-            // collapse projection of projection
-            if (optimized instanceof Ast.ProjectionExpression && optimized.computations.length === 0)
-                return new Ast.ProjectionExpression(expression.location, optimized.expression, expression.args, [], [], expression.schema);
-            return new Ast.ProjectionExpression(expression.location, optimized, expression.args, [], [], expression.schema);
+        // collapse projection of projection
+        // this is quite tricky because of computations
+        if (optimized instanceof Ast.ProjectionExpression) {
+            const ourNames = [];
+            for (let i = 0; i < expression.computations.length; i++)
+                ourNames.push(expression.aliases[i] || getScalarExpressionName(expression.computations[i]));
+
+            // remove shadowed computations and computations that are not exposed
+            const innerComputations : Ast.Value[] = [];
+            const innerAliases : Array<string|null> = [];
+            const innerNames : string[] = [];
+            const innerArgs = optimized.args;
+            const reusedNames : string[] = [];
+            const reusedComputations : Ast.Value[] = [];
+            const reusedAliases : Array<string|null> = [];
+            for (let i = 0; i < optimized.computations.length; i++) {
+                const name = optimized.aliases[i] || getScalarExpressionName(optimized.computations[i]);
+                // not used in our computations
+                if (expression.computations.some((comp) => valueUsesParam(comp, name))) {
+                    reusedNames.push(name);
+                    reusedComputations.push(optimized.computations[i]);
+                    reusedAliases.push(optimized.aliases[i]);
+                    continue;
+                }
+
+                // not used in another computation and also projected away
+                if (!expression.args.includes(name))
+                    continue;
+                // shadowed
+                if (ourNames.includes(name))
+                    continue;
+                innerNames.push(name);
+                innerComputations.push(optimized.computations[i]);
+                innerAliases.push(optimized.aliases[i]);
+            }
+
+            // if we're using some of the computations in our computations,
+            // we need to leave the existing computation
+            if (reusedComputations.length > 0) {
+                optimized = new Ast.ProjectionExpression(optimized.location, optimized.expression,
+                    ['*'], reusedComputations, reusedAliases, optimized.schema);
+            } else {
+                // else cut the middle man
+                optimized = optimized.expression;
+            }
+
+            // combine our computations and the inner unrelated computations
+
+            // remove all of our args that were just picking up the computations
+            expression.args = expression.args.filter((a) => !innerNames.includes(a));
+            if (expression.args[0] === '*')
+                expression.args = innerArgs.concat(reusedNames);
+
+            // append the computations
+            expression.computations.push(...innerComputations);
+            expression.aliases.push(...innerAliases);
+
+            expression.expression = optimized;
+            return expression;
+        }
+
+        // nope, no optimization here
+        expression.expression = optimized;
+        return expression;
+    }
+
+    if (expression instanceof Ast.SortExpression) {
+        const optimized = optimizeExpression(expression.expression, allow_projection);
+        if (!optimized)
+            return null;
+
+        // flip sort of a projection to projection of a sort
+        // this takes care of legacy compute tables as well
+
+        if (optimized instanceof Ast.ProjectionExpression) {
+            const computeNames = [];
+            for (let i = 0; i < optimized.computations.length; i++)
+                computeNames.push(optimized.aliases[i] || getScalarExpressionName(optimized.computations[i]));
+
+            if (expression.value instanceof Ast.VarRefValue &&
+                computeNames.length === 1 && computeNames[0] === expression.value.name) {
+                // yep, we're sorting on the result of this computation
+                expression.value = optimized.computations[0];
+            }
+
+            if (computeNames.every((name) => !valueUsesParam(expression.value, name))) {
+                // we're not using the computation, good to flip!
+
+                return new Ast.ProjectionExpression(optimized.location,
+                    new Ast.SortExpression(expression.location, optimized.expression, expression.value, expression.direction, optimized.expression.schema),
+                    optimized.args, optimized.computations, optimized.aliases, optimized.schema);
+            }
         }
 
         // nope, no optimization here

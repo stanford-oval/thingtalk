@@ -588,19 +588,22 @@ export default class TypeChecker {
         if (ast.computations.length === 0 && ast.args.length === 0)
             throw new TypeError(`Invalid empty projection`);
 
-        const argset = new Set(ast.args);
-        for (const argname of schema.minimal_projection||[])
-            argset.add(argname);
-        for (const argname of argset) {
-            const arg = schema.getArgument(argname);
-            if (!arg || arg.is_input)
-                throw new TypeError('Invalid field name ' + argname);
+        let clone = schema;
+        if (ast.args[0] !== '*') {
+            const argset = new Set(ast.args);
+            for (const argname of schema.minimal_projection||[])
+                argset.add(argname);
+            for (const argname of argset) {
+                const arg = schema.getArgument(argname);
+                if (!arg || arg.is_input)
+                    throw new TypeError('Invalid field name ' + argname);
+            }
+            for (const arg of schema.iterateArguments()) {
+                if (!arg.is_input && !argset.has(arg.name))
+                    scope.remove(arg.name);
+            }
+            clone = schema.filterArguments((a : Ast.ArgumentDef) => a.is_input || argset.has(a.name));
         }
-        for (const arg of schema.iterateArguments()) {
-            if (!arg.is_input && !argset.has(arg.name))
-                scope.remove(arg.name);
-        }
-        let clone = schema.filterArguments((a : Ast.ArgumentDef) => a.is_input || argset.has(a.name));
 
         const newArgs = [];
         for (let i = 0; i < ast.computations.length; i++) {

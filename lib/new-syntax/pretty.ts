@@ -198,11 +198,17 @@ export function prettyprint(tokens : TokenStream) : string {
             buffer += ')';
             break;
 
+        case '*':
+            if (buffer.endsWith('[')) // projection
+                buffer += token;
+            else // multiplication
+                buffer += ' ' + token + ' ';
+            break;
+
         // add a space before and after certain operators
         case ':':
         case '+':
         case '-':
-        case '*':
         case '/':
         case '%':
         case '**':
