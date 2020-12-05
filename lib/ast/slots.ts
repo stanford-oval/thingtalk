@@ -502,7 +502,7 @@ export class ArrayIndexSlot extends AbstractSlot {
                 other {What is the index of the ${index}th result you would like?}\
             }"), { index: this._index+1 }, { locale }) as string;
 
-        case 'expression.computations':
+        case 'computations':
             if (this._array.length === 1)
                 return _("What parameter would you like?");
 

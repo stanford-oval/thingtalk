@@ -455,9 +455,9 @@ now => [food] of ((@uk.ac.cam.multiwoz.Restaurant.Restaurant()), true) => notify
     ['query: Invocation(Device(com.yelp, , ), restaurant, , )'],
     ['Device(com.yelp, , ) com.yelp:restaurant'],
     ['Selector(@com.yelp)',
-    'ArrayIndexSlot([0] : Measure(m)) expression.computations.0 What parameter would you like?',
-    'ComputationOperandSlot(distance[0] : Location) expression.computations.0.distance.0 What is the first operand to distance you would like?',
-    'ComputationOperandSlot(distance[1] : Location) expression.computations.0.distance.1 What is the second operand to distance you would like?']
+    'ArrayIndexSlot([0] : Measure(m)) computations.0 What parameter would you like?',
+    'ComputationOperandSlot(distance[0] : Location) computations.0.distance.0 What is the first operand to distance you would like?',
+    'ComputationOperandSlot(distance[1] : Location) computations.0.distance.1 What is the second operand to distance you would like?']
     ],
 
     [`monitor( @security-camera.current_event()), (has_person == true && any(@org.thingpedia.builtin.thingengine.builtin.get_gps(), location == new Location(1, 2)))  => notify;`,
