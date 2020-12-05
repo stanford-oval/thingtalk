@@ -55,6 +55,7 @@ class Scope {
     private _lambda_args : TypeMap;
     private _scope : TypeMap;
     $has_event : boolean;
+    $has_source : boolean;
 
     constructor(parentScope : Scope|null = null) {
         this._parentScope = parentScope;
@@ -62,6 +63,7 @@ class Scope {
         this._scope = {};
         this._lambda_args = {};
         this.$has_event = false;
+        this.$has_source = false;
     }
 
     has(name : string) : boolean {
@@ -239,16 +241,22 @@ export default class TypeChecker {
                 throw new TypeError(`Invalid aggregation on non-array parameter`);
             const args = [];
             const elem = paramType.elem;
+            const inner = new Scope(scope);
             if (elem instanceof CompoundType) {
-                for (const field in elem.fields)
-                    args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, field, elem.fields[field].type, {}));
+                for (const field in elem.fields) {
+                    const type = elem.fields[field].type;
+                    scope.add(field, type);
+                    args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, field, type, {}));
+                }
             } else {
-                args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'value', elem as Type, {}));
+                const type = elem as Type;
+                scope.add('value', type);
+                args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'value', type, {}));
             }
             const localschema = new Ast.ExpressionSignature(null, 'query', null, [], args, {
                 minimal_projection: [],
             });
-            await this._typeCheckFilter(value.filter, localschema, new Scope());
+            await this._typeCheckFilter(value.filter, localschema, inner);
             return value.type = paramType;
         }
 
@@ -266,8 +274,19 @@ export default class TypeChecker {
             value.type = type;
             return type;
         }
-        if (value instanceof Ast.EventValue && value.name !== 'program_id' && !scope.$has_event)
-            throw new TypeError('Cannot access $event variables in the trigger');
+        if (value instanceof Ast.EventValue) {
+            switch (value.name) {
+            case 'program_id':
+                break;
+            case 'source':
+                if (!scope.$has_source)
+                    throw new TypeError('Cannot access $source outside of a policy');
+                break;
+            default:
+                if (!scope.$has_event)
+                    throw new TypeError('Cannot access $result or $type before the first primitive');
+            }
+        }
 
         if (value instanceof Ast.ArrayValue) {
             const typeScope = {};
@@ -335,12 +354,8 @@ export default class TypeChecker {
             if (!good)
                 continue;
             const resolved : Type[] = [];
-            for (const type of overload) {
-                if (typeof type === 'string')
-                    resolved.push(typeScope[type] as Type);
-                else
-                    resolved.push(type);
-            }
+            for (const type of overload)
+                resolved.push(Type.resolve(type, typeScope));
 
             if (resolved[overload.length-1] instanceof MeasureType && typeScope['_unit'])
                 return [resolved, new Type.Measure(typeScope['_unit'] as string)];
@@ -1290,18 +1305,14 @@ export default class TypeChecker {
             this._getAllowedSchema(permissionRule.action, 'action'),
         ]);
 
-        {
-            const scope = new Scope();
-            scope.add('source', new Type.Entity('tt:contact'));
-            await this._typeCheckFilter(permissionRule.principal, null, scope);
-        }
+        const scope = new Scope();
+        scope.$has_source = true;
+        await this._typeCheckFilter(permissionRule.principal, null, scope);
+        scope.$has_source = false;
 
-        {
-            const scope = new Scope();
-            await this._typecheckPermissionFunction(permissionRule.query, scope);
-            scope.$has_event = true;
-            await this._typecheckPermissionFunction(permissionRule.action, scope);
-        }
+        await this._typecheckPermissionFunction(permissionRule.query, scope);
+        scope.$has_event = true;
+        await this._typecheckPermissionFunction(permissionRule.action, scope);
     }
 
     private async _typeCheckDataset(dataset : Ast.Dataset) {

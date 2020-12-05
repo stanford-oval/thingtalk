@@ -254,7 +254,7 @@ function valueUsesParam(expr : Ast.Value, pname : string) {
     return visitor.used;
 }
 
-function optimizeExpression(expression : Ast.Expression, allow_projection=true) : Ast.Expression|null {
+function optimizeExpression(expression : Ast.Expression, allow_projection=true) : Ast.Expression {
     if (expression instanceof Ast.FunctionCallExpression) {
         expression.in_params.sort(compareInputParam);
         return expression;
@@ -266,8 +266,6 @@ function optimizeExpression(expression : Ast.Expression, allow_projection=true) 
 
     if (expression instanceof Ast.ProjectionExpression) {
         let optimized = optimizeExpression(expression.expression, allow_projection);
-        if (!optimized)
-            return null;
 
         // convert projection-of-chain to chain-of-projection (push the projection
         // down to the last element)
@@ -276,8 +274,6 @@ function optimizeExpression(expression : Ast.Expression, allow_projection=true) 
 
             const newProjection = optimizeExpression(new Ast.ProjectionExpression(expression.location, last,
                 expression.args, expression.computations, expression.aliases, expression.schema), allow_projection);
-            if (!newProjection)
-                return null;
             optimized.expressions[optimized.expressions.length-1] = newProjection;
             return optimized;
         }
@@ -359,8 +355,6 @@ function optimizeExpression(expression : Ast.Expression, allow_projection=true) 
 
     if (expression instanceof Ast.SortExpression) {
         const optimized = optimizeExpression(expression.expression, allow_projection);
-        if (!optimized)
-            return null;
 
         // flip sort of a projection to projection of a sort
         // this takes care of legacy compute tables as well
@@ -393,8 +387,6 @@ function optimizeExpression(expression : Ast.Expression, allow_projection=true) 
     if (expression instanceof Ast.MonitorExpression) {
         // always allow projection inside a monitor, because the projection affects which parameters we monitor
         const optimized = optimizeExpression(expression.expression, true);
-        if (!optimized)
-            return null;
 
         // convert monitor of a projection to a projection of a monitor
         if (optimized instanceof Ast.ProjectionExpression && optimized.computations.length === 0) {
@@ -415,12 +407,8 @@ function optimizeExpression(expression : Ast.Expression, allow_projection=true) 
         // handle constant filters
         if (expression.filter.isTrue)
             return optimizeExpression(expression.expression, allow_projection);
-        if (expression.filter.isFalse)
-            return null;
 
         const inner = optimizeExpression(expression.expression, allow_projection);
-        if (!inner)
-            return null;
         expression.expression = inner;
 
         // compress filter of filter
@@ -442,8 +430,6 @@ function optimizeExpression(expression : Ast.Expression, allow_projection=true) 
                     expression.filter,
                     inner.expression.schema),
                     allow_projection);
-                if (!optimized)
-                    return null;
 
                 return new Ast.ProjectionExpression(
                     expression.location,
@@ -475,8 +461,6 @@ function optimizeExpression(expression : Ast.Expression, allow_projection=true) 
 
     if (isUnaryExpressionOp(expression)) {
         const inner = optimizeExpression(expression.expression, allow_projection);
-        if (!inner)
-            return null;
         expression.expression = inner;
         return expression;
     }
@@ -489,8 +473,6 @@ function optimizeExpression(expression : Ast.Expression, allow_projection=true) 
         for (let i = 0; i < expression.expressions.length; i++) {
             const optimized = optimizeExpression(expression.expressions[i],
                 allow_projection && i === expression.expressions.length - 1);
-            if (!optimized)
-                return null;
             if (optimized instanceof Ast.ChainExpression)
                 newExpressions.push(...optimized.expressions);
             else
@@ -502,14 +484,12 @@ function optimizeExpression(expression : Ast.Expression, allow_projection=true) 
     return expression;
 }
 
-function optimizeRule(rule : Ast.ExpressionStatement) : Ast.ExpressionStatement|null {
+function optimizeRule(rule : Ast.ExpressionStatement) : Ast.ExpressionStatement {
     // in old thingtalk, projection was only allowed when there is no action
     // but we don't know that at this stage, because we're running before
     // typechecking, so we don't know if something is an action or not
     const allow_projection = true;
     const newExpression = optimizeExpression(rule.expression, allow_projection);
-    if (!newExpression)
-        return null;
     if (!(newExpression instanceof Ast.ChainExpression))
         rule.expression = new Ast.ChainExpression(newExpression.location, [newExpression], newExpression.schema);
     else
@@ -517,26 +497,20 @@ function optimizeRule(rule : Ast.ExpressionStatement) : Ast.ExpressionStatement|
     return rule;
 }
 
-function optimizeProgram(program : Ast.Program) : Ast.Program|null {
+function optimizeProgram(program : Ast.Program) : Ast.Program {
     const statements : Ast.ExecutableStatement[] = [];
     program.statements.forEach((stmt) => {
         if (stmt instanceof Ast.Assignment) {
             const optimized = optimizeExpression(stmt.value);
-            if (optimized === null)
-                return;
             stmt.value = optimized;
             statements.push(stmt);
         } else {
             const newrule = optimizeRule(stmt);
-            if (newrule)
-                statements.push(newrule);
+            statements.push(newrule);
         }
     });
     program.statements = statements;
-    if (program.statements.length === 0 && program.declarations.length === 0)
-        return null;
-    else
-        return program;
+    return program;
 }
 
 function optimizeDataset(dataset : Ast.Dataset) : Ast.Dataset {

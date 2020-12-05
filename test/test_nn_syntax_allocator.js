@@ -90,7 +90,7 @@ const TEST_CASES = [
     [`#[ executor = USERNAME_0 ] @com.twitter . post ( ) ;`,
      { USERNAME_0: 'bob' }],
 
-    [`$policy { source == USERNAME_0 : now => @com.twitter . post filter status =~ QUOTED_STRING_0 ; }`,
+    [`$policy { $source == USERNAME_0 : now => @com.twitter . post filter status =~ QUOTED_STRING_0 ; }`,
      { USERNAME_0: 'bob', QUOTED_STRING_0: 'foo' }],
 
     [`@org.thingpedia.weather . sunrise ( date = DATE_0 ) ;`,

@@ -71,7 +71,7 @@ let TEST_CASES = [
      'anyone in the @family group is allowed to tweet any status'],
 
     ['source == "mom"^^tt:username || source == "dad"^^tt:username : now => @com.twitter.post',
-     'if the requester is any of @mom or @dad, the requester is allowed to tweet any status'],
+     'if the requester is equal to @mom or the requester is equal to @dad, the requester is allowed to tweet any status'],
 
     ['true : now => @com.twitter.post, status == "foo"',
      'anyone is allowed to tweet “foo”'],
@@ -173,11 +173,11 @@ let TEST_CASES = [
      'anyone is allowed to read the current event detected on your security camera if the my location is not equal to at home and the my location is not equal to at work'],
 
     ['true : @security-camera.current_event, @org.thingpedia.weather.current(location=$context.location.current_location) { temperature >= 21C } => notify',
-     'anyone is allowed to read the current event detected on your security camera if the the temperature of the current weather for here is greater than or equal to 21 C'],
+     'anyone is allowed to read the current event detected on your security camera if the temperature of the current weather for here is greater than or equal to 21 C'],
     ['true : @security-camera.current_event, @org.thingpedia.weather.current(location=$context.location.current_location) { temperature == 21C } => notify',
-     'anyone is allowed to read the current event detected on your security camera if the the temperature of the current weather for here is equal to 21 C'],
+     'anyone is allowed to read the current event detected on your security camera if the temperature of the current weather for here is equal to 21 C'],
     ['true : @security-camera.current_event, @org.thingpedia.weather.current(location=$context.location.current_location) { !(temperature == 21C) } => notify',
-     'anyone is allowed to read the current event detected on your security camera if the the temperature of the current weather for here is not equal to 21 C'],
+     'anyone is allowed to read the current event detected on your security camera if the temperature of the current weather for here is not equal to 21 C'],
     ['true : @security-camera.current_event, @org.thingpedia.weather.current(location=$context.location.current_location) { temperature <= 21C && temperature >= 19C } => notify',
      'anyone is allowed to read the current event detected on your security camera if for the current weather for here, the temperature is less than or equal to 21 C and the temperature is greater than or equal to 19 C'],
     ['true : @security-camera.current_event, @org.thingpedia.weather.current(location=$context.location.current_location) { temperature >= 21C || temperature <= 19C } => notify',

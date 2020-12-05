@@ -1274,6 +1274,7 @@ event_value : Ast.EventValue = {
     '$result' => new Ast.Value.Event(null);
     '$type' => new Ast.Value.Event('type');
     '$program_id' => new Ast.Value.Event('program_id');
+    '$source' => new Ast.Value.Event('source');
 }
 
 context_value : Ast.ContextRefValue = {

@@ -163,7 +163,7 @@ export default abstract class Node {
      *
      * @returns {Ast~Node} the optimized node
      */
-    optimize() : Node|null {
+    optimize() : Node {
         return this;
     }
 

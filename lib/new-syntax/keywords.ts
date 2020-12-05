@@ -209,6 +209,7 @@ export const DOLLAR_KEYWORDS = new Set<string>([
     '$result',
     '$type',
     '$self',
+    '$source',
     '$start_of',
     '$time',
     '$context',

@@ -975,7 +975,7 @@ class RuleTransformer {
         for (const rule of permissiondb) {
             if (!rule.principal.isTrue) {
                 const inParamMap = {
-                    source: this._principal
+                    $source: this._principal
                 };
                 const simplified = this._partiallyEvalFilter(rule.principal, inParamMap, {}).optimize();
                 if (simplified.isFalse)
@@ -1077,17 +1077,29 @@ class RuleTransformer {
                 return new Ast.BooleanExpression.Not(expr.location, recursiveHelper(expr.expr));
             if (expr instanceof Ast.ExternalBooleanExpression) // external predicates don't refer to the inputs or outputs of the function so we're good
                 return expr;
-            assert(expr instanceof Ast.AtomBooleanExpression);
 
-            const filter = expr;
+            let lhs : Ast.Value|undefined, rhs : Ast.Value;
+            let filter : Ast.ComputeBooleanExpression|Ast.AtomBooleanExpression;
+            if (expr instanceof Ast.ComputeBooleanExpression) {
+                filter = expr;
+                if (expr.lhs instanceof Ast.EventValue) {
+                    assert(expr.lhs.name === 'source');
+                    lhs = inParamMap['$source'];
+                } else {
+                    assert(expr.lhs instanceof Ast.VarRefValue);
+                    lhs = inParamMap[expr.lhs.name];
+                }
+                rhs = expr.rhs;
+            } else {
+                assert(expr instanceof Ast.AtomBooleanExpression);
+                filter = expr;
+                lhs = inParamMap[filter.name];
+                rhs = expr.value;
+            }
             // the filter comes from tne Allowed() rule, it should not have anything funky
-            assert(!filter.value.isUndefined);
-
-            if (!inParamMap[filter.name])
+            assert(!rhs.isUndefined);
+            if (!lhs)
                 return expr;
-            const lhs = inParamMap[filter.name];
-            assert(lhs);
-            let rhs = filter.value;
             assert(!(rhs instanceof Ast.VarRefValue)); // ???
             if (rhs instanceof Ast.VarRefValue && inParamMap[rhs.name])
                 rhs = inParamMap[rhs.name]!;

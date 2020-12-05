@@ -102,6 +102,19 @@ export default abstract class Type {
     abstract toSource() : TokenStream;
     abstract equals(other : Type) : boolean;
 
+    static resolve(type : Type|string, typeScope : TypeScope) : Type {
+        if (typeof type === 'string')
+            return Type.resolve(typeScope[type], typeScope);
+
+        if (type instanceof ArrayType)
+            return new ArrayType(Type.resolve(type.elem, typeScope));
+        if (type instanceof MeasureType && type.unit === '')
+            return new MeasureType(typeScope['_unit'] as string);
+        if (type instanceof EntityType && type.type === '')
+            return new EntityType(typeScope['_entity'] as string);
+        return type;
+    }
+
     static isAssignable(type : Type, assignableTo : Type|string, typeScope : TypeScope = {}, lenient = false) : boolean {
         if (typeof assignableTo === 'string') {
             if (typeScope[assignableTo])
@@ -133,9 +146,6 @@ export default abstract class Type {
                 return true;
         }
         if (type instanceof MeasureType && assignableTo instanceof MeasureType && assignableTo.unit === '') {
-            // this is a bit of a hack: we treat _unit as a type variable,
-            // but it's a string not a Type, so we need to mess with type assertions
-
             if (!typeScope['_unit']) {
                 typeScope['_unit'] = type.unit;
                 return true;
