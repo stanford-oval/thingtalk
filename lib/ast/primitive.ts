@@ -1834,6 +1834,11 @@ export class SpecifiedPermissionFunction extends PermissionFunction {
         this.schema = schema;
     }
 
+    optimize() : this {
+        this.filter = this.filter.optimize();
+        return this;
+    }
+
     toSource() : TokenStream {
         if (this.filter.isTrue)
             return List.concat('@' + this.kind, '.', this.channel);

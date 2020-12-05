@@ -284,6 +284,8 @@ class Describer {
                 return this._("the program ID");
             case 'type':
                 return this._("the device type");
+            case 'source':
+                return this._("the requester");
             default:
                 return this._("the result");
             }
@@ -327,7 +329,7 @@ class Describer {
         return String(arg);
     }
 
-    private _describeOperator(argcanonical : string,
+    private _describeOperator(argcanonical : unknown,
                               op : string,
                               value : unknown,
                               negate : boolean,
@@ -368,32 +370,32 @@ class Describer {
             op_key = 'not_' + op_key;
 
         return this._interp(this._("${op_key:select: \
-            not_contains {the ${argcanonical} do not contain ${value}} \
-            contains {the ${argcanonical} contain ${value}} \
-            not_substr {the ${argcanonical} does not contain ${value}} \
-            substr {the ${argcanonical} contains ${value}} \
-            not_in_array {the ${argcanonical} is none of ${value}} \
-            in_array {the ${argcanonical} is any of ${value:disjunction}} \
-            not_rev_substr {the ${argcanonical} is not contained in ${value}} \
-            rev_substr {the ${argcanonical} is contained in ${value}} \
-            not_starts_with {the ${argcanonical} does not start with ${value}} \
-            starts_with {the ${argcanonical} starts with ${value}} \
-            not_ends_with {the ${argcanonical} does not end with ${value}} \
-            ends_with {the ${argcanonical} ends with ${value}} \
-            not_prefix_of {the ${argcanonical} is not a prefix of ${value}} \
-            prefix_of {the ${argcanonical} is a prefix of ${value}} \
-            not_suffix_of {the ${argcanonical} is not a suffix of ${value}} \
-            suffix_of {the ${argcanonical} is a suffix of ${value}} \
-            not_eq {the ${argcanonical} is not equal to ${value}} \
-            eq {the ${argcanonical} is equal to ${value}} \
-            not_geq {the ${argcanonical} is less than ${value}} \
-            geq {the ${argcanonical} is greater than or equal to ${value}} \
-            not_leq {the ${argcanonical} is greater than ${value}} \
-            leq {the ${argcanonical} is less than or equal to ${value}} \
-            not_before {the ${argcanonical} is after ${value}} \
-            before {the ${argcanonical} is before ${value}} \
-            not_after {the ${argcanonical} is before ${value}} \
-            after {the ${argcanonical} is after ${value}} \
+            not_contains {${argcanonical} do not contain ${value}} \
+            contains {${argcanonical} contain ${value}} \
+            not_substr {${argcanonical} does not contain ${value}} \
+            substr {${argcanonical} contains ${value}} \
+            not_in_array {${argcanonical} is none of ${value}} \
+            in_array {${argcanonical} is any of ${value:disjunction}} \
+            not_rev_substr {${argcanonical} is not contained in ${value}} \
+            rev_substr {${argcanonical} is contained in ${value}} \
+            not_starts_with {${argcanonical} does not start with ${value}} \
+            starts_with {${argcanonical} starts with ${value}} \
+            not_ends_with {${argcanonical} does not end with ${value}} \
+            ends_with {${argcanonical} ends with ${value}} \
+            not_prefix_of {${argcanonical} is not a prefix of ${value}} \
+            prefix_of {${argcanonical} is a prefix of ${value}} \
+            not_suffix_of {${argcanonical} is not a suffix of ${value}} \
+            suffix_of {${argcanonical} is a suffix of ${value}} \
+            not_eq {${argcanonical} is not equal to ${value}} \
+            eq {${argcanonical} is equal to ${value}} \
+            not_geq {${argcanonical} is less than ${value}} \
+            geq {${argcanonical} is greater than or equal to ${value}} \
+            not_leq {${argcanonical} is greater than ${value}} \
+            leq {${argcanonical} is less than or equal to ${value}} \
+            not_before {${argcanonical} is after ${value}} \
+            before {${argcanonical} is before ${value}} \
+            not_after {${argcanonical} is before ${value}} \
+            after {${argcanonical} is after ${value}} \
         }"), { op_key, argcanonical, value }); //"
     }
 
@@ -413,31 +415,36 @@ class Describer {
         return localschema;
     }
 
-    private _describeAtomFilter(expr : Ast.AtomBooleanExpression,
+    private _describeAtomFilter(expr : Ast.AtomBooleanExpression|Ast.ComputeBooleanExpression,
                                 schema : Ast.ExpressionSignature|null,
                                 scope : ScopeMap,
                                 negate : boolean,
                                 canonical_overwrite : ScopeMap = {}) {
-        const filter = expr;
-        const argname = filter.name;
-        let argcanonical;
-        if (argname in canonical_overwrite) {
-            argcanonical = canonical_overwrite[argname];
-        } else if (schema) {
-            if (argname in schema.index)
-                argcanonical = schema.getArgCanonical(argname)!;
+        let lhs : unknown, rhs : unknown, ptype : Type;
+        if (expr instanceof Ast.AtomBooleanExpression) {
+            const argname = expr.name;
+            if (argname in canonical_overwrite) {
+                lhs = canonical_overwrite[argname];
+            } else if (schema) {
+                if (argname in schema.index)
+                    lhs = schema.getArgCanonical(argname)!;
+                else
+                    lhs = scope[argname];
+            } else {
+                lhs = scope[argname];
+            }
+            lhs = this._interp(this._("the ${name}"), { name: lhs });
+            rhs = this._describeArg(expr.value, scope);
+            if (schema)
+                ptype = schema.out[argname] || schema.inReq[argname] || schema.inOpt[argname];
             else
-                argcanonical = scope[argname];
+                ptype = Type.Any;
         } else {
-            argcanonical = scope[argname];
+            lhs = this._describeArg(expr.lhs, scope);
+            rhs = this._describeArg(expr.rhs, scope);
+            ptype = expr.lhs.getType();
         }
-        const value = this._describeArg(filter.value, scope);
-        let ptype;
-        if (schema === null)
-            ptype = new Type.Entity('tt:contact');
-        else
-            ptype = schema.out[argname] || schema.inReq[argname] || schema.inOpt[argname];
-        return this._describeOperator(argcanonical, filter.operator, value, negate, ptype);
+        return this._describeOperator(lhs, expr.operator, rhs, negate, ptype);
     }
 
     describeFilter(expr : Ast.BooleanExpression,
@@ -526,7 +533,8 @@ class Describer {
                     });
                 }
             }
-            assert(expr instanceof Ast.AtomBooleanExpression);
+            assert(expr instanceof Ast.AtomBooleanExpression ||
+                   expr instanceof Ast.ComputeBooleanExpression);
             return this._describeAtomFilter(expr, schema, scope, false, canonical_overwrite);
         };
 
@@ -1180,17 +1188,19 @@ class Describer {
         let principal;
         if (permissionRule.principal.isTrue) {
             principal = this._("anyone");
-        } else if (permissionRule.principal instanceof Ast.AtomBooleanExpression && permissionRule.principal.operator === '==') {
-            principal = this._describeArg(permissionRule.principal.value);
-        } else if (permissionRule.principal instanceof Ast.AtomBooleanExpression && permissionRule.principal.operator === 'group_member') {
+        } else if (permissionRule.principal instanceof Ast.ComputeBooleanExpression &&
+            permissionRule.principal.lhs instanceof Ast.EventValue &&
+            permissionRule.principal.operator === '==') {
+            principal = this._describeArg(permissionRule.principal.rhs);
+        } else if (permissionRule.principal instanceof Ast.ComputeBooleanExpression &&
+            permissionRule.principal.lhs instanceof Ast.EventValue &&
+            permissionRule.principal.operator === 'group_member') {
             principal = this._interp(this._("anyone in the ${group} group"), {
-                group: this._describeArg(permissionRule.principal.value)
+                group: this._describeArg(permissionRule.principal.rhs)
         });
         } else {
             principal = this._interp(this._("if ${filter}, the requester"), {
-                filter: this.describeFilter(permissionRule.principal, null, {
-                    source: this._("requester")
-                })
+                filter: this.describeFilter(permissionRule.principal, null)
             });
         }
 

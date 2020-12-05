@@ -1170,8 +1170,9 @@ export class ComputeBooleanExpression extends BooleanExpression {
     *iterateSlots2(schema : ExpressionSignature|null,
                    prim : InvocationLike|null,
                    scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
-        yield* recursiveYieldArraySlots(new FieldSlot(prim, scope, this.lhs.getType(), this, 'compute_filter', 'lhs'));
-        yield* recursiveYieldArraySlots(new FieldSlot(prim, scope, this.rhs.getType(), this, 'compute_filter', 'rhs'));
+        const [resolvedLhs, resolvedRhs] = this.overload || [null, null];
+        yield* recursiveYieldArraySlots(new FieldSlot(prim, scope, resolvedLhs || this.lhs.getType(), this, 'compute_filter', 'lhs'));
+        yield* recursiveYieldArraySlots(new FieldSlot(prim, scope, resolvedRhs || this.rhs.getType(), this, 'compute_filter', 'rhs'));
     }
 
     toString() : string {

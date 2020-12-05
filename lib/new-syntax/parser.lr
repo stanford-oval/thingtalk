@@ -557,6 +557,9 @@ class_stmt : Ast.ClassMember = {
     'import' facets:identifier_list 'from' name:CLASS_OR_FUNCTION_REF in_param_list ';'
         => new Ast.MixinImportStmt($.location, facets, name.value, in_param_list);
 
+    'entity' name:variable_name ';'
+        => new Ast.EntityDef($.location, name, {});
+
     'entity' name:variable_name annotations:annotation_spec ';'
         => new Ast.EntityDef($.location, name, annotations);
 
@@ -1271,6 +1274,7 @@ event_value : Ast.EventValue = {
     '$result' => new Ast.Value.Event(null);
     '$type' => new Ast.Value.Event('type');
     '$program_id' => new Ast.Value.Event('program_id');
+    '$source' => new Ast.Value.Event('source');
 }
 
 context_value : Ast.ContextRefValue = {

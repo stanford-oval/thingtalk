@@ -322,10 +322,8 @@ export class DialogueHistoryItem extends AstNode {
         return this.results.equals(other.results);
     }
 
-    optimize() : this|null {
+    optimize() : this {
         const newStmt = Optimizer.optimizeRule(this.stmt);
-        if (newStmt === null)
-            return null;
         this.stmt = newStmt;
         return this;
     }

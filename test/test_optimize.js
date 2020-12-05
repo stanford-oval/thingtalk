@@ -270,6 +270,14 @@ now => [distance(geo, $location.current_location)] of @com.yelp.restaurant() => 
     // remove redundant device ID
     ['@com.yelp(id="com.yelp"^^tt:device_id("Yelp")).restaurant();',
      '@com.yelp.restaurant();'],
+
+    // flip filters
+    ['@org.schema.full.Place() filter count(review) >= aggregateRating.ratingValue;',
+     '@org.schema.full.Place() filter aggregateRating.ratingValue <= count(review);'],
+
+    // __const is a VarRef, but it should not be moved to the left
+    ['@org.schema.full.Place() filter count(review) >= __const_NUMBER_0;',
+     '@org.schema.full.Place() filter count(review) >= __const_NUMBER_0;']
 ];
 
 

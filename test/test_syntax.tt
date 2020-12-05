@@ -1836,3 +1836,7 @@ attimer(time=[new Time(9, 0), new Time(15, 0)]) => cat() => a(p_picture_url=pict
 
 $dialogue @org.thingpedia.dialogue.transaction.execute;
 now => @com.facebook.post();
+
+====
+
+@org.schema.full.Place() filter count(review) >= __const_NUMBER_0;

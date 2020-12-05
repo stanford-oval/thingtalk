@@ -123,7 +123,7 @@ const PERMISSION_DATABASE = [
     `$policy { true : @com.bing.web_search, query == "dogs" && description =~ "dog" => *; }`,
     `$policy { true : * => @thermostat.set_target_temperature, value >= 70F && value <= 75F; }`,
     `$policy { true : * => @com.lg.tv.webos2.set_power, power == enum(off); }`,
-    `$policy { source == "mom@stanford.edu"^^tt:contact : * => @com.lg.tv.webos2.set_power, power == enum(on); }`,
+    `$policy { $source == "mom@stanford.edu"^^tt:contact : * => @com.lg.tv.webos2.set_power, power == enum(on); }`,
     `$policy { true : @com.xkcd.get_comic => *; }`,
 
     `$policy { true : @security-camera.current_event filter any(@org.thingpedia.builtin.thingengine.builtin.get_gps() filter location == new Location(1,2)) => notify; }`,

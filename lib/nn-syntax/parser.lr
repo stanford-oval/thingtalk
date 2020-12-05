@@ -174,9 +174,16 @@ program : Ast.Program = {
 policy : Ast.PermissionRule = {
     'true' ':' policy:policy_body => policy;
     user:filter ':' policy:policy_body => {
-        const clone = policy.clone();
-        clone.principal = user;
-        return clone;
+        // replace all uses of "source" with "$source"
+        user.visit(new class extends Ast.NodeVisitor {
+            visitComputeBooleanExpression(atom : Ast.ComputeBooleanExpression) {
+                if (atom.lhs instanceof Ast.VarRefValue && atom.lhs.name === 'source')
+                    atom.lhs = new Ast.EventValue('source');
+                return true;
+            }
+        });
+        policy.principal = user;
+        return policy;
     };
 }
 
@@ -379,13 +386,10 @@ atom_filter : Ast.BooleanExpression = {
     'true' pname:PARAM_NAME => new Ast.BooleanExpression.DontCare($.location, pname.value);
 
     pname:PARAM_NAME op:comparison_op rhs:value => {
-        return new Ast.BooleanExpression.Atom($.location, pname.value, op, rhs);
+        return new Ast.BooleanExpression.Compute($.location, new Ast.VarRefValue(pname.value), op, rhs);
     };
     lhs:non_ambiguous_value op:comparison_op rhs:value => {
-        if (lhs instanceof Ast.VarRefValue)
-            return new Ast.BooleanExpression.Atom($.location, lhs.name, op, rhs);
-        else
-            return new Ast.BooleanExpression.Compute($.location, lhs, op, rhs);
+        return new Ast.BooleanExpression.Compute($.location, lhs, op, rhs);
     };
     fn:call '{' filter '}' => {
         return new Ast.BooleanExpression.External($.location, fn.selector, fn.channel, fn.in_params, filter, null);

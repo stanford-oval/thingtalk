@@ -87,10 +87,7 @@ export function parse(code : string|string[], syntaxType : SyntaxType = SyntaxTy
         // workaround grammar bug with // comments at the end of input
         input = Grammar.parse(code + '\n') as any;
     }
-    const optimized = input.optimize();
-    if (!optimized)
-        throw new Error(`Program is empty after optimization`);
-    return optimized;
+    return input.optimize();
 }
 
 export interface SerializeOptions {

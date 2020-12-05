@@ -312,7 +312,6 @@ export class DeviceAttributeSlot extends AbstractSlot {
 }
 
 export class FilterSlot extends AbstractSlot {
-    private _isSourceFilter : boolean;
     private _arg : ArgumentDef|null;
     private _filter : AtomBooleanExpression;
 
@@ -322,7 +321,6 @@ export class FilterSlot extends AbstractSlot {
                 filter : AtomBooleanExpression) {
         super(prim, scope);
 
-        this._isSourceFilter = prim === null;
         this._arg = arg;
         this._filter = filter;
     }
@@ -360,14 +358,7 @@ export class FilterSlot extends AbstractSlot {
         return this._arg || null;
     }
     get type() : Type {
-        if (this._isSourceFilter) {
-            switch (this._filter.operator) {
-            case 'in_array':
-                return new Type.Array(new Type.Entity('tt:contact'));
-            default:
-                return new Type.Entity('tt:contact');
-            }
-        } else if (this._arg) {
+        if (this._arg) {
             switch (this._filter.operator) {
             case 'contains':
                 return (this._arg.type as ArrayType).elem as Type;
@@ -389,16 +380,13 @@ export class FilterSlot extends AbstractSlot {
         }
     }
     get tag() : string {
-        return `filter.${this._filter.operator}.${this._isSourceFilter ? '$' : ''}${this._filter.name}`;
+        return `filter.${this._filter.operator}.${this._filter.name}`;
     }
     getPrompt(locale : string) : string {
         const _ = I18n.get(locale).gettext;
         if (['==', 'contains', 'in_array', '=~'].indexOf(this._filter.operator) >= 0 &&
             this._arg && this._arg.metadata.prompt)
             return this._arg.metadata.prompt;
-
-        if (this._isSourceFilter)
-            return _("Who is allowed to ask you for this command?");
 
         const argcanonical = this._argcanonical;
 
@@ -502,7 +490,7 @@ export class ArrayIndexSlot extends AbstractSlot {
                 other {What is the index of the ${index}th result you would like?}\
             }"), { index: this._index+1 }, { locale }) as string;
 
-        case 'expression.computations':
+        case 'computations':
             if (this._array.length === 1)
                 return _("What parameter would you like?");
 

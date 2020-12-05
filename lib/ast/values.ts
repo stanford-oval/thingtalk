@@ -1798,11 +1798,16 @@ export class EventValue extends Value {
     }
 
     getType() : Type {
-        if (this.name === 'type')
-        return new Type.Entity('tt:function');
-        if (this.name === 'program_id')
+        switch (this.name) {
+        case 'type':
+            return new Type.Entity('tt:function');
+        case 'program_id':
             return new Type.Entity('tt:program_id');
-        return Type.String;
+        case 'source':
+            return new Type.Entity('tt:contact');
+        default:
+            return Type.String;
+        }
     }
 }
 EventValue.prototype.isEvent = true;

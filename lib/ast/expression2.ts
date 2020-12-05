@@ -491,7 +491,7 @@ export class ProjectionExpression extends Expression {
     *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         const [prim, nestedScope] = yield* this.expression.iterateSlots2(scope);
         for (let i = 0; i < this.computations.length; i++)
-            yield* recursiveYieldArraySlots(new ArrayIndexSlot(prim, nestedScope, this.computations[i].getType(), this.computations, 'expression.computations', i));
+            yield* recursiveYieldArraySlots(new ArrayIndexSlot(prim, nestedScope, this.computations[i].getType(), this.computations, 'computations', i));
         const newScope : ScopeMap = {};
         for (const name of this.args)
             newScope[name] = nestedScope[name];

@@ -699,7 +699,7 @@ export abstract class Input extends Node {
     *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
     }
 
-    optimize() : Input|null {
+    optimize() : Input {
         return this;
     }
     abstract clone() : Input;
@@ -832,7 +832,7 @@ export class Program extends Input {
             annotations);
     }
 
-    optimize() : Program|null {
+    optimize() : Program {
         return Optimizer.optimizeProgram(this);
     }
 
@@ -903,6 +903,13 @@ export class PermissionRule extends Input {
         list = List.concat(list, '=>', this.action.toSource(), ';',
             '\t-', '\n', '}');
         return list;
+    }
+
+    optimize() : this {
+        this.principal = this.principal.optimize();
+        this.query.optimize();
+        this.action.optimize();
+        return this;
     }
 
     visit(visitor : NodeVisitor) : void {

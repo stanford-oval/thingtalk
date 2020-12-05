@@ -386,27 +386,30 @@ let TEST_CASES = [
      'InputParamSlot(status : String) in_param.status What do you want to tweet?']
     ],
 
-    [`$policy { source == $? : now => @com.twitter.post; }`,
+    [`$policy { $source == $? : now => @com.twitter.post; }`,
 
     [],
-    ['Atom(source, ==, Undefined(true))'],
-    ['FilterSlot(source == : Entity(tt:contact)) filter.==.$source Who is allowed to ask you for this command?']
+    [],
+    ['FieldSlot(lhs : Entity(tt:contact)) compute_filter.lhs What is the left hand side of the filter?',
+     'FieldSlot(rhs : Entity(tt:contact)) compute_filter.rhs What is the right hand side of the filter?'],
     ],
 
-    [`$policy { in_array(source, $?) : now => @com.twitter.post; }`,
+    [`$policy { in_array($source, $?) : now => @com.twitter.post; }`,
 
     [],
-    ['Atom(source, in_array, Undefined(true))'],
-    ['FilterSlot(source in_array : Array(Entity(tt:contact))) filter.in_array.$source Who is allowed to ask you for this command?']
+    [],
+    ['FieldSlot(lhs : Entity(tt:contact)) compute_filter.lhs What is the left hand side of the filter?',
+     'FieldSlot(rhs : Array(Entity(tt:contact))) compute_filter.rhs What is the right hand side of the filter?'],
     ],
 
-    [`$policy { in_array(source, [$?, $?]) : now => @com.twitter.post; }`,
+    [`$policy { in_array($source, [$?, $?]) : now => @com.twitter.post; }`,
 
     [],
-    ['Atom(source, in_array, Array(Undefined(true),Undefined(true)))'],
-    ['FilterSlot(source in_array : Array(Entity(tt:contact))) filter.in_array.$source Who is allowed to ask you for this command?',
-    'ArrayIndexSlot([0] : Entity(tt:contact)) filter.in_array.$source.0 Who is the first friend who is allowed to ask you for this command?',
-    'ArrayIndexSlot([1] : Entity(tt:contact)) filter.in_array.$source.1 Who is the second friend who is allowed to ask you for this command?']
+    [],
+    ['FieldSlot(lhs : Entity(tt:contact)) compute_filter.lhs What is the left hand side of the filter?',
+    'FieldSlot(rhs : Array(Entity(tt:contact))) compute_filter.rhs What is the right hand side of the filter?',
+    'ArrayIndexSlot([0] : Entity(tt:contact)) compute_filter.rhs.0 What is the first value of the filter right hand side?',
+    'ArrayIndexSlot([1] : Entity(tt:contact)) compute_filter.rhs.1 What is the second value of the filter right hand side?']
     ],
 
     [`now => @org.schema.restaurant(), count(review filter author =~ "bob") >= 1 => notify;`,
@@ -415,7 +418,7 @@ let TEST_CASES = [
     ['Device(org.schema, , ) org.schema:restaurant'],
     ['Selector(@org.schema)',
      'FieldSlot(lhs : Number) compute_filter.lhs What is the left hand side of the filter?',
-     'ComputationOperandSlot(count[0] : Array(x)) compute_filter.lhs.count.0 What is the first operand to count you would like?',
+     'ComputationOperandSlot(count[0] : Array(Compound)) compute_filter.lhs.count.0 What is the first operand to count you would like?',
      'FieldSlot(rhs : Number) compute_filter.rhs What is the right hand side of the filter?']
     ],
 
@@ -455,9 +458,9 @@ now => [food] of ((@uk.ac.cam.multiwoz.Restaurant.Restaurant()), true) => notify
     ['query: Invocation(Device(com.yelp, , ), restaurant, , )'],
     ['Device(com.yelp, , ) com.yelp:restaurant'],
     ['Selector(@com.yelp)',
-    'ArrayIndexSlot([0] : Measure(m)) expression.computations.0 What parameter would you like?',
-    'ComputationOperandSlot(distance[0] : Location) expression.computations.0.distance.0 What is the first operand to distance you would like?',
-    'ComputationOperandSlot(distance[1] : Location) expression.computations.0.distance.1 What is the second operand to distance you would like?']
+    'ArrayIndexSlot([0] : Measure(m)) computations.0 What parameter would you like?',
+    'ComputationOperandSlot(distance[0] : Location) computations.0.distance.0 What is the first operand to distance you would like?',
+    'ComputationOperandSlot(distance[1] : Location) computations.0.distance.1 What is the second operand to distance you would like?']
     ],
 
     [`monitor( @security-camera.current_event()), (has_person == true && any(@org.thingpedia.builtin.thingengine.builtin.get_gps(), location == new Location(1, 2)))  => notify;`,
