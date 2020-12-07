@@ -756,8 +756,15 @@ constant_Date : Ast.DateValue = {
 
 absolute_or_edge_date : Ast.DateValue = {
     'new' 'Date' '(' year:constant_Number ',' month:constant_Number ',' day:constant_Number ')' => {
+        let yearnum = year.value;
+        if (yearnum > 0 && yearnum < 100) {
+            if (yearnum >= 50)
+                yearnum = 1900 + yearnum;
+            else
+                yearnum = 2000 + yearnum;
+        }
         const d = new Date;
-        d.setFullYear(year.value);
+        d.setFullYear(yearnum);
         d.setMonth(month.value-1);
         d.setDate(day.value);
         d.setHours(0);
@@ -769,7 +776,14 @@ absolute_or_edge_date : Ast.DateValue = {
     'new' 'Date' '(' year:constant_Number ',' month:constant_Number ',' day:constant_Number ','
                      hours:constant_Number ',' minutes:constant_Number ',' seconds:constant_Number ')' => {
         const d = new Date;
-        d.setFullYear(year.value);
+        let yearnum = year.value;
+        if (yearnum > 0 && yearnum < 100) {
+            if (yearnum >= 50)
+                yearnum = 1900 + yearnum;
+            else
+                yearnum = 2000 + yearnum;
+        }
+        d.setFullYear(yearnum);
         d.setMonth(month.value-1);
         d.setDate(day.value);
         d.setHours(hours.value);
