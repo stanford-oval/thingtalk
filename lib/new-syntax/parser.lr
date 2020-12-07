@@ -944,9 +944,9 @@ primary_expression : Ast.Expression = {
     'sort' '(' spec:sort_specifier 'of' expr:chain_expression ')'
         => new Ast.SortExpression($.location, expr, spec[0], spec[1], null);
 
-    op:aggr_op '(' name:variable_name 'of' expr:chain_expression ')'
+    op:aggr_op '(' name:qualified_name 'of' expr:chain_expression ')'
         => new Ast.AggregationExpression($.location, expr, name, op, null);
-    'count' '(' name:variable_name 'of' expr:chain_expression ')'
+    'count' '(' name:qualified_name 'of' expr:chain_expression ')'
         => new Ast.AggregationExpression($.location, expr, name, 'count', null);
     'count' '(' expr:chain_expression ')'
         => new Ast.AggregationExpression($.location, expr, '*', 'count', null);
@@ -954,7 +954,7 @@ primary_expression : Ast.Expression = {
     'monitor' '(' expr:chain_expression ')'
         => new Ast.MonitorExpression($.location, expr, null, null);
 
-    'monitor' '(' args:variable_name_list 'of' expr:chain_expression ')'
+    'monitor' '(' args:qualified_name_list 'of' expr:chain_expression ')'
         => new Ast.MonitorExpression($.location, expr, args, null);
 
     name:udf_function_name in_params:in_param_list
@@ -1184,7 +1184,7 @@ atom_filter : Ast.BooleanExpression = {
 
     '(' filter:or_filter ')' => filter;
 
-    'true' '(' pname:variable_name ')' => new Ast.BooleanExpression.DontCare($.location, pname);
+    'true' '(' pname:qualified_name ')' => new Ast.BooleanExpression.DontCare($.location, pname);
 
     op:function_like_comparison_op '(' lhs:value ',' rhs:value ')' => {
         if (lhs instanceof Ast.VarRefValue)
@@ -1830,10 +1830,10 @@ udf_function_name : string = {
     contextual_keyword;
 }
 
-variable_name_list : string[] = {
-    name:variable_name => [name];
+qualified_name_list : string[] = {
+    name:qualified_name => [name];
 
-    list:variable_name_list ',' name:variable_name => {
+    list:qualified_name_list ',' name:qualified_name => {
         list.push(name);
         return list;
     };

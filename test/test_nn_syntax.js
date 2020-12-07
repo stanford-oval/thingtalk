@@ -619,6 +619,10 @@ const TEST_CASES = [
     ['timer ( base = $now , interval = NUMBER_0 min ) => @com.tesla.car . get_mobile_enabled ( ) ;',
      'check the status of my tesla car every NUMBER_0 minutes', { NUMBER_0: 44 },
      'timer(base=$now, interval=44min) => @com.tesla.car.get_mobile_enabled();'],
+
+    ['sum ( aggregateRating.reviewCount of @org.schema . restaurant ( ) filter name =~ " holiday inn " ) ;',
+     'get the review count of the holiday inn', {},
+     'sum(aggregateRating.reviewCount of @org.schema.restaurant() filter name =~ "holiday inn");'],
 ];
 
 async function testCase(test, i) {
