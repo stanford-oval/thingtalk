@@ -266,8 +266,7 @@ function parseIncompleteDate($ : $runtime.ParserInterface,
 
         if (parts.length > 3)
             time = new Ast.Time.Absolute(parts[3] || 0, parts[4] || 0, parts[5] || 0);
-        return new Ast.Value.Date(new Ast.DatePiece(year, month, day,
-            time ? new Ast.Value.Time(time) : null));
+        return new Ast.Value.Date(new Ast.DatePiece(year, month, day, time));
     }
 }
 
@@ -1625,19 +1624,19 @@ absolute_or_edge_date : Ast.DateValue = {
         return new Ast.Value.Date(d);
     };
     'new' 'Date' '(' weekday:enum_literal ',' time:absolute_time ')' => {
-        const d = new Ast.WeekDayDate(weekday, new Ast.Value.Time(time));
+        const d = new Ast.WeekDayDate(weekday, time);
         return new Ast.Value.Date(d);
     };
     'new' 'Date' '(' weekday:enum_literal ',' hours:constant_Number ',' minutes:constant_Number ',' seconds:constant_Number ')' => {
-        const d = new Ast.WeekDayDate(weekday, new Ast.Value.Time(new Ast.Time.Absolute(hours.value, minutes.value, seconds.value)));
+        const d = new Ast.WeekDayDate(weekday, new Ast.Time.Absolute(hours.value, minutes.value, seconds.value));
         return new Ast.Value.Date(d);
     };
     'new' 'Date' '(' weekday:enum_literal ',' hours:constant_Number ',' minutes:constant_Number ',' ')' => {
-        const d = new Ast.WeekDayDate(weekday, new Ast.Value.Time(new Ast.Time.Absolute(hours.value, minutes.value, 0)));
+        const d = new Ast.WeekDayDate(weekday, new Ast.Time.Absolute(hours.value, minutes.value, 0));
         return new Ast.Value.Date(d);
     };
     'new' 'Date' '(' weekday:enum_literal ',' hours:constant_Number ',' minutes:constant_Number ')' => {
-        const d = new Ast.WeekDayDate(weekday, new Ast.Value.Time(new Ast.Time.Absolute(hours.value, minutes.value, 0)));
+        const d = new Ast.WeekDayDate(weekday, new Ast.Time.Absolute(hours.value, minutes.value, 0));
         return new Ast.Value.Date(d);
     };
 

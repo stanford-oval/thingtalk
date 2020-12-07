@@ -136,7 +136,7 @@ class Describer {
             const day = this._(date.day === null ?
                              "1" :
                              date.day.toString());
-            const time = date.time === null ? this._("start of day") : this._describeTime(date.time.value);
+            const time = date.time === null ? this._("start of day") : this._describeTime(date.time);
             base = this._interp(this._("${time} on day ${day} of ${month}, ${year}"),
                                 { year, month, day, time });
         } else if (date instanceof Ast.DateEdge) {
@@ -172,7 +172,7 @@ class Describer {
             else
                 base = this._interp(this._("the end of ${unit}"), { unit });
         } else if (date instanceof Ast.WeekDayDate) {
-            const time = date.time === null ? this._("start of day") : this._describeTime(date.time.value);
+            const time = date.time === null ? this._("start of day") : this._describeTime(date.time);
             const weekday = this._(date.weekday);
             base = this._interp(this._("${time} on ${weekday}"), { time, weekday });
         } else {
