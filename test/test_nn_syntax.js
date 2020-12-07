@@ -557,7 +557,7 @@ const TEST_CASES = [
     `i 'm looking for a restaurant , i do n't care what cuisine`, {},
     `@com.yelp.restaurant() filter true(cuisines);`],
 
-    ['@org.schema.full . Recipe ( ) filter nutrition.fatContent >= MEASURE_kg_0 && nutrition.sugarContent >= MEASURE_kg_0 ;',
+    ['@org.schema.full . Recipe ( ) filter nutrition . fatContent >= MEASURE_kg_0 && nutrition . sugarContent >= MEASURE_kg_0 ;',
      `yeah please find a recipe with that fat content and that sugar content`, { MEASURE_kg_0: { value: 13, unit: 'kg' } },
      `@org.schema.full.Recipe() filter nutrition.fatContent >= 13kg && nutrition.sugarContent >= 13kg;`],
 
@@ -620,8 +620,12 @@ const TEST_CASES = [
      'check the status of my tesla car every NUMBER_0 minutes', { NUMBER_0: 44 },
      'timer(base=$now, interval=44min) => @com.tesla.car.get_mobile_enabled();'],
 
-    ['sum ( aggregateRating.reviewCount of @org.schema . restaurant ( ) filter name =~ " holiday inn " ) ;',
+    ['[ aggregateRating . reviewCount ] of @org.schema . restaurant ( ) filter name =~ " holiday inn " ;',
      'get the review count of the holiday inn', {},
+     '[aggregateRating.reviewCount] of @org.schema.restaurant() filter name =~ "holiday inn";'],
+
+    ['sum ( aggregateRating . reviewCount of @org.schema . restaurant ( ) filter name =~ " holiday inn " ) ;',
+     'sum the review count of the holiday inn', {},
      'sum(aggregateRating.reviewCount of @org.schema.restaurant() filter name =~ "holiday inn");'],
 ];
 

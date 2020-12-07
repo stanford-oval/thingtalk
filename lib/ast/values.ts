@@ -686,7 +686,7 @@ export class VarRefValue extends Value {
     }
 
     toSource() : TokenStream {
-        return List.singleton(this.name);
+        return List.join(this.name.split('.').map((n) => List.singleton(n)), '.');
     }
 
     toString() : string {

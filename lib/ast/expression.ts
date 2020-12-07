@@ -666,11 +666,13 @@ export class AtomBooleanExpression extends BooleanExpression {
     }
 
     toSource() : TokenStream {
+        const name = List.join(this.name.split('.').map((n) => List.singleton(n)), '.');
+
         if (INFIX_COMPARISON_OPERATORS.has(this.operator)) {
-            return List.concat(this.name, this.operator,
+            return List.concat(name, this.operator,
                 addParenthesis(SyntaxPriority.Add, this.value.priority, this.value.toSource()));
         } else {
-            return List.concat(this.operator, '(', this.name, ',', this.value.toSource(), ')');
+            return List.concat(this.operator, '(', name, ',', this.value.toSource(), ')');
         }
     }
 
