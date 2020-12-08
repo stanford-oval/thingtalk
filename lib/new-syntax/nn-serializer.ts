@@ -39,7 +39,7 @@ function isSmallPositiveInteger(value : number) : boolean {
     return Math.floor(value) === value && value >= 0 && value <= 12;
 }
 
-function findNumber(value : number, entityRetriever : AbstractEntityRetriever) : List<string> {
+function findNumber(value : number, entityRetriever : AbstractEntityRetriever, ignoreNotFound = false) : List<string> {
     if (isSmallPositiveInteger(value))
         return List.singleton(String(value));
 
@@ -52,7 +52,14 @@ function findNumber(value : number, entityRetriever : AbstractEntityRetriever) :
         if (found !== null)
             return List.concat('-', found);
     }
-    return entityRetriever.findEntity('NUMBER', value);
+    if (ignoreNotFound) {
+        const found = entityRetriever.findEntity('NUMBER', value, { ignoreNotFound: true });
+        if (found)
+            return found;
+        return List.singleton(String(value));
+    } else {
+        return entityRetriever.findEntity('NUMBER', value, { ignoreNotFound: false });
+    }
 }
 
 function findYear(year : number, entityRetriever : AbstractEntityRetriever) : List<string> {
@@ -163,13 +170,13 @@ function findEntity(constant : AnyConstantToken,
             return found;
         if (time.second !== 0) {
             return List.concat('new', 'Time', '(',
-                findNumber(time.hour, entityRetriever), ',',
-                findNumber(time.minute, entityRetriever), ',',
-                findNumber(time.second, entityRetriever), ')');
+                findNumber(time.hour, entityRetriever, true), ',',
+                findNumber(time.minute, entityRetriever, true), ',',
+                findNumber(time.second, entityRetriever, true), ')');
         } else {
             return List.concat('new', 'Time', '(',
-                findNumber(time.hour, entityRetriever), ',',
-                findNumber(time.minute, entityRetriever), ')');
+                findNumber(time.hour, entityRetriever, true), ',',
+                findNumber(time.minute, entityRetriever, true), ')');
         }
     }
 
