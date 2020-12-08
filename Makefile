@@ -1,4 +1,4 @@
-%.ts : %.lr tools/generate-parser/*.js tools/generate-parser/grammar.js
+%.ts : %.lr tools/generate-parser/*.ts tools/generate-parser/grammar.js
 	ts-node tools/generate-parser $@ $<
 
 %.js : %.pegjs
