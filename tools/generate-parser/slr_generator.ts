@@ -684,9 +684,9 @@ export class SLRParserGenerator {
 
                             const printed = new Set<number>();
                             this._recursivePrintItemSet(itemSet.info.id, printed);
-                            if (existing[0] === 'shift')
-                                console.log(`WARNING: ignored shift-reduce conflict at state ${itemSet.info.id} terminal ${term} want ${["reduce", ruleId]} have ${existing}`);
-                            else
+                            //if (existing[0] === 'shift')
+                            //    console.log(`WARNING: ignored shift-reduce conflict at state ${itemSet.info.id} terminal ${term} want ${["reduce", ruleId]} have ${existing}`);
+                            //else
                                 throw new Error(`Conflict for state ${itemSet.info.id} terminal ${term} want ${["reduce", ruleId]} have ${existing}`);
                         } else {
                             this.actionTable[itemSet.info.id][term] = ['reduce', ruleId];

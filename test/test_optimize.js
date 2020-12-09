@@ -24,96 +24,96 @@ import * as AppGrammar from '../lib/syntax_api';
 const TEST_CASES = [
     [
         `now => [text] of (@com.twitter.home_timeline()) => @com.twitter.post(status=text);`,
-        `@com.twitter.home_timeline() => @com.twitter.post(status=text);`
+        `@com.twitter.home_timeline => @com.twitter.post(status=text);`
     ],
     [
         `now => ([text] of @com.twitter.home_timeline()), text =~ "lol" => notify;`,
-        `[text] of @com.twitter.home_timeline() filter text =~ "lol";`
+        `[text] of @com.twitter.home_timeline filter text =~ "lol";`
     ],
     [
         `now => ([text] of @com.twitter.home_timeline()), text =~ "lol" => @com.twitter.post(status=text);`,
-        `@com.twitter.home_timeline() filter text =~ "lol" => @com.twitter.post(status=text);`
+        `@com.twitter.home_timeline filter text =~ "lol" => @com.twitter.post(status=text);`
     ],
     [
         `monitor ([text] of (@com.twitter.home_timeline())) => @com.twitter.post(status=text);`,
-        `monitor(text of @com.twitter.home_timeline()) => @com.twitter.post(status=text);`
+        `monitor(text of @com.twitter.home_timeline) => @com.twitter.post(status=text);`
     ],
     [
         `monitor (([text] of @com.twitter.home_timeline()), text =~ "lol") => notify;`,
-        `[text] of monitor(text of @com.twitter.home_timeline() filter text =~ "lol");`
+        `[text] of monitor(text of @com.twitter.home_timeline filter text =~ "lol");`
     ],
     [
-        `monitor (([text] of @com.twitter.home_timeline()), text =~ "lol") => @com.twitter.post(status=text);`,
-        `monitor(text of @com.twitter.home_timeline() filter text =~ "lol") => @com.twitter.post(status=text);`
+        `monitor (([text] of @com.twitter.home_timeline), text =~ "lol") => @com.twitter.post(status=text);`,
+        `monitor(text of @com.twitter.home_timeline filter text =~ "lol") => @com.twitter.post(status=text);`
     ],
     [
-        `now => [count] of count(@com.twitter.home_timeline()) => notify;`,
-        `count(@com.twitter.home_timeline());`
-    ],
-
-    [
-        `now => [text] of [text, author] of @com.twitter.home_timeline() => notify;`,
-        `[text] of @com.twitter.home_timeline();`,
+        `now => [count] of count(@com.twitter.home_timeline) => notify;`,
+        `count(@com.twitter.home_timeline);`
     ],
 
     [
-        `now => [text] of (([text, author] of @com.twitter.home_timeline()), text =~ "lol") => notify;`,
-        `[text] of @com.twitter.home_timeline() filter text =~ "lol";`
+        `now => [text] of [text, author] of @com.twitter.home_timeline => notify;`,
+        `[text] of @com.twitter.home_timeline;`,
     ],
 
     [
-        `monitor ([text, author] of @com.twitter.home_timeline()) => notify;`,
-        `[text, author] of monitor(text, author of @com.twitter.home_timeline());`
+        `now => [text] of (([text, author] of @com.twitter.home_timeline), text =~ "lol") => notify;`,
+        `[text] of @com.twitter.home_timeline filter text =~ "lol";`
     ],
 
     [
-        `monitor (text of [text, author] of @com.twitter.home_timeline()) => notify;`,
-        `[text, author] of monitor(text of @com.twitter.home_timeline());`
+        `monitor ([text, author] of @com.twitter.home_timeline) => notify;`,
+        `[text, author] of monitor(text, author of @com.twitter.home_timeline);`
     ],
 
     [
-        `monitor ([text, author] of @com.twitter.home_timeline()) => @com.twitter.post(status=text);`,
-        `monitor(text, author of @com.twitter.home_timeline()) => @com.twitter.post(status=text);`
+        `monitor (text of [text, author] of @com.twitter.home_timeline) => notify;`,
+        `[text, author] of monitor(text of @com.twitter.home_timeline);`
     ],
 
     [
-        `monitor (@com.twitter.home_timeline()), author == "bob"^^tt:username || author == "charlie"^^tt:username => notify;`,
-        `monitor(@com.twitter.home_timeline()) filter in_array(author, ["bob"^^tt:username, "charlie"^^tt:username]);`
+        `monitor ([text, author] of @com.twitter.home_timeline) => @com.twitter.post(status=text);`,
+        `monitor(text, author of @com.twitter.home_timeline) => @com.twitter.post(status=text);`
     ],
 
     [
-        `monitor (@com.twitter.home_timeline(), author == "bob"^^tt:username || author == "charlie"^^tt:username) => notify;`,
-        `monitor(@com.twitter.home_timeline() filter in_array(author, ["bob"^^tt:username, "charlie"^^tt:username]));`
+        `monitor (@com.twitter.home_timeline), author == "bob"^^tt:username || author == "charlie"^^tt:username => notify;`,
+        `monitor(@com.twitter.home_timeline) filter in_array(author, ["bob"^^tt:username, "charlie"^^tt:username]);`
     ],
 
     [
-        `now => @org.schema.full.Restaurant(), id =~ "starbucks" || id =~ "mcdonalds" => notify;`,
-        `@org.schema.full.Restaurant() filter in_array~(id, ["starbucks", "mcdonalds"]);`
+        `monitor (@com.twitter.home_timeline, author == "bob"^^tt:username || author == "charlie"^^tt:username) => notify;`,
+        `monitor(@com.twitter.home_timeline filter in_array(author, ["bob"^^tt:username, "charlie"^^tt:username]));`
     ],
 
     [
-        `now => @org.schema.restaurant(), 500mi >= distance(geo, $location.current_location) => notify;`,
-        `@org.schema.restaurant() filter distance(geo, $location.current_location) <= 500mi;`
+        `now => @org.schema.full.Restaurant, id =~ "starbucks" || id =~ "mcdonalds" => notify;`,
+        `@org.schema.full.Restaurant filter in_array~(id, ["starbucks", "mcdonalds"]);`
     ],
 
     [
-        `now => @org.schema.restaurant(), 1 == 1 => notify;`,
-        `@org.schema.restaurant();`
+        `now => @org.schema.restaurant, 500mi >= distance(geo, $location.current_location) => notify;`,
+        `@org.schema.restaurant filter distance(geo, $location.current_location) <= 500mi;`
     ],
 
     [
-        `now => @org.schema.restaurant(), 1 >= 1 => notify;`,
-        `@org.schema.restaurant();`
+        `now => @org.schema.restaurant, 1 == 1 => notify;`,
+        `@org.schema.restaurant;`
     ],
 
     [
-        `now => @org.schema.restaurant(), geo == geo => notify;`,
-        `@org.schema.restaurant();`
+        `now => @org.schema.restaurant, 1 >= 1 => notify;`,
+        `@org.schema.restaurant;`
+    ],
+
+    [
+        `now => @org.schema.restaurant, geo == geo => notify;`,
+        `@org.schema.restaurant;`
     ],
 
     [
 `$dialogue @org.thingpedia.dialogue.transaction.execute;
-now => [food] of ((@uk.ac.cam.multiwoz.Restaurant.Restaurant()), true) => notify
+now => [food] of ((@uk.ac.cam.multiwoz.Restaurant.Restaurant), true) => notify
 #[results=[
   { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::0:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::9:", price_range=enum moderate, area=enum south },
   { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::1:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::25:", price_range=enum moderate, area=enum centre },
@@ -129,7 +129,7 @@ now => [food] of ((@uk.ac.cam.multiwoz.Restaurant.Restaurant()), true) => notify
 #[count=50]
 #[more=true];`,
 `$dialogue @org.thingpedia.dialogue.transaction.execute;
-[food] of @uk.ac.cam.multiwoz.Restaurant.Restaurant()
+[food] of @uk.ac.cam.multiwoz.Restaurant.Restaurant
 #[results=[
   { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::0:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::9:", price_range=enum moderate, area=enum south },
   { id="str:ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant::1:"^^uk.ac.cam.multiwoz.Restaurant:Restaurant, food="str:QUOTED_STRING::25:", price_range=enum moderate, area=enum centre },
@@ -148,136 +148,136 @@ now => [food] of ((@uk.ac.cam.multiwoz.Restaurant.Restaurant()), true) => notify
 
     [`
 $dialogue @org.thingpedia.dialogue.transaction.execute;
-now => [distance(geo, $location.current_location)] of @com.yelp.restaurant() => notify
+now => [distance(geo, $location.current_location)] of @com.yelp.restaurant => notify
 #[results=[
 { distance=1.5604449514735575e-9 },
 { distance=0 }
 ]];
 `,
     `$dialogue @org.thingpedia.dialogue.transaction.execute;
-[distance(geo, $location.current_location)] of @com.yelp.restaurant()
+[distance(geo, $location.current_location)] of @com.yelp.restaurant
 #[results=[
   { distance=1.5604449514735575e-9 },
   { distance=0 }
 ]];`],
 
-    [`monitor (@com.twitter.home_timeline(), text =~ "foo" || (text =~"bar" && !(text =~ "lol"))) => notify;`,
-     `monitor(@com.twitter.home_timeline() filter !(text =~ "lol") && text =~ "bar" || text =~ "foo");`
+    [`monitor (@com.twitter.home_timeline, text =~ "foo" || (text =~"bar" && !(text =~ "lol"))) => notify;`,
+     `monitor(@com.twitter.home_timeline filter !(text =~ "lol") && text =~ "bar" || text =~ "foo");`
     ],
 
-    [`now => [aggregateRating.ratingValue] of (sort(distance(geo, new Location("foo")) asc of @org.schema.restaurant(), name =~ $context.selection : String)[1]) => notify;`,
-    `[aggregateRating.ratingValue] of sort(distance(geo, new Location("foo")) asc of @org.schema.restaurant() filter name =~ $context.selection : String)[1];`
+    [`now => [aggregateRating.ratingValue] of (sort(distance(geo, new Location("foo")) asc of @org.schema.restaurant, name =~ $context.selection : String)[1]) => notify;`,
+    `[aggregateRating.ratingValue] of sort(distance(geo, new Location("foo")) asc of @org.schema.restaurant filter name =~ $context.selection : String)[1];`
     ],
 
     // remove redundant * projection
-    [`[*] of @com.yelp.restaurant() => notify;`,
-     `@com.yelp.restaurant();`],
+    [`[*] of @com.yelp.restaurant => notify;`,
+     `@com.yelp.restaurant;`],
 
     // remove redundant * projection
-    [`[distance(geo, $location.current_location)] of [*] of @com.yelp.restaurant() => notify;`,
-     `[distance(geo, $location.current_location)] of @com.yelp.restaurant();`],
+    [`[distance(geo, $location.current_location)] of [*] of @com.yelp.restaurant => notify;`,
+     `[distance(geo, $location.current_location)] of @com.yelp.restaurant;`],
 
     // remove redundant projection
-    [`[distance(geo, $location.current_location)] of [geo] of @com.yelp.restaurant() => notify;`,
-     `[distance(geo, $location.current_location)] of @com.yelp.restaurant();`],
+    [`[distance(geo, $location.current_location)] of [geo] of @com.yelp.restaurant => notify;`,
+     `[distance(geo, $location.current_location)] of @com.yelp.restaurant;`],
 
     // remove redundant computation
-    [`[distance(geo, $location.current_location)] of [*, distance(geo, $location.current_location)] of @com.yelp.restaurant() => notify;`,
-     `[distance(geo, $location.current_location)] of @com.yelp.restaurant();`],
+    [`[distance(geo, $location.current_location)] of [*, distance(geo, $location.current_location)] of @com.yelp.restaurant => notify;`,
+     `[distance(geo, $location.current_location)] of @com.yelp.restaurant;`],
 
-    [`[*, distance(geo, $location.current_location)] of [*, distance(geo, $location.current_location)] of @com.yelp.restaurant() => notify;`,
-     `[*, distance(geo, $location.current_location)] of @com.yelp.restaurant();`],
+    [`[*, distance(geo, $location.current_location)] of [*, distance(geo, $location.current_location)] of @com.yelp.restaurant => notify;`,
+     `[*, distance(geo, $location.current_location)] of @com.yelp.restaurant;`],
 
-    [`[*, distance(geo, $location.current_location)] of [distance(geo, $location.current_location)] of @com.yelp.restaurant() => notify;`,
-     `[distance(geo, $location.current_location)] of @com.yelp.restaurant();`],
+    [`[*, distance(geo, $location.current_location)] of [distance(geo, $location.current_location)] of @com.yelp.restaurant => notify;`,
+     `[distance(geo, $location.current_location)] of @com.yelp.restaurant;`],
 
     // remove shadowed computation
-    [`[distance(geo, $location.current_location)] of [*, distance(geo, $location.home)] of @com.yelp.restaurant() => notify;`,
-     `[distance(geo, $location.current_location)] of @com.yelp.restaurant();`],
+    [`[distance(geo, $location.current_location)] of [*, distance(geo, $location.home)] of @com.yelp.restaurant => notify;`,
+     `[distance(geo, $location.current_location)] of @com.yelp.restaurant;`],
 
     // collapse invisible compuations
-    [`[distance(geo, $location.current_location)] of [*, rating + 2] of @com.yelp.restaurant() => notify;`,
-     `[distance(geo, $location.current_location)] of @com.yelp.restaurant();`],
+    [`[distance(geo, $location.current_location)] of [*, rating + 2] of @com.yelp.restaurant => notify;`,
+     `[distance(geo, $location.current_location)] of @com.yelp.restaurant;`],
 
     // collapse invisible computations
-    [`[distance(geo, $location.current_location)] of [geo, rating + 2] of @com.yelp.restaurant() => notify;`,
-     `[distance(geo, $location.current_location)] of @com.yelp.restaurant();`],
+    [`[distance(geo, $location.current_location)] of [geo, rating + 2] of @com.yelp.restaurant => notify;`,
+     `[distance(geo, $location.current_location)] of @com.yelp.restaurant;`],
 
     // collapse the use of the result
-    [`[geo, distance(geo, $location.current_location), result] of [geo, rating + 2] of @com.yelp.restaurant() => notify;`,
-     `[geo, distance(geo, $location.current_location), rating + 2] of @com.yelp.restaurant();`],
+    [`[geo, distance(geo, $location.current_location), result] of [geo, rating + 2] of @com.yelp.restaurant => notify;`,
+     `[geo, distance(geo, $location.current_location), rating + 2] of @com.yelp.restaurant;`],
 
     // preserve variable dependencies
-    [`[result + 2] of [rating + 2] of @com.yelp.restaurant() => notify;`,
-     `[result + 2] of [*, rating + 2] of @com.yelp.restaurant();`],
+    [`[result + 2] of [rating + 2] of @com.yelp.restaurant => notify;`,
+     `[result + 2] of [*, rating + 2] of @com.yelp.restaurant;`],
 
-    [`[result + 2] of [result + 2] of [rating + 2] of @com.yelp.restaurant() => notify;`,
-     `[result + 2] of [*, result + 2] of [*, rating + 2] of @com.yelp.restaurant();`],
+    [`[result + 2] of [result + 2] of [rating + 2] of @com.yelp.restaurant => notify;`,
+     `[result + 2] of [*, result + 2] of [*, rating + 2] of @com.yelp.restaurant;`],
 
     // preserve variable dependencies, with alias
-    [`[foo + 2] of [rating + 2 as foo] of @com.yelp.restaurant() => notify;`,
-     `[foo + 2] of [*, rating + 2 as foo] of @com.yelp.restaurant();`],
+    [`[foo + 2] of [rating + 2 as foo] of @com.yelp.restaurant => notify;`,
+     `[foo + 2] of [*, rating + 2 as foo] of @com.yelp.restaurant;`],
 
     // shadow, with alias
-    [`[rating + 2 as foo] of [*, rating + 3 as foo] of @com.yelp.restaurant() => notify;`,
-     `[rating + 2 as foo] of @com.yelp.restaurant();`],
+    [`[rating + 2 as foo] of [*, rating + 3 as foo] of @com.yelp.restaurant => notify;`,
+     `[rating + 2 as foo] of @com.yelp.restaurant;`],
 
-    [`[rating + 2 as foo] of [rating, rating + 3 as foo] of @com.yelp.restaurant() => notify;`,
-     `[rating + 2 as foo] of @com.yelp.restaurant();`],
+    [`[rating + 2 as foo] of [rating, rating + 3 as foo] of @com.yelp.restaurant => notify;`,
+     `[rating + 2 as foo] of @com.yelp.restaurant;`],
 
-    [`[*, rating + 2 as foo] of [rating, rating + 3 as foo] of @com.yelp.restaurant() => notify;`,
-     `[rating, rating + 2 as foo] of @com.yelp.restaurant();`],
+    [`[*, rating + 2 as foo] of [rating, rating + 3 as foo] of @com.yelp.restaurant => notify;`,
+     `[rating, rating + 2 as foo] of @com.yelp.restaurant;`],
 
-    [`[*, rating + 2 as foo] of [*, rating + 3 as foo] of @com.yelp.restaurant() => notify;`,
-     `[*, rating + 2 as foo] of @com.yelp.restaurant();`],
+    [`[*, rating + 2 as foo] of [*, rating + 3 as foo] of @com.yelp.restaurant => notify;`,
+     `[*, rating + 2 as foo] of @com.yelp.restaurant;`],
 
     // remove redundant projection at the top
-    [`[result] of [rating + 2] of @com.yelp.restaurant();`,
-     `[rating + 2] of @com.yelp.restaurant();`],
+    [`[result] of [rating + 2] of @com.yelp.restaurant;`,
+     `[rating + 2] of @com.yelp.restaurant;`],
 
     // remove redundant projection at the top, with alias
-    [`[foo] of [rating + 2 as foo] of @com.yelp.restaurant();`,
-     `[rating + 2 as foo] of @com.yelp.restaurant();`],
+    [`[foo] of [rating + 2 as foo] of @com.yelp.restaurant;`,
+     `[rating + 2 as foo] of @com.yelp.restaurant;`],
 
-    [`sort(distance asc of [distance(geo, $location.current_location)] of @com.yelp.restaurant());`,
-     `[distance(geo, $location.current_location)] of sort(distance(geo, $location.current_location) asc of @com.yelp.restaurant());`],
+    [`sort(distance asc of [distance(geo, $location.current_location)] of @com.yelp.restaurant);`,
+     `[distance(geo, $location.current_location)] of sort(distance(geo, $location.current_location) asc of @com.yelp.restaurant);`],
 
-    [`sort(distance asc of [*, distance(geo, $location.current_location)] of @com.yelp.restaurant());`,
-     `[*, distance(geo, $location.current_location)] of sort(distance(geo, $location.current_location) asc of @com.yelp.restaurant());`],
+    [`sort(distance asc of [*, distance(geo, $location.current_location)] of @com.yelp.restaurant);`,
+     `[*, distance(geo, $location.current_location)] of sort(distance(geo, $location.current_location) asc of @com.yelp.restaurant);`],
 
-    [`[distance(geo, $location.current_location)] of sort(distance asc of [distance(geo, $location.current_location)] of @com.yelp.restaurant());`,
-     `[distance(geo, $location.current_location)] of sort(distance(geo, $location.current_location) asc of @com.yelp.restaurant());`],
+    [`[distance(geo, $location.current_location)] of sort(distance asc of [distance(geo, $location.current_location)] of @com.yelp.restaurant);`,
+     `[distance(geo, $location.current_location)] of sort(distance(geo, $location.current_location) asc of @com.yelp.restaurant);`],
 
-    [`[distance(geo, $location.current_location)] of sort(distance asc of [*, distance(geo, $location.current_location)] of @com.yelp.restaurant());`,
-     `[distance(geo, $location.current_location)] of sort(distance(geo, $location.current_location) asc of @com.yelp.restaurant());`],
+    [`[distance(geo, $location.current_location)] of sort(distance asc of [*, distance(geo, $location.current_location)] of @com.yelp.restaurant);`,
+     `[distance(geo, $location.current_location)] of sort(distance(geo, $location.current_location) asc of @com.yelp.restaurant);`],
 
     // projection of chain to chain of projection
-    [`[link] of (@com.washingtonpost.get_article() => @com.bing.web_search(query=title));`,
-    `@com.washingtonpost.get_article() => [link] of @com.bing.web_search(query=title);`],
+    [`[link] of (@com.washingtonpost.get_article => @com.bing.web_search(query=title));`,
+    `@com.washingtonpost.get_article => [link] of @com.bing.web_search(query=title);`],
 
     // nested chains
-    [`(@com.bing.web_search() => @com.yandex.translate.translate(text=title)) => @com.twitter.post(status=translated_text);`,
-    `@com.bing.web_search() => @com.yandex.translate.translate(text=title) => @com.twitter.post(status=translated_text);`],
+    [`(@com.bing.web_search => @com.yandex.translate.translate(text=title)) => @com.twitter.post(status=translated_text);`,
+    `@com.bing.web_search => @com.yandex.translate.translate(text=title) => @com.twitter.post(status=translated_text);`],
 
     // remove redundant device ID
-    ['@com.yelp(id="com.yelp").restaurant();',
-     '@com.yelp.restaurant();'],
+    ['@com.yelp(id="com.yelp").restaurant;',
+     '@com.yelp.restaurant;'],
 
     // remove redundant device ID
-    ['@com.yelp(id="com.yelp", name="Yelp").restaurant();',
-     '@com.yelp.restaurant();'],
+    ['@com.yelp(id="com.yelp", name="Yelp").restaurant;',
+     '@com.yelp.restaurant;'],
 
     // remove redundant device ID
-    ['@com.yelp(id="com.yelp"^^tt:device_id("Yelp")).restaurant();',
-     '@com.yelp.restaurant();'],
+    ['@com.yelp(id="com.yelp"^^tt:device_id("Yelp")).restaurant;',
+     '@com.yelp.restaurant;'],
 
     // flip filters
-    ['@org.schema.full.Place() filter count(review) >= aggregateRating.ratingValue;',
-     '@org.schema.full.Place() filter aggregateRating.ratingValue <= count(review);'],
+    ['@org.schema.full.Place filter count(review) >= aggregateRating.ratingValue;',
+     '@org.schema.full.Place filter aggregateRating.ratingValue <= count(review);'],
 
     // __const is a VarRef, but it should not be moved to the left
-    ['@org.schema.full.Place() filter count(review) >= __const_NUMBER_0;',
-     '@org.schema.full.Place() filter count(review) >= __const_NUMBER_0;']
+    ['@org.schema.full.Place filter count(review) >= __const_NUMBER_0;',
+     '@org.schema.full.Place filter count(review) >= __const_NUMBER_0;']
 ];
 
 

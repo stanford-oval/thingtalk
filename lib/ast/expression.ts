@@ -312,8 +312,12 @@ export class Invocation extends Node {
             });
         }
 
-        return List.concat(this.selector.toSource(), '.', this.channel,
-            '(', List.join(filteredParams.map((ip) => ip.toSource()), ','), ')');
+        if (filteredParams.length > 0) {
+            return List.concat(this.selector.toSource(), '.', this.channel,
+                '(', List.join(filteredParams.map((ip) => ip.toSource()), ','), ')');
+        } else {
+            return List.concat(this.selector.toSource(), '.', this.channel);
+        }
     }
 
     clone() : Invocation {

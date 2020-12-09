@@ -2455,7 +2455,7 @@ some alt text` }
     { type: 'output',
       outputType: 'org.wikidata:query',
       value: {
-        query: '@org.wikidata.city() filter id =~ "palo alto";'
+        query: '@org.wikidata.city filter id =~ "palo alto";'
       }
     }]],
 
@@ -2471,7 +2471,7 @@ some alt text` }
     {
         type: 'action',
         fn: 'com.twitter:post',
-        params: { status: '@org.wikidata.city() filter postal_code =~ "94305";' }
+        params: { status: '@org.wikidata.city filter postal_code =~ "94305";' }
     }]],
 ];
 

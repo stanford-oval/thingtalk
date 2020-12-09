@@ -27,9 +27,9 @@ import _mockSchemaDelegate from './mock_schema_delegate';
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 const TEST_CASES = [
-    [`monitor ( @com.xkcd . get_comic ( ) ) ;`,
+    [`monitor ( @com.xkcd . get_comic ) ;`,
      `monitor xkcd`, {},
-     `monitor(@com.xkcd.get_comic());`
+     `monitor(@com.xkcd.get_comic);`
     ],
 
     [`@com.twitter . post ( status = QUOTED_STRING_0 ) ;`,
@@ -70,37 +70,37 @@ const TEST_CASES = [
     `get xkcd whose number is a random number max is NUMBER_0 min is NUMBER_1`, {'NUMBER_0': 1024, 'NUMBER_1': 55},
     `@org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55);`],
 
-    [`monitor ( @thermostat . get_temperature ( ) ) ;`,
+    [`monitor ( @thermostat . get_temperature ) ;`,
     `monitor thermostat`, {},
-    `monitor(@thermostat.get_temperature());`],
+    `monitor(@thermostat.get_temperature);`],
 
-    [`monitor ( @thermostat . get_temperature ( ) filter value >= NUMBER_0 F ) ;`,
+    [`monitor ( @thermostat . get_temperature filter value >= NUMBER_0 F ) ;`,
     `notify me if the temperature is above NUMBER_0 degrees`, {'NUMBER_0': 70},
-    `monitor(@thermostat.get_temperature() filter value >= 70F);`],
+    `monitor(@thermostat.get_temperature filter value >= 70F);`],
 
-    [`@com.bing . image_search ( ) filter height >= NUMBER_1 || width >= NUMBER_0 ;`,
+    [`@com.bing . image_search filter height >= NUMBER_1 || width >= NUMBER_0 ;`,
     `search images wider than NUMBER_0 pixels or taller than NUMBER_1 pixels`, {NUMBER_0: 100, NUMBER_1:200},
-    `@com.bing.image_search() filter height >= 200 || width >= 100;`],
+    `@com.bing.image_search filter height >= 200 || width >= 100;`],
 
-    [`@com.bing . image_search ( ) filter ( height >= NUMBER_1 || width >= NUMBER_0 ) && width <= NUMBER_2 ;`,
+    [`@com.bing . image_search filter ( height >= NUMBER_1 || width >= NUMBER_0 ) && width <= NUMBER_2 ;`,
     `search images wider than NUMBER_0 pixels || taller than NUMBER_1 pixels and narrower than NUMBER_2 pixels`, {NUMBER_0: 100, NUMBER_1:200, NUMBER_2: 500},
-    `@com.bing.image_search() filter (height >= 200 || width >= 100) && width <= 500;`],
+    `@com.bing.image_search filter (height >= 200 || width >= 100) && width <= 500;`],
 
-    [`@com.bing . image_search ( ) filter height >= NUMBER_0 || width >= NUMBER_0 ;`,
+    [`@com.bing . image_search filter height >= NUMBER_0 || width >= NUMBER_0 ;`,
     `search images larger than NUMBER_0 pixels in either dimension`, {NUMBER_0: 100},
-    `@com.bing.image_search() filter height >= 100 || width >= 100;`],
+    `@com.bing.image_search filter height >= 100 || width >= 100;`],
 
-    [`@com.bing . image_search ( ) filter width >= NUMBER_0 ;`,
+    [`@com.bing . image_search filter width >= NUMBER_0 ;`,
     `search images wider than NUMBER_0 pixels`, {NUMBER_0: 100 },
-    `@com.bing.image_search() filter width >= 100;`],
+    `@com.bing.image_search filter width >= 100;`],
 
-    ['monitor ( title of @com.xkcd . get_comic ( ) ) ;',
+    ['monitor ( title of @com.xkcd . get_comic ) ;',
     `monitor xkcd if the title changes`, {},
-    `monitor(title of @com.xkcd.get_comic());`],
+    `monitor(title of @com.xkcd.get_comic);`],
 
-    ['monitor ( alt_text , title of @com.xkcd . get_comic ( ) ) ;',
+    ['monitor ( alt_text , title of @com.xkcd . get_comic ) ;',
     `monitor xkcd if the title or alt text changes`, {},
-    `monitor(alt_text, title of @com.xkcd.get_comic());`],
+    `monitor(alt_text, title of @com.xkcd.get_comic);`],
 
     ['monitor ( @com.instagram . get_pictures ( count = NUMBER_0 ) filter in_array ( caption , [ QUOTED_STRING_0 , QUOTED_STRING_1 ] ) ) ;',
     `monitor my last NUMBER_0 instagram pics if the caption is either QUOTED_STRING_0 or QUOTED_STRING_1`, {NUMBER_0: 100, QUOTED_STRING_0: 'abc', QUOTED_STRING_1: 'def'},
@@ -110,39 +110,39 @@ const TEST_CASES = [
     `alert me every DURATION_0`, {DURATION_0: { value: 30, unit: 'min'}},
     `timer(base=$now, interval=30min);`],
 
-    ['monitor ( @com.phdcomics . get_post ( ) filter ! ( title =~ QUOTED_STRING_0 ) ) ;',
+    ['monitor ( @com.phdcomics . get_post filter ! ( title =~ QUOTED_STRING_0 ) ) ;',
     `monitor phd comics post that do n't have QUOTED_STRING_0 in the title`, {QUOTED_STRING_0: 'abc'}, //'
-    `monitor(@com.phdcomics.get_post() filter !(title =~ "abc"));`],
+    `monitor(@com.phdcomics.get_post filter !(title =~ "abc"));`],
 
     ['@com.uber . price_estimate ( end = $location . home , start = $location . work ) filter low_estimate >= CURRENCY_0 ;',
     `get an uber price estimate from home to work if the low estimate is greater than CURRENCY_0`, {CURRENCY_0: { value: 50, unit: 'usd' } },
     `@com.uber.price_estimate(end=$location.home, start=$location.work) filter low_estimate >= 50$usd;`],
 
-    ['@com.uber . price_estimate ( ) filter uber_type == enum uber_x ;',
+    ['@com.uber . price_estimate filter uber_type == enum uber_x ;',
     `get a price estimate for uber x`, {},
-    `@com.uber.price_estimate() filter uber_type == enum uber_x;`],
+    `@com.uber.price_estimate filter uber_type == enum uber_x;`],
 
     ['@org.thingpedia.builtin.thingengine.builtin . configure ( device = @com.google ) ;',
     `configure google`, {},
     `@org.thingpedia.builtin.thingengine.builtin.configure(device="com.google"^^tt:device);`],
 
-    ['@com.nytimes . get_front_page ( ) filter updated >= $now - DURATION_0 ;',
+    ['@com.nytimes . get_front_page filter updated >= $now - DURATION_0 ;',
      `get new york times articles published in the last DURATION_0`, { DURATION_0: { value: 15, unit: 'min' } },
-     `@com.nytimes.get_front_page() filter updated >= $now - 15min;`],
+     `@com.nytimes.get_front_page filter updated >= $now - 15min;`],
 
-    [`#[ executor = USERNAME_0 ] @com.twitter . post ( ) ;`,
+    [`#[ executor = USERNAME_0 ] @com.twitter . post ;`,
      `ask USERNAME_0 to post on twitter`, { USERNAME_0: 'bob' },
      `#[executor="bob"^^tt:username]
-@com.twitter.post();`],
+@com.twitter.post;`],
 
-    [`#[ executor = USERNAME_0 ] @com.xkcd . get_comic ( ) ;`,
+    [`#[ executor = USERNAME_0 ] @com.xkcd . get_comic ;`,
      `ask USERNAME_0 to get xkcd`, { USERNAME_0: 'bob' },
      `#[executor="bob"^^tt:username]
-@com.xkcd.get_comic();`],
+@com.xkcd.get_comic;`],
 
-    [`@security-camera . current_event ( ) filter any ( @org.thingpedia.builtin.thingengine.builtin . get_gps ( ) filter ! ( location == $location . home ) ) ;`,
+    [`@security-camera . current_event filter any ( @org.thingpedia.builtin.thingengine.builtin . get_gps filter ! ( location == $location . home ) ) ;`,
      `show me my security camera if i 'm not home`, {}, //'
-     `@security-camera.current_event() filter any(@org.thingpedia.builtin.thingengine.builtin.get_gps() filter !(location == $location.home));`],
+     `@security-camera.current_event filter any(@org.thingpedia.builtin.thingengine.builtin.get_gps filter !(location == $location.home));`],
 
     [`$policy { true : now => @com.twitter . post ; }`,
     `anyone can post on twitter`, {},
@@ -192,16 +192,16 @@ const TEST_CASES = [
   true : @com.bing.web_search filter description =~ "foo" => @com.twitter.post filter status =~ "foo";
 }`],
 
-    [`$policy { true : @com.bing . web_search filter any ( @org.thingpedia.builtin.thingengine.builtin . get_gps ( ) filter ! ( location == $location . home ) ) && description =~ QUOTED_STRING_0 => notify ; }`,
+    [`$policy { true : @com.bing . web_search filter any ( @org.thingpedia.builtin.thingengine.builtin . get_gps filter ! ( location == $location . home ) ) && description =~ QUOTED_STRING_0 => notify ; }`,
     `anyone can search on bing if i am not at home and the description contains QUOTED_STRING_0`, { QUOTED_STRING_0: 'foo' },
     `$policy {
-  true : @com.bing.web_search filter any(@org.thingpedia.builtin.thingengine.builtin.get_gps() filter !(location == $location.home)) && description =~ "foo" => notify;
+  true : @com.bing.web_search filter any(@org.thingpedia.builtin.thingengine.builtin.get_gps filter !(location == $location.home)) && description =~ "foo" => notify;
 }`],
 
-    [`#[ executor = USERNAME_0 ] @com.twitter . post_picture ( ) ;`,
+    [`#[ executor = USERNAME_0 ] @com.twitter . post_picture ;`,
      `USERNAME_0 can post pictures on twitter`, { USERNAME_0: 'mom' },
      `#[executor="mom"^^tt:username]
-@com.twitter.post_picture();`],
+@com.twitter.post_picture;`],
 
     [`@org.thingpedia.weather . sunrise ( date = DATE_0 ) ;`,
      `get sunrise sunset on date DATE_0`, { DATE_0: { year: 2018, month: 5, day: 23, hour: -1, minute: -1, second: -1 } },
@@ -223,13 +223,13 @@ const TEST_CASES = [
      `get sunrise sunset on date DATE_0`, { DATE_0: { year: 2018, month: 5, day: 23, hour: 10, minute: 40, second: 40.5 } },
      `@org.thingpedia.weather.sunrise(date=new Date("2018-05-23T17:40:40.500Z"));`],
 
-    ['@com.bing . web_search ( ) => @com.yandex.translate . translate ( target_language = GENERIC_ENTITY_tt:iso_lang_code_0 , text = $result ) ;',
+    ['@com.bing . web_search => @com.yandex.translate . translate ( target_language = GENERIC_ENTITY_tt:iso_lang_code_0 , text = $result ) ;',
     `translate web searches to GENERIC_ENTITY_tt:iso_lang_code_0`, { 'GENERIC_ENTITY_tt:iso_lang_code_0': { value: 'it', display: "Italian" } },
-    `@com.bing.web_search() => @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code("Italian"), text=$result);`],
+    `@com.bing.web_search => @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code("Italian"), text=$result);`],
 
-    ['@com.bing . web_search ( ) => @com.yandex.translate . translate ( target_language = null ^^tt:iso_lang_code ( " italian " ) , text = $result ) ;',
+    ['@com.bing . web_search => @com.yandex.translate . translate ( target_language = null ^^tt:iso_lang_code ( " italian " ) , text = $result ) ;',
     `translate web searches to italian`, {},
-    `@com.bing.web_search() => @com.yandex.translate.translate(target_language=null^^tt:iso_lang_code("italian"), text=$result);`],
+    `@com.bing.web_search => @com.yandex.translate.translate(target_language=null^^tt:iso_lang_code("italian"), text=$result);`],
 
     ['@com.bing . web_search ( query = " pizza " ) ;',
     `search pizza on bing`, {},
@@ -239,23 +239,23 @@ const TEST_CASES = [
     `search donald trump on bing`, {},
     `@com.bing.web_search(query="donald trump");`],
 
-    ['@com.twitter . search ( ) filter contains ( hashtags , " foo " ^^tt:hashtag ) ;',
+    ['@com.twitter . search filter contains ( hashtags , " foo " ^^tt:hashtag ) ;',
     `search hashtag foo on twitter`, {},
-    `@com.twitter.search() filter contains(hashtags, "foo"^^tt:hashtag);`],
+    `@com.twitter.search filter contains(hashtags, "foo"^^tt:hashtag);`],
 
-    ['#[ executor = " bob " ^^tt:username ] @com.twitter . post ( ) ;',
+    ['#[ executor = " bob " ^^tt:username ] @com.twitter . post ;',
     `ask bob to post on twitter`, {},
     `#[executor="bob"^^tt:username]
-@com.twitter.post();`],
+@com.twitter.post;`],
 
     ['@com.twitter . follow ( user_name = " bob " ^^tt:username ) ;',
     `follow bob on twitter`, {},
     `@com.twitter.follow(user_name="bob"^^tt:username);`],
 
-    ['$policy { true : now => @org.thingpedia.builtin.thingengine.builtin . discover filter any ( @org.thingpedia.builtin.test . get_data ( ) filter data == QUOTED_STRING_0 ) ; }',
+    ['$policy { true : now => @org.thingpedia.builtin.thingengine.builtin . discover filter any ( @org.thingpedia.builtin.test . get_data filter data == QUOTED_STRING_0 ) ; }',
     'everybody has permission to discover new devices if the data of more data genning ... is exactly QUOTED_STRING_0', { QUOTED_STRING_0: 'foo' },
     `$policy {
-  true : now => @org.thingpedia.builtin.thingengine.builtin.discover filter any(@org.thingpedia.builtin.test.get_data() filter data == "foo");
+  true : now => @org.thingpedia.builtin.thingengine.builtin.discover filter any(@org.thingpedia.builtin.test.get_data filter data == "foo");
 }`],
 
     [`@com.xkcd . get_comic ( number = SLOT_0 ) ;`,
@@ -270,41 +270,41 @@ const TEST_CASES = [
      'get some specific xkcd comic', {},
     `@com.xkcd.get_comic(number=$?);`],
 
-    [`@com.twitter . search ( ) filter author == $? ;`,
+    [`@com.twitter . search filter author == $? ;`,
      'search tweets by author', {},
-    `@com.twitter.search() filter author == $?;`],
+    `@com.twitter.search filter author == $?;`],
 
-    ['sort ( sender_name asc of @com.gmail . inbox ( ) ) ;',
+    ['sort ( sender_name asc of @com.gmail . inbox ) ;',
     'show my emails sorted by sender name', {},
-    `sort(sender_name asc of @com.gmail.inbox());`],
+    `sort(sender_name asc of @com.gmail.inbox);`],
 
-    ['sort ( sender_name desc of @com.gmail . inbox ( ) ) ;',
+    ['sort ( sender_name desc of @com.gmail . inbox ) ;',
     'show my emails sorted by sender name -lrb- in reverse order -rrb-', {},
-    `sort(sender_name desc of @com.gmail.inbox());`],
+    `sort(sender_name desc of @com.gmail.inbox);`],
 
-    ['@com.gmail . inbox ( ) [ 1 ] ;',
+    ['@com.gmail . inbox [ 1 ] ;',
     'show me exactly one email', {},
-    `@com.gmail.inbox()[1];`],
+    `@com.gmail.inbox[1];`],
 
-    ['@com.gmail . inbox ( ) [ 1 : 3 ] ;',
+    ['@com.gmail . inbox [ 1 : 3 ] ;',
     'show me exactly 3 emails', {},
-    `@com.gmail.inbox()[1 : 3];`],
+    `@com.gmail.inbox[1 : 3];`],
 
-    ['@com.gmail . inbox ( ) [ 1 : NUMBER_0 ] ;',
+    ['@com.gmail . inbox [ 1 : NUMBER_0 ] ;',
     'show me exactly NUMBER_0 emails', { NUMBER_0: 22 },
-    `@com.gmail.inbox()[1 : 22];`],
+    `@com.gmail.inbox[1 : 22];`],
 
-    ['@com.gmail . inbox ( ) [ 3 : NUMBER_0 ] ;',
+    ['@com.gmail . inbox [ 3 : NUMBER_0 ] ;',
     'show me exactly NUMBER_0 emails , starting from the third', { NUMBER_0: 22 },
-    `@com.gmail.inbox()[3 : 22];`],
+    `@com.gmail.inbox[3 : 22];`],
 
-    ['@com.gmail . inbox ( ) [ NUMBER_1 : NUMBER_0 ] ;',
+    ['@com.gmail . inbox [ NUMBER_1 : NUMBER_0 ] ;',
     'show me exactly NUMBER_0 emails , starting from the NUMBER_1', { NUMBER_1: 13, NUMBER_0: 22 },
-    `@com.gmail.inbox()[13 : 22];`],
+    `@com.gmail.inbox[13 : 22];`],
 
-    ['@com.gmail . inbox ( ) [ 3 , 7 , NUMBER_0 ] ;',
+    ['@com.gmail . inbox [ 3 , 7 , NUMBER_0 ] ;',
     'show me exactly the emails number 3 , 7 and NUMBER_0', { NUMBER_0: 22 },
-    `@com.gmail.inbox()[3, 7, 22];`],
+    `@com.gmail.inbox[3, 7, 22];`],
 
     ['$yes ;',
     'yes', {},
@@ -367,30 +367,30 @@ const TEST_CASES = [
     { QUOTED_STRING_0: "it's noon" },
     `attimer(time=[new Time(12, 0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's noon");`],
 
-    ['[ description , title ] of @com.bing . web_search ( ) ;',
+    ['[ description , title ] of @com.bing . web_search ;',
     'get title and description from bing', {},
-    '[description, title] of @com.bing.web_search();'],
+    '[description, title] of @com.bing.web_search;'],
 
-    [`@com.spotify . get_currently_playing ( ) => @com.spotify . add_songs_to_playlist ( songs = [ song ] ) ;`,
+    [`@com.spotify . get_currently_playing => @com.spotify . add_songs_to_playlist ( songs = [ song ] ) ;`,
     `add the currently playing song to my playlist`, {},
-    `@com.spotify.get_currently_playing() => @com.spotify.add_songs_to_playlist(songs=[song]);`],
+    `@com.spotify.get_currently_playing => @com.spotify.add_songs_to_playlist(songs=[song]);`],
 
-    [`[ author , text ] of monitor ( text of @com.twitter . home_timeline ( ) ) ;`,
+    [`[ author , text ] of monitor ( text of @com.twitter . home_timeline ) ;`,
     `monitor new text of tweets and show me the text and author`, {},
-    `[author, text] of monitor(text of @com.twitter.home_timeline());`],
+    `[author, text] of monitor(text of @com.twitter.home_timeline);`],
 
     ['@com.twitter . post ( status = $context . selection : String ) ;',
     'post this on twitter', {},
     `@com.twitter.post(status=$context.selection : String);`],
 
-    [`@com.twitter . home_timeline ( ) filter count ( hashtags ) >= 0 ;`,
+    [`@com.twitter . home_timeline filter count ( hashtags ) >= 0 ;`,
     `get tweets with hashtags`, {},
-    `@com.twitter.home_timeline() filter count(hashtags) >= 0;`],
+    `@com.twitter.home_timeline filter count(hashtags) >= 0;`],
 
     // just to test syntax, in reality we should not generate examples like this
-    [`@com.twitter . home_timeline ( ) filter count ( hashtags filter value == " foo " ^^tt:hashtag ) >= 0 ;`,
+    [`@com.twitter . home_timeline filter count ( hashtags filter value == " foo " ^^tt:hashtag ) >= 0 ;`,
     `get tweets with hashtags foo`, {},
-    `@com.twitter.home_timeline() filter count(hashtags filter value == "foo"^^tt:hashtag) >= 0;`],
+    `@com.twitter.home_timeline filter count(hashtags filter value == "foo"^^tt:hashtag) >= 0;`],
 
     [`@light-bulb ( name = " bedroom " ) . set_power ( power = enum off ) ;`,
     `turn off my bedroom lights`, {},
@@ -401,41 +401,41 @@ const TEST_CASES = [
      `$dialogue @org.thingpedia.dialogue.transaction.greet;`],
 
     [`$dialogue @org.thingpedia.dialogue.transaction . execute ; ` +
-     `@com.thecatapi . get ( ) ;`,
+     `@com.thecatapi . get ;`,
     `get a cat picture`, {},
     `$dialogue @org.thingpedia.dialogue.transaction.execute;
-@com.thecatapi.get();`],
+@com.thecatapi.get;`],
 
     [`$dialogue @org.thingpedia.dialogue.transaction . execute ; ` +
-     `@com.thecatapi . get ( ) ` +
+     `@com.thecatapi . get ` +
      `#[ results = [ { image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , picture_url = PICTURE_0 , link = URL_0 } ] ] ;`,
     `here is your cat picture`, { 'GENERIC_ENTITY_com.thecatapi:image_id_0': { value: '1234', display: null }, PICTURE_0: 'https://example.com/1', URL_0: 'https://example.com/2' },
     `$dialogue @org.thingpedia.dialogue.transaction.execute;
-@com.thecatapi.get()
+@com.thecatapi.get
 #[results=[
   { image_id="1234"^^com.thecatapi:image_id, picture_url="https://example.com/1"^^tt:picture, link="https://example.com/2"^^tt:url }
 ]];`],
 
     [`$dialogue @org.thingpedia.dialogue.transaction . execute ; ` +
-     `@com.thecatapi . get ( ) ` +
+     `@com.thecatapi . get ` +
      `#[ results = [ { image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , picture_url = PICTURE_0 , link = URL_1 } ] ] ; ` +
      `@com.twitter . post_picture ( picture_url = PICTURE_0 ) ;`,
     `now post it on twitter`, { 'GENERIC_ENTITY_com.thecatapi:image_id_0': { value: '1234', display: null }, PICTURE_0: 'https://example.com/1', URL_1: 'https://example.com/2' },
     `$dialogue @org.thingpedia.dialogue.transaction.execute;
-@com.thecatapi.get()
+@com.thecatapi.get
 #[results=[
   { image_id="1234"^^com.thecatapi:image_id, picture_url="https://example.com/1"^^tt:picture, link="https://example.com/2"^^tt:url }
 ]];
 @com.twitter.post_picture(picture_url="https://example.com/1"^^tt:picture);`],
 
     [`$dialogue @org.thingpedia.dialogue.transaction . execute ; ` +
-     `@com.thecatapi . get ( ) ` +
+     `@com.thecatapi . get ` +
      `#[ results = [ { image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , picture_url = PICTURE_0 , link = URL_1 } ] ] ; ` +
      `@com.twitter . post_picture ( picture_url = PICTURE_0 ) ` +
      `#[ confirm = enum confirmed ] ;`,
     `confirm posting it on twitter`, { 'GENERIC_ENTITY_com.thecatapi:image_id_0': { value: '1234', display: null }, PICTURE_0: 'https://example.com/1', URL_1: 'https://example.com/2' },
     `$dialogue @org.thingpedia.dialogue.transaction.execute;
-@com.thecatapi.get()
+@com.thecatapi.get
 #[results=[
   { image_id="1234"^^com.thecatapi:image_id, picture_url="https://example.com/1"^^tt:picture, link="https://example.com/2"^^tt:url }
 ]];
@@ -443,7 +443,7 @@ const TEST_CASES = [
 #[confirm=enum confirmed];`],
 
     [`$dialogue @org.thingpedia.dialogue.transaction . execute ; ` +
-     `@com.thecatapi . get ( ) ` +
+     `@com.thecatapi . get ` +
      `#[ results = [ { image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , picture_url = PICTURE_0 , link = URL_0 } ] ] ; ` +
      `@com.twitter . post_picture ( picture_url = PICTURE_0 ) ` +
      `#[ results = [ { tweet_id = GENERIC_ENTITY_com.twitter:tweet_id_0 , link = URL_1 } ] ] ;`,
@@ -455,7 +455,7 @@ const TEST_CASES = [
         URL_1: 'https://example.com/3'
     },
     `$dialogue @org.thingpedia.dialogue.transaction.execute;
-@com.thecatapi.get()
+@com.thecatapi.get
 #[results=[
   { image_id="1234"^^com.thecatapi:image_id, picture_url="https://example.com/1"^^tt:picture, link="https://example.com/2"^^tt:url }
 ]];
@@ -465,7 +465,7 @@ const TEST_CASES = [
 ]];`],
 
     [`$dialogue @org.thingpedia.dialogue.transaction . execute ; ` +
-     `@com.thecatapi . get ( ) ` +
+     `@com.thecatapi . get ` +
      `#[ results = [ { image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , picture_url = PICTURE_0 , link = URL_0 } ] ] ; ` +
      `@com.twitter . post_picture ( picture_url = PICTURE_0 ) ` +
      `#[ results = [ ] ] #[ error = QUOTED_STRING_0 ] ;`,
@@ -478,7 +478,7 @@ const TEST_CASES = [
         QUOTED_STRING_0: 'something bad happened'
     },
     `$dialogue @org.thingpedia.dialogue.transaction.execute;
-@com.thecatapi.get()
+@com.thecatapi.get
 #[results=[
   { image_id="1234"^^com.thecatapi:image_id, picture_url="https://example.com/1"^^tt:picture, link="https://example.com/2"^^tt:url }
 ]];
@@ -487,7 +487,7 @@ const TEST_CASES = [
 #[error="something bad happened"];`],
 
     [`$dialogue @org.thingpedia.dialogue.transaction . execute ; ` +
-     `@com.thecatapi . get ( ) ` +
+     `@com.thecatapi . get ` +
      `#[ results = [ { image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , picture_url = PICTURE_0 , link = URL_0 } ] ] ; ` +
      `@com.twitter . post_picture ( picture_url = PICTURE_0 ) ` +
      `#[ results = [ ] ] #[ error = enum my_error_code ] ;`,
@@ -499,7 +499,7 @@ const TEST_CASES = [
         URL_1: 'https://example.com/3'
     },
     `$dialogue @org.thingpedia.dialogue.transaction.execute;
-@com.thecatapi.get()
+@com.thecatapi.get
 #[results=[
   { image_id="1234"^^com.thecatapi:image_id, picture_url="https://example.com/1"^^tt:picture, link="https://example.com/2"^^tt:url }
 ]];
@@ -508,25 +508,25 @@ const TEST_CASES = [
 #[error=enum my_error_code];`],
 
     [`$dialogue @org.thingpedia.dialogue.transaction . execute ; ` +
-     `@com.thecatapi . get ( ) ` +
+     `@com.thecatapi . get ` +
      `#[ results = [ { image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , picture_url = PICTURE_0 , link = URL_0 } ] ] ` +
      `#[ count = NUMBER_0 ] ;`,
     `i found NUMBER_0 cat pictures , here is one`, { 'GENERIC_ENTITY_com.thecatapi:image_id_0': { value: '1234', display: null }, PICTURE_0: 'https://example.com/1', URL_0: 'https://example.com/2', NUMBER_0: 55 },
     `$dialogue @org.thingpedia.dialogue.transaction.execute;
-@com.thecatapi.get()
+@com.thecatapi.get
 #[results=[
   { image_id="1234"^^com.thecatapi:image_id, picture_url="https://example.com/1"^^tt:picture, link="https://example.com/2"^^tt:url }
 ]]
 #[count=55];`],
 
     [`$dialogue @org.thingpedia.dialogue.transaction . execute ; ` +
-     `@com.thecatapi . get ( ) ` +
+     `@com.thecatapi . get ` +
      `#[ results = [ { image_id = GENERIC_ENTITY_com.thecatapi:image_id_0 , picture_url = PICTURE_0 , link = URL_0 } ] ] ` +
      `#[ count = NUMBER_0 ] ` +
      `#[ more = true ] ;`,
     `i found more than NUMBER_0 cat pictures , here is one`, { 'GENERIC_ENTITY_com.thecatapi:image_id_0': { value: '1234', display: null }, PICTURE_0: 'https://example.com/1', URL_0: 'https://example.com/2', NUMBER_0: 55 },
     `$dialogue @org.thingpedia.dialogue.transaction.execute;
-@com.thecatapi.get()
+@com.thecatapi.get
 #[results=[
   { image_id="1234"^^com.thecatapi:image_id, picture_url="https://example.com/1"^^tt:picture, link="https://example.com/2"^^tt:url }
 ]]
@@ -534,16 +534,16 @@ const TEST_CASES = [
 #[more=true];`],
 
     [`$dialogue @org.thingpedia.dialogue.transaction . sys_search_question ( serveCuisine ) ; ` +
-     `@org.schema . restaurant ( ) ;`,
+     `@org.schema . restaurant ;`,
      'what kind of cuisine are you looking for ?', {},
      `$dialogue @org.thingpedia.dialogue.transaction.sys_search_question(serveCuisine);
-@org.schema.restaurant();`],
+@org.schema.restaurant;`],
 
     [`$dialogue @org.thingpedia.dialogue.transaction . sys_search_question ( price , serveCuisine ) ; ` +
-     `@org.schema . restaurant ( ) ;`,
+     `@org.schema . restaurant ;`,
      'what kind of cuisine and price are you looking for ?', {},
      `$dialogue @org.thingpedia.dialogue.transaction.sys_search_question(price, serveCuisine);
-@org.schema.restaurant();`],
+@org.schema.restaurant;`],
 
     [`$answer ( null ^^tt:function ( " google contacts " ) ) ;`,
     `google contacts`, {},
@@ -553,17 +553,17 @@ const TEST_CASES = [
     ``, {},
     `$answer("com.google.contacts"^^tt:function);`],
 
-    [`@com.yelp . restaurant ( ) filter true ( cuisines ) ;`,
+    [`@com.yelp . restaurant filter true ( cuisines ) ;`,
     `i 'm looking for a restaurant , i do n't care what cuisine`, {},
-    `@com.yelp.restaurant() filter true(cuisines);`],
+    `@com.yelp.restaurant filter true(cuisines);`],
 
-    ['@org.schema.full . Recipe ( ) filter nutrition.fatContent >= MEASURE_kg_0 && nutrition.sugarContent >= MEASURE_kg_0 ;',
+    ['@org.schema.full . Recipe filter nutrition.fatContent >= MEASURE_kg_0 && nutrition.sugarContent >= MEASURE_kg_0 ;',
      `yeah please find a recipe with that fat content and that sugar content`, { MEASURE_kg_0: { value: 13, unit: 'kg' } },
-     `@org.schema.full.Recipe() filter nutrition.fatContent >= 13kg && nutrition.sugarContent >= 13kg;`],
+     `@org.schema.full.Recipe filter nutrition.fatContent >= 13kg && nutrition.sugarContent >= 13kg;`],
 
-    ['@com.uber . price_estimate ( ) filter low_estimate <= NUMBER_0 $usd ;',
+    ['@com.uber . price_estimate filter low_estimate <= NUMBER_0 $usd ;',
      'is it less than $ NUMBER_0 ?', { NUMBER_0: 1000 },
-     '@com.uber.price_estimate() filter low_estimate <= 1000$usd;'],
+     '@com.uber.price_estimate filter low_estimate <= 1000$usd;'],
 
     ['@com.twitter ( id = GENERIC_ENTITY_tt:device_id_0 ) . post ( status = QUOTED_STRING_0 ) ;',
      'post QUOTED_STRING_0 on it', { 'GENERIC_ENTITY_tt:device_id_0': { value: 'twitter-account-foo', display: "Twitter Account foo" },
@@ -607,18 +607,18 @@ const TEST_CASES = [
      `get sunrise sunset on Monday`, { TIME_0: { hour: 5, minute: 0 } },
      `@org.thingpedia.weather.sunrise(date=new Date(enum monday, new Time(5, 0)));`],
 
-    [`@com.yelp . restaurant ( ) filter openingHours == new RecurrentTimeSpecification ( { beginTime = new Time ( 0 , 0 ) , endTime = new Time ( NUMBER_0 , 0 ) ,`
+    [`@com.yelp . restaurant filter openingHours == new RecurrentTimeSpecification ( { beginTime = new Time ( 0 , 0 ) , endTime = new Time ( NUMBER_0 , 0 ) ,`
     + ` dayOfWeek = enum friday } , { beginTime = new Time ( 0 , 0 ) , endTime = new Time ( NUMBER_0 , 0 ) , dayOfWeek = enum saturday } ) ;`,
     `restaurants open NUMBER_0 hours on friday and saturday`, { NUMBER_0: 24 },
-    `@com.yelp.restaurant() filter openingHours == new RecurrentTimeSpecification({ beginTime=new Time(0, 0), endTime=new Time(24, 0), dayOfWeek=enum friday }, { beginTime=new Time(0, 0), endTime=new Time(24, 0), dayOfWeek=enum saturday });`],
+    `@com.yelp.restaurant filter openingHours == new RecurrentTimeSpecification({ beginTime=new Time(0, 0), endTime=new Time(24, 0), dayOfWeek=enum friday }, { beginTime=new Time(0, 0), endTime=new Time(24, 0), dayOfWeek=enum saturday });`],
 
     ['let foo = @org.thingpedia.weather . sunrise ( date = new Date ( enum monday ) ) ;',
      'let foo be the weather on monday', {},
      'let foo = @org.thingpedia.weather.sunrise(date=new Date(enum monday));'],
 
-    ['timer ( base = $now , interval = NUMBER_0 min ) => @com.tesla.car . get_mobile_enabled ( ) ;',
+    ['timer ( base = $now , interval = NUMBER_0 min ) => @com.tesla.car . get_mobile_enabled ;',
      'check the status of my tesla car every NUMBER_0 minutes', { NUMBER_0: 44 },
-     'timer(base=$now, interval=44min) => @com.tesla.car.get_mobile_enabled();'],
+     'timer(base=$now, interval=44min) => @com.tesla.car.get_mobile_enabled;'],
 ];
 
 async function testCase(test, i) {

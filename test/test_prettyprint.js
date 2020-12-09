@@ -66,12 +66,12 @@ const TEST_CASES = [
 }`,
 
 // aggregate filter
-`@org.schema.restaurant() filter count(review) >= 1;`,
+`@org.schema.restaurant filter count(review) >= 1;`,
 
 // compute table
-`[count(reviews)] of @org.schema.restaurants();`,
-`[aggregateRating.reviews filter author == "Bob"] of @org.schema.restaurants();`,
-`[aggregateRating.reviews filter author == "Bob" as foo] of @org.schema.restaurants();`,
+`[count(reviews)] of @org.schema.restaurants;`,
+`[aggregateRating.reviews filter author == "Bob"] of @org.schema.restaurants;`,
+`[aggregateRating.reviews filter author == "Bob" as foo] of @org.schema.restaurants;`,
 
 // device selectors
 `@light-bulb(name="bathroom").set_power(power=enum on);`,
@@ -80,10 +80,10 @@ const TEST_CASES = [
 
 `dataset @everything
 #[language="en"] {
-  query = @org.thingpedia.rss(all=true).get_post()
+  query = @org.thingpedia.rss(all=true).get_post
   #_[utterances=["all rss feeds"]];
 
-  query (p_name : String) = @org.thingpedia.rss(name=p_name).get_post()
+  query (p_name : String) = @org.thingpedia.rss(name=p_name).get_post
   #_[utterances=["$p_name rss feed"]];
 }`,
 ];

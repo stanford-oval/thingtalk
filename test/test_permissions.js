@@ -42,16 +42,16 @@ const TEST_CASES = [
     [`now => @com.facebook.post(status="this is totally not funny");`, null],
 
     [`now => @com.twitter.search(), text =~ "funny lol" => @com.facebook.post(status=text);`,
-     `@com.twitter.search() filter text =~ "funny lol" => @com.facebook.post(status=text);`],
+     `@com.twitter.search filter text =~ "funny lol" => @com.facebook.post(status=text);`],
 
     [`now => @com.twitter.search() => @com.facebook.post(status=text);`,
-     `@com.twitter.search() filter in_array~(text, ["https://www.wsj.com", "https://www.washingtonpost.com"]) || text =~ "funny" && text =~ "lol" => @com.facebook.post(status=text);`],
+     `@com.twitter.search filter in_array~(text, ["https://www.wsj.com", "https://www.washingtonpost.com"]) || text =~ "funny" && text =~ "lol" => @com.facebook.post(status=text);`],
 
     [`now => @com.bing.web_search(query="cats") => @com.facebook.post(status=description);`,
      `@com.bing.web_search(query="cats") filter description =~ "funny" && description =~ "lol" || in_array~(description, ["https://www.wsj.com", "https://www.washingtonpost.com"]) || description =~ "cat" => @com.facebook.post(status=description);`],
 
     [`monitor(@security-camera.current_event(), has_person == true) => notify;`,
-    `monitor(@security-camera.current_event() filter any(@org.thingpedia.builtin.thingengine.builtin.get_gps() filter location == new Location(1, 2)) && has_person == true);`],
+    `monitor(@security-camera.current_event filter any(@org.thingpedia.builtin.thingengine.builtin.get_gps filter location == new Location(1, 2)) && has_person == true);`],
 
     // the program should be rejected because there is no rule that allows builtin.get_gps()
     [`monitor (@security-camera.current_event(), (has_person == true && any(@org.thingpedia.builtin.thingengine.builtin.get_gps(), location == new Location(1, 2))))  => notify;`,
@@ -60,7 +60,7 @@ const TEST_CASES = [
     [`now => @org.thingpedia.builtin.thingengine.builtin.get_gps() => notify;`, null],
 
     [`now => @thermostat.get_temperature() => notify;`,
-     `@thermostat.get_temperature() filter any(@com.xkcd.get_comic(number=10) filter title =~ "lol");`],
+     `@thermostat.get_temperature filter any(@com.xkcd.get_comic(number=10) filter title =~ "lol");`],
 
     // this test case does not work because we add the filter outside as stream filter which no longer exists
     //[`attimer(time=[new Time(10,30)]) => @thermostat.get_temperature() => notify;`,
@@ -87,7 +87,7 @@ const TEST_CASES = [
               in req location : Location)
   #[minimal_projection=[]];
 }
-@com.instagram.get_pictures() filter caption =~ "trip" => @__dyn_0.send(__flow=0, __kindChannel=$type, __principal="matrix-account:@rayx6:matrix.org"^^tt:contact, __program_id=$program_id, caption=caption, filter_=filter_, hashtags=hashtags, link=link, location=location, media_id=media_id, picture_url=picture_url);`]
+@com.instagram.get_pictures filter caption =~ "trip" => @__dyn_0.send(__flow=0, __kindChannel=$type, __principal="matrix-account:@rayx6:matrix.org"^^tt:contact, __program_id=$program_id, caption=caption, filter_=filter_, hashtags=hashtags, link=link, location=location, media_id=media_id, picture_url=picture_url);`]
 
     /*[`monitor @thermostat.get_temperature(), @com.xkcd.get_comic(number=10) { title =~ "lol" }  => notify;`,
     `@thermostat.temperature(), @xkcd.get_comic(number=10) { title =~ "lol" }  => notify;`],

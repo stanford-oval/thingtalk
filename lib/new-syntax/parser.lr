@@ -999,6 +999,40 @@ thingpedia_call : Ast.Invocation = {
         const selector = new Ast.DeviceSelector($.location, className.value, id, null, other, all);
         return new Ast.Invocation($.location, selector, functionName, in_params, null);
     };
+
+    name:CLASS_OR_FUNCTION_REF => {
+        const lastDot = name.value.lastIndexOf('.');
+        const className = name.value.substring(0, lastDot);
+        const functionName = name.value.substring(lastDot+1);
+
+        // we check that the function name is a valid identifier because the lexer will greedly parse through things
+        // that are not identifiers but are allowed in the class name
+        if (!isIdentifier(functionName))
+            $.error(`${name.value} is not a valid function name`); //`
+        return new Ast.Invocation($.location, new Ast.DeviceSelector($.location, className, null, null), functionName, [], null);
+    };
+
+    className:CLASS_OR_FUNCTION_REF '.' functionName:function_name
+        => new Ast.Invocation($.location, new Ast.DeviceSelector($.location, className.value, null, null), functionName, [], null);
+
+    className:CLASS_OR_FUNCTION_REF device_params:in_param_list '.' functionName:function_name => {
+        let id : string|null = null, all = false;
+        const other = [];
+        for (const attr of device_params) {
+            if (attr.name === 'id') {
+                id = String(attr.value.toJS());
+                const value = attr.value;
+                if (value instanceof Ast.EntityValue && value.display)
+                    other.push(new Ast.InputParam($.location, 'name', new Ast.Value.String(value.display)));
+            } else if (attr.name === 'all') {
+                all = !!attr.value.toJS();
+            } else {
+                other.push(attr);
+            }
+        }
+        const selector = new Ast.DeviceSelector($.location, className.value, id, null, other, all);
+        return new Ast.Invocation($.location, selector, functionName, [], null);
+    };
 }
 
 in_param_list : Ast.InputParam[] = {

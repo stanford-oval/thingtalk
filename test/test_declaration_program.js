@@ -27,19 +27,19 @@ const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 let TEST_CASES = [
     // manually written test cases
     ['function x() { @com.twitter.post(); }',
-     '@com.twitter.post();'],
+     '@com.twitter.post;'],
     [`function x(p_status : String) { @com.twitter.post(status=p_status); }`,
      '@com.twitter.post(status=__const_SLOT_0);'],
 
     ['function x() { @com.bing.web_search(); }',
-     '@com.bing.web_search();'],
+     '@com.bing.web_search;'],
     [`function x(p_query : String) { @com.bing.web_search(query=p_query); }`,
      '@com.bing.web_search(query=__const_SLOT_0);'],
     [`function x(p_query : String, p_width : Number) { @com.bing.image_search(query=p_query), width >= p_width; }`,
      '@com.bing.image_search(query=__const_SLOT_0) filter width >= __const_SLOT_1;'],
 
     [`function x(p_author : Entity(tt:username)) { monitor (@com.twitter.search()), author == p_author; }`,
-     `monitor(@com.twitter.search()) filter author == __const_SLOT_0;`],
+     `monitor(@com.twitter.search) filter author == __const_SLOT_0;`],
 
     ['function x(p_song1 : String, p_song2 : String) { @com.spotify.play_songs(songs=[p_song1, p_song2]); }',
     '@com.spotify.play_songs(songs=[__const_SLOT_0, __const_SLOT_1]);'],

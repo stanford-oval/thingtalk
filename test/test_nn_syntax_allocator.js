@@ -27,7 +27,7 @@ import _mockSchemaDelegate from './mock_schema_delegate';
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 const TEST_CASES = [
-    [`monitor ( @com.xkcd . get_comic ( ) ) ;`, {}],
+    [`monitor ( @com.xkcd . get_comic ) ;`, {}],
 
     [`@com.twitter . post ( status = QUOTED_STRING_0 ) ;`,
      {'QUOTED_STRING_0': 'hello'}],
@@ -55,21 +55,21 @@ const TEST_CASES = [
     [`@org.thingpedia.builtin.thingengine.builtin . get_random_between ( high = NUMBER_0 , low = NUMBER_1 ) ;`,
     {'NUMBER_0': 1024, 'NUMBER_1': 55}],
 
-    [`monitor ( @thermostat . get_temperature ( ) ) ;`, {}],
+    [`monitor ( @thermostat . get_temperature ) ;`, {}],
 
-    [`monitor ( @thermostat . get_temperature ( ) filter value >= MEASURE_C_0 ) ;`,
+    [`monitor ( @thermostat . get_temperature filter value >= MEASURE_C_0 ) ;`,
      {'MEASURE_C_0': { unit: 'F', value: 70 }}],
 
-    [`@com.bing . image_search ( ) filter height >= NUMBER_0 || width >= NUMBER_1 ;`,
+    [`@com.bing . image_search filter height >= NUMBER_0 || width >= NUMBER_1 ;`,
     { NUMBER_0: 100, NUMBER_1:200 }],
 
-    [`@com.bing . image_search ( ) filter ( height >= NUMBER_0 || width <= NUMBER_1 ) && width >= NUMBER_2 ;`,
+    [`@com.bing . image_search filter ( height >= NUMBER_0 || width <= NUMBER_1 ) && width >= NUMBER_2 ;`,
     {NUMBER_0: 100, NUMBER_1:200, NUMBER_2: 500}],
 
-    [`@com.bing . image_search ( ) filter height >= NUMBER_0 || width >= NUMBER_0 ;`,
+    [`@com.bing . image_search filter height >= NUMBER_0 || width >= NUMBER_0 ;`,
     {NUMBER_0: 100}],
 
-    [`@com.bing . image_search ( ) filter width >= NUMBER_0 ;`,
+    [`@com.bing . image_search filter width >= NUMBER_0 ;`,
      {NUMBER_0: 100 }],
 
     ['monitor ( @com.instagram . get_pictures ( count = NUMBER_0 ) filter in_array ( caption , [ QUOTED_STRING_0 , QUOTED_STRING_1 ] ) ) ;',
@@ -78,16 +78,16 @@ const TEST_CASES = [
     ['timer ( base = $now , interval = DURATION_0 ) ;',
      {DURATION_0: { value: 24, unit: 'h'}}],
 
-    ['monitor ( @com.phdcomics . get_post ( ) filter ! ( title =~ QUOTED_STRING_0 ) ) ;',
+    ['monitor ( @com.phdcomics . get_post filter ! ( title =~ QUOTED_STRING_0 ) ) ;',
      {QUOTED_STRING_0: 'abc'}],
 
     ['@com.uber . price_estimate ( end = $location . home , start = $location . work ) filter low_estimate >= CURRENCY_0 ;',
      {CURRENCY_0: { value: 50, unit: 'usd' } }],
 
-    ['@com.nytimes . get_front_page ( ) filter updated >= $now - DURATION_0 ;',
+    ['@com.nytimes . get_front_page filter updated >= $now - DURATION_0 ;',
      { DURATION_0: { value: 24, unit: 'h' } }],
 
-    [`#[ executor = USERNAME_0 ] @com.twitter . post ( ) ;`,
+    [`#[ executor = USERNAME_0 ] @com.twitter . post ;`,
      { USERNAME_0: 'bob' }],
 
     [`$policy { $source == USERNAME_0 : now => @com.twitter . post filter status =~ QUOTED_STRING_0 ; }`,
@@ -99,19 +99,19 @@ const TEST_CASES = [
     [`@org.thingpedia.weather . sunrise ( date = DATE_0 ) ;`,
      { DATE_0: new Date(2018, 5, 23, 10, 40, 0) }],
 
-    ['@com.bing . web_search ( ) => @com.yandex.translate . translate ( target_language = GENERIC_ENTITY_tt:iso_lang_code_0 , text = $result ) ;',
+    ['@com.bing . web_search => @com.yandex.translate . translate ( target_language = GENERIC_ENTITY_tt:iso_lang_code_0 , text = $result ) ;',
     { 'GENERIC_ENTITY_tt:iso_lang_code_0': { value: 'it', display: "Italian" } }],
 
-    ['@com.gmail . inbox ( ) [ 1 : NUMBER_0 ] ;',
+    ['@com.gmail . inbox [ 1 : NUMBER_0 ] ;',
     { NUMBER_0: 15 }],
 
-    ['@com.gmail . inbox ( ) [ NUMBER_0 : NUMBER_1 ] ;',
+    ['@com.gmail . inbox [ NUMBER_0 : NUMBER_1 ] ;',
     { NUMBER_0: 21, NUMBER_1: 23 }],
 
-    ['@com.gmail . inbox ( ) [ NUMBER_0 , NUMBER_1 , NUMBER_2 ] ;',
+    ['@com.gmail . inbox [ NUMBER_0 , NUMBER_1 , NUMBER_2 ] ;',
     { NUMBER_0: 21, NUMBER_1: 28, NUMBER_2: 22 }],
 
-    ['@com.gmail . inbox ( ) [ NUMBER_0 , NUMBER_1 , NUMBER_0 ] ;',
+    ['@com.gmail . inbox [ NUMBER_0 , NUMBER_1 , NUMBER_0 ] ;',
     { NUMBER_0: 22, NUMBER_1: 29 }],
 
     ['$answer ( LOCATION_0 ) ;',
@@ -123,7 +123,7 @@ const TEST_CASES = [
     ['@com.thecatapi . get ( count = NUMBER_0 ) ;',
      { NUMBER_0: 13 }],
 
-    ['@org.schema.full . Recipe ( ) filter nutrition.fatContent >= MEASURE_kg_0 ;',
+    ['@org.schema.full . Recipe filter nutrition.fatContent >= MEASURE_kg_0 ;',
      { MEASURE_kg_0: { value: 13, unit: 'kg' } }]
 ];
 
