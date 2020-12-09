@@ -94,6 +94,8 @@ function entityToString(entityType : string, entity : AnyEntity) : string {
         const generic = entity as GenericEntity;
         if (generic.display)
             return generic.display;
+        if (generic.value)
+            return generic.value;
     }
     return String(entity);
 }
@@ -193,8 +195,7 @@ export class EntityRetriever extends AbstractEntityRetriever {
         }
 
         if (entityType === 'QUOTED_STRING' || entityType === 'HASHTAG' || entityType === 'USERNAME' ||
-            entityType === 'LOCATION' ||
-            (entityType.startsWith('GENERIC_ENTITY_') && (entity as GenericEntity).display)) {
+            entityType === 'LOCATION' || entityType.startsWith('GENERIC_ENTITY_')) {
 
             const found = this._findEntityFromSentence(entityType, entityString, ignoreNotFound);
             if (found) {
