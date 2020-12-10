@@ -413,7 +413,7 @@ export class ProjectionExpression extends Expression {
     }
 
     toSource() : TokenStream {
-        const allprojections : TokenStream[] = this.args.map((a) => List.singleton(a));
+        const allprojections : TokenStream[] = this.args.map((a) => List.join(a.split('.').map((n) => List.singleton(n)), '.'));
         for (let i = 0; i < this.computations.length; i++) {
             const value = this.computations[i];
             const alias = this.aliases[i];
@@ -596,7 +596,8 @@ export class AggregationExpression extends Expression {
         if (this.field === '*') {
             return List.concat(this.operator, '(', this.expression.toSource(), ')');
         } else {
-            return List.concat(this.operator, '(', this.field, 'of',
+            const field = List.join(this.field.split('.').map((n) => List.singleton(n)), '.');
+            return List.concat(this.operator, '(', field, 'of',
                 this.expression.toSource(), ')');
         }
     }

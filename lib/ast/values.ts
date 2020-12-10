@@ -200,9 +200,9 @@ export class DatePiece {
     year : number|null;
     month : number|null;
     day : number|null;
-    time : TimeValue|null;
+    time : AbsoluteTime|null;
 
-    constructor(year : number|null, month : number|null, day : number|null, time : TimeValue|null) {
+    constructor(year : number|null, month : number|null, day : number|null, time : AbsoluteTime|null) {
         assert((year !== null && year >= 0) || (month !== null && month > 0) || (day !== null && day > 0));
         assert(year === null || month === null || day === null);
         this.year = year;
@@ -257,9 +257,9 @@ export type WeekDay = ('monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday
 export class WeekDayDate {
     isWeekDayDate = true;
     weekday : WeekDay;
-    time : TimeValue|null;
+    time : AbsoluteTime|null;
 
-    constructor(weekday : string, time : TimeValue|null) {
+    constructor(weekday : string, time : AbsoluteTime|null) {
         assert(weekday === 'monday' ||
                weekday === 'tuesday' ||
                weekday === 'wednesday' ||
@@ -686,7 +686,7 @@ export class VarRefValue extends Value {
     }
 
     toSource() : TokenStream {
-        return List.singleton(this.name);
+        return List.join(this.name.split('.').map((n) => List.singleton(n)), '.');
     }
 
     toString() : string {
@@ -1342,6 +1342,20 @@ export class DateValue extends Value {
     constructor(value : DateLike|null) {
         super(null);
         assert(value === null || isValidDate(value));
+
+        // a DatePiece with non-null year is actually a fully specified date
+        if (value instanceof DatePiece && value.year !== null) {
+            let hour = 0, minute = 0, second = 0;
+            if (value.time) {
+                hour = value.time.hour;
+                minute = value.time.minute;
+                second = value.time.second;
+            }
+
+            value = new Date(value.year, value.month !== null ? value.month-1 : 0, value.day !== null ? value.day : 1,
+                             hour, minute, second);
+        }
+
         this.value = value;
     }
 

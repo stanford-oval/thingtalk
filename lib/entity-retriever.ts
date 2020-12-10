@@ -94,6 +94,8 @@ function entityToString(entityType : string, entity : AnyEntity) : string {
         const generic = entity as GenericEntity;
         if (generic.display)
             return generic.display;
+        if (generic.value)
+            return generic.value;
     }
     return String(entity);
 }
@@ -134,7 +136,6 @@ export abstract class AbstractEntityRetriever {
 export class EntityRetriever extends AbstractEntityRetriever {
     sentence : string[];
     entities : EntityMap;
-    protected _used : EntityMap;
 
     constructor(sentence : string|string[], entities : EntityMap) {
         super();
@@ -144,8 +145,6 @@ export class EntityRetriever extends AbstractEntityRetriever {
 
         this.entities = {};
         Object.assign(this.entities, entities);
-
-        this._used = {};
     }
 
     protected _sentenceContains(tokens : string[]) : boolean {
@@ -196,8 +195,7 @@ export class EntityRetriever extends AbstractEntityRetriever {
         }
 
         if (entityType === 'QUOTED_STRING' || entityType === 'HASHTAG' || entityType === 'USERNAME' ||
-            entityType === 'LOCATION' ||
-            (entityType.startsWith('GENERIC_ENTITY_') && (entity as GenericEntity).display)) {
+            entityType === 'LOCATION' || entityType.startsWith('GENERIC_ENTITY_')) {
 
             const found = this._findEntityFromSentence(entityType, entityString, ignoreNotFound);
             if (found) {
@@ -246,17 +244,15 @@ export class EntityRetriever extends AbstractEntityRetriever {
         return undefined;
     }
 
-    private _findEntityInBag(entityType : string, value : AnyEntity, entities : EntityMap) : string[] {
-        const candidates = [];
-
+    private _findEntityInBag(entityType : string, value : AnyEntity, entities : EntityMap) : List<string>|undefined {
         for (const what in entities) {
             if (!what.startsWith(entityType + '_'))
                 continue;
 
             if (entitiesEqual(entityType, entities[what], value))
-                candidates.push(what);
+                return List.singleton(what);
         }
-        return candidates;
+        return undefined;
     }
 
     findEntity(entityType : string, entity : AnyEntity, options : { ignoreNotFound : true }) : List<string>|null;
@@ -268,40 +264,22 @@ export class EntityRetriever extends AbstractEntityRetriever {
         // this is so that we predict
         // " foo " ^^tt:whatever
         // if the sentence contains "foo", regardless of whether GENERIC_ENTITY_tt:whatever_0 is "foo" or not
-        const found = this._findStringLikeEntity(entityType, entity, entityString, true);
+        let found = this._findStringLikeEntity(entityType, entity, entityString, true);
         if (found)
             return found;
 
-        const candidates = this._findEntityInBag(entityType, entity, this.entities);
+        found = this._findEntityInBag(entityType, entity, this.entities);
+        if (found)
+            return found;
 
-        if (candidates.length === 0) {
-            // uh oh we don't have the entity we want
-            // see if we have an used pile, and try there for an unambiguous one
+        if (ignoreNotFound)
+            return null;
 
-            const reuse = this._findEntityInBag(entityType, entity, this._used);
-            if (reuse.length > 0) {
-                if (reuse.length > 1)
-                    throw new Error('Ambiguous entity ' + entity + ' of type ' + entityType);
-                return List.singleton(reuse[0]);
-            }
+        found = this._findStringLikeEntity(entityType, entity, entityString, false);
+        if (found)
+            return found;
 
-            if (ignoreNotFound && candidates.length === 0)
-                return null;
-
-            const found = this._findStringLikeEntity(entityType, entity, entityString, false);
-            if (found)
-                return found;
-
-            throw new Error(`Cannot find entity ${entityString} of type ${entityType}, have ${util.inspect(this.entities)} / ${util.inspect(this._used)}`);
-        } else {
-            // move the first entity (in sentence order) from the main bag to the used bag
-            candidates.sort();
-            const result = candidates.shift();
-            assert(result !== undefined);
-            this._used[result] = this.entities[result];
-            delete this.entities[result];
-            return List.singleton(result);
-        }
+        throw new Error(`Cannot find entity ${entityString} of type ${entityType}, have ${util.inspect(this.entities)}`);
     }
 }
 

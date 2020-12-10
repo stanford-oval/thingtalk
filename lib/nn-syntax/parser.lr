@@ -630,8 +630,8 @@ recurrent_time_item : [string, any] = {
     'beginDate' '=' v:absolute_or_edge_date => ['beginDate', v.value];
     'endDate' '=' v:absolute_or_edge_date => ['endDate', v.value];
 
-    'beginTime' '=' v:absolute_time => ['beginTime', v.value];
-    'endTime' '=' v:absolute_time => ['endTime', v.value];
+    'beginTime' '=' v:absolute_time => ['beginTime', v];
+    'endTime' '=' v:absolute_time => ['endTime', v];
 
     'frequency' '=' v:literal_number => ['frequency', v];
     'interval' '=' v:constant_Measure => ['interval', v];
@@ -730,16 +730,16 @@ constant_Location : Ast.LocationValue = {
 
 // Note that while keeping digits in ranges [0-23],[0-59],[0-59] is not enforced
 // here, it is enforced in tonn_converter, rendering it unnecessary to do so here
-absolute_time : Ast.TimeValue = {
-    time:TIME => new Ast.Value.Time(new Ast.Time.Absolute(time.value.hour, time.value.minute, time.value.second||0));
+absolute_time : Ast.AbsoluteTime = {
+    time:TIME => new Ast.Time.Absolute(time.value.hour, time.value.minute, time.value.second||0);
     time:LITERAL_TIME => {
         const tokens = time.value.split(':');
-        return new Ast.Value.Time(new Ast.Time.Absolute(parseInt(tokens[0]), parseInt(tokens[1]), parseInt(tokens[2])));
+        return new Ast.Time.Absolute(parseInt(tokens[0]), parseInt(tokens[1]), parseInt(tokens[2]));
     };
 }
 
 constant_Time : Ast.TimeValue = {
-    absolute_time;
+    time:absolute_time => new Ast.Value.Time(time);
 
     'time:morning' => new Ast.Value.Time(new Ast.Time.Relative('morning'));
     'time:evening' => new Ast.Value.Time(new Ast.Time.Relative('evening'));
@@ -756,8 +756,15 @@ constant_Date : Ast.DateValue = {
 
 absolute_or_edge_date : Ast.DateValue = {
     'new' 'Date' '(' year:constant_Number ',' month:constant_Number ',' day:constant_Number ')' => {
+        let yearnum = year.value;
+        if (yearnum > 0 && yearnum < 100) {
+            if (yearnum >= 50)
+                yearnum = 1900 + yearnum;
+            else
+                yearnum = 2000 + yearnum;
+        }
         const d = new Date;
-        d.setFullYear(year.value);
+        d.setFullYear(yearnum);
         d.setMonth(month.value-1);
         d.setDate(day.value);
         d.setHours(0);
@@ -769,7 +776,14 @@ absolute_or_edge_date : Ast.DateValue = {
     'new' 'Date' '(' year:constant_Number ',' month:constant_Number ',' day:constant_Number ','
                      hours:constant_Number ',' minutes:constant_Number ',' seconds:constant_Number ')' => {
         const d = new Date;
-        d.setFullYear(year.value);
+        let yearnum = year.value;
+        if (yearnum > 0 && yearnum < 100) {
+            if (yearnum >= 50)
+                yearnum = 1900 + yearnum;
+            else
+                yearnum = 2000 + yearnum;
+        }
+        d.setFullYear(yearnum);
         d.setMonth(month.value-1);
         d.setDate(day.value);
         d.setHours(hours.value);
@@ -804,17 +818,17 @@ absolute_or_edge_date : Ast.DateValue = {
     'new' 'Date' '(' ',' month:constant_Number ',' day:constant_Number ',' ')' => {
         return new Ast.Value.Date(new Ast.DatePiece(null, month.value, day.value, null));
     };
-    'new' 'Date' '(' ',' ',' day:constant_Number ',' time:constant_Time ')' => {
+    'new' 'Date' '(' ',' ',' day:constant_Number ',' time:absolute_time ')' => {
         return new Ast.Value.Date(new Ast.DatePiece(null, null, day.value, time));
     };
-    'new' 'Date' '(' ',' month:constant_Number ',' day:constant_Number ',' time:constant_Time ')' => {
+    'new' 'Date' '(' ',' month:constant_Number ',' day:constant_Number ',' time:absolute_time ')' => {
         return new Ast.Value.Date(new Ast.DatePiece(null, month.value, day.value, time));
     };
     'new' 'Date' '(' weekday:ENUM ')' => {
         const d = new Ast.WeekDayDate(weekday.value, null);
         return new Ast.Value.Date(d);
     };
-    'new' 'Date' '(' weekday:ENUM ',' time:constant_Time ')' => {
+    'new' 'Date' '(' weekday:ENUM ',' time:absolute_time ')' => {
         const d = new Ast.WeekDayDate(weekday.value, time);
         return new Ast.Value.Date(d);
     };

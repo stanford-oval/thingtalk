@@ -123,7 +123,7 @@ const TEST_CASES = [
     ['@com.thecatapi . get ( count = NUMBER_0 ) ;',
      { NUMBER_0: 13 }],
 
-    ['@org.schema.full . Recipe ( ) filter nutrition.fatContent >= MEASURE_kg_0 ;',
+    ['@org.schema.full . Recipe ( ) filter nutrition . fatContent >= MEASURE_kg_0 ;',
      { MEASURE_kg_0: { value: 13, unit: 'kg' } }]
 ];
 

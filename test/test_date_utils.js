@@ -18,8 +18,8 @@
 
 import assert from 'assert';
 
+import { DateEdge, DatePiece, Time } from '../lib/ast';
 import { parseDate, normalizeDate } from '../lib/utils/date_utils';
-import { DateEdge, DatePiece, Time, Value } from '../lib/ast';
 
 function test(value, expected) {
     expected = parseDate(expected);
@@ -110,7 +110,7 @@ export default function main() {
     eleven_thirty.setMinutes(30);
     eleven_thirty.setSeconds(0);
     eleven_thirty.setMilliseconds(0);
-    test(new DatePiece(null, null, 25, new Value.Time(new Time.Absolute(11, 30, 0))), eleven_thirty);
+    test(new DatePiece(null, null, 25, new Time.Absolute(11, 30, 0)), eleven_thirty);
 }
 if (!module.parent)
     main();
