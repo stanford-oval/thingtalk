@@ -126,7 +126,7 @@ interface InternalFormattedChunk {
  *
  * @extends FormatUtils
  */
-export default class Formatter extends interpolate.Formatter {
+class Formatter extends interpolate.Formatter {
     private _schemas : SchemaRetriever;
     private _interp : (template : string, args : any) => string;
     private _ : (key : string) => string;
@@ -435,6 +435,15 @@ export default class Formatter extends interpolate.Formatter {
         })];
     }
 
+    formatForType(outputType : string,
+                  outputValue : PlainObject,
+                  hint : 'string') : Promise<string>;
+    formatForType(outputType : string,
+                  outputValue : PlainObject,
+                  hint : 'messages') : Promise<FormattedChunk[]>;
+    formatForType(outputType : string,
+                  outputValue : PlainObject,
+                  hint : string) : Promise<string|FormattedChunk[]>;
     async formatForType(outputType : string,
                         outputValue : PlainObject,
                         hint : string) : Promise<string|FormattedChunk[]> {
@@ -499,6 +508,15 @@ export default class Formatter extends interpolate.Formatter {
 
     format(formatspec : FormatSpecChunk[],
            argMap : PlainObject,
+           hint : 'string') : string;
+    format(formatspec : FormatSpecChunk[],
+           argMap : PlainObject,
+           hint : 'messages') : FormattedChunk[];
+    format(formatspec : FormatSpecChunk[],
+           argMap : PlainObject,
+           hint : string) : string|FormattedChunk[];
+    format(formatspec : FormatSpecChunk[],
+           argMap : PlainObject,
            hint : string) : string|FormattedChunk[] {
 
         const formatted : Array<Array<FormattedChunk|null>|FormattedChunk|null> = formatspec.map((f : FormatSpecChunk, i : number) : Array<FormattedChunk|null>|FormattedChunk|null => {
@@ -542,6 +560,9 @@ export default class Formatter extends interpolate.Formatter {
         return empty.concat(...filtered);
     }
 
+    private _applyHint(formatted : Array<Array<FormattedChunk|null>|FormattedChunk|null>, hint : 'string') : string;
+    private _applyHint(formatted : Array<Array<FormattedChunk|null>|FormattedChunk|null>, hint : 'messages') : FormattedChunk[];
+    private _applyHint(formatted : Array<Array<FormattedChunk|null>|FormattedChunk|null>, hint : string) : string|FormattedChunk[];
     private _applyHint(formatted : Array<Array<FormattedChunk|null>|FormattedChunk|null>, hint : string) : string|FormattedChunk[] {
         const normalized = this._normalize(formatted);
 
@@ -579,4 +600,16 @@ export default class Formatter extends interpolate.Formatter {
     locationToString(loc : LocationLike) : string {
         return new Location(loc.y, loc.x, loc.display).toLocaleString(this._locale);
     }
+}
+export default Formatter;
+
+type FormatFunction2 = FormatFunction;
+type FormatSpecChunk2 = FormatSpecChunk;
+type FormatSpec2 = FormatSpec;
+type FormattedChunk2 = FormattedChunk;
+namespace Formatter {
+    export type FormatFunction = FormatFunction2;
+    export type FormatSpecChunk = FormatSpecChunk2;
+    export type FormatSpec = FormatSpec2;
+    export type FormattedChunk = FormattedChunk2;
 }
