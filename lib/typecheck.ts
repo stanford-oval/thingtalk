@@ -287,6 +287,13 @@ export default class TypeChecker {
                     throw new TypeError('Cannot access $result or $type before the first primitive');
             }
         }
+        if (value instanceof Ast.DateValue) {
+            const date = value.value;
+            if (date instanceof Ast.DateEdge) {
+                if (Units.normalizeUnit(date.unit) !== 'ms')
+                    throw new TypeError(`Invalid unit for $${date.edge}`);
+            }
+        }
 
         if (value instanceof Ast.ArrayValue) {
             const typeScope = {};

@@ -425,6 +425,17 @@ Q1() filter _timestamp >= $now + -1year + -12mon;
 Q1() filter _timestamp >= $start_of(mon) && _timestamp <= $end_of(day);
 ====
 
+// invalid relative times
+// ** expect TypeError **
+Q1() filter _timestamp >= $start_of(C);
+
+====
+// invalid relative times (2)
+// ** expect TypeError **
+Q1() filter _timestamp >= $start_of(foo);
+
+====
+
 // Lambdas
 function macro(p_number : Number) {
   @com.xkcd.get_comic(number=p_number);
