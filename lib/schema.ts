@@ -265,6 +265,17 @@ export default class SchemaRetriever {
             console.log(`Batched ${isMeta ? 'schema-meta' : 'schema'} request for ${pending}`);
         const code = await this._thingpediaClient.getSchemas(pending, isMeta === 'everything');
 
+        if (code.trim() === '') {
+            // empty reply, this means none of the requested classes was found
+            // add negative cache entry (with small 10 minute timeout) for the missing class
+            for (const kind of pending) {
+                // we add it for both with & without metadata (if the class doesn't exist it doesn't exist)
+                this._classCache.basic.set(kind, null, 600 * 1000);
+                this._classCache.everything.set(kind, null, 600 * 1000);
+            }
+            return {};
+        }
+
         const parsed = Grammar.parse(code) as Library;
         const result : ClassMap = {};
         if (!parsed)
