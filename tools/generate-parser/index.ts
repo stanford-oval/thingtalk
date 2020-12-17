@@ -95,17 +95,50 @@ async function processFile(filename : string,
 }
 
 function wsnDump(grammar : ProcessedGrammar) {
+    const transformedGrammar : Record<string, string[][]> = {};
     for (const nonTerm in grammar) {
+        let rules = grammar[nonTerm].map(([rule],) => rule.map((r) => r.toWSN()));
+        // recognize lists
+        if (rules.length === 2 && rules[0].length === 1 && rules[1].length === 2 &&
+            rules[1][0] === nonTerm &&
+            rules[0][0] === rules[1][1]) { // without separator
+            rules =[ ['{', rules[0][0], '}'] ];
+        } else if (rules.length === 2 && rules[0].length === 1 &&
+                   rules[1][0] === nonTerm &&
+                   rules[1][rules[1].length-1] === rules[0][0]) { // with separator
+            rules =[ [rules[0][0], '{', ...rules[1].slice(1), '}' ] ];
+        }
+
+        transformedGrammar[nonTerm] = rules;
+    }
+
+    const transformedGrammar2 : Record<string, string[][]> = {};
+    for (const nonTerm in transformedGrammar) {
+        if (nonTerm.endsWith('_nonempty') && transformedGrammar[nonTerm].length === 1)
+            continue;
+        const rules = transformedGrammar[nonTerm].map((rule) => {
+            const newRule : string[] = [];
+            for (const item of rule) {
+                if (item.endsWith('_nonempty') && transformedGrammar[item].length === 1)
+                    newRule.push(...transformedGrammar[item][0]);
+                else
+                    newRule.push(item);
+            }
+            return newRule;
+        });
+        transformedGrammar2[nonTerm] = rules;
+    }
+
+    for (const nonTerm in transformedGrammar2) {
         let first = true;
         const prefix = ' '.repeat(nonTerm.length);
-        for (const [rule,] of grammar[nonTerm]) {
-            const ruleOut = rule.map((r) => r.toWSN()).join(' ');
 
+        for (const rule of transformedGrammar2[nonTerm]) {
             if (first) {
-                console.log(`${nonTerm} = ${ruleOut}`);
+                console.log(`${nonTerm} = ${rule.join(' ')}`);
                 first = false;
             } else {
-                console.log(`${prefix} | ${ruleOut}`);
+                console.log(`${prefix} | ${rule.join(' ')}`);
             }
         }
         console.log(`${prefix} .`);

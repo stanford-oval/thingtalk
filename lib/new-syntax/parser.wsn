@@ -1,0 +1,598 @@
+input = program_or_library
+      | control_command
+      | policy
+      | dialogue_state
+      .
+special_command = "$yes"
+                | "$no"
+                | "$failed"
+                | "$train"
+                | "$debug"
+                | "$nevermind"
+                | "$stop"
+                | "$help"
+                | "$wakeup"
+                .
+control_command = special_command ";"
+                | "$choice" "(" literal_number ")" ";"
+                | "$answer" "(" value ")" ";"
+                .
+program_or_library = [ annotation_spec ] toplevel_statement_list
+                   .
+thingpedia_function_name = CLASS_OR_FUNCTION_REF [ "." function_name ]
+                         .
+dialogue_state = "$dialogue" thingpedia_function_name ";" [ dialogue_history_item_list ]
+               | "$dialogue" thingpedia_function_name [ "(" identifier_list ")" ] ";" [ dialogue_history_item_list ]
+               .
+dialogue_history_item_list = { dialogue_history_item }
+                           .
+dialogue_history_item = expression_statement [ { dialogue_result_annotation } ] ";"
+                      | expression_statement "#[" "confirm" "=" enum_literal "]" ";"
+                      .
+dialogue_result_annotation = "#[" "results" "=" dialogue_result_list "]"
+                           | "#[" "count" "=" value "]"
+                           | "#[" "more" "=" "true" "]"
+                           | "#[" "error" "=" value "]"
+                           .
+dialogue_result_list = "[" "]"
+                     | "[" object_literal_value { "," object_literal_value } "]"
+                     .
+policy = "$policy" "{" or_filter ":" policy_body ";" "}"
+       .
+policy_body = "now" "=>" policy_fn
+            | policy_fn "=>" "notify"
+            | policy_fn "=>" policy_fn
+            .
+policy_fn = "*"
+          | CLASS_OR_FUNCTION_REF "." "*"
+          | thingpedia_function_name
+          | thingpedia_function_name "filter" or_filter
+          | thingpedia_function_name "," or_filter
+          .
+annotation_spec = annotation_list
+                .
+annotation = "#_[" variable_name "=" value "]"
+           | "#[" variable_name "=" value "]"
+           .
+annotation_list = { annotation }
+                .
+statement_list = { statement }
+               .
+toplevel_statement_list = { toplevel_statement | statement }
+                        .
+toplevel_statement = class_def
+                   | dataset_def
+                   .
+class_specifier = "class"
+                | "abstract" "class"
+                .
+class_def = class_specifier CLASS_OR_FUNCTION_REF [ "extends" class_ref_list ] [ annotation_spec ] class_body
+          .
+class_body = "{" "}"
+           | "{" class_stmt_list "}"
+           .
+class_ref_list = CLASS_OR_FUNCTION_REF { "," CLASS_OR_FUNCTION_REF }
+               .
+class_stmt_list = { class_stmt }
+                .
+function_type_decl = [ "monitorable" ] [ "list" ] "query"
+                   | [ "list" ] [ "monitorable" ] "query"
+                   | "action"
+                   .
+class_stmt = "import" identifier_list "from" CLASS_OR_FUNCTION_REF in_param_list ";"
+           | "entity" variable_name [ annotation_spec ] ";"
+           | function_type_decl function_name [ "extends" identifier_list ] decl_param_list [ annotation_spec ] ";"
+           .
+decl_param_list = "(" ")"
+                | "(" decl_param { "," decl_param } ")"
+                .
+decl_param = [ arg_direction ] variable_name type_annot [ annotation_spec ]
+           .
+udf_decl_param_list = "(" ")"
+                    | "(" udf_decl_param { "," udf_decl_param } ")"
+                    .
+udf_decl_param = variable_name type_annot
+               .
+arg_direction = "in" "req"
+              | "in" "opt"
+              | "out"
+              .
+dataset_def = "dataset" CLASS_OR_FUNCTION_REF [ "language" any_string ] [ annotation_spec ] dataset_body
+            .
+dataset_body = "{" [ example_list ] "}"
+             .
+example_list = { example }
+             .
+assignment_compat = "="
+                  | ":="
+                  .
+example = ( "stream" | "query" | "action" | "program" ) [ udf_decl_param_list ] assignment_compat chain_expression [ annotation_list ] ";"
+        | "program" [ udf_decl_param_list ] assignment_compat "{" chain_expression "}" [ annotation_list ] ";"
+        .
+udf_declaration = "function" udf_function_name udf_decl_param_list [ annotation_spec ] "{" statement_list "}"
+                .
+statement = udf_declaration
+          | expression_statement ";"
+          | "let" variable_name "=" chain_expression ";"
+          .
+expression_statement = [ "now" "=>" ] toplevel_chain_expression
+                     .
+chain_expression = chain_expression_list
+                 .
+toplevel_chain_expression = chain_expression_list [ "=>" "notify" ]
+                          .
+chain_expression_list = projection_expression { "=>" projection_expression }
+                      .
+projection_expression = filter_expression
+                      | "[" projection_param_list "]" "of" projection_expression
+                      .
+projection_param_list = "*"
+                      | "*" "," projection_nonstar_param_list
+                      | projection_nonstar_param_list
+                      .
+projection_nonstar_param_list = projection_param { "," projection_param }
+                              .
+projection_param = value [ "as" variable_name ]
+                 .
+filter_expression = alias_expression
+                  | filter_expression ( "," | "filter" ) or_filter
+                  .
+alias_expression = index_slice_expression
+                 | alias_expression "as" variable_name
+                 .
+index_slice_expression = primary_expression
+                       | primary_expression "[" value ":" value "]"
+                       | primary_expression "[" array_literal_values "]"
+                       .
+primary_expression = "(" chain_expression ")"
+                   | "sort" "(" sort_specifier "of" chain_expression ")"
+                   | aggr_op "(" qualified_name "of" chain_expression ")"
+                   | "count" "(" qualified_name "of" chain_expression ")"
+                   | "count" "(" chain_expression ")"
+                   | "monitor" "(" chain_expression ")"
+                   | "monitor" "(" qualified_name_list "of" chain_expression ")"
+                   | udf_function_name in_param_list
+                   | thingpedia_call
+                   .
+thingpedia_call = CLASS_OR_FUNCTION_REF in_param_list
+                | CLASS_OR_FUNCTION_REF "." function_name in_param_list
+                | CLASS_OR_FUNCTION_REF in_param_list "." function_name in_param_list
+                .
+in_param_list = "(" ")"
+              | "(" in_param { "," in_param } ")"
+              .
+in_param = "all" "=" value
+         | variable_name "=" value
+         .
+sort_specifier = value "asc"
+               | value "desc"
+               .
+or_filter = and_filter { "||" and_filter }
+          .
+and_filter = unary_filter { "&&" unary_filter }
+           .
+unary_filter = comparison_filter
+             | atom_filter
+             | "!" atom_filter
+             .
+comparison_filter = filter_lhs_add_expr comparison_op add_expr
+                  .
+non_ambiguous_unary_filter = non_ambiguous_comparison_filter
+                           | atom_filter
+                           | "!" atom_filter
+                           .
+non_ambiguous_comparison_filter = filter_lhs_add_expr comparison_op primary_value
+                                .
+filter_lhs_array_field_value = qualified_name "of" filter_lhs_filter_value
+                             | filter_lhs_filter_value
+                             .
+filter_lhs_filter_value = filter_lhs_add_expr
+                        | filter_lhs_add_expr "filter" non_ambiguous_unary_filter
+                        .
+filter_lhs_add_expr = filter_lhs_mul_expr
+                    | filter_lhs_add_expr "+" filter_lhs_mul_expr
+                    | filter_lhs_add_expr "-" filter_lhs_mul_expr
+                    .
+filter_lhs_mul_expr = filter_lhs_exp_expr
+                    | filter_lhs_mul_expr "*" filter_lhs_exp_expr
+                    | filter_lhs_mul_expr "/" filter_lhs_exp_expr
+                    | filter_lhs_mul_expr "%" filter_lhs_exp_expr
+                    .
+filter_lhs_exp_expr = filter_lhs_primary_value { "**" filter_lhs_primary_value }
+                    .
+filter_lhs_primary_value = "(" filter_lhs_array_field_value ")"
+                         | constant_non_Boolean
+                         | scalar_function
+                         | undefined_value
+                         | context_value
+                         | object_literal_value
+                         | array_value
+                         | var_ref_value
+                         | event_value
+                         .
+comparison_op = "=="
+              | ">="
+              | "<="
+              | "=~"
+              | "~="
+              .
+function_like_comparison_op = "starts_with"
+                            | "ends_with"
+                            | "prefix_of"
+                            | "suffix_of"
+                            | "contains"
+                            | "contains~"
+                            | "~contains"
+                            | "in_array"
+                            | "in_array~"
+                            | "~in_array"
+                            .
+aggr_op = "min"
+        | "max"
+        | "sum"
+        | "avg"
+        .
+scalar_op = "distance"
+          .
+atom_filter = "true"
+            | "false"
+            | "(" or_filter ")"
+            | "true" "(" qualified_name ")"
+            | function_like_comparison_op "(" value "," value ")"
+            | "any" "(" thingpedia_call "filter" or_filter ")"
+            | "any" "(" thingpedia_call "," or_filter ")"
+            .
+primary_value = "(" value ")"
+              | scalar_function
+              | undefined_value
+              | context_value
+              | object_literal_value
+              | array_value
+              | constant_value
+              | var_ref_value
+              | event_value
+              .
+var_ref_value = qualified_name
+              .
+qualified_name = variable_name { "." variable_name }
+               .
+value = array_field_value
+      .
+array_field_value = qualified_name "of" filter_value
+                  | filter_value
+                  .
+filter_value = add_expr
+             | add_expr "filter" non_ambiguous_unary_filter
+             .
+add_expr = mul_expr
+         | add_expr "+" mul_expr
+         | add_expr "-" mul_expr
+         .
+mul_expr = exp_expr
+         | mul_expr "*" exp_expr
+         | mul_expr "/" exp_expr
+         | mul_expr "%" exp_expr
+         .
+exp_expr = primary_value { "**" primary_value }
+         .
+scalar_function = scalar_op "(" array_literal_values ")"
+                | aggr_op "(" array_literal_values ")"
+                | "count" "(" array_literal_values ")"
+                .
+undefined_value = "$undefined"
+                | "$?"
+                .
+event_value = "$result"
+            | "$type"
+            | "$program_id"
+            | "$source"
+            .
+context_value = "$context" "." variable_name type_annot
+              .
+array_value = "[" "]"
+            | "[" array_literal_values "]"
+            .
+object_literal_value = "{" "}"
+                     | "{" object_literal_entry_list "}"
+                     | "{" object_literal_entry_list "," "}"
+                     .
+object_literal_entry_list = qualified_name "=" value
+                          | object_literal_entry_list "," qualified_name "=" value
+                          .
+constant_RecurrentTimeSpecification = "new" "RecurrentTimeSpecification" "(" recurrent_time_rule_list ")"
+                                    .
+recurrent_time_rule_list = recurrent_time_rule { "," recurrent_time_rule }
+                         .
+recurrent_time_rule = "{" recurrent_time_item_list "}"
+                    .
+recurrent_time_item_list = recurrent_time_item { "," recurrent_time_item }
+                         .
+recurrent_time_item = "beginDate" "=" absolute_or_edge_date
+                    | "endDate" "=" absolute_or_edge_date
+                    | "beginTime" "=" absolute_time
+                    | "endTime" "=" absolute_time
+                    | "frequency" "=" literal_number
+                    | "interval" "=" constant_Measure
+                    | "dayOfWeek" "=" enum_literal
+                    | "subtract" "=" "true"
+                    | "subtract" "=" "false"
+                    .
+constant_value = constant_Boolean
+               | constant_non_Boolean
+               .
+constant_non_Boolean = constant_String
+                     | constant_Measure
+                     | constant_Number
+                     | constant_Currency
+                     | constant_Location
+                     | constant_Date
+                     | constant_Time
+                     | constant_Entity__unknown
+                     | constant_Entity__tt__username
+                     | constant_Entity__tt__hashtag
+                     | constant_Entity__tt__phone_number
+                     | constant_Entity__tt__email_address
+                     | constant_Entity__tt__path_name
+                     | constant_Entity__tt__url
+                     | constant_Entity__tt__device
+                     | constant_Entity__tt__function
+                     | constant_Entity__tt__picture
+                     | constant_Enum
+                     | constant_RecurrentTimeSpecification
+                     | constant_ArgMap
+                     | SLOT
+                     .
+array_literal_values = value { "," value }
+                     .
+constant_Boolean = "true"
+                 | "false"
+                 .
+any_string = QUOTED_STRING
+           .
+constant_String = any_string
+                .
+literal_number = NUMBER
+               .
+any_number = literal_number
+           | "-" literal_number
+           .
+constant_Measure = MEASURE
+                 | DURATION
+                 | any_number unit_name
+                 .
+constant_Number = any_number
+                .
+constant_Currency = CURRENCY
+                  | any_number DOLLARIDENTIFIER
+                  .
+constant_Location = LOCATION
+                  | "$location" "." variable_name
+                  | "new" "Location" "(" any_number "," any_number "," any_string ")"
+                  | "new" "Location" "(" any_number "," any_number ")"
+                  | "new" "Location" "(" any_string ")"
+                  .
+absolute_time = TIME
+              | "new" "Time" "(" any_number "," any_number "," any_number ")"
+              | "new" "Time" "(" any_number "," any_number "," ")"
+              | "new" "Time" "(" any_number "," any_number ")"
+              .
+constant_Time = absolute_time
+              | "$time" "." variable_name
+              .
+constant_Date = "$now"
+              | "new" "Date" "(" ")"
+              | absolute_or_edge_date
+              .
+date_param_list = any_number
+                | ","
+                | date_param_list ","
+                | date_param_list any_number
+                .
+absolute_or_edge_date = DATE
+                      | "new" "Date" "(" any_string ")"
+                      | "new" "Date" "(" date_param_list ")"
+                      | "new" "Date" "(" date_param_list "," absolute_time ")"
+                      | "new" "Date" "(" enum_literal ")"
+                      | "new" "Date" "(" enum_literal "," absolute_time ")"
+                      | "new" "Date" "(" enum_literal "," constant_Number "," constant_Number "," constant_Number ")"
+                      | "new" "Date" "(" enum_literal "," constant_Number "," constant_Number "," ")"
+                      | "new" "Date" "(" enum_literal "," constant_Number "," constant_Number ")"
+                      | "$start_of" "(" unit_name ")"
+                      | "$end_of" "(" unit_name ")"
+                      .
+constant_Enum = enum_literal
+              .
+enum_literal = "enum" "(" identifier_or_keyword ")"
+             | "enum" identifier_or_keyword
+             .
+constant_Entity__unknown = "null" ENTITY_NAME "(" any_string ")"
+                         | any_string ENTITY_NAME "(" any_string ")"
+                         | any_string ENTITY_NAME
+                         | GENERIC_ENTITY
+                         .
+constant_Entity__tt__username = USERNAME
+                              .
+constant_Entity__tt__hashtag = HASHTAG
+                             .
+constant_Entity__tt__url = URL
+                         .
+constant_Entity__tt__phone_number = PHONE_NUMBER
+                                  .
+constant_Entity__tt__email_address = EMAIL_ADDRESS
+                                   .
+constant_Entity__tt__path_name = PATH_NAME
+                               .
+constant_Entity__tt__picture = PICTURE
+                             .
+constant_Entity__tt__device = CLASS_OR_FUNCTION_REF
+                            .
+constant_Entity__tt__function = CLASS_OR_FUNCTION_REF "." variable_name
+                              .
+constant_ArgMap = "new" "ArgMap" "(" ")"
+                | "new" "ArgMap" "(" argmap_list ")"
+                .
+argmap_list = variable_name type_annot
+            | argmap_list "," variable_name type_annot
+            .
+type_annot = ":" type_ref
+           | TYPE_ANNOT
+           .
+type_ref = "ArgMap"
+         | "Boolean"
+         | "Currency"
+         | "Date"
+         | "Location"
+         | "Number"
+         | "Time"
+         | "String"
+         | "Object"
+         | "RecurrentTimeSpecification"
+         | IDENTIFIER
+         | "Array" "(" type_ref ")"
+         | "Entity" "(" ENTITY_NAME ")"
+         | "Measure" "(" unit_name ")"
+         | "Enum" "(" enum_list ")"
+         | "{" compound_type_field_map "}"
+         .
+compound_type_field_map = compound_type_field_list
+                        | compound_type_field_list ","
+                        .
+compound_type_field_list = compound_type_field { "," compound_type_field }
+                         .
+compound_type_field = variable_name type_annot
+                    | variable_name type_annot annotation_spec
+                    .
+enum_list = identifier_or_keyword { "," identifier_or_keyword }
+          .
+identifier_list = function_name { "," function_name }
+                .
+contextual_keyword = "action"
+                   | "entity"
+                   | "from"
+                   | "language"
+                   | "list"
+                   | "monitorable"
+                   | "program"
+                   | "query"
+                   | "stream"
+                   | "error"
+                   | "confirm"
+                   | "more"
+                   | "results"
+                   | "beginDate"
+                   | "beginTime"
+                   | "dayOfWeek"
+                   | "endDate"
+                   | "endTime"
+                   | "frequency"
+                   | "interval"
+                   | "subtract"
+                   | "asc"
+                   | "desc"
+                   .
+variable_name = IDENTIFIER
+              | contextual_keyword
+              | function_like_comparison_op
+              | aggr_op
+              | scalar_op
+              | "count"
+              .
+function_name = IDENTIFIER
+              | contextual_keyword
+              | function_like_comparison_op
+              | aggr_op
+              | scalar_op
+              | "count"
+              .
+udf_function_name = IDENTIFIER
+                  | contextual_keyword
+                  .
+qualified_name_list = qualified_name { "," qualified_name }
+                    .
+unit_name = IDENTIFIER
+          | "min"
+          | "in"
+          .
+identifier_or_keyword = function_name
+                      | "class"
+                      | "enum"
+                      | "extends"
+                      | "import"
+                      | "in"
+                      | "let"
+                      | "new"
+                      | "null"
+                      | "of"
+                      | "true"
+                      | "false"
+                      | "abstract"
+                      | "all"
+                      | "any"
+                      | "as"
+                      | "dataset"
+                      | "filter"
+                      | "function"
+                      | "mixin"
+                      | "monitor"
+                      | "notify"
+                      | "now"
+                      | "out"
+                      | "opt"
+                      | "req"
+                      | "sort"
+                      | "await"
+                      | "break"
+                      | "case"
+                      | "catch"
+                      | "const"
+                      | "continue"
+                      | "debugger"
+                      | "delete"
+                      | "do"
+                      | "export"
+                      | "finally"
+                      | "for"
+                      | "if"
+                      | "implements"
+                      | "instanceof"
+                      | "interface"
+                      | "package"
+                      | "private"
+                      | "protected"
+                      | "public"
+                      | "return"
+                      | "static"
+                      | "super"
+                      | "switch"
+                      | "this"
+                      | "throw"
+                      | "try"
+                      | "typeof"
+                      | "var"
+                      | "void"
+                      | "while"
+                      | "with"
+                      | "yield"
+                      | "aggregate"
+                      | "bookkeeping"
+                      | "compute"
+                      | "edge"
+                      | "join"
+                      | "oninput"
+                      | "Any"
+                      | "ArgMap"
+                      | "Array"
+                      | "Boolean"
+                      | "Compound"
+                      | "Currency"
+                      | "Date"
+                      | "Entity"
+                      | "Enum"
+                      | "Location"
+                      | "Measure"
+                      | "Number"
+                      | "Object"
+                      | "RecurrentTimeSpecification"
+                      | "String"
+                      | "Time"
+                      .
