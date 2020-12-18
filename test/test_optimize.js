@@ -251,6 +251,14 @@ now => [distance(geo, $location.current_location)] of @com.yelp.restaurant() => 
     [`[distance(geo, $location.current_location)] of sort(distance asc of [*, distance(geo, $location.current_location)] of @com.yelp.restaurant());`,
      `[distance(geo, $location.current_location)] of sort(distance(geo, $location.current_location) asc of @com.yelp.restaurant());`],
 
+    // index + projection
+    [`([geo] of sort(distance(geo, $location.current_location) asc of @com.yelp.restaurant() filter id =~ "mcdonalds"))[1];`,
+     `[geo] of sort(distance(geo, $location.current_location) asc of @com.yelp.restaurant() filter id =~ "mcdonalds")[1];`],
+
+    // projection + index + projection
+    [`[geo] of ([*, distance(geo, $location.current_location)] of sort(distance(geo, $location.current_location) asc of @com.yelp.restaurant() filter id =~ "mcdonalds"))[1];`,
+     `[geo] of sort(distance(geo, $location.current_location) asc of @com.yelp.restaurant() filter id =~ "mcdonalds")[1];`],
+
     // projection of chain to chain of projection
     [`[link] of (@com.washingtonpost.get_article() => @com.bing.web_search(query=title));`,
     `@com.washingtonpost.get_article() => [link] of @com.bing.web_search(query=title);`],

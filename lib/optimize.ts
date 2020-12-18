@@ -459,6 +459,45 @@ function optimizeExpression(expression : Ast.Expression, allow_projection=true) 
     if (expression instanceof Ast.SliceExpression && expression.limit instanceof Ast.NumberValue && expression.limit.value === 1)
         return optimizeExpression(new Ast.IndexExpression(expression.location, expression.expression, [expression.base], expression.expression.schema), allow_projection);
 
+    // flip index of projection to projection of index
+    if (expression instanceof Ast.IndexExpression) {
+        const optimized = optimizeExpression(expression.expression);
+        if (optimized instanceof Ast.ProjectionExpression) {
+            const inner = optimized.expression;
+            return new Ast.ProjectionExpression(optimized.location,
+                                                new Ast.IndexExpression(expression.location,
+                                                                        inner,
+                                                                        expression.indices,
+                                                                        inner.schema),
+                                                optimized.args,
+                                                optimized.computations,
+                                                optimized.aliases,
+                                                optimized.schema);
+        }
+        expression.expression = optimized;
+        return expression;
+    }
+
+    // same thing but for slice
+    if (expression instanceof Ast.SliceExpression) {
+        const optimized = optimizeExpression(expression.expression);
+        if (optimized instanceof Ast.ProjectionExpression) {
+            const inner = optimized.expression;
+            return new Ast.ProjectionExpression(optimized.location,
+                                                new Ast.SliceExpression(expression.location,
+                                                                        inner,
+                                                                        expression.base,
+                                                                        expression.limit,
+                                                                        inner.schema),
+                                                optimized.args,
+                                                optimized.computations,
+                                                optimized.aliases,
+                                                optimized.schema);
+        }
+        expression.expression = optimized;
+        return expression;
+    }
+
     if (isUnaryExpressionOp(expression)) {
         const inner = optimizeExpression(expression.expression, allow_projection);
         expression.expression = inner;
