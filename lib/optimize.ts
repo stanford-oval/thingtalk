@@ -536,7 +536,12 @@ function optimizeRule(rule : Ast.ExpressionStatement) : Ast.ExpressionStatement 
     return rule;
 }
 
-function optimizeProgram(program : Ast.Program) : Ast.Program {
+function optimizeProgram<T extends Ast.Program|Ast.FunctionDeclaration>(program : T) : T {
+    const newDeclarations = [];
+    for (const decl of program.declarations)
+        newDeclarations.push(optimizeProgram(decl));
+    program.declarations = newDeclarations;
+
     const statements : Ast.ExecutableStatement[] = [];
     program.statements.forEach((stmt) => {
         if (stmt instanceof Ast.Assignment) {

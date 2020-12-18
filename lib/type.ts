@@ -379,6 +379,9 @@ export class CompoundType extends Type {
         let list : TokenStream = List.concat('{', '\t+', '\n');
         let first = true;
         for (const field in this.fields) {
+            // ignored flattened nested compound arguments
+            if (field.indexOf('.') >= 0)
+                continue;
             const arg = this.fields[field];
             if (first)
                 first = false;

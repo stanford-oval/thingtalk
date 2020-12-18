@@ -114,7 +114,7 @@ executor = "matrix-account:@gcampax:matrix.org"^^tt:contact : { // WithPrincipal
 
 // WithClassDef
 {
-    class @dyn_0 extends @remote {
+    class @dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
         action send(in req foo : String);
     }
     now => @dyn_0.send(foo="foo");
@@ -125,7 +125,7 @@ executor = "matrix-account:@gcampax:matrix.org"^^tt:contact : { // WithPrincipal
 // ** typecheck: expect TypeError **
 // WrongClassDef
 {
-    class @dyn_0 extends @remote {
+    class @dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
         action send(in req foo : Number);
     }
     now => @dyn_0.send(foo="foo");
@@ -352,6 +352,8 @@ monitor @com.twitter.home_timeline() => notify;
 ====
 
 // LogQueryTestJoin
+// ** typecheck: expect TypeError **
+// No projection is allowed if there is only one output parameter
 {
   now => ([col1] of Q1 join Q2), col2 >= col1 => notify;
   now => [col2] of (([col1] of Q1 join Q2), col2 >= col1) => notify;
@@ -431,11 +433,15 @@ monitor (aggregate max field of Q1) => notify;
 ====
 
 // LogTestAll
+// ** typecheck: expect TypeError **
+// Expected a query expression in argument to chain, got a stream
 let stream saved := [foo] of (monitor Q0 join Q1);
 
 ====
 
 // LogTestTableName
+// ** typecheck: expect TypeError **
+// Expected a query expression in argument to chain, got a stream
 let stream lol := [foo] of (monitor Q0 join Q1);
 
 ====
@@ -473,8 +479,6 @@ let table x := compute distance(location, makeLocation(1,2)) of @org.thingpedia.
 let table y := compute distance(location, $context.location.home) of @org.thingpedia.builtin.thingengine.builtin.get_gps();
 let table z := compute (col1 + col2) of Q1;
 let table xx := compute (1 + col1) of aggregate sum col1 of Q1;
-let table xy := compute (1 + colsum) of aggregate sum col1 as colsum of Q1;
-let table xxy := compute (1 + colsum) as colwhatever of aggregate sum col1 as colsum of Q1;
 }
 
 ====
@@ -983,11 +987,6 @@ now => cat => @com.facebook.post();
 // parameters to assignments
 let result cat := @com.thecatapi.get();
 now => cat(key=1) => notify;
-
-====
-
-// new-style undefined
-now => @com.twitter.post(status=$?);
 
 ====
 

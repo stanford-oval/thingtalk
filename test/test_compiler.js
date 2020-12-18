@@ -5417,8 +5417,8 @@ const TEST_CASES = [
       try {
         try {
           _t_2 = {};
-          _t_2.title = _t_0;
           _t_2.body = _t_1;
+          _t_2.title = _t_0;
           await __builtin.drainAction(__env.invokeAction("com.tumblr.blog", { }, "post_text", _t_2));
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
@@ -5553,8 +5553,8 @@ const TEST_CASES = [
       try {
         try {
           _t_2 = {};
-          _t_2.title = _t_0;
           _t_2.body = _t_1;
+          _t_2.title = _t_0;
           await __builtin.drainAction(__env.invokeAction("com.tumblr.blog", { }, "post_text", _t_2));
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
@@ -7298,10 +7298,10 @@ const TEST_CASES = [
     __env.clearGetCache();
     try {
       _t_21 = {};
-      _t_22 = "http://foo";
-      _t_21.picture_url = _t_22;
-      _t_23 = "cat";
-      _t_21.caption = _t_23;
+      _t_22 = "cat";
+      _t_21.caption = _t_22;
+      _t_23 = "http://foo";
+      _t_21.picture_url = _t_23;
       await __builtin.drainAction(__env.invokeAction("com.twitter", { }, "post_picture", _t_21));
     } catch(_exc_) {
       __env.reportError("Failed to invoke action", _exc_);

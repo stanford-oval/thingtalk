@@ -186,6 +186,10 @@ export class FunctionDeclaration extends Statement {
         this.schema = schema;
     }
 
+    optimize() : this {
+        return Optimizer.optimizeProgram(this);
+    }
+
     toSource() : TokenStream {
         let list : TokenStream = List.concat('function', this.name, '(', '\t=+');
         let first = true;
@@ -526,23 +530,23 @@ export class ExpressionStatement extends Statement {
         return this.expression.lastQuery;
     }
 
-    toLegacy() : Rule|Command {
+    toLegacy(scope_params : string[] = []) : Rule|Command {
         const last = this.last;
         const action = last.schema!.functionType === 'action' ? last : null;
         let head : Stream|Table|null = null;
         if (action) {
             const remaining = this.expression.expressions.slice(0, this.expression.expressions.length-1);
             if (remaining.length > 0) {
-                const converted = new ChainExpression(null, remaining, null).toLegacy();
+                const converted = new ChainExpression(null, remaining, null).toLegacy([], scope_params);
                 assert(converted instanceof Stream || converted instanceof Table);
                 head = converted;
             }
         } else {
-            const converted  = this.expression.toLegacy();
+            const converted  = this.expression.toLegacy([], scope_params);
             assert(converted instanceof Stream || converted instanceof Table);
             head = converted;
         }
-        const convertedAction = action ? action.toLegacy() : null;
+        const convertedAction = action ? action.toLegacy([], scope_params) : null;
         assert(convertedAction === null || convertedAction instanceof Action);
 
         if (head instanceof Stream)
@@ -832,7 +836,7 @@ export class Program extends Input {
             annotations);
     }
 
-    optimize() : Program {
+    optimize() : this {
         return Optimizer.optimizeProgram(this);
     }
 
