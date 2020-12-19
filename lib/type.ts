@@ -24,6 +24,7 @@ import type * as Ast from './ast';
 import * as Grammar from './grammar';
 
 import { TokenStream } from './new-syntax/tokenstream';
+import { prettyprint } from './new-syntax/pretty';
 import List from './utils/list';
 
 function normalizeUnit(unit : string) : string {
@@ -90,6 +91,9 @@ export default abstract class Type {
             return str;
 
         return Grammar.parse(str, { startRule: 'type_ref' }) as any;
+    }
+    prettyprint() : string {
+        return prettyprint(this.toSource());
     }
 
     isNumeric() : boolean {
