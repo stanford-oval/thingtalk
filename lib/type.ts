@@ -24,6 +24,7 @@ import type * as Ast from './ast';
 import * as Grammar from './grammar';
 
 import { TokenStream } from './new-syntax/tokenstream';
+import { prettyprint } from './new-syntax/pretty';
 import List from './utils/list';
 
 function normalizeUnit(unit : string) : string {
@@ -90,6 +91,9 @@ export default abstract class Type {
             return str;
 
         return Grammar.parse(str, { startRule: 'type_ref' }) as any;
+    }
+    prettyprint() : string {
+        return prettyprint(this.toSource());
     }
 
     isNumeric() : boolean {
@@ -379,6 +383,9 @@ export class CompoundType extends Type {
         let list : TokenStream = List.concat('{', '\t+', '\n');
         let first = true;
         for (const field in this.fields) {
+            // ignored flattened nested compound arguments
+            if (field.indexOf('.') >= 0)
+                continue;
             const arg = this.fields[field];
             if (first)
                 first = false;

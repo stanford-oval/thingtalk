@@ -33,6 +33,7 @@ import Parser from './new-syntax/parser';
 import { surfaceLexer } from './new-syntax/lexer';
 import { nnLexer } from './new-syntax/nn-lexer';
 import { prettyprint } from './new-syntax/pretty';
+import { prettyprint as legacyPrettyprint } from './legacy-prettyprint';
 import { nnSerialize } from './new-syntax/nn-serializer';
 import { KEYWORDS, CONTEXTUAL_KEYWORDS } from './new-syntax/keywords';
 import {
@@ -130,10 +131,13 @@ export function serialize(node : Ast.Node,
             return nnSerialize(node.toSource(), entityRetriever!);
         else
             return LegacyNNSyntax.toNN(node as Ast.Input, entityRetriever!, options);
+    } else if (syntaxType === SyntaxType.Normal && options.compatibility &&
+        semver.satisfies(options.compatibility, '1.*')) {
+        return legacyPrettyprint(node as Ast.Input);
     } else if (syntaxType === SyntaxType.Normal) {
         return prettyprint(node.toSource());
     } else {
-        throw new Error(`Prettyprinting to legacy syntax is no longer supported`);
+        return legacyPrettyprint(node as Ast.Input);
     }
 }
 

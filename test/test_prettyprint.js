@@ -41,6 +41,17 @@ const TEST_CASES = [
   #[minimal_projection=[]];
 }`,
 
+// compound type 2
+`class @org.schema {
+  list query restaurants(out name : String,
+                         out reviews : Array({
+                           reviewRating : {
+                             ratingValue : Number
+                           }
+                         }))
+  #[minimal_projection=[]];
+}`,
+
 // sub function
 `class @org.schema {
   list query local_business(out name : String,

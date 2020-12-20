@@ -20,13 +20,18 @@
 import assert from 'assert';
 import * as fs from 'fs';
 
+import * as Ast from '../lib/ast';
+
 import NodeVisitor from '../lib/ast/visitor';
 import AstNode from '../lib/ast/base';
 import { Value } from '../lib/ast/values';
 
-import * as Ast from '../lib/ast';
-
 import * as AppGrammar from '../lib/syntax_api';
+import SchemaRetriever from '../lib/schema';
+
+import _mockSchemaDelegate from './mock_schema_delegate';
+import _mockMemoryClient from './mock_memory_client';
+const _schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, _mockMemoryClient, true);
 
 const debug = false;
 
@@ -150,6 +155,64 @@ export default async function main() {
             console.error('Iterate primitives failed');
             console.log('Code:');
             console.log(code);
+            console.error('====');
+            console.error(e.stack);
+            if (process.env.TEST_MODE)
+                throw e;
+        }
+
+        if (code.indexOf(`** typecheck: expect TypeError **`) >= 0)
+            continue;
+
+        try {
+            await ast.typecheck(_schemaRetriever);
+
+            const codegenned2 = ast.prettyprint();
+            assert.strictEqual(codegenned2, codegenned);
+        } catch(e) {
+            console.error('Typecheck failed');
+            console.log('Code:');
+            console.log(code);
+            console.log('New ThingTalk:');
+            console.log(codegenned);
+            console.log(ast.declarations ? ast.declarations.map((d) => d.statements[0].expression.expressions) : null);
+            console.error('====');
+            console.error(e.stack);
+            if (process.env.TEST_MODE)
+                throw e;
+            continue;
+        }
+
+        let legacyCodegenned;
+        try {
+            legacyCodegenned = AppGrammar.serialize(ast, AppGrammar.SyntaxType.Legacy);
+            const ast2 = AppGrammar.parse(legacyCodegenned, AppGrammar.SyntaxType.Legacy);
+            const codegenned2 = ast2.prettyprint();
+            assert.strictEqual(codegenned2, codegenned);
+        } catch(e) {
+            console.error('Failed to serialize to legacy syntax');
+            console.error('New ThingTalk:');
+            console.error(codegenned);
+            console.error('Legacy ThingTalk:');
+            console.error(legacyCodegenned);
+            console.error('====');
+            console.error(e.stack);
+            if (process.env.TEST_MODE)
+                throw e;
+        }
+
+        let legacyCodegenned2;
+        try {
+            legacyCodegenned2 = AppGrammar.serialize(ast, AppGrammar.SyntaxType.Normal, undefined, {
+                compatibility: '1.10.0'
+            });
+            assert.strictEqual(legacyCodegenned2, legacyCodegenned);
+        } catch(e) {
+            console.error('Failed to serialize to legacy syntax');
+            console.error('New ThingTalk:');
+            console.error(codegenned);
+            console.error('Legacy ThingTalk:');
+            console.error(legacyCodegenned);
             console.error('====');
             console.error(e.stack);
             if (process.env.TEST_MODE)
