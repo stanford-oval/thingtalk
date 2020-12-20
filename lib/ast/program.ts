@@ -95,7 +95,7 @@ function declarationLikeToProgram(self : FunctionDeclaration|Example) : Program 
     let declarations : FunctionDeclaration[], statements : ExecutableStatement[];
     if (self instanceof Example) {
         declarations = [];
-        statements = [new ExpressionStatement(null, self.value)];
+        statements = [new ExpressionStatement(null, self.value.clone())];
     } else {
         declarations = self.declarations.map((d) => d.clone());
         statements = self.statements.map((s) => s.clone());
