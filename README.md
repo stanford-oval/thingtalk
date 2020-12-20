@@ -10,8 +10,9 @@ and IoT devices in a single _when-get-do_ statement.
 
 For example, in ThingTalk you can say:
 ```
-monitor (@com.washingtonpost.get_article(section=enum(world))) => @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code) on (text=title) =>
-@com.facebook.post(status=$event);
+monitor(@com.washingtonpost.get_article(section=enum(world)))
+=> @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code, text=title)
+=> @com.facebook.post(status=$result);
 ```
 
 This program automatically monitors Washington Post headlines, translates them to Chinese, and then posts them on Facebook.
