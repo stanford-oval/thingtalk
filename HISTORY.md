@@ -1,3 +1,146 @@
+2.0.0-alpha.1
+=============
+
+This is the first release that introduces the ThingTalk 2.0 language.
+ThingTalk is a major redesign of the language to make it more accessible,
+less verbose, and more compatible with pre-trained neural networks.
+
+## AST changes
+
+- Remove non-device selectors.
+
+- Table, Stream, Actions are no longer used. Instead, everything is
+  an Expression, which could be a table Expression (Index, Sort, Aggregation),
+  a table-or-stream Expression (Filter, Projection), or any of the
+  three types (FunctionCall, Invocation)
+
+- The Expression class has a toLegacy() method to convert to the old AST
+  objects and aid in the transition.
+
+- NotifyActions are no longer used.
+
+- To parse the new syntax, use `Syntax.parse()` and pass `SyntaxType.Normal`
+  (user input) or `SyntaxType.Tokenized` (neural network output). The two
+  syntaxes differ only in tokenization.
+
+- Legacy programs can be parsed with `Syntax.parse()` using `SyntaxType.Legacy`
+  or `SyntaxType.LegacyNN`.
+
+- To serialize to the new syntax, use `Syntax.serialize()` passing one of the
+  syntax types. As a convenience, serialization to normal syntax can use
+  `node.prettyprint()`
+
+## Syntax changes compared to old surface syntax
+
+### Major
+
+- `now` and `notify` keyword no longer exist (they are still accepted to aid
+  transition but are no longer required)
+
+- aggregate syntax is now `op(field of table)`; example:
+  ```
+  min(file_size of @com.dropbox.list_folder())
+  ```
+
+  `count` is just that:
+  ```
+  count(@com.dropbox.list_folder())
+  ```
+
+- computation is now part of projection, with the syntax `[expr1, expr2, ...] of table`; example:
+  ```
+  [geo, cuisines, distance(geo, $location.current_location)] of @com.yelp.restaurant()
+  ```
+
+- computation can be aliased; example:
+  ```
+  [distance(geo, $location.current_location) as dist] of @com.yelp.restaurant()
+  ```
+
+- sorting can be applied on a computed field; example:
+  ```
+  sort(distance(geo, $location.current_location) asc of @com.yelp.restaurant())
+  ```
+
+- `join` with parameter passing is now expressed `=>`; the semantics are slighlty
+  different in that only the result of the last expression in a sequence of `=>`
+  is returned; true table joins should be expressed as subqueries instead
+
+- `monitor` of a specific field is `monitor(fields of table)`; example:
+  ```
+  monitor(text, author of @com.twitter.home_timeline())
+  ```
+
+- filters of a stream have edge semantics unconditionally (no more `edge` keyword)
+
+- function declaration use `function x() { }` instead of `let x( ) := `
+
+- assignment statements use `let x = ...` instead of `let result :=`
+
+- `return` syntax for multi-party programs is not supported yet
+
+### Minor
+
+- relative locations and relative times use `$location.*` and `$time.*`
+  instead of `$context.location.*`
+
+- `$now` is now a synonym for `new Date()`
+
+- it is now possible to have a space between number and unit in a measure or
+  currency literal
+
+- edge dates now use `$start_of(...)` instead of `start_of(...)`; this is to
+  preserve `start_of` as an identifier, and also to introduce the convention
+  that `$` variables are variables that depend on the context of where/how the
+  program is executed
+
+- `$event` is now called `$result`, and `$event.program_id` is now called
+  `$program_id`; `$event.title` and `$event.body` are not supported
+
+- the source of a program in an access control policy is now called `$source`
+
+- the priority of `filter` and `of` scalar operators, and aritmhetic operators
+  was flipped, so `[1,2,3] filter value > 1 + 1` is now parsed as
+  `[1,2,3] filter value > (1 + 1)`; this is necessary to avoid ambiguity with
+  table-level `filter` and `of` operators
+
+- parenthesis around the operand of `monitor` and `sort` are now required; example:
+  ```
+  sort(file_size asc of @com.dropbox.list_folder())
+  ```
+
+- `enum` no longer needs parenthesis: `enum off` and `enum(off)` are equivalent
+  (and so is `enum (off)`)
+
+- the syntax to declare an entity type is now `Entity(^^com.foo:bar)` - the `^^`
+  informs the lexer to read the entity token, which is treated as one token and
+  cannot have spaces; for compatibility, `Entity(com.foo:bar)` is also recognized,
+  provided it has no spaces
+
+### Syntax changes compared to old NN syntax
+
+This list is not comprehensive.
+
+- the number of parenthesis used was reduced to the minimum to avoid ambiguity
+
+- `timer` and `attimer` must use parenthesis, and are parsed as general functions,
+  they do not have special syntax
+
+- `param:` and `unit:` prefixes are no longer used
+
+- type annotations are gone
+
+- `enum:` is now `enum`, a separate keyword before the enum value
+
+- `location: " foo "` syntax is now `new Location ( " foo " )`
+
+- `" foo " ^^com.foo:bar` syntax has changed meaning to match surface syntax
+
+## Other changes
+
+- The library was entirely rewritten in TypeScript.
+- The preferred package manager is now NPM instead of Yarn.
+
 1.11.0
 ======
 
