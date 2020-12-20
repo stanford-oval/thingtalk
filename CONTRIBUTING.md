@@ -27,26 +27,3 @@ In all interactions with the Almond project, you are expected to abide by some b
 rules of civility. The details of these rules, and how the rules are enforced, are in
 [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
-Furthermore, Almond is an official research project of Stanford University, an educational
-institution in the United States. Hence, in all interactions with the Almond team, you
-must comply with Title IX federal law, and Stanford University anti-discrimination policies.
-Discrimination or harassment based on race, color, national or ethnic origin, sex, age,
-disability, religion, sexual orientation, gender identity, veteran status, or marital
-status will not be tolerated.
-See [here](https://exploredegrees.stanford.edu/nonacademicregulations/nondiscrimination/)
-for details.
-
-## Licensing
-
-ThingTalk is copyright by Stanford. (Technically, by The Board of Trustees of The Leland Stanford Junior University.) 
-
-In order for us to continue to be able to license ThingTalk, and allow our sponsors to develop it commercially, we
-need to make sure that contributions from others do not restrict Stanford.
-
-Therefore, we can accept contributions on any of the following terms:
-
-- If your contribution is a bug fix of 6 lines or less of new code, we will accept it on the basis that both you and us regard the contribution as _de minimis_, and not requiring further hassle.
-- You can declare that the contribution is in the public domain (in your commit message or pull request).
-- You can make your contribution available under a non-restrictive open source license, such as the Revised (or 3-clause) BSD license, with appropriate licensing information included with the submitted code.
-- You can sign and return to us a contributor license agreement (CLA), explicitly licensing us to be able to use the code. There is a [Contributor License Agreement for Individuals](https://mobisocial.stanford.edu/cla-individual.html) and a [Contributor License Agreement for Corporations](https://mobisocial.stanford.edu/cla-corporate.html). You can send them to us or contact us at: thingpedia-admins@lists.stanford.edu .
-
