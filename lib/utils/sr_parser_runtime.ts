@@ -102,6 +102,13 @@ function mergeRanges(l1 : SourceRange|null, l2 : SourceRange|null) : SourceRange
     };
 }
 
+function tokenToString(tok : TokenWrapper<any>|string) : string {
+    if (typeof tok === 'string')
+        return tok;
+    else
+        return tok.token;
+}
+
 export function createParser<RootType>({ TERMINAL_IDS, RULE_NON_TERMINALS, ARITY, GOTO, PARSER_ACTION, SEMANTIC_ACTION } : ParserConfig) : ParserConstructor<RootType> {
     return class ShiftReduceParser {
         private _helper(sequence : Iterable<TokenWrapper<any>>, applySemanticAction : boolean) : [number[], RootType] {
@@ -136,7 +143,7 @@ export function createParser<RootType>({ TERMINAL_IDS, RULE_NON_TERMINALS, ARITY
             for (;;) {
                 if (done)
                     nextToken = EOF_TOKEN;
-                const nextTokenId = TERMINAL_IDS[String(nextToken)];
+                const nextTokenId = TERMINAL_IDS[tokenToString(nextToken)];
 
                 if (!(nextTokenId in PARSER_ACTION[state]))
                     throw new ThingTalkSyntaxError(`Parse error: unexpected token ${nextToken} in state ${state}, expected ${findExpected(PARSER_ACTION[state], TERMINAL_IDS)}`, currentLocation);
@@ -164,8 +171,10 @@ export function createParser<RootType>({ TERMINAL_IDS, RULE_NON_TERMINALS, ARITY
                     const arity = ARITY[ruleId];
                     const args = results.slice(results.length-arity, results.length);
                     const locs = locations.slice(locations.length-arity, locations.length);
-                    stack.length -= arity;
-                    results.length -= arity;
+                    for (let i = 0; i < arity; i++) {
+                        stack.pop();
+                        results.pop();
+                    }
                     state = stack[stack.length-1];
                     const lhs = RULE_NON_TERMINALS[ruleId];
                     const nextState = GOTO[state][lhs];
