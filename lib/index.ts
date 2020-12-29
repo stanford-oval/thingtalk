@@ -27,7 +27,6 @@ import ExecEnvironment from './runtime/exec_environment';
 import Type from './type';
 import SchemaRetriever from './schema';
 import * as Describe from './describe';
-import Formatter from './runtime/formatter';
 import PermissionChecker from './permission_checker';
 import * as Helper from './helper';
 import * as I18n from './i18n';
@@ -55,7 +54,6 @@ export {
     Compiler,
     CompiledProgram,
     ExecEnvironment,
-    Formatter,
     SchemaRetriever,
 
     // Helper modules to manipulate ASTs

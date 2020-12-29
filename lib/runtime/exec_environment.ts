@@ -21,9 +21,6 @@
 import assert from 'assert';
 
 import * as Ast from '../ast';
-import Formatter from './formatter';
-import * as I18n from '../i18n';
-import type SchemaRetriever from '../schema';
 import type * as builtin from '../builtin/values';
 
 type PlainObject = { [key : string] : unknown };
@@ -45,7 +42,6 @@ interface StreamValue {
 }
 
 export default abstract class ExecEnvironment {
-    format : Formatter;
     // this is accessed from compiled ThingTalk code
     _scope : { [key : string] : any };
 
@@ -53,11 +49,7 @@ export default abstract class ExecEnvironment {
     private _procedureFrame : number;
     private _procedureStack : number[];
 
-    constructor(locale : string,
-                timezone : string,
-                schemaRetriever : SchemaRetriever,
-                gettext = I18n.get(locale)) {
-        this.format = new Formatter(locale, timezone, schemaRetriever, gettext);
+    constructor() {
         this._scope = {};
 
         this._procedureFrameCounter = 0;
@@ -166,7 +158,7 @@ export default abstract class ExecEnvironment {
         throw new Error('Must be overridden');
     }
 
-    async formatEvent(outputType : string, output : PlainObject, hint : string) : Promise<string> {
-        return String(await this.format.formatForType(outputType, output, hint));
+    formatEvent(outputType : string, output : PlainObject, hint : string) : Promise<string> {
+        throw new Error('Must be overridden');
     }
 }

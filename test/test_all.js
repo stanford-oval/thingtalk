@@ -68,8 +68,6 @@ seq([
     // test runtime APIs
     ('./test_builtin'),
     ('./test_runtime'),
-    ('./test_formatter'),
-    ('./test_formatter_api'),
 
     // test converters and integrations
     ('./test_permissions'),

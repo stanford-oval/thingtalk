@@ -30,7 +30,6 @@ import {
     ArgDirection
 } from './ast/function_def';
 import { Library } from './ast/program';
-import type { FormatSpec } from './runtime/formatter';
 
 import Cache from './utils/cache';
 
@@ -240,10 +239,10 @@ export default class SchemaRetriever {
         return request;
     }
 
-    async getFormatMetadata(kind : string, query : string) : Promise<FormatSpec> {
+    async getFormatMetadata(kind : string, query : string) : Promise<unknown[]> {
         const classDef = await this._getManifest(kind);
         if (classDef.queries[query])
-            return (classDef.queries[query].metadata.formatted as FormatSpec) || [];
+            return (classDef.queries[query].metadata.formatted as unknown[]) || [];
         return [];
     }
 
