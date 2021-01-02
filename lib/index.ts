@@ -28,7 +28,6 @@ import Type from './type';
 import SchemaRetriever from './schema';
 import PermissionChecker from './permission_checker';
 import * as Helper from './helper';
-import * as I18n from './i18n';
 import * as Builtin from './builtin';
 
 /**
@@ -63,8 +62,6 @@ export {
 
     // Misc
     Units,
-    I18n,
-
 
     Builtin
 };
