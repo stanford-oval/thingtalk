@@ -95,7 +95,7 @@ function declarationLikeToProgram(self : FunctionDeclaration|Example) : Program 
     let declarations : FunctionDeclaration[], statements : ExecutableStatement[];
     if (self instanceof Example) {
         declarations = [];
-        statements = [new ExpressionStatement(null, self.value)];
+        statements = [new ExpressionStatement(null, self.value.clone())];
     } else {
         declarations = self.declarations.map((d) => d.clone());
         statements = self.statements.map((s) => s.clone());
@@ -1092,9 +1092,9 @@ export class Example extends Node {
         if (this.id >= 0)
             annotations.id = new Value.Number(this.id);
         Object.assign(annotations, this.annotations);
-        const metadata : NLAnnotationMap = {
-            utterances: this.utterances
-        };
+        const metadata : NLAnnotationMap = {};
+        if (this.utterances.length > 0)
+            metadata.utterances = this.utterances;
         if (this.preprocessed.length > 0)
             metadata.preprocessed = this.preprocessed;
 
