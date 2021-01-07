@@ -77,9 +77,6 @@ export default class FileThingpediaClient {
     async getExamplesByKey() {
         throw new Error(`Cannot search examples using FileThingpediaClient`);
     }
-    async getExamplesByKinds() {
-        throw new Error(`Cannot search examples using FileThingpediaClient`);
-    }
     async clickExample() {
         throw new Error(`Cannot click examples using FileThingpediaClient`);
     }
@@ -125,6 +122,10 @@ export default class FileThingpediaClient {
     }
 
     getAllExamples() {
+        return util.promisify(fs.readFile)(this._datasetfilename, { encoding: 'utf8' });
+    }
+
+    async getExamplesByKinds() {
         return util.promisify(fs.readFile)(this._datasetfilename, { encoding: 'utf8' });
     }
 

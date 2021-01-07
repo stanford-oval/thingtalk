@@ -1,0 +1,49 @@
+dataset @com.bing {
+    query (p_query :String) = @com.bing.web_search(query=p_query)
+    #_[utterances=["${p_query:const} on bing",
+                   "bing $p_query",
+                   "websites matching $p_query",
+                   "web sites matching $p_query",
+                   "${p_query:const}"]]
+    #[id=21626326]
+    #[name="WebSearchWithQuery"];
+
+    query = @com.bing.web_search(query=$?)
+    #_[utterances=[", search on bing",
+                   ", bing search",
+                   ", web search"]]
+    #[id=21626330]
+    #[name="WebSearch"];
+
+    query (p_query :String) = @com.bing.image_search(query=p_query)
+    #_[utterances=["${p_query:const} images on bing",
+                   "images matching $p_query from bing"]]
+    #[id=21626333]
+    #[name="ImageSearchWithQuery"];
+}
+dataset @com.xkcd_and_com.thecatapi {
+    stream = monitor (@com.xkcd.get_comic())
+    #_[utterances=["when a new xkcd is out",
+                   "when a new xkcd is posted"]]
+    #[id=1648624]
+    #[name="MonitorComic"];
+
+    query (p_number :Number) = @com.xkcd.get_comic(), number==p_number
+    #_[utterances=["the xkcd number ${p_number}",
+                   "xkcd ${p_number:const}"]]
+    #[id=1648627]
+    #[name="ComicWithNumber"];
+
+    program = @com.thecatapi.get()
+    #_[utterances=["not enough cat pictures",
+                   "need moar cats",
+                   "can i haz cats",
+                   "cat pictures now"]]
+    #[id=9750272]
+    #[name="Get1"];
+
+    query (p_count :Number) = @com.thecatapi.get()[1 : p_count]
+    #_[utterances=["${p_count:const} cat pictures"]]
+    #[id=9750276]
+    #[name="GetWithCount"];
+}

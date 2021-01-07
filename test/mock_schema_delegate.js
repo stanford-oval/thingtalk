@@ -21,5 +21,6 @@ import FileThingpediaClient from './file_thingpedia_client';
 export default new FileThingpediaClient({
     locale: 'en',
     thingpedia: './test/thingpedia.tt',
-    entities: './test/entities.json'
+    entities: './test/entities.json',
+    dataset: './test/dataset.tt'
 });
