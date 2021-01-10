@@ -26,6 +26,7 @@ import * as util from 'util';
 import * as fs from 'fs';
 
 import SchemaRetriever from '../lib/schema';
+import * as Ast from '../lib/ast';
 import * as Grammar from '../lib/syntax_api';
 
 import _mockSchemaDelegate from './mock_schema_delegate';
@@ -38,6 +39,31 @@ const FAKE_TWITTER = `class @com.twitter {
     #[poll_interval=1min]
     #[formatted=["foo"]];
 }`;
+
+async function testBasic() {
+    let schemaRetriever = new SchemaRetriever(_mockSchemaDelegate,
+                                              _mockMemoryClient);
+
+    const fndef1 = await schemaRetriever.getSchemaAndNames('com.xkcd', 'query', 'get_comic');
+
+    assert(fndef1 instanceof Ast.FunctionDef);
+    assert.strictEqual(fndef1.name, 'get_comic');
+    assert.strictEqual(fndef1.class.name, 'com.xkcd');
+    assert.strictEqual(fndef1.qualifiedName, 'com.xkcd.get_comic');
+    assert.deepStrictEqual(fndef1.extends, []);
+    assert.strictEqual(fndef1.is_list, false);
+    assert.strictEqual(fndef1.is_monitorable, true);
+
+    const fndef2 = await schemaRetriever.getMemorySchema('Q1');
+
+    assert(fndef2 instanceof Ast.FunctionDef);
+    assert.strictEqual(fndef2.name, 'Q1');
+    assert.strictEqual(fndef2.class, null);
+    assert.strictEqual(fndef2.qualifiedName, '.Q1');
+    assert.deepStrictEqual(fndef2.extends, []);
+    assert.strictEqual(fndef2.is_list, true);
+    assert.strictEqual(fndef2.is_monitorable, true);
+}
 
 async function testInjectManifest() {
     const manifest = await util.promisify(fs.readFile)(require.resolve('./com.xkcd.tt'), { encoding: 'utf8' });
@@ -194,6 +220,7 @@ async function testDataset() {
 }
 
 export default async function main()   {
+    await testBasic();
     await testInjectManifest();
     await testInvalid();
     await testDataset();

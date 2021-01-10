@@ -335,6 +335,7 @@ interface FunctionQualifiers {
 export class FunctionDef extends Node {
     private _functionType : FunctionType;
     private _name : string;
+    private _qualifiedName : string;
     private _qualifiers : FunctionQualifiers;
     private _nl_annotations : NLAnnotationMap;
     private _impl_annotations : AnnotationMap;
@@ -392,6 +393,7 @@ export class FunctionDef extends Node {
         }
 
         this._name = name;
+        this._qualifiedName = (klass ? klass.name : '') + '.' + name;
         this._qualifiers = qualifiers;
         this._extends = _extends || [];
         this._class = klass;
@@ -474,21 +476,29 @@ export class FunctionDef extends Node {
     }
 
     /**
-     * The function name.
-     * @type {string}
-     * @readonly
+     * The function name, as declared in the ThingTalk code.
      */
     get name() : string {
         return this._name;
     }
 
     /**
+     * The full name of the function, including the class name.
+     *
+     * This has the form of `<class-name>.<function-name>` if the
+     * function belongs to a class, and `.<function-name>` otherwise.
+     *
+     * Hence, it's possible to distinguish functions that have no
+     * class with the leading dot.
+     */
+    get qualifiedName() : string {
+        return this._qualifiedName;
+    }
+
+    /**
      * The names of the arguments defined by this expression signature.
      *
      * This does not include arguments inherited from parent functions.
-     *
-     * @type {string[]}
-     * @readonly
      */
     get args() : string[] {
         return this._args;
@@ -496,8 +506,6 @@ export class FunctionDef extends Node {
 
     /**
      * The type of this signature, either `stream`, `query` or `action`
-     * @type {string}
-     * @readonly
      */
     get functionType() : FunctionType {
         return this._functionType;
@@ -505,8 +513,6 @@ export class FunctionDef extends Node {
 
     /**
      * The names of the base functions this signature extends.
-     * @type {string[]}
-     * @readonly
      */
     get extends() : string[] {
         return this._extends;
@@ -515,8 +521,6 @@ export class FunctionDef extends Node {
     /**
      * The class definition associated with this signature, or `null` if this
      * signature was not created as part of a ThingTalk class.
-     * @type {Ast.ClassDef|null}
-     * @readonly
      */
     get class() : ClassDef|null {
         return this._class;
@@ -1039,6 +1043,7 @@ export class FunctionDef extends Node {
 
     setClass(klass : ClassDef|null) : void {
         this._class = klass;
+        this._qualifiedName = (klass ? klass.name : '') + '.' + this._name;
         this._setMinimalProjection();
     }
 
