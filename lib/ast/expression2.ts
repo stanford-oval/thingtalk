@@ -21,7 +21,7 @@
 import assert from 'assert';
 
 import Node, { SourceRange } from './base';
-import { ExpressionSignature } from './function_def';
+import { FunctionDef } from './function_def';
 import {
     Invocation,
     DeviceSelector,
@@ -60,10 +60,10 @@ import { getScalarExpressionName } from '../utils';
  * A stream, table, or action expression.
  */
 export abstract class Expression extends Node {
-    schema : ExpressionSignature|null;
+    schema : FunctionDef|null;
 
     constructor(location : SourceRange|null,
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location);
         this.schema = schema;
     }
@@ -115,7 +115,7 @@ export class FunctionCallExpression extends Expression {
     constructor(location : SourceRange|null,
                 name : string,
                 in_params : InputParam[],
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location, schema);
 
         assert(typeof name === 'string');
@@ -201,7 +201,7 @@ export class InvocationExpression extends Expression {
 
     constructor(location : SourceRange|null,
                 invocation : Invocation,
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location, schema);
 
         assert(invocation instanceof Invocation);
@@ -258,7 +258,7 @@ export class FilterExpression extends Expression {
     constructor(location : SourceRange|null,
                 expression : Expression,
                 filter : BooleanExpression,
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location, schema);
 
         assert(expression instanceof Expression);
@@ -324,7 +324,7 @@ export class MonitorExpression extends Expression {
     constructor(location : SourceRange|null,
                 expression : Expression,
                 args : string[]|null,
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location, schema);
 
         assert(expression instanceof Expression);
@@ -390,7 +390,7 @@ export class ProjectionExpression extends Expression {
                 args : string[],
                 computations : Value[],
                 aliases : Array<string|null>,
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location, schema);
 
         assert(expression instanceof Expression);
@@ -506,7 +506,7 @@ export class AliasExpression extends Expression {
     constructor(location : SourceRange|null,
                 expression : Expression,
                 name : string,
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location, schema);
 
         assert(expression instanceof Expression);
@@ -572,7 +572,7 @@ export class AggregationExpression extends Expression {
                 expression : Expression,
                 field : string,
                 operator : string,
-                schema : ExpressionSignature|null,
+                schema : FunctionDef|null,
                 overload : Type[]|null = null) {
         super(location, schema);
 
@@ -644,7 +644,7 @@ export class SortExpression extends Expression {
                 expression : Expression,
                 value : Value,
                 direction : 'asc'|'desc',
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location, schema);
 
         assert(expression instanceof Expression);
@@ -714,7 +714,7 @@ export class IndexExpression extends Expression {
     constructor(location : SourceRange|null,
                 expression : Expression,
                 indices : Value[],
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location, schema);
 
         assert(expression instanceof Expression);
@@ -779,7 +779,7 @@ export class SliceExpression extends Expression {
                 expression : Expression,
                 base : Value,
                 limit : Value,
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location, schema);
 
         assert(expression instanceof Expression);
@@ -850,7 +850,7 @@ export class ChainExpression extends Expression {
 
     constructor(location : SourceRange|null,
                 expressions : Expression[],
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location, schema);
 
         assert(Array.isArray(expressions));

@@ -339,7 +339,7 @@ export default class OpCompiler {
         return cond;
     }
 
-    private _setInvocationOutputs(schema : Ast.ExpressionSignature,
+    private _setInvocationOutputs(schema : Ast.FunctionDef,
                                   argmap : ArgMap,
                                   typeAndResult : JSIr.Register) {
         const [outputType, result] = this._readTypeResult(typeAndResult);

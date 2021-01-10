@@ -51,7 +51,7 @@ function log(message : string) : void {
 
 class Scope {
     private _parentScope : Scope|null;
-    private _globalScope : { [key : string] : Ast.ExpressionSignature };
+    private _globalScope : { [key : string] : Ast.FunctionDef };
     private _lambda_args : TypeMap;
     private _scope : TypeMap;
     $has_event : boolean;
@@ -88,7 +88,7 @@ class Scope {
             this._scope[name] = args[name];
     }
 
-    addGlobal(name : string, schema : Ast.ExpressionSignature) : void {
+    addGlobal(name : string, schema : Ast.FunctionDef) : void {
         if (name in this._globalScope)
             throw new TypeError(name + ' is already declared');
         this._globalScope[name] = schema;
@@ -129,8 +129,8 @@ class Scope {
         this._scope = new_scope;
     }
 
-    get(name : string) : Type|Ast.ExpressionSignature|undefined {
-        let v : Type|Ast.ExpressionSignature|undefined = this._scope[name] || this._lambda_args[name] || this._globalScope[name];
+    get(name : string) : Type|Ast.FunctionDef|undefined {
+        let v : Type|Ast.FunctionDef|undefined = this._scope[name] || this._lambda_args[name] || this._globalScope[name];
         if (!v && this._parentScope)
             v = this._parentScope.get(name);
         return v;
@@ -157,7 +157,7 @@ function resolveTypeVars(type : Type|string, typeScope : TypeScope) : Type {
 }
 
 
-function cleanOutput(schema : Ast.ExpressionSignature, scope : Scope) {
+function cleanOutput(schema : Ast.FunctionDef, scope : Scope) {
     scope.cleanOutput();
     const clone = schema.filterArguments((a) => a.is_input);
     clone.removeDefaultProjection();
@@ -166,7 +166,7 @@ function cleanOutput(schema : Ast.ExpressionSignature, scope : Scope) {
     return clone;
 }
 
-function addOutput(schema : Ast.ExpressionSignature,
+function addOutput(schema : Ast.FunctionDef,
                    name : string,
                    type : Type,
                    scope : Scope,
@@ -253,9 +253,8 @@ export default class TypeChecker {
                 scope.add('value', type);
                 args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'value', type, {}));
             }
-            const localschema = new Ast.ExpressionSignature(null, 'query', null, [], args, {
-                minimal_projection: [],
-            });
+            const localschema = new Ast.FunctionDef(null, 'query', null, '', [], {
+                is_list: false, is_monitorable: false }, args);
             await this._typeCheckFilter(value.filter, localschema, inner);
             return value.type = paramType;
         }
@@ -388,7 +387,7 @@ export default class TypeChecker {
     }
 
     private _typeCheckFilter(ast : Ast.BooleanExpression,
-                             schema : Ast.ExpressionSignature|null,
+                             schema : Ast.FunctionDef|null,
                              scope : Scope = new Scope()) {
         log('Type check filter ...');
         if (schema && schema.no_filter)
@@ -398,7 +397,7 @@ export default class TypeChecker {
     }
 
     private async _typeCheckFilterHelper(ast : Ast.BooleanExpression,
-                                         schema : Ast.ExpressionSignature|null,
+                                         schema : Ast.FunctionDef|null,
                                          scope : Scope = new Scope()) {
         if (ast.isTrue || ast.isFalse)
             return;
@@ -454,7 +453,7 @@ export default class TypeChecker {
     private _resolveAggregationOverload(ast : Ast.AggregationTable|Ast.AggregationExpression,
                                         operator : string,
                                         field : string,
-                                        schema : Ast.ExpressionSignature) {
+                                        schema : Ast.FunctionDef) {
         const fieldType = schema.out[field];
         if (!fieldType)
             throw new TypeError('Invalid aggregation field ' + field);
@@ -557,7 +556,7 @@ export default class TypeChecker {
     }
 
     private _resolveFilter(filter : Ast.BooleanExpression,
-                           schema : Ast.ExpressionSignature) {
+                           schema : Ast.FunctionDef) {
         schema = schema.clone();
 
         // require_filter field is cleared after a filter
@@ -642,7 +641,7 @@ export default class TypeChecker {
         return clone;
     }
 
-    private _resolveChain(ast : Ast.ChainExpression) : Ast.ExpressionSignature {
+    private _resolveChain(ast : Ast.ChainExpression) : Ast.FunctionDef {
         // the schema of a chain is just the schema of the last function in
         // the chain, nothing special about it - no joins, no merging, no
         // nothing
@@ -657,7 +656,7 @@ export default class TypeChecker {
     }
 
     private async _typeCheckInputArgs(ast : Ast.Invocation|Ast.ExternalBooleanExpression|Ast.FunctionCallExpression,
-                                      schema : Ast.ExpressionSignature,
+                                      schema : Ast.FunctionDef,
                                       scope : Scope) {
         if (ast instanceof Ast.Invocation ||
             ast instanceof Ast.ExternalBooleanExpression) {
@@ -798,7 +797,7 @@ export default class TypeChecker {
     }
 
     private async _loadFunctionSchema(scope : Scope,
-                                      prim : Ast.FunctionCallExpression) : Promise<Ast.ExpressionSignature> {
+                                      prim : Ast.FunctionCallExpression) : Promise<Ast.FunctionDef> {
         let schema : unknown;
         if (scope.has(prim.name))
             schema = scope.get(prim.name);
@@ -808,7 +807,7 @@ export default class TypeChecker {
             schema = await this._schemas.getMemorySchema(prim.name, this._useMeta);
         if (schema === null)
             throw new TypeError(`Undeclared function or variable ${prim.name}`);
-        if (!(schema instanceof Ast.ExpressionSignature))
+        if (!(schema instanceof Ast.FunctionDef))
             throw new TypeError(`Variable ${prim.name} does not name an expression`);
         return schema;
     }

@@ -200,7 +200,7 @@ function readScopeVariables(irBuilder : JSIr.IRBuilder,
     return newScope;
 }
 
-function getDefaultProjection(schema : Ast.ExpressionSignature|null) : string[] {
+function getDefaultProjection(schema : Ast.FunctionDef|null) : string[] {
     if (!schema)
         return [];
 
@@ -227,7 +227,7 @@ function getDefaultProjection(schema : Ast.ExpressionSignature|null) : string[] 
  * and I think the slight loss in performance is acceptable to keep the code complexity low.
  */
 function getExpressionParameters(expression : Ast.Node,
-                                 schema : Ast.ExpressionSignature) : Set<string> {
+                                 schema : Ast.FunctionDef) : Set<string> {
     const names = new Set<string>();
     expression.visit(new class extends NodeVisitor {
         visitVarRefValue(value : Ast.VarRefValue) {

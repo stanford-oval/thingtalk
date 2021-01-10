@@ -24,7 +24,7 @@ import { clean } from '../utils';
 
 import { Value, VarRefValue, ArrayValue, ComputationValue } from './values';
 import { Invocation, DeviceSelector, InputParam, AtomBooleanExpression }  from './expression';
-import { ArgumentDef, ExpressionSignature } from './function_def';
+import { ArgumentDef, FunctionDef } from './function_def';
 
 export interface ScopeEntry {
     type : Type;
@@ -41,17 +41,17 @@ interface ExternalBooleanExpressionLike {
     selector : DeviceSelector;
     channel : string;
     in_params : InputParam[];
-    schema : ExpressionSignature|null;
+    schema : FunctionDef|null;
 }
 interface PermissionFunctionLike {
     kind : string;
     channel : string;
-    schema : ExpressionSignature|null;
+    schema : FunctionDef|null;
 }
 interface VarRefLike {
     name : string;
     in_params : InputParam[];
-    schema : ExpressionSignature|null;
+    schema : FunctionDef|null;
 }
 export type InvocationLike = Invocation | ExternalBooleanExpressionLike |
     VarRefLike | PermissionFunctionLike;
@@ -566,4 +566,4 @@ export function* iterateSlots2InputParams(prim : Invocation|VarRefLike|ExternalB
  *
  * @deprecated Use {@link Ast~AbstractSlot} and the new slot iteration API
  */
-export type OldSlot = [ExpressionSignature|null, (InputParam|AtomBooleanExpression|DeviceSelector), InvocationLike|null, ScopeMap];
+export type OldSlot = [FunctionDef|null, (InputParam|AtomBooleanExpression|DeviceSelector), InvocationLike|null, ScopeMap];

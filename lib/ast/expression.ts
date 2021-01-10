@@ -22,7 +22,7 @@ import assert from 'assert';
 
 import Node, { SourceRange } from './base';
 import NodeVisitor from './visitor';
-import { ExpressionSignature, FunctionDef } from './function_def';
+import { FunctionDef } from './function_def';
 import { Value } from './values';
 
 import Type from '../type';
@@ -260,7 +260,7 @@ export class Invocation extends Node {
      * @param {Ast.DeviceSelector} selector - the selector choosing where the function is invoked
      * @param {string} channel - the function name
      * @param {Ast.InputParam[]} in_params - input parameters passed to the function
-     * @param {Ast.ExpressionSignature|null} schema - type signature of the invoked function
+     * @param {Ast.FunctionDef|null} schema - type signature of the invoked function
      * @property {boolean} isInvocation - true
      */
     constructor(location : SourceRange|null,
@@ -297,7 +297,7 @@ export class Invocation extends Node {
         /**
          * Type signature of the invoked function (not of the invocation itself).
          * This property is guaranteed not `null` after type-checking.
-         * @type {Ast.ExpressionSignature|null}
+         * @type {Ast.FunctionDef|null}
          */
         this.schema = schema;
     }
@@ -429,14 +429,14 @@ export abstract class BooleanExpression extends Node {
      *
      * @deprecated Use {@link Ast.BooleanExpression#iterateSlots2} instead.
      */
-    abstract iterateSlots(schema : ExpressionSignature|null,
+    abstract iterateSlots(schema : FunctionDef|null,
                           prim : InvocationLike|null,
                           scope : ScopeMap) : Generator<OldSlot, void>;
 
     /**
      * Iterate all slots (scalar value nodes) in this boolean expression.
      */
-    abstract iterateSlots2(schema : ExpressionSignature|null,
+    abstract iterateSlots2(schema : FunctionDef|null,
                            prim : InvocationLike|null,
                            scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void>;
 }
@@ -519,14 +519,14 @@ export class AndBooleanExpression extends BooleanExpression {
         );
     }
 
-    *iterateSlots(schema : ExpressionSignature|null,
+    *iterateSlots(schema : FunctionDef|null,
                   prim : InvocationLike|null,
                   scope : ScopeMap) : Generator<OldSlot, void> {
         for (const op of this.operands)
             yield* op.iterateSlots(schema, prim, scope);
     }
 
-    *iterateSlots2(schema : ExpressionSignature|null,
+    *iterateSlots2(schema : FunctionDef|null,
                    prim : InvocationLike|null,
                    scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
         for (const op of this.operands)
@@ -589,14 +589,14 @@ export class OrBooleanExpression extends BooleanExpression {
         );
     }
 
-    *iterateSlots(schema : ExpressionSignature|null,
+    *iterateSlots(schema : FunctionDef|null,
                   prim : InvocationLike|null,
                   scope : ScopeMap) : Generator<OldSlot, void> {
         for (const op of this.operands)
             yield* op.iterateSlots(schema, prim, scope);
     }
 
-    *iterateSlots2(schema : ExpressionSignature|null,
+    *iterateSlots2(schema : FunctionDef|null,
                    prim : InvocationLike|null,
                    scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
         for (const op of this.operands)
@@ -704,13 +704,13 @@ export class AtomBooleanExpression extends BooleanExpression {
         return `Atom(${this.name}, ${this.operator}, ${this.value})`;
     }
 
-    *iterateSlots(schema : ExpressionSignature|null,
+    *iterateSlots(schema : FunctionDef|null,
                   prim : InvocationLike|null,
                   scope : ScopeMap) : Generator<OldSlot, void> {
         yield [schema, this, prim, scope];
     }
 
-    *iterateSlots2(schema : ExpressionSignature|null,
+    *iterateSlots2(schema : FunctionDef|null,
                    prim : InvocationLike|null,
                    scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
         const arg = (schema ? schema.getArgument(this.name) : null) || null;
@@ -769,13 +769,13 @@ export class NotBooleanExpression extends BooleanExpression {
         return new NotBooleanExpression(this.location, this.expr.clone());
     }
 
-    *iterateSlots(schema : ExpressionSignature|null,
+    *iterateSlots(schema : FunctionDef|null,
                   prim : InvocationLike|null,
                   scope : ScopeMap) : Generator<OldSlot, void> {
         yield* this.expr.iterateSlots(schema, prim, scope);
     }
 
-    *iterateSlots2(schema : ExpressionSignature|null,
+    *iterateSlots2(schema : FunctionDef|null,
                    prim : InvocationLike|null,
                    scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
         yield* this.expr.iterateSlots2(schema, prim, scope);
@@ -809,7 +809,7 @@ export class ExternalBooleanExpression extends BooleanExpression {
      * @param {string} channel - the function name
      * @param {Ast.InputParam[]} in_params - input parameters passed to the function
      * @param {Ast.BooleanExpression} filter - the filter to apply on the invocation's results
-     * @param {Ast.ExpressionSignature|null} schema - type signature of the invoked function
+     * @param {Ast.FunctionDef|null} schema - type signature of the invoked function
      */
     constructor(location : SourceRange|null,
                 selector : DeviceSelector,
@@ -853,7 +853,7 @@ export class ExternalBooleanExpression extends BooleanExpression {
         /**
          * Type signature of the invoked function (not of the boolean expression itself).
          * This property is guaranteed not `null` after type-checking.
-         * @type {Ast.ExpressionSignature|null}
+         * @type {Ast.FunctionDef|null}
          */
         this.schema = schema;
     }
@@ -901,14 +901,14 @@ export class ExternalBooleanExpression extends BooleanExpression {
         );
     }
 
-    *iterateSlots(schema : ExpressionSignature|null,
+    *iterateSlots(schema : FunctionDef|null,
                   prim : InvocationLike|null,
                   scope : ScopeMap) : Generator<OldSlot, void> {
         yield* Invocation.prototype.iterateSlots.call(this, scope);
         yield* this.filter.iterateSlots(this.schema, prim, makeScope(this));
     }
 
-    *iterateSlots2(schema : ExpressionSignature|null,
+    *iterateSlots2(schema : FunctionDef|null,
                    prim : InvocationLike|null,
                    scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
         yield this.selector;
@@ -955,11 +955,11 @@ export class DontCareBooleanExpression extends BooleanExpression {
         return new DontCareBooleanExpression(this.location, this.name);
     }
 
-    *iterateSlots(schema : ExpressionSignature|null,
+    *iterateSlots(schema : FunctionDef|null,
                   prim : InvocationLike|null,
                   scope : ScopeMap) : Generator<OldSlot, void> {
     }
-    *iterateSlots2(schema : ExpressionSignature|null,
+    *iterateSlots2(schema : FunctionDef|null,
                    prim : InvocationLike|null,
                    scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
     }
@@ -994,11 +994,11 @@ export class TrueBooleanExpression extends BooleanExpression {
         return this;
     }
 
-    *iterateSlots(schema : ExpressionSignature|null,
+    *iterateSlots(schema : FunctionDef|null,
                   prim : InvocationLike|null,
                   scope : ScopeMap) : Generator<OldSlot, void> {
     }
-    *iterateSlots2(schema : ExpressionSignature|null,
+    *iterateSlots2(schema : FunctionDef|null,
                    prim : InvocationLike|null,
                    scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
     }
@@ -1041,11 +1041,11 @@ export class FalseBooleanExpression extends BooleanExpression {
         return this;
     }
 
-    *iterateSlots(schema : ExpressionSignature|null,
+    *iterateSlots(schema : FunctionDef|null,
                   prim : InvocationLike|null,
                   scope : ScopeMap) : Generator<OldSlot, void> {
     }
-    *iterateSlots2(schema : ExpressionSignature|null,
+    *iterateSlots2(schema : FunctionDef|null,
                    prim : InvocationLike|null,
                    scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
     }
@@ -1163,13 +1163,13 @@ export class ComputeBooleanExpression extends BooleanExpression {
         );
     }
 
-    *iterateSlots(schema : ExpressionSignature|null,
+    *iterateSlots(schema : FunctionDef|null,
                   prim : InvocationLike|null,
                   scope : ScopeMap) : Generator<OldSlot, void> {
         // XXX this API cannot support Compute expressions
     }
 
-    *iterateSlots2(schema : ExpressionSignature|null,
+    *iterateSlots2(schema : FunctionDef|null,
                    prim : InvocationLike|null,
                    scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
         const [resolvedLhs, resolvedRhs] = this.overload || [null, null];

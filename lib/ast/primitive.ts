@@ -20,7 +20,7 @@
 import assert from 'assert';
 
 import Node, { SourceRange } from './base';
-import { ExpressionSignature } from './function_def';
+import { FunctionDef } from './function_def';
 import {
     Invocation,
     DeviceSelector,
@@ -90,7 +90,7 @@ export abstract class Table extends Node {
     static Join : typeof JoinTable;
     isJoin ! : boolean;
 
-    schema : ExpressionSignature|null;
+    schema : FunctionDef|null;
 
     /**
      * Construct a new table node.
@@ -98,10 +98,10 @@ export abstract class Table extends Node {
      * @param location - the position of this node in the source code
      * @param schema - type signature of the invoked function
      */
-    constructor(location : SourceRange | null, schema : ExpressionSignature|null) {
+    constructor(location : SourceRange | null, schema : FunctionDef|null) {
         super(location);
 
-        assert(schema === null || schema instanceof ExpressionSignature);
+        assert(schema === null || schema instanceof FunctionDef);
         this.schema = schema;
     }
 
@@ -147,7 +147,7 @@ export class VarRefTable extends Table {
     constructor(location : SourceRange|null,
                 name : string,
                 in_params : InputParam[],
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location, schema);
 
         assert(typeof name === 'string');
@@ -202,7 +202,7 @@ export class InvocationTable extends Table {
 
     constructor(location : SourceRange|null,
                 invocation : Invocation,
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location, schema);
 
         assert(invocation instanceof Invocation);
@@ -251,7 +251,7 @@ export class FilteredTable extends Table {
     constructor(location : SourceRange|null,
                 table : Table,
                 filter : BooleanExpression,
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location, schema);
 
         assert(table instanceof Table);
@@ -304,7 +304,7 @@ export class ProjectionTable extends Table {
     constructor(location : SourceRange|null,
                 table : Table,
                 args : string[],
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location, schema);
 
         assert(table instanceof Table);
@@ -363,7 +363,7 @@ export class ComputeTable extends Table {
                 table : Table,
                 expression : Value,
                 alias : string|null,
-                schema : ExpressionSignature|null,
+                schema : FunctionDef|null,
                 type : Type|null = null) {
         super(location, schema);
 
@@ -423,7 +423,7 @@ export class AliasTable extends Table {
     constructor(location : SourceRange|null,
                 table : Table,
                 name : string,
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location, schema);
 
         assert(table instanceof Table);
@@ -476,7 +476,7 @@ export class AggregationTable extends Table {
                 field : string,
                 operator : string,
                 alias : string|null,
-                schema : ExpressionSignature|null,
+                schema : FunctionDef|null,
                 overload : Type[]|null = null) {
         super(location, schema);
 
@@ -538,7 +538,7 @@ export class SortedTable extends Table {
                 table : Table,
                 field : string,
                 direction : 'asc'|'desc',
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location, schema);
 
         assert(table instanceof Table);
@@ -591,7 +591,7 @@ export class IndexTable extends Table {
     constructor(location : SourceRange|null,
                 table : Table,
                 indices : Value[],
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location, schema);
 
         assert(table instanceof Table);
@@ -647,7 +647,7 @@ export class SlicedTable extends Table {
                 table : Table,
                 base : Value,
                 limit : Value,
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location, schema);
 
         assert(table instanceof Table);
@@ -707,7 +707,7 @@ export class JoinTable extends Table {
                 lhs : Table,
                 rhs : Table,
                 in_params : InputParam[],
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location, schema);
 
         assert(lhs instanceof Table);
@@ -799,7 +799,7 @@ export abstract class Stream extends Node {
     static Join : typeof JoinStream;
     isJoin ! : boolean;
 
-    schema : ExpressionSignature|null;
+    schema : FunctionDef|null;
 
     /**
      * Construct a new stream node.
@@ -808,10 +808,10 @@ export abstract class Stream extends Node {
      * @param schema - type signature of the stream expression
      */
     constructor(location : SourceRange|null,
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location);
 
-        assert(schema === null || schema instanceof ExpressionSignature);
+        assert(schema === null || schema instanceof FunctionDef);
         this.schema = schema;
     }
 
@@ -857,7 +857,7 @@ export class VarRefStream extends Stream {
     constructor(location : SourceRange|null,
                 name : string,
                 in_params : InputParam[],
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location, schema);
 
         assert(typeof name === 'string');
@@ -915,7 +915,7 @@ export class TimerStream extends Stream {
                 base : Value,
                 interval : Value,
                 frequency : Value|null,
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location, schema);
 
         assert(base instanceof Value);
@@ -979,7 +979,7 @@ export class AtTimerStream extends Stream {
     constructor(location : SourceRange|null,
                 time : Value[],
                 expiration_date : Value|null,
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location, schema);
 
         assert(Array.isArray(time));
@@ -1039,7 +1039,7 @@ export class MonitorStream extends Stream {
     constructor(location : SourceRange|null,
                 table : Table,
                 args : string[]|null,
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location, schema);
 
         assert(table instanceof Table);
@@ -1085,7 +1085,7 @@ export class EdgeNewStream extends Stream {
 
     constructor(location : SourceRange|null,
                 stream : Stream,
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location, schema);
 
         assert(stream instanceof Stream);
@@ -1129,7 +1129,7 @@ export class EdgeFilterStream extends Stream {
     constructor(location : SourceRange|null,
                 stream : Stream,
                 filter : BooleanExpression,
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location, schema);
 
         assert(stream instanceof Stream);
@@ -1183,7 +1183,7 @@ export class FilteredStream extends Stream {
     constructor(location : SourceRange|null,
                 stream : Stream,
                 filter : BooleanExpression,
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location, schema);
 
         assert(stream instanceof Stream);
@@ -1248,7 +1248,7 @@ export class ProjectionStream extends Stream {
     constructor(location : SourceRange|null,
                 stream : Stream,
                 args : string[],
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location, schema);
 
         assert(stream instanceof Stream);
@@ -1307,7 +1307,7 @@ export class ComputeStream extends Stream {
                 stream : Stream,
                 expression : Value,
                 alias : string|null,
-                schema : ExpressionSignature|null,
+                schema : FunctionDef|null,
                 type : Type|null = null) {
         super(location, schema);
 
@@ -1367,7 +1367,7 @@ export class AliasStream extends Stream {
     constructor(location : SourceRange|null,
                 stream : Stream,
                 name : string,
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location, schema);
 
         assert(stream instanceof Stream);
@@ -1417,7 +1417,7 @@ export class JoinStream extends Stream {
                 stream : Stream,
                 table : Table,
                 in_params : InputParam[],
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location, schema);
 
         assert(stream instanceof Stream);
@@ -1498,7 +1498,7 @@ export abstract class Action extends Node {
     static Notify : typeof NotifyAction;
     isNotify ! : boolean;
 
-    schema : ExpressionSignature|null;
+    schema : FunctionDef|null;
 
     /**
      * Construct a new action expression node.
@@ -1506,17 +1506,17 @@ export abstract class Action extends Node {
      * @param location - the position of this node in the source code
      * @param schema - type signature of this action
      */
-    constructor(location : SourceRange|null, schema : ExpressionSignature|null) {
+    constructor(location : SourceRange|null, schema : FunctionDef|null) {
         super(location);
 
-        assert(schema === null || schema instanceof ExpressionSignature);
+        assert(schema === null || schema instanceof FunctionDef);
         /**
          * Type signature of this action.
          *
          * Note that this _not_ the type signature of the invoked function,
          * because all input arguments that have a value are removed from the signature.
          * This property is guaranteed not `null` after type-checking.
-         * @type {Ast.ExpressionSignature|null}
+         * @type {Ast.FunctionDef|null}
          */
         this.schema = schema;
     }
@@ -1576,7 +1576,7 @@ export class VarRefAction extends Action {
     constructor(location : SourceRange|null,
                 name : string,
                 in_params : InputParam[],
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location, schema);
 
         assert(typeof name === 'string');
@@ -1659,7 +1659,7 @@ export class InvocationAction extends Action {
      */
     constructor(location : SourceRange|null,
                 invocation : Invocation,
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location, schema);
 
         assert(invocation instanceof Invocation);
@@ -1718,7 +1718,7 @@ export class NotifyAction extends Action {
      */
     constructor(location : SourceRange|null,
                 name : 'notify',
-                schema : ExpressionSignature|null = null) {
+                schema : FunctionDef|null = null) {
         super(location, schema);
 
         // we used to support "return" and "save", but those are gone
@@ -1802,7 +1802,7 @@ export class SpecifiedPermissionFunction extends PermissionFunction {
     kind : string;
     channel : string;
     filter : BooleanExpression;
-    schema : ExpressionSignature|null;
+    schema : FunctionDef|null;
 
     /**
      * Construct a new specified permission function.
@@ -1818,7 +1818,7 @@ export class SpecifiedPermissionFunction extends PermissionFunction {
                 kind : string,
                 channel : string,
                 filter : BooleanExpression,
-                schema : ExpressionSignature|null) {
+                schema : FunctionDef|null) {
         super(location);
 
         assert(typeof kind === 'string');
@@ -1830,7 +1830,7 @@ export class SpecifiedPermissionFunction extends PermissionFunction {
         assert(filter instanceof BooleanExpression);
         this.filter = filter;
 
-        assert(schema === null || schema instanceof ExpressionSignature);
+        assert(schema === null || schema instanceof FunctionDef);
         this.schema = schema;
     }
 
