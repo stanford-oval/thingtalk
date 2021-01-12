@@ -62,7 +62,7 @@ let TEST_CASES = [
     ['Device(com.xkcd, , ) com.xkcd:get_comic',
      'InputParam(number, Undefined(true)) com.xkcd:get_comic'],
     ['Selector(@com.xkcd)',
-     'InputParamSlot(number : Number) in_param.number What Xkcd comic do you want?'],
+     'InputParamSlot(number : Number) in_param.number'],
      ],
 
     [`monitor (@com.xkcd.get_comic(number=1234)) => notify;`,
@@ -70,7 +70,7 @@ let TEST_CASES = [
     ['Device(com.xkcd, , ) com.xkcd:get_comic',
      'InputParam(number, Number(1234)) com.xkcd:get_comic'],
     ['Selector(@com.xkcd)',
-     'InputParamSlot(number : Number) in_param.number What Xkcd comic do you want?'],
+     'InputParamSlot(number : Number) in_param.number'],
     ],
 
     [`monitor (@com.xkcd.get_comic(number=1234)) => @com.facebook.post(status=title);`,
@@ -81,9 +81,9 @@ let TEST_CASES = [
      'Device(com.facebook, , ) com.facebook:post',
      'InputParam(status, VarRef(title)) com.facebook:post'],
     ['Selector(@com.xkcd)',
-     'InputParamSlot(number : Number) in_param.number What Xkcd comic do you want?',
+     'InputParamSlot(number : Number) in_param.number',
      'Selector(@com.facebook)',
-     'InputParamSlot(status : String) in_param.status What do you want to post?'],
+     'InputParamSlot(status : String) in_param.status'],
      ],
 
     [`monitor (@com.xkcd.get_comic(number=1234)) => @com.facebook.post(status=$result);`,
@@ -94,9 +94,9 @@ let TEST_CASES = [
      'Device(com.facebook, , ) com.facebook:post',
      'InputParam(status, Event(null)) com.facebook:post'],
     ['Selector(@com.xkcd)',
-     'InputParamSlot(number : Number) in_param.number What Xkcd comic do you want?',
+     'InputParamSlot(number : Number) in_param.number',
      'Selector(@com.facebook)',
-     'InputParamSlot(status : String) in_param.status What do you want to post?'],
+     'InputParamSlot(status : String) in_param.status'],
     ],
 
     [`now => count(@com.xkcd.get_comic(number=1234)) => @com.facebook.post(status=$result);`,
@@ -107,9 +107,9 @@ let TEST_CASES = [
      'Device(com.facebook, , ) com.facebook:post',
      'InputParam(status, Event(null)) com.facebook:post'],
     ['Selector(@com.xkcd)',
-     'InputParamSlot(number : Number) in_param.number What Xkcd comic do you want?',
+     'InputParamSlot(number : Number) in_param.number',
      'Selector(@com.facebook)',
-     'InputParamSlot(status : String) in_param.status What do you want to post?'],
+     'InputParamSlot(status : String) in_param.status'],
     ],
 
     [`now => avg(temperature of (@com.instagram.get_pictures() => @org.thingpedia.weather.current(location=location))) => notify;`,
@@ -120,7 +120,7 @@ let TEST_CASES = [
      'InputParam(location, VarRef(location)) org.thingpedia.weather:current'],
     ['Selector(@com.instagram)',
      'Selector(@org.thingpedia.weather)',
-     'InputParamSlot(location : Location) in_param.location What location do you want the current weather for?'],
+     'InputParamSlot(location : Location) in_param.location'],
     ],
 
     [`now => sort(temperature asc of (@com.instagram.get_pictures() => @org.thingpedia.weather.current(location=location))) => notify;`,
@@ -131,8 +131,8 @@ let TEST_CASES = [
      'InputParam(location, VarRef(location)) org.thingpedia.weather:current'],
     ['Selector(@com.instagram)',
      'Selector(@org.thingpedia.weather)',
-     'InputParamSlot(location : Location) in_param.location What location do you want the current weather for?',
-     'FieldSlot(value : Number) sort.value What value would you like?'],
+     'InputParamSlot(location : Location) in_param.location',
+     'FieldSlot(value : Number) sort.value'],
     ],
 
     [`now => (@com.instagram.get_pictures() => @org.thingpedia.weather.current(location=location))[1,2] => notify;`,
@@ -143,9 +143,9 @@ let TEST_CASES = [
      'InputParam(location, VarRef(location)) org.thingpedia.weather:current'],
     ['Selector(@com.instagram)',
      'Selector(@org.thingpedia.weather)',
-     'InputParamSlot(location : Location) in_param.location What location do you want the current weather for?',
-     'ArrayIndexSlot([0] : Number) expression.index.0 What is the index of the first result you would like?',
-     'ArrayIndexSlot([1] : Number) expression.index.1 What is the index of the second result you would like?'],
+     'InputParamSlot(location : Location) in_param.location',
+     'ArrayIndexSlot([0] : Number) expression.index.0',
+     'ArrayIndexSlot([1] : Number) expression.index.1'],
     ],
 
     [`now => (@com.instagram.get_pictures() => @org.thingpedia.weather.current(location=location))[1:2] => notify;`,
@@ -156,9 +156,9 @@ let TEST_CASES = [
      'InputParam(location, VarRef(location)) org.thingpedia.weather:current'],
     ['Selector(@com.instagram)',
      'Selector(@org.thingpedia.weather)',
-     'InputParamSlot(location : Location) in_param.location What location do you want the current weather for?',
-     'FieldSlot(base : Number) slice.base What is the first result you would like?',
-     'FieldSlot(limit : Number) slice.limit How many results would you like?'],
+     'InputParamSlot(location : Location) in_param.location',
+     'FieldSlot(base : Number) slice.base',
+     'FieldSlot(limit : Number) slice.limit'],
     ],
 
     [`monitor (@com.instagram.get_pictures() => @org.thingpedia.weather.current(location=location)) => notify;`,
@@ -169,7 +169,7 @@ let TEST_CASES = [
      'InputParam(location, VarRef(location)) org.thingpedia.weather:current'],
     ['Selector(@com.instagram)',
      'Selector(@org.thingpedia.weather)',
-     'InputParamSlot(location : Location) in_param.location What location do you want the current weather for?'],
+     'InputParamSlot(location : Location) in_param.location'],
     ],
 
     [`monitor(@com.washingtonpost.get_article()) => @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code, text=title) => notify;`,
@@ -181,10 +181,10 @@ let TEST_CASES = [
      'InputParam(target_language, Entity(zh, tt:iso_lang_code, null)) com.yandex.translate:translate',
      'InputParam(text, VarRef(title)) com.yandex.translate:translate'],
     ['Selector(@com.washingtonpost)',
-     'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle)) in_param.section What section do you want to read?',
+     'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle)) in_param.section',
      'Selector(@com.yandex.translate)',
-     'InputParamSlot(target_language : Entity(tt:iso_lang_code)) in_param.target_language What\'s the target language? Use an ISO language code like it, en or zh.',
-     'InputParamSlot(text : String) in_param.text What do you want to translate?'],
+     'InputParamSlot(target_language : Entity(tt:iso_lang_code)) in_param.target_language',
+     'InputParamSlot(text : String) in_param.text'],
     ],
 
     [`monitor(@com.washingtonpost.get_article()) => @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code, text=title) => notify;`,
@@ -196,10 +196,10 @@ let TEST_CASES = [
      'InputParam(target_language, Entity(zh, tt:iso_lang_code, null)) com.yandex.translate:translate',
      'InputParam(text, VarRef(title)) com.yandex.translate:translate'],
     ['Selector(@com.washingtonpost)',
-     'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle)) in_param.section What section do you want to read?',
+     'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle)) in_param.section',
      'Selector(@com.yandex.translate)',
-     'InputParamSlot(target_language : Entity(tt:iso_lang_code)) in_param.target_language What\'s the target language? Use an ISO language code like it, en or zh.',
-     'InputParamSlot(text : String) in_param.text What do you want to translate?'],
+     'InputParamSlot(target_language : Entity(tt:iso_lang_code)) in_param.target_language',
+     'InputParamSlot(text : String) in_param.text'],
     ],
 
     [`monitor(@com.washingtonpost.get_article(section=enum(world))) => @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code, text=title) => notify;`,
@@ -211,10 +211,10 @@ let TEST_CASES = [
      'InputParam(target_language, Entity(zh, tt:iso_lang_code, null)) com.yandex.translate:translate',
      'InputParam(text, VarRef(title)) com.yandex.translate:translate'],
     ['Selector(@com.washingtonpost)',
-     'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle)) in_param.section What section do you want to read?',
+     'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle)) in_param.section',
      'Selector(@com.yandex.translate)',
-     'InputParamSlot(target_language : Entity(tt:iso_lang_code)) in_param.target_language What\'s the target language? Use an ISO language code like it, en or zh.',
-     'InputParamSlot(text : String) in_param.text What do you want to translate?'],
+     'InputParamSlot(target_language : Entity(tt:iso_lang_code)) in_param.target_language',
+     'InputParamSlot(text : String) in_param.text'],
     ],
 
     [`monitor(@com.washingtonpost.get_article(section=enum(world))) => notify;`,
@@ -222,7 +222,7 @@ let TEST_CASES = [
     ['Device(com.washingtonpost, , ) com.washingtonpost:get_article',
      'InputParam(section, Enum(world)) com.washingtonpost:get_article'],
     ['Selector(@com.washingtonpost)',
-     'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle)) in_param.section What section do you want to read?'],
+     'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle)) in_param.section'],
     ],
 
     [`monitor(@com.washingtonpost.get_article(section=enum(world)), title =~ "lol") => notify;`,
@@ -231,8 +231,8 @@ let TEST_CASES = [
      'InputParam(section, Enum(world)) com.washingtonpost:get_article',
      'Atom(title, =~, String(lol)) com.washingtonpost:get_article'],
     ['Selector(@com.washingtonpost)',
-     'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle)) in_param.section What section do you want to read?',
-     'FilterSlot(title =~ : String) filter.=~.title What should the title contain?'],
+     'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle)) in_param.section',
+     'FilterSlot(title =~ : String) filter.=~.title'],
     ],
 
     [`monitor(@com.washingtonpost.get_article(section=enum(world)), title =~ "lol" || title =~ "bar") => notify;`,
@@ -242,10 +242,10 @@ let TEST_CASES = [
      'Atom(title, in_array~, Array(String(lol),String(bar))) com.washingtonpost:get_article'
     ],
     ['Selector(@com.washingtonpost)',
-     'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle)) in_param.section What section do you want to read?',
-     'FilterSlot(title in_array~ : Array(String)) filter.in_array~.title Please tell me the value of the filter on the title.',
-     'ArrayIndexSlot([0] : String) filter.in_array~.title.0 What would you like the first title to be?',
-     'ArrayIndexSlot([1] : String) filter.in_array~.title.1 What would you like the second title to be?'],
+     'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle)) in_param.section',
+     'FilterSlot(title in_array~ : Array(String)) filter.in_array~.title',
+     'ArrayIndexSlot([0] : String) filter.in_array~.title.0',
+     'ArrayIndexSlot([1] : String) filter.in_array~.title.1'],
     ],
 
     [`now => @com.washingtonpost.get_article(section=enum(world)), title =~ "lol" => notify;`,
@@ -254,8 +254,8 @@ let TEST_CASES = [
      'InputParam(section, Enum(world)) com.washingtonpost:get_article',
      'Atom(title, =~, String(lol)) com.washingtonpost:get_article'],
     ['Selector(@com.washingtonpost)',
-     'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle)) in_param.section What section do you want to read?',
-     'FilterSlot(title =~ : String) filter.=~.title What should the title contain?'],
+     'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle)) in_param.section',
+     'FilterSlot(title =~ : String) filter.=~.title'],
     ],
 
     [`now => @com.washingtonpost.get_article(section=enum(world)), title =~ "lol" || title =~ "bar" => notify;`,
@@ -264,10 +264,10 @@ let TEST_CASES = [
      'InputParam(section, Enum(world)) com.washingtonpost:get_article',
      'Atom(title, in_array~, Array(String(lol),String(bar))) com.washingtonpost:get_article'],
     ['Selector(@com.washingtonpost)',
-     'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle)) in_param.section What section do you want to read?',
-     'FilterSlot(title in_array~ : Array(String)) filter.in_array~.title Please tell me the value of the filter on the title.',
-     'ArrayIndexSlot([0] : String) filter.in_array~.title.0 What would you like the first title to be?',
-     'ArrayIndexSlot([1] : String) filter.in_array~.title.1 What would you like the second title to be?'],
+     'InputParamSlot(section : Enum(politics,opinions,local,sports,national,world,business,lifestyle)) in_param.section',
+     'FilterSlot(title in_array~ : Array(String)) filter.in_array~.title',
+     'ArrayIndexSlot([0] : String) filter.in_array~.title.0',
+     'ArrayIndexSlot([1] : String) filter.in_array~.title.1'],
     ],
 
     ['now => (@com.bing.web_search() => @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code("Italian"), text=$result)) => notify;',
@@ -280,10 +280,10 @@ let TEST_CASES = [
      'InputParam(text, Event(null)) com.yandex.translate:translate'
     ],
     ['Selector(@com.bing)',
-     'InputParamSlot(query : String) in_param.query What do you want to search?',
+     'InputParamSlot(query : String) in_param.query',
      'Selector(@com.yandex.translate)',
-     'InputParamSlot(target_language : Entity(tt:iso_lang_code)) in_param.target_language What\'s the target language? Use an ISO language code like it, en or zh.',
-     'InputParamSlot(text : String) in_param.text What do you want to translate?'],
+     'InputParamSlot(target_language : Entity(tt:iso_lang_code)) in_param.target_language',
+     'InputParamSlot(text : String) in_param.text'],
     ],
 
     ['monitor(@com.bing.web_search()) => @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code("Italian"), text=$result) => notify;',
@@ -295,10 +295,10 @@ let TEST_CASES = [
      'InputParam(target_language, Entity(it, tt:iso_lang_code, Italian)) com.yandex.translate:translate',
      'InputParam(text, Event(null)) com.yandex.translate:translate'],
     ['Selector(@com.bing)',
-     'InputParamSlot(query : String) in_param.query What do you want to search?',
+     'InputParamSlot(query : String) in_param.query',
      'Selector(@com.yandex.translate)',
-     'InputParamSlot(target_language : Entity(tt:iso_lang_code)) in_param.target_language What\'s the target language? Use an ISO language code like it, en or zh.',
-     'InputParamSlot(text : String) in_param.text What do you want to translate?'],
+     'InputParamSlot(target_language : Entity(tt:iso_lang_code)) in_param.target_language',
+     'InputParamSlot(text : String) in_param.text'],
     ],
 
     ['dataset @com.twitter #[language=\'en\'] {\n' +
@@ -315,7 +315,7 @@ let TEST_CASES = [
      'Device(com.twitter, , ) com.twitter:search'
     ],
     ['Selector(@com.twitter)',
-     'FilterSlot(author == : Entity(tt:username)) filter.==.author From which user do you want tweets?',
+     'FilterSlot(author == : Entity(tt:username)) filter.==.author',
      'Selector(@com.twitter)'],
     ],
 
@@ -327,7 +327,7 @@ let TEST_CASES = [
     'query: Invocation(Device(com.bing, , ), web_search, InputParam(query, VarRef(p_query)), )',
     'stream: FunctionCallExpression(p1, InputParam(p_query, String(foo)))'],
     ['InputParam(p_query, String(foo)) p1'],
-    ['InputParamSlot(p_query : String) in_param.p_query Please tell me the query.'
+    ['InputParamSlot(p_query : String) in_param.p_query'
     ]
     ],
 
@@ -336,9 +336,9 @@ let TEST_CASES = [
     [`action: Invocation(Device(com.twitter, , ), post, InputParam(status, Undefined(true)), )`],
     ['Device(com.twitter, , ) com.twitter:post',
      'InputParam(status, Undefined(true)) com.twitter:post'],
-    ['FieldSlot(executor : Entity(tt:contact)) program.executor Who should run this command?',
+    ['FieldSlot(executor : Entity(tt:contact)) program.executor',
      'Selector(@com.twitter)',
-     'InputParamSlot(status : String) in_param.status What do you want to tweet?']
+     'InputParamSlot(status : String) in_param.status']
     ],
 
     [`attimer(time=$?) => @com.twitter.post();`,
@@ -349,9 +349,9 @@ let TEST_CASES = [
     [`InputParam(time, Undefined(true)) attimer`,
      'Device(com.twitter, , ) com.twitter:post',
      'InputParam(status, Undefined(true)) com.twitter:post'],
-    ['InputParamSlot(time : Array(Time)) in_param.time Please tell me the time.',
+    ['InputParamSlot(time : Array(Time)) in_param.time',
      'Selector(@com.twitter)',
-     'InputParamSlot(status : String) in_param.status What do you want to tweet?']
+     'InputParamSlot(status : String) in_param.status']
     ],
 
     [`attimer(time=[$?, $?]) => @com.twitter.post();`,
@@ -362,11 +362,11 @@ let TEST_CASES = [
     [`InputParam(time, Array(Undefined(true),Undefined(true))) attimer`,
      'Device(com.twitter, , ) com.twitter:post',
      'InputParam(status, Undefined(true)) com.twitter:post'],
-    ['InputParamSlot(time : Array(Time)) in_param.time Please tell me the time.',
-     'ArrayIndexSlot([0] : Time) in_param.time.0 What would you like the first time to be?',
-     'ArrayIndexSlot([1] : Time) in_param.time.1 What would you like the second time to be?',
+    ['InputParamSlot(time : Array(Time)) in_param.time',
+     'ArrayIndexSlot([0] : Time) in_param.time.0',
+     'ArrayIndexSlot([1] : Time) in_param.time.1',
      'Selector(@com.twitter)',
-     'InputParamSlot(status : String) in_param.status What do you want to tweet?']
+     'InputParamSlot(status : String) in_param.status']
     ],
 
     [`attimer(time=[$?, $?], expiration_date=$?) => @com.twitter.post();`,
@@ -378,38 +378,38 @@ let TEST_CASES = [
      `InputParam(time, Array(Undefined(true),Undefined(true))) attimer`,
      'Device(com.twitter, , ) com.twitter:post',
      'InputParam(status, Undefined(true)) com.twitter:post'],
-    ['InputParamSlot(expiration_date : Date) in_param.expiration_date Please tell me the expiration date.',
-     'InputParamSlot(time : Array(Time)) in_param.time Please tell me the time.',
-     'ArrayIndexSlot([0] : Time) in_param.time.0 What would you like the first time to be?',
-     'ArrayIndexSlot([1] : Time) in_param.time.1 What would you like the second time to be?',
+    ['InputParamSlot(expiration_date : Date) in_param.expiration_date',
+     'InputParamSlot(time : Array(Time)) in_param.time',
+     'ArrayIndexSlot([0] : Time) in_param.time.0',
+     'ArrayIndexSlot([1] : Time) in_param.time.1',
      'Selector(@com.twitter)',
-     'InputParamSlot(status : String) in_param.status What do you want to tweet?']
+     'InputParamSlot(status : String) in_param.status']
     ],
 
     [`$policy { $source == $? : now => @com.twitter.post; }`,
 
     [],
     [],
-    ['FieldSlot(lhs : Entity(tt:contact)) compute_filter.lhs What is the left hand side of the filter?',
-     'FieldSlot(rhs : Entity(tt:contact)) compute_filter.rhs What is the right hand side of the filter?'],
+    ['FieldSlot(lhs : Entity(tt:contact)) compute_filter.lhs',
+     'FieldSlot(rhs : Entity(tt:contact)) compute_filter.rhs'],
     ],
 
     [`$policy { in_array($source, $?) : now => @com.twitter.post; }`,
 
     [],
     [],
-    ['FieldSlot(lhs : Entity(tt:contact)) compute_filter.lhs What is the left hand side of the filter?',
-     'FieldSlot(rhs : Array(Entity(tt:contact))) compute_filter.rhs What is the right hand side of the filter?'],
+    ['FieldSlot(lhs : Entity(tt:contact)) compute_filter.lhs',
+     'FieldSlot(rhs : Array(Entity(tt:contact))) compute_filter.rhs'],
     ],
 
     [`$policy { in_array($source, [$?, $?]) : now => @com.twitter.post; }`,
 
     [],
     [],
-    ['FieldSlot(lhs : Entity(tt:contact)) compute_filter.lhs What is the left hand side of the filter?',
-    'FieldSlot(rhs : Array(Entity(tt:contact))) compute_filter.rhs What is the right hand side of the filter?',
-    'ArrayIndexSlot([0] : Entity(tt:contact)) compute_filter.rhs.0 What is the first value of the filter right hand side?',
-    'ArrayIndexSlot([1] : Entity(tt:contact)) compute_filter.rhs.1 What is the second value of the filter right hand side?']
+    ['FieldSlot(lhs : Entity(tt:contact)) compute_filter.lhs',
+    'FieldSlot(rhs : Array(Entity(tt:contact))) compute_filter.rhs',
+    'ArrayIndexSlot([0] : Entity(tt:contact)) compute_filter.rhs.0',
+    'ArrayIndexSlot([1] : Entity(tt:contact)) compute_filter.rhs.1']
     ],
 
     [`now => @org.schema.restaurant(), count(review filter author =~ "bob") >= 1 => notify;`,
@@ -417,9 +417,9 @@ let TEST_CASES = [
     ['query: Invocation(Device(org.schema, , ), restaurant, , )'],
     ['Device(org.schema, , ) org.schema:restaurant'],
     ['Selector(@org.schema)',
-     'FieldSlot(lhs : Number) compute_filter.lhs What is the left hand side of the filter?',
-     'ComputationOperandSlot(count[0] : Array(Compound)) compute_filter.lhs.count.0 What is the first operand to count you would like?',
-     'FieldSlot(rhs : Number) compute_filter.rhs What is the right hand side of the filter?']
+     'FieldSlot(lhs : Number) compute_filter.lhs',
+     'ComputationOperandSlot(count[0] : Array(Compound)) compute_filter.lhs.count.0',
+     'FieldSlot(rhs : Number) compute_filter.rhs']
     ],
 
     [`now => @light-bulb(name="bedroom").set_power(power=enum(off));`,
@@ -429,9 +429,9 @@ let TEST_CASES = [
     'InputParam(power, Enum(off)) light-bulb:set_power',
     ],
     [
-    'DeviceAttributeSlot(name : String) attribute.name Please tell me the name of the device you would like to use.',
+    'DeviceAttributeSlot(name : String) attribute.name',
     'Selector(@light-bulb)',
-    'InputParamSlot(power : Enum(on,off)) in_param.power Do you want to turn it on or off?',
+    'InputParamSlot(power : Enum(on,off)) in_param.power',
     ]
     ],
 
@@ -448,19 +448,19 @@ now => [food] of ((@uk.ac.cam.multiwoz.Restaurant.Restaurant()), true) => notify
     ['query: Invocation(Device(uk.ac.cam.multiwoz.Restaurant, , ), Restaurant, , )'],
     ['Device(uk.ac.cam.multiwoz.Restaurant, , ) uk.ac.cam.multiwoz.Restaurant:Restaurant'],
     ['Selector(@uk.ac.cam.multiwoz.Restaurant)',
-     'ResultSlot(id : Entity(uk.ac.cam.multiwoz.Restaurant:Restaurant)) result.id Please tell me the name.',
-     'ResultSlot(food : String) result.food what would you like to eat,what are you in the mood for',
-     'ResultSlot(id : Entity(uk.ac.cam.multiwoz.Restaurant:Restaurant)) result.id Please tell me the name.',
-     'ResultSlot(food : String) result.food what would you like to eat,what are you in the mood for']
+     'ResultSlot(id : Entity(uk.ac.cam.multiwoz.Restaurant:Restaurant)) result.id',
+     'ResultSlot(food : String) result.food',
+     'ResultSlot(id : Entity(uk.ac.cam.multiwoz.Restaurant:Restaurant)) result.id',
+     'ResultSlot(food : String) result.food']
     ],
 
     [`now => [distance(geo, $location.current_location)] of @com.yelp.restaurant() => notify;`,
     ['query: Invocation(Device(com.yelp, , ), restaurant, , )'],
     ['Device(com.yelp, , ) com.yelp:restaurant'],
     ['Selector(@com.yelp)',
-    'ArrayIndexSlot([0] : Measure(m)) computations.0 What parameter would you like?',
-    'ComputationOperandSlot(distance[0] : Location) computations.0.distance.0 What is the first operand to distance you would like?',
-    'ComputationOperandSlot(distance[1] : Location) computations.0.distance.1 What is the second operand to distance you would like?']
+    'ArrayIndexSlot([0] : Measure(m)) computations.0',
+    'ComputationOperandSlot(distance[0] : Location) computations.0.distance.0',
+    'ComputationOperandSlot(distance[1] : Location) computations.0.distance.1']
     ],
 
     [`monitor( @security-camera.current_event()), (has_person == true && any(@org.thingpedia.builtin.thingengine.builtin.get_gps(), location == new Location(1, 2)))  => notify;`,
@@ -475,8 +475,8 @@ now => [food] of ((@uk.ac.cam.multiwoz.Restaurant.Restaurant()), true) => notify
     [
     'Selector(@security-camera)',
     'Selector(@org.thingpedia.builtin.thingengine.builtin)',
-    'FilterSlot(location == : Location) filter.==.location What location are you interested in?',
-    'FilterSlot(has_person == : Boolean) filter.==.has_person Do you want events with people in front of the camera?',
+    'FilterSlot(location == : Location) filter.==.location',
+    'FilterSlot(has_person == : Boolean) filter.==.has_person',
     ]]
 ];
 
@@ -501,7 +501,7 @@ async function test(i) {
             assert(slot.type instanceof Type);
             assert(slot.get() instanceof Ast.Value);
             assert(Array.isArray(slot.options));
-            return slot.toString() + ' ' + slot.tag + ' ' + slot.getPrompt('en-US');
+            return slot.toString() + ' ' + slot.tag;
         });
         const generatedPrims = Array.from(prog.iteratePrimitives(true)).map(([primType, prim]) => {
             prim.schema = null;

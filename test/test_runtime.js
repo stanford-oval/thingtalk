@@ -231,25 +231,6 @@ const TEST_CASES = [
     }
     ]],
 
-    [`now => @com.xkcd.get_comic() => @com.twitter.post(status=$result);`,
-    null,
-    { 'com.xkcd:get_comic': [
-        { number: 1234, title: 'Douglas Engelbart (1925-2013)',
-          link: 'https://xkcd.com/1234/',
-          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png',
-          alt_text: 'some alt text' }
-    ]},
-    [
-    {
-     type: 'action',
-     fn: 'com.twitter:post',
-     params: { status:
-`Link: Douglas Engelbart (1925-2013) <https://xkcd.com/1234/>
-Picture: https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png
-some alt text` }
-    }
-    ]],
-
     [`now => @com.xkcd.get_comic() => @com.twitter.post(status=$program_id);`,
     null,
     { 'com.xkcd:get_comic': [

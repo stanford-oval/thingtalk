@@ -43,7 +43,7 @@ import {
     ChainExpression
 } from './expression2';
 import { ClassDef } from './class_def';
-import { FunctionDef, ExpressionSignature } from './function_def';
+import { FunctionDef } from './function_def';
 import {
     FieldSlot,
     AbstractSlot,
@@ -280,7 +280,7 @@ export class Assignment extends Statement {
      * @type {Ast.Table}
      */
     value : Expression;
-    schema : ExpressionSignature|null;
+    schema : FunctionDef|null;
 
     /**
      * Construct a new assignment statement.
@@ -289,12 +289,12 @@ export class Assignment extends Statement {
      *        in the source code
      * @param {string} name - the name being assigned to
      * @param {Ast.Table} value - the expression being assigned
-     * @param {Ast.ExpressionSignature | null} schema - the signature corresponding to this assignment
+     * @param {Ast.FunctionDef | null} schema - the signature corresponding to this assignment
      */
     constructor(location : SourceRange|null,
                 name : string,
                 value : Expression,
-                schema : ExpressionSignature|null = null) {
+                schema : FunctionDef|null = null) {
         super(location);
 
         assert(typeof name === 'string');
@@ -312,7 +312,7 @@ export class Assignment extends Statement {
          *
          * This is the type that the assigned name has after the assignment statement.
          * This property is guaranteed not `null` after type-checking.
-         * @type {Ast.ExpressionSignature|null}
+         * @type {Ast.FunctionDef|null}
          */
         this.schema = schema;
     }

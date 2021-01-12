@@ -4,11 +4,7 @@
 %.js : %.pegjs
 	pegjs -o $@ $<
 
-%.mo : %.po
-	msgfmt $< -o $@
-
 all = \
-	$(patsubst %.po,%.mo,$(wildcard po/*.po)) \
 	tools/generate-parser/grammar.js \
 	lib/nn-syntax/parser.ts \
 	lib/new-syntax/parser.ts \

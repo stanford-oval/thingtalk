@@ -29,8 +29,7 @@ import {
     ArgumentDef,
     ArgDirection
 } from './ast/function_def';
-import { Library } from './ast/program';
-import type { FormatSpec } from './runtime/formatter';
+import { Library, Dataset, Example } from './ast/program';
 
 import Cache from './utils/cache';
 
@@ -106,6 +105,13 @@ interface AbstractThingpediaClient {
     getSchemas(kinds : string[], getMeta : boolean) : Promise<string>;
 
     getMixins() : Promise<{ [key : string] : TpMixinDeclaration }>;
+
+    /**
+     * Retrieve the {@link Ast.Dataset} associated with one or more Thingpedia classes.
+     *
+     * @param {string[]} kinds - the Thingpedia class identifiers to retrieve
+     */
+    getExamplesByKinds(kinds : string[]) : Promise<string>;
 }
 
 class DummyMemoryClient {
@@ -130,6 +136,7 @@ type FunctionType = 'query' | 'action';
 type MetadataLevel = 'basic' | 'everything';
 
 type ClassMap = { [key : string] : ClassDef|Error };
+type DatasetMap = { [key : string] : Dataset|Error };
 
 /**
  * Delegate object to retrieve type information and metadata from Thingpedia.
@@ -142,14 +149,17 @@ export default class SchemaRetriever {
     private _currentRequest : {
         basic : Promise<ClassMap>|null;
         everything : Promise<ClassMap>|null;
+        dataset : Promise<DatasetMap>|null;
     };
     private _pendingRequests : {
         basic : string[];
         everything : string[];
+        dataset : string[];
     };
     private _classCache : {
         basic : Cache<string, ClassDef|null>;
         everything : Cache<string, ClassDef|null>;
+        dataset : Cache<string, Dataset>;
     };
 
     private _thingpediaClient : AbstractThingpediaClient;
@@ -173,16 +183,19 @@ export default class SchemaRetriever {
         // keyed by isMeta/useMeta
         this._currentRequest = {
             basic: null,
-            everything: null
+            everything: null,
+            dataset: null,
         };
         this._pendingRequests = {
             basic: [],
-            everything: []
+            everything: [],
+            dataset: [],
         };
         this._classCache = {
-            // expire class caches in 24 hours (same as on-disk thingpedia caches)
+            // expire caches in 24 hours (same as on-disk thingpedia caches)
             basic: new Cache(24 * 3600 * 1000),
-            everything: new Cache(24 * 3600 * 1000)
+            everything: new Cache(24 * 3600 * 1000),
+            dataset: new Cache(24 * 3600 * 1000)
         };
 
         this._thingpediaClient = tpClient;
@@ -233,17 +246,17 @@ export default class SchemaRetriever {
 
     private _getManifest(kind : string) : Promise<ClassDef> {
         if (this._manifestCache.has(kind))
-            return Promise.resolve(this._manifestCache.get(kind) as Promise<ClassDef>);
+            return Promise.resolve(this._manifestCache.get(kind)!);
 
         const request = this._getManifestRequest(kind);
         this._manifestCache.set(kind, request);
         return request;
     }
 
-    async getFormatMetadata(kind : string, query : string) : Promise<FormatSpec> {
+    async getFormatMetadata(kind : string, query : string) : Promise<unknown[]> {
         const classDef = await this._getManifest(kind);
         if (classDef.queries[query])
-            return (classDef.queries[query].metadata.formatted as FormatSpec) || [];
+            return (classDef.queries[query].metadata.formatted as unknown[]) || [];
         return [];
     }
 
@@ -278,9 +291,6 @@ export default class SchemaRetriever {
 
         const parsed = Grammar.parse(code) as Library;
         const result : ClassMap = {};
-        if (!parsed)
-            return result;
-
         const missing = new Set<string>(pending);
 
         await Promise.all(parsed.classes.map(async (classDef) => {
@@ -323,7 +333,7 @@ export default class SchemaRetriever {
         if (this._pendingRequests[useMeta].indexOf(kind) < 0)
             this._pendingRequests[useMeta].push(kind);
         this._ensureRequest(useMeta);
-        const everything = await (this._currentRequest[useMeta] as Promise<ClassMap>);
+        const everything = await this._currentRequest[useMeta]!;
 
         if (kind in everything) {
             const result = everything[kind];
@@ -485,5 +495,91 @@ export default class SchemaRetriever {
             facets: resolved.facets
         };
         return parsed;
+    }
+
+    private async _makeDatasetRequest() : Promise<DatasetMap> {
+        // delay the actual request so that further requests
+        // in the same event loop iteration will be batched
+        // toghether
+        // batching is important because otherwise we can
+        // make a lot of tiny HTTP requests at the same time
+        // and kill the Thingpedia server just out of overhead
+        await delay(0);
+
+        const pending = this._pendingRequests.dataset;
+        this._pendingRequests.dataset = [];
+        this._currentRequest.dataset = null;
+        if (pending.length === 0)
+            return {};
+        if (!this._silent)
+            console.log(`Batched dataset request for ${pending}`);
+        const code = await this._thingpediaClient.getExamplesByKinds(pending);
+
+        const result : DatasetMap = {};
+        if (code.trim() === '') {
+            // empty reply, this means none of the requested classes was found,
+            // or all the datasets are empty
+
+            for (const kind of pending)
+                this._classCache.dataset.set(kind, result[kind] = new Dataset(null, kind, []));
+        } else {
+            const parsed = Grammar.parse(code) as Library;
+            await parsed.typecheck(this, true);
+
+            const examples = new Map<string, Example[]>();
+
+            // flatten all examples in all datasets, and then split again by device
+            // this is to account for the HTTP API (which returns one dataset),
+            // developer mode (which returns one per device) and file client,
+            // which returns one or more depending on the content of the files
+            // on disk
+            for (const dataset of parsed.datasets) {
+                for (const example of dataset.examples) {
+                    const devices = new Set<string>();
+                    for (const [, prim] of example.iteratePrimitives(false))
+                        devices.add(prim.selector.kind);
+                    for (const device of devices) {
+                        const list = examples.get(device);
+                        if (list)
+                            list.push(example);
+                        else
+                            examples.set(device, [example]);
+                    }
+                }
+            }
+
+            for (const kind of pending) {
+                const dataset = new Dataset(null, kind, examples.get(kind) || []);
+                this._classCache.dataset.set(kind, result[kind] = dataset);
+            }
+        }
+
+        return result;
+    }
+
+    private _ensureDatasetRequest() : void {
+        if (this._currentRequest.dataset !== null)
+            return;
+        this._currentRequest.dataset = this._makeDatasetRequest();
+    }
+
+    async getExamplesByKind(kind : string) : Promise<Dataset> {
+        if (typeof kind !== 'string')
+            throw new TypeError();
+        const cached = this._classCache.dataset.get(kind);
+        if (cached !== undefined)
+            return cached;
+
+        if (this._pendingRequests.dataset.indexOf(kind) < 0)
+            this._pendingRequests.dataset.push(kind);
+        this._ensureDatasetRequest();
+        const everything = await this._currentRequest.dataset!;
+
+        const result = everything[kind];
+        assert(result);
+        if (result instanceof Error)
+            throw result;
+        else
+            return result;
     }
 }

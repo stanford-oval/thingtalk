@@ -19,14 +19,12 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
-import interpolate from 'string-interp';
 import Type, { ArrayType, EntityType } from '../type';
-import * as I18n from '../i18n';
 import { clean } from '../utils';
 
 import { Value, VarRefValue, ArrayValue, ComputationValue } from './values';
 import { Invocation, DeviceSelector, InputParam, AtomBooleanExpression }  from './expression';
-import { ArgumentDef, ExpressionSignature } from './function_def';
+import { ArgumentDef, FunctionDef } from './function_def';
 
 export interface ScopeEntry {
     type : Type;
@@ -43,17 +41,17 @@ interface ExternalBooleanExpressionLike {
     selector : DeviceSelector;
     channel : string;
     in_params : InputParam[];
-    schema : ExpressionSignature|null;
+    schema : FunctionDef|null;
 }
 interface PermissionFunctionLike {
     kind : string;
     channel : string;
-    schema : ExpressionSignature|null;
+    schema : FunctionDef|null;
 }
 interface VarRefLike {
     name : string;
     in_params : InputParam[];
-    schema : ExpressionSignature|null;
+    schema : FunctionDef|null;
 }
 export type InvocationLike = Invocation | ExternalBooleanExpressionLike |
     VarRefLike | PermissionFunctionLike;
@@ -135,13 +133,6 @@ export abstract class AbstractSlot {
 
     abstract get tag() : string;
 
-    /**
-     * Retrieve the question to ask the user to fill this slot.
-     *
-     * @param {string} locale - the locale to use
-     */
-    abstract getPrompt(locale : string) : string;
-
     abstract get() : Value;
 
     abstract set(value : Value) : void;
@@ -206,15 +197,6 @@ export class InputParamSlot extends AbstractSlot {
     get tag() : string {
         return `in_param.${this._slot.name}`;
     }
-    getPrompt(locale : string) : string {
-        if (this._arg && this._arg.metadata.prompt)
-            return this._arg.metadata.prompt;
-
-        const argcanonical = this._argcanonical;
-        const _ = I18n.get(locale).gettext;
-        return interpolate(_("Please tell me the ${argcanonical}."), //"
-            { argcanonical }, { locale }) as string;
-    }
     get() : Value {
         return this._slot.value;
     }
@@ -259,17 +241,6 @@ export class ResultSlot extends AbstractSlot {
     get tag() : string {
         return `result.${this._key}`;
     }
-    getPrompt(locale : string) : string {
-        // should never be called, except for tests
-
-        if (this._arg && this._arg.metadata.prompt)
-            return this._arg.metadata.prompt;
-
-        const argcanonical = this._argcanonical;
-        const _ = I18n.get(locale).gettext;
-        return interpolate(_("Please tell me the ${argcanonical}."), //"
-            { argcanonical }, { locale }) as string;
-    }
     get() : Value {
         return this._object[this._key];
     }
@@ -296,12 +267,6 @@ export class DeviceAttributeSlot extends AbstractSlot {
     }
     get tag() : string {
         return `attribute.${this._slot.name}`;
-    }
-    getPrompt(locale : string) : string {
-        // this method should never be used, because $? does not typecheck in a device
-        // attribute, but we include for completeness, and just in case
-        const _ = I18n.get(locale).gettext;
-        return _("Please tell me the name of the device you would like to use.");
     }
     get() : Value {
         return this._slot.value;
@@ -382,42 +347,6 @@ export class FilterSlot extends AbstractSlot {
     get tag() : string {
         return `filter.${this._filter.operator}.${this._filter.name}`;
     }
-    getPrompt(locale : string) : string {
-        const _ = I18n.get(locale).gettext;
-        if (['==', 'contains', 'in_array', '=~'].indexOf(this._filter.operator) >= 0 &&
-            this._arg && this._arg.metadata.prompt)
-            return this._arg.metadata.prompt;
-
-        const argcanonical = this._argcanonical;
-
-        let question;
-        switch (this._filter.operator) {
-        case '>=':
-            question = _("What should the ${argcanonical} be greater than?");
-            break;
-        case '<=':
-            question = _("What should the ${argcanonical} be less than?");
-            break;
-        case 'starts_with':
-            question = _("How should the ${argcanonical} start with?");
-            break;
-        case 'ends_with':
-            question = _("How should the ${argcanonical} end with?");
-            break;
-        case '=~':
-            question = _("What should the ${argcanonical} contain?");
-            break;
-        case '==':
-            question = _("What should the ${argcanonical} be equal to?");
-            break;
-        default:
-            // ugly default but guaranteed to work...
-            question = _("Please tell me the value of the filter on the ${argcanonical}.");
-            break;
-        }
-
-        return interpolate(question, { argcanonical }, { locale }) as string;
-    }
     get() : Value {
         return this._filter.value;
     }
@@ -470,112 +399,6 @@ export class ArrayIndexSlot extends AbstractSlot {
     }
     get tag() : string {
         return `${this._baseTag}.${this._index}`;
-    }
-    getPrompt(locale : string) : string {
-        const _ = I18n.get(locale).gettext;
-
-        switch (this._baseTag) {
-        case 'table.index':
-        case 'expression.index':
-            if (this._array.length === 1)
-                return _("Which result do you want?");
-
-            return interpolate(_("${index:ordinal:\
-                =1 {What is the index of the first result you would like?}\
-                =2 {What is the index of the second result you would like?}\
-                =3 {What is the index of the third result you would like?}\
-                one {What is the index of the ${index}st result you would like?}\
-                two {What is the index of the ${index}nd result you would like?}\
-                few {What is the index of the ${index}rd result you would like?}\
-                other {What is the index of the ${index}th result you would like?}\
-            }"), { index: this._index+1 }, { locale }) as string;
-
-        case 'computations':
-            if (this._array.length === 1)
-                return _("What parameter would you like?");
-
-            return interpolate(_("${index:ordinal:\
-                =1 {What is the first parameter you would like?}\
-                =2 {What is the second parameter you would like?}\
-                =3 {What is the third parameter you would like?}\
-                one {What is the ${index}st parameter you would like?}\
-                two {What is the ${index}nd parameter you would like?}\
-                few {What is the ${index}rd parameter you would like?}\
-                other {What is the ${index}th parameter you would like?}\
-            }"), { index: this._index+1 }, { locale }) as string;
-
-        case 'attimer.time':
-            if (this._array.length === 1)
-                return _("When do you want your command to run?");
-
-            return interpolate(_("${index:ordinal:\
-                =1 {What is the first time you would like your command to run?}\
-                =2 {What is the second time you would like your command to run?}\
-                =3 {What is the third time you would like your command to run?}\
-                one {What is the ${index}st time you would like your command to run?}\
-                two {What is the ${index}nd time you would like your command to run?}\
-                few {What is the ${index}rd time you would like your command to run?}\
-                other {What is the ${index}th time you would like your command to run?}\
-            }"), { index: this._index+1 }, { locale }) as string;
-
-        case 'filter.in_array.$source':
-            if (this._array.length === 1)
-                return _("Who is allowed to ask you for this command?");
-
-            return interpolate(_("${index:ordinal:\
-                =1 {Who is the first friend who is allowed to ask you for this command?}\
-                =2 {Who is the second friend who is allowed to ask you for this command?}\
-                =3 {Who is the third friend who is allowed to ask you for this command?}\
-                one {Who is the ${index}st friend who is allowed to ask you for this command?}\
-                two {Who is the ${index}nd friend who is allowed to ask you for this command?}\
-                few {Who is the ${index}rd friend who is allowed to ask you for this command?}\
-                other {Who is the ${index}th friend who is allowed to ask you for this command?}\
-            }"), { index: this._index+1 }, { locale }) as string;
-
-        case 'compute_filter.lhs':
-            if (this._array.length === 1)
-                return _("What is the left hand side of the filter?");
-
-            return interpolate(_("${index:ordinal:\
-                =1 {What is the first value of the filter left hand side?}\
-                =2 {What is the second value of the filter left hand side?}\
-                =3 {What is the third value of the filter left hand side?}\
-                one {What is the ${index}st value of the filter left hand side?}\
-                two {What is the ${index}nd value of the filter left hand side?}\
-                few {What is the ${index}rd value of the filter left hand side?}\
-                other {What is the ${index}th value of the filter left hand side?}\
-            }"), { index: this._index+1 }, { locale }) as string;
-
-        case 'compute_filter.rhs':
-            if (this._array.length === 1)
-                return _("What is the right hand side of the filter?");
-
-            return interpolate(_("${index:ordinal:\
-                =1 {What is the first value of the filter right hand side?}\
-                =2 {What is the second value of the filter right hand side?}\
-                =3 {What is the third value of the filter right hand side?}\
-                one {What is the ${index}st value of the filter right hand side?}\
-                two {What is the ${index}nd value of the filter right hand side?}\
-                few {What is the ${index}rd value of the filter right hand side?}\
-                other {What is the ${index}th value of the filter right hand side?}\
-            }"), { index: this._index+1 }, { locale }) as string;
-
-        default:
-            assert(this._parent);
-            // array is input parameter or filter
-            if (this._array.length === 1)
-                return this._parent.getPrompt(locale);
-
-            return interpolate(_("${index:ordinal:\
-                =1 {What would you like the first ${argcanonical} to be?}\
-                =2 {What would you like the second ${argcanonical} to be?}\
-                =3 {What would you like the third ${argcanonical} to be?}\
-                one {What would you like the ${index}st ${argcanonical} to be?}\
-                two {What would you like the ${index}nd ${argcanonical} to be?}\
-                few {What would you like the ${index}rd ${argcanonical} to be?}\
-                other {What would you like the ${index}th ${argcanonical} to be?}\
-            }"), { index: this._index+1, argcanonical: this._argcanonical }, { locale }) as string;
-        }
     }
     get() : Value {
         return this._array[this._index];
@@ -633,20 +456,6 @@ export class ComputationOperandSlot extends AbstractSlot {
     get tag() : string {
         return `${this._baseTag}.${this._operator}.${this._index}`;
     }
-    getPrompt(locale : string) : string {
-        const _ = I18n.get(locale).gettext;
-
-        // ugly but who cares
-        return interpolate(_("${index:ordinal:\
-            =1 {What is the first operand to ${operator} you would like?}\
-            =2 {What is the second operand to ${operator} you would like?}\
-            =3 {What is the third operand to ${operator} you would like?}\
-            one {What is the ${index}st operand to ${operator} you would like?}\
-            two {What is the ${index}nd operand to ${operator} you would like?}\
-            few {What is the ${index}rd operand to ${operator} you would like?}\
-            other {What is the ${index}th operand to ${operator} you would like?}\
-        }"), { index: this._index+1, operator: this._operator }, { locale }) as string;
-    }
     get() : Value {
         return this._operands[this._index];
     }
@@ -685,37 +494,6 @@ export class FieldSlot extends AbstractSlot {
         return this._tag;
     }
 
-    getPrompt(locale : string) : string {
-        const _ = I18n.get(locale).gettext;
-
-        switch (this._tag) {
-        case 'program.principal':
-        case 'program.executor':
-            return _("Who should run this command?");
-        case 'timer.base':
-            return _("When would you like your command to start?");
-        case 'timer.interval':
-            return _("How often should your command run?");
-        case 'timer.frequency':
-            return _("How many times should your command run during that time interval?");
-        case 'attimer.expiration_date':
-            return _("When should your command stop?");
-        case 'slice.base':
-            return _("What is the first result you would like?");
-        case 'slice.limit':
-            return _("How many results would you like?");
-        case 'compute_filter.lhs':
-            return _("What is the left hand side of the filter?");
-        case 'compute_filter.rhs':
-            return _("What is the right hand side of the filter?");
-
-        default:
-            // should never be hit, because all cases are covered, but who knows...
-            return interpolate(_("What ${field:enum} would you like?"), {
-                field: this._field
-            }) as string;
-        }
-    }
     get() : Value {
         return this._container[this._field];
     }
@@ -788,4 +566,4 @@ export function* iterateSlots2InputParams(prim : Invocation|VarRefLike|ExternalB
  *
  * @deprecated Use {@link Ast~AbstractSlot} and the new slot iteration API
  */
-export type OldSlot = [ExpressionSignature|null, (InputParam|AtomBooleanExpression|DeviceSelector), InvocationLike|null, ScopeMap];
+export type OldSlot = [FunctionDef|null, (InputParam|AtomBooleanExpression|DeviceSelector), InvocationLike|null, ScopeMap];

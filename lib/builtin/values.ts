@@ -19,10 +19,8 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
-import interpolate from 'string-interp';
 
 import { stringEscape } from '../utils/escaping';
-import * as I18n from '../i18n';
 
 /**
  * Runtime representation of an entity value.
@@ -156,16 +154,6 @@ export class Location implements LocationLike {
      */
     toJSSource() : string {
         return `new __builtin.Location(${this.y}, ${this.x}, ${stringEscape(this.display)})`;
-    }
-
-    toLocaleString(locale : string) : string {
-        if (this.display)
-            return this.display;
-
-        const _ = I18n.get(locale).gettext;
-        return interpolate(_("[Latitude: ${loc.lat:.3} deg, Longitude: ${loc.lon:.3} deg]"), {
-            loc: this
-        }, { locale })||'';
     }
 
     /**

@@ -463,7 +463,7 @@ class SmtReduction {
 
     private _processPermissionFilter(ast : Ast.BooleanExpression,
                                      ufvar : string,
-                                     schema : Ast.ExpressionSignature,
+                                     schema : Ast.FunctionDef,
                                      scope : { [key : string] : string },
                                      scopeType : { [key : string] : Type }) : smt.SNode {
         if (ast.isTrue)
@@ -531,7 +531,7 @@ class SmtReduction {
 
     private _declareUninterpretedFunction(kind : string,
                                           fn : string,
-                                          def : Ast.ExpressionSignature) {
+                                          def : Ast.FunctionDef) {
         const cleanKind = kind.replace(/[^A-Za-z0-9_]/g, '_');
         const ufvar = 'uf_' + cleanKind + '_' + fn;
         if (this._uf.has(ufvar))
@@ -567,7 +567,7 @@ class SmtReduction {
     }
 
     private _declareFunction(kind : string, fn : string, suffix : string,
-                             def : Ast.ExpressionSignature) {
+                             def : Ast.FunctionDef) {
         kind = kind.replace(/[^A-Za-z0-9_]/g, '_');
         const fnvar = suffix;//kind + '_' + fn + '_' + suffix;
         if (this._functions.has(fnvar))

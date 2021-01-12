@@ -26,6 +26,7 @@ import * as util from 'util';
 import * as fs from 'fs';
 
 import SchemaRetriever from '../lib/schema';
+import * as Ast from '../lib/ast';
 import * as Grammar from '../lib/syntax_api';
 
 import _mockSchemaDelegate from './mock_schema_delegate';
@@ -38,6 +39,31 @@ const FAKE_TWITTER = `class @com.twitter {
     #[poll_interval=1min]
     #[formatted=["foo"]];
 }`;
+
+async function testBasic() {
+    let schemaRetriever = new SchemaRetriever(_mockSchemaDelegate,
+                                              _mockMemoryClient);
+
+    const fndef1 = await schemaRetriever.getSchemaAndNames('com.xkcd', 'query', 'get_comic');
+
+    assert(fndef1 instanceof Ast.FunctionDef);
+    assert.strictEqual(fndef1.name, 'get_comic');
+    assert.strictEqual(fndef1.class.name, 'com.xkcd');
+    assert.strictEqual(fndef1.qualifiedName, 'com.xkcd.get_comic');
+    assert.deepStrictEqual(fndef1.extends, []);
+    assert.strictEqual(fndef1.is_list, false);
+    assert.strictEqual(fndef1.is_monitorable, true);
+
+    const fndef2 = await schemaRetriever.getMemorySchema('Q1');
+
+    assert(fndef2 instanceof Ast.FunctionDef);
+    assert.strictEqual(fndef2.name, 'Q1');
+    assert.strictEqual(fndef2.class, null);
+    assert.strictEqual(fndef2.qualifiedName, '.Q1');
+    assert.deepStrictEqual(fndef2.extends, []);
+    assert.strictEqual(fndef2.is_list, true);
+    assert.strictEqual(fndef2.is_monitorable, true);
+}
 
 async function testInjectManifest() {
     const manifest = await util.promisify(fs.readFile)(require.resolve('./com.xkcd.tt'), { encoding: 'utf8' });
@@ -134,9 +160,70 @@ async function testInvalid() {
     });
 }
 
+async function testDataset() {
+    const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate,
+                                                _mockMemoryClient);
+
+    const BING = `dataset @com.bing {
+  query (p_query : String) = @com.bing.web_search(query=p_query)
+  #_[utterances=["\${p_query:const} on bing", "bing $p_query", "websites matching $p_query", "web sites matching $p_query", "\${p_query:const}"]]
+  #[id=21626326]
+  #[name="WebSearchWithQuery"];
+
+  query = @com.bing.web_search()
+  #_[utterances=[", search on bing", ", bing search", ", web search"]]
+  #[id=21626330]
+  #[name="WebSearch"];
+
+  query (p_query : String) = @com.bing.image_search(query=p_query)
+  #_[utterances=["\${p_query:const} images on bing", "images matching $p_query from bing"]]
+  #[id=21626333]
+  #[name="ImageSearchWithQuery"];
+}`;
+    const XKCD = `dataset @com.xkcd {
+  stream = monitor(@com.xkcd.get_comic())
+  #_[utterances=["when a new xkcd is out", "when a new xkcd is posted"]]
+  #[id=1648624]
+  #[name="MonitorComic"];
+
+  query (p_number : Number) = @com.xkcd.get_comic() filter number == p_number
+  #_[utterances=["the xkcd number \${p_number}", "xkcd \${p_number:const}"]]
+  #[id=1648627]
+  #[name="ComicWithNumber"];
+}`;
+    const CAT = `dataset @com.thecatapi {
+  program = @com.thecatapi.get()
+  #_[utterances=["not enough cat pictures", "need moar cats", "can i haz cats", "cat pictures now"]]
+  #[id=9750272]
+  #[name="Get1"];
+
+  query (p_count : Number) = @com.thecatapi.get()[1 : p_count]
+  #_[utterances=["\${p_count:const} cat pictures"]]
+  #[id=9750276]
+  #[name="GetWithCount"];
+}`;
+
+    // simple
+    assert.strictEqual((await schemaRetriever.getExamplesByKind('com.bing')).prettyprint(), BING);
+
+    // cached
+    assert.strictEqual((await schemaRetriever.getExamplesByKind('com.bing')).prettyprint(), BING);
+
+    // batched
+    const p1 = schemaRetriever.getExamplesByKind('com.xkcd');
+    const p2 = schemaRetriever.getExamplesByKind('com.thecatapi');
+
+    await Promise.all([p1, p2]);
+
+    assert.strictEqual((await p1).prettyprint(), XKCD);
+    assert.strictEqual((await p2).prettyprint(), CAT);
+}
+
 export default async function main()   {
+    await testBasic();
     await testInjectManifest();
     await testInvalid();
+    await testDataset();
 }
 if (!module.parent)
     main();

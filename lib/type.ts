@@ -43,6 +43,22 @@ function normalizeUnit(unit : string) : string {
 export type TypeMap = ({ [key : string] : Type });
 export type TypeScope = ({ [key : string] : Type|string });
 
+interface Hashable<T> {
+    hash() : number;
+    equals(other : T) : boolean;
+}
+
+function stringHash(x : string) {
+    // DJB2 algorithm
+    let hash = 5381;
+
+    for (let i = 0; i < x.length; i++) {
+        const c = x.charCodeAt(i);
+        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+    }
+    return hash;
+}
+
 // strictly speaking, Measure and Arrays are not types, they are type constructors
 // (kind * -> *)
 // isAssignable() has the magic to check types
@@ -50,7 +66,7 @@ export type TypeScope = ({ [key : string] : Type|string });
 /**
  * The base class of all ThingTalk types.
  */
-export default abstract class Type {
+export default abstract class Type implements Hashable<Type> {
     static Any : Type; // polymorphic hole
     isAny ! : boolean;
     static Boolean : Type;
@@ -104,6 +120,7 @@ export default abstract class Type {
     }
 
     abstract toSource() : TokenStream;
+    abstract hash() : number;
     abstract equals(other : Type) : boolean;
 
     static resolve(type : Type|string, typeScope : TypeScope) : Type {
@@ -238,10 +255,12 @@ Type.prototype.isObject = false;
 
 class PrimitiveType extends Type {
     private name : string;
+    private _hash : number;
 
     constructor(name : string) {
         super();
         this.name = name;
+        this._hash = stringHash(this.name);
 
         ((this as any)['is' + name] as boolean) = true;
     }
@@ -253,6 +272,9 @@ class PrimitiveType extends Type {
         return List.singleton(this.name);
     }
 
+    hash() {
+        return this._hash;
+    }
     equals(other : Type) : boolean {
         // primitive types are singletons
         return this === other;
@@ -269,6 +291,7 @@ Type.RecurrentTimeSpecification = new PrimitiveType('RecurrentTimeSpecification'
 Type.Location = new PrimitiveType('Location');
 Type.ArgMap = new PrimitiveType('ArgMap');
 
+const ENTITY_HASH = stringHash('Entity');
 export class EntityType extends Type {
     // the entity type, as RDF-style prefix:name
     constructor(public type : string) {
@@ -283,6 +306,10 @@ export class EntityType extends Type {
         return List.concat('Entity', '(', this.type, ')');
     }
 
+    hash() : number {
+        return ENTITY_HASH ^ stringHash(this.type);
+    }
+
     equals(other : Type) : boolean {
         return other instanceof EntityType && this.type === other.type;
     }
@@ -290,6 +317,7 @@ export class EntityType extends Type {
 Type.Entity = EntityType;
 EntityType.prototype.isEntity = true;
 
+const MEASURE_HASH = stringHash('Measure');
 export class MeasureType extends Type {
     unit : string;
 
@@ -308,6 +336,10 @@ export class MeasureType extends Type {
         return List.concat('Measure', '(', this.unit, ')');
     }
 
+    hash() : number {
+        return MEASURE_HASH ^ stringHash(this.unit);
+    }
+
     equals(other : Type) : boolean {
         return other instanceof MeasureType && this.unit === other.unit;
     }
@@ -315,6 +347,7 @@ export class MeasureType extends Type {
 Type.Measure = MeasureType;
 MeasureType.prototype.isMeasure = true;
 
+const ENUM_HASH = stringHash('Enum');
 export class EnumType extends Type {
     constructor(public entries : string[]|null) {
         super();
@@ -330,6 +363,17 @@ export class EnumType extends Type {
         return List.concat('Enum', '(', List.join(this.entries.map((e) => List.singleton(e)), ','), ')');
     }
 
+    hash() : number {
+        let hash = ENUM_HASH;
+        if (!this.entries)
+            return hash;
+
+        for (const entry of this.entries)
+            hash ^= stringHash(entry);
+
+        return hash;
+    }
+
     equals(other : Type) : boolean {
         return other instanceof EnumType && arrayEquals(this.entries, other.entries);
     }
@@ -337,6 +381,7 @@ export class EnumType extends Type {
 Type.Enum = EnumType;
 EnumType.prototype.isEnum = true;
 
+const ARRAY_HASH = stringHash('Array');
 export class ArrayType extends Type {
     constructor(public elem : Type|string) {
         super();
@@ -350,6 +395,12 @@ export class ArrayType extends Type {
         if (typeof this.elem === 'string')
             return List.concat('Array', '(', this.elem, ')');
         return List.concat('Array', '(', this.elem.toSource(), ')');
+    }
+
+    hash() : number {
+        return ARRAY_HASH ^
+            (typeof this.elem === 'string' ? stringHash(this.elem) :
+            this.elem.hash());
     }
 
     equals(other : Type) : boolean {
@@ -367,7 +418,10 @@ ArrayType.prototype.isArray = true;
 
 type FieldMap = { [key : string] : Ast.ArgumentDef };
 
+const COMPOUND_HASH = stringHash('Compound');
 export class CompoundType extends Type {
+    private _hash : number|undefined = undefined;
+
     constructor(public name : string|null,
                 public fields : FieldMap) {
         super();
@@ -395,6 +449,17 @@ export class CompoundType extends Type {
         }
         list = List.concat(list, '\n', '\t-', '}');
         return list;
+    }
+
+    hash() : number {
+        if (this._hash !== undefined)
+            return this._hash;
+
+        let hash = COMPOUND_HASH;
+        for (const field in this.fields)
+            hash ^= stringHash(field) ^ this.fields[field].type.hash();
+
+        return this._hash = hash;
     }
 
     equals(other : Type) : boolean {
@@ -430,6 +495,10 @@ export class UnknownType extends Type {
 
     toSource() : TokenStream {
         return List.singleton(this.name);
+    }
+
+    hash() : number {
+        return stringHash(this.name);
     }
 
     equals(other : Type) : boolean {

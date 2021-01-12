@@ -56,7 +56,7 @@ function setIntersect<T>(one : Set<T>, two : Set<T>) : Set<T> {
     return intersection;
 }
 
-function addMinimalProjection(args : Iterable<string>, schema : Ast.ExpressionSignature) : Set<string> {
+function addMinimalProjection(args : Iterable<string>, schema : Ast.FunctionDef) : Set<string> {
     const argset = new Set<string>(args);
     addAll(argset, schema.minimal_projection as string[]);
     return argset;
@@ -70,7 +70,7 @@ function addMinimalProjection(args : Iterable<string>, schema : Ast.ExpressionSi
  * the JS compiled code.
  */
 function restrictHintsForJoin(hints : QueryInvocationHints,
-                              schema : Ast.ExpressionSignature) : QueryInvocationHints {
+                              schema : Ast.FunctionDef) : QueryInvocationHints {
     // start with a clean slate (no sort, no index)
     const clone = new QueryInvocationHints(new Set);
     for (const arg of hints.projection) {
@@ -656,7 +656,7 @@ function optimizeTableOp(tableop : TableOp, hasOutputAction : boolean) : TableOp
     return tableop;
 }
 
-function getStatementSchema(statement : Ast.Rule|Ast.Command) : Ast.ExpressionSignature|null {
+function getStatementSchema(statement : Ast.Rule|Ast.Command) : Ast.FunctionDef|null {
     if (statement instanceof Ast.Rule)
         return statement.stream.schema;
     else if (statement.table)

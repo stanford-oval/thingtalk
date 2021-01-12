@@ -315,38 +315,39 @@ type ArgumentFilterCallback = (arg : ArgumentDef) => boolean;
 
 export type FunctionType = 'stream' | 'query' | 'action';
 
-interface ExpressionSignatureConstructorOptions {
-    is_list ?: boolean;
-    is_monitorable ?: boolean;
-    require_filter ?: boolean;
-    default_projection ?: string[];
-    minimal_projection ?: string[];
-    no_filter ?: boolean;
+interface FunctionQualifiers {
+    is_list : boolean;
+    is_monitorable : boolean;
 }
 
 /**
- * The signature (functional type) of a ThingTalk expression, either a query,
- * stream or action.
+ * The definition of a ThingTalk function (inside a class).
  *
- * Expression signature objects are basically bags of input and output arguments,
- * with a few extra bits. They are constructed during type checking, and attached
- * to other AST nodes to give the overall type of the expression represented by
- * that node.
+ * Function definitions are semi-immutable: you should not modify a function definition
+ * received from outside. Instead, you should call {@link Ast.FunctionDef#clone}
+ * to create a new instance you can modify. This includes modifying metadata and annotations
+ * through the {@link Ast.FunctionDef#metadata} and {@link Ast.FunctionDef#annotations}
+ * properties. Failure to call {@link Ast.FunctionDef#clone} will result in obsure
+ * type checking errors.
  *
- * @alias Ast.ExpressionSignature
- * @extends Ast~Node
+ * @alias Ast.FunctionDef
  */
-export class ExpressionSignature extends Node {
-    kind_type : 'other';
-
-    protected _functionType : FunctionType;
-    protected _args : string[];
-    protected _types : Type[];
-    protected _argmap : ArgMap;
-    protected _index : ArgIndexMap;
-    protected _inReq : TypeMap;
-    protected _inOpt : TypeMap;
-    protected _out : TypeMap;
+export class FunctionDef extends Node {
+    private _functionType : FunctionType;
+    private _name : string;
+    private _qualifiedName : string;
+    private _qualifiers : FunctionQualifiers;
+    private _nl_annotations : NLAnnotationMap;
+    private _impl_annotations : AnnotationMap;
+    private _args : string[];
+    private _types : Type[];
+    private _argmap : ArgMap;
+    private _index : ArgIndexMap;
+    private _inReq : TypeMap;
+    private _inOpt : TypeMap;
+    private _out : TypeMap;
+    private _extends : string[];
+    private _class : ClassDef|null;
     argcanonicals : string[];
     questions : string[];
 
@@ -357,44 +358,50 @@ export class ExpressionSignature extends Node {
     minimal_projection : string[]|undefined;
     no_filter : boolean;
 
-    protected _extends : string[];
-    protected _class : ClassDef|null;
-
     /**
-     * Construct a new expression signature.
-     *
-     * Client code should not construct {@link Ast.ExpressionSignature},
-     * and should prefer constructing {@link Ast.FunctionDef} instead.
+     * Construct a new function definition.
      *
      * @param location - the position of this node in the source code
-     * @param functionType - the signature type (`stream`, `query` or `action`)
-     * @param klass - the class definition the signature belongs to
-     * @param _extends - signature definitions that are extended by this definition
-     * @param args - the arguments in this signature
-     * @param options - additional options of the signature
-     * @param [options.is_list=false] - whether this signature defines a `list` query function
-     * @param [options.is_monitorable=false] - whether this signature defines a `monitorable` query function
-     * @param [options.require_filter=false] - whether this expression must be filtered to typecheck correctly
-     * @param [options.default_projection=[]] - list of argument names that are applied as projection to this function
-     *                                                     when no other projection is present
-     * @param [options.minimal_projection=[]] - list of argument names that are always present in any result from this function
-     * @param [options.no_filter=false] - whether filtering is allowed on expressions with this signature
-     * @package
+     * @param functionType - the function type (`stream`, `query` or `action`)
+     * @param {Ast.ClassDef|null} klass - the class that the function belongs to
+     * @param {string} name - the function name
+     * @param {string[]|null} _extends - functions that are extended by this definition
+     * @param {Ast.ArgumentDef[]} args - the arguments in this function
+     * @param {Object.<string, any>} qualifiers - the qualifiers of the function
+     * @param {boolean} [qualifiers.is_list=false] - whether this function defines a `list` query
+     * @param {boolean} [qualifiers.is_monitorable=false] - whether this function defines a `monitorable` query
+     * @param {Object.<string, Object>} annotations - function annotations
+     * @param {Object.<string, any>} [annotations.nl={}] - natural language annotations of the function (translatable annotations)
+     * @param {Object.<string, Ast.Value>} [annotations.impl={}]- implementation annotations
      */
     constructor(location : SourceRange|null,
                 functionType : FunctionType,
                 klass : ClassDef|null,
+                name : string,
                 _extends : string[],
+                qualifiers : FunctionQualifiers,
                 args : ArgumentDef[],
-                options : ExpressionSignatureConstructorOptions) {
+                annotations : AnnotationSpec = {}) {
         super(location);
-
-        // ignored, for compat only
-        this.kind_type = 'other';
-        this._functionType = functionType;
-
         assert(functionType === 'stream' || functionType === 'query' || functionType === 'action');
         assert(Array.isArray(args));
+
+        // load up options for function signature from qualifiers and annotations
+        if (functionType === 'action') {
+            assert(!qualifiers.is_list);
+            assert(!qualifiers.is_monitorable);
+        }
+
+        this._name = name;
+        this._qualifiedName = (klass ? klass.name : '') + '.' + name;
+        this._qualifiers = qualifiers;
+        this._extends = _extends || [];
+        this._class = klass;
+
+        this._nl_annotations = annotations.nl || {};
+        this._impl_annotations = annotations.impl || {};
+
+        this._functionType = functionType;
 
         this._args = [];
         this._types = [];
@@ -409,7 +416,7 @@ export class ExpressionSignature extends Node {
          *
          * @type {string[]}
          * @readonly
-         * @deprecated Use {@link Ast.ExpressionSignature#getArgument} and
+         * @deprecated Use {@link Ast.FunctionDef#getArgument} and
          *             {@link Ast.ArgumentDef#canonical} instead.
          */
         this.argcanonicals = [];
@@ -419,7 +426,7 @@ export class ExpressionSignature extends Node {
          *
          * @type {string[]}
          * @readonly
-         * @deprecated Use {@link Ast.ExpressionSignature#getArgument} and
+         * @deprecated Use {@link Ast.FunctionDef#getArgument} and
          *             {@link Ast.ArgumentDef#metadata}`.prompt` instead.
          */
         this.questions = [];
@@ -436,7 +443,7 @@ export class ExpressionSignature extends Node {
          * @type {boolean}
          * @readonly
          */
-        this.is_list = options.is_list || false;
+        this.is_list = qualifiers.is_list || false;
 
         /**
          * Whether this signature defines a `monitorable` query function.
@@ -446,42 +453,171 @@ export class ExpressionSignature extends Node {
          * @type {boolean}
          * @readonly
          */
-        this.is_monitorable = options.is_monitorable || false;
-        this.require_filter = options.require_filter || false;
-        this.minimal_projection = options.minimal_projection || undefined;
-        this.default_projection = options.default_projection || [];
-        this.no_filter = options.no_filter || false;
+        this.is_monitorable = qualifiers.is_monitorable || false;
 
-        this._extends = _extends || [];
-        this._class = klass;
+        if ('require_filter' in this._impl_annotations)
+            this.require_filter = this._impl_annotations.require_filter.toJS() as boolean;
+        else
+            this.require_filter = false;
+        if ('default_projection' in this._impl_annotations && this._impl_annotations.default_projection.isArray)
+            this.default_projection = this._impl_annotations.default_projection.toJS() as string[];
+        else
+            this.default_projection = [];
+
+        this.minimal_projection = undefined;
+        if ('minimal_projection' in this._impl_annotations && this._impl_annotations.minimal_projection.isArray)
+            this.minimal_projection = this._impl_annotations.minimal_projection.toJS() as string[];
+
+        this.no_filter = false;
+
+        // delay setting the default #[minimal_projection] if the class is not yet constructed
+        if (this._class !== null)
+            this._setMinimalProjection();
     }
 
-    toSource() : TokenStream {
-        throw new Error(`Non-function ExpressionSignature cannot be converted to source code`);
+    /**
+     * The function name, as declared in the ThingTalk code.
+     */
+    get name() : string {
+        return this._name;
     }
 
-    visit(visitor : NodeVisitor) : void {
-        throw new Error('Unimplemented method');
+    /**
+     * The full name of the function, including the class name.
+     *
+     * This has the form of `<class-name>.<function-name>` if the
+     * function belongs to a class, and `.<function-name>` otherwise.
+     *
+     * Hence, it's possible to distinguish functions that have no
+     * class with the leading dot.
+     */
+    get qualifiedName() : string {
+        return this._qualifiedName;
     }
 
     /**
      * The names of the arguments defined by this expression signature.
      *
      * This does not include arguments inherited from parent functions.
-     *
-     * @type {string[]}
-     * @readonly
      */
     get args() : string[] {
         return this._args;
     }
 
-    removeDefaultProjection() : void {
-        this.default_projection = [];
+    /**
+     * The type of this signature, either `stream`, `query` or `action`
+     */
+    get functionType() : FunctionType {
+        return this._functionType;
     }
 
-    removeMinimalProjection() : void {
-        this.minimal_projection = [];
+    /**
+     * The names of the base functions this signature extends.
+     */
+    get extends() : string[] {
+        return this._extends;
+    }
+
+    /**
+     * The class definition associated with this signature, or `null` if this
+     * signature was not created as part of a ThingTalk class.
+     */
+    get class() : ClassDef|null {
+        return this._class;
+    }
+
+    // for compatibility
+    /**
+     * The list of types of the arguments defined by this signature.
+     *
+     * This list includes the arguments defined by parent classes, and is in the
+     * order returned by {@link Ast.FunctionDef#iterateArguments}.
+     * @type {Type[]}
+     * @readonly
+     * @deprecated This property is deprecated because it is slow to compute if
+     *             function inheritance is used, and not particularly useful.
+     *             Use {@link Ast.FunctionDef#iterateArguments} instead.
+     */
+    get types() : Type[] {
+        if (this.extends.length === 0)
+            return this._types;
+        const types = [];
+        for (const arg of this.iterateArguments())
+            types.push(arg.type);
+        return types;
+    }
+    /**
+     * A map of required input arguments defined by this signature, and their type.
+     *
+     * The map includes the arguments defined by parent classes.
+     * @type {Object.<string,Type>}
+     * @readonly
+     * @deprecated This property is deprecated because it is slow to compute if
+     *             function inheritance is used.
+     *             Use {@link Ast.FunctionDef#iterateArguments} instead.
+     */
+    get inReq() : TypeMap {
+        if (this.extends.length === 0)
+            return this._inReq;
+        const args : TypeMap = {};
+        for (const arg of this.iterateArguments()) {
+            if (arg.required)
+                args[arg.name] = arg.type;
+        }
+        return args;
+    }
+    /**
+     * A map of optional input arguments defined by this signature, and their type.
+     *
+     * The map includes the arguments defined by parent classes.
+     * @type {Object.<string,Type>}
+     * @readonly
+     * @deprecated This property is deprecated because it is slow to compute if
+     *             function inheritance is used.
+     *             Use {@link Ast.FunctionDef#iterateArguments} instead.
+     */
+    get inOpt() : TypeMap {
+        if (this.extends.length === 0)
+            return this._inOpt;
+        const args : TypeMap = {};
+        for (const arg of this.iterateArguments()) {
+            if (arg.is_input && !arg.required)
+                args[arg.name] = arg.type;
+        }
+        return args;
+    }
+    /**
+     * A map of output arguments defined by this signature, and their type.
+     *
+     * The map includes the arguments defined by parent classes.
+     * @type {Object.<string,Type>}
+     * @readonly
+     * @deprecated This property is deprecated because it is slow to compute if
+     *             function inheritance is used.
+     *             Use {@link Ast.FunctionDef#iterateArguments} instead.
+     */
+    get out() : TypeMap {
+        if (this.extends.length === 0)
+            return this._out;
+        const args : TypeMap = {};
+        for (const arg of this.iterateArguments()) {
+            if (!arg.is_input)
+                args[arg.name] = arg.type;
+        }
+        return args;
+    }
+
+    /**
+     * The index of arguments in args.
+     *.
+     * @type {Object.<string,Number>}
+     * @readonly
+     * @deprecated This property is deprecated and will not work properly for functions with inheritance
+     */
+    get index() : ArgIndexMap {
+        if (this.extends.length === 0)
+            return this._index;
+        throw new Error(`The index API for functions is deprecated and cannot be used with function inheritance`);
     }
 
     private _loadArguments(args : ArgumentDef[]) {
@@ -524,6 +660,19 @@ export class ExpressionSignature extends Node {
             }
         }
         return flattened;
+    }
+
+    toString() : string {
+        return this.prettyprint();
+    }
+
+    visit(visitor : NodeVisitor) : void {
+        visitor.enter(this);
+        if (visitor.visitFunctionDef(this)) {
+            for (const arg of this.args)
+                this._argmap[arg].visit(visitor);
+        }
+        visitor.exit(this);
     }
 
     /**
@@ -572,7 +721,7 @@ export class ExpressionSignature extends Node {
     /**
      * Retrieve the type of the argument with the given name.
      *
-     * This is a convenience method that combines {@link Ast.ExpressionSignature#getArgument}
+     * This is a convenience method that combines {@link Ast.FunctionDef#getArgument}
      * and {@link Ast.ArgumentDef#type}.
      *
      * @param {string} arg - the argument name
@@ -595,7 +744,7 @@ export class ExpressionSignature extends Node {
     /**
      * Retrieve the canonical form of the argument with the given name.
      *
-     * This is a convenience method that combines {@link Ast.ExpressionSignature#getArgument}
+     * This is a convenience method that combines {@link Ast.FunctionDef#getArgument}
      * and {@link Ast.ArgumentDef#canonical}.
      *
      * @param {string} arg - the argument name
@@ -618,7 +767,7 @@ export class ExpressionSignature extends Node {
     /**
      * Retrieve the metadata of the argument with the given name.
      *
-     * This is a convenience method that combines {@link Ast.ExpressionSignature#getArgument}
+     * This is a convenience method that combines {@link Ast.FunctionDef#getArgument}
      * and {@link Ast.ArgumentDef#metadata}.
      *
      * @param {string} arg - the argument name
@@ -641,7 +790,7 @@ export class ExpressionSignature extends Node {
     /**
      * Check if the argument with the given name is an input.
      *
-     * This is a convenience method that combines {@link Ast.ExpressionSignature#getArgument}
+     * This is a convenience method that combines {@link Ast.FunctionDef#getArgument}
      * and {@link Ast.ArgumentDef#is_input}.
      *
      * @param {string} arg - the argument name
@@ -664,7 +813,7 @@ export class ExpressionSignature extends Node {
     /**
      * Check if the argument with the given name is an input.
      *
-     * This is a convenience method that combines {@link Ast.ExpressionSignature#getArgument}
+     * This is a convenience method that combines {@link Ast.FunctionDef#getArgument}
      * and {@link Ast.ArgumentDef#required}.
      *
      * @param {string} arg - the argument name
@@ -740,40 +889,40 @@ export class ExpressionSignature extends Node {
     /**
      * Clone this expression signature into a new signature with the given arguments.
      *
-     * This is an internal method called by {@link ExpressionSignature#clone}
+     * This is an internal method called by {@link FunctionDef#clone}
      * and similar functions. Subclasses can override it to call the subclass's
      * constructor.
      *
      * @param {Ast.ArgumentDef[]} args - the arguments in the new signature
      * @param {boolean} flattened - whether the new signature should be flattened or it
      *        it should preserve the extension relation
-     * @return {Ast.ExpressionSignature} a clone of this signature, with a new
+     * @return {Ast.FunctionDef} a clone of this signature, with a new
      *         set of arguments.
      */
-    protected _cloneInternal(args : ArgumentDef[],
-                             flattened=false) : ExpressionSignature {
-        return new ExpressionSignature(
-            this.location,
-            this.functionType,
-            this._class,
-            flattened ? [] : this.extends,
-            args,
-            {
-                is_list: this.is_list,
-                is_monitorable: this.is_monitorable,
-                require_filter: this.require_filter,
-                default_projection: this.default_projection.slice(),
-                minimal_projection: this.minimal_projection ? this.minimal_projection.slice() : undefined,
-                no_filter: this.no_filter
-            });
+    private _cloneInternal(args : ArgumentDef[], flattened = false) : FunctionDef {
+        // clone qualifiers
+        const qualifiers : FunctionQualifiers = Object.assign({}, this._qualifiers);
+
+        // clone annotations
+        const nl : NLAnnotationMap = {};
+        Object.assign(nl, this.nl_annotations);
+        const impl : AnnotationMap = {};
+        Object.assign(impl, this.impl_annotations);
+        const annotations = { nl, impl };
+
+        const clone = new FunctionDef(this.location, this.functionType, this.class,
+            this.name, flattened ? [] : this.extends, qualifiers, args, annotations);
+        // set minimal projection now, in case this.class is null
+        clone._setMinimalProjection();
+        return clone;
     }
 
     /**
-     * Clone this expression signature into a new signature with the same arguments.
+     * Clone this function definition into a new definition with the same arguments.
      *
-     * @return {Ast.ExpressionSignature} a clone of this signature
+     * @return a clone of this definition
      */
-    clone() : ExpressionSignature {
+    clone() : FunctionDef {
         return this._cloneInternal(this.args.map((a) => this._argmap[a]));
     }
 
@@ -786,7 +935,7 @@ export class ExpressionSignature extends Node {
      * @param toAdd - the argument to add
      * @return a clone of this signature with a new argument
      */
-    addArguments(toAdd : ArgumentDef[]) : ExpressionSignature {
+    addArguments(toAdd : ArgumentDef[]) : FunctionDef {
         const args = this.args.map((a) => this._argmap[a]);
         args.push(...toAdd);
         return this._cloneInternal(args);
@@ -799,9 +948,9 @@ export class ExpressionSignature extends Node {
      * the removed argument.
      *
      * @param {string} arg - the name of the argument to remove
-     * @return {Ast.ExpressionSignature} a clone of this signature with one fewer argument
+     * @return {Ast.FunctionDef} a clone of this signature with one fewer argument
      */
-    removeArgument(arg : string) : ExpressionSignature {
+    removeArgument(arg : string) : FunctionDef {
         if (arg in this._argmap) {
             const args = this.args.filter((a) => a !== arg).map((a) => this._argmap[a]);
             return this._cloneInternal(args);
@@ -821,9 +970,9 @@ export class ExpressionSignature extends Node {
      * only the arguments that pass the predicate.
      *
      * @param {Ast~ArgumentFilterCallback} filter - a filter callback
-     * @return {Ast.ExpressionSignature} a clone of this signature
+     * @return {Ast.FunctionDef} a clone of this signature
      */
-    filterArguments(filter : ArgumentFilterCallback) : ExpressionSignature {
+    filterArguments(filter : ArgumentFilterCallback) : FunctionDef {
         const args = this._flattenSubFunctionArguments().filter(filter);
         return this._cloneInternal(args, true);
     }
@@ -833,220 +982,10 @@ export class ExpressionSignature extends Node {
      *
      * This is used during typechecking to convert a table into a stream.
      */
-    asType(type : FunctionType) : ExpressionSignature {
+    asType(type : FunctionType) : FunctionDef {
         const clone = this.clone();
         clone._functionType = type;
         return clone;
-    }
-
-    /**
-     * The type of this signature, either `stream`, `query` or `action`
-     * @type {string}
-     * @readonly
-     */
-    get functionType() : FunctionType {
-        return this._functionType;
-    }
-
-    /**
-     * The names of the base functions this signature extends.
-     * @type {string[]}
-     * @readonly
-     */
-    get extends() : string[] {
-        return this._extends;
-    }
-
-    /**
-     * The class definition associated with this signature, or `null` if this
-     * signature was not created as part of a ThingTalk class.
-     * @type {Ast.ClassDef|null}
-     * @readonly
-     */
-    get class() : ClassDef|null {
-        return this._class;
-    }
-
-    // for compatibility
-    /**
-     * The list of types of the arguments defined by this signature.
-     *
-     * This list includes the arguments defined by parent classes, and is in the
-     * order returned by {@link Ast.ExpressionSignature#iterateArguments}.
-     * @type {Type[]}
-     * @readonly
-     * @deprecated This property is deprecated because it is slow to compute if
-     *             function inheritance is used, and not particularly useful.
-     *             Use {@link Ast.ExpressionSignature#iterateArguments} instead.
-     */
-    get types() : Type[] {
-        if (this.extends.length === 0)
-            return this._types;
-        const types = [];
-        for (const arg of this.iterateArguments())
-            types.push(arg.type);
-        return types;
-    }
-    /**
-     * A map of required input arguments defined by this signature, and their type.
-     *
-     * The map includes the arguments defined by parent classes.
-     * @type {Object.<string,Type>}
-     * @readonly
-     * @deprecated This property is deprecated because it is slow to compute if
-     *             function inheritance is used.
-     *             Use {@link Ast.ExpressionSignature#iterateArguments} instead.
-     */
-    get inReq() : TypeMap {
-        if (this.extends.length === 0)
-            return this._inReq;
-        const args : TypeMap = {};
-        for (const arg of this.iterateArguments()) {
-            if (arg.required)
-                args[arg.name] = arg.type;
-        }
-        return args;
-    }
-    /**
-     * A map of optional input arguments defined by this signature, and their type.
-     *
-     * The map includes the arguments defined by parent classes.
-     * @type {Object.<string,Type>}
-     * @readonly
-     * @deprecated This property is deprecated because it is slow to compute if
-     *             function inheritance is used.
-     *             Use {@link Ast.ExpressionSignature#iterateArguments} instead.
-     */
-    get inOpt() : TypeMap {
-        if (this.extends.length === 0)
-            return this._inOpt;
-        const args : TypeMap = {};
-        for (const arg of this.iterateArguments()) {
-            if (arg.is_input && !arg.required)
-                args[arg.name] = arg.type;
-        }
-        return args;
-    }
-    /**
-     * A map of output arguments defined by this signature, and their type.
-     *
-     * The map includes the arguments defined by parent classes.
-     * @type {Object.<string,Type>}
-     * @readonly
-     * @deprecated This property is deprecated because it is slow to compute if
-     *             function inheritance is used.
-     *             Use {@link Ast.ExpressionSignature#iterateArguments} instead.
-     */
-    get out() : TypeMap {
-        if (this.extends.length === 0)
-            return this._out;
-        const args : TypeMap = {};
-        for (const arg of this.iterateArguments()) {
-            if (!arg.is_input)
-                args[arg.name] = arg.type;
-        }
-        return args;
-    }
-
-    /**
-     * The index of arguments in args.
-     *.
-     * @type {Object.<string,Number>}
-     * @readonly
-     * @deprecated This property is deprecated and will not work properly for functions with inheritance
-     */
-    get index() : ArgIndexMap {
-        if (this.extends.length === 0)
-            return this._index;
-        throw new Error(`The index API for functions is deprecated and cannot be used with function inheritance`);
-    }
-}
-
-interface FunctionQualifiers {
-    is_list : boolean;
-    is_monitorable : boolean;
-}
-
-/**
- * The definition of a ThingTalk function (inside a class).
- *
- * A function definition is a particular type of {@link Ast.ExpressionSignature}
- * that also has a name and annotations.
- *
- * Function definitions are semi-immutable: you should not modify a function definition
- * received from outside. Instead, you should call {@link Ast.FunctionDef#clone}
- * to create a new instance you can modify. This includes modifying metadata and annotations
- * through the {@link Ast.FunctionDef#metadata} and {@link Ast.FunctionDef#annotations}
- * properties. Failure to call {@link Ast.FunctionDef#clone} will result in obsure
- * type checking errors.
- *
- * @alias Ast.FunctionDef
- * @extends Ast.ExpressionSignature
- */
-export class FunctionDef extends ExpressionSignature {
-    private _name : string;
-    private _qualifiers : FunctionQualifiers;
-    private _nl_annotations : NLAnnotationMap;
-    private _impl_annotations : AnnotationMap;
-
-    /**
-     * Construct a new function definition.
-     *
-     * @param location - the position of this node in the source code
-     * @param functionType - the function type (`stream`, `query` or `action`)
-     * @param {Ast.ClassDef|null} klass - the class that the function belongs to
-     * @param {string} name - the function name
-     * @param {string[]|null} _extends - functions that are extended by this definition
-     * @param {Ast.ArgumentDef[]} args - the arguments in this function
-     * @param {Object.<string, any>} qualifiers - the qualifiers of the function
-     * @param {boolean} [qualifiers.is_list=false] - whether this function defines a `list` query
-     * @param {boolean} [qualifiers.is_monitorable=false] - whether this function defines a `monitorable` query
-     * @param {Object.<string, Object>} annotations - function annotations
-     * @param {Object.<string, any>} [annotations.nl={}] - natural language annotations of the function (translatable annotations)
-     * @param {Object.<string, Ast.Value>} [annotations.impl={}]- implementation annotations
-     */
-    constructor(location : SourceRange|null,
-                functionType : FunctionType,
-                klass : ClassDef|null,
-                name : string,
-                _extends : string[],
-                qualifiers : FunctionQualifiers,
-                args : ArgumentDef[],
-                annotations : AnnotationSpec = {}) {
-        // load up options for function signature from qualifiers and annotations
-        const options : ExpressionSignatureConstructorOptions = {};
-        options.is_list = qualifiers.is_list || false;
-        options.is_monitorable = qualifiers.is_monitorable || false;
-        if (functionType === 'action') {
-            assert(!options.is_list);
-            assert(!options.is_monitorable);
-        }
-
-        if (annotations.impl) {
-            if ('require_filter' in annotations.impl)
-                options.require_filter = annotations.impl.require_filter.toJS() as boolean;
-            else
-                options.require_filter = false;
-            if ('default_projection' in annotations.impl && annotations.impl.default_projection.isArray)
-                options.default_projection = annotations.impl.default_projection.toJS() as string[];
-            else
-                options.default_projection = [];
-
-            options.minimal_projection = undefined;
-            if ('minimal_projection' in annotations.impl && annotations.impl.minimal_projection.isArray)
-                options.minimal_projection = annotations.impl.minimal_projection.toJS() as string[];
-        }
-
-        super(location, functionType, klass, _extends, args, options);
-
-        this._name = name;
-        this._qualifiers = qualifiers;
-        this._nl_annotations = annotations.nl || {};
-        this._impl_annotations = annotations.impl || {};
-
-        // delay setting the default #[minimal_projection] if the class is not yet constructed
-        if (this._class !== null)
-            this._setMinimalProjection();
     }
 
     toSource() : TokenStream {
@@ -1102,12 +1041,9 @@ export class FunctionDef extends ExpressionSignature {
         return list;
     }
 
-    clone() : FunctionDef {
-        return this._cloneInternal(this.args.map((a) => this._argmap[a]));
-    }
-
     setClass(klass : ClassDef|null) : void {
         this._class = klass;
+        this._qualifiedName = (klass ? klass.name : '') + '.' + this._name;
         this._setMinimalProjection();
     }
 
@@ -1137,15 +1073,6 @@ export class FunctionDef extends ExpressionSignature {
             for (const arg of this.minimal_projection)
                 assert(this.default_projection.includes(arg));
         }
-    }
-
-    /**
-     * The function name.
-     * @type {string}
-     * @readonly
-     */
-    get name() : string {
-        return this._name;
     }
 
     /**
@@ -1195,19 +1122,6 @@ export class FunctionDef extends ExpressionSignature {
             return undefined;
     }
 
-    toString() : string {
-        return this.prettyprint();
-    }
-
-    visit(visitor : NodeVisitor) : void {
-        visitor.enter(this);
-        if (visitor.visitFunctionDef(this)) {
-            for (const arg of this.args)
-                this._argmap[arg].visit(visitor);
-        }
-        visitor.exit(this);
-    }
-
     /**
      * The canonical form of this function.
      *
@@ -1232,24 +1146,6 @@ export class FunctionDef extends ExpressionSignature {
      */
     get confirmation() : string|undefined {
         return this.nl_annotations.confirmation;
-    }
-
-    _cloneInternal(args : ArgumentDef[], flattened = false) : FunctionDef {
-        // clone qualifiers
-        const qualifiers : FunctionQualifiers = Object.assign({}, this._qualifiers);
-
-        // clone annotations
-        const nl : NLAnnotationMap = {};
-        Object.assign(nl, this.nl_annotations);
-        const impl : AnnotationMap = {};
-        Object.assign(impl, this.impl_annotations);
-        const annotations = { nl, impl };
-
-        const clone = new FunctionDef(this.location, this.functionType, this.class,
-            this.name, flattened ? [] : this.extends, qualifiers, args, annotations);
-        // set minimal projection now, in case this.class is null
-        clone._setMinimalProjection();
-        return clone;
     }
 
     /**

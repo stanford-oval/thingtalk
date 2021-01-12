@@ -23,7 +23,6 @@
     "consumer-queue": "^1.0.0",
     "semver": "^7.3.4",
     "smtlib": "^1.0.0",
-    "string-interp": "^0.3.1",
     "thingtalk-units": "^0.2.0"
   },
   "devDependencies": {
@@ -43,8 +42,6 @@
     "typescript": "^4.1.3"
   },
   "scripts": {
-    "update-pot": "xgettext -f po/POTFILES -x po/POTFILES.skip -o po/${npm_package_name}.pot --from-code UTF-8 --package-name ${npm_package_name} --package-version ${npm_package_version}",
-    "update-po": "for i in po/*.po ; do msgmerge -U $i po/${npm_package_name}.pot ; done",
     "lint": "eslint --ext .js,.jsx,.ts,.tsx ./lib ./tools ./test",
     "test": "nyc ts-node ./test/test_all",
     "coverage": "nyc report --reporter=text-lcov | coveralls",

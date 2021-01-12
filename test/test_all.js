@@ -57,9 +57,6 @@ seq([
 
     // test AST transformations
     ('./test_compiler'),
-    ('./test_describe'),
-    ('./test_describe_api'),
-    ('./test_describe_policy'),
     ('./test_declaration_program'),
     ('./test_example_program'),
     ('./test_convert_program_to_policy'),
@@ -68,8 +65,6 @@ seq([
     // test runtime APIs
     ('./test_builtin'),
     ('./test_runtime'),
-    ('./test_formatter'),
-    ('./test_formatter_api'),
 
     // test converters and integrations
     ('./test_permissions'),

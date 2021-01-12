@@ -34,21 +34,21 @@ export interface RegisterScopeEntry {
 export interface DeclarationScopeEntry {
     type : 'declaration';
     register : Register|null;
-    schema : Ast.ExpressionSignature;
+    schema : Ast.FunctionDef;
     args : string[];
     code : string|CompiledStatement|null;
 }
 export interface ProcedureScopeEntry {
     type : 'procedure';
     register : Register|null;
-    schema : Ast.ExpressionSignature;
+    schema : Ast.FunctionDef;
     args : string[];
     code : string|CompiledStatement|null;
 }
 export interface AssignmentScopeEntry {
     type : 'assignment';
     register : Register;
-    schema : Ast.ExpressionSignature;
+    schema : Ast.FunctionDef;
     isPersistent : boolean;
 }
 

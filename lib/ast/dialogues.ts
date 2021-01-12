@@ -26,7 +26,7 @@ import * as Optimizer from '../optimize';
 import TypeChecker from '../typecheck';
 import { DeviceSelector, Invocation } from './expression';
 import { Value, NumberValue } from './values';
-import { ExpressionSignature, FunctionDef } from './function_def';
+import { FunctionDef } from './function_def';
 import NodeVisitor from './visitor';
 import {
     OldSlot,
@@ -77,7 +77,7 @@ export class DialogueHistoryResultItem extends AstNode {
         visitor.exit(this);
     }
 
-    *iterateSlots2(schema : ExpressionSignature|null) : Generator<DeviceSelector|AbstractSlot, void> {
+    *iterateSlots2(schema : FunctionDef|null) : Generator<DeviceSelector|AbstractSlot, void> {
         for (const key in this.value) {
             const arg = (schema ? schema.getArgument(key) : null) || null;
             yield* recursiveYieldArraySlots(new ResultSlot(null, {}, arg, this.value, key));
@@ -182,7 +182,7 @@ export class DialogueHistoryResultList extends AstNode {
         visitor.exit(this);
     }
 
-    *iterateSlots2(schema : ExpressionSignature|null) : Generator<DeviceSelector|AbstractSlot, void> {
+    *iterateSlots2(schema : FunctionDef|null) : Generator<DeviceSelector|AbstractSlot, void> {
         for (const result of this.results)
             yield* result.iterateSlots2(schema);
     }
