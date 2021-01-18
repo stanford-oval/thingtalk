@@ -1845,3 +1845,18 @@ now => @com.facebook.post();
 ====
 
 @org.schema.full.Place() filter count(review) >= __const_NUMBER_0;
+
+====
+
+// subquery:
+@com.spotify2.song() filter album == any([id] of @com.spotify2.album(), popularity >= 1);
+
+====
+
+// ** expect TypeError **
+@com.spotify2.song() filter album == any(@com.spotify2.album());
+
+====
+
+// ** expect TypeError **
+@com.spotify2.song() filter album == any([popularity] of @com.spotify2.album());
