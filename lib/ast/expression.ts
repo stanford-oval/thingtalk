@@ -454,7 +454,7 @@ interface EqualsComparable {
     equals(x : unknown) : boolean;
 }
 
-function arrayEquals<T extends EqualsComparable>(a1 : T[], a2 : T[]) : boolean {
+export function arrayEquals<T extends EqualsComparable>(a1 : T[], a2 : T[]) : boolean {
     if (a1 === a2)
         return true;
     if (a1.length !== a2.length)
