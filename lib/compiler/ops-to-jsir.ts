@@ -38,6 +38,7 @@ import {
 import Scope, { DeclarationScopeEntry, ProcedureScopeEntry } from './scope';
 import type AppCompiler from './index';
 import * as Ops from './ops';
+import { compileBooleanExpressionToOp } from "./ast-to-ops";
 
 type ArgMap = { [key : string] : JSIr.Register };
 
@@ -157,7 +158,7 @@ export default class OpCompiler {
             });
         }
 
-        const condition = this._compileFilter(expr.filter, newScope);
+        const condition = this._compileFilter(compileBooleanExpressionToOp(expr.filter), newScope);
         this._irBuilder.add(new JSIr.ReturnValue(condition));
 
         this._irBuilder.popBlock();
@@ -181,7 +182,7 @@ export default class OpCompiler {
         return result;
     }
 
-    private _compileComparison(ast : Ast.AtomBooleanExpression|Ast.ComputeBooleanExpression,
+    private _compileComparison(expr : Ops.AtomBooleanExpressionOp|Ops.ComputeBooleanExpressionOp,
                                op : keyof typeof Builtin.BinaryOps,
                                lhs : JSIr.Register,
                                rhs : JSIr.Register,
@@ -189,7 +190,7 @@ export default class OpCompiler {
         const opdef = Builtin.BinaryOps[op];
         let opimpl : Builtin.OpImplementation = opdef;
         if (typeof opdef.overload === 'function')
-            opimpl = opdef.overload(...(ast.overload as Type[]));
+            opimpl = opdef.overload(...(expr.overload as Type[]));
 
         if (opimpl.op)
             this._irBuilder.add(new JSIr.BinaryOp(lhs, rhs, opimpl.op, into));
@@ -241,41 +242,41 @@ export default class OpCompiler {
         return reg;
     }
 
-    private _compileFilter(expr : Ast.BooleanExpression, currentScope : Scope) {
+    private _compileFilter(expr : Ops.BooleanExpressionOp, currentScope : Scope) {
         let cond = this._irBuilder.allocRegister();
-        if (expr === Ast.BooleanExpression.True ||
-            expr instanceof Ast.DontCareBooleanExpression) {
+        if (expr === Ops.BooleanExpressionOp.True ||
+            expr instanceof Ops.DontCareBooleanExpressionOp) {
             this._irBuilder.add(new JSIr.LoadConstant(new Ast.Value.Boolean(true), cond));
-        } else if (expr === Ast.BooleanExpression.False) {
+        } else if (expr === Ops.BooleanExpressionOp.False) {
             this._irBuilder.add(new JSIr.LoadConstant(new Ast.Value.Boolean(false), cond));
-        } else if (expr instanceof Ast.AndBooleanExpression) {
+        } else if (expr instanceof Ops.AndBooleanExpressionOp) {
             this._irBuilder.add(new JSIr.LoadConstant(new Ast.Value.Boolean(true), cond));
             for (const op of expr.operands) {
                 const opv = this._compileFilter(op, currentScope);
                 this._irBuilder.add(new JSIr.BinaryOp(cond, opv, '&&', cond));
             }
-        } else if (expr instanceof Ast.OrBooleanExpression) {
+        } else if (expr instanceof Ops.OrBooleanExpressionOp) {
             this._irBuilder.add(new JSIr.LoadConstant(new Ast.Value.Boolean(false), cond));
             for (const op of expr.operands) {
                 const opv = this._compileFilter(op, currentScope);
                 this._irBuilder.add(new JSIr.BinaryOp(cond, opv, '||', cond));
             }
-        } else if (expr instanceof Ast.NotBooleanExpression) {
+        } else if (expr instanceof Ops.NotBooleanExpressionOp) {
             const op = this._compileFilter(expr.expr, currentScope);
             this._irBuilder.add(new JSIr.UnaryOp(op, '!', cond));
-        } else if (expr instanceof Ast.ExternalBooleanExpression) {
+        } else if (expr instanceof Ops.ExternalBooleanExpressionOp) {
             this._irBuilder.add(new JSIr.LoadConstant(new Ast.Value.Boolean(false), cond));
 
             const tryCatch = new JSIr.TryCatch("Failed to invoke get-predicate query");
             this._irBuilder.add(tryCatch);
             this._irBuilder.pushBlock(tryCatch.try);
 
-            const [kind, attrs, fname] = this._compileTpFunctionCall(expr);
+            const [kind, attrs, fname] = this._compileTpFunctionCall(expr.ast as Ast.ExternalBooleanExpression);
             const list = this._irBuilder.allocRegister();
-            const [argmap, args] = this._compileInputParams(expr);
+            const [argmap, args] = this._compileInputParams(expr.ast as Ast.ExternalBooleanExpression);
             const schema = expr.schema!;
 
-            const hints = { projection: Array.from(getExpressionParameters(expr.filter, schema)) };
+            const hints = { projection: Array.from(getExpressionParameters(expr.filter.ast, schema)) };
             this._irBuilder.add(new JSIr.InvokeQuery(kind, attrs, fname, list, args, hints));
 
             const typeAndResult = this._compileIterateQuery(list);
@@ -312,7 +313,7 @@ export default class OpCompiler {
 
             this._irBuilder.popBlock(); // for-of
             this._irBuilder.popBlock(); // try-catch
-        } else if (expr instanceof Ast.ComputeBooleanExpression) {
+        } else if (expr instanceof Ops.ComputeBooleanExpressionOp) {
             const overload = expr.overload as Type[];
             let lhs = this.compileValue(expr.lhs, currentScope);
             const op = expr.operator;
@@ -321,7 +322,7 @@ export default class OpCompiler {
             rhs = compileCast(this._irBuilder, rhs, typeForValue(expr.rhs, currentScope), overload[1]);
             this._compileComparison(expr, op , lhs, rhs, cond);
             cond = compileCast(this._irBuilder, cond, overload[2], Type.Boolean);
-        } else if (expr instanceof Ast.AtomBooleanExpression) {
+        } else if (expr instanceof Ops.AtomBooleanExpressionOp) {
             const op = expr.operator;
             const overload = expr.overload as Type[];
             const scopeEntry = currentScope.get(expr.name);
