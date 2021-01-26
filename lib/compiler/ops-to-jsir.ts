@@ -182,7 +182,7 @@ export default class OpCompiler {
         return result;
     }
 
-    private _compileComparison(expr : Ops.AtomBooleanExpressionOp|Ops.ComputeBooleanExpressionOp,
+    private _compileComparison(overload : Type[],
                                op : keyof typeof Builtin.BinaryOps,
                                lhs : JSIr.Register,
                                rhs : JSIr.Register,
@@ -190,7 +190,7 @@ export default class OpCompiler {
         const opdef = Builtin.BinaryOps[op];
         let opimpl : Builtin.OpImplementation = opdef;
         if (typeof opdef.overload === 'function')
-            opimpl = opdef.overload(...(expr.overload as Type[]));
+            opimpl = opdef.overload(...overload);
 
         if (opimpl.op)
             this._irBuilder.add(new JSIr.BinaryOp(lhs, rhs, opimpl.op, into));
@@ -313,6 +313,36 @@ export default class OpCompiler {
 
             this._irBuilder.popBlock(); // for-of
             this._irBuilder.popBlock(); // try-catch
+        } else if (expr instanceof Ops.ComparisonSubqueryBooleanExpressionOp) {
+            this._irBuilder.add(new JSIr.LoadConstant(new Ast.Value.Boolean(false), cond));
+
+            const op = expr.operator;
+            const overload = expr.overload as Type[];
+            let lhs = this.compileValue(expr.value, currentScope);
+            lhs = compileCast(this._irBuilder, lhs, typeForValue(expr.value, currentScope), overload[0]);
+
+            const compArg = expr.name;
+            const blockStack = this._irBuilder.saveStackState();
+            const tmpScope = this._currentScope;
+            this._currentScope = new Scope(currentScope);
+
+            this._compileTable(expr.subquery); // const list = invokeQuery(); for(const iter of list) { [...]
+
+            const ok = this._irBuilder.allocRegister();
+            const rhsValue = new Ast.Value.VarRef(compArg);
+            let rhs = this.compileValue(rhsValue, this._currentScope);
+            rhs = compileCast(this._irBuilder, rhs, typeForValue(rhsValue, this._currentScope), overload[1]);
+            this._compileComparison(overload, op, lhs, rhs, ok);
+
+            const ifStmt = new JSIr.IfStatement(ok);
+            this._irBuilder.add(ifStmt);
+            this._irBuilder.pushBlock(ifStmt.iftrue);
+            this._irBuilder.add(new JSIr.LoadConstant(new Ast.Value.Boolean(true), cond));
+            this._irBuilder.add(new JSIr.Break());
+            this._irBuilder.popBlock();
+
+            this._currentScope = tmpScope;
+            this._irBuilder.popTo(blockStack);
         } else if (expr instanceof Ops.ComputeBooleanExpressionOp) {
             const overload = expr.overload as Type[];
             let lhs = this.compileValue(expr.lhs, currentScope);
@@ -320,7 +350,7 @@ export default class OpCompiler {
             lhs = compileCast(this._irBuilder, lhs, typeForValue(expr.lhs, currentScope), overload[0]);
             let rhs = this.compileValue(expr.rhs, currentScope);
             rhs = compileCast(this._irBuilder, rhs, typeForValue(expr.rhs, currentScope), overload[1]);
-            this._compileComparison(expr, op , lhs, rhs, cond);
+            this._compileComparison(overload, op , lhs, rhs, cond);
             cond = compileCast(this._irBuilder, cond, overload[2], Type.Boolean);
         } else if (expr instanceof Ops.AtomBooleanExpressionOp) {
             const op = expr.operator;
@@ -332,7 +362,7 @@ export default class OpCompiler {
             const castedlhs = compileCast(this._irBuilder, lhs, lhsType, overload[0]);
             const rhs = this.compileValue(expr.value, currentScope);
             const castedrhs = compileCast(this._irBuilder, rhs, typeForValue(expr.value, currentScope), overload[1]);
-            this._compileComparison(expr, op, castedlhs, castedrhs, cond);
+            this._compileComparison(overload, op, castedlhs, castedrhs, cond);
             cond = compileCast(this._irBuilder, cond, overload[2], Type.Boolean);
         } else {
             throw new Error('Unsupported boolean expression ' + expr);
