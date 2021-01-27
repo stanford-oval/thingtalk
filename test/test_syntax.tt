@@ -1836,3 +1836,23 @@ now => @com.facebook.post();
 ====
 
 @org.schema.full.Place() filter count(review) >= __const_NUMBER_0;
+
+====
+
+// Entity subtyping
+@com.test.entitysubtype1.parent(), id == "foo"^^tt:test_entity_subtype1;
+@com.test.entitysubtype1.stuff(), contains(stuff, "foo"^^tt:test_entity_subtype1);
+@com.test.entitysubtype1.foo(param="foo"^^tt:test_entity_subtype1);
+@com.test.entitysubtype1.sub() => @com.test.entitysubtype1.foo(param=id);
+
+====
+
+// Entity subtyping
+// ** expect TypeError **
+@com.test.entitysubtype1.sub(), id == "foo"^^tt:test_entity_parenttype1;
+
+====
+
+// Entity subtyping
+// ** expect TypeError **
+@com.test.entitysubtype1.sub(), "foo"^^tt:test_entity_parenttype1 == id;

@@ -5320,3 +5320,11 @@ class @uk.ac.cam.multiwoz.Train
      no_slot_available=["there are no seats available on ${train}"]
   }];
 }
+
+class @com.test.entitysubtype1 {
+  query sub(out id : Entity(tt:test_entity_subtype1));
+  query parent(out id : Entity(tt:test_entity_parenttype1));
+  query stuff(out stuff : Array(Entity(tt:test_entity_parenttype1)));
+
+  action foo(in req param : Entity(tt:test_entity_parenttype1));
+}

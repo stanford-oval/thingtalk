@@ -80,6 +80,18 @@ interface MemoryClient {
     getSchema(table : string, principal : string|null) : Promise<MemoryTable|null>;
 }
 
+interface EntityTypeRecord {
+    type : string;
+    is_well_known : boolean|number;
+    has_ner_support : boolean|number;
+
+    // this can be both null and undefined because we don't want it to be
+    // missing/undefined (undefined would be missing when through JSON),
+    // but we have to account for legacy implementations of the API where
+    // it is in fact missing
+    subtype_of ?: string|null;
+}
+
 /**
  * The abstract interface to access Thingpedia.
  *
@@ -112,6 +124,11 @@ interface AbstractThingpediaClient {
      * @param {string[]} kinds - the Thingpedia class identifiers to retrieve
      */
     getExamplesByKinds(kinds : string[]) : Promise<string>;
+
+    /**
+     * Retrieve the list of all entity types declared in Thingpedia.
+     */
+    getAllEntityTypes() : Promise<EntityTypeRecord[]>;
 }
 
 class DummyMemoryClient {
@@ -161,6 +178,7 @@ export default class SchemaRetriever {
         everything : Cache<string, ClassDef|null>;
         dataset : Cache<string, Dataset>;
     };
+    private _entityTypeCache : Cache<string, EntityTypeRecord>;
 
     private _thingpediaClient : AbstractThingpediaClient;
     private _memoryClient : MemoryClient;
@@ -197,6 +215,7 @@ export default class SchemaRetriever {
             everything: new Cache(24 * 3600 * 1000),
             dataset: new Cache(24 * 3600 * 1000)
         };
+        this._entityTypeCache = new Cache(24 * 3600 * 1000);
 
         this._thingpediaClient = tpClient;
         this._memoryClient = mClient || new DummyMemoryClient();
@@ -581,5 +600,62 @@ export default class SchemaRetriever {
             throw result;
         else
             return result;
+    }
+
+    private async _getEntityTypeRecord(entityType : string) : Promise<EntityTypeRecord> {
+        const cached = this._entityTypeCache.get(entityType);
+        if (cached)
+            return cached;
+
+        const allEntities = await this._thingpediaClient.getAllEntityTypes();
+        let found = null;
+        for (const record of allEntities) {
+            // put all the new records in the cache, and check if we found the one
+            // we were looking for
+            this._entityTypeCache.set(record.type, record);
+            if (record.type === entityType)
+                found = record;
+        }
+        if (found)
+            return found;
+
+        // if we didn't find it in the list of all entities (aka entities.json),
+        // try loading the class and looking for a declaration there
+        // this is to support development of Thingpedia skills without editing
+        // entities.json
+        const [kind, name] = entityType.split(':');
+        if (kind !== 'tt') {
+            try {
+                const classDef = await this._getClass(kind, 'everything');
+                for (const entity of classDef.entities) {
+                    if (entity.name === name) {
+                        const hasNer = entity.getImplementationAnnotation<boolean>('has_ner');
+                        const newRecord : EntityTypeRecord = {
+                            type: entityType,
+                            is_well_known: false,
+                            has_ner_support: hasNer === undefined ? true : hasNer
+                        };
+                        this._entityTypeCache.set(entityType, newRecord);
+                        return newRecord;
+                    }
+                }
+            } catch(e) {
+                // ignore if there is no class with that name
+            }
+        }
+
+        // make up a record with default info
+        const newRecord : EntityTypeRecord = {
+            type: entityType,
+            is_well_known: false,
+            has_ner_support: false
+        };
+        this._entityTypeCache.set(entityType, newRecord);
+        return newRecord;
+    }
+
+    async getEntityParent(entityType : string) : Promise<string> {
+        const record = await this._getEntityTypeRecord(entityType);
+        return record.subtype_of || '';
     }
 }
