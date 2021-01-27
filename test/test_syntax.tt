@@ -1856,3 +1856,11 @@ now => @com.facebook.post();
 // Entity subtyping
 // ** expect TypeError **
 @com.test.entitysubtype1.sub(), "foo"^^tt:test_entity_parenttype1 == id;
+
+====
+
+// Entity subtyping
+@com.test.entitysubtype2.parent(), id == "foo"^^com.test.entitysubtype2:sub;
+@com.test.entitysubtype2.stuff(), contains(stuff, "foo"^^com.test.entitysubtype2:sub);
+@com.test.entitysubtype2.foo(param="foo"^^com.test.entitysubtype2:sub);
+@com.test.entitysubtype2.sub() => @com.test.entitysubtype2.foo(param=id);

@@ -630,10 +630,16 @@ export default class SchemaRetriever {
                 for (const entity of classDef.entities) {
                     if (entity.name === name) {
                         const hasNer = entity.getImplementationAnnotation<boolean>('has_ner');
+                        let subTypeOf = null;
+                        if (entity.extends) {
+                            subTypeOf = entity.extends.includes(':') ? entity.extends
+                                : classDef.kind + ':' + entity.extends;
+                        }
                         const newRecord : EntityTypeRecord = {
                             type: entityType,
                             is_well_known: false,
-                            has_ner_support: hasNer === undefined ? true : hasNer
+                            has_ner_support: hasNer === undefined ? true : hasNer,
+                            subtype_of : subTypeOf
                         };
                         this._entityTypeCache.set(entityType, newRecord);
                         return newRecord;
