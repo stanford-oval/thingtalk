@@ -344,15 +344,14 @@ export default class TypeChecker {
 
     private _resolveOverload(overloads : Builtin.OpDefinition,
                              operator : string,
-                             argTypes : Type[],
-                             allowCast : boolean) : [Type[], Type] {
+                             argTypes : Type[]) : [Type[], Type] {
         for (const overload of overloads.types) {
             if (argTypes.length !== overload.length-1)
                 continue;
             const typeScope : TypeScope = {};
             let good = true;
             for (let i = 0; i < argTypes.length; i++) {
-                if (!Type.isAssignable(argTypes[i], overload[i], typeScope, allowCast)) {
+                if (!Type.isAssignable(argTypes[i], overload[i], typeScope)) {
                     good = false;
                     break;
                 }
@@ -374,7 +373,7 @@ export default class TypeChecker {
         const op = Builtin.ScalarExpressionOps[operator];
         if (!op)
             throw new TypeError('Invalid operator ' + operator);
-        return this._resolveOverload(op, operator, argTypes, true);
+        return this._resolveOverload(op, operator, argTypes);
     }
 
     private _resolveFilterOverload(type_lhs : Type, operator : string, type_rhs : Type) {
@@ -382,7 +381,7 @@ export default class TypeChecker {
         const op = Builtin.BinaryOps[operator];
         if (!op)
             throw new TypeError('Invalid operator ' + operator);
-        const [overload,] = this._resolveOverload(op, operator, [type_lhs, type_rhs], false);
+        const [overload,] = this._resolveOverload(op, operator, [type_lhs, type_rhs]);
         return overload;
     }
 
@@ -463,7 +462,7 @@ export default class TypeChecker {
 
         for (const overload of ag.types) {
             const typeScope = {};
-            if (!Type.isAssignable(fieldType, overload[0], typeScope, true))
+            if (!Type.isAssignable(fieldType, overload[0], typeScope))
                 continue;
 
             ast.overload = overload.map((t) => resolveTypeVars(t, typeScope));
@@ -677,7 +676,7 @@ export default class TypeChecker {
                 if (!attr.value.isVarRef && !attr.value.isConstant())
                     throw new TypeError(`Device attribute ${attr.value} must be a constant or variable`);
                 const valueType = await this._typeCheckValue(attr.value, attrscope);
-                if (!Type.isAssignable(valueType, Type.String, {}, false) || attr.value.isUndefined)
+                if (!Type.isAssignable(valueType, Type.String) || attr.value.isUndefined)
                     throw new TypeError(`Invalid type for device attribute ${attr.name}, have ${valueType}, need String`);
             }
 
@@ -703,7 +702,7 @@ export default class TypeChecker {
                 throw new TypeError('Invalid input parameter ' + inParam.name);
 
             const valueType = await this._typeCheckValue(inParam.value, scope);
-            if (!Type.isAssignable(valueType, inParamType, {}, true))
+            if (!Type.isAssignable(valueType, inParamType))
                 throw new TypeError(`Invalid type for parameter ${inParam.name}, have ${valueType}, need ${inParamType}`);
             if (presentParams.has(inParam.name))
                 throw new TypeError('Duplicate input param ' + inParam.name);
@@ -885,7 +884,7 @@ export default class TypeChecker {
                 throw new TypeError(`Mixin parameter ${in_param.name} must be a constant`);
             const inParamType = mixin.types[i];
             const valueType = await this._typeCheckValue(in_param.value, new Scope);
-            if (!Type.isAssignable(valueType, inParamType, {}, true))
+            if (!Type.isAssignable(valueType, inParamType))
                 throw new TypeError(`Invalid type for parameter ${in_param.name}, have ${valueType}, need ${inParamType}`);
         }
         for (let i = 0; i < mixin.args.length; i ++ ) {
@@ -1020,7 +1019,7 @@ export default class TypeChecker {
                 if (!value)
                     continue;
 
-                if (!Type.isAssignable(await this._typeCheckValue(value, new Scope), arg.type, {}))
+                if (!Type.isAssignable(await this._typeCheckValue(value, new Scope), arg.type))
                     throw new TypeError(`Invalid #[${name}] annotation: must be a ${arg.type}`);
             }
         }
@@ -1268,7 +1267,7 @@ export default class TypeChecker {
 
             if (item.results !== null) {
                 if (!item.results.count.isConstant() ||
-                    !Type.isAssignable(await this._typeCheckValue(item.results.count, new Scope), Type.Number, {}))
+                    !Type.isAssignable(await this._typeCheckValue(item.results.count, new Scope), Type.Number))
                     throw new TypeError(`History annotation #[count] must be a constant of Number type`);
                 if (item.results.error) {
                     if (!item.results.error.isConstant())
