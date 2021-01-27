@@ -520,13 +520,6 @@ function arrayEquals(a : unknown[]|null, b : unknown[]|null) : boolean {
 }
 
 function entitySubType(type : string, assignableTo : string) : boolean {
-    if (type === 'tt:username' || type === 'tt:contact_name') {
-        return assignableTo === 'tt:phone_number' ||
-            assignableTo === 'tt:email_address' ||
-            assignableTo === 'tt:contact';
-    }
-    if (type === 'tt:contact_group_name')
-        return assignableTo === 'tt:contact_group';
     if (type === 'tt:picture_url')
         return assignableTo === 'tt:url';
     return false;
