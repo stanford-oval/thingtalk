@@ -267,20 +267,6 @@ class LoadConstant {
     }
 }
 
-class LoadContext {
-    private _context : Ast.ContextRefValue;
-    private _into : Register;
-
-    constructor(context : Ast.ContextRefValue, into : Register) {
-        this._context = context;
-        this._into = into;
-    }
-
-    codegen(prefix : string) : string {
-        return prefix + '_t_' + this._into + ` = await __env.loadContext("${this._context.name}", "${this._context.type.toString()}");`;
-    }
-}
-
 class LoadBuiltin {
     private _builtin : string;
     private _into : Register;
@@ -1179,7 +1165,6 @@ export {
     GetScope,
     AsyncIterator,
     LoadConstant,
-    LoadContext,
     LoadBuiltin,
     NewObject,
     BinaryFunctionOp,

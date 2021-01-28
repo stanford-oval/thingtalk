@@ -153,10 +153,6 @@ export default abstract class ExecEnvironment {
     reportError(message : string, err : Error) : Promise<void> {
         throw new Error('Must be overridden');
     }
-    /* istanbul ignore next */
-    loadContext(info : string, into : string) : Promise<unknown> {
-        throw new Error('Must be overridden');
-    }
 
     formatEvent(outputType : string, output : PlainObject, hint : string) : Promise<string> {
         throw new Error('Must be overridden');

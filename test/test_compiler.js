@@ -6488,8 +6488,9 @@ const TEST_CASES = [
     await __env.exitProcedure(0, null);
   }`]],
 
-    // 74 Test screen selection as a context
-    [`now => @com.twitter.post(status=$context.selection: String);`,
+    // 74 Used to be "Test screen selection as a context"
+    // Left here to preserve the numbering
+    [`now => @com.twitter.post(status="foo");`,
     [`"use strict";
   let _t_0;
   let _t_1;
@@ -6497,7 +6498,7 @@ const TEST_CASES = [
   try {
     try {
       _t_0 = {};
-      _t_1 = await __env.loadContext("selection", "String");
+      _t_1 = "foo";
       _t_0.status = _t_1;
       await __builtin.drainAction(__env.invokeAction("com.twitter", { }, "post", _t_0));
     } catch(_exc_) {

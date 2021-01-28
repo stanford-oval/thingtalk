@@ -1845,3 +1845,11 @@ now => @com.facebook.post();
 ====
 
 @org.schema.full.Place() filter count(review) >= __const_NUMBER_0;
+
+====
+
+// $context.result
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+@com.thecatapi.get();
+@com.twitter.post_picture(picture_url=$context.result.picture_url : Entity(tt:picture));
