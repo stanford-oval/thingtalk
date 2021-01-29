@@ -739,7 +739,7 @@ function compileStatementToOp(statement : Ast.Rule|Ast.Command) : RuleOp {
 
 function compileBooleanExpressionToOp(expr : Ast.BooleanExpression) : BooleanExpressionOp {
     if (expr instanceof Ast.AtomBooleanExpression)
-        return new BooleanExpressionOp.Atom(expr, expr.name, expr.operator, expr.value, expr.overload);
+        return new BooleanExpressionOp.Atom(expr, new Ast.Value.VarRef(expr.name), expr.operator, expr.value, expr.overload);
 
     if (expr instanceof Ast.NotBooleanExpression)
         return new BooleanExpressionOp.Not(expr, compileBooleanExpressionToOp(expr.expr));
@@ -786,18 +786,14 @@ function compileBooleanExpressionToOp(expr : Ast.BooleanExpression) : BooleanExp
         );
     }
 
-    if (expr === Ast.BooleanExpression.True)
+    if (expr === Ast.BooleanExpression.True || expr instanceof Ast.DontCareBooleanExpression)
         return BooleanExpressionOp.True;
 
     if (expr === Ast.BooleanExpression.False)
         return BooleanExpressionOp.False;
 
     if (expr instanceof Ast.ComputeBooleanExpression)
-        return new BooleanExpressionOp.Compute(expr, expr.lhs, expr.operator, expr.rhs, expr.overload);
-
-    if (expr instanceof Ast.DontCareBooleanExpression)
-        return new BooleanExpressionOp.DontCare(expr, expr.name);
-
+        return new BooleanExpressionOp.Atom(expr, expr.lhs, expr.operator, expr.rhs, expr.overload);
 
     throw new TypeError();
 }

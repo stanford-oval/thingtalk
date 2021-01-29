@@ -244,8 +244,7 @@ export default class OpCompiler {
 
     private _compileFilter(expr : Ops.BooleanExpressionOp, currentScope : Scope) {
         let cond = this._irBuilder.allocRegister();
-        if (expr === Ops.BooleanExpressionOp.True ||
-            expr instanceof Ops.DontCareBooleanExpressionOp) {
+        if (expr === Ops.BooleanExpressionOp.True) {
             this._irBuilder.add(new JSIr.LoadConstant(new Ast.Value.Boolean(true), cond));
         } else if (expr === Ops.BooleanExpressionOp.False) {
             this._irBuilder.add(new JSIr.LoadConstant(new Ast.Value.Boolean(false), cond));
@@ -343,25 +342,13 @@ export default class OpCompiler {
 
             this._currentScope = tmpScope;
             this._irBuilder.popTo(blockStack);
-        } else if (expr instanceof Ops.ComputeBooleanExpressionOp) {
-            const overload = expr.overload as Type[];
-            let lhs = this.compileValue(expr.lhs, currentScope);
-            const op = expr.operator;
-            lhs = compileCast(this._irBuilder, lhs, typeForValue(expr.lhs, currentScope), overload[0]);
-            let rhs = this.compileValue(expr.rhs, currentScope);
-            rhs = compileCast(this._irBuilder, rhs, typeForValue(expr.rhs, currentScope), overload[1]);
-            this._compileComparison(overload, op , lhs, rhs, cond);
-            cond = compileCast(this._irBuilder, cond, overload[2], Type.Boolean);
         } else if (expr instanceof Ops.AtomBooleanExpressionOp) {
             const op = expr.operator;
             const overload = expr.overload as Type[];
-            const scopeEntry = currentScope.get(expr.name);
-            assert(scopeEntry.type === 'scalar');
-            const { tt_type:lhsType, register:lhs } = scopeEntry;
-            assert(lhsType);
-            const castedlhs = compileCast(this._irBuilder, lhs, lhsType, overload[0]);
-            const rhs = this.compileValue(expr.value, currentScope);
-            const castedrhs = compileCast(this._irBuilder, rhs, typeForValue(expr.value, currentScope), overload[1]);
+            const lhs = this.compileValue(expr.lhs, currentScope);
+            const castedlhs = compileCast(this._irBuilder, lhs, typeForValue(expr.lhs, currentScope), overload[0]);
+            const rhs = this.compileValue(expr.rhs, currentScope);
+            const castedrhs = compileCast(this._irBuilder, rhs, typeForValue(expr.rhs, currentScope), overload[1]);
             this._compileComparison(overload, op, castedlhs, castedrhs, cond);
             cond = compileCast(this._irBuilder, cond, overload[2], Type.Boolean);
         } else {

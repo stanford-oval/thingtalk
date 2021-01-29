@@ -356,8 +356,6 @@ export abstract class BooleanExpressionOp {
     static ComparisonSubquery : typeof ComparisonSubqueryBooleanExpressionOp;
     static True : TrueBooleanExpressionOp;
     static False : FalseBooleanExpressionOp;
-    static Compute : typeof ComputeBooleanExpressionOp;
-    static DontCare : typeof DontCareBooleanExpressionOp;
 
     public ast : Ast.BooleanExpression;
 
@@ -391,10 +389,10 @@ export class NotBooleanExpressionOp extends BooleanExpressionOp {
 BooleanExpressionOp.Not = NotBooleanExpressionOp;
 
 export class AtomBooleanExpressionOp extends BooleanExpressionOp {
-    constructor(ast : Ast.AtomBooleanExpression,
-                public name : string,
+    constructor(ast : Ast.AtomBooleanExpression|Ast.ComputeBooleanExpression,
+                public lhs : Ast.Value,
                 public operator : string,
-                public value : Ast.Value,
+                public rhs : Ast.Value,
                 public overload : Type[]|null){
         super(ast);
     }
@@ -439,22 +437,3 @@ export class FalseBooleanExpressionOp extends BooleanExpressionOp {
     }
 }
 BooleanExpressionOp.False = new FalseBooleanExpressionOp(Ast.BooleanExpression.False);
-
-export class ComputeBooleanExpressionOp extends BooleanExpressionOp {
-    constructor(ast : Ast.ComputeBooleanExpression,
-                public lhs : Ast.Value,
-                public operator : string,
-                public rhs : Ast.Value,
-                public overload : Type[]|null) {
-        super(ast);
-    }
-}
-BooleanExpressionOp.Compute = ComputeBooleanExpressionOp;
-
-export class DontCareBooleanExpressionOp extends BooleanExpressionOp {
-    constructor(ast : Ast.DontCareBooleanExpression,
-                public name : string) {
-        super(ast);
-    }
-}
-BooleanExpressionOp.DontCare = DontCareBooleanExpressionOp;
