@@ -414,9 +414,9 @@ BooleanExpressionOp.External = ExternalBooleanExpressionOp;
 
 export class ComparisonSubqueryBooleanExpressionOp extends BooleanExpressionOp {
     constructor(ast : Ast.ComparisonSubqueryBooleanExpression,
-                public value : Ast.Value,
+                public lhs : Ast.Value,
                 public operator : string,
-                public name : string,
+                public rhs : Ast.Value,
                 public subquery : TableOp,
                 public overload : Type[]|null) {
         super(ast);

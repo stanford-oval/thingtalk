@@ -317,10 +317,9 @@ export default class OpCompiler {
 
             const op = expr.operator;
             const overload = expr.overload as Type[];
-            let lhs = this.compileValue(expr.value, currentScope);
-            lhs = compileCast(this._irBuilder, lhs, typeForValue(expr.value, currentScope), overload[0]);
+            let lhs = this.compileValue(expr.lhs, currentScope);
+            lhs = compileCast(this._irBuilder, lhs, typeForValue(expr.lhs, currentScope), overload[0]);
 
-            const compArg = expr.name;
             const blockStack = this._irBuilder.saveStackState();
             const tmpScope = this._currentScope;
             this._currentScope = new Scope(currentScope);
@@ -328,9 +327,8 @@ export default class OpCompiler {
             this._compileTable(expr.subquery); // const list = invokeQuery(); for(const iter of list) { [...]
 
             const ok = this._irBuilder.allocRegister();
-            const rhsValue = new Ast.Value.VarRef(compArg);
-            let rhs = this.compileValue(rhsValue, this._currentScope);
-            rhs = compileCast(this._irBuilder, rhs, typeForValue(rhsValue, this._currentScope), overload[1]);
+            let rhs = this.compileValue(expr.rhs, this._currentScope);
+            rhs = compileCast(this._irBuilder, rhs, typeForValue(expr.rhs, this._currentScope), overload[1]);
             this._compileComparison(overload, op, lhs, rhs, ok);
 
             const ifStmt = new JSIr.IfStatement(ok);

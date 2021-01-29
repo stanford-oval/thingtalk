@@ -1860,3 +1860,8 @@ now => @com.facebook.post();
 
 // ** expect TypeError **
 @com.spotify2.song() filter album == any([popularity] of @com.spotify2.album());
+
+====
+
+// compute subquery
+@com.uber.price_estimate() filter distance <= any([distance(location, new Location(1, 2))] of @org.thingpedia.builtin.thingengine.builtin.get_gps());

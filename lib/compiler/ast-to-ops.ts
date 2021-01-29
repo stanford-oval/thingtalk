@@ -771,17 +771,22 @@ function compileBooleanExpressionToOp(expr : Ast.BooleanExpression) : BooleanExp
     }
 
     if (expr instanceof Ast.ComparisonSubqueryBooleanExpression) {
-        assert(expr.rhs instanceof Ast.ProjectionExpression && expr.rhs.args.length === 1);
+        assert(expr.rhs instanceof Ast.ProjectionExpression && expr.rhs.args.length + expr.rhs.computations.length === 1);
+        let rhs, hints;
+        if (expr.rhs.args.length) {
+            rhs = expr.rhs.args[0];
+            hints = new QueryInvocationHints(new Set(expr.rhs.args));
+        } else {
+            rhs = expr.rhs.aliases[0] || getScalarExpressionName(expr.rhs.computations[0]);
+            hints = new QueryInvocationHints(new Set([rhs]));
+        }
+        const subquery = compileTableToOps(expr.rhs.toLegacy() as Ast.Table, [], hints);
         return new BooleanExpressionOp.ComparisonSubquery(
             expr,
             expr.lhs,
             expr.operator,
-            expr.rhs.args[0],
-            compileTableToOps(
-                expr.rhs.toLegacy() as Ast.Table,
-                [],
-                new QueryInvocationHints(new Set((expr.rhs as Ast.ProjectionExpression).args))
-            ),
+            new Ast.Value.VarRef(rhs),
+            subquery,
             expr.overload
         );
     }
