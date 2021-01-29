@@ -1001,12 +1001,14 @@ export class ComparisonSubqueryBooleanExpression extends BooleanExpression {
     *iterateSlots(schema : FunctionDef|null,
                   prim : InvocationLike|null,
                   scope : ScopeMap) : Generator<OldSlot, void> {
-        yield* this.rhs.iterateSlots(scope);
+        // XXX this API cannot support comparison subquery expressions
     }
 
     *iterateSlots2(schema : FunctionDef|null,
                    prim : InvocationLike|null,
                    scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
+        const [resolvedLhs, ] = this.overload || [null, null];
+        yield* recursiveYieldArraySlots(new FieldSlot(prim, scope, resolvedLhs || this.lhs.getType(), this, 'comparison_subquery_filter', 'lhs'));
         yield* this.rhs.iterateSlots2(scope);
     }
 }
