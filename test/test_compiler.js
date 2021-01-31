@@ -994,7 +994,9 @@ const TEST_CASES = [
   }`]],
 
     // 20
-    [`monitor(@com.twitter.home_timeline()) => @org.thingpedia.builtin.thingengine.builtin.say(message=$type);`,
+    // this used to be a different program
+    // it is left here to avoid changing numbers
+    [`monitor(@com.twitter.home_timeline()) => @org.thingpedia.builtin.thingengine.builtin.say(message=$result);`,
     [`"use strict";
   let _t_0;
   let _t_1;
@@ -1037,7 +1039,7 @@ const TEST_CASES = [
         if (_t_13) {
           try {
             _t_15 = {};
-            _t_16 = String (_t_4);
+            _t_16 = await __env.formatEvent(_t_4, _t_5, "string");
             _t_15.message = _t_16;
             await __builtin.drainAction(__env.invokeAction("org.thingpedia.builtin.thingengine.builtin", { }, "say", _t_15));
           } catch(_exc_) {
@@ -1054,7 +1056,7 @@ const TEST_CASES = [
   }`]],
 
     // 21
-    [`monitor(@com.xkcd(id="com.xkcd-6").get_comic()) => @com.twitter.post(status=picture_url);`,
+    [`monitor(@com.xkcd(id="com.xkcd-6").get_comic()) => @com.twitter.post(status=title);`,
     [`"use strict";
   let _t_0;
   let _t_1;
@@ -1071,11 +1073,10 @@ const TEST_CASES = [
   let _t_12;
   let _t_13;
   let _t_14;
-  let _t_15;
   _t_0 = await __env.readState(0);
   try {
     _t_1 = {};
-    _t_2 = await __env.invokeMonitor("com.xkcd", { id: "com.xkcd-6", }, "get_comic", _t_1, { projection: ["picture_url", "title", "link", "alt_text"] });
+    _t_2 = await __env.invokeMonitor("com.xkcd", { id: "com.xkcd-6", }, "get_comic", _t_1, { projection: ["title", "picture_url", "link", "alt_text"] });
     {
       let _iter_tmp = await _t_2.next();
       while (!_iter_tmp.done) {
@@ -1095,8 +1096,7 @@ const TEST_CASES = [
         if (_t_12) {
           try {
             _t_14 = {};
-            _t_15 = String (_t_9);
-            _t_14.status = _t_15;
+            _t_14.status = _t_8;
             await __builtin.drainAction(__env.invokeAction("com.twitter", { }, "post", _t_14));
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
@@ -6546,7 +6546,7 @@ const TEST_CASES = [
   }`]],
 
     // 77 computation (+)
-    [`now => [("Author: " + author)] of @com.twitter.home_timeline() => notify;`,
+    [`now => [("Text: " + text)] of @com.twitter.home_timeline() => notify;`,
     [`"use strict";
   let _t_0;
   let _t_1;
@@ -6568,7 +6568,7 @@ const TEST_CASES = [
   try {
     try {
       _t_0 = {};
-      _t_1 = await __env.invokeQuery("com.twitter", { }, "home_timeline", _t_0, { projection: ["result", "author"] });
+      _t_1 = await __env.invokeQuery("com.twitter", { }, "home_timeline", _t_0, { projection: ["result", "text"] });
       _t_2 = __builtin.getAsyncIterator(_t_1);
       {
         let _iter_tmp = await _t_2.next();
@@ -6583,8 +6583,8 @@ const TEST_CASES = [
           _t_10 = _t_5.author;
           _t_11 = _t_5.in_reply_to;
           _t_12 = _t_5.tweet_id;
-          _t_13 = "Author: ";
-          _t_14 = _t_13 + _t_10;
+          _t_13 = "Text: ";
+          _t_14 = _t_13 + _t_7;
           _t_5.result = _t_14;
           _t_15 = {};
           _t_15.result = _t_14;
@@ -7215,7 +7215,7 @@ const TEST_CASES = [
       // FIXME
       //now => cat() => @com.twitter.post_picture(picture_url=picture_url, caption="cat");
       now => cat() => notify;
-      @com.twitter.post_picture(picture_url="http://foo", caption="cat");
+      @com.twitter.post_picture(picture_url="http://foo"^^tt:picture, caption="cat");
     }
     // FIXME this does not work for some reason
     //let cat2 = cat_and_twitter();
@@ -7247,6 +7247,7 @@ const TEST_CASES = [
   let _t_21;
   let _t_22;
   let _t_23;
+  let _t_24;
   await __env.enterProcedure(0, "cat_and_twitter");
   try {
     _t_0 = new Array(0);
@@ -7300,8 +7301,9 @@ const TEST_CASES = [
       _t_21 = {};
       _t_22 = "cat";
       _t_21.caption = _t_22;
-      _t_23 = "http://foo";
-      _t_21.picture_url = _t_23;
+      _t_23 = new __builtin.Entity("http://foo", null);
+      _t_24 = String (_t_23);
+      _t_21.picture_url = _t_24;
       await __builtin.drainAction(__env.invokeAction("com.twitter", { }, "post_picture", _t_21));
     } catch(_exc_) {
       __env.reportError("Failed to invoke action", _exc_);

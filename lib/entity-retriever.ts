@@ -275,6 +275,15 @@ export class EntityRetriever extends AbstractEntityRetriever {
         if (ignoreNotFound)
             return null;
 
+        if (entityType.startsWith('GENERIC_ENTITY_') && this._syntaxType === SyntaxType.Tokenized) {
+            const genericEntity = entity as GenericEntity;
+            if (genericEntity.display) {
+                found = this._findEntityInBag('QUOTED_STRING', genericEntity.display, this.entities);
+                if (found)
+                    return List.concat('null', '^^' + entityType.substring('GENERIC_ENTITY_'.length), '(', found, ')');
+            }
+        }
+
         found = this._findStringLikeEntity(entityType, entity, entityString, false);
         if (found)
             return found;

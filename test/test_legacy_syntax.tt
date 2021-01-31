@@ -83,21 +83,6 @@ executor = "matrix-account:@gcampax:matrix.org"^^tt:contact : { // WithPrincipal
 
 ====
 
-// DownCast
-{
-    monitor @com.xkcd(id="com.xkcd-6").get_comic()
-    => @com.twitter.post(status=picture_url);
-}
-
-====
-
-// EventType
-{
-    monitor @com.twitter.home_timeline() => @org.thingpedia.builtin.thingengine.builtin.say(message=$event.type);
-}
-
-====
-
 // FormatEvent
 {
     monitor @com.twitter.home_timeline() => @org.thingpedia.builtin.thingengine.builtin.say(message=$event);
@@ -294,7 +279,6 @@ monitor @com.twitter.home_timeline() => notify;
 
 // PhoneNumberTest
 {
-    now => @org.thingpedia.builtin.thingengine.phone.send_sms(to="+15555555555", message="");
     now => @org.thingpedia.builtin.thingengine.phone.send_sms(to="+15555555555"^^tt:phone_number, message="");
     monitor @org.thingpedia.builtin.thingengine.phone.sms(), sender=="+15555555555"^^tt:phone_number => notify;
 }

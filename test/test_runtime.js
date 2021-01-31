@@ -231,49 +231,6 @@ const TEST_CASES = [
     }
     ]],
 
-    [`now => @com.xkcd.get_comic() => @com.twitter.post(status=$program_id);`,
-    null,
-    { 'com.xkcd:get_comic': [
-        { number: 1234, title: 'Douglas Engelbart (1925-2013)',
-          link: 'https://xkcd.com/1234/',
-          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png',
-          alt_text: 'some alt text' }
-    ]},
-    [
-    {
-     type: 'action',
-     fn: 'com.twitter:post',
-     params: { status: `uuid-XXXXXXXXXXXX` }
-    }
-    ]],
-
-    [`now => @com.xkcd.get_comic() => @com.twitter.post(status=$type);`,
-    null,
-    { 'com.xkcd:get_comic': [
-        { number: 1234, title: 'Douglas Engelbart (1925-2013)',
-          link: 'https://xkcd.com/1234/',
-          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png',
-          alt_text: 'some alt text' }
-    ]},
-    [
-    {
-     type: 'action',
-     fn: 'com.twitter:post',
-     params: { status: `com.xkcd:get_comic` }
-    }
-    ]],
-
-    [`now => @com.twitter.post(status=$program_id);`,
-    null,
-    {},
-    [
-    {
-     type: 'action',
-     fn: 'com.twitter:post',
-     params: { status: `uuid-XXXXXXXXXXXX` }
-    }
-    ]],
-
     [`monitor(@com.xkcd.get_comic()) => @com.twitter.post(status=title);`,
     { fn: 'com.xkcd:get_comic',
       value: [

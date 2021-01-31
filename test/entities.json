@@ -732,6 +732,19 @@
       "name": "Username",
       "is_well_known": 1,
       "has_ner_support": 0
+    },
+    {
+      "type": "tt:test_entity_subtype1",
+      "name": "Test Entity Subtype 1",
+      "is_well_known": 0,
+      "has_ner_support": 0,
+      "subtype_of": "tt:test_entity_parenttype1"
+    },
+    {
+      "type": "tt:test_entity_parenttype1",
+      "name": "Test Entity ParentType 1",
+      "is_well_known": 0,
+      "has_ner_support": 0
     }
   ]
 }

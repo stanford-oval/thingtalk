@@ -103,14 +103,6 @@ monitor(@com.twitter.home_timeline() filter starts_with(text, "foo"));
 @com.twitter.post_picture(caption="lol", picture_url="http://foo.com/bar.jpg"^^tt:picture);
 ====
 
-// DownCast
-monitor(@com.xkcd(id="com.xkcd-6"^^tt:device_id).get_comic()) => @com.twitter.post(status=picture_url);
-====
-
-// EventType
-monitor(@com.twitter.home_timeline()) => @org.thingpedia.builtin.thingengine.builtin.say(message=$type);
-====
-
 // FormatEvent
 monitor(@com.twitter.home_timeline()) => @org.thingpedia.builtin.thingengine.builtin.say(message=$result);
 ====
@@ -308,7 +300,6 @@ attimer(time=[$time.morning]);
 ====
 
 // PhoneNumberTest
-@org.thingpedia.builtin.thingengine.phone.send_sms(to="+15555555555", message="");
 @org.thingpedia.builtin.thingengine.phone.send_sms(to="+15555555555"^^tt:phone_number, message="");
 monitor(@org.thingpedia.builtin.thingengine.phone.sms() filter sender == "+15555555555"^^tt:phone_number);
 ====
@@ -1848,6 +1839,33 @@ now => @com.facebook.post();
 
 ====
 
+// Entity subtyping
+@com.test.entitysubtype1.parent(), id == "foo"^^tt:test_entity_subtype1;
+@com.test.entitysubtype1.stuff(), contains(stuff, "foo"^^tt:test_entity_subtype1);
+@com.test.entitysubtype1.foo(param="foo"^^tt:test_entity_subtype1);
+@com.test.entitysubtype1.sub() => @com.test.entitysubtype1.foo(param=id);
+
+====
+
+// Entity subtyping
+// ** expect TypeError **
+@com.test.entitysubtype1.sub(), id == "foo"^^tt:test_entity_parenttype1;
+
+====
+
+// Entity subtyping
+// ** expect TypeError **
+@com.test.entitysubtype1.sub(), "foo"^^tt:test_entity_parenttype1 == id;
+
+====
+
+// Entity subtyping
+@com.test.entitysubtype2.parent(), id == "foo"^^com.test.entitysubtype2:sub;
+@com.test.entitysubtype2.stuff(), contains(stuff, "foo"^^com.test.entitysubtype2:sub);
+@com.test.entitysubtype2.foo(param="foo"^^com.test.entitysubtype2:sub);
+@com.test.entitysubtype2.sub() => @com.test.entitysubtype2.foo(param=id);
+
+====
 // subquery:
 @com.spotify2.song() filter album == any([id] of @com.spotify2.album(), popularity >= 1);
 

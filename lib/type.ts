@@ -43,6 +43,8 @@ function normalizeUnit(unit : string) : string {
 export type TypeMap = ({ [key : string] : Type });
 export type TypeScope = ({ [key : string] : Type|string });
 
+export type EntitySubTypeMap = Record<string, string>;
+
 interface Hashable<T> {
     hash() : number;
     equals(other : T) : boolean;
@@ -136,10 +138,10 @@ export default abstract class Type implements Hashable<Type> {
         return type;
     }
 
-    static isAssignable(type : Type, assignableTo : Type|string, typeScope : TypeScope = {}, lenient = false) : boolean {
+    static isAssignable(type : Type, assignableTo : Type|string, typeScope : TypeScope = {}, entitySubTypeMap : EntitySubTypeMap = {}) : boolean {
         if (typeof assignableTo === 'string') {
             if (typeScope[assignableTo])
-                return Type.isAssignable(type, typeScope[assignableTo] as Type, typeScope, lenient);
+                return Type.isAssignable(type, typeScope[assignableTo] as Type, typeScope, entitySubTypeMap);
             typeScope[assignableTo] = type;
             return true;
         }
@@ -181,34 +183,28 @@ export default abstract class Type implements Hashable<Type> {
                     return true;
 
                 if (typeScope[assignableTo.elem])
-                    return Type.isAssignable(type.elem, typeScope[assignableTo.elem] as Type, typeScope, lenient);
+                    return Type.isAssignable(type.elem, typeScope[assignableTo.elem] as Type, typeScope, entitySubTypeMap);
                 typeScope[assignableTo.elem] = type.elem;
                 return true;
             }
             if (typeof type.elem === 'string') {
                 if (typeScope[type.elem])
-                    return Type.isAssignable(typeScope[type.elem] as Type, assignableTo.elem, typeScope, lenient);
+                    return Type.isAssignable(typeScope[type.elem] as Type, assignableTo.elem, typeScope, entitySubTypeMap);
                 typeScope[type.elem] = assignableTo.elem;
                 return true;
             }
             if (type.elem.isAny)
                 return true;
-            if (Type.isAssignable(type.elem, assignableTo.elem, typeScope, lenient))
+            if (Type.isAssignable(type.elem, assignableTo.elem, typeScope, entitySubTypeMap))
                 return true;
         }
         if (type instanceof ArrayType) {
             if (typeof type.elem === 'string')
                 return false;
             if (assignableTo instanceof EntityType && assignableTo.type === 'tt:contact_group')
-                return Type.isAssignable(type.elem, new Type.Entity('tt:contact'), typeScope, lenient);
+                return Type.isAssignable(type.elem, new Type.Entity('tt:contact'), typeScope, entitySubTypeMap);
         }
 
-        if (lenient && type.isEntity && assignableTo.isString)
-            return true;
-        if (lenient && type.isString && assignableTo.isEntity) {
-            //console.log('Using String for ' + assignableTo + ' is deprecated');
-            return true;
-        }
         if (type instanceof EnumType && assignableTo instanceof EnumType) {
             if (type.entries === null)
                 return true;
@@ -231,7 +227,7 @@ export default abstract class Type implements Hashable<Type> {
                     return true;
                 return false;
             }
-            if (entitySubType(type.type, assignableTo.type))
+            if (entitySubType(type.type, assignableTo.type, entitySubTypeMap))
                 return true;
         }
         return false;
@@ -525,15 +521,17 @@ function arrayEquals(a : unknown[]|null, b : unknown[]|null) : boolean {
     return true;
 }
 
-function entitySubType(type : string, assignableTo : string) : boolean {
-    if (type === 'tt:username' || type === 'tt:contact_name') {
-        return assignableTo === 'tt:phone_number' ||
-            assignableTo === 'tt:email_address' ||
-            assignableTo === 'tt:contact';
-    }
-    if (type === 'tt:contact_group_name')
-        return assignableTo === 'tt:contact_group';
-    if (type === 'tt:picture_url')
-        return assignableTo === 'tt:url';
-    return false;
+const DEFAULT_ENTITY_SUB_TYPE : Record<string, string> = {
+    'tt:picture': 'tt:url'
+};
+
+function entitySubType(type : string, assignableTo : string, entitySubTypeMap : EntitySubTypeMap) : boolean {
+    if (type === assignableTo)
+        return true;
+
+    const parent = entitySubTypeMap[type] || DEFAULT_ENTITY_SUB_TYPE[type];
+    if (parent)
+        return entitySubType(parent, assignableTo, entitySubTypeMap);
+    else
+        return false;
 }
