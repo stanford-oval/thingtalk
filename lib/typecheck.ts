@@ -467,7 +467,7 @@ export default class TypeChecker {
         if (ast instanceof Ast.ComparisonSubqueryBooleanExpression) {
             const type_lhs = await this._typeCheckValue(ast.lhs, scope);
             const type_rhs = await this._typeCheckSubqueryValue(ast.rhs, scope);
-            ast.overload = this._resolveFilterOverload(type_lhs, ast.operator, type_rhs);
+            ast.overload = await this._resolveFilterOverload(type_lhs, ast.operator, type_rhs);
             return;
         }
 
