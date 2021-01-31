@@ -23,7 +23,8 @@ import NodeVisitor from './visitor';
 
 import type {
     Invocation,
-    ExternalBooleanExpression
+    ExternalBooleanExpression,
+    ComparisonSubqueryBooleanExpression
 } from './expression';
 import type { Value } from './values';
 import type {
@@ -68,7 +69,8 @@ export type Primitive = Invocation |
     VarRefAction |
     VarRefStream |
     FunctionCallExpression |
-    ExternalBooleanExpression;
+    ExternalBooleanExpression |
+    ComparisonSubqueryBooleanExpression;
 
 export function implAnnotationsToSource(map : AnnotationMap, prefix = '\n') : TokenStream {
     let syntax : TokenStream = List.Nil;
@@ -238,6 +240,9 @@ export default abstract class Node {
             }
             visitExternalBooleanExpression(node : ExternalBooleanExpression) {
                 buffer.push(['filter', node]);
+                return true;
+            }
+            visitComparisonSubqueryBooleanExpression(node : ComparisonSubqueryBooleanExpression) {
                 return true;
             }
         };

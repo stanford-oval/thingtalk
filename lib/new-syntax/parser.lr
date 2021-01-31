@@ -1094,6 +1094,9 @@ comparison_filter : Ast.BooleanExpression = {
         else
             return new Ast.BooleanExpression.Compute($.location, lhs, op, rhs);
     };
+
+    lhs:filter_lhs_add_expr op:comparison_op 'any' '(' rhs:projection_expression ')' =>
+        new Ast.BooleanExpression.ComparisonSubquery($.location, lhs, op, rhs);
 }
 
 non_ambiguous_unary_filter : Ast.BooleanExpression = {
@@ -1205,7 +1208,8 @@ atom_filter : Ast.BooleanExpression = {
             return new Ast.BooleanExpression.Compute($.location, lhs, op, rhs);
     };
 
-    // TODO subqueries
+    op:function_like_comparison_op '(' lhs:value ',' 'any' '(' rhs:projection_expression ')' ')' =>
+        new Ast.BooleanExpression.ComparisonSubquery($.location, lhs, op, rhs);
 
     'any' '(' inv:thingpedia_call 'filter' filter:or_filter ')' =>
         new Ast.BooleanExpression.External($.location, inv.selector, inv.channel, inv.in_params, filter, null);

@@ -266,6 +266,12 @@ export default abstract class NodeVisitor {
     visitComputeBooleanExpression(node : Exp.ComputeBooleanExpression) : boolean {
         return true;
     }
+    /* istanbul ignore next */
+    visitComparisonSubqueryBooleanExpression(node : Exp.ComparisonSubqueryBooleanExpression) : boolean {
+        return true;
+    }
+
+
 
     // streams, tables, actions
     /* istanbul ignore next */

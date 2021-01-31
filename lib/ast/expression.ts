@@ -24,6 +24,7 @@ import Node, { SourceRange } from './base';
 import NodeVisitor from './visitor';
 import { FunctionDef } from './function_def';
 import { Value } from './values';
+import { Expression } from './expression2';
 
 import Type from '../type';
 import * as Optimizer from '../optimize';
@@ -391,6 +392,7 @@ export class Invocation extends Node {
  * @property {boolean} isAtom - true if this is an instance of {@link Ast.BooleanExpression.Atom}
  * @property {boolean} isNot - true if this is an instance of {@link Ast.BooleanExpression.Not}
  * @property {boolean} isExternal - true if this is an instance of {@link Ast.BooleanExpression.External}
+ * @property {boolean} isComparisonSubquery - true if is an instance of {@link Ast.BooleanExpression.ComparisonSubquery}
  * @property {boolean} isTrue - true if this is {@link Ast.BooleanExpression.True}
  * @property {boolean} isFalse - true if this is {@link Ast.BooleanExpression.False}
  * @property {boolean} isCompute - true if this is {@link Ast.BooleanExpression.Compute}
@@ -406,6 +408,8 @@ export abstract class BooleanExpression extends Node {
     isNot ! : boolean;
     static External : any;
     isExternal ! : boolean;
+    static ComparisonSubquery : any;
+    isComparisonSubquery ! : boolean;
     static True : any;
     isTrue ! : boolean;
     static False : any;
@@ -445,6 +449,7 @@ BooleanExpression.prototype.isOr = false;
 BooleanExpression.prototype.isAtom = false;
 BooleanExpression.prototype.isNot = false;
 BooleanExpression.prototype.isExternal = false;
+BooleanExpression.prototype.isComparisonSubquery = false;
 BooleanExpression.prototype.isTrue = false;
 BooleanExpression.prototype.isFalse = false;
 BooleanExpression.prototype.isCompute = false;
@@ -454,7 +459,7 @@ interface EqualsComparable {
     equals(x : unknown) : boolean;
 }
 
-function arrayEquals<T extends EqualsComparable>(a1 : T[], a2 : T[]) : boolean {
+export function arrayEquals<T extends EqualsComparable>(a1 : T[], a2 : T[]) : boolean {
     if (a1 === a2)
         return true;
     if (a1.length !== a2.length)
@@ -918,6 +923,97 @@ export class ExternalBooleanExpression extends BooleanExpression {
 }
 BooleanExpression.External = ExternalBooleanExpression;
 BooleanExpression.External.prototype.isExternal = true;
+
+
+/**
+ * A boolean expression that calls a Thingpedia query function
+ * and compares the result with another value.
+ *
+ * @alias Ast.BooleanExpression.ComparisonSubquery
+ * @extends Ast.BooleanExpression
+ */
+export class ComparisonSubqueryBooleanExpression extends BooleanExpression {
+    lhs : Value;
+    rhs : Expression;
+    operator : string;
+    overload : Type[]|null;
+
+    /**
+     * Construct a new external boolean expression.
+     *
+     * @param location
+     * @param lhs - the parameter name to compare
+     * @param operator - the comparison operator
+     * @param rhs - a projection subquery which returns one field
+     * @param overload - type overload
+     */
+    constructor(location : SourceRange|null,
+                lhs : Value,
+                operator : string,
+                rhs : Expression,
+                overload : Type[]|null) {
+        super(location);
+
+        this.lhs =lhs;
+        this.rhs = rhs;
+        this.operator = operator;
+        this.overload = overload;
+    }
+
+    get priority() : SyntaxPriority {
+        return SyntaxPriority.Primary;
+    }
+
+    toSource() : TokenStream {
+        return List.concat(this.lhs.toSource(), this.operator, 'any', '(', this.rhs.toSource(), ')');
+    }
+
+    toString() : string {
+        return `ComparisonSubquery(${this.lhs}, ${this.operator}, ${this.rhs})`;
+    }
+
+    equals(other : BooleanExpression) : boolean {
+        return other instanceof ComparisonSubqueryBooleanExpression &&
+            this.lhs.equals(other.lhs) &&
+            this.operator === other.operator &&
+            this.rhs.equals(other.rhs);
+    }
+
+    visit(visitor : NodeVisitor) : void {
+        visitor.enter(this);
+        if (visitor.visitComparisonSubqueryBooleanExpression(this)) {
+            this.lhs.visit(visitor);
+            this.rhs.visit(visitor);
+        }
+        visitor.exit(this);
+    }
+
+    clone() : ComparisonSubqueryBooleanExpression {
+        return new ComparisonSubqueryBooleanExpression(
+            this.location,
+            this.lhs.clone(),
+            this.operator,
+            this.rhs.clone(),
+            this.overload
+        );
+    }
+
+    *iterateSlots(schema : FunctionDef|null,
+                  prim : InvocationLike|null,
+                  scope : ScopeMap) : Generator<OldSlot, void> {
+        // XXX this API cannot support comparison subquery expressions
+    }
+
+    *iterateSlots2(schema : FunctionDef|null,
+                   prim : InvocationLike|null,
+                   scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
+        const [resolvedLhs, ] = this.overload || [null, null];
+        yield* recursiveYieldArraySlots(new FieldSlot(prim, scope, resolvedLhs || this.lhs.getType(), this, 'comparison_subquery_filter', 'lhs'));
+        yield* this.rhs.iterateSlots2(scope);
+    }
+}
+BooleanExpression.ComparisonSubquery = ComparisonSubqueryBooleanExpression;
+BooleanExpression.ComparisonSubquery.prototype.isComparisonSubquery = true;
 
 /**
  * A boolean expression that expresses that the user does not care about a specific parameter.

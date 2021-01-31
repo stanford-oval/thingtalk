@@ -1864,3 +1864,22 @@ now => @com.facebook.post();
 @com.test.entitysubtype2.stuff(), contains(stuff, "foo"^^com.test.entitysubtype2:sub);
 @com.test.entitysubtype2.foo(param="foo"^^com.test.entitysubtype2:sub);
 @com.test.entitysubtype2.sub() => @com.test.entitysubtype2.foo(param=id);
+
+====
+// subquery:
+@com.spotify2.song() filter album == any([id] of @com.spotify2.album(), popularity >= 1);
+
+====
+
+// ** expect TypeError **
+@com.spotify2.song() filter album == any(@com.spotify2.album());
+
+====
+
+// ** expect TypeError **
+@com.spotify2.song() filter album == any([popularity] of @com.spotify2.album());
+
+====
+
+// compute subquery
+@com.uber.price_estimate() filter distance <= any([distance(location, new Location(1, 2))] of @org.thingpedia.builtin.thingengine.builtin.get_gps());

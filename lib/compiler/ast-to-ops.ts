@@ -23,7 +23,14 @@ import * as Ast from '../ast';
 import { NotImplementedError } from '../utils/errors';
 import { getScalarExpressionName } from '../utils';
 
-import { PointWiseOp, StreamOp, TableOp, RuleOp, QueryInvocationHints } from './ops';
+import {
+    PointWiseOp,
+    StreamOp,
+    TableOp,
+    RuleOp,
+    QueryInvocationHints,
+    BooleanExpressionOp
+} from './ops';
 import * as Ops from './ops';
 // YES there are two different modules called utils
 // because of course
@@ -129,7 +136,7 @@ function compileMonitorTableToOps(table : Ast.Table,
         hintsclone.filter = new Ast.BooleanExpression.And(null, [table.filter, hints.filter]);
         return new StreamOp.Filter(
             compileMonitorTableToOps(table.table, hintsclone),
-            table.filter,
+            compileBooleanExpressionToOp(table.filter),
             table
         );
     } else if (table instanceof Ast.ProjectionTable) {
@@ -252,7 +259,7 @@ function compileStreamToOps(stream : Ast.Stream,
         //
         // we do it for StreamFilter, because Filter(Monitor) === Monitor(Filter)
         const op = compileStreamToOps(stream.stream, hintsclone);
-        return new StreamOp.EdgeFilter(op, stream.filter, stream);
+        return new StreamOp.EdgeFilter(op, compileBooleanExpressionToOp(stream.filter), stream);
     } else if (stream instanceof Ast.FilteredStream) {
         const schema = stream.schema;
         assert(schema);
@@ -260,7 +267,7 @@ function compileStreamToOps(stream : Ast.Stream,
         addAll(hintsclone.projection, getExpressionParameters(stream.filter, schema));
         hintsclone.filter = new Ast.BooleanExpression.And(null, [stream.filter, hints.filter]);
         const op = compileStreamToOps(stream.stream, hintsclone);
-        return new StreamOp.Filter(op, stream.filter, stream);
+        return new StreamOp.Filter(op, compileBooleanExpressionToOp(stream.filter), stream);
     } else if (stream instanceof Ast.ProjectionStream) {
         // NOTE: there is a tricky case of nested projection that looks like
         // Projection(Filter(Projection(x, [a, b, c]), use(c)), [a, b])
@@ -331,7 +338,7 @@ function compileTableToOps(table : Ast.Table,
         const compiled = compileTableToOps(table.table, extra_in_params, hintsclone);
         return new TableOp.Filter(
             compiled,
-            table.filter,
+            compileBooleanExpressionToOp(table.filter),
             compiled.device,
             compiled.handle_thingtalk,
             table
@@ -730,8 +737,75 @@ function compileStatementToOp(statement : Ast.Rule|Ast.Command) : RuleOp {
     return new RuleOp(streamop, statement.actions, statement);
 }
 
+function compileBooleanExpressionToOp(expr : Ast.BooleanExpression) : BooleanExpressionOp {
+    if (expr instanceof Ast.AtomBooleanExpression)
+        return new BooleanExpressionOp.Atom(expr, new Ast.Value.VarRef(expr.name), expr.operator, expr.value, expr.overload);
+
+    if (expr instanceof Ast.NotBooleanExpression)
+        return new BooleanExpressionOp.Not(expr, compileBooleanExpressionToOp(expr.expr));
+
+    if (expr instanceof Ast.AndBooleanExpression) {
+        return new BooleanExpressionOp.And(
+            expr,
+            expr.operands.map((operand) => compileBooleanExpressionToOp(operand))
+        );
+    }
+
+    if (expr instanceof Ast.OrBooleanExpression) {
+        return new BooleanExpressionOp.Or(
+            expr,
+            expr.operands.map((operand) => compileBooleanExpressionToOp(operand))
+        );
+    }
+
+    if (expr instanceof Ast.ExternalBooleanExpression) {
+        return new BooleanExpressionOp.External(
+            expr,
+            expr.selector,
+            expr.channel,
+            expr.in_params,
+            compileBooleanExpressionToOp(expr.filter),
+            expr.schema,
+            expr.__effectiveSelector
+        );
+    }
+
+    if (expr instanceof Ast.ComparisonSubqueryBooleanExpression) {
+        assert(expr.rhs instanceof Ast.ProjectionExpression && expr.rhs.args.length + expr.rhs.computations.length === 1);
+        let rhs, hints;
+        if (expr.rhs.args.length) {
+            rhs = expr.rhs.args[0];
+            hints = new QueryInvocationHints(new Set(expr.rhs.args));
+        } else {
+            rhs = expr.rhs.aliases[0] || getScalarExpressionName(expr.rhs.computations[0]);
+            hints = new QueryInvocationHints(new Set([rhs]));
+        }
+        const subquery = compileTableToOps(expr.rhs.toLegacy() as Ast.Table, [], hints);
+        return new BooleanExpressionOp.ComparisonSubquery(
+            expr,
+            expr.lhs,
+            expr.operator,
+            new Ast.Value.VarRef(rhs),
+            subquery,
+            expr.overload
+        );
+    }
+
+    if (expr === Ast.BooleanExpression.True || expr instanceof Ast.DontCareBooleanExpression)
+        return BooleanExpressionOp.True;
+
+    if (expr === Ast.BooleanExpression.False)
+        return BooleanExpressionOp.False;
+
+    if (expr instanceof Ast.ComputeBooleanExpression)
+        return new BooleanExpressionOp.Atom(expr, expr.lhs, expr.operator, expr.rhs, expr.overload);
+
+    throw new TypeError();
+}
+
 export {
     compileStatementToOp,
     compileStreamToOps,
-    compileTableToOps
+    compileTableToOps,
+    compileBooleanExpressionToOp
 };

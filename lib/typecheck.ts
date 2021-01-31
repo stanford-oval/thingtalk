@@ -464,6 +464,13 @@ export default class TypeChecker {
             return;
         }
 
+        if (ast instanceof Ast.ComparisonSubqueryBooleanExpression) {
+            const type_lhs = await this._typeCheckValue(ast.lhs, scope);
+            const type_rhs = await this._typeCheckSubqueryValue(ast.rhs, scope);
+            ast.overload = this._resolveFilterOverload(type_lhs, ast.operator, type_rhs);
+            return;
+        }
+
         assert(ast instanceof Ast.ExternalBooleanExpression);
         if (ast.schema === null)
             await this._loadTpSchema(ast);
@@ -471,6 +478,22 @@ export default class TypeChecker {
             throw new TypeError(`Subquery function must be a query, not ${ast.schema!.functionType}`);
         await this._typeCheckInputArgs(ast, ast.schema!, scope);
         await this._typeCheckFilterHelper(ast.filter, ast.schema, scope);
+    }
+
+    private async _typeCheckSubqueryValue(expr : Ast.Expression, scope : Scope) {
+        if (!(expr instanceof Ast.ProjectionExpression))
+            throw new TypeError('Subquery function must be a projection');
+        if (expr.args.length + expr.computations.length !== 1)
+            throw new TypeError('Subquery function must be a projection with one field');
+
+        await this._typeCheckExpression(expr, scope);
+        this._checkExpressionType(expr, ['query'], 'projection');
+        if (expr.args.length)
+            return expr.schema!.getArgType(expr.args[0])!;
+        else
+            return this._typeCheckValue(expr.computations[0], scope);
+
+
     }
 
     private async _resolveAggregationOverload(ast : Ast.AggregationTable|Ast.AggregationExpression,
