@@ -9059,6 +9059,457 @@ const TEST_CASES = [
     __env.reportError("Failed to invoke trigger", _exc_);
   }`]
    ],
+
+    // 103 comparison subquery 1
+   [`@com.spotify2.album() filter popularity >= any([energy] of @com.spotify2.song());`,
+   [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  let _t_25;
+  let _t_26;
+  let _t_27;
+  let _t_28;
+  await __env.enterProcedure(0, null);
+  try {
+    try {
+      _t_0 = {};
+      _t_1 = await __env.invokeQuery("com.spotify2", { }, "album", _t_0, { projection: ["id", "artists", "release_date", "popularity"] });
+      _t_2 = __builtin.getAsyncIterator(_t_1);
+      {
+        let _iter_tmp = await _t_2.next();
+        while (!_iter_tmp.done) {
+          _t_3 = _iter_tmp.value;
+          _t_4 = _t_3[0];
+          _t_5 = _t_3[1];
+          _t_6 = _t_5.__response;
+          _t_7 = _t_5.id;
+          _t_8 = _t_5.artists;
+          _t_9 = _t_5.release_date;
+          _t_10 = _t_5.popularity;
+          _t_11 = false;
+          try {
+            _t_12 = {};
+            _t_13 = await __env.invokeQuery("com.spotify2", { }, "song", _t_12, { projection: ["energy"] });
+            _t_14 = __builtin.getAsyncIterator(_t_13);
+            {
+              let _iter_tmp = await _t_14.next();
+              while (!_iter_tmp.done) {
+                _t_15 = _iter_tmp.value;
+                _t_16 = _t_15[0];
+                _t_17 = _t_15[1];
+                _t_18 = _t_17.__response;
+                _t_19 = _t_17.id;
+                _t_20 = _t_17.artists;
+                _t_21 = _t_17.album;
+                _t_22 = _t_17.genres;
+                _t_23 = _t_17.release_date;
+                _t_24 = _t_17.popularity;
+                _t_25 = _t_17.energy;
+                _t_26 = _t_17.danceability;
+                _t_27 = {};
+                _t_27.energy = _t_25;
+                _t_28 = _t_10 >= _t_25;
+                if (_t_28) {
+                  _t_11 = true;
+                  break;
+                } else {
+
+                }
+                _iter_tmp = await _t_14.next();
+              }
+            }
+          } catch(_exc_) {
+            __env.reportError("Failed to invoke query", _exc_);
+          }
+          if (_t_11) {
+            try {
+              await __env.output(String(_t_4), _t_5);
+            } catch(_exc_) {
+              __env.reportError("Failed to invoke action", _exc_);
+            }
+          } else {
+
+          }
+          _iter_tmp = await _t_2.next();
+        }
+      }
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke query", _exc_);
+    }
+  } finally {
+    await __env.exitProcedure(0, null);
+  }`]
+   ],
+
+    // 104 comparison subquery 2
+   [`@com.spotify2.song() filter album == any([id] of @com.spotify2.album());`,
+   [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  let _t_25;
+  let _t_26;
+  let _t_27;
+  let _t_28;
+  await __env.enterProcedure(0, null);
+  try {
+    try {
+      _t_0 = {};
+      _t_1 = await __env.invokeQuery("com.spotify2", { }, "song", _t_0, { projection: ["id", "artists", "album", "genres", "release_date", "popularity", "energy", "danceability"] });
+      _t_2 = __builtin.getAsyncIterator(_t_1);
+      {
+        let _iter_tmp = await _t_2.next();
+        while (!_iter_tmp.done) {
+          _t_3 = _iter_tmp.value;
+          _t_4 = _t_3[0];
+          _t_5 = _t_3[1];
+          _t_6 = _t_5.__response;
+          _t_7 = _t_5.id;
+          _t_8 = _t_5.artists;
+          _t_9 = _t_5.album;
+          _t_10 = _t_5.genres;
+          _t_11 = _t_5.release_date;
+          _t_12 = _t_5.popularity;
+          _t_13 = _t_5.energy;
+          _t_14 = _t_5.danceability;
+          _t_15 = false;
+          try {
+            _t_16 = {};
+            _t_17 = await __env.invokeQuery("com.spotify2", { }, "album", _t_16, { projection: ["id"] });
+            _t_18 = __builtin.getAsyncIterator(_t_17);
+            {
+              let _iter_tmp = await _t_18.next();
+              while (!_iter_tmp.done) {
+                _t_19 = _iter_tmp.value;
+                _t_20 = _t_19[0];
+                _t_21 = _t_19[1];
+                _t_22 = _t_21.__response;
+                _t_23 = _t_21.id;
+                _t_24 = _t_21.artists;
+                _t_25 = _t_21.release_date;
+                _t_26 = _t_21.popularity;
+                _t_27 = {};
+                _t_27.id = _t_23;
+                _t_28 = __builtin.equality(_t_9, _t_23);
+                if (_t_28) {
+                  _t_15 = true;
+                  break;
+                } else {
+
+                }
+                _iter_tmp = await _t_18.next();
+              }
+            }
+          } catch(_exc_) {
+            __env.reportError("Failed to invoke query", _exc_);
+          }
+          if (_t_15) {
+            try {
+              await __env.output(String(_t_4), _t_5);
+            } catch(_exc_) {
+              __env.reportError("Failed to invoke action", _exc_);
+            }
+          } else {
+
+          }
+          _iter_tmp = await _t_2.next();
+        }
+      }
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke query", _exc_);
+    }
+  } finally {
+    await __env.exitProcedure(0, null);
+  }`]
+   ],
+
+    // 105 comparison subquery with sort
+   [`@com.spotify2.song() filter album == any([id] of sort(release_date desc of @com.spotify2.album())[1]);`,
+   [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  let _t_25;
+  let _t_26;
+  let _t_27;
+  let _t_28;
+  let _t_29;
+  let _t_30;
+  let _t_31;
+  let _t_32;
+  let _t_33;
+  let _t_34;
+  let _t_35;
+  let _t_36;
+  let _t_37;
+  let _t_38;
+  await __env.enterProcedure(0, null);
+  try {
+    try {
+      _t_0 = {};
+      _t_1 = await __env.invokeQuery("com.spotify2", { }, "song", _t_0, { projection: ["id", "artists", "album", "genres", "release_date", "popularity", "energy", "danceability"] });
+      _t_2 = __builtin.getAsyncIterator(_t_1);
+      {
+        let _iter_tmp = await _t_2.next();
+        while (!_iter_tmp.done) {
+          _t_3 = _iter_tmp.value;
+          _t_4 = _t_3[0];
+          _t_5 = _t_3[1];
+          _t_6 = _t_5.__response;
+          _t_7 = _t_5.id;
+          _t_8 = _t_5.artists;
+          _t_9 = _t_5.album;
+          _t_10 = _t_5.genres;
+          _t_11 = _t_5.release_date;
+          _t_12 = _t_5.popularity;
+          _t_13 = _t_5.energy;
+          _t_14 = _t_5.danceability;
+          _t_15 = false;
+          _t_16 = false;
+          _t_17 = -Infinity;
+          try {
+            _t_20 = {};
+            _t_21 = await __env.invokeQuery("com.spotify2", { }, "album", _t_20, { projection: ["id"], sort: ["release_date", "desc"], limit: 1 });
+            _t_22 = __builtin.getAsyncIterator(_t_21);
+            {
+              let _iter_tmp = await _t_22.next();
+              while (!_iter_tmp.done) {
+                _t_23 = _iter_tmp.value;
+                _t_24 = _t_23[0];
+                _t_25 = _t_23[1];
+                _t_26 = _t_25.__response;
+                _t_27 = _t_25.id;
+                _t_28 = _t_25.artists;
+                _t_29 = _t_25.release_date;
+                _t_30 = _t_25.popularity;
+                _t_31 = _t_17 < _t_29;
+                if (_t_31) {
+                  _t_17 = _t_29;
+                  _t_18 = _t_25;
+                  _t_19 = _t_24;
+                  _t_16 = true;
+                } else {
+
+                }
+                _iter_tmp = await _t_22.next();
+              }
+            }
+          } catch(_exc_) {
+            __env.reportError("Failed to invoke query", _exc_);
+          }
+          if (_t_16) {
+            _t_32 = _t_18.__response;
+            _t_33 = _t_18.id;
+            _t_34 = _t_18.artists;
+            _t_35 = _t_18.release_date;
+            _t_36 = _t_18.popularity;
+            _t_37 = {};
+            _t_37.id = _t_33;
+            _t_38 = __builtin.equality(_t_9, _t_33);
+            if (_t_38) {
+              _t_15 = true;
+              break;
+            } else {
+
+            }
+          } else {
+
+          }
+          if (_t_15) {
+            try {
+              await __env.output(String(_t_4), _t_5);
+            } catch(_exc_) {
+              __env.reportError("Failed to invoke action", _exc_);
+            }
+          } else {
+
+          }
+          _iter_tmp = await _t_2.next();
+        }
+      }
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke query", _exc_);
+    }
+  } finally {
+    await __env.exitProcedure(0, null);
+  }`]
+   ],
+
+    // 106 comparison subquery with sort
+    [`@gov.nasa.asteroid() filter distance <= any([distance(location, new Location(1, 2))] of @org.thingpedia.builtin.thingengine.builtin.get_gps());`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  let _t_25;
+  let _t_26;
+  let _t_27;
+  let _t_28;
+  let _t_29;
+  let _t_30;
+  await __env.enterProcedure(0, null);
+  try {
+    try {
+      _t_0 = {};
+      _t_1 = await __env.invokeQuery("gov.nasa", { }, "asteroid", _t_0, { projection: ["asteroid_id", "name", "estimated_diameter_min", "estimated_diameter_max", "is_dangerous", "relative_velocity", "distance", "orbiting_body"] });
+      _t_2 = __builtin.getAsyncIterator(_t_1);
+      {
+        let _iter_tmp = await _t_2.next();
+        while (!_iter_tmp.done) {
+          _t_3 = _iter_tmp.value;
+          _t_4 = _t_3[0];
+          _t_5 = _t_3[1];
+          _t_6 = _t_5.__response;
+          _t_7 = _t_5.asteroid_id;
+          _t_8 = _t_5.name;
+          _t_9 = _t_5.estimated_diameter_min;
+          _t_10 = _t_5.estimated_diameter_max;
+          _t_11 = _t_5.is_dangerous;
+          _t_12 = _t_5.relative_velocity;
+          _t_13 = _t_5.distance;
+          _t_14 = _t_5.orbiting_body;
+          _t_15 = false;
+          try {
+            _t_16 = {};
+            _t_17 = await __env.invokeQuery("org.thingpedia.builtin.thingengine.builtin", { }, "get_gps", _t_16, { projection: ["distance", "location"] });
+            _t_18 = __builtin.getAsyncIterator(_t_17);
+            {
+              let _iter_tmp = await _t_18.next();
+              while (!_iter_tmp.done) {
+                _t_19 = _iter_tmp.value;
+                _t_20 = _t_19[0];
+                _t_21 = _t_19[1];
+                _t_22 = _t_21.__response;
+                _t_23 = _t_21.location;
+                _t_24 = _t_21.altitude;
+                _t_25 = _t_21.bearing;
+                _t_26 = _t_21.speed;
+                _t_27 = new __builtin.Location(1, 2, null);
+                _t_28 = __builtin.distance(_t_23, _t_27);
+                _t_21.distance = _t_28;
+                _t_29 = {};
+                _t_29.distance = _t_28;
+                _t_30 = _t_13 <= _t_28;
+                if (_t_30) {
+                  _t_15 = true;
+                  break;
+                } else {
+
+                }
+                _iter_tmp = await _t_18.next();
+              }
+            }
+          } catch(_exc_) {
+            __env.reportError("Failed to invoke query", _exc_);
+          }
+          if (_t_15) {
+            try {
+              await __env.output(String(_t_4), _t_5);
+            } catch(_exc_) {
+              __env.reportError("Failed to invoke action", _exc_);
+            }
+          } else {
+
+          }
+          _iter_tmp = await _t_2.next();
+        }
+      }
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke query", _exc_);
+    }
+  } finally {
+    await __env.exitProcedure(0, null);
+  }`]
+    ],
 ];
 
 // eslint-disable-next-line prefer-arrow-callback

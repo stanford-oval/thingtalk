@@ -26,7 +26,8 @@ import {
     Invocation,
     DeviceSelector,
     InputParam,
-    BooleanExpression
+    BooleanExpression,
+    arrayEquals
 } from './expression';
 import * as legacy from './primitive';
 import {
@@ -55,6 +56,19 @@ import {
 } from './syntax_priority';
 import { getScalarExpressionName } from '../utils';
 
+function primitiveArrayEquals<T>(a1 : T[]|null, a2 : T[]|null) : boolean {
+    if (a1 === a2)
+        return true;
+    if (!a1 || !a2)
+        return false;
+    if (a1.length !== a2.length)
+        return false;
+    for (let i = 0; i < a1.length; i++) {
+        if (a1[i] !== a2[i])
+            return false;
+    }
+    return true;
+}
 
 /**
  * A stream, table, or action expression.
@@ -74,6 +88,7 @@ export abstract class Expression extends Node {
     abstract toLegacy(into_params ?: InputParam[], scope_params ?: string[]) : legacy.Stream|legacy.Table|legacy.Action;
     abstract clone() : Expression;
     abstract toSource() : TokenStream;
+    abstract equals(other : Expression) : boolean;
 
     optimize() : Expression {
         return this;
@@ -136,6 +151,12 @@ export class FunctionCallExpression extends Expression {
 
     toSource() : TokenStream {
         return List.concat(this.name, '(', List.join(this.in_params.map((ip) => ip.toSource()), ','), ')');
+    }
+
+    equals(other : Expression) : boolean {
+        return other instanceof FunctionCallExpression &&
+            this.name === other.name &&
+            arrayEquals(this.in_params, other.in_params);
     }
 
     toLegacy(into_params : InputParam[] = [], scope_params : string[] = []) : legacy.VarRefTable|legacy.VarRefStream|legacy.TimerStream|legacy.AtTimerStream|legacy.VarRefAction {
@@ -216,6 +237,13 @@ export class InvocationExpression extends Expression {
         return this.invocation.toSource();
     }
 
+    equals(other : Expression) : boolean {
+        return other instanceof InvocationExpression &&
+            this.invocation.selector.equals(other.invocation.selector) &&
+            this.invocation.channel === other.invocation.channel &&
+            arrayEquals(this.invocation.in_params, other.invocation.in_params);
+    }
+
     toLegacy(into_params : InputParam[] = [], scope_params : string[] = []) : legacy.InvocationTable|legacy.InvocationAction {
         const schema = this.schema!;
         assert(schema.functionType !== 'stream');
@@ -275,6 +303,12 @@ export class FilterExpression extends Expression {
     toSource() : TokenStream {
         return List.concat(addParenthesis(this.priority, this.expression.priority,
             this.expression.toSource()), 'filter', this.filter.toSource());
+    }
+
+    equals(other : Expression) : boolean {
+        return other instanceof FilterExpression &&
+            this.expression.equals(other.expression) &&
+            this.filter.equals(other.filter);
     }
 
     toLegacy(into_params : InputParam[] = [], scope_params : string[] = []) : legacy.FilteredTable|legacy.EdgeFilterStream {
@@ -346,6 +380,12 @@ export class MonitorExpression extends Expression {
                 List.join(this.args.map((a) => List.singleton(a)), ','),
                 'of', this.expression.toSource(), ')');
         }
+    }
+
+    equals(other : Expression) : boolean {
+        return other instanceof MonitorExpression &&
+            this.expression.equals(other.expression) &&
+            primitiveArrayEquals(this.args, other.args);
     }
 
     toLegacy(into_params : InputParam[] = [], scope_params : string[] = []) : legacy.MonitorStream {
@@ -425,6 +465,13 @@ export class ProjectionExpression extends Expression {
 
         return List.concat('[', List.join(allprojections, ','), ']', 'of',
             addParenthesis(this.priority, this.expression.priority, this.expression.toSource()));
+    }
+
+    equals(other : Expression) : boolean {
+        return other instanceof ProjectionExpression &&
+            this.expression.equals(other.expression) &&
+            primitiveArrayEquals(this.args, other.args) &&
+            arrayEquals(this.computations, other.computations);
     }
 
     toLegacy(into_params : InputParam[] = [], scope_params : string[] = []) : legacy.Table|legacy.Stream {
@@ -525,6 +572,12 @@ export class AliasExpression extends Expression {
             this.expression.toSource()), 'as', this.name);
     }
 
+    equals(other : Expression) : boolean {
+        return other instanceof AliasExpression &&
+            this.expression.equals(other.expression) &&
+            this.name === other.name;
+    }
+
     toLegacy(into_params : InputParam[] = [], scope_params : string[] = []) : legacy.AliasTable|legacy.AliasStream {
         const el = this.expression.toLegacy(into_params, scope_params);
         if (el instanceof legacy.Table) {
@@ -602,6 +655,13 @@ export class AggregationExpression extends Expression {
         }
     }
 
+    equals(other : Expression) : boolean {
+        return other instanceof AggregationExpression &&
+            this.expression.equals(other.expression) &&
+            this.field === other.field &&
+            this.operator === other.operator;
+    }
+
     toLegacy(into_params : InputParam[] = [], scope_params : string[] = []) : legacy.AggregationTable {
         const el = this.expression.toLegacy(into_params, scope_params);
         assert(el instanceof legacy.Table);
@@ -663,6 +723,13 @@ export class SortExpression extends Expression {
     toSource() : TokenStream {
         return List.concat('sort', '(', this.value.toSource(), ' ', this.direction, 'of',
             this.expression.toSource(), ')');
+    }
+
+    equals(other : Expression) : boolean {
+        return other instanceof SortExpression &&
+            this.expression.equals(other.expression) &&
+            this.value.equals(other.value) &&
+            this.direction === other.direction;
     }
 
     toLegacy(into_params : InputParam[] = [], scope_params : string[] = []) : legacy.SortedTable {
@@ -733,6 +800,12 @@ export class IndexExpression extends Expression {
             '[', List.join(this.indices.map((i) => i.toSource()), ','), ']');
     }
 
+    equals(other : Expression) : boolean {
+        return other instanceof IndexExpression &&
+            this.expression.equals(other.expression) &&
+            arrayEquals(this.indices, other.indices);
+    }
+
     toLegacy(into_params : InputParam[] = [], scope_params : string[] = []) : legacy.IndexTable {
         const el = this.expression.toLegacy(into_params, scope_params);
         assert(el instanceof legacy.Table);
@@ -799,6 +872,13 @@ export class SliceExpression extends Expression {
     toSource() : TokenStream {
         return List.concat(addParenthesis(this.priority, this.expression.priority, this.expression.toSource()),
             '[', this.base.toSource(), ':', this.limit.toSource(), ']');
+    }
+
+    equals(other : Expression) : boolean {
+        return other instanceof SliceExpression &&
+            this.expression.equals(other.expression) &&
+            this.base.equals(other.base) &&
+            this.limit.equals(other.limit);
     }
 
     toLegacy(into_params : InputParam[] = [], scope_params : string[] = []) : legacy.SlicedTable {
@@ -904,6 +984,11 @@ export class ChainExpression extends Expression {
 
     toSource() : TokenStream {
         return List.join(this.expressions.map((exp) => exp.toSource()), '=>');
+    }
+
+    equals(other : Expression) : boolean {
+        return other instanceof ChainExpression &&
+            arrayEquals(this.expressions, other.expressions);
     }
 
     toLegacy(into_params : InputParam[] = [], scope_params : string[] = []) : legacy.Stream|legacy.Table|legacy.Action {

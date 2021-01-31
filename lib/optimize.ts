@@ -206,6 +206,9 @@ function optimizeFilter(expr : Ast.BooleanExpression) : Ast.BooleanExpression {
         }
         return expr;
     }
+    if (expr instanceof Ast.ComparisonSubqueryBooleanExpression)
+        return new Ast.BooleanExpression.ComparisonSubquery(null, expr.lhs, expr.operator, optimizeExpression(expr.rhs));
+
     assert(expr instanceof Ast.AtomBooleanExpression);
 
     const lhs = expr.name;
