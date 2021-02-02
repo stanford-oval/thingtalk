@@ -219,12 +219,6 @@ export default class OpCompiler {
             return result;
         }
 
-        if (ast instanceof Ast.ContextRefValue) {
-            const reg = this._irBuilder.allocRegister();
-            this._irBuilder.add(new JSIr.LoadContext(ast, reg));
-            return reg;
-        }
-
         if (ast instanceof Ast.ArrayValue) {
             const array = this._irBuilder.allocRegister();
             this._irBuilder.add(new JSIr.CreateTuple(ast.value.length, array));

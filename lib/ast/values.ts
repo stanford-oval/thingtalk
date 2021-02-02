@@ -986,7 +986,9 @@ export class ContextRefValue extends Value {
     }
 
     toSource() : TokenStream {
-        return List.concat('$context', '.', this.name, ':', this.type.toSource());
+        return List.concat('$context', '.',
+            List.join(this.name.split('.').map((n) => List.singleton(n)), '.'),
+            ':', this.type.toSource());
     }
 
     toString() : string {
@@ -1008,6 +1010,10 @@ export class ContextRefValue extends Value {
     }
 
     isConstant() : boolean {
+        return false;
+    }
+
+    isConcrete() : boolean {
         return false;
     }
 

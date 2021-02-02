@@ -1293,7 +1293,7 @@ event_value : Ast.EventValue = {
 }
 
 context_value : Ast.ContextRefValue = {
-    '$context' '.' name:variable_name type:type_annot => new Ast.Value.ContextRef(name, type);
+    '$context' '.' name:qualified_name type:type_annot => new Ast.Value.ContextRef(name, type);
 }
 
 array_value : Ast.ArrayValue = {

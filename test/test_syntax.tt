@@ -1838,7 +1838,6 @@ now => @com.facebook.post();
 @org.schema.full.Place() filter count(review) >= __const_NUMBER_0;
 
 ====
-
 // Entity subtyping
 @com.test.entitysubtype1.parent(), id == "foo"^^tt:test_entity_subtype1;
 @com.test.entitysubtype1.stuff(), contains(stuff, "foo"^^tt:test_entity_subtype1);
@@ -1883,3 +1882,9 @@ now => @com.facebook.post();
 
 // compute subquery
 @com.uber.price_estimate() filter distance <= any([distance(location, new Location(1, 2))] of @org.thingpedia.builtin.thingengine.builtin.get_gps());
+
+====
+// $context.result
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+@com.thecatapi.get();
+@com.twitter.post_picture(picture_url=$context.result.picture_url : Entity(tt:picture));
