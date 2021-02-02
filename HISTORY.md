@@ -1,3 +1,33 @@
+2.0.0-alpha.2
+=============
+
+* New syntax: comparison subqueries. These have the form of:
+  ```
+  v1 op any([v2] of @dn.fn())
+  ```
+  They are an alternative to existential subqueries that avoids some
+  of the scoping issues of existential subqueries. Currently, only
+  projection is supported inside the subquery, and no parameters can be
+  passed from outside query. We plan to lift this restriction in the
+  future.
+* New syntax: entity inheritance [#296].
+  Entity types can be made to subtype each other with the syntax
+  ```
+  entity e1 extends e2;
+  ```
+  inside a class declaration [#294].
+* `$context` values are no longer compilable. ThingTalk API users must
+  ensure these values are replaced by concrete values before executing
+  a ThingTalk program.
+* All natural language and internationalization code was removed from
+  ThingTalk, and moved to the Genie Toolkit. This includes the entirety
+  of the Describe module, that was formerly responsible for converting
+  ThingTalk to natural language. Gettext is no longer required to
+  build ThingTalk [#288].
+* Parsing of ThingTalk code was optimized and is now much faster [#287].
+* Misc bug fixes [#286].
+* Updated dependencies [#285, #291, #292, #301, #302, #303, #304, #305].
+
 2.0.0-alpha.1
 =============
 

@@ -36,7 +36,7 @@ import * as Builtin from './builtin';
  * @type {string}
  * @alias version
  */
-const version = '2.0.0-alpha.1';
+const version = '2.0.0-alpha.2';
 
 export {
     version,
