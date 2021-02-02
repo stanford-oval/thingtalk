@@ -183,18 +183,6 @@ const TEST_CASES = [
   true : now => @com.twitter.post filter status =~ "foo";
 }`],
 
-    [`policy param:source:Entity(tt:contact) == USERNAME_0 : now => @com.twitter.post`,
-    `USERNAME_0 can post on twitter`, { USERNAME_0: 'bob' },
-    `$policy {
-  $source == "bob"^^tt:username : now => @com.twitter.post;
-}`],
-
-    [`policy param:source:Entity(tt:contact) == USERNAME_0 : now => @com.twitter.post filter param:status:String =~ QUOTED_STRING_0`,
-    `USERNAME_0 can post on twitter if he puts QUOTED_STRING_0 in the status`, { USERNAME_0: 'bob', QUOTED_STRING_0: 'foo' },
-    `$policy {
-  $source == "bob"^^tt:username : now => @com.twitter.post filter status =~ "foo";
-}`],
-
     [`policy true : @com.bing.web_search => notify`,
     `anyone can search on bing`, {},
     `$policy {

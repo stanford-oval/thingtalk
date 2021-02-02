@@ -1261,6 +1261,7 @@ export class MixinImportStmt extends Node {
 export class EntityDef extends Node {
     isEntityDef = true;
     name : string;
+    extends : string|null;
     nl_annotations : NLAnnotationMap;
     impl_annotations : AnnotationMap;
 
@@ -1269,18 +1270,23 @@ export class EntityDef extends Node {
      *
      * @param location - the position of this node in the source code
      * @param name - the entity name (the part after the ':')
+     * @param extends - the parent entity type, if any (this can be a fully qualified name with ':', or just the part after ':')
      * @param annotations - annotations of the entity type
      * @param [annotations.nl={}] - natural-language annotations (translatable annotations)
      * @param [annotations.impl={}] - implementation annotations
      */
     constructor(location : SourceRange|null,
                 name : string,
+                _extends : string|null,
                 annotations : AnnotationSpec) {
         super(location);
         /**
          * The entity name.
          */
         this.name = name;
+
+        this.extends = _extends;
+
         /**
          * The entity metadata (translatable annotations).
          */
@@ -1292,10 +1298,18 @@ export class EntityDef extends Node {
     }
 
     toSource() : TokenStream {
-        return List.concat('entity', ' ', this.name, '\t+',
-            nlAnnotationsToSource(this.nl_annotations),
-            implAnnotationsToSource(this.impl_annotations),
-        '\t-', ';');
+        if (this.extends) {
+            return List.concat('entity', ' ', this.name,
+                'extends', (this.extends.includes(':') ? '^^' + this.extends : this.extends), '\t+',
+                nlAnnotationsToSource(this.nl_annotations),
+                implAnnotationsToSource(this.impl_annotations),
+            '\t-', ';');
+        } else {
+            return List.concat('entity', ' ', this.name, '\t+',
+                nlAnnotationsToSource(this.nl_annotations),
+                implAnnotationsToSource(this.impl_annotations),
+            '\t-', ';');
+        }
     }
 
     /**
@@ -1309,7 +1323,7 @@ export class EntityDef extends Node {
         const impl : AnnotationMap = {};
         Object.assign(impl, this.impl_annotations);
 
-        return new EntityDef(this.location, this.name, { nl, impl });
+        return new EntityDef(this.location, this.name, this.extends, { nl, impl });
     }
 
     /**

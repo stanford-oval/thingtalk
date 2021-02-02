@@ -23,7 +23,7 @@ import NodeVisitor from './visitor';
 
 import type {
     Invocation,
-    ExternalBooleanExpression
+    ExternalBooleanExpression,
 } from './expression';
 import type { Value } from './values';
 import type {

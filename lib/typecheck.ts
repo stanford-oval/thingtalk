@@ -29,6 +29,7 @@ import * as Ast from './ast';
 import Type, {
     TypeMap,
     TypeScope,
+    EntitySubTypeMap,
     EnumType,
     ArrayType,
     CompoundType,
@@ -194,12 +195,35 @@ export default class TypeChecker {
     private _schemas : SchemaRetriever;
     private _classes : ClassMap;
     private _useMeta : boolean;
+    private _entitySubTypeMap : EntitySubTypeMap;
 
     constructor(schemas : SchemaRetriever,
                 useMeta = false) {
         this._schemas = schemas;
         this._useMeta = useMeta;
         this._classes = {};
+        this._entitySubTypeMap = {};
+    }
+
+    private async _ensureEntitySubTypes(entityType : string) {
+        if (this._entitySubTypeMap[entityType] !== undefined)
+            return;
+
+        const parent = await this._schemas.getEntityParent(entityType);
+        this._entitySubTypeMap[entityType] = parent;
+        if (parent)
+            await this._ensureEntitySubTypes(parent);
+    }
+
+    private async _isAssignable(type : Type,
+                                assignableTo : Type|string,
+                                typeScope : TypeScope) {
+        if (type instanceof Type.Entity)
+            await this._ensureEntitySubTypes(type.type);
+        if (assignableTo instanceof Type.Entity)
+            await this._ensureEntitySubTypes(assignableTo.type);
+
+        return Type.isAssignable(type, assignableTo, typeScope, this._entitySubTypeMap);
     }
 
     private async _typeCheckValue(value : Ast.Value,
@@ -209,7 +233,7 @@ export default class TypeChecker {
                 return value.type;
 
             const operands = await Promise.all(value.operands.map((o) => this._typeCheckValue(o, scope)));
-            const [overload, resultType] = this._resolveScalarExpressionOps(value.op, operands);
+            const [overload, resultType] = await this._resolveScalarExpressionOps(value.op, operands);
 
             value.overload = overload;
             return value.type = resultType;
@@ -320,7 +344,7 @@ export default class TypeChecker {
                     }
                 }
 
-                if (!Type.isAssignable(vtype, elem, typeScope))
+                if (!await this._isAssignable(vtype, elem, typeScope))
                     throw new TypeError(`Inconsistent type for array value`);
             }
 
@@ -342,17 +366,16 @@ export default class TypeChecker {
             throw new TypeError(`Invalid principal ${principal}, must be a contact or a group`);
     }
 
-    private _resolveOverload(overloads : Builtin.OpDefinition,
-                             operator : string,
-                             argTypes : Type[],
-                             allowCast : boolean) : [Type[], Type] {
+    private async _resolveOverload(overloads : Builtin.OpDefinition,
+                                   operator : string,
+                                   argTypes : Type[]) : Promise<[Type[], Type]> {
         for (const overload of overloads.types) {
             if (argTypes.length !== overload.length-1)
                 continue;
             const typeScope : TypeScope = {};
             let good = true;
             for (let i = 0; i < argTypes.length; i++) {
-                if (!Type.isAssignable(argTypes[i], overload[i], typeScope, allowCast)) {
+                if (!await this._isAssignable(argTypes[i], overload[i], typeScope)) {
                     good = false;
                     break;
                 }
@@ -374,15 +397,15 @@ export default class TypeChecker {
         const op = Builtin.ScalarExpressionOps[operator];
         if (!op)
             throw new TypeError('Invalid operator ' + operator);
-        return this._resolveOverload(op, operator, argTypes, true);
+        return this._resolveOverload(op, operator, argTypes);
     }
 
-    private _resolveFilterOverload(type_lhs : Type, operator : string, type_rhs : Type) {
+    private async _resolveFilterOverload(type_lhs : Type, operator : string, type_rhs : Type) {
         log('resolve filter overload');
         const op = Builtin.BinaryOps[operator];
         if (!op)
             throw new TypeError('Invalid operator ' + operator);
-        const [overload,] = this._resolveOverload(op, operator, [type_lhs, type_rhs], false);
+        const [overload,] = await this._resolveOverload(op, operator, [type_lhs, type_rhs]);
         return overload;
     }
 
@@ -430,14 +453,21 @@ export default class TypeChecker {
             if (!type_lhs)
                 type_lhs = await this._typeCheckValue(new Ast.Value.VarRef(name), scope);
             const type_rhs = await this._typeCheckValue(ast.value, scope);
-            ast.overload = this._resolveFilterOverload(type_lhs, ast.operator, type_rhs);
+            ast.overload = await this._resolveFilterOverload(type_lhs, ast.operator, type_rhs);
             return;
         }
 
         if (ast instanceof Ast.ComputeBooleanExpression) {
             const type_lhs = await this._typeCheckValue(ast.lhs, scope);
             const type_rhs = await this._typeCheckValue(ast.rhs, scope);
-            ast.overload = this._resolveFilterOverload(type_lhs, ast.operator, type_rhs);
+            ast.overload = await this._resolveFilterOverload(type_lhs, ast.operator, type_rhs);
+            return;
+        }
+
+        if (ast instanceof Ast.ComparisonSubqueryBooleanExpression) {
+            const type_lhs = await this._typeCheckValue(ast.lhs, scope);
+            const type_rhs = await this._typeCheckSubqueryValue(ast.rhs, scope);
+            ast.overload = await this._resolveFilterOverload(type_lhs, ast.operator, type_rhs);
             return;
         }
 
@@ -450,10 +480,26 @@ export default class TypeChecker {
         await this._typeCheckFilterHelper(ast.filter, ast.schema, scope);
     }
 
-    private _resolveAggregationOverload(ast : Ast.AggregationTable|Ast.AggregationExpression,
-                                        operator : string,
-                                        field : string,
-                                        schema : Ast.FunctionDef) {
+    private async _typeCheckSubqueryValue(expr : Ast.Expression, scope : Scope) {
+        if (!(expr instanceof Ast.ProjectionExpression))
+            throw new TypeError('Subquery function must be a projection');
+        if (expr.args.length + expr.computations.length !== 1)
+            throw new TypeError('Subquery function must be a projection with one field');
+
+        await this._typeCheckExpression(expr, scope);
+        this._checkExpressionType(expr, ['query'], 'projection');
+        if (expr.args.length)
+            return expr.schema!.getArgType(expr.args[0])!;
+        else
+            return this._typeCheckValue(expr.computations[0], scope);
+
+
+    }
+
+    private async _resolveAggregationOverload(ast : Ast.AggregationTable|Ast.AggregationExpression,
+                                              operator : string,
+                                              field : string,
+                                              schema : Ast.FunctionDef) {
         const fieldType = schema.out[field];
         if (!fieldType)
             throw new TypeError('Invalid aggregation field ' + field);
@@ -463,7 +509,7 @@ export default class TypeChecker {
 
         for (const overload of ag.types) {
             const typeScope = {};
-            if (!Type.isAssignable(fieldType, overload[0], typeScope, true))
+            if (!await this._isAssignable(fieldType, overload[0], typeScope))
                 continue;
 
             ast.overload = overload.map((t) => resolveTypeVars(t, typeScope));
@@ -473,7 +519,7 @@ export default class TypeChecker {
         throw new TypeError('Invalid field type ' + fieldType + ' for ' + operator);
     }
 
-    private _typeCheckAggregation(ast : Ast.AggregationTable|Ast.AggregationExpression, scope : Scope) {
+    private async _typeCheckAggregation(ast : Ast.AggregationTable|Ast.AggregationExpression, scope : Scope) {
         const schema = (ast instanceof Ast.AggregationExpression ? ast.expression.schema : ast.table.schema)!;
 
         let name, type, nl_annotations;
@@ -485,7 +531,7 @@ export default class TypeChecker {
             name = ast.alias ? ast.alias : 'count';
             nl_annotations = { canonical: 'count' };
         } else {
-            type = this._resolveAggregationOverload(ast, ast.operator, ast.field, schema);
+            type = await this._resolveAggregationOverload(ast, ast.operator, ast.field, schema);
             name = ast.alias ? ast.alias : ast.field;
             nl_annotations = schema.getArgument(ast.field)!.nl_annotations;
         }
@@ -511,16 +557,16 @@ export default class TypeChecker {
         if (ast.indices.length === 1) {
             const valueType = await this._typeCheckValue(ast.indices[0], scope);
             if (valueType.isArray) {
-                if (!Type.isAssignable(valueType, new Type.Array(Type.Number)))
+                if (!await this._isAssignable(valueType, new Type.Array(Type.Number), {}))
                     throw new TypeError(`Invalid index parameter, must be of type Array(Number)`);
             } else {
-                if (!Type.isAssignable(valueType, Type.Number))
+                if (!await this._isAssignable(valueType, Type.Number, {}))
                     throw new TypeError(`Invalid index parameter, must be a Number`);
             }
         } else {
             for (const index of ast.indices) {
                 const valueType = await this._typeCheckValue(index, scope);
-                if (!Type.isAssignable(valueType, Type.Number))
+                if (!await this._isAssignable(valueType, Type.Number, {}))
                     throw new TypeError(`Invalid index parameter, must be a Number`);
             }
         }
@@ -531,9 +577,9 @@ export default class TypeChecker {
     private async _typeCheckSlice(ast : Ast.SlicedTable|Ast.SliceExpression, scope : Scope) {
         const baseType = await this._typeCheckValue(ast.base, scope);
         const limitType = await this._typeCheckValue(ast.limit, scope);
-        if (!Type.isAssignable(baseType, Type.Number))
+        if (!await this._isAssignable(baseType, Type.Number, {}))
             throw new TypeError(`Invalid slice offset parameter, must be a Number`);
-        if (!Type.isAssignable(limitType, Type.Number))
+        if (!await this._isAssignable(limitType, Type.Number, {}))
             throw new TypeError(`Invalid slice limit parameter, must be a Number`);
 
         ast.schema = ast instanceof Ast.SliceExpression ? ast.expression.schema : ast.table.schema;
@@ -677,7 +723,7 @@ export default class TypeChecker {
                 if (!attr.value.isVarRef && !attr.value.isConstant())
                     throw new TypeError(`Device attribute ${attr.value} must be a constant or variable`);
                 const valueType = await this._typeCheckValue(attr.value, attrscope);
-                if (!Type.isAssignable(valueType, Type.String, {}, false) || attr.value.isUndefined)
+                if (!await this._isAssignable(valueType, Type.String, {}) || attr.value.isUndefined)
                     throw new TypeError(`Invalid type for device attribute ${attr.name}, have ${valueType}, need String`);
             }
 
@@ -703,7 +749,7 @@ export default class TypeChecker {
                 throw new TypeError('Invalid input parameter ' + inParam.name);
 
             const valueType = await this._typeCheckValue(inParam.value, scope);
-            if (!Type.isAssignable(valueType, inParamType, {}, true))
+            if (!await this._isAssignable(valueType, inParamType, {}))
                 throw new TypeError(`Invalid type for parameter ${inParam.name}, have ${valueType}, need ${inParamType}`);
             if (presentParams.has(inParam.name))
                 throw new TypeError('Duplicate input param ' + inParam.name);
@@ -756,7 +802,7 @@ export default class TypeChecker {
         } else if (ast instanceof Ast.AggregationExpression) {
             await this._typeCheckExpression(ast.expression, scope);
             this._checkExpressionType(ast.expression, ['query'], 'aggregation');
-            this._typeCheckAggregation(ast, scope);
+            await this._typeCheckAggregation(ast, scope);
         } else if (ast instanceof Ast.SortExpression) {
             await this._typeCheckExpression(ast.expression, scope);
             this._checkExpressionType(ast.expression, ['query'], 'sort');
@@ -885,7 +931,7 @@ export default class TypeChecker {
                 throw new TypeError(`Mixin parameter ${in_param.name} must be a constant`);
             const inParamType = mixin.types[i];
             const valueType = await this._typeCheckValue(in_param.value, new Scope);
-            if (!Type.isAssignable(valueType, inParamType, {}, true))
+            if (!await this._isAssignable(valueType, inParamType, {}))
                 throw new TypeError(`Invalid type for parameter ${in_param.name}, have ${valueType}, need ${inParamType}`);
         }
         for (let i = 0; i < mixin.args.length; i ++ ) {
@@ -1020,7 +1066,7 @@ export default class TypeChecker {
                 if (!value)
                     continue;
 
-                if (!Type.isAssignable(await this._typeCheckValue(value, new Scope), arg.type, {}))
+                if (!await this._isAssignable(await this._typeCheckValue(value, new Scope), arg.type, {}))
                     throw new TypeError(`Invalid #[${name}] annotation: must be a ${arg.type}`);
             }
         }
@@ -1268,7 +1314,7 @@ export default class TypeChecker {
 
             if (item.results !== null) {
                 if (!item.results.count.isConstant() ||
-                    !Type.isAssignable(await this._typeCheckValue(item.results.count, new Scope), Type.Number, {}))
+                    !await this._isAssignable(await this._typeCheckValue(item.results.count, new Scope), Type.Number, {}))
                     throw new TypeError(`History annotation #[count] must be a constant of Number type`);
                 if (item.results.error) {
                     if (!item.results.error.isConstant())
