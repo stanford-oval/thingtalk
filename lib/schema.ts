@@ -607,20 +607,7 @@ export default class SchemaRetriever {
         if (cached)
             return cached;
 
-        const allEntities = await this._thingpediaClient.getAllEntityTypes();
-        let found = null;
-        for (const record of allEntities) {
-            // put all the new records in the cache, and check if we found the one
-            // we were looking for
-            this._entityTypeCache.set(record.type, record);
-            if (record.type === entityType)
-                found = record;
-        }
-        if (found)
-            return found;
-
-        // if we didn't find it in the list of all entities (aka entities.json),
-        // try loading the class and looking for a declaration there
+        // first try loading the class and looking for a declaration there
         // this is to support development of Thingpedia skills without editing
         // entities.json
         const [kind, name] = entityType.split(':');
@@ -650,7 +637,20 @@ export default class SchemaRetriever {
             }
         }
 
-        // make up a record with default info
+        // then look up in thingpedia
+        const allEntities = await this._thingpediaClient.getAllEntityTypes();
+        let found = null;
+        for (const record of allEntities) {
+            // put all the new records in the cache, and check if we found the one
+            // we were looking for
+            this._entityTypeCache.set(record.type, record);
+            if (record.type === entityType)
+                found = record;
+        }
+        if (found)
+            return found;
+
+        // finally, make up a record with default info
         const newRecord : EntityTypeRecord = {
             type: entityType,
             is_well_known: false,
