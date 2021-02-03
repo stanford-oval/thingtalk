@@ -614,24 +614,34 @@ export default class SchemaRetriever {
         if (kind !== 'tt') {
             try {
                 const classDef = await this._getClass(kind, 'everything');
+                let found = null;
                 for (const entity of classDef.entities) {
-                    if (entity.name === name) {
-                        const hasNer = entity.getImplementationAnnotation<boolean>('has_ner');
-                        let subTypeOf = null;
-                        if (entity.extends) {
-                            subTypeOf = entity.extends.includes(':') ? entity.extends
-                                : classDef.kind + ':' + entity.extends;
-                        }
-                        const newRecord : EntityTypeRecord = {
-                            type: entityType,
-                            is_well_known: false,
-                            has_ner_support: hasNer === undefined ? true : hasNer,
-                            subtype_of : subTypeOf
-                        };
-                        this._entityTypeCache.set(entityType, newRecord);
-                        return newRecord;
+                    // load all the entities from this class, not just the one
+                    // we're retrieving, otherwise we'll fallback to entities.json
+                    // for all the entities, and be sad that entity records are
+                    // wrong
+
+                    const entityType = classDef.kind + ':' + entity.name;
+                    const hasNer = entity.getImplementationAnnotation<boolean>('has_ner');
+                    let subTypeOf = null;
+                    if (entity.extends) {
+                        subTypeOf = entity.extends.includes(':') ? entity.extends
+                            : classDef.kind + ':' + entity.extends;
                     }
+                    const newRecord : EntityTypeRecord = {
+                        type: entityType,
+                        is_well_known: false,
+                        has_ner_support: hasNer === undefined ? true : hasNer,
+                        subtype_of : subTypeOf
+                    };
+                    this._entityTypeCache.set(entityType, newRecord);
+
+                    if (entity.name === name)
+                        found = newRecord; // keep going to more entities
                 }
+
+                if (found)
+                    return found;
             } catch(e) {
                 // ignore if there is no class with that name
             }
@@ -641,9 +651,18 @@ export default class SchemaRetriever {
         const allEntities = await this._thingpediaClient.getAllEntityTypes();
         let found = null;
         for (const record of allEntities) {
-            // put all the new records in the cache, and check if we found the one
-            // we were looking for
-            this._entityTypeCache.set(record.type, record);
+            // to support development of thingpedia skills, we don't want
+            // entities.json to override actual classes, so we can't put
+            // things in the cache unless we're sure about them
+            // so we only put in the cache all the tt: entities (which
+            // don't belong to any class) and the one entity we're looking for
+            // this is a bit wasteful in that it results in multiple queries
+            // to Thingpedia
+            // we should change this back once Thingpedia actually knows
+            // about entity subtyping
+
+            if (record.type === entityType || record.type.startsWith('tt:'))
+                this._entityTypeCache.set(record.type, record);
             if (record.type === entityType)
                 found = record;
         }

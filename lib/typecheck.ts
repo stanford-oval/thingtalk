@@ -206,6 +206,8 @@ export default class TypeChecker {
     }
 
     private async _ensureEntitySubTypes(entityType : string) {
+        if (!entityType)
+            return;
         if (this._entitySubTypeMap[entityType] !== undefined)
             return;
 
