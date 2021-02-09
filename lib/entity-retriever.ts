@@ -305,6 +305,11 @@ export class SequentialEntityAllocator extends AbstractEntityRetriever {
         this.updateOffsets();
     }
 
+    reset() {
+        this.offsets = {};
+        this.entities = {};
+    }
+
     private updateOffsets() : void {
         for (const entity in this.entities) {
             const entityType = entity.slice(0, entity.lastIndexOf('_'));
