@@ -1,3 +1,9 @@
+2.0.0-alpha.3
+=============
+
+* The minimum supported version of node is now 12.* [#308].
+* Misc bug fixes [#306, #307].
+
 2.0.0-alpha.2
 =============
 
