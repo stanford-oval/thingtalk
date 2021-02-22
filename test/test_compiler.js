@@ -1323,7 +1323,7 @@ const TEST_CASES = [
     // 25
     [`monitor(@com.twitter.home_timeline(), any(@org.thingpedia.builtin.thingengine.builtin.get_time(), time >= new Time(9,0) && time <= new Time(10, 0)));
     monitor(@com.twitter.home_timeline(), text =~ "lol" && any(@org.thingpedia.builtin.thingengine.builtin.get_time(), time >= new Time(9,0) && time <= new Time(10, 0)));`,
-    [`"use strict";
+    [`  "use strict";
   let _t_0;
   let _t_1;
   let _t_2;
@@ -1354,6 +1354,7 @@ const TEST_CASES = [
   let _t_27;
   let _t_28;
   let _t_29;
+  let _t_30;
   _t_0 = await __env.readState(0);
   try {
     _t_1 = {};
@@ -1378,26 +1379,27 @@ const TEST_CASES = [
         if (_t_13) {
           _t_15 = false;
           try {
-            _t_17 = {};
-            _t_16 = await __env.invokeQuery("org.thingpedia.builtin.thingengine.builtin", { }, "get_time", _t_17, { projection: ["time"] });
-            _t_18 = __builtin.getAsyncIterator(_t_16);
+            _t_16 = {};
+            _t_17 = await __env.invokeQuery("org.thingpedia.builtin.thingengine.builtin", { }, "get_time", _t_16, { projection: ["time"] });
+            _t_18 = __builtin.getAsyncIterator(_t_17);
             {
               let _iter_tmp = await _t_18.next();
               while (!_iter_tmp.done) {
                 _t_19 = _iter_tmp.value;
                 _t_20 = _t_19[0];
                 _t_21 = _t_19[1];
-                _t_22 = _t_21.time;
-                _t_23 = true;
-                _t_25 = __builtin.getTime (_t_22);
-                _t_26 = new __builtin.Time(10, 0, 0);
-                _t_24 = _t_25 <= _t_26;
-                _t_23 = _t_23 && _t_24;
-                _t_28 = __builtin.getTime (_t_22);
-                _t_29 = new __builtin.Time(9, 0, 0);
-                _t_27 = _t_28 >= _t_29;
-                _t_23 = _t_23 && _t_27;
-                if (_t_23) {
+                _t_22 = _t_21.__response;
+                _t_23 = _t_21.time;
+                _t_24 = true;
+                _t_26 = __builtin.getTime (_t_23);
+                _t_27 = new __builtin.Time(10, 0, 0);
+                _t_25 = _t_26 <= _t_27;
+                _t_24 = _t_24 && _t_25;
+                _t_29 = __builtin.getTime (_t_23);
+                _t_30 = new __builtin.Time(9, 0, 0);
+                _t_28 = _t_29 >= _t_30;
+                _t_24 = _t_24 && _t_28;
+                if (_t_24) {
                   _t_15 = true;
                   break;
                 } else {
@@ -1407,7 +1409,7 @@ const TEST_CASES = [
               }
             }
           } catch(_exc_) {
-            __env.reportError("Failed to invoke get-predicate query", _exc_);
+            __env.reportError("Failed to invoke query", _exc_);
           }
           if (_t_15) {
             try {
@@ -1426,7 +1428,7 @@ const TEST_CASES = [
     }
   } catch(_exc_) {
     __env.reportError("Failed to invoke trigger", _exc_);
-  }`, `"use strict";
+  }`, `  "use strict";
   let _t_0;
   let _t_1;
   let _t_2;
@@ -1465,6 +1467,7 @@ const TEST_CASES = [
   let _t_35;
   let _t_36;
   let _t_37;
+  let _t_38;
   _t_0 = await __env.readState(1);
   try {
     _t_1 = {};
@@ -1499,26 +1502,27 @@ const TEST_CASES = [
           _t_20 = true;
           _t_21 = false;
           try {
-            _t_23 = {};
-            _t_22 = await __env.invokeQuery("org.thingpedia.builtin.thingengine.builtin", { }, "get_time", _t_23, { projection: ["time"] });
-            _t_24 = __builtin.getAsyncIterator(_t_22);
+            _t_22 = {};
+            _t_23 = await __env.invokeQuery("org.thingpedia.builtin.thingengine.builtin", { }, "get_time", _t_22, { projection: ["time"] });
+            _t_24 = __builtin.getAsyncIterator(_t_23);
             {
               let _iter_tmp = await _t_24.next();
               while (!_iter_tmp.done) {
                 _t_25 = _iter_tmp.value;
                 _t_26 = _t_25[0];
                 _t_27 = _t_25[1];
-                _t_28 = _t_27.time;
-                _t_29 = true;
-                _t_31 = __builtin.getTime (_t_28);
-                _t_32 = new __builtin.Time(10, 0, 0);
-                _t_30 = _t_31 <= _t_32;
-                _t_29 = _t_29 && _t_30;
-                _t_34 = __builtin.getTime (_t_28);
-                _t_35 = new __builtin.Time(9, 0, 0);
-                _t_33 = _t_34 >= _t_35;
-                _t_29 = _t_29 && _t_33;
-                if (_t_29) {
+                _t_28 = _t_27.__response;
+                _t_29 = _t_27.time;
+                _t_30 = true;
+                _t_32 = __builtin.getTime (_t_29);
+                _t_33 = new __builtin.Time(10, 0, 0);
+                _t_31 = _t_32 <= _t_33;
+                _t_30 = _t_30 && _t_31;
+                _t_35 = __builtin.getTime (_t_29);
+                _t_36 = new __builtin.Time(9, 0, 0);
+                _t_34 = _t_35 >= _t_36;
+                _t_30 = _t_30 && _t_34;
+                if (_t_30) {
                   _t_21 = true;
                   break;
                 } else {
@@ -1528,12 +1532,12 @@ const TEST_CASES = [
               }
             }
           } catch(_exc_) {
-            __env.reportError("Failed to invoke get-predicate query", _exc_);
+            __env.reportError("Failed to invoke query", _exc_);
           }
           _t_20 = _t_20 && _t_21;
-          _t_37 = "lol";
-          _t_36 = __builtin.like(_t_12, _t_37);
-          _t_20 = _t_20 && _t_36;
+          _t_38 = "lol";
+          _t_37 = __builtin.like(_t_12, _t_38);
+          _t_20 = _t_20 && _t_37;
           if (_t_20) {
             try {
               await __env.output(String(_t_9), _t_10);
@@ -9489,6 +9493,125 @@ const TEST_CASES = [
 
                 }
                 _iter_tmp = await _t_18.next();
+              }
+            }
+          } catch(_exc_) {
+            __env.reportError("Failed to invoke query", _exc_);
+          }
+          if (_t_15) {
+            try {
+              await __env.output(String(_t_4), _t_5);
+            } catch(_exc_) {
+              __env.reportError("Failed to invoke action", _exc_);
+            }
+          } else {
+
+          }
+          _iter_tmp = await _t_2.next();
+        }
+      }
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke query", _exc_);
+    }
+  } finally {
+    await __env.exitProcedure(0, null);
+  }`]
+    ],
+
+    // 107 existential subquery
+    [`@com.spotify2.song() filter any([id] of @com.spotify2.album() filter id =~ "lol");`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  let _t_25;
+  let _t_26;
+  let _t_27;
+  let _t_28;
+  let _t_29;
+  let _t_30;
+  let _t_31;
+  let _t_32;
+  let _t_33;
+  let _t_34;
+  await __env.enterProcedure(0, null);
+  try {
+    try {
+      _t_0 = {};
+      _t_1 = await __env.invokeQuery("com.spotify2", { }, "song", _t_0, { projection: ["id", "artists", "album", "genres", "release_date", "popularity", "energy", "danceability"] });
+      _t_2 = __builtin.getAsyncIterator(_t_1);
+      {
+        let _iter_tmp = await _t_2.next();
+        while (!_iter_tmp.done) {
+          _t_3 = _iter_tmp.value;
+          _t_4 = _t_3[0];
+          _t_5 = _t_3[1];
+          _t_6 = _t_5.__response;
+          _t_7 = _t_5.id;
+          _t_8 = _t_5.artists;
+          _t_9 = _t_5.album;
+          _t_10 = _t_5.genres;
+          _t_11 = _t_5.release_date;
+          _t_12 = _t_5.popularity;
+          _t_13 = _t_5.energy;
+          _t_14 = _t_5.danceability;
+          _t_15 = false;
+          try {
+            _t_16 = {};
+            _t_17 = new Array(1);
+            _t_18 = new Array(3);
+            _t_19 = "id";
+            _t_18[0] = _t_19;
+            _t_20 = "=~";
+            _t_18[1] = _t_20;
+            _t_21 = "lol";
+            _t_18[2] = _t_21;
+            _t_17[0] = _t_18;
+            _t_22 = await __env.invokeQuery("com.spotify2", { }, "album", _t_16, { projection: ["id"], filter: _t_17 });
+            _t_23 = __builtin.getAsyncIterator(_t_22);
+            {
+              let _iter_tmp = await _t_23.next();
+              while (!_iter_tmp.done) {
+                _t_24 = _iter_tmp.value;
+                _t_25 = _t_24[0];
+                _t_26 = _t_24[1];
+                _t_27 = _t_26.__response;
+                _t_28 = _t_26.id;
+                _t_29 = _t_26.artists;
+                _t_30 = _t_26.release_date;
+                _t_31 = _t_26.popularity;
+                _t_33 = "lol";
+                _t_32 = __builtin.like(_t_28, _t_33);
+                if (_t_32) {
+                  _t_34 = {};
+                  _t_15 = true;
+                  break;
+                } else {
+
+                }
+                _iter_tmp = await _t_23.next();
               }
             }
           } catch(_exc_) {

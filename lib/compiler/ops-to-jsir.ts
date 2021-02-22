@@ -306,6 +306,20 @@ export default class OpCompiler {
 
             this._irBuilder.popBlock(); // for-of
             this._irBuilder.popBlock(); // try-catch
+        } else if (expr instanceof Ops.ExistentialSubqueryBooleanExpressionOp) {
+            this._irBuilder.add(new JSIr.LoadConstant(new Ast.Value.Boolean(false), cond));
+
+            const blockStack = this._irBuilder.saveStackState();
+            const tmpScope = this._currentScope;
+
+            this._compileTable(expr.subquery);
+
+            this._irBuilder.add(new JSIr.LoadConstant(new Ast.Value.Boolean(true), cond));
+            this._irBuilder.add(new JSIr.Break());
+            this._irBuilder.popBlock();
+
+            this._currentScope = tmpScope;
+            this._irBuilder.popTo(blockStack);
         } else if (expr instanceof Ops.ComparisonSubqueryBooleanExpressionOp) {
             this._irBuilder.add(new JSIr.LoadConstant(new Ast.Value.Boolean(false), cond));
 

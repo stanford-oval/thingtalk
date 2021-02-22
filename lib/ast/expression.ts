@@ -392,6 +392,7 @@ export class Invocation extends Node {
  * @property {boolean} isAtom - true if this is an instance of {@link Ast.BooleanExpression.Atom}
  * @property {boolean} isNot - true if this is an instance of {@link Ast.BooleanExpression.Not}
  * @property {boolean} isExternal - true if this is an instance of {@link Ast.BooleanExpression.External}
+ * @property {boolean} isExistentialSubquery - true if this is an instance of {@link Ast.BooleanExpression.ExistentialSubquery}
  * @property {boolean} isComparisonSubquery - true if is an instance of {@link Ast.BooleanExpression.ComparisonSubquery}
  * @property {boolean} isTrue - true if this is {@link Ast.BooleanExpression.True}
  * @property {boolean} isFalse - true if this is {@link Ast.BooleanExpression.False}
@@ -408,6 +409,8 @@ export abstract class BooleanExpression extends Node {
     isNot ! : boolean;
     static External : any;
     isExternal ! : boolean;
+    static ExistentialSubquery : any;
+    isExistentialSubquery ! : boolean;
     static ComparisonSubquery : any;
     isComparisonSubquery ! : boolean;
     static True : any;
@@ -449,6 +452,7 @@ BooleanExpression.prototype.isOr = false;
 BooleanExpression.prototype.isAtom = false;
 BooleanExpression.prototype.isNot = false;
 BooleanExpression.prototype.isExternal = false;
+BooleanExpression.prototype.isExistentialSubquery = false;
 BooleanExpression.prototype.isComparisonSubquery = false;
 BooleanExpression.prototype.isTrue = false;
 BooleanExpression.prototype.isFalse = false;
@@ -924,6 +928,76 @@ export class ExternalBooleanExpression extends BooleanExpression {
 BooleanExpression.External = ExternalBooleanExpression;
 BooleanExpression.External.prototype.isExternal = true;
 
+/**
+ * A boolean expression that calls a Thingpedia query function
+ * and filters the result.
+ *
+ * The boolean expression is true if at least one result from the function
+ * call satisfies the filter.
+ *
+ * @alias Ast.BooleanExpression.ExistentialSubquery
+ * @extends Ast.BooleanExpression
+ */
+export class ExistentialSubqueryBooleanExpression extends BooleanExpression {
+    subquery : Expression;
+
+    /**
+     * Construct a new existential subquery boolean expression.
+     *
+     * @param location
+     * @param subquery: the query used for check existence of result
+     */
+    constructor(location : SourceRange|null,
+                subquery : Expression) {
+        super(location);
+        this.subquery = subquery;
+    }
+
+    get priority() : SyntaxPriority {
+        return SyntaxPriority.Primary;
+    }
+
+    toSource() : TokenStream {
+        return List.concat('any', '(', this.subquery.toSource(), ')');
+    }
+
+    toString() : string {
+        return `ExistentialSubquery(${this.subquery})`;
+    }
+
+    equals(other : BooleanExpression) : boolean {
+        return other instanceof ExistentialSubqueryBooleanExpression &&
+            this.subquery.equals(other.subquery);
+    }
+
+    visit(visitor : NodeVisitor) : void {
+        visitor.enter(this);
+        if (visitor.visitExistentialSubqueryBooleanExpression(this))
+            this.subquery.visit(visitor);
+        visitor.exit(this);
+    }
+
+    clone() : ExistentialSubqueryBooleanExpression {
+        return new ExistentialSubqueryBooleanExpression(
+            this.location,
+            this.subquery.clone()
+        );
+    }
+
+    *iterateSlots(schema : FunctionDef|null,
+                  prim : InvocationLike|null,
+                  scope : ScopeMap) : Generator<OldSlot, void> {
+        yield* this.subquery.iterateSlots(scope);
+    }
+
+    *iterateSlots2(schema : FunctionDef|null,
+                   prim : InvocationLike|null,
+                   scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
+        yield* this.subquery.iterateSlots2(scope);
+    }
+}
+BooleanExpression.ExistentialSubquery = ExistentialSubqueryBooleanExpression;
+BooleanExpression.ExistentialSubquery.prototype.isExistentialSubquery = true;
 
 /**
  * A boolean expression that calls a Thingpedia query function
@@ -939,7 +1013,7 @@ export class ComparisonSubqueryBooleanExpression extends BooleanExpression {
     overload : Type[]|null;
 
     /**
-     * Construct a new external boolean expression.
+     * Construct a new comparison subquery boolean expression.
      *
      * @param location
      * @param lhs - the parameter name to compare

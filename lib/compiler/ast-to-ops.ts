@@ -770,6 +770,13 @@ function compileBooleanExpressionToOp(expr : Ast.BooleanExpression) : BooleanExp
         );
     }
 
+    if (expr instanceof Ast.ExistentialSubqueryBooleanExpression) {
+        return new BooleanExpressionOp.ExistentialSubquery(
+            expr,
+            compileTableToOps(expr.subquery.toLegacy() as Ast.Table, [], new QueryInvocationHints(new Set))
+        );
+    }
+
     if (expr instanceof Ast.ComparisonSubqueryBooleanExpression) {
         assert(expr.rhs instanceof Ast.ProjectionExpression && expr.rhs.args.length + expr.rhs.computations.length === 1);
         let rhs, hints;

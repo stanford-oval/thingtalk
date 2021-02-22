@@ -270,6 +270,10 @@ export default abstract class NodeVisitor {
     visitComparisonSubqueryBooleanExpression(node : Exp.ComparisonSubqueryBooleanExpression) : boolean {
         return true;
     }
+    /* istanbul ignore next */
+    visitExistentialSubqueryBooleanExpression(node : Exp.ExistentialSubqueryBooleanExpression) : boolean {
+        return true;
+    }
 
 
 
