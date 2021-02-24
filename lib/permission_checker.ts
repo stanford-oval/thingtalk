@@ -397,6 +397,20 @@ class SmtReduction {
         return smt.And(anyresult, this._processFilter(ast.filter, subscope, subscopeType));
     }
 
+    private _existentialToExternal(ast : Ast.ExistentialSubqueryBooleanExpression) : Ast.ExternalBooleanExpression|null {
+        if (ast.subquery instanceof Ast.FilterExpression && ast.subquery.expression instanceof Ast.InvocationExpression) {
+            return new Ast.ExternalBooleanExpression(
+                null,
+                ast.subquery.expression.invocation.selector,
+                ast.subquery.expression.invocation.channel,
+                ast.subquery.expression.invocation.in_params,
+                ast.subquery.filter,
+                ast.subquery.schema
+            );
+        }
+        return null;
+    }
+
     private _processFilter(ast : Ast.BooleanExpression,
                            scope : { [key : string] : string },
                            scopeType : { [key : string] : Type }) : smt.SNode {
@@ -417,6 +431,15 @@ class SmtReduction {
             return smt.Not(this._processFilter(ast.expr, scope, scopeType));
         if (ast instanceof Ast.ExternalBooleanExpression) {
             return this._addGetPredicate(ast, scope, scopeType);
+        } else if (ast instanceof Ast.ExistentialSubqueryBooleanExpression) {
+            const external = this._existentialToExternal(ast);
+            if (external)
+                return this._addGetPredicate(external, scope, scopeType);
+            // TODO: add support for existential subquery in general
+            throw new Error('Unsupported subquery');
+        } else if (ast instanceof Ast.ComparisonSubqueryBooleanExpression) {
+            // TODO: add support for comparison subquery
+            throw new Error('Unsupported subquery');
         } else {
             assert(ast instanceof Ast.AtomBooleanExpression);
 
@@ -482,6 +505,15 @@ class SmtReduction {
             return smt.Not(this._processPermissionFilter(ast.expr, ufvar, schema, scope, scopeType));
         if (ast instanceof Ast.ExternalBooleanExpression) {
             return this._addGetPredicate(ast, {}, {});
+        } else if (ast instanceof Ast.ExistentialSubqueryBooleanExpression) {
+            const external = this._existentialToExternal(ast);
+            if (external)
+                return this._addGetPredicate(external, scope, scopeType);
+            // TODO: add support for existential subquery in general
+            throw new Error('Unsupported subquery');
+        } else if (ast instanceof Ast.ComparisonSubqueryBooleanExpression) {
+            // TODO: add support for comparison subquery
+            throw new Error('Unsupported subquery');
         } else {
             assert(ast instanceof Ast.AtomBooleanExpression);
 
@@ -1076,6 +1108,10 @@ class RuleTransformer {
             if (expr instanceof Ast.NotBooleanExpression)
                 return new Ast.BooleanExpression.Not(expr.location, recursiveHelper(expr.expr));
             if (expr instanceof Ast.ExternalBooleanExpression) // external predicates don't refer to the inputs or outputs of the function so we're good
+                return expr;
+            if (expr instanceof Ast.ExistentialSubqueryBooleanExpression)
+                return expr;
+            if (expr instanceof Ast.ComparisonSubqueryBooleanExpression)
                 return expr;
 
             let lhs : Ast.Value|undefined, rhs : Ast.Value;
