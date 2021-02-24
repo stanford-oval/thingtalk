@@ -22,6 +22,7 @@ import assert from 'assert';
 import { stringEscape } from './utils/escaping';
 import * as Ast from './ast';
 import Type, { ArrayType, CompoundType } from './type';
+import { UnserializableError } from "./utils/errors";
 
 function prettyprintType(ast : Type, prefix='') : string {
     if (ast instanceof ArrayType) {
@@ -206,6 +207,14 @@ function prettyprintFilterExpression(ast : Ast.BooleanExpression) : string {
         return prettyprintExternalFilter(ast);
     if (ast instanceof Ast.ComputeBooleanExpression)
         return `${prettyprintValue(ast.lhs)} ${ast.operator} ${prettyprintValue(ast.rhs)}`;
+    if (ast instanceof Ast.ComparisonSubqueryBooleanExpression)
+        throw new UnserializableError('Comparison Subquery');
+    if (ast instanceof Ast.ExistentialSubqueryBooleanExpression) {
+        const externalEquivalent = ast.toLegacy();
+        if (externalEquivalent)
+            return prettyprintExternalFilter(externalEquivalent);
+        throw new UnserializableError('Existential Subquery');
+    }
     assert(ast instanceof Ast.AtomBooleanExpression);
 
     if (INFIX_FILTERS.has(ast.operator))

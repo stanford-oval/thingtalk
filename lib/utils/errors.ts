@@ -48,3 +48,9 @@ export class ThingTalkSyntaxError extends Error {
         this.location = location || null;
     }
 }
+
+export class UnserializableError extends Error {
+    constructor(what : string) {
+        super(what + ' is not serializable');
+    }
+}

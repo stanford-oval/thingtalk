@@ -24,7 +24,7 @@ import Node, { SourceRange } from './base';
 import NodeVisitor from './visitor';
 import { FunctionDef } from './function_def';
 import { Value } from './values';
-import { Expression } from './expression2';
+import { Expression, FilterExpression, InvocationExpression } from './expression2';
 
 import Type from '../type';
 import * as Optimizer from '../optimize';
@@ -963,6 +963,21 @@ export class ExistentialSubqueryBooleanExpression extends BooleanExpression {
 
     toString() : string {
         return `ExistentialSubquery(${this.subquery})`;
+    }
+
+    toLegacy() : ExternalBooleanExpression|null {
+        if (this.subquery instanceof FilterExpression && this.subquery.expression instanceof InvocationExpression) {
+            const invocation = this.subquery.expression.invocation;
+            return new ExternalBooleanExpression(
+                null,
+                invocation.selector,
+                invocation.channel,
+                invocation.in_params,
+                this.subquery.filter,
+                this.subquery.schema
+            );
+        }
+        return null;
     }
 
     equals(other : BooleanExpression) : boolean {
