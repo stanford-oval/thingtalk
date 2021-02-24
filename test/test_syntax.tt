@@ -1888,3 +1888,36 @@ now => @com.facebook.post();
 $dialogue @org.thingpedia.dialogue.transaction.execute;
 @com.thecatapi.get();
 @com.twitter.post_picture(picture_url=$context.result.picture_url : Entity(tt:picture));
+
+====
+
+// existential subquery
+// simple invocation no filter
+monitor(@com.twitter.home_timeline() filter any(@org.thingpedia.builtin.thingengine.builtin.get_gps()));
+
+
+====
+
+// existential subquery
+// projection
+monitor(@com.twitter.home_timeline() filter any([speed] of @org.thingpedia.builtin.thingengine.builtin.get_gps()));
+
+====
+
+// existential subquery
+// computation
+monitor(@com.twitter.home_timeline() filter any([distance(location, new Location(1, 2))] of @org.thingpedia.builtin.thingengine.builtin.get_gps()));
+
+====
+
+// existential subquery
+// sort
+monitor(@com.twitter.home_timeline() filter any(sort(file_size asc of @com.dropbox.list_folder())));
+
+====
+
+// ** expect TypeError **
+// existential subquery on action
+monitor(@com.twitter.home_timeline() filter any(@com.twitter.post()));
+
+
