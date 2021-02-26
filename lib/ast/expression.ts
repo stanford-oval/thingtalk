@@ -24,7 +24,7 @@ import Node, { SourceRange } from './base';
 import NodeVisitor from './visitor';
 import { FunctionDef } from './function_def';
 import { Value } from './values';
-import { Expression, FilterExpression, InvocationExpression } from './expression2';
+import { Expression, FilterExpression, InvocationExpression, ProjectionExpression } from './expression2';
 
 import Type from '../type';
 import * as Optimizer from '../optimize';
@@ -43,6 +43,7 @@ import {
 
 import { TokenStream } from '../new-syntax/tokenstream';
 import List from '../utils/list';
+import { UnserializableError } from "../utils/errors";
 import {
     SyntaxPriority,
     addParenthesis
@@ -430,6 +431,7 @@ export abstract class BooleanExpression extends Node {
 
     abstract clone() : BooleanExpression;
     abstract equals(other : BooleanExpression) : boolean;
+    abstract toLegacy() : BooleanExpression;
 
     /**
      * Iterate all slots (scalar value nodes) in this boolean expression.
@@ -507,6 +509,10 @@ export class AndBooleanExpression extends BooleanExpression {
         return List.join(this.operands.map((op) => addParenthesis(this.priority, op.priority, op.toSource())), '&&');
     }
 
+    toLegacy() : AndBooleanExpression {
+        return new AndBooleanExpression(null, this.operands.map((op) => op.toLegacy()));
+    }
+
     equals(other : BooleanExpression) : boolean {
         return other instanceof AndBooleanExpression &&
             arrayEquals(this.operands, other.operands);
@@ -575,6 +581,10 @@ export class OrBooleanExpression extends BooleanExpression {
 
     toSource() : TokenStream {
         return List.join(this.operands.map((op) => addParenthesis(this.priority, op.priority, op.toSource())), '||');
+    }
+
+    toLegacy() : OrBooleanExpression {
+        return new OrBooleanExpression(null, this.operands.map((op) => op.toLegacy()));
     }
 
     equals(other : BooleanExpression) : boolean {
@@ -685,6 +695,10 @@ export class AtomBooleanExpression extends BooleanExpression {
         }
     }
 
+    toLegacy() : AtomBooleanExpression {
+        return this;
+    }
+
     equals(other : BooleanExpression) : boolean {
         return other instanceof AtomBooleanExpression &&
             this.name === other.name &&
@@ -760,6 +774,10 @@ export class NotBooleanExpression extends BooleanExpression {
 
     toSource() : TokenStream {
         return List.concat('!', addParenthesis(this.priority, this.expr.priority, this.expr.toSource()));
+    }
+
+    toLegacy() : NotBooleanExpression {
+        return new NotBooleanExpression(null, this.expr.toLegacy());
     }
 
     equals(other : BooleanExpression) : boolean {
@@ -880,6 +898,10 @@ export class ExternalBooleanExpression extends BooleanExpression {
         return `External(${this.selector}, ${this.channel}, ${this.in_params}, ${this.filter})`;
     }
 
+    toLegacy() : ExternalBooleanExpression {
+        return this;
+    }
+
     equals(other : BooleanExpression) : boolean {
         return other instanceof ExternalBooleanExpression &&
             this.selector.equals(other.selector) &&
@@ -965,7 +987,7 @@ export class ExistentialSubqueryBooleanExpression extends BooleanExpression {
         return `ExistentialSubquery(${this.subquery})`;
     }
 
-    toLegacy() : ExternalBooleanExpression|null {
+    toLegacy() : ExternalBooleanExpression {
         if (this.subquery instanceof FilterExpression && this.subquery.expression instanceof InvocationExpression) {
             const invocation = this.subquery.expression.invocation;
             return new ExternalBooleanExpression(
@@ -973,11 +995,11 @@ export class ExistentialSubqueryBooleanExpression extends BooleanExpression {
                 invocation.selector,
                 invocation.channel,
                 invocation.in_params,
-                this.subquery.filter,
+                this.subquery.filter.toLegacy(),
                 this.subquery.schema
             );
         }
-        return null;
+        throw new UnserializableError('Existential Subquery');
     }
 
     equals(other : BooleanExpression) : boolean {
@@ -1061,6 +1083,31 @@ export class ComparisonSubqueryBooleanExpression extends BooleanExpression {
         return `ComparisonSubquery(${this.lhs}, ${this.operator}, ${this.rhs})`;
     }
 
+    toLegacy() : ExternalBooleanExpression {
+        if (this.rhs instanceof ProjectionExpression && this.rhs.args.length + this.rhs.computations.length === 1) {
+            const expr = this.rhs.expression;
+            if (expr instanceof FilterExpression && expr.expression instanceof InvocationExpression) {
+                const invocation = expr.expression.invocation;
+                const extraFilter = new ComputeBooleanExpression(
+                    null,
+                    this.lhs,
+                    this.operator,
+                    this.rhs.args.length ? new Value.VarRef(this.rhs.args[0]) : this.rhs.computations[0]
+                );
+                const filter = new AndBooleanExpression(null, [expr.filter.toLegacy(), extraFilter]);
+                return new ExternalBooleanExpression(
+                    null,
+                    invocation.selector,
+                    invocation.channel,
+                    invocation.in_params,
+                    filter,
+                    invocation.schema
+                );
+            }
+        }
+        throw new UnserializableError('Comparison Subquery');
+    }
+
     equals(other : BooleanExpression) : boolean {
         return other instanceof ComparisonSubqueryBooleanExpression &&
             this.lhs.equals(other.lhs) &&
@@ -1126,6 +1173,10 @@ export class DontCareBooleanExpression extends BooleanExpression {
         return List.concat('true', '(', this.name, ')');
     }
 
+    toLegacy() : DontCareBooleanExpression {
+        return this;
+    }
+
     equals(other : BooleanExpression) : boolean {
         return other instanceof DontCareBooleanExpression && this.name === other.name;
     }
@@ -1163,6 +1214,10 @@ export class TrueBooleanExpression extends BooleanExpression {
 
     toSource() : TokenStream {
         return List.singleton('true');
+    }
+
+    toLegacy() : TrueBooleanExpression {
+        return this;
     }
 
     equals(other : BooleanExpression) : boolean {
@@ -1210,6 +1265,10 @@ export class FalseBooleanExpression extends BooleanExpression {
 
     toSource() : TokenStream {
         return List.singleton('false');
+    }
+
+    toLegacy() : FalseBooleanExpression {
+        return this;
     }
 
     equals(other : BooleanExpression) : boolean {
@@ -1320,6 +1379,10 @@ export class ComputeBooleanExpression extends BooleanExpression {
         } else {
             return List.concat(this.operator, '(', this.lhs.toSource(), ',', this.rhs.toSource(), ')');
         }
+    }
+
+    toLegacy() : ComputeBooleanExpression {
+        return this;
     }
 
     equals(other : BooleanExpression) : boolean {
