@@ -206,6 +206,8 @@ function prettyprintFilterExpression(ast : Ast.BooleanExpression) : string {
         return prettyprintExternalFilter(ast);
     if (ast instanceof Ast.ComputeBooleanExpression)
         return `${prettyprintValue(ast.lhs)} ${ast.operator} ${prettyprintValue(ast.rhs)}`;
+    if (ast instanceof Ast.ComparisonSubqueryBooleanExpression || ast instanceof Ast.ExistentialSubqueryBooleanExpression)
+        return prettyprintExternalFilter(ast.toLegacy());
     assert(ast instanceof Ast.AtomBooleanExpression);
 
     if (INFIX_FILTERS.has(ast.operator))

@@ -353,6 +353,7 @@ export abstract class BooleanExpressionOp {
     static Not : typeof NotBooleanExpressionOp;
     static Atom : typeof AtomBooleanExpressionOp;
     static External : typeof ExternalBooleanExpressionOp;
+    static ExistentialSubquery : typeof ExistentialSubqueryBooleanExpressionOp;
     static ComparisonSubquery : typeof ComparisonSubqueryBooleanExpressionOp;
     static True : TrueBooleanExpressionOp;
     static False : FalseBooleanExpressionOp;
@@ -411,6 +412,14 @@ export class ExternalBooleanExpressionOp extends BooleanExpressionOp {
     }
 }
 BooleanExpressionOp.External = ExternalBooleanExpressionOp;
+
+export class ExistentialSubqueryBooleanExpressionOp extends BooleanExpressionOp {
+    constructor(ast : Ast.ExistentialSubqueryBooleanExpression,
+                public subquery : TableOp) {
+        super(ast);
+    }
+}
+BooleanExpressionOp.ExistentialSubquery = ExistentialSubqueryBooleanExpressionOp;
 
 export class ComparisonSubqueryBooleanExpressionOp extends BooleanExpressionOp {
     constructor(ast : Ast.ComparisonSubqueryBooleanExpression,

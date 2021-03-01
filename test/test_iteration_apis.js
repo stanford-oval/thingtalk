@@ -465,11 +465,11 @@ now => [food] of ((@uk.ac.cam.multiwoz.Restaurant.Restaurant()), true) => notify
 
     [`monitor( @security-camera.current_event()), (has_person == true && any(@org.thingpedia.builtin.thingengine.builtin.get_gps(), location == new Location(1, 2)))  => notify;`,
     ['query: Invocation(Device(security-camera, , ), current_event, , )',
-     'filter: External(Device(org.thingpedia.builtin.thingengine.builtin, , ), get_gps, , Atom(location, ==, Location(Absolute(1, 2, null))))'],
+     'query: Invocation(Device(org.thingpedia.builtin.thingengine.builtin, , ), get_gps, , )'],
     [
     'Device(security-camera, , ) security-camera:current_event',
     'Device(org.thingpedia.builtin.thingengine.builtin, , ) org.thingpedia.builtin.thingengine.builtin:get_gps',
-    'Atom(location, ==, Location(Absolute(1, 2, null))) security-camera:current_event',
+    'Atom(location, ==, Location(Absolute(1, 2, null))) org.thingpedia.builtin.thingengine.builtin:get_gps',
     'Atom(has_person, ==, Boolean(true)) security-camera:current_event',
     ],
     [

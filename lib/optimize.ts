@@ -176,6 +176,12 @@ function optimizeFilter(expr : Ast.BooleanExpression) : Ast.BooleanExpression {
         return new Ast.BooleanExpression.External(expr.location, expr.selector,
             expr.channel, expr.in_params, subfilter, expr.schema);
     }
+    if (expr instanceof Ast.ExistentialSubqueryBooleanExpression) {
+        return new Ast.BooleanExpression.ExistentialSubquery(
+            expr.location,
+            optimizeExpression(expr.subquery)
+        );
+    }
     if (expr instanceof Ast.ComputeBooleanExpression) {
         const lhs = expr.lhs;
         const rhs = expr.rhs;

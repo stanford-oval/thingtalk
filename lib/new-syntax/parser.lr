@@ -1211,10 +1211,8 @@ atom_filter : Ast.BooleanExpression = {
     op:function_like_comparison_op '(' lhs:value ',' 'any' '(' rhs:projection_expression ')' ')' =>
         new Ast.BooleanExpression.ComparisonSubquery($.location, lhs, op, rhs);
 
-    'any' '(' inv:thingpedia_call 'filter' filter:or_filter ')' =>
-        new Ast.BooleanExpression.External($.location, inv.selector, inv.channel, inv.in_params, filter, null);
-    'any' '(' inv:thingpedia_call ',' filter:or_filter ')' =>
-        new Ast.BooleanExpression.External($.location, inv.selector, inv.channel, inv.in_params, filter, null);
+    'any' '(' subquery:chain_expression ')' =>
+        new Ast.BooleanExpression.ExistentialSubquery($.location, subquery);
 }
 
 primary_value : Ast.Value = {

@@ -392,7 +392,13 @@ atom_filter : Ast.BooleanExpression = {
         return new Ast.BooleanExpression.Compute($.location, lhs, op, rhs);
     };
     fn:call '{' filter '}' => {
-        return new Ast.BooleanExpression.External($.location, fn.selector, fn.channel, fn.in_params, filter, null);
+        const expr = new Ast.FilterExpression(
+            $.location,
+            new Ast.InvocationExpression($.location, fn, null),
+            filter,
+            null
+        );
+        return new Ast.BooleanExpression.ExistentialSubquery($.location, expr);
     };
 }
 

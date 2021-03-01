@@ -473,13 +473,25 @@ export default class TypeChecker {
             return;
         }
 
-        assert(ast instanceof Ast.ExternalBooleanExpression);
-        if (ast.schema === null)
-            await this._loadTpSchema(ast);
-        if (ast.schema!.functionType !== 'query')
-            throw new TypeError(`Subquery function must be a query, not ${ast.schema!.functionType}`);
-        await this._typeCheckInputArgs(ast, ast.schema!, scope);
-        await this._typeCheckFilterHelper(ast.filter, ast.schema, scope);
+        if (ast instanceof Ast.ExternalBooleanExpression) {
+            if (ast.schema === null)
+                await this._loadTpSchema(ast);
+            if (ast.schema!.functionType !== 'query')
+                throw new TypeError(`Subquery function must be a query, not ${ast.schema!.functionType}`);
+            await this._typeCheckInputArgs(ast, ast.schema!, scope);
+            await this._typeCheckFilterHelper(ast.filter, ast.schema, scope);
+            return;
+        }
+
+        assert(ast instanceof Ast.ExistentialSubqueryBooleanExpression);
+        await this._typeCheckSubquery(ast.subquery, scope);
+    }
+
+    private async _typeCheckSubquery(expr : Ast.Expression, scope : Scope) {
+        if (expr.schema === null)
+            await this._loadAllSchemas(expr);
+        await this._typeCheckExpression(expr, scope);
+        this._checkExpressionType(expr, ['query'], 'subquery');
     }
 
     private async _typeCheckSubqueryValue(expr : Ast.Expression, scope : Scope) {
