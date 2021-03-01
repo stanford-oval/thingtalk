@@ -491,7 +491,7 @@ export default class TypeChecker {
         if (expr.schema === null)
             await this._loadAllSchemas(expr);
         await this._typeCheckExpression(expr, scope);
-        this._checkExpressionType(expr, ['query'], 'projection');
+        this._checkExpressionType(expr, ['query'], 'subquery');
     }
 
     private async _typeCheckSubqueryValue(expr : Ast.Expression, scope : Scope) {
