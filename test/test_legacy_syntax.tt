@@ -1932,3 +1932,8 @@ class @org.thingpedia.weather {
                             out status: Enum(raining,cloudy,sunny,snowy,sleety,drizzling,windy),
                             out icon: Entity(tt:picture));
 }
+
+====
+
+// subquery in policy
+true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= makeTime(19,0) } => notify
