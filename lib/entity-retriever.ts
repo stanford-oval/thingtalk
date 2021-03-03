@@ -35,6 +35,8 @@ import {
     EntityMap
 } from './entities';
 
+const EPSILON = 1e-8;
+
 function entitiesEqual(type : string, one : AnyEntity, two : AnyEntity) : boolean {
     if (one === two)
         return true;
@@ -81,8 +83,8 @@ function entitiesEqual(type : string, one : AnyEntity, two : AnyEntity) : boolea
         const etwo = two as LocationEntity;
         if (isNaN(eone.latitude) && isNaN(etwo.latitude) && isNaN(eone.longitude) && isNaN(etwo.longitude))
             return eone.display === etwo.display;
-        return Math.abs(eone.latitude - etwo.latitude) < 0.01 &&
-            Math.abs(eone.longitude - etwo.longitude) < 0.01;
+        return Math.abs(eone.latitude - etwo.latitude) < EPSILON &&
+            Math.abs(eone.longitude - etwo.longitude) < EPSILON;
     }
     }
 

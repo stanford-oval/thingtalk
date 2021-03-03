@@ -44,6 +44,17 @@ const TEST_CASES = [
      },
     ],
 
+    [`now => @org.thingpedia.weather.current ( location = new Location ( 37.442156 , -122.1634471 , " palo alto " ) ) => notify ;`,
+     {
+         'LOCATION_0': { display: 'palo alto', latitude: 37.442156, longitude: -122.1634471 }
+     },
+     `now => @org.thingpedia.weather.current ( location = new Location ( 37.445523 , -122.1607073261 ) ) => notify ;`,
+     {
+         'LOCATION_0': { display: 'palo alto', latitude: 37.442156, longitude: -122.1634471 },
+         'LOCATION_1': { display: null, latitude: 37.445523, longitude: -122.1607073261 },
+     },
+    ],
+
     [`now => @org.thingpedia.weather.current ( location = new Location ( " stanford california " ) ) => notify ;`,
      {'LOCATION_0': { display: 'stanford california', latitude: NaN, longitude: NaN }},
      `now => @org.thingpedia.weather.current ( location = new Location ( " stanford california " ) ) => notify ;`,
