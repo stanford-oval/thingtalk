@@ -1,3 +1,16 @@
+2.0.0-alpha.4
+=============
+
+* New syntax: existential subqueries. These subqueries have the form:
+  ```
+  any(@dn.fn() filter f)
+  ```
+  And generalize the previous external boolean expressions (get predicates)
+  to support any table inside the `any` clause, including projection, sort,
+  index, aggregation, etc. [#310, #320].
+* Fixed normalization of location entities in tokenized syntax [#318].
+* Updated dependencies [#311, #312, #313, #314, #315].
+
 2.0.0-alpha.3
 =============
 

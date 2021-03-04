@@ -1,6 +1,6 @@
 {
   "name": "thingtalk",
-  "version": "2.0.0-alpha.3",
+  "version": "2.0.0-alpha.4",
   "description": "ThingTalk Just-In-Time Compiler, Library and Runtime",
   "license": "Apache-2.0",
   "repository": "https://github.com/stanford-oval/thingtalk",
