@@ -20,7 +20,7 @@
 
 import assert from 'assert';
 
-import { DateEdge, DatePiece, WeekDayDate, AbsoluteTime } from '../ast/values';
+import { DateEdge, DatePiece, WeekDayDate, AbsoluteTime, WeekDay } from '../ast';
 
 const TIME_UNITS = ['ms', 's', 'min', 'h', 'day', 'week', 'mon', 'year'];
 const SET_ZERO : Array<(d : Date) => void> = [(d) => {},
@@ -112,10 +112,27 @@ function createDatePiece(year : number|null, month : number|null, day : number|n
     return date;
 }
 
-function createWeekDayDate(weekday : string, time : AbsoluteTime|null) {
-    const date = new Date;
+function weekdayToNumber(weekday : WeekDay) : number {
+    switch (weekday) {
+        case "monday": return 1;
+        case "tuesday": return 2;
+        case "wednesday": return 3;
+        case "thursday": return 4;
+        case "friday": return 5;
+        case "saturday": return 6;
+        case "sunday": return 7;
+    }
+    throw new Error(`Invalid weekday: ${weekday}`);
+}
 
-    // FIXME: implement this
+function createWeekDayDate(weekday : WeekDay, time : AbsoluteTime|null) {
+    const date = new Date;
+    const weekdayNumber = weekdayToNumber(weekday);
+    const diff = (weekdayNumber - date.getDay()) % 7;
+    // get the date of next specified weekday, today excluded
+    date.setDate(date.getDate() + (diff > 0 ? diff : diff + 7));
+    if (time)
+        date.setHours(time.hour, time.minute, time.second, 0);
     return date;
 }
 

@@ -18,7 +18,7 @@
 
 import assert from 'assert';
 
-import { DateEdge, DatePiece, Time } from '../lib/ast';
+import { DateEdge, DatePiece, Time, WeekDayDate } from '../lib/ast';
 import { parseDate, normalizeDate } from '../lib/utils/date_utils';
 
 function test(value, expected) {
@@ -111,6 +111,18 @@ export default function main() {
     eleven_thirty.setSeconds(0);
     eleven_thirty.setMilliseconds(0);
     test(new DatePiece(null, null, 25, new Time.Absolute(11, 30, 0)), eleven_thirty);
+
+    const weekdays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    for (let j = 0; j < 7; j++) {
+        const date = new Date;
+        date.setHours(12, 0, 0, 0);
+        const weekday = weekdays[j];
+        const nextweekday = date;
+        nextweekday.setDate(nextweekday.getDate() + 1);
+        while (nextweekday.getDay() !== j)
+            nextweekday.setDate(nextweekday.getDate() + 1);
+        test(new WeekDayDate(weekday, new Time.Absolute(12, 0, 0)), nextweekday);
+    }
 }
 if (!module.parent)
     main();
