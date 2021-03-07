@@ -543,7 +543,6 @@ export default class SchemaRetriever {
                 this._classCache.dataset.set(kind, result[kind] = new Dataset(null, kind, []));
         } else {
             const parsed = Grammar.parse(code) as Library;
-            await parsed.typecheck(this, true);
 
             const examples = new Map<string, Example[]>();
 
@@ -554,6 +553,17 @@ export default class SchemaRetriever {
             // on disk
             for (const dataset of parsed.datasets) {
                 for (const example of dataset.examples) {
+                    // typecheck each example individually, and ignore those that do not
+                    // typecheck
+                    // this can occur if the dataset we retrieved from Thingpedia is newer
+                    // than the cached manifest and includes new functions or a parameter change
+                    try {
+                        await example.typecheck(this, true);
+                    } catch(e) {
+                        console.log(`Failed to load dataset example ${example.id}: ${e.message}`);
+                        continue;
+                    }
+
                     const devices = new Set<string>();
                     for (const [, prim] of example.iteratePrimitives(false))
                         devices.add(prim.selector.kind);
