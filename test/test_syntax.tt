@@ -1921,3 +1921,7 @@ monitor(@com.twitter.home_timeline() filter any(sort(file_size asc of @com.dropb
 monitor(@com.twitter.home_timeline() filter any(@com.twitter.post()));
 
 
+====
+
+// comparison subquery prefix comparison operator
+@org.wikidata.city() filter in_array(id, any([shares_border_with] of @org.wikidata.city() filter id =~ "palo alto"));

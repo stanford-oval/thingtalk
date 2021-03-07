@@ -1072,11 +1072,14 @@ export class ComparisonSubqueryBooleanExpression extends BooleanExpression {
     }
 
     get priority() : SyntaxPriority {
-        return SyntaxPriority.Primary;
+        return INFIX_COMPARISON_OPERATORS.has(this.operator) ? SyntaxPriority.Comp : SyntaxPriority.Primary;
     }
 
     toSource() : TokenStream {
-        return List.concat(this.lhs.toSource(), this.operator, 'any', '(', this.rhs.toSource(), ')');
+        if (INFIX_COMPARISON_OPERATORS.has(this.operator))
+            return List.concat(addParenthesis(SyntaxPriority.Add, this.lhs.priority, this.lhs.toSource()), this.operator, 'any', '(', this.rhs.toSource(), ')');
+        else
+            return List.concat(this.operator, '(', this.lhs.toSource(), ',', 'any', '(', this.rhs.toSource(), ')', ')');
     }
 
     toString() : string {
