@@ -627,6 +627,18 @@ const TEST_CASES = [
     ['sum ( aggregateRating . reviewCount of @org.schema . restaurant ( ) filter name =~ " holiday inn " ) ;',
      'sum the review count of the holiday inn', {},
      'sum(aggregateRating.reviewCount of @org.schema.restaurant() filter name =~ "holiday inn");'],
+
+    ['@com.thecatapi . get ( count = 77 ) ;',
+     'find me 77 cat pictures', {},
+     '@com.thecatapi.get(count=77);'],
+
+     ['@thermostat . set_target_temperature ( value = 77 F ) ;',
+     'set the thermostat to 77 f', {},
+     '@thermostat.set_target_temperature(value=77F);'],
+
+     ['@com.uber . price_estimate ( end = $location . home , start = $location . work ) filter low_estimate >= 50 $usd ;',
+    `get an uber price estimate from home to work if the low estimate is greater than $ 50`, {},
+    `@com.uber.price_estimate(end=$location.home, start=$location.work) filter low_estimate >= 50$usd;`],
 ];
 
 async function testCase(test, i) {

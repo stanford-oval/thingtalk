@@ -186,6 +186,30 @@ export class EntityRetriever extends AbstractEntityRetriever {
             return undefined;
     }
 
+    /**
+     * Match a numeric entity from the sentence.
+     *
+     * This method should search for a mention of the number in the sentence, and return the value
+     * to predict in NN-syntax, or `undefined` if the entity is not mentioned.
+     * This method can be overridden to implement custom tokenization or normalization.
+     *
+     * @param {string} entityType - the numeric entity type (NUMBER, MEASURE, CURRENCY, etc.)
+     * @param {number} number - the number to search
+     * @param {boolean} ignoreNotFound - ignore if the number is not mentioned; subclasses can
+     *   use this to hallucinate entities that are not mentioned, when `ignoreNotFound` is false
+     * @return the tokens to predict, or `undefined` if the entity is not mentioned in the sentence.
+     */
+    protected _findNumberFromSentence(entityType : string, number : number, ignoreNotFound : boolean) : string[]|undefined {
+        // by default, we normalize using JS syntax for numbers: "." for decimal
+        // separator, and no thousand separator
+        const entityTokens = [String(number)];
+        const found = this._sentenceContains(entityTokens);
+        if (found)
+            return entityTokens;
+        else
+            return undefined;
+    }
+
     private  _findStringLikeEntity(entityType : string,
                                    entity : AnyEntity,
                                    entityString : string,
@@ -194,6 +218,17 @@ export class EntityRetriever extends AbstractEntityRetriever {
             const dateStr = (entity as Date).toISOString();
             if (this._sentenceContains([dateStr]))
                 return List.concat('new', 'Date', '(', '"', dateStr, '"', ')');
+        }
+        if (entityType === 'NUMBER') {
+            const found = this._findNumberFromSentence(entityType, entity as number, ignoreNotFound);
+            if (found) // ignore the returned tokens, and always predict normalized English-like syntax
+                return List.singleton(String(entity));
+        }
+        if (entityType === 'CURRENCY' || entityType === 'DURATION' || entityType.startsWith('MEASURE_')) {
+            const measure = entity as MeasureEntity;
+            const found = this._findNumberFromSentence(entityType, measure.value, ignoreNotFound);
+            if (found) // ignore the returned tokens, and always predict normalized English-like syntax
+                return List.concat(String(measure.value), entityType === 'CURRENCY' ? ('$' + measure.unit) : measure.unit);
         }
 
         if (entityType === 'QUOTED_STRING' || entityType === 'HASHTAG' || entityType === 'USERNAME' ||
