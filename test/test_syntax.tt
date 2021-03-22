@@ -1925,3 +1925,17 @@ monitor(@com.twitter.home_timeline() filter any(@com.twitter.post()));
 
 // comparison subquery prefix comparison operator
 @org.wikidata.city() filter in_array(id, any([shares_border_with] of @org.wikidata.city() filter id =~ "palo alto"));
+
+====
+
+// return statements in user-defined functions
+function foo() {
+  // this will be actually returned by the function
+  return @com.twitter.home_timeline();
+  // ignored, no effect
+  @com.thecatapi.get();
+}
+
+foo();
+foo() filter text =~ "lol";
+foo() => @com.twitter.retweet(tweet_id=tweet_id);

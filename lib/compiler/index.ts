@@ -126,7 +126,7 @@ export default class AppCompiler {
     private _compileAssignment(assignment : Ast.Assignment,
                                irBuilder : JSIr.IRBuilder,
                                { hasAnyStream, forProcedure } : StatementCompileOptions) {
-        const opCompiler = new OpCompiler(this, this._declarations, irBuilder, forProcedure);
+        const opCompiler = new OpCompiler(this, this._declarations, irBuilder);
 
         // at the top level, assignments can be referred to by streams, so
         // they need to be persistent (save to disk) such that when the program
@@ -216,16 +216,20 @@ export default class AppCompiler {
 
     private _doCompileStatement(stmt : Ast.Rule|Ast.Command,
                                 irBuilder : JSIr.IRBuilder,
-                                forProcedure : boolean) {
-        const opCompiler = new OpCompiler(this, this._declarations, irBuilder, forProcedure);
+                                forProcedure : boolean,
+                                returnResult : boolean) {
+        const opCompiler = new OpCompiler(this, this._declarations, irBuilder);
         const ruleop = compileStatementToOp(stmt);
-        opCompiler.compileStatement(ruleop);
+        if (forProcedure)
+            opCompiler.compileProcedureStatement(ruleop, returnResult);
+        else
+            opCompiler.compileStatement(ruleop);
     }
 
     private _compileRule(rule : Ast.Rule|Ast.Command) : string|CompiledStatement {
         // each rule goes into its own JS function
         const irBuilder = new JSIr.IRBuilder();
-        this._doCompileStatement(rule, irBuilder, false);
+        this._doCompileStatement(rule, irBuilder, false, false);
 
         return this._testMode ? irBuilder.codegen() : irBuilder.compile(this._toplevelscope, this._astVars);
     }
@@ -251,6 +255,30 @@ export default class AppCompiler {
             );
         }
 
+        // compute which statement will produce the procedure return value
+        //
+        // - if there is an explicit "return" statement, that's the one to use
+        //   (this is the "new" way to do things)
+        // - if there is a query statement, the last one wins
+        // - otherwise, the last statement wins
+
+        let returnStmtIdx = -1, resultStmtIdx = -1;
+        for (let i = 0; i < stmts.length; i++) {
+            const stmt = stmts[i];
+            if (stmt instanceof Ast.ReturnStatement) {
+                returnStmtIdx = i;
+            } else if (stmt instanceof Ast.ExpressionStatement) {
+                if (stmt.expression.schema!.functionType === 'query') {
+                    resultStmtIdx = i;
+                } else {
+                    if (resultStmtIdx < 0)
+                        resultStmtIdx = i;
+                }
+            }
+        }
+        if (returnStmtIdx < 0)
+            returnStmtIdx = resultStmtIdx;
+
         for (let i = 0; i < stmts.length; i++) {
             // if this is not the first statement, clear the get cache before running it
             if (i !== 0)
@@ -260,7 +288,7 @@ export default class AppCompiler {
             if (stmt instanceof Ast.Assignment)
                 this._compileAssignment(stmt, irBuilder, { hasAnyStream, forProcedure });
             else
-                this._doCompileStatement(stmt.toLegacy(), irBuilder, forProcedure);
+                this._doCompileStatement(stmt.toLegacy(), irBuilder, forProcedure, i === returnStmtIdx);
         }
 
         return irBuilder;

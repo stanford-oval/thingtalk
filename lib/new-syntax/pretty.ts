@@ -246,6 +246,7 @@ export function prettyprint(tokens : TokenStream) : string {
         case 'opt':
         case 'out':
         case 'req':
+        case 'return':
         case 'switch':
         case 'until':
         case 'when':

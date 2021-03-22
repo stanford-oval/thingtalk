@@ -1142,12 +1142,21 @@ export default class TypeChecker {
         // - the last query expression statement, if any
         // - the last action expression statement
         let anyAction = false, anyStream = false,
-            resultExpression : Ast.Expression|undefined;
+            resultExpression : Ast.Expression|undefined,
+            returnExpression : Ast.Expression|undefined;
 
         for (const stmt of ast.statements) {
             if (stmt instanceof Ast.Assignment) {
                 await this._typeCheckAssignment(stmt, nestedScope);
                 anyAction = anyAction || stmt.value.schema!.functionType === 'action';
+            } else if (stmt instanceof Ast.ReturnStatement) {
+                if (returnExpression)
+                    throw new TypeError(`Multiple return statements are not allowed in the same procedure`);
+                await this._typeCheckExpression(stmt.expression, new Scope(nestedScope));
+                if (stmt.expression.schema!.functionType === 'stream')
+                    throw new TypeError(`Streams are not allowed in return statements`);
+                anyAction = anyAction || stmt.expression.schema!.functionType === 'action';
+                returnExpression = stmt.expression;
             } else {
                 await this._typeCheckExpressionStatement(stmt, new Scope(nestedScope));
 
@@ -1173,7 +1182,10 @@ export default class TypeChecker {
 
         const args : Ast.ArgumentDef[] = Object.keys(ast.args).map((name : string) =>
             new Ast.ArgumentDef(ast.location, Ast.ArgDirection.IN_REQ, name, ast.args[name], {}));
-        if (resultExpression) {
+        if (returnExpression) {
+            const outargs : Ast.ArgumentDef[] = Array.from(returnExpression.schema!.iterateArguments()).filter((a : Ast.ArgumentDef) => !a.is_input);
+            args.push(...outargs);
+        } else if (resultExpression) {
             const outargs : Ast.ArgumentDef[] = Array.from(resultExpression.schema!.iterateArguments()).filter((a : Ast.ArgumentDef) => !a.is_input);
             args.push(...outargs);
         }
