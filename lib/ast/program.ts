@@ -92,13 +92,18 @@ function declarationLikeToProgram(self : FunctionDeclaration|Example) : Program 
     for (const name in self.args)
         nametoslot[name] = i++;
 
-    let declarations : FunctionDeclaration[], statements : ExecutableStatement[];
+    let declarations : FunctionDeclaration[], statements : TopLevelExecutableStatement[];
     if (self instanceof Example) {
         declarations = [];
         statements = [new ExpressionStatement(null, self.value.clone())];
     } else {
         declarations = self.declarations.map((d) => d.clone());
-        statements = self.statements.map((s) => s.clone());
+        statements = self.statements.map((s) => {
+            if (s instanceof ReturnStatement)
+                return new ExpressionStatement(s.location, s.expression.clone());
+            else
+                return s.clone();
+        });
     }
 
     const program = new Program(null, [], declarations, statements);
@@ -579,6 +584,63 @@ export class ExpressionStatement extends Statement {
 }
 
 /**
+ * A statement that explicitly sets the result of the current function.
+ *
+ * Only available inside a user-defined function.
+ */
+export class ReturnStatement extends Statement {
+    constructor(location : SourceRange|null,
+                public expression : Expression) {
+        super(location);
+    }
+
+    toSource() : TokenStream {
+        return List.concat('return', this.expression.toSource(), ';');
+    }
+
+    visit(visitor : NodeVisitor) : void {
+        visitor.enter(this);
+        if (visitor.visitReturnStatement(this))
+            this.expression.visit(visitor);
+        visitor.exit(this);
+    }
+
+    *iterateSlots() : Generator<OldSlot, void> {
+        yield* this.expression.iterateSlots({});
+    }
+    *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
+        yield* this.expression.iterateSlots2({});
+    }
+
+    clone() : ReturnStatement {
+        return new ReturnStatement(this.location, this.expression.clone());
+    }
+
+    toLegacy(scope_params : string[] = []) : Command {
+        const chain = this.expression instanceof ChainExpression ? this.expression : new ChainExpression(null, [this.expression], this.expression.schema);
+        const last = chain.last;
+        const action = last.schema!.functionType === 'action' ? last : null;
+        let head : Table|null = null;
+        if (action) {
+            const remaining = chain.expressions.slice(0, chain.expressions.length-1);
+            if (remaining.length > 0) {
+                const converted = new ChainExpression(null, remaining, null).toLegacy([], scope_params);
+                assert(converted instanceof Table);
+                head = converted;
+            }
+        } else {
+            const converted  = chain.toLegacy([], scope_params);
+            assert(converted instanceof Table);
+            head = converted;
+        }
+        const convertedAction = action ? action.toLegacy([], scope_params) : null;
+        assert(convertedAction === null || convertedAction instanceof Action);
+
+        return new Command(this.location, head, convertedAction ? [convertedAction] : [Action.notifyAction()]);
+    }
+}
+
+/**
  * A statement that declares a ThingTalk dataset (collection of primitive
  * templates).
  *
@@ -725,7 +787,9 @@ Input.prototype.isLibrary = false;
 Input.prototype.isPermissionRule = false;
 Input.prototype.isDialogueState = false;
 
-export type ExecutableStatement = Assignment | ExpressionStatement;
+export type ExecutableStatement = Assignment | ExpressionStatement | ReturnStatement;
+export type TopLevelStatement = ClassDef | Dataset | FunctionDeclaration | TopLevelExecutableStatement;
+export type TopLevelExecutableStatement = Assignment | ExpressionStatement;
 
 /**
  * An executable ThingTalk program (containing at least one executable
@@ -737,7 +801,7 @@ export type ExecutableStatement = Assignment | ExpressionStatement;
 export class Program extends Input {
     classes : ClassDef[];
     declarations : FunctionDeclaration[];
-    statements : ExecutableStatement[];
+    statements : TopLevelExecutableStatement[];
     nl_annotations : NLAnnotationMap;
     impl_annotations : AnnotationMap;
 
@@ -755,7 +819,7 @@ export class Program extends Input {
     constructor(location : SourceRange|null,
                 classes : ClassDef[],
                 declarations : FunctionDeclaration[],
-                statements : ExecutableStatement[],
+                statements : TopLevelExecutableStatement[],
                 { nl, impl } : AnnotationSpec = {}) {
         super(location);
         assert(Array.isArray(classes));

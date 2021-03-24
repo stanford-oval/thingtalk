@@ -22,6 +22,7 @@ import assert from 'assert';
 import { stringEscape } from './utils/escaping';
 import * as Ast from './ast';
 import Type, { ArrayType, CompoundType } from './type';
+import { UnserializableError } from './utils/errors';
 
 function prettyprintType(ast : Type, prefix='') : string {
     if (ast instanceof ArrayType) {
@@ -355,6 +356,8 @@ function prettyprintDeclaration(decl : Ast.FunctionDeclaration, prefix = '', ext
     for (const rule of decl.statements) {
         if (rule instanceof Ast.Assignment)
             buffer += prettyprintAssignment(rule, innerprefix);
+        else if (rule instanceof Ast.ReturnStatement)
+            throw new UnserializableError(`return statement`);
         else
             buffer += prettyprintStatement(rule.toLegacy(scope_args), innerprefix);
     }

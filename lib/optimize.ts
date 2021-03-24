@@ -557,6 +557,10 @@ function optimizeProgram<T extends Ast.Program|Ast.FunctionDeclaration>(program 
             const optimized = optimizeExpression(stmt.value);
             stmt.value = optimized;
             statements.push(stmt);
+        } else if (stmt instanceof Ast.ReturnStatement) {
+            const optimized = optimizeExpression(stmt.expression);
+            stmt.expression = optimized;
+            statements.push(stmt);
         } else {
             const newrule = optimizeRule(stmt);
             statements.push(newrule);

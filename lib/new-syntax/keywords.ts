@@ -31,6 +31,7 @@ export const KEYWORDS = new Set<string>([
     'of',
     'true',
     'false',
+    'return',
 
     // ThingTalk-specific keywords
     'abstract',
@@ -70,7 +71,6 @@ export const KEYWORDS = new Set<string>([
     'private',
     'protected',
     'public',
-    'return',
     'static',
     'super',
     'switch',

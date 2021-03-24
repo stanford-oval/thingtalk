@@ -463,6 +463,10 @@ export default abstract class NodeVisitor {
         return true;
     }
     /* istanbul ignore next */
+    visitReturnStatement(node : Prog.ReturnStatement) : boolean {
+        return true;
+    }
+    /* istanbul ignore next */
     visitDataset(node : Prog.Dataset) : boolean {
         return true;
     }

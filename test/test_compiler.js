@@ -4421,8 +4421,7 @@ const TEST_CASES = [
       function a(p_status : String) {
         @com.twitter.post(status=p_status);
       }
-      // FIXME we cannot invoke query procedures as queries yet...
-      //now => q(p_query="foo") => a(p_status=link);
+      now => q(p_query="foo") => a(p_status=title);
       now => a(p_status="no");
       `,
     [`"use strict";
@@ -4478,7 +4477,7 @@ const TEST_CASES = [
     }
   } finally {
     await __env.exitProcedure(1, "a");
-  }`, `  "use strict";
+  }`, `"use strict";
   let _t_0;
   let _t_1;
   let _t_2;
@@ -4486,11 +4485,27 @@ const TEST_CASES = [
   let _t_4;
   let _t_5;
   let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
   await __env.enterProcedure(2, null);
   try {
     try {
-      _t_0 = __scope.a;
-      _t_1 = "no";
+      _t_0 = __scope.q;
+      _t_1 = "foo";
       _t_2 = await __builtin.invokeStreamVarRef(__env, _t_0, _t_1);
       {
         let _iter_tmp = await _t_2.next();
@@ -4499,8 +4514,46 @@ const TEST_CASES = [
           _t_4 = _t_3[0];
           _t_5 = _t_3[1];
           _t_6 = _t_5.__response;
-          await __env.output(String(_t_4), _t_5);
+          _t_7 = _t_5.title;
+          _t_8 = _t_5.description;
+          _t_9 = _t_5.link;
+          try {
+            _t_10 = __scope.a;
+            _t_11 = await __builtin.invokeStreamVarRef(__env, _t_10, _t_7);
+            {
+              let _iter_tmp = await _t_11.next();
+              while (!_iter_tmp.done) {
+                _t_12 = _iter_tmp.value;
+                _t_13 = _t_12[0];
+                _t_14 = _t_12[1];
+                _t_15 = _t_14.__response;
+                await __env.output(String(_t_13), _t_14);
+                _iter_tmp = await _t_11.next();
+              }
+            }
+          } catch(_exc_) {
+            __env.reportError("Failed to invoke action", _exc_);
+          }
           _iter_tmp = await _t_2.next();
+        }
+      }
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke query", _exc_);
+    }
+    __env.clearGetCache();
+    try {
+      _t_16 = __scope.a;
+      _t_17 = "no";
+      _t_18 = await __builtin.invokeStreamVarRef(__env, _t_16, _t_17);
+      {
+        let _iter_tmp = await _t_18.next();
+        while (!_iter_tmp.done) {
+          _t_19 = _iter_tmp.value;
+          _t_20 = _t_19[0];
+          _t_21 = _t_19[1];
+          _t_22 = _t_21.__response;
+          await __env.output(String(_t_20), _t_21);
+          _iter_tmp = await _t_18.next();
         }
       }
     } catch(_exc_) {
@@ -5264,9 +5317,8 @@ const TEST_CASES = [
         function q1() {
           @com.bing.web_search(query = p_foo);
         }
-        // FIXME we cannot invoke procedures as queries yet
-        //now => q1() => notify;
-        //now => q1() => @com.twitter.post(status = title);
+        now => q1() => notify;
+        now => q1() => @com.twitter.post(status = title);
         @com.twitter.post(status = p_foo);
     }
     now => p1(p_foo = "one");
@@ -5275,6 +5327,23 @@ const TEST_CASES = [
     [`"use strict";
   let _t_11;
   let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  let _t_25;
+  let _t_26;
+  let _t_27;
+  let _t_28;
+  let _t_29;
   await __env.enterProcedure(0, "p1");
   try {
     _t_11 = async function(__env, __emit) {
@@ -5321,9 +5390,59 @@ const TEST_CASES = [
       }
     };
     try {
-      _t_12 = {};
-      _t_12.status = _t_0;
-      await __builtin.drainAction(__env.invokeAction("com.twitter", { }, "post", _t_12));
+      _t_12 = await __builtin.invokeStreamVarRef(__env, _t_11);
+      {
+        let _iter_tmp = await _t_12.next();
+        while (!_iter_tmp.done) {
+          _t_13 = _iter_tmp.value;
+          _t_14 = _t_13[0];
+          _t_15 = _t_13[1];
+          _t_16 = _t_15.__response;
+          _t_17 = _t_15.title;
+          _t_18 = _t_15.description;
+          _t_19 = _t_15.link;
+          try {
+            __emit(_t_14, _t_15);
+          } catch(_exc_) {
+            __env.reportError("Failed to invoke action", _exc_);
+          }
+          _iter_tmp = await _t_12.next();
+        }
+      }
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke query", _exc_);
+    }
+    __env.clearGetCache();
+    try {
+      _t_20 = await __builtin.invokeStreamVarRef(__env, _t_11);
+      {
+        let _iter_tmp = await _t_20.next();
+        while (!_iter_tmp.done) {
+          _t_21 = _iter_tmp.value;
+          _t_22 = _t_21[0];
+          _t_23 = _t_21[1];
+          _t_24 = _t_23.__response;
+          _t_25 = _t_23.title;
+          _t_26 = _t_23.description;
+          _t_27 = _t_23.link;
+          try {
+            _t_28 = {};
+            _t_28.status = _t_25;
+            await __builtin.drainAction(__env.invokeAction("com.twitter", { }, "post", _t_28));
+          } catch(_exc_) {
+            __env.reportError("Failed to invoke action", _exc_);
+          }
+          _iter_tmp = await _t_20.next();
+        }
+      }
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke query", _exc_);
+    }
+    __env.clearGetCache();
+    try {
+      _t_29 = {};
+      _t_29.status = _t_0;
+      await __builtin.drainAction(__env.invokeAction("com.twitter", { }, "post", _t_29));
     } catch(_exc_) {
       __env.reportError("Failed to invoke action", _exc_);
     }
@@ -5344,6 +5463,12 @@ const TEST_CASES = [
   let _t_11;
   let _t_12;
   let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
   await __env.enterProcedure(2, null);
   try {
     try {
@@ -5357,6 +5482,9 @@ const TEST_CASES = [
           _t_4 = _t_3[0];
           _t_5 = _t_3[1];
           _t_6 = _t_5.__response;
+          _t_7 = _t_5.title;
+          _t_8 = _t_5.description;
+          _t_9 = _t_5.link;
           await __env.output(String(_t_4), _t_5);
           _iter_tmp = await _t_2.next();
         }
@@ -5366,18 +5494,21 @@ const TEST_CASES = [
     }
     __env.clearGetCache();
     try {
-      _t_7 = __scope.p1;
-      _t_8 = "two";
-      _t_9 = await __builtin.invokeStreamVarRef(__env, _t_7, _t_8);
+      _t_10 = __scope.p1;
+      _t_11 = "two";
+      _t_12 = await __builtin.invokeStreamVarRef(__env, _t_10, _t_11);
       {
-        let _iter_tmp = await _t_9.next();
+        let _iter_tmp = await _t_12.next();
         while (!_iter_tmp.done) {
-          _t_10 = _iter_tmp.value;
-          _t_11 = _t_10[0];
-          _t_12 = _t_10[1];
-          _t_13 = _t_12.__response;
-          await __env.output(String(_t_11), _t_12);
-          _iter_tmp = await _t_9.next();
+          _t_13 = _iter_tmp.value;
+          _t_14 = _t_13[0];
+          _t_15 = _t_13[1];
+          _t_16 = _t_15.__response;
+          _t_17 = _t_15.title;
+          _t_18 = _t_15.description;
+          _t_19 = _t_15.link;
+          await __env.output(String(_t_14), _t_15);
+          _iter_tmp = await _t_12.next();
         }
       }
     } catch(_exc_) {
@@ -5441,6 +5572,7 @@ const TEST_CASES = [
           _t_7 = _t_6[0];
           _t_8 = _t_6[1];
           _t_9 = _t_8.__response;
+          __emit(_t_7, _t_8);
           _iter_tmp = await _t_5.next();
         }
       }
@@ -5577,6 +5709,7 @@ const TEST_CASES = [
           _t_7 = _t_6[0];
           _t_8 = _t_6[1];
           _t_9 = _t_8.__response;
+          __emit(_t_7, _t_8);
           _iter_tmp = await _t_5.next();
         }
       }
@@ -7217,15 +7350,12 @@ const TEST_CASES = [
     [`
     function cat_and_twitter() {
       let cat = @com.thecatapi.get();
-      // FIXME
-      //now => cat() => @com.twitter.post_picture(picture_url=picture_url, caption="cat");
-      now => cat() => notify;
+      cat() => @com.twitter.post_picture(picture_url=picture_url, caption="cat");
+      cat();
       @com.twitter.post_picture(picture_url="http://foo"^^tt:picture, caption="cat");
     }
-    // FIXME this does not work for some reason
-    //let cat2 = cat_and_twitter();
-    //now => cat2() => notify;
-    @com.thecatapi.get();
+    let cat2 = cat_and_twitter();
+    cat2();
     `,
     [`"use strict";
   let _t_0;
@@ -7253,6 +7383,17 @@ const TEST_CASES = [
   let _t_22;
   let _t_23;
   let _t_24;
+  let _t_25;
+  let _t_26;
+  let _t_27;
+  let _t_28;
+  let _t_29;
+  let _t_30;
+  let _t_31;
+  let _t_32;
+  let _t_33;
+  let _t_34;
+  let _t_35;
   await __env.enterProcedure(0, "cat_and_twitter");
   try {
     _t_0 = new Array(0);
@@ -7294,7 +7435,12 @@ const TEST_CASES = [
         _t_19 = _t_16.picture_url;
         _t_20 = _t_16.link;
         try {
-          __emit(_t_15, _t_16);
+          _t_21 = {};
+          _t_22 = "cat";
+          _t_21.caption = _t_22;
+          _t_23 = String (_t_19);
+          _t_21.picture_url = _t_23;
+          await __builtin.drainAction(__env.invokeAction("com.twitter", { }, "post_picture", _t_21));
         } catch(_exc_) {
           __env.reportError("Failed to invoke action", _exc_);
         }
@@ -7302,14 +7448,34 @@ const TEST_CASES = [
       }
     }
     __env.clearGetCache();
+    _t_24 = __builtin.getAsyncIterator(_t_0);
+    {
+      let _iter_tmp = await _t_24.next();
+      while (!_iter_tmp.done) {
+        _t_25 = _iter_tmp.value;
+        _t_26 = _t_25[0];
+        _t_27 = _t_25[1];
+        _t_28 = _t_27.__response;
+        _t_29 = _t_27.image_id;
+        _t_30 = _t_27.picture_url;
+        _t_31 = _t_27.link;
+        try {
+          __emit(_t_26, _t_27);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_24.next();
+      }
+    }
+    __env.clearGetCache();
     try {
-      _t_21 = {};
-      _t_22 = "cat";
-      _t_21.caption = _t_22;
-      _t_23 = new __builtin.Entity("http://foo", null);
-      _t_24 = String (_t_23);
-      _t_21.picture_url = _t_24;
-      await __builtin.drainAction(__env.invokeAction("com.twitter", { }, "post_picture", _t_21));
+      _t_32 = {};
+      _t_33 = "cat";
+      _t_32.caption = _t_33;
+      _t_34 = new __builtin.Entity("http://foo", null);
+      _t_35 = String (_t_34);
+      _t_32.picture_url = _t_35;
+      await __builtin.drainAction(__env.invokeAction("com.twitter", { }, "post_picture", _t_32));
     } catch(_exc_) {
       __env.reportError("Failed to invoke action", _exc_);
     }
@@ -7327,33 +7493,59 @@ const TEST_CASES = [
   let _t_8;
   let _t_9;
   let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
   await __env.enterProcedure(1, null);
   try {
+    _t_0 = new Array(0);
     try {
-      _t_0 = {};
-      _t_1 = await __env.invokeQuery("com.thecatapi", { }, "get", _t_0, { projection: ["image_id", "picture_url", "link"] });
-      _t_2 = __builtin.getAsyncIterator(_t_1);
+      _t_1 = __scope.cat_and_twitter;
+      _t_2 = await __builtin.invokeStreamVarRef(__env, _t_1);
       {
         let _iter_tmp = await _t_2.next();
         while (!_iter_tmp.done) {
           _t_3 = _iter_tmp.value;
           _t_4 = _t_3[0];
           _t_5 = _t_3[1];
-          _t_6 = _t_5.count;
-          _t_7 = _t_5.__response;
-          _t_8 = _t_5.image_id;
-          _t_9 = _t_5.picture_url;
-          _t_10 = _t_5.link;
-          try {
-            await __env.output(String(_t_4), _t_5);
-          } catch(_exc_) {
-            __env.reportError("Failed to invoke action", _exc_);
-          }
+          _t_6 = _t_5.__response;
+          _t_7 = _t_5.image_id;
+          _t_8 = _t_5.picture_url;
+          _t_9 = _t_5.link;
+          _t_10 = new Array(2);
+          _t_10[0] = _t_4;
+          _t_10[1] = _t_5;
+          _t_0.push(_t_10);
           _iter_tmp = await _t_2.next();
         }
       }
     } catch(_exc_) {
       __env.reportError("Failed to invoke query", _exc_);
+    }
+    __env.clearGetCache();
+    _t_11 = __builtin.getAsyncIterator(_t_0);
+    {
+      let _iter_tmp = await _t_11.next();
+      while (!_iter_tmp.done) {
+        _t_12 = _iter_tmp.value;
+        _t_13 = _t_12[0];
+        _t_14 = _t_12[1];
+        _t_15 = _t_14.__response;
+        _t_16 = _t_14.image_id;
+        _t_17 = _t_14.picture_url;
+        _t_18 = _t_14.link;
+        try {
+          await __env.output(String(_t_13), _t_14);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_11.next();
+      }
     }
   } finally {
     await __env.exitProcedure(1, null);
@@ -9636,6 +9828,239 @@ const TEST_CASES = [
     await __env.exitProcedure(0, null);
   }`]
     ],
+
+    // 108 procedure with return value
+    [`// return statements in user-defined functions
+    function foo() {
+      // this will be actually returned by the function
+      return @com.twitter.home_timeline();
+      // ignored, no effect
+      @com.thecatapi.get();
+    }
+
+    foo();
+    foo() filter text =~ "lol";
+    foo() => @com.twitter.retweet(tweet_id=tweet_id);
+    `, [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  await __env.enterProcedure(0, "foo");
+  try {
+    try {
+      _t_0 = {};
+      _t_1 = await __env.invokeQuery("com.twitter", { }, "home_timeline", _t_0, { projection: ["text", "hashtags", "urls", "author", "in_reply_to", "tweet_id"] });
+      _t_2 = __builtin.getAsyncIterator(_t_1);
+      {
+        let _iter_tmp = await _t_2.next();
+        while (!_iter_tmp.done) {
+          _t_3 = _iter_tmp.value;
+          _t_4 = _t_3[0];
+          _t_5 = _t_3[1];
+          _t_6 = _t_5.__response;
+          _t_7 = _t_5.text;
+          _t_8 = _t_5.hashtags;
+          _t_9 = _t_5.urls;
+          _t_10 = _t_5.author;
+          _t_11 = _t_5.in_reply_to;
+          _t_12 = _t_5.tweet_id;
+          try {
+            __emit(_t_4, _t_5);
+          } catch(_exc_) {
+            __env.reportError("Failed to invoke action", _exc_);
+          }
+          _iter_tmp = await _t_2.next();
+        }
+      }
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke query", _exc_);
+    }
+    __env.clearGetCache();
+    try {
+      _t_13 = {};
+      _t_14 = await __env.invokeQuery("com.thecatapi", { }, "get", _t_13, { projection: ["image_id", "picture_url", "link"] });
+      _t_15 = __builtin.getAsyncIterator(_t_14);
+      {
+        let _iter_tmp = await _t_15.next();
+        while (!_iter_tmp.done) {
+          _t_16 = _iter_tmp.value;
+          _t_17 = _t_16[0];
+          _t_18 = _t_16[1];
+          _t_19 = _t_18.count;
+          _t_20 = _t_18.__response;
+          _t_21 = _t_18.image_id;
+          _t_22 = _t_18.picture_url;
+          _t_23 = _t_18.link;
+          try {
+
+          } catch(_exc_) {
+            __env.reportError("Failed to invoke action", _exc_);
+          }
+          _iter_tmp = await _t_15.next();
+        }
+      }
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke query", _exc_);
+    }
+  } finally {
+    await __env.exitProcedure(0, "foo");
+  }`, `"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  let _t_25;
+  let _t_26;
+  let _t_27;
+  let _t_28;
+  let _t_29;
+  let _t_30;
+  let _t_31;
+  let _t_32;
+  let _t_33;
+  let _t_34;
+  let _t_35;
+  let _t_36;
+  let _t_37;
+  let _t_38;
+  await __env.enterProcedure(1, null);
+  try {
+    try {
+      _t_0 = __scope.foo;
+      _t_1 = await __builtin.invokeStreamVarRef(__env, _t_0);
+      {
+        let _iter_tmp = await _t_1.next();
+        while (!_iter_tmp.done) {
+          _t_2 = _iter_tmp.value;
+          _t_3 = _t_2[0];
+          _t_4 = _t_2[1];
+          _t_5 = _t_4.__response;
+          _t_6 = _t_4.text;
+          _t_7 = _t_4.hashtags;
+          _t_8 = _t_4.urls;
+          _t_9 = _t_4.author;
+          _t_10 = _t_4.in_reply_to;
+          _t_11 = _t_4.tweet_id;
+          try {
+            await __env.output(String(_t_3), _t_4);
+          } catch(_exc_) {
+            __env.reportError("Failed to invoke action", _exc_);
+          }
+          _iter_tmp = await _t_1.next();
+        }
+      }
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke query", _exc_);
+    }
+    __env.clearGetCache();
+    try {
+      _t_12 = __scope.foo;
+      _t_13 = await __builtin.invokeStreamVarRef(__env, _t_12);
+      {
+        let _iter_tmp = await _t_13.next();
+        while (!_iter_tmp.done) {
+          _t_14 = _iter_tmp.value;
+          _t_15 = _t_14[0];
+          _t_16 = _t_14[1];
+          _t_17 = _t_16.__response;
+          _t_18 = _t_16.text;
+          _t_19 = _t_16.hashtags;
+          _t_20 = _t_16.urls;
+          _t_21 = _t_16.author;
+          _t_22 = _t_16.in_reply_to;
+          _t_23 = _t_16.tweet_id;
+          _t_25 = "lol";
+          _t_24 = __builtin.like(_t_18, _t_25);
+          if (_t_24) {
+            try {
+              await __env.output(String(_t_15), _t_16);
+            } catch(_exc_) {
+              __env.reportError("Failed to invoke action", _exc_);
+            }
+          } else {
+
+          }
+          _iter_tmp = await _t_13.next();
+        }
+      }
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke query", _exc_);
+    }
+    __env.clearGetCache();
+    try {
+      _t_26 = __scope.foo;
+      _t_27 = await __builtin.invokeStreamVarRef(__env, _t_26);
+      {
+        let _iter_tmp = await _t_27.next();
+        while (!_iter_tmp.done) {
+          _t_28 = _iter_tmp.value;
+          _t_29 = _t_28[0];
+          _t_30 = _t_28[1];
+          _t_31 = _t_30.__response;
+          _t_32 = _t_30.text;
+          _t_33 = _t_30.hashtags;
+          _t_34 = _t_30.urls;
+          _t_35 = _t_30.author;
+          _t_36 = _t_30.in_reply_to;
+          _t_37 = _t_30.tweet_id;
+          try {
+            _t_38 = {};
+            _t_38.tweet_id = _t_37;
+            await __builtin.drainAction(__env.invokeAction("com.twitter", { }, "retweet", _t_38));
+          } catch(_exc_) {
+            __env.reportError("Failed to invoke action", _exc_);
+          }
+          _iter_tmp = await _t_27.next();
+        }
+      }
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke query", _exc_);
+    }
+  } finally {
+    await __env.exitProcedure(1, null);
+  }`]],
 ];
 
 // eslint-disable-next-line prefer-arrow-callback

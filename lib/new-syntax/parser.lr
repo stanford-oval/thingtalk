@@ -33,11 +33,11 @@ type DialogueHistoryAnnotation =
     | { key : 'count', value : Ast.Value }
     | { key : 'more', value : true };
 
-function makeInput($ : $runtime.ParserInterface, statements : Ast.Statement[], annotations : Ast.AnnotationSpec) {
+function makeInput($ : $runtime.ParserInterface, statements : Ast.TopLevelStatement[], annotations : Ast.AnnotationSpec) {
     const classes : Ast.ClassDef[] = [];
     const datasets : Ast.Dataset[] = [];
     const declarations : Ast.FunctionDeclaration[] = [];
-    const executable : Ast.ExecutableStatement[] = [];
+    const executable : Ast.TopLevelExecutableStatement[] = [];
 
     for (const stmt of statements) {
         if (stmt instanceof Ast.ClassDef) {
@@ -498,17 +498,30 @@ statement_list : Array<Ast.FunctionDeclaration|Ast.ExecutableStatement> = {
     };
 }
 
-toplevel_statement_list : Ast.Statement[] = {
+toplevel_statement_list : Ast.TopLevelStatement[] = {
     stmt:toplevel_statement => [stmt];
-    stmt:statement => [stmt];
 
     list:toplevel_statement_list stmt:toplevel_statement => list.concat([stmt]);
-    list:toplevel_statement_list stmt:statement => list.concat([stmt]);
 }
 
-toplevel_statement : (Ast.ClassDef|Ast.Dataset) = {
+toplevel_statement : Ast.TopLevelStatement = {
     class_def;
     dataset_def;
+    udf_declaration;
+    expr:expression_statement ';' => expr;
+    assignment;
+}
+
+statement : Ast.FunctionDeclaration|Ast.ExecutableStatement = {
+    udf_declaration;
+    expr:expression_statement ';' => expr;
+    assignment;
+    'return' expr:chain_expression ';' => new Ast.ReturnStatement(null, expr);
+}
+
+assignment : Ast.Assignment = {
+    'let' name:variable_name '=' expr:chain_expression ';'
+        => new Ast.Assignment($.location, name, expr, null);
 }
 
 class_specifier : boolean = {
@@ -756,14 +769,6 @@ udf_declaration : Ast.FunctionDeclaration = {
         const [declarations, executable] = splitStatements(stmts);
         return new Ast.FunctionDeclaration($.location, name, params, declarations, executable, annot, null);
     };
-}
-
-statement : Ast.FunctionDeclaration|Ast.ExecutableStatement = {
-    udf_declaration;
-    expr:expression_statement ';' => expr;
-
-    'let' name:variable_name '=' expr:chain_expression ';'
-        => new Ast.Assignment($.location, name, expr, null);
 }
 
 expression_statement : Ast.ExpressionStatement = {

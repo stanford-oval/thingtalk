@@ -45,18 +45,15 @@ type ArgMap = { [key : string] : JSIr.Register };
 export default class OpCompiler {
     private _compiler : AppCompiler;
     private _irBuilder : JSIr.IRBuilder;
-    private _forProcedure : boolean;
     private _globalScope : Scope;
     private _currentScope : Scope;
     private _varScopeNames : string[];
 
     constructor(compiler : AppCompiler,
                 globalScope : Scope,
-                irBuilder : JSIr.IRBuilder,
-                forProcedure : boolean) {
+                irBuilder : JSIr.IRBuilder) {
         this._compiler = compiler;
         this._irBuilder = irBuilder;
-        this._forProcedure = forProcedure;
 
         this._globalScope = globalScope;
         this._currentScope = new Scope(globalScope);
@@ -631,9 +628,8 @@ export default class OpCompiler {
     private _compileInvokeTableVarRef(tableop : Ops.InvokeVarRefTableOp) {
         const decl = this._currentScope.get(tableop.name);
         assert(decl.type !== 'scalar');
-        assert(decl.type !== 'procedure');
 
-        if (decl.type === 'declaration') {
+        if (decl.type === 'declaration' || decl.type === 'procedure') {
             const tryCatch = new JSIr.TryCatch("Failed to invoke query");
             this._irBuilder.add(tryCatch);
             this._irBuilder.pushBlock(tryCatch.try);
@@ -667,10 +663,11 @@ export default class OpCompiler {
     }
 
     private _compileInvokeOutput() {
-        if (this._forProcedure)
-            this._irBuilder.add(new JSIr.InvokeEmit(getRegister('$outputType', this._currentScope), getRegister('$output', this._currentScope)));
-        else
-            this._irBuilder.add(new JSIr.InvokeOutput(getRegister('$outputType', this._currentScope), getRegister('$output', this._currentScope)));
+        this._irBuilder.add(new JSIr.InvokeOutput(getRegister('$outputType', this._currentScope), getRegister('$output', this._currentScope)));
+    }
+
+    private _compileInvokeEmit() {
+        this._irBuilder.add(new JSIr.InvokeEmit(getRegister('$outputType', this._currentScope), getRegister('$output', this._currentScope)));
     }
 
     private _compileInvokeAction(action : Ast.InvocationAction|Ast.InvocationTable) {
@@ -713,10 +710,44 @@ export default class OpCompiler {
                 hasResult = this._compileInvokeAction(ast);
             }
 
-            if (hasResult && !this._forProcedure)
+            if (hasResult)
                 this._compileInvokeOutput();
 
             // pop the blocks introduced by iterating the query
+            this._irBuilder.popTo(stack);
+        }
+
+        this._irBuilder.popBlock();
+    }
+
+    private _compileProcedureAction(ast : Ast.Action, returnResult : boolean) {
+        const tryCatch = new JSIr.TryCatch("Failed to invoke action");
+        this._irBuilder.add(tryCatch);
+        this._irBuilder.pushBlock(tryCatch.try);
+
+        if (ast instanceof Ast.NotifyAction) {
+            if (returnResult)
+                this._compileInvokeEmit();
+        } else {
+            const stack = this._irBuilder.saveStackState();
+
+            let hasResult;
+            if (ast instanceof Ast.VarRefAction) {
+                this._compileInvokeGenericVarRef(ast);
+                hasResult = true;
+            } else {
+                assert(ast instanceof Ast.InvocationAction);
+                hasResult = this._compileInvokeAction(ast);
+            }
+
+            if (returnResult && hasResult)
+                this._compileInvokeEmit();
+
+            // an action return statement without a result does not make much sense, but it typechecks,
+            // so we allow it, and interpret it to be an empty array
+            // this is implemented by not calling the emit() function at all
+
+            // pop the blocks introduced by iterating the action results
             this._irBuilder.popTo(stack);
         }
 
@@ -1235,6 +1266,17 @@ export default class OpCompiler {
         this._compileStream(ruleop.stream);
         for (const action of ruleop.actions)
             this._compileAction(action);
+
+        this._irBuilder.popAll();
+
+        for (const action of ruleop.actions)
+            this._compileEndOfFlow(action);
+    }
+
+    compileProcedureStatement(ruleop : Ops.RuleOp, returnResult : boolean) : void {
+        this._compileStream(ruleop.stream);
+        for (const action of ruleop.actions)
+            this._compileProcedureAction(action, returnResult);
 
         this._irBuilder.popAll();
 
