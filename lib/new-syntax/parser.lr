@@ -349,15 +349,15 @@ dialogue_state : Ast.DialogueState = {
     '$dialogue' dialogueAct:thingpedia_function_name ';' history:dialogue_history_item_list => {
         return new Ast.DialogueState($.location, dialogueAct.kind, dialogueAct.name, null, history);
     };
-    '$dialogue' dialogueAct:thingpedia_function_name '(' pnames:identifier_list ')' ';' history:dialogue_history_item_list => {
-        return new Ast.DialogueState($.location, dialogueAct.kind, dialogueAct.name, pnames, history);
+    '$dialogue' dialogueAct:thingpedia_function_name '(' pnames:array_literal_values ')' ';' history:dialogue_history_item_list => {
+        return new Ast.DialogueState($.location, dialogueAct.kind, dialogueAct.name, pnames.map((p) => p instanceof Ast.VarRefValue ? p.name : p), history);
     };
 
     '$dialogue' dialogueAct:thingpedia_function_name ';' => {
         return new Ast.DialogueState($.location, dialogueAct.kind, dialogueAct.name, null, []);
     };
-    '$dialogue' dialogueAct:thingpedia_function_name '(' pnames:identifier_list ')' ';' => {
-        return new Ast.DialogueState($.location, dialogueAct.kind, dialogueAct.name, pnames, []);
+    '$dialogue' dialogueAct:thingpedia_function_name '(' pnames:array_literal_values ')' ';' => {
+        return new Ast.DialogueState($.location, dialogueAct.kind, dialogueAct.name, pnames.map((p) => p instanceof Ast.VarRefValue ? p.name : p), []);
     };
 }
 

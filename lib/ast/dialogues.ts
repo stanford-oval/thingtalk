@@ -371,7 +371,7 @@ export class DialogueHistoryItem extends AstNode {
 export class DialogueState extends Input {
     policy : string;
     dialogueAct : string;
-    dialogueActParam : string[]|null;
+    dialogueActParam : Array<string|Value>|null;
     history : DialogueHistoryItem[];
 
     private _current : DialogueHistoryItem|null;
@@ -379,7 +379,7 @@ export class DialogueState extends Input {
     constructor(location : SourceRange|null,
                 policy : string,
                 dialogueAct : string,
-                dialogueActParam : string[]|string|null,
+                dialogueActParam : Array<string|Value>|string|null,
                 history : DialogueHistoryItem[]) {
         super(location);
         assert(typeof policy === 'string');
@@ -420,7 +420,7 @@ export class DialogueState extends Input {
     toSource() : TokenStream {
         let list : TokenStream = List.concat('$dialogue', '@' + this.policy, '.', this.dialogueAct);
         if (this.dialogueActParam)
-            list = List.concat(list, '(', List.join(this.dialogueActParam.map((p) => List.singleton(p)), ','), ')');
+            list = List.concat(list, '(', List.join(this.dialogueActParam.map((p) => typeof p === 'string' ? List.singleton(p) : p.toSource()), ','), ')');
         list = List.concat(list, ';');
         for (const item of this.history)
             list = List.concat(list, '\n', item.toSource());
@@ -428,7 +428,8 @@ export class DialogueState extends Input {
     }
 
     clone() : DialogueState {
-        return new DialogueState(this.location, this.policy, this.dialogueAct, this.dialogueActParam,
+        return new DialogueState(this.location, this.policy, this.dialogueAct,
+            this.dialogueActParam ? this.dialogueActParam.map((v) => typeof v === 'string' ? v : v.clone()) : null,
             this.history.map((item) => item.clone()));
     }
 
