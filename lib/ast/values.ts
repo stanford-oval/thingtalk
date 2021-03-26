@@ -400,8 +400,6 @@ Time.Relative = RelativeTime;
  * will make use of this class, while code using the library to implement or call Thingpedia
  * functions will make use of the runtime representations.
  *
- * @alias Ast.Value
- * @class
  */
 export abstract class Value extends AstNode {
     static Boolean : typeof BooleanValue;
@@ -1485,7 +1483,6 @@ interface RecurrentTimeRuleLike {
 /**
  * An AST node representing a single rule for a recurrent event.
  *
- * @alias Ast.RecurrentTimeRule
  */
 export class RecurrentTimeRule extends AstNode {
     beginTime : AbsoluteTime;

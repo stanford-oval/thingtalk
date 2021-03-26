@@ -58,7 +58,6 @@ interface ClassConstructOptions {
 /**
  * The definition of a ThingTalk class.
  *
- * @alias Ast.ClassDef
  */
 export class ClassDef extends Statement {
     name : string;
@@ -281,8 +280,6 @@ export class ClassDef extends Statement {
     /**
      * The `loader` mixin for this class, if one is present
      *
-     * @type {Ast.ImportStmt|undefined}
-     * @readonly
      */
     get loader() : MixinImportStmt|undefined {
         return this.imports.find((i) => i.facets.includes('loader'));
@@ -291,8 +288,6 @@ export class ClassDef extends Statement {
     /**
      * The `config` mixin for this class, if one is present
      *
-     * @type {Ast.ImportStmt|undefined}
-     * @readonly
      */
     get config() : MixinImportStmt|undefined {
         return this.imports.find((i) => i.facets.includes('config'));
@@ -304,8 +299,6 @@ export class ClassDef extends Statement {
      * This is is the preferred property to use as a user visible name for devices of
      * this class. It will never be null or undefined: if the `#_[canonical]` annotation
      * is missing, a default will be computed from the class name.
-     * @type {string}
-     * @readonly
      */
     get canonical() : string {
         return this.nl_annotations.canonical || cleanKind(this.kind);

@@ -59,7 +59,6 @@ interface Device {
  * Selectors correspond to the `@`-device part of the ThingTalk code,
  * up to but not including the function name.
  *
- * @alias Ast.DeviceSelector
  */
 export class DeviceSelector extends Node {
     kind : string;
@@ -177,8 +176,6 @@ export class DeviceSelector extends Node {
 /**
  * AST node corresponding to an input parameter passed to a function.
  *
- * @alias Ast.InputParam
- * @extends Ast~Node
  * @property {boolean} isInputParam - true
  */
 export class InputParam extends Node {
@@ -202,16 +199,12 @@ export class InputParam extends Node {
         assert(typeof name === 'string');
         /**
          * The input argument name.
-         * @type {string}
-         * @readonly
          */
         this.name = name;
 
         assert(value instanceof Value);
         /**
          * The value being passed.
-         * @type {Ast.Value}
-         * @readonly
          */
         this.value = value;
     }
@@ -244,8 +237,6 @@ export class InputParam extends Node {
 /**
  * An invocation of a ThingTalk function.
  *
- * @alias Ast.Invocation
- * @extends Ast~Node
  */
 export class Invocation extends Node {
     isInvocation = true;
@@ -282,16 +273,12 @@ export class Invocation extends Node {
 
         /**
          * The function name being invoked.
-         * @type {string}
-         * @readonly
          */
         this.channel = channel;
 
         assert(Array.isArray(in_params));
         /**
          * The input parameters passed to the function.
-         * @type {Ast.InputParam[]}
-         * @readonly
          */
         this.in_params = in_params;
 
@@ -299,7 +286,6 @@ export class Invocation extends Node {
         /**
          * Type signature of the invoked function (not of the invocation itself).
          * This property is guaranteed not `null` after type-checking.
-         * @type {Ast.FunctionDef|null}
          */
         this.schema = schema;
     }
@@ -362,7 +348,6 @@ export class Invocation extends Node {
      * Iterate all slots (scalar value nodes) in this invocation.
      *
      * @param {Object.<string, Ast~SlotScopeItem>} scope - available names for parameter passing
-     * @yields {Ast~AbstractSlot}
      */
     *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike, ScopeMap]> {
         if (this.selector instanceof DeviceSelector) {
@@ -383,10 +368,6 @@ export class Invocation extends Node {
  * An expression that computes a boolean predicate.
  * This AST node is used in filter expressions.
  *
- * @class
- * @alias Ast.BooleanExpression
- * @extends Ast~Node
- * @abstract
  * @property {boolean} isBooleanExpression - true
  * @property {boolean} isAnd - true if this is an instance of {@link Ast.BooleanExpression.And}
  * @property {boolean} isOr - true if this is an instance of {@link Ast.BooleanExpression.Or}
@@ -479,8 +460,6 @@ export function arrayEquals<T extends EqualsComparable>(a1 : T[], a2 : T[]) : bo
 
 /**
  * A conjunction boolean expression (ThingTalk operator `&&`)
- * @alias Ast.BooleanExpression.And
- * @extends Ast.BooleanExpression
  */
 export class AndBooleanExpression extends BooleanExpression {
     /**
@@ -552,8 +531,6 @@ BooleanExpression.And = AndBooleanExpression;
 BooleanExpression.And.prototype.isAnd = true;
 /**
  * A disjunction boolean expression (ThingTalk operator `||`)
- * @alias Ast.BooleanExpression.Or
- * @extends Ast.BooleanExpression
  */
 export class OrBooleanExpression extends BooleanExpression {
     /**
@@ -629,8 +606,6 @@ const INFIX_COMPARISON_OPERATORS = new Set(['==', '>=', '<=', '>', '<', '=~', '~
 
 /**
  * A comparison expression (predicate atom)
- * @alias Ast.BooleanExpression.Atom
- * @extends Ast.BooleanExpression
  */
 export class AtomBooleanExpression extends BooleanExpression {
     name : string;
@@ -656,24 +631,18 @@ export class AtomBooleanExpression extends BooleanExpression {
         assert(typeof name === 'string');
         /**
          * The parameter name to compare.
-         * @type {string}
-         * @readonly
          */
         this.name = name;
 
         assert(typeof operator === 'string');
         /**
          * The comparison operator.
-         * @type {string}
-         * @readonly
          */
         this.operator = operator;
 
         assert(value instanceof Value);
         /**
           * The value being compared against.
-          * @type {Ast.Value}
-          * @readonly
           */
         this.value = value;
 
@@ -744,8 +713,6 @@ BooleanExpression.Atom = AtomBooleanExpression;
 BooleanExpression.Atom.prototype.isAtom = true;
 /**
  * A negation boolean expression (ThingTalk operator `!`)
- * @alias Ast.BooleanExpression.Not
- * @extends Ast.BooleanExpression
  */
 export class NotBooleanExpression extends BooleanExpression {
     expr : BooleanExpression;
@@ -762,8 +729,6 @@ export class NotBooleanExpression extends BooleanExpression {
         assert(expr instanceof BooleanExpression);
         /**
          * The expression being negated.
-         * @type {Ast.BooleanExpression}
-         * @readonly
          */
         this.expr = expr;
     }
@@ -818,8 +783,6 @@ BooleanExpression.Not.prototype.isNot = true;
  * The boolean expression is true if at least one result from the function
  * call satisfies the filter.
  *
- * @alias Ast.BooleanExpression.External
- * @extends Ast.BooleanExpression
  */
 export class ExternalBooleanExpression extends BooleanExpression {
     selector : DeviceSelector;
@@ -855,24 +818,18 @@ export class ExternalBooleanExpression extends BooleanExpression {
         assert(typeof channel === 'string');
         /**
          * The function name being invoked.
-         * @type {string}
-         * @readonly
          */
         this.channel = channel;
 
         assert(Array.isArray(in_params));
         /**
          * The input parameters passed to the function.
-         * @type {Ast.InputParam[]}
-         * @readonly
          */
         this.in_params = in_params;
 
         assert(filter instanceof BooleanExpression);
         /**
          * The predicate to apply on the invocation's results.
-         * @type {Ast.BooleanExpression}
-         * @readonly
          */
         this.filter = filter;
 
@@ -880,7 +837,6 @@ export class ExternalBooleanExpression extends BooleanExpression {
         /**
          * Type signature of the invoked function (not of the boolean expression itself).
          * This property is guaranteed not `null` after type-checking.
-         * @type {Ast.FunctionDef|null}
          */
         this.schema = schema;
     }
@@ -957,8 +913,6 @@ BooleanExpression.External.prototype.isExternal = true;
  * The boolean expression is true if at least one result from the function
  * call satisfies the filter.
  *
- * @alias Ast.BooleanExpression.ExistentialSubquery
- * @extends Ast.BooleanExpression
  */
 export class ExistentialSubqueryBooleanExpression extends BooleanExpression {
     subquery : Expression;
@@ -1040,8 +994,6 @@ BooleanExpression.ExistentialSubquery.prototype.isExistentialSubquery = true;
  * A boolean expression that calls a Thingpedia query function
  * and compares the result with another value.
  *
- * @alias Ast.BooleanExpression.ComparisonSubquery
- * @extends Ast.BooleanExpression
  */
 export class ComparisonSubqueryBooleanExpression extends BooleanExpression {
     lhs : Value;
@@ -1251,9 +1203,6 @@ TrueBooleanExpression.prototype.isTrue = true;
  * The constant `true` boolean expression.
  *
  * This is a singleton, not a class.
- * @alias Ast.BooleanExpression.True
- * @type {Ast.BooleanExpression}
- * @readonly
  */
 BooleanExpression.True = new TrueBooleanExpression();
 
@@ -1302,17 +1251,12 @@ FalseBooleanExpression.prototype.isFalse = true;
  * The constant `false` boolean expression.
  *
  * This is a singleton, not a class.
- * @alias Ast.BooleanExpression.False
- * @type {Ast.BooleanExpression}
- * @readonly
  */
 BooleanExpression.False = new FalseBooleanExpression();
 
 /**
  * A boolean expression that computes a scalar expression and then does a comparison
  *
- * @alias Ast.BooleanExpression.Compute
- * @extends Ast.BooleanExpression
  */
 export class ComputeBooleanExpression extends BooleanExpression {
     lhs : Value;
@@ -1340,8 +1284,6 @@ export class ComputeBooleanExpression extends BooleanExpression {
         /**
          * The scalar expression being compared.
          *
-         * @type {Ast.ScalarExpression}
-         * @readonly
          */
         this.lhs = lhs;
 
@@ -1349,8 +1291,6 @@ export class ComputeBooleanExpression extends BooleanExpression {
         /**
          * The comparison operator.
          *
-         * @type {string}
-         * @readonly
          */
         this.operator = operator;
 
@@ -1358,8 +1298,6 @@ export class ComputeBooleanExpression extends BooleanExpression {
         /**
          * The value being compared against.
          *
-         * @type {Ast.Value}
-         * @readonly
          */
         this.rhs = rhs;
 

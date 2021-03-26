@@ -56,7 +56,6 @@ import {
  * APIs to parse and serialize ThingTalk code.
  *
  * @namespace
- * @alias Grammar
  */
 
 export enum SyntaxType {

@@ -25,7 +25,6 @@ import { stringEscape } from '../utils/escaping';
 /**
  * Runtime representation of an entity value.
  *
- * @alias Builtin.Entity
  */
 export class Entity {
     value : string;
@@ -40,12 +39,10 @@ export class Entity {
     constructor(id : string, display ?: string|null) {
         /**
          * The entity identifier value.
-         * @type {string}
          */
         this.value = id;
         /**
          * The entity display name.
-         * @type {string|null}
          */
         this.display = display||null;
     }
@@ -85,7 +82,6 @@ export interface LocationLike {
 /**
  * Runtime representation of a location value.
  *
- * @alias Builtin.Location
  */
 export class Location implements LocationLike {
     x : number;
@@ -105,35 +101,30 @@ export class Location implements LocationLike {
 
         /**
          * Longitude value.
-         * @type {number}
          * @deprecated Use {Builtin.Location#lon}
          */
         this.x = lon;
 
         /**
          * Latitude value.
-         * @type {number}
          * @deprecated Use {Builtin.Location#lat}
          */
         this.y = lat;
 
         /**
          * Display name for this location.
-         * @type {string}
          */
         this.display = display||null;
     }
 
     /**
      * Latitude value.
-     * @type {number}
      */
     get lat() : number {
         return this.y;
     }
     /**
      * Longitude value.
-     * @type {number}
      */
     get lon() : number {
         return this.x;
@@ -176,7 +167,6 @@ export class Location implements LocationLike {
 /**
  * Runtime representation of a time value.
  *
- * @alias Builtin.Time
  */
 export class Time {
     hour : number;
@@ -195,20 +185,14 @@ export class Time {
             throw new Error(`Invalid time ${hour}:${minute}:${second}`);
         /**
          * Hour value.
-         * @type {number}
-         * @readonly
          */
         this.hour = hour;
         /**
          * Minute value.
-         * @type {number}
-         * @readonly
          */
         this.minute = minute;
         /**
          * Second value.
-         * @type {number}
-         * @readonly
          */
         this.second = second;
     }
@@ -257,7 +241,6 @@ export class Time {
 /**
  * Runtime representation of a currency value.
  *
- * @alias Builtin.Currency
  */
 export class Currency {
     value : number;
@@ -301,7 +284,6 @@ export interface RecurrentTimeRuleLike {
 /**
  * Runtime representation of a recurrent time rule (a single item in a recurrent time specification).
  *
- * @alias Builtin.RecurrentTimeRule
  */
 export class RecurrentTimeRule implements RecurrentTimeRuleLike {
     beginTime : Time;

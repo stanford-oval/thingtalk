@@ -55,8 +55,6 @@ export interface OpDefinition extends OpImplementation {
 /**
  * Definitions (type signatures) of ThingTalk binary comparison operators.
  *
- * @alias Builtin.BinaryOps
- * @constant
  * @package
  */
 export const BinaryOps : { [op : string] : OpDefinition } = {
@@ -199,10 +197,7 @@ export const BinaryOps : { [op : string] : OpDefinition } = {
 /**
  * Definitions (type signatures) of ThingTalk unary operators.
  *
- * @alias Builtin.UnaryOps
- * @constant
  * @package
- * @type {Object.<string, Builtin.OpDefinition>}
  */
 export const UnaryOps : { [op : string] : OpDefinition } = {
     '!': {
@@ -226,10 +221,7 @@ export const UnaryOps : { [op : string] : OpDefinition } = {
 /**
  * Definitions (type signatures) of ThingTalk scalar operators.
  *
- * @alias Builtin.ScalarExpressionOps
- * @constant
  * @package
- * @type {Object.<string, Builtin.OpDefinition>}
  */
 export const ScalarExpressionOps : { [op : string] : OpDefinition } = {
     '+': {
@@ -321,10 +313,7 @@ export const ScalarExpressionOps : { [op : string] : OpDefinition } = {
 /**
  * Definitions (type signatures) of ThingTalk aggregation operators.
  *
- * @alias Builtin.Aggregations
- * @constant
  * @package
- * @type {Object.<string, Builtin.OpDefinition>}
  */
 export const Aggregations : { [op : string] : OpDefinition } = {
     'max': {

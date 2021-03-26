@@ -114,7 +114,6 @@ function setEquals<T>(set1 : Set<T>, set2 : Set<T>) : boolean {
  * total number of results and whether there are more results that have not been
  * fetched.
  *
- * @alias Ast.DialogueHistoryResultList
  */
 export class DialogueHistoryResultList extends AstNode {
     results : DialogueHistoryResultItem[];
@@ -215,7 +214,6 @@ export type ConfirmationState = 'proposed' | 'accepted' | 'confirmed';
  * A single item in the dialogue state. Consists of a program and optionally
  * the results from that program.
  *
- * @alias Ast.DialogueHistoryItem
  */
 export class DialogueHistoryItem extends AstNode {
     stmt : ExpressionStatement;
@@ -366,7 +364,6 @@ export class DialogueHistoryItem extends AstNode {
  * - An parameter name that modifies the current dialogue act (optional, used for questions from the agent)
  * - The history of all programs up to that point, and all programs that are scheduled to execute
  *
- * @alias Ast.DialogueState
  */
 export class DialogueState extends Input {
     policy : string;
@@ -397,8 +394,6 @@ export class DialogueState extends Input {
 
     /**
      * The most recently executed history item.
-     * @type {Ast.DialogueHistoryItem}
-     * @readonly
      */
     get current() : DialogueHistoryItem|null {
         return this._current;

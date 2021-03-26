@@ -56,7 +56,6 @@ import type * as D from './dialogues';
  * program.visit(visitor);
  * ```
  *
- * @alias Ast.NodeVisitor
  */
 export default abstract class NodeVisitor {
     /**

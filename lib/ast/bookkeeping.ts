@@ -40,8 +40,6 @@ import List from '../utils/list';
  * Their definition is included in ThingTalk to aid using ThingTalk as a
  * virtual assistant representation language without extensions.
  *
- * @alias Ast.Input.Control
- * @extends Ast.Input
  */
 export class ControlCommand extends Input {
     intent : ControlIntent;
@@ -59,8 +57,6 @@ export class ControlCommand extends Input {
         /**
          * The intent associated with this input.
          *
-         * @type {Ast.ControlIntent}
-         * @readonly
          */
         this.intent = intent;
     }
@@ -110,7 +106,6 @@ export const ControlCommandType = [
  * The meaning of all control commands is mapped to a subclass of
  * this class.
  *
- * @alias Ast.ControlIntent
  */
 export abstract class ControlIntent extends Node {
     static Special : any;
@@ -148,7 +143,6 @@ export class SpecialControlIntent extends ControlIntent {
         assert(typeof type === 'string');
         /**
          * The special command type (one of {@link ControlCommandType}).
-         * @type {string}
          */
         this.type = type;
     }
@@ -175,8 +169,6 @@ ControlIntent.Special = SpecialControlIntent;
  *
  * This indicates the user chose one option out of the just-presented list.
  *
- * @alias Ast.ControlIntent.Choice
- * @extends Ast.ControlIntent
  */
 export class ChoiceControlIntent extends ControlIntent {
     value : number;
@@ -194,7 +186,6 @@ export class ChoiceControlIntent extends ControlIntent {
         assert(typeof value === 'number');
         /**
          * The choice index.
-         * @type {number}
          */
         this.value = value;
     }
@@ -219,8 +210,6 @@ ControlIntent.Choice = ChoiceControlIntent;
 /**
  * A direct answer to a slot-filling question.
  *
- * @alias Ast.ControlIntent.Answer
- * @extends Ast.ControlIntent
  */
 export class AnswerControlIntent extends ControlIntent {
     value : Value;
@@ -237,7 +226,6 @@ export class AnswerControlIntent extends ControlIntent {
         assert(value instanceof Value);
         /**
          * The answer value.
-         * @type {Ast.Value}
          */
         this.value = value;
     }

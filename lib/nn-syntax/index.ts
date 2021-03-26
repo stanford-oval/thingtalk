@@ -53,7 +53,6 @@ import applyCompatibility from './compat';
  * @param {string|Array<string>} sequence - the program to parse.
  * @param {Object<string, any>} entities - concrete values of the entities referred in the program.
  * @return {Ast.Input} - the parsed program
- * @alias NNSyntax.toNN
  */
 function fromNN(input : string|string[], entities : EntityMap|EntityResolver) : Ast.Input {
     let sequence : string[];
