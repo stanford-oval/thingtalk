@@ -67,12 +67,33 @@ export enum ArgDirection {
  *
  */
 export class ArgumentDef extends Node {
+    /**
+     * The direction of this argument.
+     */
     direction : ArgDirection|null;
+    /**
+     * The argument name.
+     */
     name : string;
+    /**
+     * The argument type.
+     */
     type : Type;
+    /**
+     * The argument metadata (translatable annotations).
+     */
     nl_annotations : NLAnnotationMap;
+    /**
+     * The argument annotations.
+     */
     impl_annotations : AnnotationMap;
+    /**
+     * Whether this argument is an input or output argument.
+     */
     is_input : boolean;
+    /**
+     * Whether this argument is required.
+     */
     required : boolean;
     unique : boolean;
     private _is_compound_field : boolean;
@@ -96,33 +117,12 @@ export class ArgumentDef extends Node {
                 is_compound_field = false) {
         super(location);
 
-        /**
-         * The direction of this argument.
-         */
         this.direction = direction;
-        /**
-         * Whether this argument is an input or output argument.
-         */
         this.is_input = direction ? direction !== ArgDirection.OUT : true;
-        /**
-         * Whether this argument is required.
-         */
         this.required = direction ? direction === ArgDirection.IN_REQ : true;
-        /**
-         * The argument name.
-         */
         this.name = name;
-        /**
-         * The argument type.
-         */
         this.type = type;
-        /**
-         * The argument metadata (translatable annotations).
-         */
         this.nl_annotations = annotations.nl || {};
-        /**
-         * The argument annotations.
-         */
         this.impl_annotations = annotations.impl || {};
 
         this._is_compound_field = is_compound_field || this.direction === null;
@@ -327,10 +327,34 @@ export class FunctionDef extends Node {
     private _out : TypeMap;
     private _extends : string[];
     private _class : ClassDef|null;
+    /**
+     * The canonical forms of arguments defined by this expression signature.
+     *
+     * @deprecated Use {@link Ast.FunctionDef.getArgument} and
+     *             {@link Ast.ArgumentDef.canonical} instead.
+     */
     argcanonicals : string[];
+    /**
+     * The question (prompts) of arguments defined by this expression signature.
+     *
+     * @deprecated Use {@link Ast.FunctionDef.getArgument} and
+     *             {@link Ast.ArgumentDef.metadata}`.prompt` instead.
+     */
     questions : string[];
 
+    /**
+     * Whether this signature defines a `list` query function.
+     *
+     * This is always false on action and stream signatures.
+     *
+     */
     is_list : boolean;
+    /**
+     * Whether this signature defines a `monitorable` query function.
+     *
+     * This is always false on action signatures, and always true on stream signatures.
+     *
+     */
     is_monitorable : boolean;
     require_filter : boolean;
     default_projection : string[];
@@ -390,40 +414,14 @@ export class FunctionDef extends Node {
         this._out = {};
         this._index = {};
 
-        /**
-         * The canonical forms of arguments defined by this expression signature.
-         *
-         * @deprecated Use {@link Ast.FunctionDef.getArgument} and
-         *             {@link Ast.ArgumentDef.canonical} instead.
-         */
         this.argcanonicals = [];
-
-        /**
-         * The question (prompts) of arguments defined by this expression signature.
-         *
-         * @deprecated Use {@link Ast.FunctionDef.getArgument} and
-         *             {@link Ast.ArgumentDef.metadata}`.prompt` instead.
-         */
         this.questions = [];
 
         // flatten compound parameters
         args = this._flattenCompoundArguments(args);
         this._loadArguments(args);
 
-        /**
-         * Whether this signature defines a `list` query function.
-         *
-         * This is always false on action and stream signatures.
-         *
-         */
         this.is_list = qualifiers.is_list || false;
-
-        /**
-         * Whether this signature defines a `monitorable` query function.
-         *
-         * This is always false on action signatures, and always true on stream signatures.
-         *
-         */
         this.is_monitorable = qualifiers.is_monitorable || false;
 
         if ('require_filter' in this._impl_annotations)

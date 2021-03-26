@@ -1478,10 +1478,6 @@ Stream.Join.prototype.isJoin = true;
 
 /**
  * Base class for all expressions that invoke an action.
- *
- * @property {boolean} isAction - true
- * @property {boolean} isVarRef - true if this is an instance of {@link Ast.Action.VarRef}
- * @property {boolean} isInvocation - true if this is an instance of {@link Ast.Action.Invocation}
  */
 export abstract class Action extends Node {
     static VarRef : typeof VarRefAction;
@@ -1491,6 +1487,10 @@ export abstract class Action extends Node {
     static Notify : typeof NotifyAction;
     isNotify ! : boolean;
 
+    /**
+     * Type signature of this action.
+     * This property is guaranteed not `null` after type-checking.
+     */
     schema : FunctionDef|null;
 
     /**
@@ -1503,13 +1503,6 @@ export abstract class Action extends Node {
         super(location);
 
         assert(schema === null || schema instanceof FunctionDef);
-        /**
-         * Type signature of this action.
-         *
-         * Note that this _not_ the type signature of the invoked function,
-         * because all input arguments that have a value are removed from the signature.
-         * This property is guaranteed not `null` after type-checking.
-         */
         this.schema = schema;
     }
 
@@ -1552,7 +1545,13 @@ Action.prototype.isNotify = false;
  *
  */
 export class VarRefAction extends Action {
+    /**
+     * The name of the action to invoke.
+     */
     name : string;
+    /**
+     * The input parameters to pass.
+     */
     in_params : InputParam[];
 
     /**
@@ -1570,15 +1569,9 @@ export class VarRefAction extends Action {
         super(location, schema);
 
         assert(typeof name === 'string');
-        /**
-         * The name of the action to invoke.
-         */
         this.name = name;
 
         assert(Array.isArray(in_params));
-        /**
-         * The input parameters to pass.
-         */
         this.in_params = in_params;
     }
 

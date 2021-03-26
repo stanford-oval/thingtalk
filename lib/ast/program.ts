@@ -123,12 +123,29 @@ function declarationLikeToProgram(self : FunctionDeclaration|Example) : Program 
  *
  */
 export class FunctionDeclaration extends Statement {
+    /**
+     * The name of the declared function.
+     */
     name : string;
+    /**
+     * Arguments available to the function.
+     */
     args : TypeMap;
     declarations : FunctionDeclaration[];
     statements : ExecutableStatement[];
+    /**
+     * The declaration natural language annotations (translatable annotations).
+     */
     nl_annotations : NLAnnotationMap;
+    /**
+     * The declaration annotations.
+     */
     impl_annotations : AnnotationMap;
+    /**
+     * The type definition corresponding to this function.
+     *
+     * This property is guaranteed not `null` after type-checking.
+     */
     schema : FunctionDef|null;
 
     /**
@@ -154,34 +171,17 @@ export class FunctionDeclaration extends Statement {
         super(location);
 
         assert(typeof name === 'string');
-        /**
-         * The name being bound by this statement.
-         */
         this.name = name;
 
         assert(typeof args === 'object');
-        /**
-         * Arguments available to the function.
-         */
         this.args = args;
 
         this.declarations = declarations;
         this.statements = statements;
 
-        /**
-         * The declaration natural language annotations (translatable annotations).
-         */
         this.nl_annotations = annotations.nl || {};
-        /**
-         * The declaration annotations.
-         */
         this.impl_annotations = annotations.impl || {};
 
-        /**
-         * The type definition corresponding to this function.
-         *
-         * This property is guaranteed not `null` after type-checking.
-         */
         this.schema = schema;
     }
 
@@ -271,11 +271,20 @@ export class FunctionDeclaration extends Statement {
  *
  */
 export class Assignment extends Statement {
+    /**
+     * The name being assigned to.
+     */
     name : string;
     /**
      * The expression being assigned.
      */
     value : Expression;
+    /**
+     * The signature corresponding to this assignment.
+     *
+     * This is the type that the assigned name has after the assignment statement.
+     * This property is guaranteed not `null` after type-checking.
+     */
     schema : FunctionDef|null;
 
     /**
@@ -294,20 +303,10 @@ export class Assignment extends Statement {
         super(location);
 
         assert(typeof name === 'string');
-        /**
-         * The name being assigned to.
-         */
         this.name = name;
 
         assert(value instanceof Expression);
         this.value = value;
-
-        /**
-         * The signature corresponding to this assignment.
-         *
-         * This is the type that the assigned name has after the assignment statement.
-         * This property is guaranteed not `null` after type-checking.
-         */
         this.schema = schema;
     }
 
@@ -1290,9 +1289,18 @@ export class MixinImportStmt extends Node {
  */
 export class EntityDef extends Node {
     isEntityDef = true;
+    /**
+     * The entity name.
+     */
     name : string;
     extends : string|null;
+    /**
+     * The entity metadata (translatable annotations).
+     */
     nl_annotations : NLAnnotationMap;
+    /**
+     * The entity annotations.
+     */
     impl_annotations : AnnotationMap;
 
     /**
@@ -1310,20 +1318,11 @@ export class EntityDef extends Node {
                 _extends : string|null,
                 annotations : AnnotationSpec) {
         super(location);
-        /**
-         * The entity name.
-         */
         this.name = name;
 
         this.extends = _extends;
 
-        /**
-         * The entity metadata (translatable annotations).
-         */
         this.nl_annotations = annotations.nl || {};
-        /**
-         * The entity annotations.
-         */
         this.impl_annotations = annotations.impl || {};
     }
 

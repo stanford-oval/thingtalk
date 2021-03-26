@@ -175,12 +175,16 @@ export class DeviceSelector extends Node {
 
 /**
  * AST node corresponding to an input parameter passed to a function.
- *
- * @property {boolean} isInputParam - true
  */
 export class InputParam extends Node {
     isInputParam = true;
+    /**
+     * The input argument name.
+     */
     name : string;
+    /**
+     * The value being passed.
+     */
     value : Value;
 
     /**
@@ -197,15 +201,9 @@ export class InputParam extends Node {
         super(location);
 
         assert(typeof name === 'string');
-        /**
-         * The input argument name.
-         */
         this.name = name;
 
         assert(value instanceof Value);
-        /**
-         * The value being passed.
-         */
         this.value = value;
     }
 
@@ -240,9 +238,22 @@ export class InputParam extends Node {
  */
 export class Invocation extends Node {
     isInvocation = true;
+    /**
+     * The selector choosing where the function is invoked.
+     */
     selector : DeviceSelector;
+    /**
+     * The function name being invoked.
+     */
     channel : string;
+    /**
+     * The input parameters passed to the function.
+     */
     in_params : InputParam[];
+    /**
+     * Type signature of the invoked function.
+     * This property is guaranteed not `null` after type-checking.
+     */
     schema : FunctionDef|null;
     __effectiveSelector : DeviceSelector|null = null;
 
@@ -254,7 +265,6 @@ export class Invocation extends Node {
      * @param {string} channel - the function name
      * @param {Ast.InputParam[]} in_params - input parameters passed to the function
      * @param {Ast.FunctionDef|null} schema - type signature of the invoked function
-     * @property {boolean} isInvocation - true
      */
     constructor(location : SourceRange|null,
                 selector : DeviceSelector,
@@ -264,29 +274,15 @@ export class Invocation extends Node {
         super(location);
 
         assert(selector instanceof DeviceSelector);
-        /**
-         * The selector choosing where the function is invoked.
-         */
         this.selector = selector;
 
         assert(typeof channel === 'string');
-
-        /**
-         * The function name being invoked.
-         */
         this.channel = channel;
 
         assert(Array.isArray(in_params));
-        /**
-         * The input parameters passed to the function.
-         */
         this.in_params = in_params;
 
         assert(schema === null || schema instanceof FunctionDef);
-        /**
-         * Type signature of the invoked function (not of the invocation itself).
-         * This property is guaranteed not `null` after type-checking.
-         */
         this.schema = schema;
     }
 
@@ -367,18 +363,6 @@ export class Invocation extends Node {
 /**
  * An expression that computes a boolean predicate.
  * This AST node is used in filter expressions.
- *
- * @property {boolean} isBooleanExpression - true
- * @property {boolean} isAnd - true if this is an instance of {@link Ast.BooleanExpression.And}
- * @property {boolean} isOr - true if this is an instance of {@link Ast.BooleanExpression.Or}
- * @property {boolean} isAtom - true if this is an instance of {@link Ast.BooleanExpression.Atom}
- * @property {boolean} isNot - true if this is an instance of {@link Ast.BooleanExpression.Not}
- * @property {boolean} isExternal - true if this is an instance of {@link Ast.BooleanExpression.External}
- * @property {boolean} isExistentialSubquery - true if this is an instance of {@link Ast.BooleanExpression.ExistentialSubquery}
- * @property {boolean} isComparisonSubquery - true if is an instance of {@link Ast.BooleanExpression.ComparisonSubquery}
- * @property {boolean} isTrue - true if this is {@link Ast.BooleanExpression.True}
- * @property {boolean} isFalse - true if this is {@link Ast.BooleanExpression.False}
- * @property {boolean} isCompute - true if this is {@link Ast.BooleanExpression.Compute}
  */
 export abstract class BooleanExpression extends Node {
     static And : any;
@@ -395,9 +379,19 @@ export abstract class BooleanExpression extends Node {
     isExistentialSubquery ! : boolean;
     static ComparisonSubquery : any;
     isComparisonSubquery ! : boolean;
-    static True : any;
+    /**
+     * The constant `true` boolean expression.
+     *
+     * This is a singleton, not a class.
+     */
+    static True : BooleanExpression;
     isTrue ! : boolean;
-    static False : any;
+    /**
+     * The constant `false` boolean expression.
+     *
+     * This is a singleton, not a class.
+     */
+    static False : BooleanExpression;
     isFalse ! : boolean;
     static Compute : any;
     isCompute ! : boolean;
@@ -608,8 +602,17 @@ const INFIX_COMPARISON_OPERATORS = new Set(['==', '>=', '<=', '>', '<', '=~', '~
  * A comparison expression (predicate atom)
  */
 export class AtomBooleanExpression extends BooleanExpression {
+    /**
+     * The parameter name to compare.
+     */
     name : string;
+    /**
+     * The comparison operator.
+     */
     operator : string;
+    /**
+      * The value being compared against.
+      */
     value : Value;
     overload : Type[]|null;
 
@@ -629,21 +632,12 @@ export class AtomBooleanExpression extends BooleanExpression {
         super(location);
 
         assert(typeof name === 'string');
-        /**
-         * The parameter name to compare.
-         */
         this.name = name;
 
         assert(typeof operator === 'string');
-        /**
-         * The comparison operator.
-         */
         this.operator = operator;
 
         assert(value instanceof Value);
-        /**
-          * The value being compared against.
-          */
         this.value = value;
 
         this.overload = overload;
@@ -715,6 +709,9 @@ BooleanExpression.Atom.prototype.isAtom = true;
  * A negation boolean expression (ThingTalk operator `!`)
  */
 export class NotBooleanExpression extends BooleanExpression {
+    /**
+     * The expression being negated.
+     */
     expr : BooleanExpression;
 
     /**
@@ -727,9 +724,6 @@ export class NotBooleanExpression extends BooleanExpression {
         super(location);
 
         assert(expr instanceof BooleanExpression);
-        /**
-         * The expression being negated.
-         */
         this.expr = expr;
     }
 
@@ -783,12 +777,29 @@ BooleanExpression.Not.prototype.isNot = true;
  * The boolean expression is true if at least one result from the function
  * call satisfies the filter.
  *
+ * @deprecated Use {@link ComparisonSubqueryBooleanExpression} or {@link ExistentialSubqueryBooleanExpression} instead.
  */
 export class ExternalBooleanExpression extends BooleanExpression {
+    /**
+     * The selector choosing where the function is invoked.
+     */
     selector : DeviceSelector;
+    /**
+     * The function name being invoked.
+     */
     channel : string;
+    /**
+     * The input parameters passed to the function.
+     */
     in_params : InputParam[];
+    /**
+     * The predicate to apply on the invocation's results.
+     */
     filter : BooleanExpression;
+    /**
+     * Type signature of the invoked function.
+     * This property is guaranteed not `null` after type-checking.
+     */
     schema : FunctionDef|null;
     __effectiveSelector : DeviceSelector|null = null;
 
@@ -810,34 +821,18 @@ export class ExternalBooleanExpression extends BooleanExpression {
         super(location);
 
         assert(selector instanceof DeviceSelector);
-        /**
-         * The selector choosing where the function is invoked.
-         */
         this.selector = selector;
 
         assert(typeof channel === 'string');
-        /**
-         * The function name being invoked.
-         */
         this.channel = channel;
 
         assert(Array.isArray(in_params));
-        /**
-         * The input parameters passed to the function.
-         */
         this.in_params = in_params;
 
         assert(filter instanceof BooleanExpression);
-        /**
-         * The predicate to apply on the invocation's results.
-         */
         this.filter = filter;
 
         assert(schema === null || schema instanceof FunctionDef);
-        /**
-         * Type signature of the invoked function (not of the boolean expression itself).
-         * This property is guaranteed not `null` after type-checking.
-         */
         this.schema = schema;
     }
 
@@ -1199,11 +1194,6 @@ export class TrueBooleanExpression extends BooleanExpression {
     }
 }
 TrueBooleanExpression.prototype.isTrue = true;
-/**
- * The constant `true` boolean expression.
- *
- * This is a singleton, not a class.
- */
 BooleanExpression.True = new TrueBooleanExpression();
 
 export class FalseBooleanExpression extends BooleanExpression {
@@ -1247,11 +1237,6 @@ export class FalseBooleanExpression extends BooleanExpression {
     }
 }
 FalseBooleanExpression.prototype.isFalse = true;
-/**
- * The constant `false` boolean expression.
- *
- * This is a singleton, not a class.
- */
 BooleanExpression.False = new FalseBooleanExpression();
 
 /**
@@ -1259,8 +1244,17 @@ BooleanExpression.False = new FalseBooleanExpression();
  *
  */
 export class ComputeBooleanExpression extends BooleanExpression {
+    /**
+     * The scalar expression being compared.
+     */
     lhs : Value;
+    /**
+     * The comparison operator.
+     */
     operator : string;
+    /**
+     * The value being compared against.
+     */
     rhs : Value;
     overload : Type[]|null;
 
@@ -1281,24 +1275,12 @@ export class ComputeBooleanExpression extends BooleanExpression {
         super(location);
 
         assert(lhs instanceof Value);
-        /**
-         * The scalar expression being compared.
-         *
-         */
         this.lhs = lhs;
 
         assert(typeof operator === 'string');
-        /**
-         * The comparison operator.
-         *
-         */
         this.operator = operator;
 
         assert(rhs instanceof Value);
-        /**
-         * The value being compared against.
-         *
-         */
         this.rhs = rhs;
 
         this.overload = overload;

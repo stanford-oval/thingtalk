@@ -169,7 +169,7 @@ function optimizeFilter(expr : Ast.BooleanExpression) : Ast.BooleanExpression {
     if (expr instanceof Ast.ExternalBooleanExpression) {
         const subfilter = optimizeFilter(expr.filter);
         if (subfilter.isFalse)
-            return new Ast.BooleanExpression.False;
+            return Ast.BooleanExpression.False;
         // NOTE: it does not hold that if subfilter is True
         // the whole expression is true, because the invocation
         // might return no results!

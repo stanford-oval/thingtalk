@@ -42,6 +42,10 @@ import List from '../utils/list';
  *
  */
 export class ControlCommand extends Input {
+    /**
+     * The intent associated with this input.
+     *
+     */
     intent : ControlIntent;
 
     /**
@@ -53,11 +57,6 @@ export class ControlCommand extends Input {
      */
     constructor(location : SourceRange|null, intent : ControlIntent) {
         super(location);
-
-        /**
-         * The intent associated with this input.
-         *
-         */
         this.intent = intent;
     }
 
@@ -128,6 +127,9 @@ ControlIntent.prototype.isAnswer = false;
  * unusual behavior from the dialog agent.
  */
 export class SpecialControlIntent extends ControlIntent {
+    /**
+     * The special command type (one of {@link ControlCommandType}).
+     */
     type : string;
 
     /**
@@ -141,9 +143,6 @@ export class SpecialControlIntent extends ControlIntent {
         super(location);
 
         assert(typeof type === 'string');
-        /**
-         * The special command type (one of {@link ControlCommandType}).
-         */
         this.type = type;
     }
 
@@ -171,6 +170,9 @@ ControlIntent.Special = SpecialControlIntent;
  *
  */
 export class ChoiceControlIntent extends ControlIntent {
+    /**
+     * The choice index.
+     */
     value : number;
 
     /**
@@ -184,9 +186,6 @@ export class ChoiceControlIntent extends ControlIntent {
         super(location);
 
         assert(typeof value === 'number');
-        /**
-         * The choice index.
-         */
         this.value = value;
     }
 
@@ -212,6 +211,9 @@ ControlIntent.Choice = ChoiceControlIntent;
  *
  */
 export class AnswerControlIntent extends ControlIntent {
+    /**
+     * The answer value.
+     */
     value : Value;
 
     /**
@@ -224,9 +226,6 @@ export class AnswerControlIntent extends ControlIntent {
         super(location);
 
         assert(value instanceof Value);
-        /**
-         * The answer value.
-         */
         this.value = value;
     }
 
