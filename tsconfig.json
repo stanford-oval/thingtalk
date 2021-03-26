@@ -16,9 +16,9 @@
         "declaration": true
     },
     "typedocOptions": {
-        "mode": "library",
         "out": "doc",
-        "name": "ThingTalk",
-        "readme": "README.md"
+        "readme": "README.md",
+        "includeVersion": true,
+        "excludeExternals": true
     }
 }

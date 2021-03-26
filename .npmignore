@@ -6,6 +6,7 @@ po/thingtalk.pot
 po/*.json
 smt/
 notes/
+doc
 cvc4
 
 *.tgz
