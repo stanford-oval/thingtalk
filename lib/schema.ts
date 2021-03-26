@@ -68,7 +68,7 @@ interface MixinDeclaration {
  * @interface
  * @deprecated Long-term memory support in Almond is still experimental and APIs will change
  */
-interface MemoryClient {
+export interface MemoryClient {
     /**
      * Retrieve the type information of a stored table
      *
@@ -98,7 +98,7 @@ interface EntityTypeRecord {
  * This is the minimal interface needed by the ThingTalk library. It is usally
  * implemented by the Thingpedia SDK.
  */
-interface AbstractThingpediaClient {
+export interface AbstractThingpediaClient {
     /**
      * Retrieve the full code of a Thingpedia class.
      *
@@ -409,7 +409,7 @@ export default class SchemaRetriever {
      * @param {string} functionType - the type of function (either `query` or `action`)
      * @param {string} name - the function name
      * @return {Type[]} the list of types in the signature
-     * @deprecated Use {@link SchemaRetriever#getSchemaAndNames} instead
+     * @deprecated Use {@link SchemaRetriever.getSchemaAndNames} instead
      * @async
      */
     async getSchema(kind : string,
@@ -441,7 +441,7 @@ export default class SchemaRetriever {
      *
      * This method returns the minimal amount of information necessary to typecheck
      * a program, but not enough to drive the dialog agent.
-     * This method is preferred to {@link SchemaRetriever#getMeta} when metadata
+     * This method is preferred to {@link SchemaRetriever.getMeta} when metadata
      * is not needed, because it reduces the load on the server (which can skip the
      * localization step) and reduces the amount of transferred data.
      *

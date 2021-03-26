@@ -33,17 +33,17 @@ import type * as D from './dialogues';
  * Base class (interface) for traversing the AST using the visitor
  * pattern.
  *
- * During the traversal, each node will call the {@link Ast.NodeVisitor#enter}
+ * During the traversal, each node will call the {@link Ast.NodeVisitor.enter}
  * method when visiting the node.
  *
- * After that, the the node will call the appropriate {@link Ast.NodeVisitor#visit}
+ * After that, the the node will call the appropriate visit
  * method based on the node type. If the visit method returns true,
  * (which is the default for non-overridden methods), traversal continues
  * with children.
  *
- * After children have been visited, the node will call {@link Ast.NodeVisitor#exit} before
- * returning to the parent. {@link Ast.NodeVisitor#exit} is called regardless of the return value
- * of visit, so {@link Ast.NodeVisitor#enter} and {@link Ast.NodeVisitor#exit} are always paired.
+ * After children have been visited, the node will call {@link Ast.NodeVisitor.exit} before
+ * returning to the parent. {@link Ast.NodeVisitor.exit} is called regardless of the return value
+ * of visit, so {@link Ast.NodeVisitor.enter} and {@link Ast.NodeVisitor.exit} are always paired.
  *
  * Expected usage:
  * ```javascript
@@ -75,7 +75,7 @@ export default abstract class NodeVisitor {
      * This is called for all nodes after calling the corresponding
      * visit method and visiting all children.
      *
-     * This method is not called if {@link Ast.NodeVisitor#enter} or
+     * This method is not called if {@link Ast.NodeVisitor.enter} or
      * visit throws an exception.
      *
      * @param node - the node being exited

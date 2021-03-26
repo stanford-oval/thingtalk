@@ -70,7 +70,7 @@ export abstract class Statement extends Node {
      * Iterate all slots (scalar value nodes) in this statement.
      *
      * @deprecated This method is only appropriate for filters and input parameters.
-     *   You should use {@link Ast.Statement#iterateSlots2} instead.
+     *   You should use {@link Ast.Statement.iterateSlots2} instead.
      */
     abstract iterateSlots() : Generator<OldSlot, void>;
 
@@ -1224,7 +1224,7 @@ export class Example extends Node {
      *
      * @generator
      * @yields {Ast~OldSlot}
-     * @deprecated Use {@link Ast.Example#iterateSlots2} instead.
+     * @deprecated Use {@link Ast.Example.iterateSlots2} instead.
      */
     *iterateSlots() : Generator<OldSlot, void> {
         yield* this.value.iterateSlots({});

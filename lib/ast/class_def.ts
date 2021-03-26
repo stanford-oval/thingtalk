@@ -335,7 +335,7 @@ export class ClassDef extends Statement {
      * @param {string} name - the annotation name
      * @return {any|undefined} the annotation normalized value, or `undefined` if the
      *         annotation is not present
-     * @deprecated getAnnotation is deprecated and should not be used. Use {@link Ast.ClassDef#getImplementationAnnotation} instead.
+     * @deprecated getAnnotation is deprecated and should not be used. Use {@link Ast.ClassDef.getImplementationAnnotation} instead.
      */
     getAnnotation<T>(name : string) : T|undefined {
         return this.getImplementationAnnotation<T>(name);

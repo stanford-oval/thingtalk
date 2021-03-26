@@ -140,14 +140,14 @@ export class SpecialControlIntent extends ControlIntent {
      *
      * @param location - the position of this node
      *        in the source code
-     * @param type - the command type (one of {@link Ast.ControlSpecialTypes})
+     * @param type - the command type (one of {@link ControlCommandType})
      */
     constructor(location : SourceRange|null, type : string) {
         super(location);
 
         assert(typeof type === 'string');
         /**
-         * The special command type (one of {@link Ast.ControlSpecialTypes}).
+         * The special command type (one of {@link ControlCommandType}).
          * @type {string}
          */
         this.type = type;

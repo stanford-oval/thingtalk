@@ -466,7 +466,7 @@ export abstract class Value extends AstNode {
     /**
      * Convert a normalized JS value to the corresponding AST node.
      *
-     * This is the inverse operation of {@link Ast.Value#toJS}.
+     * This is the inverse operation of {@link Ast.Value.toJS}.
      *
      * @param type - the ThingTalk type
      * @param v - the JS value to convert

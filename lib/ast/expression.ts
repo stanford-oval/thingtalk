@@ -349,7 +349,7 @@ export class Invocation extends Node {
      * Iterate all slots (scalar value nodes) in this invocation.
      *
      * @param scope - available names for parameter passing
-     * @deprecated Use {@link Ast.Invocation#iterateSlots2} instead.
+     * @deprecated Use {@link Ast.Invocation.iterateSlots2} instead.
      */
     *iterateSlots(scope : ScopeMap) : Generator<OldSlot, [InvocationLike, ScopeMap]> {
         yield [null, this.selector, this, {}];
@@ -436,7 +436,7 @@ export abstract class BooleanExpression extends Node {
     /**
      * Iterate all slots (scalar value nodes) in this boolean expression.
      *
-     * @deprecated Use {@link Ast.BooleanExpression#iterateSlots2} instead.
+     * @deprecated Use {@link Ast.BooleanExpression.iterateSlots2} instead.
      */
     abstract iterateSlots(schema : FunctionDef|null,
                           prim : InvocationLike|null,

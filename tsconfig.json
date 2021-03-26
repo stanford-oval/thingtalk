@@ -19,6 +19,7 @@
         "out": "doc",
         "readme": "README.md",
         "includeVersion": true,
-        "excludeExternals": true
+        "excludeExternals": true,
+        "listInvalidSymbolLinks": true
     }
 }

@@ -98,7 +98,7 @@ export abstract class Expression extends Node {
      * Iterate all slots (scalar value nodes) in this expression.
      *
      * @param scope - available names for parameter passing
-     * @deprecated Use {@link Ast.Table#iterateSlots2} instead.
+     * @deprecated Use {@link Ast.Table.iterateSlots2} instead.
      */
     abstract iterateSlots(scope : ScopeMap) : Generator<OldSlot, [InvocationLike|null, ScopeMap]>;
 

@@ -117,7 +117,7 @@ export abstract class Table extends Node {
      * Iterate all slots (scalar value nodes) in this table.
      *
      * @param scope - available names for parameter passing
-     * @deprecated Use {@link Table#iterateSlots2} instead.
+     * @deprecated Use {@link Table.iterateSlots2} instead.
      */
     abstract iterateSlots(scope : ScopeMap) : Generator<OldSlot, [InvocationLike|null, ScopeMap]>;
 
@@ -827,7 +827,7 @@ export abstract class Stream extends Node {
      * Iterate all slots (scalar value nodes) in this stream.
      *
      * @param scope - available names for parameter passing
-     * @deprecated Use {@link Ast.Stream#iterateSlots2} instead.
+     * @deprecated Use {@link Ast.Stream.iterateSlots2} instead.
      */
     abstract iterateSlots(scope : ScopeMap) : Generator<OldSlot, [InvocationLike|null, ScopeMap]>;
 
@@ -1539,7 +1539,7 @@ export abstract class Action extends Node {
      * Iterate all slots (scalar value nodes) in this action.
      *
      * @param scope - available names for parameter passing
-     * @deprecated Use {@link Ast.Action#iterateSlots2} instead.
+     * @deprecated Use {@link Ast.Action.iterateSlots2} instead.
      */
     abstract iterateSlots(scope : ScopeMap) : Generator<OldSlot, void>;
 
