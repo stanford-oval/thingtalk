@@ -120,11 +120,13 @@ export function nlAnnotationsToSource(map : NLAnnotationMap, prefix = '\n') : To
 /**
  * Base class of AST nodes.
  *
- * @class
- * @alias Ast~Node
- * @abstract
  */
 export default abstract class Node {
+    /**
+     * The location of this node in the source code, or `null` if the
+     * node is not associated with any source.
+     *
+     */
     location : SourceRange|null;
 
     /**
@@ -135,14 +137,6 @@ export default abstract class Node {
     constructor(location : SourceRange|null = null) {
         assert(location === null ||
             (typeof location.start === 'object' && typeof location.end === 'object'));
-
-        /**
-         * The location of this node in the source code, or `null` if the
-         * node is not associated with any source.
-         *
-         * @type {Ast~SourceRange|null}
-         * @readonly
-         */
         this.location = location;
     }
 

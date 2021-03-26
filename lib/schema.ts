@@ -64,16 +64,12 @@ interface MixinDeclaration {
 /**
  * A delegate object to access tables stored in long-term assistant memory.
  *
- * @name MemoryClient
- * @interface
  * @deprecated Long-term memory support in Almond is still experimental and APIs will change
  */
-interface MemoryClient {
+export interface MemoryClient {
     /**
      * Retrieve the type information of a stored table
      *
-     * @name MemoryClient#getSchema
-     * @method
      * @param {string} table - the name of the table to retrieve
      * @return {Object}
      */
@@ -98,7 +94,7 @@ interface EntityTypeRecord {
  * This is the minimal interface needed by the ThingTalk library. It is usally
  * implemented by the Thingpedia SDK.
  */
-interface AbstractThingpediaClient {
+export interface AbstractThingpediaClient {
     /**
      * Retrieve the full code of a Thingpedia class.
      *
@@ -370,7 +366,6 @@ export default class SchemaRetriever {
      *
      * @param {string} kind - the class identifier
      * @return {Ast.ClassDef} the corresponding class
-     * @async
      */
     getFullSchema(kind : string) : Promise<ClassDef> {
         return this._getClass(kind, 'everything');
@@ -380,7 +375,6 @@ export default class SchemaRetriever {
      *
      * @param {string} kind - the class identifier
      * @return {Ast.ClassDef} the corresponding class, including metadata
-     * @async
      */
     getFullMeta(kind : string) : Promise<ClassDef> {
         return this._getClass(kind, 'everything');
@@ -409,8 +403,7 @@ export default class SchemaRetriever {
      * @param {string} functionType - the type of function (either `query` or `action`)
      * @param {string} name - the function name
      * @return {Type[]} the list of types in the signature
-     * @deprecated Use {@link SchemaRetriever#getSchemaAndNames} instead
-     * @async
+     * @deprecated Use {@link SchemaRetriever.getSchemaAndNames} instead
      */
     async getSchema(kind : string,
                     functionType : FunctionType | 'both',
@@ -441,7 +434,7 @@ export default class SchemaRetriever {
      *
      * This method returns the minimal amount of information necessary to typecheck
      * a program, but not enough to drive the dialog agent.
-     * This method is preferred to {@link SchemaRetriever#getMeta} when metadata
+     * This method is preferred to {@link SchemaRetriever.getMeta} when metadata
      * is not needed, because it reduces the load on the server (which can skip the
      * localization step) and reduces the amount of transferred data.
      *
@@ -449,7 +442,6 @@ export default class SchemaRetriever {
      * @param {string} functionType - the type of function (either `query` or `action`)
      * @param {string} name - the function name
      * @return {Ast.FunctionDef} the function definition
-     * @async
      */
     getSchemaAndNames(kind : string,
                       functionType : FunctionType | 'both',
@@ -468,7 +460,6 @@ export default class SchemaRetriever {
      * @param {string} functionType - the type of function (either `query` or `action`)
      * @param {string} name - the function name
      * @return {Ast.FunctionDef} the function definition
-     * @async
      */
     getMeta(kind : string,
             functionType : FunctionType | 'both',

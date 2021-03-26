@@ -61,16 +61,13 @@ import List from '../utils/list';
  * The base class of all AST nodes that represent complete ThingTalk
  * statements.
  *
- * @alias Ast.Statement
- * @extends Ast~Node
- * @abstract
  */
 export abstract class Statement extends Node {
     /**
      * Iterate all slots (scalar value nodes) in this statement.
      *
      * @deprecated This method is only appropriate for filters and input parameters.
-     *   You should use {@link Ast.Statement#iterateSlots2} instead.
+     *   You should use {@link Ast.Statement.iterateSlots2} instead.
      */
     abstract iterateSlots() : Generator<OldSlot, void>;
 
@@ -124,16 +121,31 @@ function declarationLikeToProgram(self : FunctionDeclaration|Example) : Program 
  * implemented as ThingTalk expression. The name can then be invoked
  * in subsequent statements.
  *
- * @alias Ast.Statement.Declaration
- * @extends Ast.Statement
  */
 export class FunctionDeclaration extends Statement {
+    /**
+     * The name of the declared function.
+     */
     name : string;
+    /**
+     * Arguments available to the function.
+     */
     args : TypeMap;
     declarations : FunctionDeclaration[];
     statements : ExecutableStatement[];
+    /**
+     * The declaration natural language annotations (translatable annotations).
+     */
     nl_annotations : NLAnnotationMap;
+    /**
+     * The declaration annotations.
+     */
     impl_annotations : AnnotationMap;
+    /**
+     * The type definition corresponding to this function.
+     *
+     * This property is guaranteed not `null` after type-checking.
+     */
     schema : FunctionDef|null;
 
     /**
@@ -159,35 +171,17 @@ export class FunctionDeclaration extends Statement {
         super(location);
 
         assert(typeof name === 'string');
-        /**
-         * The name being bound by this statement.
-         * @type {string}
-         */
         this.name = name;
 
         assert(typeof args === 'object');
-        /**
-         * Arguments available to the function.
-         */
         this.args = args;
 
         this.declarations = declarations;
         this.statements = statements;
 
-        /**
-         * The declaration natural language annotations (translatable annotations).
-         */
         this.nl_annotations = annotations.nl || {};
-        /**
-         * The declaration annotations.
-         */
         this.impl_annotations = annotations.impl || {};
 
-        /**
-         * The type definition corresponding to this function.
-         *
-         * This property is guaranteed not `null` after type-checking.
-         */
         this.schema = schema;
     }
 
@@ -275,16 +269,22 @@ export class FunctionDeclaration extends Statement {
  * Assignment statements are executable statements that evaluate the ThingTalk expression
  * and assign the result to the name, which becomes available for later use in the program.
  *
- * @alias Ast.Statement.Assignment
- * @extends Ast.Statement
  */
 export class Assignment extends Statement {
+    /**
+     * The name being assigned to.
+     */
     name : string;
     /**
      * The expression being assigned.
-     * @type {Ast.Table}
      */
     value : Expression;
+    /**
+     * The signature corresponding to this assignment.
+     *
+     * This is the type that the assigned name has after the assignment statement.
+     * This property is guaranteed not `null` after type-checking.
+     */
     schema : FunctionDef|null;
 
     /**
@@ -303,22 +303,10 @@ export class Assignment extends Statement {
         super(location);
 
         assert(typeof name === 'string');
-        /**
-         * The name being assigned to.
-         * @type {string}
-         */
         this.name = name;
 
         assert(value instanceof Expression);
         this.value = value;
-
-        /**
-         * The signature corresponding to this assignment.
-         *
-         * This is the type that the assigned name has after the assignment statement.
-         * This property is guaranteed not `null` after type-checking.
-         * @type {Ast.FunctionDef|null}
-         */
         this.schema = schema;
     }
 
@@ -330,7 +318,6 @@ export class Assignment extends Statement {
      * Whether this assignment calls an action or executes a query.
      *
      * This will be `undefined` before typechecking, and then either `true` or `false`.
-     * @type {boolean}
      */
     get isAction() : boolean {
         return this.schema!.functionType === 'action';
@@ -644,8 +631,6 @@ export class ReturnStatement extends Statement {
  * A statement that declares a ThingTalk dataset (collection of primitive
  * templates).
  *
- * @alias Ast.Dataset
- * @extends Ast.Statement
  */
 export class Dataset extends Statement {
     name : string;
@@ -744,9 +729,6 @@ export class Dataset extends Statement {
  * It is somewhat organized for "easier" API handling,
  * and for backward compatibility with API users.
  *
- * @alias Ast.Input
- * @extends Ast.Node
- * @abstract
  */
 export abstract class Input extends Node {
     static ControlCommand : any;
@@ -775,7 +757,6 @@ export abstract class Input extends Node {
      *
      * This is the main API to typecheck a ThingTalk input.
      *
-     * @method Ast.Input#typecheck
      * @param schemas - schema retriever object to retrieve Thingpedia information
      * @param [getMeta=false] - retreive natural language metadata during typecheck
      */
@@ -795,8 +776,6 @@ export type TopLevelExecutableStatement = Assignment | ExpressionStatement;
  * An executable ThingTalk program (containing at least one executable
  * statement).
  *
- * @alias Ast.Program
- * @extends Ast.Input
  */
 export class Program extends Input {
     classes : ClassDef[];
@@ -927,8 +906,6 @@ Input.Program = Program;
 /**
  * An ThingTalk program definining a permission control policy.
  *
- * @alias Ast.PermissionRule
- * @extends Ast.Input
  */
 export class PermissionRule extends Input {
     principal : BooleanExpression;
@@ -1020,8 +997,6 @@ Input.PermissionRule = PermissionRule;
 /**
  * An ThingTalk input file containing a library of classes and datasets.
  *
- * @alias Ast.Library
- * @extends Ast.Input
  */
 export class Library extends Input {
     classes : ClassDef[];
@@ -1097,7 +1072,6 @@ Input.Library = Library;
 /**
  * A single example (primitive template) in a ThingTalk dataset
  *
- * @alias Ast.Example
  */
 export class Example extends Node {
     isExample = true;
@@ -1221,10 +1195,7 @@ export class Example extends Node {
 
     /**
      * Iterate all slots (scalar value nodes) in this example.
-     *
-     * @generator
-     * @yields {Ast~OldSlot}
-     * @deprecated Use {@link Ast.Example#iterateSlots2} instead.
+     * @deprecated Use {@link Ast.Example.iterateSlots2} instead.
      */
     *iterateSlots() : Generator<OldSlot, void> {
         yield* this.value.iterateSlots({});
@@ -1232,9 +1203,6 @@ export class Example extends Node {
 
     /**
      * Iterate all slots (scalar value nodes) in this example.
-     *
-     * @generator
-     * @yields {Ast~AbstractSlot}
      */
     *iterateSlots2() : Generator<DeviceSelector|AbstractSlot, void> {
         yield* this.value.iterateSlots2({});
@@ -1318,15 +1286,21 @@ export class MixinImportStmt extends Node {
 /**
  * An `entity` statement inside a ThingTalk class.
  *
- * @alias Ast.EntityDef
- * @extends Ast~Node
- * @abstract
  */
 export class EntityDef extends Node {
     isEntityDef = true;
+    /**
+     * The entity name.
+     */
     name : string;
     extends : string|null;
+    /**
+     * The entity metadata (translatable annotations).
+     */
     nl_annotations : NLAnnotationMap;
+    /**
+     * The entity annotations.
+     */
     impl_annotations : AnnotationMap;
 
     /**
@@ -1344,20 +1318,11 @@ export class EntityDef extends Node {
                 _extends : string|null,
                 annotations : AnnotationSpec) {
         super(location);
-        /**
-         * The entity name.
-         */
         this.name = name;
 
         this.extends = _extends;
 
-        /**
-         * The entity metadata (translatable annotations).
-         */
         this.nl_annotations = annotations.nl || {};
-        /**
-         * The entity annotations.
-         */
         this.impl_annotations = annotations.impl || {};
     }
 

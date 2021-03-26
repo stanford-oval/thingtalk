@@ -21,29 +21,41 @@
 
 /**
  * A single point in the source code input stream.
- *
- * @property {number|undefined} offset - the character position in the stream (0-based)
- * @property {number|undefined} line - the line number (1-based)
- * @property {number|undefined} column - the column number (1-based)
- * @property {number|undefined} token - the token index (0-based)
  */
 export interface SourceLocation {
+    /**
+     * The character position in the stream (0-based).
+     */
     offset : number;
+
+    /**
+     * The line number (1-based).
+     */
     line : number;
+
+    /**
+     * The column number (1-based).
+     */
     column : number;
+
+    /**
+     * The token index (0-based).
+     */
     token ?: number;
 }
 
 /**
  * The interval in the source code covered by a single
  * token or source code span.
- *
- * @property {Ast~SourceLocation} start - the beginning of the range
- *           (index of the first character)
- * @property {Ast~SourceLocation} end - the end of the range, immediately
- *           after the end of the range
  */
 export interface SourceRange {
+    /**
+     * The beginning of the range (index of the first character).
+     */
     start : SourceLocation;
+
+    /**
+     * The end of the range, immediately after the last character.
+     */
     end : SourceLocation;
 }

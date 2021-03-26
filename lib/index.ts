@@ -33,8 +33,6 @@ import * as Builtin from './builtin';
 /**
  * Version information
  *
- * @type {string}
- * @alias version
  */
 const version = '2.0.0-alpha.5';
 

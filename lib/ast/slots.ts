@@ -63,7 +63,6 @@ export type InvocationLike = Invocation | ExternalBooleanExpressionLike |
  * API user. This API is used to iterate all values (parameters and filters)
  * in a program.
  *
- * @alias Ast~AbstractSlot
  */
 export abstract class AbstractSlot {
     private _prim : InvocationLike|null;

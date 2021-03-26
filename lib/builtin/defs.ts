@@ -27,9 +27,23 @@ import {
 
 // Definitions of ThingTalk operators
 
+/**
+ * Declare the implementation of a ThingTalk operator.
+ */
 export interface OpImplementation {
+    /**
+     * A JavaScript operator that implement this ThingTalk operator.
+     */
     op ?: string;
+
+    /**
+     * A function in the {@link Builtin} namespace that implements this operator.
+     */
     fn ?: string;
+
+    /**
+     * Invert the arguments of the JS function/operator compared to the ThingTalk operator.
+     */
     flip ?: boolean;
 }
 
@@ -37,26 +51,24 @@ type OverloadResolver = (...types : Type[]) => OpImplementation;
 
 /**
  * Definition of a ThingTalk operator.
- *
- * @typedef Builtin.OpDefinition
- * @property {Type[][]} types - the possible overloads of this operator; each array
- *           member is an overload: the first N-1 elements are the input types and the last
- *           is the result type
- * @property {Callable} [overload] - compute which implementation to use for a given overload
- * @property {string} [op] - a JavaScript operator that implement this ThingTalk operator
- * @property {string} [fn] - a function in the {@link Builtin} namespace that implements this operator
- * @package
  */
 export interface OpDefinition extends OpImplementation {
+    /**
+     * The possible overloads of this operator. Each array member is an overload:
+     * the first N-1 elements are the input types and the last
+     * is the result type.
+     */
     types : Array<Array<(Type | string)>>;
+
+    /**
+     * Compute which implementation to use for a given overload.
+     */
     overload ? : OverloadResolver;
 }
 
 /**
  * Definitions (type signatures) of ThingTalk binary comparison operators.
  *
- * @alias Builtin.BinaryOps
- * @constant
  * @package
  */
 export const BinaryOps : { [op : string] : OpDefinition } = {
@@ -199,10 +211,7 @@ export const BinaryOps : { [op : string] : OpDefinition } = {
 /**
  * Definitions (type signatures) of ThingTalk unary operators.
  *
- * @alias Builtin.UnaryOps
- * @constant
  * @package
- * @type {Object.<string, Builtin.OpDefinition>}
  */
 export const UnaryOps : { [op : string] : OpDefinition } = {
     '!': {
@@ -226,10 +235,7 @@ export const UnaryOps : { [op : string] : OpDefinition } = {
 /**
  * Definitions (type signatures) of ThingTalk scalar operators.
  *
- * @alias Builtin.ScalarExpressionOps
- * @constant
  * @package
- * @type {Object.<string, Builtin.OpDefinition>}
  */
 export const ScalarExpressionOps : { [op : string] : OpDefinition } = {
     '+': {
@@ -321,10 +327,7 @@ export const ScalarExpressionOps : { [op : string] : OpDefinition } = {
 /**
  * Definitions (type signatures) of ThingTalk aggregation operators.
  *
- * @alias Builtin.Aggregations
- * @constant
  * @package
- * @type {Object.<string, Builtin.OpDefinition>}
  */
 export const Aggregations : { [op : string] : OpDefinition } = {
     'max': {

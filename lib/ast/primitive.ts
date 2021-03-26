@@ -62,9 +62,6 @@ import List from '../utils/list';
 /**
  * The base class of all ThingTalk query expressions.
  *
- * @alias Ast.Table
- * @extends Ast~Node
- * @abstract
  */
 export abstract class Table extends Node {
     static VarRef : typeof VarRefTable;
@@ -117,7 +114,7 @@ export abstract class Table extends Node {
      * Iterate all slots (scalar value nodes) in this table.
      *
      * @param scope - available names for parameter passing
-     * @deprecated Use {@link Table#iterateSlots2} instead.
+     * @deprecated Use {@link Table.iterateSlots2} instead.
      */
     abstract iterateSlots(scope : ScopeMap) : Generator<OldSlot, [InvocationLike|null, ScopeMap]>;
 
@@ -773,7 +770,6 @@ Table.Join.prototype.isJoin = true;
 /**
  * The base class of all ThingTalk stream expressions.
  *
- * @alias Ast.Stream
  */
 export abstract class Stream extends Node {
     static VarRef : typeof VarRefStream;
@@ -827,7 +823,7 @@ export abstract class Stream extends Node {
      * Iterate all slots (scalar value nodes) in this stream.
      *
      * @param scope - available names for parameter passing
-     * @deprecated Use {@link Ast.Stream#iterateSlots2} instead.
+     * @deprecated Use {@link Ast.Stream.iterateSlots2} instead.
      */
     abstract iterateSlots(scope : ScopeMap) : Generator<OldSlot, [InvocationLike|null, ScopeMap]>;
 
@@ -1482,13 +1478,6 @@ Stream.Join.prototype.isJoin = true;
 
 /**
  * Base class for all expressions that invoke an action.
- *
- * @alias Ast.Action
- * @extends Ast~Node
- * @abstract
- * @property {boolean} isAction - true
- * @property {boolean} isVarRef - true if this is an instance of {@link Ast.Action.VarRef}
- * @property {boolean} isInvocation - true if this is an instance of {@link Ast.Action.Invocation}
  */
 export abstract class Action extends Node {
     static VarRef : typeof VarRefAction;
@@ -1498,6 +1487,10 @@ export abstract class Action extends Node {
     static Notify : typeof NotifyAction;
     isNotify ! : boolean;
 
+    /**
+     * Type signature of this action.
+     * This property is guaranteed not `null` after type-checking.
+     */
     schema : FunctionDef|null;
 
     /**
@@ -1510,14 +1503,6 @@ export abstract class Action extends Node {
         super(location);
 
         assert(schema === null || schema instanceof FunctionDef);
-        /**
-         * Type signature of this action.
-         *
-         * Note that this _not_ the type signature of the invoked function,
-         * because all input arguments that have a value are removed from the signature.
-         * This property is guaranteed not `null` after type-checking.
-         * @type {Ast.FunctionDef|null}
-         */
         this.schema = schema;
     }
 
@@ -1539,7 +1524,7 @@ export abstract class Action extends Node {
      * Iterate all slots (scalar value nodes) in this action.
      *
      * @param scope - available names for parameter passing
-     * @deprecated Use {@link Ast.Action#iterateSlots2} instead.
+     * @deprecated Use {@link Ast.Action.iterateSlots2} instead.
      */
     abstract iterateSlots(scope : ScopeMap) : Generator<OldSlot, void>;
 
@@ -1558,11 +1543,15 @@ Action.prototype.isNotify = false;
  * An invocation of a locally defined action (i.e. one defined with
  * a `let` statement).
  *
- * @alias Ast.Action.VarRef
- * @extends Ast.Action
  */
 export class VarRefAction extends Action {
+    /**
+     * The name of the action to invoke.
+     */
     name : string;
+    /**
+     * The input parameters to pass.
+     */
     in_params : InputParam[];
 
     /**
@@ -1580,19 +1569,9 @@ export class VarRefAction extends Action {
         super(location, schema);
 
         assert(typeof name === 'string');
-        /**
-         * The name of the action to invoke.
-         * @type {string}
-         * @readonly
-         */
         this.name = name;
 
         assert(Array.isArray(in_params));
-        /**
-         * The input parameters to pass.
-         * @type {Ast.InputParam[]}
-         * @readonly
-         */
         this.in_params = in_params;
     }
 
@@ -1641,8 +1620,6 @@ Action.VarRef.prototype.isVarRef = true;
 /**
  * An invocation of an action in Thingpedia.
  *
- * @alias Ast.Action.Invocation
- * @extends Ast.Action
  */
 export class InvocationAction extends Action {
     /**
@@ -1703,8 +1680,6 @@ Action.Invocation.prototype.isInvocation = true;
 /**
  * A `notify`, `return` or `save` clause.
  *
- * @alias Ast.Action.Invocation
- * @extends Ast.Action
  */
 export class NotifyAction extends Action {
     name : 'notify';
@@ -1762,9 +1737,6 @@ Action.Notify.prototype.isNotify = true;
  * The base class of all function clauses in a ThingTalk
  * permission rule.
  *
- * @alias Ast.PermissionFunction
- * @extends Ast~Node
- * @abstract
  */
 export abstract class PermissionFunction extends Node {
     static Specified : typeof SpecifiedPermissionFunction;
@@ -1795,8 +1767,6 @@ PermissionFunction.prototype.isStar = false;
  * A permission function that applies only to a specific
  * Thingpedia function.
  *
- * @alias Ast.PermissionFunction.Specified
- * @extends Ast.PermissionFunction
  */
 export class SpecifiedPermissionFunction extends PermissionFunction {
     kind : string;
@@ -1902,9 +1872,6 @@ BuiltinPermissionFunction.prototype.isBuiltin = true;
  * `notify`.
  *
  * This is a singleton, not a class.
- * @alias Ast.PermissionFunction.Builtin
- * @type {Ast.PermissionFunction}
- * @readonly
  */
 PermissionFunction.Builtin = new BuiltinPermissionFunction();
 
@@ -1912,8 +1879,6 @@ PermissionFunction.Builtin = new BuiltinPermissionFunction();
  * A permission function that applies to all functions of a class,
  * unconditionally.
  *
- * @alias Ast.PermissionFunction.ClassStar
- * @extends Ast.PermissionFunction
  */
 export class ClassStarPermissionFunction extends PermissionFunction {
     kind : string;
@@ -1974,8 +1939,5 @@ StarPermissionFunction.prototype.isStar = true;
  * of all classes, unconditionally.
  *
  * This is a singleton, not a class.
- * @alias Ast.PermissionFunction.Star
- * @type {Ast.PermissionFunction}
- * @readonly
  */
 PermissionFunction.Star = new StarPermissionFunction();

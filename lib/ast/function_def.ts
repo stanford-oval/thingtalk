@@ -53,7 +53,6 @@ function makeIndex(args : string[]) : ArgIndexMap {
 /**
  * The direction of a function argument (parameter).
  *
- * @alias Ast.ArgDirection
  */
 export enum ArgDirection {
     IN_REQ = 'in req',
@@ -66,16 +65,35 @@ export enum ArgDirection {
  *
  * This class is also used to define fields in {@link Type.Compound} types.
  *
- * @alias Ast.ArgumentDef
- * @extends Ast~Node
  */
 export class ArgumentDef extends Node {
+    /**
+     * The direction of this argument.
+     */
     direction : ArgDirection|null;
+    /**
+     * The argument name.
+     */
     name : string;
+    /**
+     * The argument type.
+     */
     type : Type;
+    /**
+     * The argument metadata (translatable annotations).
+     */
     nl_annotations : NLAnnotationMap;
+    /**
+     * The argument annotations.
+     */
     impl_annotations : AnnotationMap;
+    /**
+     * Whether this argument is an input or output argument.
+     */
     is_input : boolean;
+    /**
+     * Whether this argument is required.
+     */
     required : boolean;
     unique : boolean;
     private _is_compound_field : boolean;
@@ -99,43 +117,12 @@ export class ArgumentDef extends Node {
                 is_compound_field = false) {
         super(location);
 
-        /**
-         * The direction of this argument.
-         * @type {Ast.ArgDirection|null}
-         * @readonly
-         */
         this.direction = direction;
-        /**
-         * Whether this argument is an input or output argument.
-         * @type {boolean}
-         * @readonly
-         */
         this.is_input = direction ? direction !== ArgDirection.OUT : true;
-        /**
-         * Whether this argument is required.
-         * @type {boolean}
-         * @readonly
-         */
         this.required = direction ? direction === ArgDirection.IN_REQ : true;
-        /**
-         * The argument name.
-         * @type {string}
-         */
         this.name = name;
-        /**
-         * The argument type.
-         * @type {Type}
-         */
         this.type = type;
-        /**
-         * The argument metadata (translatable annotations).
-         * @type {Object.<string,any>}
-         */
         this.nl_annotations = annotations.nl || {};
-        /**
-         * The argument annotations.
-         * @type {Object.<string,Ast.Value>}
-         */
         this.impl_annotations = annotations.impl || {};
 
         this._is_compound_field = is_compound_field || this.direction === null;
@@ -203,8 +190,6 @@ export class ArgumentDef extends Node {
      * if present, or an automatically derived string based on the
      * argument name.
      *
-     * @type {string}
-     * @readonly
      */
     get canonical() : string {
         const canonical = this.nl_annotations.canonical;
@@ -273,9 +258,7 @@ export class ArgumentDef extends Node {
     /**
      * All natural language metadata for this argument
      * (canonical, confirmation, formatted).
-     * @type {Object.<string,any>}
-     * @readonly
-     * @deprecated metadata is deprecated and should not be used. Use {@link Ast.ArgumentDef#nl_annotations} instead.
+     * @deprecated metadata is deprecated and should not be used. Use {@link Ast.ArgumentDef.nl_annotations} instead.
      */
     get metadata() : NLAnnotationMap {
         return this.nl_annotations;
@@ -283,9 +266,7 @@ export class ArgumentDef extends Node {
 
     /**
      * Implementation annotations
-     * @type {Object.<string,Ast.Value>}
-     * @readonly
-     * @deprecated annotations is deprecated and should not be used. Use {@link Ast.ArgumentDef#impl_annotations} instead.
+     * @deprecated annotations is deprecated and should not be used. Use {@link Ast.ArgumentDef.impl_annotations} instead.
      */
     get annotations() : AnnotationMap {
         return this.impl_annotations;
@@ -297,7 +278,7 @@ export class ArgumentDef extends Node {
      * @param {string} name - the annotation name
      * @return {any|undefined} the annotation normalized value, or `undefined` if the
      *         annotation is not present
-     * @deprecated getAnnotation is deprecated and should not be used. Use {@link Ast.ArgumentDef#getImplementationAnnotation} instead.
+     * @deprecated getAnnotation is deprecated and should not be used. Use {@link Ast.ArgumentDef.getImplementationAnnotation} instead.
      */
     getAnnotation<T>(name : string) : T|undefined {
         return this.getImplementationAnnotation<T>(name);
@@ -309,7 +290,6 @@ export class ArgumentDef extends Node {
  *
  * @param {Ast.ArgumentDef} arg - the argument to check
  * @return {boolean} whether the argument passes the filter
- * @callback Ast~ArgumentFilterCallback
  */
 type ArgumentFilterCallback = (arg : ArgumentDef) => boolean;
 
@@ -324,13 +304,12 @@ interface FunctionQualifiers {
  * The definition of a ThingTalk function (inside a class).
  *
  * Function definitions are semi-immutable: you should not modify a function definition
- * received from outside. Instead, you should call {@link Ast.FunctionDef#clone}
+ * received from outside. Instead, you should call {@link Ast.FunctionDef.clone}
  * to create a new instance you can modify. This includes modifying metadata and annotations
- * through the {@link Ast.FunctionDef#metadata} and {@link Ast.FunctionDef#annotations}
- * properties. Failure to call {@link Ast.FunctionDef#clone} will result in obsure
+ * through the {@link Ast.FunctionDef.metadata} and {@link Ast.FunctionDef.annotations}
+ * properties. Failure to call {@link Ast.FunctionDef.clone} will result in obsure
  * type checking errors.
  *
- * @alias Ast.FunctionDef
  */
 export class FunctionDef extends Node {
     private _functionType : FunctionType;
@@ -348,10 +327,34 @@ export class FunctionDef extends Node {
     private _out : TypeMap;
     private _extends : string[];
     private _class : ClassDef|null;
+    /**
+     * The canonical forms of arguments defined by this expression signature.
+     *
+     * @deprecated Use {@link Ast.FunctionDef.getArgument} and
+     *             {@link Ast.ArgumentDef.canonical} instead.
+     */
     argcanonicals : string[];
+    /**
+     * The question (prompts) of arguments defined by this expression signature.
+     *
+     * @deprecated Use {@link Ast.FunctionDef.getArgument} and
+     *             {@link Ast.ArgumentDef.metadata}`.prompt` instead.
+     */
     questions : string[];
 
+    /**
+     * Whether this signature defines a `list` query function.
+     *
+     * This is always false on action and stream signatures.
+     *
+     */
     is_list : boolean;
+    /**
+     * Whether this signature defines a `monitorable` query function.
+     *
+     * This is always false on action signatures, and always true on stream signatures.
+     *
+     */
     is_monitorable : boolean;
     require_filter : boolean;
     default_projection : string[];
@@ -411,48 +414,14 @@ export class FunctionDef extends Node {
         this._out = {};
         this._index = {};
 
-        /**
-         * The canonical forms of arguments defined by this expression signature.
-         *
-         * @type {string[]}
-         * @readonly
-         * @deprecated Use {@link Ast.FunctionDef#getArgument} and
-         *             {@link Ast.ArgumentDef#canonical} instead.
-         */
         this.argcanonicals = [];
-
-        /**
-         * The question (prompts) of arguments defined by this expression signature.
-         *
-         * @type {string[]}
-         * @readonly
-         * @deprecated Use {@link Ast.FunctionDef#getArgument} and
-         *             {@link Ast.ArgumentDef#metadata}`.prompt` instead.
-         */
         this.questions = [];
 
         // flatten compound parameters
         args = this._flattenCompoundArguments(args);
         this._loadArguments(args);
 
-        /**
-         * Whether this signature defines a `list` query function.
-         *
-         * This is always false on action and stream signatures.
-         *
-         * @type {boolean}
-         * @readonly
-         */
         this.is_list = qualifiers.is_list || false;
-
-        /**
-         * Whether this signature defines a `monitorable` query function.
-         *
-         * This is always false on action signatures, and always true on stream signatures.
-         *
-         * @type {boolean}
-         * @readonly
-         */
         this.is_monitorable = qualifiers.is_monitorable || false;
 
         if ('require_filter' in this._impl_annotations)
@@ -531,12 +500,10 @@ export class FunctionDef extends Node {
      * The list of types of the arguments defined by this signature.
      *
      * This list includes the arguments defined by parent classes, and is in the
-     * order returned by {@link Ast.FunctionDef#iterateArguments}.
-     * @type {Type[]}
-     * @readonly
+     * order returned by {@link Ast.FunctionDef.iterateArguments}.
      * @deprecated This property is deprecated because it is slow to compute if
      *             function inheritance is used, and not particularly useful.
-     *             Use {@link Ast.FunctionDef#iterateArguments} instead.
+     *             Use {@link Ast.FunctionDef.iterateArguments} instead.
      */
     get types() : Type[] {
         if (this.extends.length === 0)
@@ -550,11 +517,9 @@ export class FunctionDef extends Node {
      * A map of required input arguments defined by this signature, and their type.
      *
      * The map includes the arguments defined by parent classes.
-     * @type {Object.<string,Type>}
-     * @readonly
      * @deprecated This property is deprecated because it is slow to compute if
      *             function inheritance is used.
-     *             Use {@link Ast.FunctionDef#iterateArguments} instead.
+     *             Use {@link Ast.FunctionDef.iterateArguments} instead.
      */
     get inReq() : TypeMap {
         if (this.extends.length === 0)
@@ -570,11 +535,9 @@ export class FunctionDef extends Node {
      * A map of optional input arguments defined by this signature, and their type.
      *
      * The map includes the arguments defined by parent classes.
-     * @type {Object.<string,Type>}
-     * @readonly
      * @deprecated This property is deprecated because it is slow to compute if
      *             function inheritance is used.
-     *             Use {@link Ast.FunctionDef#iterateArguments} instead.
+     *             Use {@link Ast.FunctionDef.iterateArguments} instead.
      */
     get inOpt() : TypeMap {
         if (this.extends.length === 0)
@@ -590,11 +553,9 @@ export class FunctionDef extends Node {
      * A map of output arguments defined by this signature, and their type.
      *
      * The map includes the arguments defined by parent classes.
-     * @type {Object.<string,Type>}
-     * @readonly
      * @deprecated This property is deprecated because it is slow to compute if
      *             function inheritance is used.
-     *             Use {@link Ast.FunctionDef#iterateArguments} instead.
+     *             Use {@link Ast.FunctionDef.iterateArguments} instead.
      */
     get out() : TypeMap {
         if (this.extends.length === 0)
@@ -610,8 +571,6 @@ export class FunctionDef extends Node {
     /**
      * The index of arguments in args.
      *.
-     * @type {Object.<string,Number>}
-     * @readonly
      * @deprecated This property is deprecated and will not work properly for functions with inheritance
      */
     get index() : ArgIndexMap {
@@ -721,8 +680,8 @@ export class FunctionDef extends Node {
     /**
      * Retrieve the type of the argument with the given name.
      *
-     * This is a convenience method that combines {@link Ast.FunctionDef#getArgument}
-     * and {@link Ast.ArgumentDef#type}.
+     * This is a convenience method that combines {@link Ast.FunctionDef.getArgument}
+     * and {@link Ast.ArgumentDef.type}.
      *
      * @param {string} arg - the argument name
      * @return {Type|undefined} the argument type, or `undefined`
@@ -744,8 +703,8 @@ export class FunctionDef extends Node {
     /**
      * Retrieve the canonical form of the argument with the given name.
      *
-     * This is a convenience method that combines {@link Ast.FunctionDef#getArgument}
-     * and {@link Ast.ArgumentDef#canonical}.
+     * This is a convenience method that combines {@link Ast.FunctionDef.getArgument}
+     * and {@link Ast.ArgumentDef.canonical}.
      *
      * @param {string} arg - the argument name
      * @return {string|undefined} the argument's canonical form, or `undefined`
@@ -767,8 +726,8 @@ export class FunctionDef extends Node {
     /**
      * Retrieve the metadata of the argument with the given name.
      *
-     * This is a convenience method that combines {@link Ast.FunctionDef#getArgument}
-     * and {@link Ast.ArgumentDef#metadata}.
+     * This is a convenience method that combines {@link Ast.FunctionDef.getArgument}
+     * and {@link Ast.ArgumentDef.metadata}.
      *
      * @param {string} arg - the argument name
      * @return {Object.<string,any>|undefined} the argument's metadata, or `undefined`
@@ -790,8 +749,8 @@ export class FunctionDef extends Node {
     /**
      * Check if the argument with the given name is an input.
      *
-     * This is a convenience method that combines {@link Ast.FunctionDef#getArgument}
-     * and {@link Ast.ArgumentDef#is_input}.
+     * This is a convenience method that combines {@link Ast.FunctionDef.getArgument}
+     * and {@link Ast.ArgumentDef.is_input}.
      *
      * @param {string} arg - the argument name
      * @return {boolean|undefined} whether the argument is an input, or `undefined`
@@ -813,8 +772,8 @@ export class FunctionDef extends Node {
     /**
      * Check if the argument with the given name is an input.
      *
-     * This is a convenience method that combines {@link Ast.FunctionDef#getArgument}
-     * and {@link Ast.ArgumentDef#required}.
+     * This is a convenience method that combines {@link Ast.FunctionDef.getArgument}
+     * and {@link Ast.ArgumentDef.required}.
      *
      * @param {string} arg - the argument name
      * @return {boolean|undefined} whether the argument is required, or `undefined`
@@ -839,7 +798,6 @@ export class FunctionDef extends Node {
      * Iteration includes also arguments inherited from parent functions
      *
      * @param {Set} [returned=new Set] - a set of returned argument names to avoid duplicates
-     * @yields {Ast.ArgumentDef}
      */
     *iterateArguments(returned = new Set<string>()) : Generator<ArgumentDef, void> {
         for (const arg of this.args) {
@@ -889,7 +847,7 @@ export class FunctionDef extends Node {
     /**
      * Clone this expression signature into a new signature with the given arguments.
      *
-     * This is an internal method called by {@link FunctionDef#clone}
+     * This is an internal method called by {@link FunctionDef.clone}
      * and similar functions. Subclasses can override it to call the subclass's
      * constructor.
      *
@@ -1078,16 +1036,12 @@ export class FunctionDef extends Node {
     /**
      * All natural language annotations for this function
      * (canonical, confirmation, formatted).
-     * @type {Object.<string,any>}
-     * @readonly
      */
     get nl_annotations() : NLAnnotationMap {
         return this._nl_annotations;
     }
     /**
      * Implementation annotations (e.g. "url", "poll_interval" or "json_key")
-     * @type {Object.<string,Ast.Value>}
-     * @readonly
      *
      */
     get impl_annotations() : AnnotationMap {
@@ -1126,10 +1080,8 @@ export class FunctionDef extends Node {
      * The canonical form of this function.
      *
      * This should be preferred over accessing the `canonical` property
-     * of {@link Ast.FunctionDef#metadata} because it will ensure
+     * of {@link Ast.FunctionDef.metadata} because it will ensure
      * a canonical form exists even if the annotation is not present.
-     * @type {string}
-     * @readonly
      */
     get canonical() : string|undefined {
         return this.nl_annotations.canonical;
@@ -1139,10 +1091,8 @@ export class FunctionDef extends Node {
      * The confirmation string for this function.
      *
      * This is a convenience property for accessing the `confirmation` property
-     * of {@link Ast.FunctionDef#metadata}. It will return `undefined`
+     * of {@link Ast.FunctionDef.metadata}. It will return `undefined`
      * if the annotation is not present.
-     * @type {string|undefined}
-     * @readonly
      */
     get confirmation() : string|undefined {
         return this.nl_annotations.confirmation;
@@ -1171,7 +1121,7 @@ export class FunctionDef extends Node {
      * @param {string} name - the annotation name
      * @return {any|undefined} the annotation normalized value, or `undefined` if the
      *         annotation is not present
-     * @deprecated getAnnotation is deprecated and should not be used. Use {@link Ast.FunctionDef#getImplementationAnnotation} instead.
+     * @deprecated getAnnotation is deprecated and should not be used. Use {@link Ast.FunctionDef.getImplementationAnnotation} instead.
      */
     getAnnotation<T>(name : string) : T|undefined {
         return this.getImplementationAnnotation<T>(name);
@@ -1180,18 +1130,14 @@ export class FunctionDef extends Node {
     /**
      * All natural language metadata for this function
      * (canonical, confirmation, formatted).
-     * @type {Object.<string,any>}
-     * @readonly
-     * @deprecated metadata is deprecated and should not be used. Use {@link Ast.FunctionDef#nl_annotations} instead.
+     * @deprecated metadata is deprecated and should not be used. Use {@link Ast.FunctionDef.nl_annotations} instead.
      */
     get metadata() : NLAnnotationMap {
         return this._nl_annotations;
     }
     /**
      * Implementation annotations (e.g. "url", "poll_interval" or "json_key")
-     * @type {Object.<string,Ast.Value>}
-     * @readonly
-     * @deprecated annotations is deprecated and should not be used. Use {@link Ast.FunctionDef#impl_annotations} instead.
+     * @deprecated annotations is deprecated and should not be used. Use {@link Ast.FunctionDef.impl_annotations} instead.
      */
     get annotations() : AnnotationMap {
         return this._impl_annotations;
