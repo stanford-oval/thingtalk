@@ -184,7 +184,7 @@ export class FunctionCallExpression extends Expression {
         } else if (schema.functionType === 'query') {
             return new legacy.VarRefTable(this.location, this.name, moveInputParams(this.in_params, into_params, scope_params), this.schema);
         } else {
-            return new legacy.VarRefAction(this.location, this.name, this.in_params, this.schema);
+            return new legacy.VarRefAction(this.location, this.name, moveInputParams(this.in_params, into_params, scope_params), this.schema);
         }
     }
 
@@ -1064,7 +1064,13 @@ export class ChainExpression extends Expression {
             assert(fl instanceof legacy.Table);
             return this.expressions.slice(1).reduce((al, b) => {
                 const newIntoParams : InputParam[] = [];
-                const bl = b.toLegacy(newIntoParams, scope_params);
+                let bl = b.toLegacy(newIntoParams, scope_params);
+                if (bl instanceof legacy.Action) {
+                    // this can occur with chain expressions in assignments
+                    assert(bl instanceof legacy.VarRefAction);
+                    // this is a hack! we generate a table that calls an action
+                    bl = new legacy.VarRefTable(bl.location, bl.name, bl.in_params, bl.schema);
+                }
                 assert(bl instanceof legacy.Table);
 
                 const joinParams = newIntoParams.filter((ip) => {
@@ -1079,6 +1085,7 @@ export class ChainExpression extends Expression {
                         return true;
                     }
                 });
+
                 return new legacy.JoinTable(null, al, bl, joinParams, b.schema);
             }, fl);
         }
