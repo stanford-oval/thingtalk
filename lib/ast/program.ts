@@ -36,6 +36,7 @@ import {
     Stream,
     Table,
     Action,
+    VarRefAction,
     PermissionFunction
 } from './primitive';
 import {
@@ -538,8 +539,11 @@ export class ExpressionStatement extends Statement {
             assert(converted instanceof Stream || converted instanceof Table);
             head = converted;
         }
-        const convertedAction = action ? action.toLegacy([], scope_params) : null;
+        const actionIntoParams : InputParam[] = [];
+        const convertedAction = action ? action.toLegacy(actionIntoParams, scope_params) : null;
         assert(convertedAction === null || convertedAction instanceof Action);
+        if (convertedAction && convertedAction instanceof VarRefAction)
+            convertedAction.in_params.push(...actionIntoParams);
 
         if (head instanceof Stream)
             return new Rule(this.location, head, convertedAction ? [convertedAction] : [Action.notifyAction()]);

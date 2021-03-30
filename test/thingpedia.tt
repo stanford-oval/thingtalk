@@ -5339,3 +5339,41 @@ class @com.test.entitysubtype2 {
 
   action foo(in req param : Entity(com.test.entitysubtype2:parent));
 }
+
+class @com.google.puppeteer
+#_[name="Puppeteer"]
+#_[description="Control the browser and do things"]
+{
+  import loader from @org.thingpedia.builtin();
+  import config from @org.thingpedia.config.none();
+
+  list query inject(in req values : Array(String) #_[canonical="values"],
+                    out text : String #_[canonical="text"],
+                    out number : Number #_[canonical="number"])
+  #_[canonical="constant values"]
+  #_[confirmation="the values ${values}"];
+
+  monitorable list query select(in req frame_url : Entity(tt:url) #_[canonical="frame url"],
+                                in req selector : String #_[canonical="selector"],
+                                out text : String #_[canonical="text"],
+                                out number : Number #_[canonical="number"])
+  #_[canonical="element on screen"]
+  #_[confirmation="the elements matched by ${selector}"]
+  #_[formatted=["${text}"]]
+  #[poll_interval=10min];
+
+  action load(in req url : Entity(tt:url) #_[canonical="url"])
+  #_[canonical="load"]
+  #_[confirmation="load ${url}"];
+
+  action set_input(in req frame_url : Entity(tt:url) #_[canonical="frame url"],
+                   in req selector : String #_[canonical="selector"],
+                   in req text : String #_[canonical="text"])
+  #_[canonical="set input"]
+  #_[confirmation="set the element ${selector} to ${text}"];
+
+  action click(in req frame_url : Entity(tt:url) #_[canonical="frame url"],
+               in req selector : String #_[canonical="selector"])
+  #_[canonical="click"]
+  #_[confirmation="click on the element ${selector}"];
+}

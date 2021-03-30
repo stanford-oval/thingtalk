@@ -10061,6 +10061,354 @@ const TEST_CASES = [
   } finally {
     await __env.exitProcedure(1, null);
   }`]],
+
+    // 109 compiler bug
+    [`function p_recip() {
+  function p_price(v_this : String) {
+    @com.google.puppeteer.load(url="https://www.walmart.com/"^^tt:url);
+    @com.google.puppeteer.set_input(frame_url="https://www.walmart.com/"^^tt:url, selector="#hf-header #global-search-input", text=v_this);
+    @com.google.puppeteer.click(frame_url="https://www.walmart.com/"^^tt:url, selector=".b_a > #global-search-form > #global-search-submit > .g_b > img");
+    let t_this = @com.google.puppeteer.select(frame_url="https://www.walmart.com/search/?query=Black%20pepper"^^tt:url, selector=".Grid-col:nth-child(1) > .search-result-gridview-item-wrapper:nth-child(1) > .search-result-gridview-item:nth-child(2) .product-price-with-fulfillment:nth-child(1) .price:nth-child(1)");
+    return t_this();
+  }
+  @com.google.puppeteer.load(url="https://www.acouplecooks.com/seasoned-salt-recipe/"^^tt:url);
+  let t_this = @com.google.puppeteer.select(frame_url="https://www.acouplecooks.com/seasoned-salt-recipe/"^^tt:url, selector="ul:nth-child(14) > li:nth-child(2) > strong, ul:nth-child(14) > li:nth-child(3) > strong");
+  let t_result = t_this() => p_price(v_this=text);
+  let t_sum = sum(number of t_result());
+  return t_sum();
+}
+p_recip();`,
+    [`"use strict";
+  let _t_29;
+  let _t_30;
+  let _t_31;
+  let _t_32;
+  let _t_33;
+  let _t_34;
+  let _t_35;
+  let _t_36;
+  let _t_37;
+  let _t_38;
+  let _t_39;
+  let _t_40;
+  let _t_41;
+  let _t_42;
+  let _t_43;
+  let _t_44;
+  let _t_45;
+  let _t_46;
+  let _t_47;
+  let _t_48;
+  let _t_49;
+  let _t_50;
+  let _t_51;
+  let _t_52;
+  let _t_53;
+  let _t_54;
+  let _t_55;
+  let _t_56;
+  let _t_57;
+  let _t_58;
+  let _t_59;
+  let _t_60;
+  let _t_61;
+  let _t_62;
+  let _t_63;
+  let _t_64;
+  let _t_65;
+  let _t_66;
+  let _t_67;
+  let _t_68;
+  let _t_69;
+  let _t_70;
+  let _t_71;
+  let _t_72;
+  let _t_73;
+  let _t_74;
+  let _t_75;
+  let _t_76;
+  let _t_77;
+  let _t_78;
+  let _t_79;
+  let _t_80;
+  let _t_81;
+  let _t_82;
+  let _t_83;
+  let _t_84;
+  await __env.enterProcedure(0, "p_recip");
+  try {
+    _t_29 = async function(__env, __emit, _t_0) {
+      "use strict";
+      let _t_1;
+      let _t_2;
+      let _t_3;
+      let _t_4;
+      let _t_5;
+      let _t_6;
+      let _t_7;
+      let _t_8;
+      let _t_9;
+      let _t_10;
+      let _t_11;
+      let _t_12;
+      let _t_13;
+      let _t_14;
+      let _t_15;
+      let _t_16;
+      let _t_17;
+      let _t_18;
+      let _t_19;
+      let _t_20;
+      let _t_21;
+      let _t_22;
+      let _t_23;
+      let _t_24;
+      let _t_25;
+      let _t_26;
+      let _t_27;
+      let _t_28;
+      await __env.enterProcedure(1, "p_price");
+      try {
+        try {
+          _t_1 = {};
+          _t_2 = new __builtin.Entity("https://www.walmart.com/", null);
+          _t_1.url = _t_2;
+          await __builtin.drainAction(__env.invokeAction("com.google.puppeteer", { }, "load", _t_1));
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        __env.clearGetCache();
+        try {
+          _t_3 = {};
+          _t_4 = new __builtin.Entity("https://www.walmart.com/", null);
+          _t_3.frame_url = _t_4;
+          _t_5 = "#hf-header #global-search-input";
+          _t_3.selector = _t_5;
+          _t_3.text = _t_0;
+          await __builtin.drainAction(__env.invokeAction("com.google.puppeteer", { }, "set_input", _t_3));
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        __env.clearGetCache();
+        try {
+          _t_6 = {};
+          _t_7 = new __builtin.Entity("https://www.walmart.com/", null);
+          _t_6.frame_url = _t_7;
+          _t_8 = ".b_a > #global-search-form > #global-search-submit > .g_b > img";
+          _t_6.selector = _t_8;
+          await __builtin.drainAction(__env.invokeAction("com.google.puppeteer", { }, "click", _t_6));
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        __env.clearGetCache();
+        _t_9 = new Array(0);
+        try {
+          _t_10 = {};
+          _t_11 = new __builtin.Entity("https://www.walmart.com/search/?query=Black%20pepper", null);
+          _t_10.frame_url = _t_11;
+          _t_12 = ".Grid-col:nth-child(1) > .search-result-gridview-item-wrapper:nth-child(1) > .search-result-gridview-item:nth-child(2) .product-price-with-fulfillment:nth-child(1) .price:nth-child(1)";
+          _t_10.selector = _t_12;
+          _t_13 = await __env.invokeQuery("com.google.puppeteer", { }, "select", _t_10, { projection: ["text", "number"] });
+          _t_14 = __builtin.getAsyncIterator(_t_13);
+          {
+            let _iter_tmp = await _t_14.next();
+            while (!_iter_tmp.done) {
+              _t_15 = _iter_tmp.value;
+              _t_16 = _t_15[0];
+              _t_17 = _t_15[1];
+              _t_18 = _t_17.__response;
+              _t_19 = _t_17.text;
+              _t_20 = _t_17.number;
+              _t_21 = new Array(2);
+              _t_21[0] = _t_16;
+              _t_21[1] = _t_17;
+              _t_9.push(_t_21);
+              _iter_tmp = await _t_14.next();
+            }
+          }
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke query", _exc_);
+        }
+        __env.clearGetCache();
+        _t_22 = __builtin.getAsyncIterator(_t_9);
+        {
+          let _iter_tmp = await _t_22.next();
+          while (!_iter_tmp.done) {
+            _t_23 = _iter_tmp.value;
+            _t_24 = _t_23[0];
+            _t_25 = _t_23[1];
+            _t_26 = _t_25.__response;
+            _t_27 = _t_25.text;
+            _t_28 = _t_25.number;
+            try {
+              __emit(_t_24, _t_25);
+            } catch(_exc_) {
+              __env.reportError("Failed to invoke action", _exc_);
+            }
+            _iter_tmp = await _t_22.next();
+          }
+        }
+      } finally {
+        await __env.exitProcedure(1, "p_price");
+      }
+    };
+    try {
+      _t_30 = {};
+      _t_31 = new __builtin.Entity("https://www.acouplecooks.com/seasoned-salt-recipe/", null);
+      _t_30.url = _t_31;
+      await __builtin.drainAction(__env.invokeAction("com.google.puppeteer", { }, "load", _t_30));
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke action", _exc_);
+    }
+    __env.clearGetCache();
+    _t_32 = new Array(0);
+    try {
+      _t_33 = {};
+      _t_34 = new __builtin.Entity("https://www.acouplecooks.com/seasoned-salt-recipe/", null);
+      _t_33.frame_url = _t_34;
+      _t_35 = "ul:nth-child(14) > li:nth-child(2) > strong, ul:nth-child(14) > li:nth-child(3) > strong";
+      _t_33.selector = _t_35;
+      _t_36 = await __env.invokeQuery("com.google.puppeteer", { }, "select", _t_33, { projection: ["text", "number"] });
+      _t_37 = __builtin.getAsyncIterator(_t_36);
+      {
+        let _iter_tmp = await _t_37.next();
+        while (!_iter_tmp.done) {
+          _t_38 = _iter_tmp.value;
+          _t_39 = _t_38[0];
+          _t_40 = _t_38[1];
+          _t_41 = _t_40.__response;
+          _t_42 = _t_40.text;
+          _t_43 = _t_40.number;
+          _t_44 = new Array(2);
+          _t_44[0] = _t_39;
+          _t_44[1] = _t_40;
+          _t_32.push(_t_44);
+          _iter_tmp = await _t_37.next();
+        }
+      }
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke query", _exc_);
+    }
+    __env.clearGetCache();
+    _t_45 = new Array(0);
+    _t_46 = __builtin.getAsyncIterator(_t_32);
+    {
+      let _iter_tmp = await _t_46.next();
+      while (!_iter_tmp.done) {
+        _t_47 = _iter_tmp.value;
+        _t_48 = _t_47[0];
+        _t_49 = _t_47[1];
+        _t_50 = _t_49.__response;
+        _t_51 = _t_49.text;
+        _t_52 = _t_49.number;
+        try {
+          _t_53 = await __builtin.invokeStreamVarRef(__env, _t_29, _t_51);
+          {
+            let _iter_tmp = await _t_53.next();
+            while (!_iter_tmp.done) {
+              _t_54 = _iter_tmp.value;
+              _t_55 = _t_54[0];
+              _t_56 = _t_54[1];
+              _t_57 = _t_56.__response;
+              _t_58 = _t_56.text;
+              _t_59 = _t_56.number;
+              _t_60 = __builtin.combineOutputTypes(_t_48, _t_55);
+              _t_61 = {};
+              _t_61.__response = _t_57;
+              _t_61.text = _t_58;
+              _t_61.number = _t_59;
+              _t_62 = _t_61.__response;
+              _t_63 = _t_61.text;
+              _t_64 = _t_61.number;
+              _t_65 = new Array(2);
+              _t_65[0] = _t_60;
+              _t_65[1] = _t_61;
+              _t_45.push(_t_65);
+              _iter_tmp = await _t_53.next();
+            }
+          }
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke query", _exc_);
+        }
+        _iter_tmp = await _t_46.next();
+      }
+    }
+    __env.clearGetCache();
+    _t_66 = new Array(0);
+    _t_67 = 0;
+    _t_68 = __builtin.getAsyncIterator(_t_45);
+    {
+      let _iter_tmp = await _t_68.next();
+      while (!_iter_tmp.done) {
+        _t_69 = _iter_tmp.value;
+        _t_70 = _t_69[0];
+        _t_71 = _t_69[1];
+        _t_72 = _t_71.__response;
+        _t_73 = _t_71.text;
+        _t_74 = _t_71.number;
+        _t_67 = __builtin.sum(_t_67, _t_74);
+        _iter_tmp = await _t_68.next();
+      }
+    }
+    _t_76 = "sum";
+    _t_75 = __builtin.aggregateOutputType(_t_76, _t_70);
+    _t_77 = {};
+    _t_77.number = _t_67;
+    _t_78 = new Array(2);
+    _t_78[0] = _t_75;
+    _t_78[1] = _t_77;
+    _t_66.push(_t_78);
+    __env.clearGetCache();
+    _t_79 = __builtin.getAsyncIterator(_t_66);
+    {
+      let _iter_tmp = await _t_79.next();
+      while (!_iter_tmp.done) {
+        _t_80 = _iter_tmp.value;
+        _t_81 = _t_80[0];
+        _t_82 = _t_80[1];
+        _t_83 = _t_82.__response;
+        _t_84 = _t_82.number;
+        try {
+          __emit(_t_81, _t_82);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_79.next();
+      }
+    }
+  } finally {
+    await __env.exitProcedure(0, "p_recip");
+  }`, `"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  await __env.enterProcedure(2, null);
+  try {
+    try {
+      _t_0 = __scope.p_recip;
+      _t_1 = await __builtin.invokeStreamVarRef(__env, _t_0);
+      {
+        let _iter_tmp = await _t_1.next();
+        while (!_iter_tmp.done) {
+          _t_2 = _iter_tmp.value;
+          _t_3 = _t_2[0];
+          _t_4 = _t_2[1];
+          _t_5 = _t_4.__response;
+          _t_6 = _t_4.number;
+          await __env.output(String(_t_3), _t_4);
+          _iter_tmp = await _t_1.next();
+        }
+      }
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke action", _exc_);
+    }
+  } finally {
+    await __env.exitProcedure(2, null);
+  }`]],
 ];
 
 // eslint-disable-next-line prefer-arrow-callback
