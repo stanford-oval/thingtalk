@@ -100,6 +100,10 @@ function createDatePiece(year : number|null, month : number|null, day : number|n
         date.setHours(0, 0, 0, 0);
     }
     if (month !== null && month > 0) {
+        // set both the month and the date at the same time
+        // otherwise when today's date is the 31st and the chosen
+        // month has 30 days, the Date will be adjusted to the
+        // first day of the subsequent month, which is wrong
         date.setMonth(month - 1, 1);
         date.setHours(0, 0, 0, 0);
     }
