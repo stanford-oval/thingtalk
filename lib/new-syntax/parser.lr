@@ -226,12 +226,8 @@ function parseIncompleteDate($ : $runtime.ParserInterface,
                 }
 
                 d.setFullYear(unix_or_year);
-                d.setMonth(0);
-                d.setDate(1);
-                d.setHours(0);
-                d.setMinutes(0);
-                d.setSeconds(0);
-                d.setMilliseconds(0);
+                d.setMonth(0, 1);
+                d.setHours(0, 0, 0, 0);
             } else {
                 d.setTime(unix_or_year);
             }
@@ -245,18 +241,15 @@ function parseIncompleteDate($ : $runtime.ParserInterface,
             }
 
             d.setFullYear(year);
-            d.setMonth((parts[1] || 1) - 1);
-            d.setDate(parts[2] || 1);
-            if (time) {
-                d.setHours(time.hour);
-                d.setMinutes(time.minute);
-                d.setSeconds(time.second);
-            } else {
-                d.setHours(parts[3] || 0);
-                d.setMinutes(parts[4] || 0);
-                d.setSeconds(parts[5] || 0);
-            }
-            d.setMilliseconds(0);
+            // set both the month and the date at the same time
+            // otherwise when today's date is the 31st and the chosen
+            // month has 30 days, the Date will be adjusted to the
+            // first day of the subsequent month, which is wrong
+            d.setMonth((parts[1] || 1) - 1, parts[2] || 1);
+            if (time)
+                d.setHours(time.hour, time.minute, time.second, 0);
+            else
+                d.setHours(parts[3] || 0, parts[4] || 0, parts[5] || 0, 0);
         }
         return new Ast.Value.Date(d);
     } else {
@@ -1505,138 +1498,6 @@ absolute_or_edge_date : Ast.DateValue = {
 
     'new' 'Date' '(' params:date_param_list ',' time:absolute_time ')' =>
         parseIncompleteDate($, params, time);
-
-    /*'new' 'Date' '(' year:constant_Number ',' month:constant_Number ',' day:constant_Number ')' => {
-        const d = new Date;
-        d.setFullYear(year.value);
-        d.setMonth(month.value-1);
-        d.setDate(day.value);
-        d.setHours(0);
-        d.setMinutes(0);
-        d.setSeconds(0);
-        d.setMilliseconds(0);
-        return new Ast.Value.Date(d);
-    };
-    'new' 'Date' '(' year:constant_Number ',' month:constant_Number ',' day:constant_Number ','
-                     hours:constant_Number ',' minutes:constant_Number ',' seconds:constant_Number ')' => {
-        const d = new Date;
-        d.setFullYear(year.value);
-        d.setMonth(month.value-1);
-        d.setDate(day.value);
-        d.setHours(hours.value);
-        d.setMinutes(minutes.value);
-        d.setSeconds(seconds.value);
-        d.setMilliseconds(0);
-        return new Ast.Value.Date(d);
-    };
-    'new' 'Date' '(' year:constant_Number ',' month:constant_Number ',' day:constant_Number ','
-                     hours:constant_Number ',' minutes:constant_Number ')' => {
-        const d = new Date;
-        d.setFullYear(year.value);
-        d.setMonth(month.value-1);
-        d.setDate(day.value);
-        d.setHours(hours.value);
-        d.setMinutes(minutes.value);
-        d.setSeconds(0);
-        d.setMilliseconds(0);
-        return new Ast.Value.Date(d);
-    };
-    'new' 'Date' '(' year:constant_Number ',' month:constant_Number ',' day:constant_Number ','
-                     time:absolute_time ')' => {
-        const d = new Date;
-        d.setFullYear(year.value);
-        d.setMonth(month.value-1);
-        d.setDate(day.value);
-        d.setHours(time.hour);
-        d.setMinutes(time.minute);
-        d.setSeconds(time.second);
-        d.setMilliseconds(0);
-        return new Ast.Value.Date(d);
-    };
-
-    'new' 'Date' '(' unix_or_year:constant_Number ')' => {
-        const v = unix_or_year.value;
-
-
-    };
-
-
-    'new' 'Date' '(' year:constant_Number ',' ')' => {
-        return new Ast.Value.Date(new Ast.DatePiece(year.value, null, null, null));
-    };
-    'new' 'Date' '(' year:constant_Number ',' ',' ')' => {
-        return new Ast.Value.Date(new Ast.DatePiece(year.value, null, null, null));
-    };
-    'new' 'Date' '(' year:constant_Number ',' ',' ',' ')' => {
-        return new Ast.Value.Date(new Ast.DatePiece(year.value, null, null, null));
-    };
-
-    'new' 'Date' '(' ',' month:constant_Number ')' => {
-        return new Ast.Value.Date(new Ast.DatePiece(null, month.value, null, null));
-    };
-    'new' 'Date' '(' ',' month:constant_Number ',' ')' => {
-        return new Ast.Value.Date(new Ast.DatePiece(null, month.value, null, null));
-    };
-    'new' 'Date' '(' ',' month:constant_Number ',' ',' ')' => {
-        return new Ast.Value.Date(new Ast.DatePiece(null, month.value, null, null));
-    };
-
-    'new' 'Date' '(' ',' ',' day:constant_Number ')' => {
-        return new Ast.Value.Date(new Ast.DatePiece(null, null, day.value, null));
-    };
-    'new' 'Date' '(' ',' ',' day:constant_Number ',' ')' => {
-        return new Ast.Value.Date(new Ast.DatePiece(null, null, day.value, null));
-    };
-
-    'new' 'Date' '(' year:constant_Number ',' month:constant_Number ')' => {
-        return new Ast.Value.Date(new Ast.DatePiece(year.value, month.value, null, null));
-    };
-    'new' 'Date' '(' year:constant_Number ',' month:constant_Number ',' ')' => {
-        return new Ast.Value.Date(new Ast.DatePiece(year.value, month.value, null, null));
-    };
-    'new' 'Date' '(' year:constant_Number ',' month:constant_Number ',' ',' ')' => {
-        return new Ast.Value.Date(new Ast.DatePiece(year.value, month.value, null, null));
-    };
-
-    'new' 'Date' '(' ',' month:constant_Number ',' day:constant_Number ')' => {
-        return new Ast.Value.Date(new Ast.DatePiece(null, month.value, day.value, null));
-    };
-    'new' 'Date' '(' ',' month:constant_Number ',' day:constant_Number ',' ')' => {
-        return new Ast.Value.Date(new Ast.DatePiece(null, month.value, day.value, null));
-    };
-
-    'new' 'Date' '(' ',' ',' day:constant_Number ',' time:absolute_time ')' => {
-        return new Ast.Value.Date(new Ast.DatePiece(null, null, day.value, new Ast.Value.Time(time)));
-    };
-    'new' 'Date' '(' ',' ',' day:constant_Number ',' hours:constant_Number ',' minutes:constant_Number ',' seconds:constant_Number ')' => {
-        return new Ast.Value.Date(new Ast.DatePiece(null, null, day.value,
-            new Ast.Value.Time(new Ast.Time.Absolute(hours.value, minutes.value, seconds.value))));
-    };
-    'new' 'Date' '(' ',' ',' day:constant_Number ',' hours:constant_Number ',' minutes:constant_Number ')' => {
-        return new Ast.Value.Date(new Ast.DatePiece(null, null, day.value,
-            new Ast.Value.Time(new Ast.Time.Absolute(hours.value, minutes.value, 0))));
-    };
-    'new' 'Date' '(' ',' ',' day:constant_Number ',' hours:constant_Number ',' minutes:constant_Number ',' ')' => {
-        return new Ast.Value.Date(new Ast.DatePiece(null, null, day.value,
-            new Ast.Value.Time(new Ast.Time.Absolute(hours.value, minutes.value, 0))));
-    };
-
-    'new' 'Date' '(' ',' month:constant_Number ',' day:constant_Number ',' time:absolute_time ')' => {
-        return new Ast.Value.Date(new Ast.DatePiece(null, month.value, day.value, new Ast.Value.Time(time)));
-    };
-    'new' 'Date' '(' ',' month:constant_Number ',' day:constant_Number ',' hours:constant_Number ',' minutes:constant_Number ',' seconds:constant_Number ')' => {
-        return new Ast.Value.Date(new Ast.DatePiece(null, month.value, day.value,
-            new Ast.Value.Time(new Ast.Time.Absolute(hours.value, minutes.value, seconds.value))));
-    };
-    'new' 'Date' '(' ',' month:constant_Number ',' day:constant_Number ',' hours:constant_Number ',' minutes:constant_Number ')' => {
-        return new Ast.Value.Date(new Ast.DatePiece(null, month.value, day.value,
-            new Ast.Value.Time(new Ast.Time.Absolute(hours.value, minutes.value, 0))));
-    };
-    'new' 'Date' '(' ',' month:constant_Number ',' day:constant_Number ',' hours:constant_Number ',' minutes:constant_Number ',' ')' => {
-        return new Ast.Value.Date(new Ast.DatePiece(null, month.value, day.value,
-            new Ast.Value.Time(new Ast.Time.Absolute(hours.value, minutes.value, 0))));
-    };
-    */
 
     'new' 'Date' '(' weekday:enum_literal ')' => {
         const d = new Ast.WeekDayDate(weekday, null);

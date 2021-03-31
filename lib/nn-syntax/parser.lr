@@ -771,12 +771,12 @@ absolute_or_edge_date : Ast.DateValue = {
         }
         const d = new Date;
         d.setFullYear(yearnum);
-        d.setMonth(month.value-1);
-        d.setDate(day.value);
-        d.setHours(0);
-        d.setMinutes(0);
-        d.setSeconds(0);
-        d.setMilliseconds(0);
+        // set both the month and the date at the same time
+        // otherwise when today's date is the 31st and the chosen
+        // month has 30 days, the Date will be adjusted to the
+        // first day of the subsequent month, which is wrong
+        d.setMonth(month.value-1, day.value);
+        d.setHours(0, 0, 0, 0);
         return new Ast.Value.Date(d);
     };
     'new' 'Date' '(' year:constant_Number ',' month:constant_Number ',' day:constant_Number ','
@@ -790,12 +790,8 @@ absolute_or_edge_date : Ast.DateValue = {
                 yearnum = 2000 + yearnum;
         }
         d.setFullYear(yearnum);
-        d.setMonth(month.value-1);
-        d.setDate(day.value);
-        d.setHours(hours.value);
-        d.setMinutes(minutes.value);
-        d.setSeconds(seconds.value);
-        d.setMilliseconds(0);
+        d.setMonth(month.value-1, day.value);
+        d.setHours(hours.value, minutes.value, seconds.value, 0);
         return new Ast.Value.Date(d);
     };
     'new' 'Date' '(' unix:constant_Number ')' => {

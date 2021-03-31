@@ -285,7 +285,11 @@ now => [distance(geo, $location.current_location)] of @com.yelp.restaurant() => 
 
     // __const is a VarRef, but it should not be moved to the left
     ['@org.schema.full.Place() filter count(review) >= __const_NUMBER_0;',
-     '@org.schema.full.Place() filter count(review) >= __const_NUMBER_0;']
+     '@org.schema.full.Place() filter count(review) >= __const_NUMBER_0;'],
+
+    // test parsing of dates
+    [`@com.washingtonpost.get_article() filter updated == new Date(2020, 6, 15);`,
+     `@com.washingtonpost.get_article() filter updated == new Date("2020-06-15T07:00:00.000Z");`],
 ];
 
 
