@@ -959,26 +959,27 @@ export class ChainExpression extends Expression {
 
     get lastQuery() : Expression|null {
         const expressions = this.expressions;
-        if (expressions.length === 1) {
-            const single = expressions[0];
-            if (single.schema!.functionType === 'action')
+        const last = expressions[expressions.length-1];
+        if (last.schema!.functionType === 'action') {
+            if (expressions.length === 1)
                 return null;
-            return single;
+            else
+                return expressions[expressions.length-2];
         } else {
-            return expressions[expressions.length-2];
+            return last;
         }
     }
 
     setLastQuery(expr : Expression) {
         const expressions = this.expressions;
-        if (expressions.length === 1) {
-            const single = expressions[0];
-            if (single.schema!.functionType === 'action')
+        const last = expressions[expressions.length-1];
+        if (last.schema!.functionType === 'action') {
+            if (expressions.length === 1)
                 expressions.unshift(expr);
             else
-                expressions[expressions.length-1] = expr;
+                expressions[expressions.length-2] = expr;
         } else {
-            expressions[expressions.length-2] = expr;
+            expressions[expressions.length-1] = expr;
         }
     }
 

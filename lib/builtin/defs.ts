@@ -24,6 +24,7 @@ import {
     FunctionDef,
     ArgumentDef
 } from '../ast/function_def';
+import { DateValue } from '../ast/values';
 
 // Definitions of ThingTalk operators
 
@@ -365,7 +366,9 @@ const TIMER_SCHEMA = new FunctionDef(null,
         is_monitorable: true
     },
     [
-        new ArgumentDef(null, ArgDirection.IN_REQ, 'base', Type.Date),
+        new ArgumentDef(null, ArgDirection.IN_OPT, 'base', Type.Date, { impl: {
+            default: new DateValue(null) // $now
+        }}),
         new ArgumentDef(null, ArgDirection.IN_REQ, 'interval', new Type.Measure('ms')),
         new ArgumentDef(null, ArgDirection.IN_OPT, 'frequency', Type.Number),
     ],
