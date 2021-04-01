@@ -1939,3 +1939,16 @@ function foo() {
 foo();
 foo() filter text =~ "lol";
 foo() => @com.twitter.retweet(tweet_id=tweet_id);
+
+====
+
+// dialogue states with constants as parameters
+$dialogue @org.thingpedia.dialogue.transaction.sys_choose_device("bedroom lights", "living room lights");
+@light-bulb.set_power(power=enum on);
+
+====
+
+// dialogue states parameters must be constants
+// ** expect TypeError **
+$dialogue @org.thingpedia.dialogue.transaction.sys_invalid(5 + 3);
+@light-bulb.set_power(power=enum on);

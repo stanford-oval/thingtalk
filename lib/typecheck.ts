@@ -1334,6 +1334,15 @@ export default class TypeChecker {
     async typeCheckDialogue(ast : Ast.DialogueState) : Promise<void> {
         await this._loadAllSchemas(ast);
 
+        if (ast.dialogueActParam) {
+            for (const param of ast.dialogueActParam) {
+                if (typeof param === 'string')
+                    continue;
+                if (!param.isConstant())
+                    throw new TypeError(`Dialogue act parameters must be constants`);
+            }
+        }
+
         for (const item of ast.history) {
             const scope = new Scope(null);
             await this._typeCheckExpressionStatement(item.stmt, scope);
