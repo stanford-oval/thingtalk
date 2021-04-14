@@ -90,7 +90,8 @@ ControlCommand.prototype.isControlCommand = true;
 export const ControlCommandType = [
     'yes',
     'no',
-    'failed',
+    'failed', // failed to parse (did not understand)
+    'ood', // out of domain command (not ThingTalk)
     'train',
     'debug',
     'nevermind', // cancel the current task
