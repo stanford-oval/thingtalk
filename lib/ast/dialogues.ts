@@ -293,7 +293,7 @@ export class DialogueHistoryItem extends AstNode {
             }
 
             visitValue(value : Value) {
-                if (value.isUndefined)
+                if (value.isUndefined || !value.isConcrete())
                     hasUndefined = true;
                 return true;
             }
