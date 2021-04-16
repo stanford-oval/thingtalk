@@ -30,8 +30,8 @@ import Node, {
     nlAnnotationsToSource,
 } from './base';
 import NodeVisitor from './visitor';
-import { Value, VarRefValue } from './values';
-import { DeviceSelector, InputParam, BooleanExpression } from './expression';
+import { Value, VarRefValue, EnumValue, BooleanValue } from './values';
+import { Invocation, DeviceSelector, InputParam, BooleanExpression } from './expression';
 import {
     Stream,
     Table,
@@ -484,6 +484,62 @@ export class Command extends Statement {
     }
 }
 
+class IsExecutableVisitor extends NodeVisitor {
+    isExecutable = true;
+
+    visitInvocation(invocation : Invocation) {
+        const schema = invocation.schema;
+        assert(schema instanceof FunctionDef);
+
+        const params = new Map<string, Value>();
+        for (const in_param of invocation.in_params)
+            params.set(in_param.name, in_param.value);
+
+        const requireEither = schema.getImplementationAnnotation<string[][]>('require_either');
+        if (requireEither) {
+            for (const requirement of requireEither) {
+                let satisfied = false;
+                for (const option of requirement) {
+                    if (params.has(option)) {
+                        satisfied = true;
+                        break;
+                    }
+                }
+                if (!satisfied)
+                    this.isExecutable = false;
+            }
+        }
+
+        for (const arg of schema.iterateArguments()) {
+            const requiredIf = arg.getImplementationAnnotation<string[]>('required_if');
+            if (requiredIf && !params.has(arg.name)) {
+                let required = false;
+                for (const requirement of requiredIf) {
+                    const [param, value] = requirement.split('=');
+                    const current = params.get(param);
+                    if (!current)
+                        continue;
+                    if ((current instanceof EnumValue && current.value === value) ||
+                        (current instanceof BooleanValue && current.value === (value === 'true'))) {
+                        required = true;
+                        break;
+                    }
+                }
+                if (required)
+                    this.isExecutable = false;
+            }
+        }
+
+        return true;
+    }
+
+    visitValue(value : Value) {
+        if (value.isUndefined || !value.isConcrete())
+            this.isExecutable = false;
+        return true;
+    }
+}
+
 /**
  * A statement that evaluates an expression and presents the results
  * to the user.
@@ -571,6 +627,12 @@ export class ExpressionStatement extends Statement {
 
     clone() : ExpressionStatement {
         return new ExpressionStatement(this.location, this.expression.clone());
+    }
+
+    isExecutable() {
+        const visitor = new IsExecutableVisitor;
+        this.visit(visitor);
+        return visitor.isExecutable;
     }
 }
 

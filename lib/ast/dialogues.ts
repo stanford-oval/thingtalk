@@ -25,7 +25,7 @@ import { Input, ExpressionStatement } from './program';
 import * as Optimizer from '../optimize';
 import TypeChecker from '../typecheck';
 import { DeviceSelector, Invocation } from './expression';
-import { Value, NumberValue, EnumValue, BooleanValue } from './values';
+import { Value, NumberValue } from './values';
 import { FunctionDef } from './function_def';
 import NodeVisitor from './visitor';
 import {
@@ -265,62 +265,7 @@ export class DialogueHistoryItem extends AstNode {
     }
 
     isExecutable() : boolean {
-        let hasUndefined = false;
-        const visitor = new class extends NodeVisitor {
-            visitInvocation(invocation : Invocation) {
-                const schema = invocation.schema;
-                assert(schema instanceof FunctionDef);
-
-                const params = new Map<string, Value>();
-                for (const in_param of invocation.in_params)
-                    params.set(in_param.name, in_param.value);
-
-                const requireEither = schema.getImplementationAnnotation<string[][]>('require_either');
-                if (requireEither) {
-                    for (const requirement of requireEither) {
-                        let satisfied = false;
-                        for (const option of requirement) {
-                            if (params.has(option)) {
-                                satisfied = true;
-                                break;
-                            }
-                        }
-                        if (!satisfied)
-                            hasUndefined = true;
-                    }
-                }
-
-                for (const arg of schema.iterateArguments()) {
-                    const requiredIf = arg.getImplementationAnnotation<string[]>('required_if');
-                    if (requiredIf && !params.has(arg.name)) {
-                        let required = false;
-                        for (const requirement of requiredIf) {
-                            const [param, value] = requirement.split('=');
-                            const current = params.get(param);
-                            if (!current)
-                                continue;
-                            if ((current instanceof EnumValue && current.value === value) ||
-                                (current instanceof BooleanValue && current.value === (value === 'true'))) {
-                                required = true;
-                                break;
-                            }
-                        }
-                        if (required)
-                            hasUndefined = true;
-                    }
-                }
-
-                return true;
-            }
-
-            visitValue(value : Value) {
-                if (value.isUndefined || !value.isConcrete())
-                    hasUndefined = true;
-                return true;
-            }
-        };
-        this.stmt.visit(visitor);
-        return !hasUndefined;
+        return this.stmt.isExecutable();
     }
 
     equals(other : DialogueHistoryItem) : boolean {
