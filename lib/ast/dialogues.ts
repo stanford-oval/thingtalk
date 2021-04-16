@@ -265,41 +265,7 @@ export class DialogueHistoryItem extends AstNode {
     }
 
     isExecutable() : boolean {
-        let hasUndefined = false;
-        const visitor = new class extends NodeVisitor {
-            visitInvocation(invocation : Invocation) {
-                const schema = invocation.schema;
-                assert(schema instanceof FunctionDef);
-                const requireEither = schema.getAnnotation<string[][]>('require_either');
-                if (requireEither) {
-                    const params = new Set<string>();
-                    for (const in_param of invocation.in_params)
-                        params.add(in_param.name);
-
-                    for (const requirement of requireEither) {
-                        let satisfied = false;
-                        for (const option of requirement) {
-                            if (params.has(option)) {
-                                satisfied = true;
-                                break;
-                            }
-                        }
-                        if (!satisfied)
-                            hasUndefined = true;
-                    }
-                }
-
-                return true;
-            }
-
-            visitValue(value : Value) {
-                if (value.isUndefined)
-                    hasUndefined = true;
-                return true;
-            }
-        };
-        this.stmt.visit(visitor);
-        return !hasUndefined;
+        return this.stmt.isExecutable();
     }
 
     equals(other : DialogueHistoryItem) : boolean {

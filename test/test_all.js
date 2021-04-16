@@ -42,6 +42,7 @@ seq([
     ('./test_ast'),
     ('./test_schema_retriever'),
     ('./test_compound_type'),
+    ('./test_is_executable'),
 
     // test syntax (first test that the parser we generated is good, then use it)
     ('./test_generated_parser'),
