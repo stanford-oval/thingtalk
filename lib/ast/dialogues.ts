@@ -25,7 +25,7 @@ import { Input, ExpressionStatement } from './program';
 import * as Optimizer from '../optimize';
 import TypeChecker from '../typecheck';
 import { DeviceSelector, Invocation } from './expression';
-import { Value, NumberValue } from './values';
+import { Value, NumberValue, EnumValue, BooleanValue } from './values';
 import { FunctionDef } from './function_def';
 import NodeVisitor from './visitor';
 import {
@@ -270,12 +270,13 @@ export class DialogueHistoryItem extends AstNode {
             visitInvocation(invocation : Invocation) {
                 const schema = invocation.schema;
                 assert(schema instanceof FunctionDef);
-                const requireEither = schema.getAnnotation<string[][]>('require_either');
-                if (requireEither) {
-                    const params = new Set<string>();
-                    for (const in_param of invocation.in_params)
-                        params.add(in_param.name);
 
+                const params = new Map<string, Value>();
+                for (const in_param of invocation.in_params)
+                    params.set(in_param.name, in_param.value);
+
+                const requireEither = schema.getImplementationAnnotation<string[][]>('require_either');
+                if (requireEither) {
                     for (const requirement of requireEither) {
                         let satisfied = false;
                         for (const option of requirement) {
@@ -285,6 +286,26 @@ export class DialogueHistoryItem extends AstNode {
                             }
                         }
                         if (!satisfied)
+                            hasUndefined = true;
+                    }
+                }
+
+                for (const arg of schema.iterateArguments()) {
+                    const requiredIf = arg.getImplementationAnnotation<string[]>('required_if');
+                    if (requiredIf && !params.has(arg.name)) {
+                        let required = false;
+                        for (const requirement of requiredIf) {
+                            const [param, value] = requirement.split('=');
+                            const current = params.get(param);
+                            if (!current)
+                                continue;
+                            if ((current instanceof EnumValue && current.value === value) ||
+                                (current instanceof BooleanValue && current.value === (value === 'true'))) {
+                                required = true;
+                                break;
+                            }
+                        }
+                        if (required)
                             hasUndefined = true;
                     }
                 }
