@@ -92,6 +92,7 @@ export function parse(code : string|string[], syntaxType : SyntaxType = SyntaxTy
 
 export interface SerializeOptions {
     typeAnnotations ?: boolean;
+    entityIdAnnotation ?: boolean;
     compatibility ?: string;
 }
 
@@ -127,7 +128,7 @@ export function serialize(node : Ast.Node,
         entityRetriever!.setSyntaxType(syntaxType);
 
         if (syntaxType === SyntaxType.Tokenized)
-            return nnSerialize(node.toSource(), entityRetriever!);
+            return nnSerialize(node.toSource(), entityRetriever!, options);
         else
             return LegacyNNSyntax.toNN(node as Ast.Input, entityRetriever!, options);
     } else if (syntaxType === SyntaxType.Normal && options.compatibility &&
