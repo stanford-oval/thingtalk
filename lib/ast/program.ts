@@ -1359,7 +1359,7 @@ export class EntityDef extends Node {
      * The entity name.
      */
     name : string;
-    extends : string|null;
+    extends : string[];
     /**
      * The entity metadata (translatable annotations).
      */
@@ -1381,7 +1381,7 @@ export class EntityDef extends Node {
      */
     constructor(location : SourceRange|null,
                 name : string,
-                _extends : string|null,
+                _extends : string[],
                 annotations : AnnotationSpec) {
         super(location);
         this.name = name;
@@ -1393,9 +1393,10 @@ export class EntityDef extends Node {
     }
 
     toSource() : TokenStream {
-        if (this.extends) {
+        if (this.extends.length > 0) {
+            const _extends = this.extends.map((e) => e.includes(':') ? `^^${e}` : e);
             return List.concat('entity', ' ', this.name,
-                'extends', (this.extends.includes(':') ? '^^' + this.extends : this.extends), '\t+',
+                'extends', ..._extends.join(' , ').split(' '), '\t+',
                 nlAnnotationsToSource(this.nl_annotations),
                 implAnnotationsToSource(this.impl_annotations),
             '\t-', ';');

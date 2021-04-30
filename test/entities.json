@@ -738,7 +738,7 @@
       "name": "Test Entity Subtype 1",
       "is_well_known": 0,
       "has_ner_support": 0,
-      "subtype_of": "tt:test_entity_parenttype1"
+      "subtype_of": ["tt:test_entity_parenttype1"]
     },
     {
       "type": "tt:test_entity_parenttype1",

@@ -43,7 +43,7 @@ function normalizeUnit(unit : string) : string {
 export type TypeMap = ({ [key : string] : Type });
 export type TypeScope = ({ [key : string] : Type|string });
 
-export type EntitySubTypeMap = Record<string, string>;
+export type EntitySubTypeMap = Record<string, string[]>;
 
 interface Hashable<T> {
     hash() : number;
@@ -521,17 +521,20 @@ function arrayEquals(a : unknown[]|null, b : unknown[]|null) : boolean {
     return true;
 }
 
-const DEFAULT_ENTITY_SUB_TYPE : Record<string, string> = {
-    'tt:picture': 'tt:url'
+const DEFAULT_ENTITY_SUB_TYPE : Record<string, string[]> = {
+    'tt:picture': ['tt:url']
 };
 
 function entitySubType(type : string, assignableTo : string, entitySubTypeMap : EntitySubTypeMap) : boolean {
     if (type === assignableTo)
         return true;
 
-    const parent = entitySubTypeMap[type] || DEFAULT_ENTITY_SUB_TYPE[type];
-    if (parent)
-        return entitySubType(parent, assignableTo, entitySubTypeMap);
-    else
-        return false;
+    const parents = entitySubTypeMap[type] || DEFAULT_ENTITY_SUB_TYPE[type];
+    if (parents) {
+        for (const parent of parents) {
+            if (entitySubType(parent, assignableTo, entitySubTypeMap))
+                return true;
+        }
+    }
+    return false;
 }

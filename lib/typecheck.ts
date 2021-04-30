@@ -211,9 +211,9 @@ export default class TypeChecker {
         if (this._entitySubTypeMap[entityType] !== undefined)
             return;
 
-        const parent = await this._schemas.getEntityParent(entityType);
-        this._entitySubTypeMap[entityType] = parent;
-        if (parent)
+        const parents : string[] = await this._schemas.getEntityParent(entityType);
+        this._entitySubTypeMap[entityType] = parents;
+        for (const parent of parents)
             await this._ensureEntitySubTypes(parent);
     }
 

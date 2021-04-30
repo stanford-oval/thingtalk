@@ -85,7 +85,7 @@ interface EntityTypeRecord {
     // missing/undefined (undefined would be missing when through JSON),
     // but we have to account for legacy implementations of the API where
     // it is in fact missing
-    subtype_of ?: string|null;
+    subtype_of ?: string[]|null;
 }
 
 /**
@@ -624,11 +624,7 @@ export default class SchemaRetriever {
 
                     const entityType = classDef.kind + ':' + entity.name;
                     const hasNer = entity.getImplementationAnnotation<boolean>('has_ner');
-                    let subTypeOf = null;
-                    if (entity.extends) {
-                        subTypeOf = entity.extends.includes(':') ? entity.extends
-                            : classDef.kind + ':' + entity.extends;
-                    }
+                    const subTypeOf = entity.extends.map((e) => e.includes(':') ? e : classDef.kind + ':' + e);
                     const newRecord : EntityTypeRecord = {
                         type: entityType,
                         is_well_known: false,
@@ -680,8 +676,8 @@ export default class SchemaRetriever {
         return newRecord;
     }
 
-    async getEntityParent(entityType : string) : Promise<string> {
+    async getEntityParent(entityType : string) : Promise<string[]> {
         const record = await this._getEntityTypeRecord(entityType);
-        return record.subtype_of || '';
+        return record.subtype_of || [];
     }
 }

@@ -97,6 +97,11 @@ const TEST_CASES = [
   query (p_name : String) = @org.thingpedia.rss(name=p_name).get_post()
   #_[utterances=["$p_name rss feed"]];
 }`,
+
+// entity inheritance
+`class @com.example {
+  entity a extends b, c;
+}`
 ];
 
 export default function main() {

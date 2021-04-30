@@ -558,27 +558,31 @@ function_type_decl : [('query'|'action'), boolean, boolean] = {
     'list' 'action' => ['action', true, false];
 }
 
+entity_name : string = {
+    variable_name;
+    entity:ENTITY_NAME => entity.value;
+}
+
+entity_name_list : string[] = {
+    entity_name => [entity_name];
+    entity_name_list ',' entity_name => entity_name_list.concat([entity_name]);
+}
+
 class_stmt : Ast.ClassMember = {
     'import' facets:identifier_list 'from' name:CLASS_OR_FUNCTION_REF in_param_list ';'
         => new Ast.MixinImportStmt($.location, facets, name.value, in_param_list);
 
     'entity' name:variable_name ';'
-        => new Ast.EntityDef($.location, name, null, {});
+        => new Ast.EntityDef($.location, name, [], {});
 
     'entity' name:variable_name annotations:annotation_spec ';'
-        => new Ast.EntityDef($.location, name, null, annotations);
+        => new Ast.EntityDef($.location, name, [], annotations);
 
-    'entity' name:variable_name 'extends' _extends:variable_name ';'
+    'entity' name:variable_name 'extends' _extends:entity_name_list ';'
         => new Ast.EntityDef($.location, name, _extends, {});
 
-    'entity' name:variable_name 'extends' _extends:variable_name annotations:annotation_spec ';'
+    'entity' name:variable_name 'extends' _extends:entity_name_list annotations:annotation_spec ';'
         => new Ast.EntityDef($.location, name, _extends, annotations);
-
-    'entity' name:variable_name 'extends' _extends:ENTITY_NAME ';'
-        => new Ast.EntityDef($.location, name, _extends.value, {});
-
-    'entity' name:variable_name 'extends' _extends:ENTITY_NAME annotations:annotation_spec ';'
-        => new Ast.EntityDef($.location, name, _extends.value, annotations);
 
     fntype:function_type_decl name:function_name args:decl_param_list ';' => {
         const [functionType, is_list, is_monitorable] = fntype;
