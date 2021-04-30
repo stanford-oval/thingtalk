@@ -64,7 +64,7 @@ export interface OpDefinition extends OpImplementation {
     /**
      * Compute which implementation to use for a given overload.
      */
-    overload ? : OverloadResolver;
+    overload ?: OverloadResolver;
 }
 
 /**
