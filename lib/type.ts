@@ -138,10 +138,10 @@ export default abstract class Type implements Hashable<Type> {
         return type;
     }
 
-    static isAssignable(type : Type, assignableTo : Type|string, typeScope : TypeScope = {}, entitySubTypeMap : EntitySubTypeMap = {}) : boolean {
+    static isAssignable(type : Type, assignableTo : Type|string, typeScope : TypeScope = {}, entitySubTypeMap : EntitySubTypeMap = {}, relax = false) : boolean {
         if (typeof assignableTo === 'string') {
             if (typeScope[assignableTo])
-                return Type.isAssignable(type, typeScope[assignableTo] as Type, typeScope, entitySubTypeMap);
+                return Type.isAssignable(type, typeScope[assignableTo] as Type, typeScope, entitySubTypeMap, relax);
             typeScope[assignableTo] = type;
             return true;
         }
@@ -183,26 +183,26 @@ export default abstract class Type implements Hashable<Type> {
                     return true;
 
                 if (typeScope[assignableTo.elem])
-                    return Type.isAssignable(type.elem, typeScope[assignableTo.elem] as Type, typeScope, entitySubTypeMap);
+                    return Type.isAssignable(type.elem, typeScope[assignableTo.elem] as Type, typeScope, entitySubTypeMap, relax);
                 typeScope[assignableTo.elem] = type.elem;
                 return true;
             }
             if (typeof type.elem === 'string') {
                 if (typeScope[type.elem])
-                    return Type.isAssignable(typeScope[type.elem] as Type, assignableTo.elem, typeScope, entitySubTypeMap);
+                    return Type.isAssignable(typeScope[type.elem] as Type, assignableTo.elem, typeScope, entitySubTypeMap, relax);
                 typeScope[type.elem] = assignableTo.elem;
                 return true;
             }
             if (type.elem.isAny)
                 return true;
-            if (Type.isAssignable(type.elem, assignableTo.elem, typeScope, entitySubTypeMap))
+            if (Type.isAssignable(type.elem, assignableTo.elem, typeScope, entitySubTypeMap, relax))
                 return true;
         }
         if (type instanceof ArrayType) {
             if (typeof type.elem === 'string')
                 return false;
             if (assignableTo instanceof EntityType && assignableTo.type === 'tt:contact_group')
-                return Type.isAssignable(type.elem, new Type.Entity('tt:contact'), typeScope, entitySubTypeMap);
+                return Type.isAssignable(type.elem, new Type.Entity('tt:contact'), typeScope, entitySubTypeMap, relax);
         }
 
         if (type instanceof EnumType && assignableTo instanceof EnumType) {
@@ -227,7 +227,7 @@ export default abstract class Type implements Hashable<Type> {
                     return true;
                 return false;
             }
-            if (entitySubType(type.type, assignableTo.type, entitySubTypeMap))
+            if (entitySubType(type.type, assignableTo.type, entitySubTypeMap, relax))
                 return true;
         }
         return false;
@@ -525,14 +525,31 @@ const DEFAULT_ENTITY_SUB_TYPE : Record<string, string[]> = {
     'tt:picture': ['tt:url']
 };
 
-function entitySubType(type : string, assignableTo : string, entitySubTypeMap : EntitySubTypeMap) : boolean {
+function _getAncestors(type : string, entitySubTypeMap : EntitySubTypeMap) : string[] {
+    const ancestors : string[] = [];
+    const parents : string[] = entitySubTypeMap[type] || [];
+    for (const parent of parents) {
+        ancestors.push(parent);
+        ancestors.push(..._getAncestors(parent, entitySubTypeMap));
+    }
+    return ancestors;
+}
+
+function entitySubType(type : string, assignableTo : string, entitySubTypeMap : EntitySubTypeMap, relax : boolean) : boolean {
     if (type === assignableTo)
         return true;
 
     const parents = entitySubTypeMap[type] || DEFAULT_ENTITY_SUB_TYPE[type];
     if (parents) {
         for (const parent of parents) {
-            if (entitySubType(parent, assignableTo, entitySubTypeMap))
+            if (entitySubType(parent, assignableTo, entitySubTypeMap, relax))
+                return true;
+        }
+    }
+    if (relax) {
+        for (const entityType in entitySubTypeMap) {
+            const ancestors = _getAncestors(entityType, entitySubTypeMap);
+            if (ancestors.includes(type) && ancestors.includes(assignableTo))
                 return true;
         }
     }

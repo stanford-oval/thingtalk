@@ -175,6 +175,7 @@ export default class SchemaRetriever {
         dataset : Cache<string, Dataset>;
     };
     private _entityTypeCache : Cache<string, EntityTypeRecord>;
+    private _childEntitiesCache : Cache<string, string[]>;
 
     private _thingpediaClient : AbstractThingpediaClient;
     private _memoryClient : MemoryClient;
@@ -212,6 +213,7 @@ export default class SchemaRetriever {
             dataset: new Cache(24 * 3600 * 1000)
         };
         this._entityTypeCache = new Cache(24 * 3600 * 1000);
+        this._childEntitiesCache = new Cache(24 * 3600 * 1000);
 
         this._thingpediaClient = tpClient;
         this._memoryClient = mClient || new DummyMemoryClient();
@@ -676,8 +678,40 @@ export default class SchemaRetriever {
         return newRecord;
     }
 
-    async getEntityParent(entityType : string) : Promise<string[]> {
+    async getEntityParents(entityType : string) : Promise<string[]> {
         const record = await this._getEntityTypeRecord(entityType);
         return record.subtype_of || [];
+    }
+
+    async getEntityChildren(entityType : string) : Promise<string[]> {
+        const cached = this._childEntitiesCache.get(entityType);
+        if (cached)
+            return cached;
+    
+        const subtypes : string[] = [];
+        // lookup subtypes declared within the same class 
+        const [kind, ] = entityType.split(':');
+        if (kind !== 'tt') {
+            try {
+                const classDef = await this._getClass(kind, 'everything');
+                for (const entity of classDef.entities) {
+                    const candidateEntityType = classDef.kind + ':' + entity.name;
+                    const entityTypeRecord = await this._getEntityTypeRecord(candidateEntityType);
+
+                    if (entityTypeRecord.subtype_of?.includes(entityType)) 
+                        subtypes.push(candidateEntityType); 
+                }
+            } catch(e) {
+                // ignore if there is no class with that name
+            }
+        }
+        // then look up in thingpedia  
+        const allEntities = await this._thingpediaClient.getAllEntityTypes();
+        for (const record of allEntities) {
+            if (record.subtype_of?.includes(entityType)) 
+                subtypes.push(record.type);
+        }       
+        this._childEntitiesCache.set(entityType, subtypes);
+        return subtypes;
     }
 }

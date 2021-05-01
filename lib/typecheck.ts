@@ -211,21 +211,40 @@ export default class TypeChecker {
         if (this._entitySubTypeMap[entityType] !== undefined)
             return;
 
-        const parents : string[] = await this._schemas.getEntityParent(entityType);
+        await this._ensureEntityParentTypesRecursive(entityType);
+        await this._ensureEntityChildTypesRecursive(entityType);
+    }
+
+    private async _ensureEntityParentTypesRecursive(entityType : string) {
+        const parents : string[] = await this._schemas.getEntityParents(entityType);
         this._entitySubTypeMap[entityType] = parents;
         for (const parent of parents)
-            await this._ensureEntitySubTypes(parent);
+            await this._ensureEntityParentTypesRecursive(parent);
+    }
+
+    private async _ensureEntityChildTypesRecursive(entityType : string) {
+        const children : string[] = await this._schemas.getEntityChildren(entityType);
+        for (const child of children) {
+            if (this._entitySubTypeMap[child] !== undefined) {
+                if (!this._entitySubTypeMap[child].includes(entityType)) 
+                    this._entitySubTypeMap[child].push(entityType);
+            } else {
+                this._entitySubTypeMap[child] = [entityType];
+            }
+            await this._ensureEntityChildTypesRecursive(child);
+        }
     }
 
     private async _isAssignable(type : Type,
                                 assignableTo : Type|string,
-                                typeScope : TypeScope) {
+                                typeScope : TypeScope,
+                                relax = false) {
         if (type instanceof Type.Entity)
             await this._ensureEntitySubTypes(type.type);
         if (assignableTo instanceof Type.Entity)
             await this._ensureEntitySubTypes(assignableTo.type);
 
-        return Type.isAssignable(type, assignableTo, typeScope, this._entitySubTypeMap);
+        return Type.isAssignable(type, assignableTo, typeScope, this._entitySubTypeMap, relax);
     }
 
     private async _typeCheckValue(value : Ast.Value,
@@ -370,14 +389,15 @@ export default class TypeChecker {
 
     private async _resolveOverload(overloads : Builtin.OpDefinition,
                                    operator : string,
-                                   argTypes : Type[]) : Promise<[Type[], Type]> {
+                                   argTypes : Type[],
+                                   relax = false) : Promise<[Type[], Type]> {
         for (const overload of overloads.types) {
             if (argTypes.length !== overload.length-1)
                 continue;
             const typeScope : TypeScope = {};
             let good = true;
             for (let i = 0; i < argTypes.length; i++) {
-                if (!await this._isAssignable(argTypes[i], overload[i], typeScope)) {
+                if (!await this._isAssignable(argTypes[i], overload[i], typeScope, relax)) {
                     good = false;
                     break;
                 }
@@ -407,7 +427,7 @@ export default class TypeChecker {
         const op = Builtin.BinaryOps[operator];
         if (!op)
             throw new TypeError('Invalid operator ' + operator);
-        const [overload,] = await this._resolveOverload(op, operator, [type_lhs, type_rhs]);
+        const [overload,] = await this._resolveOverload(op, operator, [type_lhs, type_rhs], true);
         return overload;
     }
 

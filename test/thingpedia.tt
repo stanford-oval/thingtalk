@@ -5340,6 +5340,23 @@ class @com.test.entitysubtype2 {
   action foo(in req param : Entity(com.test.entitysubtype2:parent));
 }
 
+class @com.test.entitysubtype3 {
+  entity country #[has_ner_support=true];
+  entity people #[has_ner_support=true];
+
+  entity highest_point #[has_ner_support=false];
+  entity place_of_birth #[has_ner_support=false];
+
+  entity mountain extends highest_point #[has_ner_support=true];
+  entity city extends highest_point, place_of_birth #[has_ner_support=true];
+  entity hospital extends place_of_birth #[has_ner_support=true];  
+
+  query country(out id: Entity(com.test.entitysubtype3:country),
+                out highest_point: Entity(com.test.entitysubtype3:highest_point));
+  query people(out id: Entity(com.test.entitysubtype3:people),
+               out place_of_birth: Entity(com.test.entitysubtype3:place_of_birth));
+}
+
 class @com.google.puppeteer
 #_[name="Puppeteer"]
 #_[description="Control the browser and do things"]
