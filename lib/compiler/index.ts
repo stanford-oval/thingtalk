@@ -25,7 +25,7 @@ import * as Ast from '../ast';
 import { TypeMap } from '../type';
 
 import * as JSIr from './jsir';
-import { compileStatementToOp, compileTableToOps } from './ast-to-ops';
+import { compileActionToOps, compileStatementToOp, compileTableToOps } from './ast-to-ops';
 import { QueryInvocationHints } from './ops';
 import { getDefaultProjection } from './utils';
 import OpCompiler from './ops-to-jsir';
@@ -120,26 +120,14 @@ export default class AppCompiler {
         let register;
 
         if (assignment.isAction) {
-            const action = assignment.value.toLegacy();
-            assert(action instanceof Ast.InvocationAction ||
-                   action instanceof Ast.VarRefAction);
+            const action = compileActionToOps(assignment.value, new Set, null);
             register = opCompiler.compileActionAssignment(action, isPersistent);
         } else {
             const schema = assignment.value.schema;
             assert(schema);
             const hints = new QueryInvocationHints(new Set(getDefaultProjection(schema)));
 
-            const converted = assignment.value.toLegacy();
-            let table : Ast.Table;
-            if (converted instanceof Ast.Action.Invocation) {
-                table = new Ast.Table.Invocation(null, converted.invocation, converted.schema);
-            } else if (converted instanceof Ast.Action.VarRef) {
-                table = new Ast.Table.VarRef(null, converted.name, converted.in_params, converted.schema);
-            } else {
-                assert(converted instanceof Ast.Table);
-                table = converted;
-            }
-            const tableop = compileTableToOps(table, [], hints);
+            const tableop = compileTableToOps(assignment.value, hints);
             register = opCompiler.compileAssignment(tableop, isPersistent);
         }
 
@@ -196,7 +184,7 @@ export default class AppCompiler {
         });
     }
 
-    private _doCompileStatement(stmt : Ast.Rule|Ast.Command,
+    private _doCompileStatement(stmt : Ast.ExpressionStatement|Ast.ReturnStatement,
                                 irBuilder : JSIr.IRBuilder,
                                 forProcedure : boolean,
                                 returnResult : boolean) {
@@ -208,7 +196,7 @@ export default class AppCompiler {
             opCompiler.compileStatement(ruleop);
     }
 
-    private _compileRule(rule : Ast.Rule|Ast.Command) : CompiledStatement {
+    private _compileRule(rule : Ast.ExpressionStatement) : CompiledStatement {
         // each rule goes into its own JS function
         const irBuilder = new JSIr.IRBuilder();
         this._doCompileStatement(rule, irBuilder, false, false);
@@ -271,7 +259,7 @@ export default class AppCompiler {
             if (stmt instanceof Ast.Assignment)
                 this._compileAssignment(stmt, irBuilder, { hasAnyStream, forProcedure });
             else
-                this._doCompileStatement(stmt.toLegacy(), irBuilder, forProcedure, i === returnStmtIdx);
+                this._doCompileStatement(stmt, irBuilder, forProcedure, i === returnStmtIdx);
         }
 
         return irBuilder;
@@ -324,7 +312,7 @@ export default class AppCompiler {
             compiledCommand = null;
         }
         for (const rule of rules)
-            compiledRules.push(this._compileRule(rule.toLegacy()));
+            compiledRules.push(this._compileRule(rule));
 
         return new CompiledProgram(this._nextStateVar, compiledCommand, compiledRules);
     }

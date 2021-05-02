@@ -217,6 +217,30 @@ function getDefaultProjection(schema : Ast.FunctionDef|null) : string[] {
     return projection;
 }
 
+class GetExpressionParameterVisitor extends NodeVisitor {
+    names = new Set<string>();
+    constructor(public schema : Ast.FunctionDef) {
+        super();
+    }
+
+    visitVarRefValue(value : Ast.VarRefValue) {
+        if (this.schema.hasArgument(value.name))
+            this.names.add(value.name);
+        return true;
+    }
+
+    visitAtomBooleanExpression(atom : Ast.AtomBooleanExpression) {
+        if (this.schema.hasArgument(atom.name))
+            this.names.add(atom.name);
+        return true;
+    }
+
+    visitDontCareBooleanExpression(atom : Ast.DontCareBooleanExpression) {
+        if (this.schema.hasArgument(atom.name))
+            this.names.add(atom.name);
+        return true;
+    }
+}
 
 /**
  * Compute all the parameters used in a filter or scalar expression
@@ -228,27 +252,9 @@ function getDefaultProjection(schema : Ast.FunctionDef|null) : string[] {
  */
 function getExpressionParameters(expression : Ast.Node,
                                  schema : Ast.FunctionDef) : Set<string> {
-    const names = new Set<string>();
-    expression.visit(new class extends NodeVisitor {
-        visitVarRefValue(value : Ast.VarRefValue) {
-            if (schema.hasArgument(value.name))
-                names.add(value.name);
-            return true;
-        }
-
-        visitAtomBooleanExpression(atom : Ast.AtomBooleanExpression) {
-            if (schema.hasArgument(atom.name))
-                names.add(atom.name);
-            return true;
-        }
-
-        visitDontCareBooleanExpression(atom : Ast.DontCareBooleanExpression) {
-            if (schema.hasArgument(atom.name))
-                names.add(atom.name);
-            return true;
-        }
-    });
-    return names;
+    const visitor = new GetExpressionParameterVisitor(schema);
+    expression.visit(visitor);
+    return visitor.names;
 }
 
 
