@@ -29,7 +29,8 @@ import {
     ArgumentDef,
     ArgDirection
 } from './ast/function_def';
-import { Library, Dataset, Example } from './ast/program';
+import { Library } from './ast/program';
+import { Dataset, Example } from './ast/statement';
 
 import Cache from './utils/cache';
 

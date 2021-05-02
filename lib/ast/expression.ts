@@ -16,824 +16,217 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Author: Silei Xu <silei@cs.stanford.edu>
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
 
 import Node, { SourceRange } from './base';
-import NodeVisitor from './visitor';
 import { FunctionDef } from './function_def';
-import { Value } from './values';
-import { Expression, FilterExpression, InvocationExpression, ProjectionExpression } from './expression2';
-
-import Type from '../type';
-import * as Optimizer from '../optimize';
+import {
+    Invocation,
+    DeviceSelector,
+    InputParam,
+} from './invocation';
+import { BooleanExpression } from './boolean_expression';
+import * as legacy from './legacy';
+import {
+    Value,
+    VarRefValue
+} from './values';
 import {
     iterateSlots2InputParams,
     recursiveYieldArraySlots,
     makeScope,
-    DeviceAttributeSlot,
-    FilterSlot,
+    ArrayIndexSlot,
     FieldSlot,
     AbstractSlot,
     OldSlot,
     ScopeMap,
-    InvocationLike
+    InvocationLike,
 } from './slots';
+import Type from '../type';
+import NodeVisitor from './visitor';
 
 import { TokenStream } from '../new-syntax/tokenstream';
 import List from '../utils/list';
-import { UnserializableError } from "../utils/errors";
 import {
     SyntaxPriority,
     addParenthesis
 } from './syntax_priority';
+import arrayEquals from './array_equals';
+import { getScalarExpressionName } from '../utils';
 
-interface Device {
-    name : string;
-}
-
-/**
- * An expression that maps to one or more devices in Thingpedia.
- *
- * Selectors correspond to the `@`-device part of the ThingTalk code,
- * up to but not including the function name.
- *
- */
-export class DeviceSelector extends Node {
-    kind : string;
-    id : string|null;
-    principal : null;
-    attributes : InputParam[];
-    all : boolean;
-    device ?: Device;
-
-    /**
-     * Construct a new device selector.
-     *
-     * @param location - the position of this node in the source code
-     * @param kind - the Thingpedia class ID
-     * @param id - the unique ID of the device being selected, or null
-     *                           to select devices according to the attributes, or
-     *                           all devices if no attributes are specified
-     * @param principal - reserved/deprecated, must be `null`
-     * @param attributes - other attributes used to select a device, if ID is unspecified
-     * @param [all=false] - operate on all devices that match the attributes, instead of
-     *                                having the user choose
-     */
-    constructor(location : SourceRange|null,
-                kind : string,
-                id : string|null,
-                principal : null,
-                attributes : InputParam[] = [],
-                all = false) {
-        super(location);
-
-        assert(typeof kind === 'string');
-        this.kind = kind;
-
-        assert(typeof id === 'string' || id === null);
-        this.id = id;
-
-        assert(principal === null);
-        this.principal = principal;
-
-        this.attributes = attributes;
-
-        this.all = all;
-    }
-
-    getAttribute(name : string) : InputParam|undefined {
-        for (const attr of this.attributes) {
-            if (attr.name === name)
-                return attr;
-        }
-        return undefined;
-    }
-
-    toSource() : TokenStream {
-        this.attributes.sort((p1, p2) => {
-            if (p1.name < p2.name)
-                return -1;
-            if (p1.name > p2.name)
-                return 1;
-            return 0;
-        });
-
-        const attributes : TokenStream[] = [];
-        if (this.all) {
-            attributes.push(List.concat('all', '=', 'true'));
-        } else if (this.id && this.id !== this.kind) {
-            // note: we omit the device ID if it is identical to the kind (which indicates there can only be
-            // one device of this type in the system)
-            // this reduces the amount of stuff we have to encode/predict for the common cases
-
-            const name = this.attributes.find((attr) => attr.name === 'name');
-            const id = new Value.Entity(this.id, 'tt:device_id', name ? name.value.toJS() as string : null);
-            attributes.push(List.concat('id', '=', id.toSource()));
-        }
-
-        for (const attr of this.attributes) {
-            if (attr.value.isUndefined)
-                continue;
-            if (attr.name === 'name' && this.id)
-                continue;
-
-            attributes.push(List.concat(attr.name, '=', attr.value.toSource()));
-        }
-        if (attributes.length === 0)
-            return List.singleton('@' + this.kind);
-        return List.concat('@' + this.kind, '(', List.join(attributes, ','), ')');
-    }
-
-    clone() : DeviceSelector {
-        const attributes = this.attributes.map((attr) => attr.clone());
-        return new DeviceSelector(this.location, this.kind, this.id, this.principal, attributes, this.all);
-    }
-
-    equals(other : DeviceSelector) : boolean {
-        return other instanceof DeviceSelector &&
-            this.kind === other.kind &&
-            this.id === other.id &&
-            arrayEquals(this.attributes, other.attributes) &&
-            this.all === other.all;
-    }
-
-    visit(visitor : NodeVisitor) : void {
-        visitor.enter(this);
-        if (visitor.visitDeviceSelector(this)) {
-            for (const attr of this.attributes)
-                attr.visit(visitor);
-        }
-        visitor.exit(this);
-    }
-
-    toString() : string {
-        return `Device(${this.kind}, ${this.id ? this.id : ''}, )`;
-    }
-}
-
-/**
- * AST node corresponding to an input parameter passed to a function.
- */
-export class InputParam extends Node {
-    isInputParam = true;
-    /**
-     * The input argument name.
-     */
-    name : string;
-    /**
-     * The value being passed.
-     */
-    value : Value;
-
-    /**
-     * Construct a new input parameter node.
-     *
-     * @param {Ast~SourceRange|null} location - the position of this node
-     *        in the source code
-     * @param {string} name - the input argument name
-     * @param {Ast.Value} value - the value being passed
-     */
-    constructor(location : SourceRange|null,
-                name : string,
-                value : Value) {
-        super(location);
-
-        assert(typeof name === 'string');
-        this.name = name;
-
-        assert(value instanceof Value);
-        this.value = value;
-    }
-
-    visit(visitor : NodeVisitor) : void {
-        visitor.enter(this);
-        if (visitor.visitInputParam(this))
-            this.value.visit(visitor);
-        visitor.exit(this);
-    }
-
-    toSource() : TokenStream {
-        return List.concat(this.name, '=', this.value.toSource());
-    }
-
-    clone() : InputParam {
-        return new InputParam(this.location, this.name, this.value.clone());
-    }
-
-    equals(other : InputParam) : boolean {
-        return this.name === other.name &&
-            this.value.equals(other.value);
-    }
-
-    toString() : string {
-        return `InputParam(${this.name}, ${this.value})`;
-    }
-}
-
-/**
- * An invocation of a ThingTalk function.
- *
- */
-export class Invocation extends Node {
-    isInvocation = true;
-    /**
-     * The selector choosing where the function is invoked.
-     */
-    selector : DeviceSelector;
-    /**
-     * The function name being invoked.
-     */
-    channel : string;
-    /**
-     * The input parameters passed to the function.
-     */
-    in_params : InputParam[];
-    /**
-     * Type signature of the invoked function.
-     * This property is guaranteed not `null` after type-checking.
-     */
-    schema : FunctionDef|null;
-    __effectiveSelector : DeviceSelector|null = null;
-
-    /**
-     * Construct a new invocation.
-     *
-     * @param location - the position of this node in the source code
-     * @param {Ast.DeviceSelector} selector - the selector choosing where the function is invoked
-     * @param {string} channel - the function name
-     * @param {Ast.InputParam[]} in_params - input parameters passed to the function
-     * @param {Ast.FunctionDef|null} schema - type signature of the invoked function
-     */
-    constructor(location : SourceRange|null,
-                selector : DeviceSelector,
-                channel : string,
-                in_params : InputParam[],
-                schema : FunctionDef|null) {
-        super(location);
-
-        assert(selector instanceof DeviceSelector);
-        this.selector = selector;
-
-        assert(typeof channel === 'string');
-        this.channel = channel;
-
-        assert(Array.isArray(in_params));
-        this.in_params = in_params;
-
-        assert(schema === null || schema instanceof FunctionDef);
-        this.schema = schema;
-    }
-
-    toSource() : TokenStream {
-        // filter out parameters that are required and undefined
-        let filteredParams = this.in_params;
-        if (this.schema) {
-            const schema : FunctionDef = this.schema;
-            filteredParams = this.in_params.filter((ip) => {
-                return !ip.value.isUndefined || !schema.isArgRequired(ip.name);
-            });
-        }
-
-        return List.concat(this.selector.toSource(), '.', this.channel,
-            '(', List.join(filteredParams.map((ip) => ip.toSource()), ','), ')');
-    }
-
-    clone() : Invocation {
-        const clone = new Invocation(
-            this.location,
-            this.selector.clone(),
-            this.channel,
-            this.in_params.map((p) => p.clone()),
-            this.schema ? this.schema.clone(): null
-        );
-        clone.__effectiveSelector = this.__effectiveSelector;
-        return clone;
-    }
-
-    visit(visitor : NodeVisitor) : void {
-        visitor.enter(this);
-        if (visitor.visitInvocation(this)) {
-            this.selector.visit(visitor);
-            for (const in_param of this.in_params)
-                in_param.visit(visitor);
-        }
-        visitor.exit(this);
-    }
-
-    toString() : string {
-        const in_params = this.in_params && this.in_params.length > 0 ? this.in_params.toString() : '';
-        return `Invocation(${this.selector.toString()}, ${this.channel}, ${in_params}, )`;
-    }
-
-    /**
-     * Iterate all slots (scalar value nodes) in this invocation.
-     *
-     * @param scope - available names for parameter passing
-     * @deprecated Use {@link Ast.Invocation.iterateSlots2} instead.
-     */
-    *iterateSlots(scope : ScopeMap) : Generator<OldSlot, [InvocationLike, ScopeMap]> {
-        yield [null, this.selector, this, {}];
-        for (const in_param of this.in_params)
-            yield [this.schema, in_param, this, scope];
-        return [this, makeScope(this)];
-    }
-
-    /**
-     * Iterate all slots (scalar value nodes) in this invocation.
-     *
-     * @param {Object.<string, Ast~SlotScopeItem>} scope - available names for parameter passing
-     */
-    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike, ScopeMap]> {
-        if (this.selector instanceof DeviceSelector) {
-            for (const attr of this.selector.attributes)
-                yield new DeviceAttributeSlot(this, attr);
-
-            // note that we yield the selector after the device attributes
-            // this way, almond-dialog-agent will first ask any question to slot-fill
-            // the device attributes (if somehow it needs to) and then use the chosen
-            // device attributes to choose the device
-            yield this.selector;
-        }
-        return yield* iterateSlots2InputParams(this, scope);
-    }
-}
-
-/**
- * An expression that computes a boolean predicate.
- * This AST node is used in filter expressions.
- */
-export abstract class BooleanExpression extends Node {
-    static And : any;
-    isAnd ! : boolean;
-    static Or : any;
-    isOr ! : boolean;
-    static Atom : any;
-    isAtom ! : boolean;
-    static Not : any;
-    isNot ! : boolean;
-    static External : any;
-    isExternal ! : boolean;
-    static ExistentialSubquery : any;
-    isExistentialSubquery ! : boolean;
-    static ComparisonSubquery : any;
-    isComparisonSubquery ! : boolean;
-    /**
-     * The constant `true` boolean expression.
-     *
-     * This is a singleton, not a class.
-     */
-    static True : BooleanExpression;
-    isTrue ! : boolean;
-    /**
-     * The constant `false` boolean expression.
-     *
-     * This is a singleton, not a class.
-     */
-    static False : BooleanExpression;
-    isFalse ! : boolean;
-    static Compute : any;
-    isCompute ! : boolean;
-    static DontCare : any;
-    isDontCare ! : boolean;
-
-    optimize() : BooleanExpression {
-        return Optimizer.optimizeFilter(this);
-    }
-
-    abstract get priority() : SyntaxPriority;
-
-    abstract clone() : BooleanExpression;
-    abstract equals(other : BooleanExpression) : boolean;
-    abstract toLegacy() : BooleanExpression;
-
-    /**
-     * Iterate all slots (scalar value nodes) in this boolean expression.
-     *
-     * @deprecated Use {@link Ast.BooleanExpression.iterateSlots2} instead.
-     */
-    abstract iterateSlots(schema : FunctionDef|null,
-                          prim : InvocationLike|null,
-                          scope : ScopeMap) : Generator<OldSlot, void>;
-
-    /**
-     * Iterate all slots (scalar value nodes) in this boolean expression.
-     */
-    abstract iterateSlots2(schema : FunctionDef|null,
-                           prim : InvocationLike|null,
-                           scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void>;
-}
-BooleanExpression.prototype.isAnd = false;
-BooleanExpression.prototype.isOr = false;
-BooleanExpression.prototype.isAtom = false;
-BooleanExpression.prototype.isNot = false;
-BooleanExpression.prototype.isExternal = false;
-BooleanExpression.prototype.isExistentialSubquery = false;
-BooleanExpression.prototype.isComparisonSubquery = false;
-BooleanExpression.prototype.isTrue = false;
-BooleanExpression.prototype.isFalse = false;
-BooleanExpression.prototype.isCompute = false;
-BooleanExpression.prototype.isDontCare = false;
-
-interface EqualsComparable {
-    equals(x : unknown) : boolean;
-}
-
-export function arrayEquals<T extends EqualsComparable>(a1 : T[], a2 : T[]) : boolean {
+function primitiveArrayEquals<T>(a1 : T[]|null, a2 : T[]|null) : boolean {
     if (a1 === a2)
         return true;
+    if (!a1 || !a2)
+        return false;
     if (a1.length !== a2.length)
         return false;
     for (let i = 0; i < a1.length; i++) {
-        if (!a1[i].equals(a2[i]))
+        if (a1[i] !== a2[i])
             return false;
     }
     return true;
 }
 
 /**
- * A conjunction boolean expression (ThingTalk operator `&&`)
+ * A stream, table, or action expression.
  */
-export class AndBooleanExpression extends BooleanExpression {
-    /**
-     * The expression operands.
-     */
-    operands : BooleanExpression[];
+export abstract class Expression extends Node {
+    schema : FunctionDef|null;
 
-    /**
-     * Construct a new And expression.
-     *
-     * @param location - the position of this node in the source code
-     * @param operands - the expression operands
-     */
-    constructor(location : SourceRange|null, operands : BooleanExpression[]) {
+    constructor(location : SourceRange|null,
+                schema : FunctionDef|null) {
         super(location);
-
-        assert(Array.isArray(operands));
-        this.operands = operands;
+        this.schema = schema;
     }
 
-    get priority() : SyntaxPriority {
-        return SyntaxPriority.And;
-    }
+    // syntactic priority of this expression (to emit the right parenthesis)
+    abstract get priority() : SyntaxPriority;
 
-    toSource() : TokenStream {
-        return List.join(this.operands.map((op) => addParenthesis(this.priority, op.priority, op.toSource())), '&&');
-    }
+    abstract toLegacy(into_params ?: InputParam[], scope_params ?: string[]) : legacy.Stream|legacy.Table|legacy.Action;
+    abstract clone() : Expression;
+    abstract toSource() : TokenStream;
+    abstract equals(other : Expression) : boolean;
 
-    toLegacy() : AndBooleanExpression {
-        return new AndBooleanExpression(null, this.operands.map((op) => op.toLegacy()));
+    optimize() : Expression {
+        return this;
     }
-
-    equals(other : BooleanExpression) : boolean {
-        return other instanceof AndBooleanExpression &&
-            arrayEquals(this.operands, other.operands);
-    }
-
-    visit(visitor : NodeVisitor) : void {
-        visitor.enter(this);
-        if (visitor.visitAndBooleanExpression(this)) {
-            for (const operand of this.operands)
-                operand.visit(visitor);
-        }
-        visitor.exit(this);
-    }
-
-    clone() : AndBooleanExpression {
-        return new AndBooleanExpression(
-            this.location,
-            this.operands.map((operand) => operand.clone())
-        );
-    }
-
-    *iterateSlots(schema : FunctionDef|null,
-                  prim : InvocationLike|null,
-                  scope : ScopeMap) : Generator<OldSlot, void> {
-        for (const op of this.operands)
-            yield* op.iterateSlots(schema, prim, scope);
-    }
-
-    *iterateSlots2(schema : FunctionDef|null,
-                   prim : InvocationLike|null,
-                   scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
-        for (const op of this.operands)
-            yield* op.iterateSlots2(schema, prim, scope);
-    }
-}
-BooleanExpression.And = AndBooleanExpression;
-BooleanExpression.And.prototype.isAnd = true;
-/**
- * A disjunction boolean expression (ThingTalk operator `||`)
- */
-export class OrBooleanExpression extends BooleanExpression {
-    /**
-     * The expression operands.
-     */
-    operands : BooleanExpression[];
 
     /**
-     * Construct a new Or expression.
+     * Iterate all slots (scalar value nodes) in this expression.
      *
-     * @param {Ast~SourceRange|null} location - the position of this node
-     *        in the source code
-     * @param {Ast.BooleanExpression[]} operands - the expression operands
+     * @param scope - available names for parameter passing
+     * @deprecated Use {@link Ast.Table.iterateSlots2} instead.
      */
-    constructor(location : SourceRange|null, operands : BooleanExpression[]) {
-        super(location);
+    abstract iterateSlots(scope : ScopeMap) : Generator<OldSlot, [InvocationLike|null, ScopeMap]>;
 
-        assert(Array.isArray(operands));
-        this.operands = operands;
-    }
-
-    get priority() : SyntaxPriority {
-        return SyntaxPriority.Or;
-    }
-
-    toSource() : TokenStream {
-        return List.join(this.operands.map((op) => addParenthesis(this.priority, op.priority, op.toSource())), '||');
-    }
-
-    toLegacy() : OrBooleanExpression {
-        return new OrBooleanExpression(null, this.operands.map((op) => op.toLegacy()));
-    }
-
-    equals(other : BooleanExpression) : boolean {
-        return other instanceof OrBooleanExpression &&
-            arrayEquals(this.operands, other.operands);
-    }
-
-    visit(visitor : NodeVisitor) : void {
-        visitor.enter(this);
-        if (visitor.visitOrBooleanExpression(this)) {
-            for (const operand of this.operands)
-                operand.visit(visitor);
-        }
-        visitor.exit(this);
-    }
-
-    clone() : OrBooleanExpression {
-        return new OrBooleanExpression(
-            this.location,
-            this.operands.map((operand) => operand.clone())
-        );
-    }
-
-    *iterateSlots(schema : FunctionDef|null,
-                  prim : InvocationLike|null,
-                  scope : ScopeMap) : Generator<OldSlot, void> {
-        for (const op of this.operands)
-            yield* op.iterateSlots(schema, prim, scope);
-    }
-
-    *iterateSlots2(schema : FunctionDef|null,
-                   prim : InvocationLike|null,
-                   scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
-        for (const op of this.operands)
-            yield* op.iterateSlots2(schema, prim, scope);
-    }
-}
-BooleanExpression.Or = OrBooleanExpression;
-BooleanExpression.Or.prototype.isOr = true;
-
-const INFIX_COMPARISON_OPERATORS = new Set(['==', '>=', '<=', '>', '<', '=~', '~=']);
-
-/**
- * A comparison expression (predicate atom)
- */
-export class AtomBooleanExpression extends BooleanExpression {
     /**
-     * The parameter name to compare.
+     * Iterate all slots (scalar value nodes) in this expression.
+     *
+     * @param scope - available names for parameter passing
      */
+    abstract iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]>;
+}
+
+// move parameter-passing from regular parameters to join parameters
+// when converting back to the legacy AST nodes
+function moveInputParams(in_params : InputParam[], into_params : InputParam[], scope_params : string[]) : InputParam[] {
+    return in_params.filter((ip) => {
+        if ((ip.value instanceof VarRefValue && !scope_params.includes(ip.value.name) && !ip.value.name.startsWith('__const_')) || ip.value.isEvent) {
+            into_params.push(ip);
+            return false;
+        } else {
+            return true;
+        }
+    });
+}
+
+export class FunctionCallExpression extends Expression {
     name : string;
-    /**
-     * The comparison operator.
-     */
-    operator : string;
-    /**
-      * The value being compared against.
-      */
-    value : Value;
-    overload : Type[]|null;
+    in_params : InputParam[];
 
-    /**
-     * Construct a new atom boolean expression.
-     *
-     * @param location - the position of this node in the source code
-     * @param name - the parameter name to compare
-     * @param operator - the comparison operator
-     * @param value - the value being compared against
-     */
     constructor(location : SourceRange|null,
                 name : string,
-                operator : string,
-                value : Value,
-                overload : Type[]|null) {
-        super(location);
+                in_params : InputParam[],
+                schema : FunctionDef|null) {
+        super(location, schema);
 
         assert(typeof name === 'string');
         this.name = name;
 
-        assert(typeof operator === 'string');
-        this.operator = operator;
-
-        assert(value instanceof Value);
-        this.value = value;
-
-        this.overload = overload;
+        assert(Array.isArray(in_params));
+        this.in_params = in_params;
     }
 
     get priority() : SyntaxPriority {
-        return INFIX_COMPARISON_OPERATORS.has(this.operator) ? SyntaxPriority.Comp : SyntaxPriority.Primary;
-    }
-
-    toSource() : TokenStream {
-        const name = List.join(this.name.split('.').map((n) => List.singleton(n)), '.');
-
-        if (INFIX_COMPARISON_OPERATORS.has(this.operator)) {
-            return List.concat(name, this.operator,
-                addParenthesis(SyntaxPriority.Add, this.value.priority, this.value.toSource()));
-        } else {
-            return List.concat(this.operator, '(', name, ',', this.value.toSource(), ')');
-        }
-    }
-
-    toLegacy() : AtomBooleanExpression {
-        return this;
-    }
-
-    equals(other : BooleanExpression) : boolean {
-        return other instanceof AtomBooleanExpression &&
-            this.name === other.name &&
-            this.operator === other.operator &&
-            this.value.equals(other.value);
-    }
-
-    visit(visitor : NodeVisitor) : void {
-        visitor.enter(this);
-        if (visitor.visitAtomBooleanExpression(this))
-            this.value.visit(visitor);
-        visitor.exit(this);
-    }
-
-    clone() : AtomBooleanExpression {
-        return new AtomBooleanExpression(
-            this.location,
-            this.name,
-            this.operator,
-            this.value.clone(),
-            this.overload
-        );
+        return SyntaxPriority.Primary;
     }
 
     toString() : string {
-        return `Atom(${this.name}, ${this.operator}, ${this.value})`;
-    }
-
-    *iterateSlots(schema : FunctionDef|null,
-                  prim : InvocationLike|null,
-                  scope : ScopeMap) : Generator<OldSlot, void> {
-        yield [schema, this, prim, scope];
-    }
-
-    *iterateSlots2(schema : FunctionDef|null,
-                   prim : InvocationLike|null,
-                   scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
-        const arg = (schema ? schema.getArgument(this.name) : null) || null;
-        yield* recursiveYieldArraySlots(new FilterSlot(prim, scope, arg, this));
-    }
-}
-BooleanExpression.Atom = AtomBooleanExpression;
-BooleanExpression.Atom.prototype.isAtom = true;
-/**
- * A negation boolean expression (ThingTalk operator `!`)
- */
-export class NotBooleanExpression extends BooleanExpression {
-    /**
-     * The expression being negated.
-     */
-    expr : BooleanExpression;
-
-    /**
-     * Construct a new Not expression.
-     *
-     * @param location - the position of this node in the source code
-     * @param expr - the expression being negated
-     */
-    constructor(location : SourceRange|null, expr : BooleanExpression) {
-        super(location);
-
-        assert(expr instanceof BooleanExpression);
-        this.expr = expr;
-    }
-
-    get priority() : SyntaxPriority {
-        return SyntaxPriority.Not;
+        const in_params = this.in_params && this.in_params.length > 0 ? this.in_params.toString() : '';
+        return `FunctionCallExpression(${this.name}, ${in_params})`;
     }
 
     toSource() : TokenStream {
-        return List.concat('!', addParenthesis(this.priority, this.expr.priority, this.expr.toSource()));
+        return List.concat(this.name, '(', List.join(this.in_params.map((ip) => ip.toSource()), ','), ')');
     }
 
-    toLegacy() : NotBooleanExpression {
-        return new NotBooleanExpression(null, this.expr.toLegacy());
+    equals(other : Expression) : boolean {
+        return other instanceof FunctionCallExpression &&
+            this.name === other.name &&
+            arrayEquals(this.in_params, other.in_params);
     }
 
-    equals(other : BooleanExpression) : boolean {
-        return other instanceof NotBooleanExpression &&
-            this.expr.equals(other.expr);
+    toLegacy(into_params : InputParam[] = [], scope_params : string[] = []) : legacy.VarRefTable|legacy.VarRefStream|legacy.TimerStream|legacy.AtTimerStream|legacy.VarRefAction {
+        const schema = this.schema!;
+        if (schema.functionType === 'stream') {
+            if (this.name === 'timer') {
+                const base = this.in_params.find((ip) => ip.name === 'base')!;
+                const interval = this.in_params.find((ip) => ip.name === 'interval')!;
+                const frequency = this.in_params.find((ip) => ip.name === 'frequency');
+                return new legacy.TimerStream(this.location, base.value, interval.value,
+                    frequency ? frequency.value : null, this.schema);
+            } else if (this.name === 'attimer') {
+                const time = this.in_params.find((ip) => ip.name === 'time')!;
+                const expiration_date = this.in_params.find((ip) => ip.name === 'expiration_date');
+                let timevalue : Value[];
+                if (time.value instanceof Value.Array)
+                    timevalue = time.value.value;
+                else
+                    timevalue = [time.value];
+                return new legacy.AtTimerStream(this.location, timevalue,
+                    expiration_date ? expiration_date.value : null, this.schema);
+            } else {
+                return new legacy.VarRefStream(this.location, this.name, this.in_params, this.schema);
+            }
+        } else if (schema.functionType === 'query') {
+            return new legacy.VarRefTable(this.location, this.name, moveInputParams(this.in_params, into_params, scope_params), this.schema);
+        } else {
+            return new legacy.VarRefAction(this.location, this.name, moveInputParams(this.in_params, into_params, scope_params), this.schema);
+        }
     }
 
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
-        if (visitor.visitNotBooleanExpression(this))
-            this.expr.visit(visitor);
+        if (visitor.visitFunctionCallExpression(this)) {
+            for (const in_param of this.in_params)
+                in_param.visit(visitor);
+        }
         visitor.exit(this);
     }
 
-    clone() : NotBooleanExpression {
-        return new NotBooleanExpression(this.location, this.expr.clone());
+    clone() : FunctionCallExpression {
+        return new FunctionCallExpression(
+            this.location,
+            this.name,
+            this.in_params.map((p) => p.clone()),
+            this.schema ? this.schema.clone() : null
+        );
     }
 
-    *iterateSlots(schema : FunctionDef|null,
-                  prim : InvocationLike|null,
-                  scope : ScopeMap) : Generator<OldSlot, void> {
-        yield* this.expr.iterateSlots(schema, prim, scope);
+    *iterateSlots(scope : ScopeMap) : Generator<OldSlot, [InvocationLike|null, ScopeMap]> {
+        for (const in_param of this.in_params)
+            yield [this.schema, in_param, this, scope];
+        return [this, makeScope(this)];
     }
 
-    *iterateSlots2(schema : FunctionDef|null,
-                   prim : InvocationLike|null,
-                   scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
-        yield* this.expr.iterateSlots2(schema, prim, scope);
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+        return yield* iterateSlots2InputParams(this, scope);
     }
 }
-BooleanExpression.Not = NotBooleanExpression;
-BooleanExpression.Not.prototype.isNot = true;
 
-/**
- * A boolean expression that calls a Thingpedia query function
- * and filters the result.
- *
- * The boolean expression is true if at least one result from the function
- * call satisfies the filter.
- *
- * @deprecated Use {@link ComparisonSubqueryBooleanExpression} or {@link ExistentialSubqueryBooleanExpression} instead.
- */
-export class ExternalBooleanExpression extends BooleanExpression {
-    /**
-     * The selector choosing where the function is invoked.
-     */
-    selector : DeviceSelector;
-    /**
-     * The function name being invoked.
-     */
-    channel : string;
-    /**
-     * The input parameters passed to the function.
-     */
-    in_params : InputParam[];
-    /**
-     * The predicate to apply on the invocation's results.
-     */
-    filter : BooleanExpression;
-    /**
-     * Type signature of the invoked function.
-     * This property is guaranteed not `null` after type-checking.
-     */
-    schema : FunctionDef|null;
-    __effectiveSelector : DeviceSelector|null = null;
+export class InvocationExpression extends Expression {
+    invocation : Invocation;
 
-    /**
-     * Construct a new external boolean expression.
-     *
-     * @param {Ast.Selector.Device} selector - the selector choosing where the function is invoked
-     * @param {string} channel - the function name
-     * @param {Ast.InputParam[]} in_params - input parameters passed to the function
-     * @param {Ast.BooleanExpression} filter - the filter to apply on the invocation's results
-     * @param {Ast.FunctionDef|null} schema - type signature of the invoked function
-     */
     constructor(location : SourceRange|null,
-                selector : DeviceSelector,
-                channel : string,
-                in_params : InputParam[],
-                filter : BooleanExpression,
+                invocation : Invocation,
                 schema : FunctionDef|null) {
-        super(location);
+        super(location, schema);
 
-        assert(selector instanceof DeviceSelector);
-        this.selector = selector;
-
-        assert(typeof channel === 'string');
-        this.channel = channel;
-
-        assert(Array.isArray(in_params));
-        this.in_params = in_params;
-
-        assert(filter instanceof BooleanExpression);
-        this.filter = filter;
-
-        assert(schema === null || schema instanceof FunctionDef);
-        this.schema = schema;
+        assert(invocation instanceof Invocation);
+        this.invocation = invocation;
     }
 
     get priority() : SyntaxPriority {
@@ -841,87 +234,138 @@ export class ExternalBooleanExpression extends BooleanExpression {
     }
 
     toSource() : TokenStream {
-        const inv = new Invocation(null, this.selector, this.channel, this.in_params, this.schema);
-        return List.concat('any', '(', inv.toSource(), 'filter', this.filter.toSource(), ')');
+        return this.invocation.toSource();
     }
 
-    toString() : string {
-        return `External(${this.selector}, ${this.channel}, ${this.in_params}, ${this.filter})`;
+    equals(other : Expression) : boolean {
+        return other instanceof InvocationExpression &&
+            this.invocation.selector.equals(other.invocation.selector) &&
+            this.invocation.channel === other.invocation.channel &&
+            arrayEquals(this.invocation.in_params, other.invocation.in_params);
     }
 
-    toLegacy() : ExternalBooleanExpression {
-        return this;
-    }
-
-    equals(other : BooleanExpression) : boolean {
-        return other instanceof ExternalBooleanExpression &&
-            this.selector.equals(other.selector) &&
-            this.channel === other.channel &&
-            arrayEquals(this.in_params, other.in_params) &&
-            this.filter.equals(other.filter);
+    toLegacy(into_params : InputParam[] = [], scope_params : string[] = []) : legacy.InvocationTable|legacy.InvocationAction {
+        const schema = this.schema!;
+        assert(schema.functionType !== 'stream');
+        if (schema.functionType === 'query') {
+            const clone = this.invocation.clone();
+            clone.in_params = moveInputParams(clone.in_params, into_params, scope_params);
+            return new legacy.InvocationTable(this.location, clone, this.schema);
+        } else {
+            return new legacy.InvocationAction(this.location, this.invocation, this.schema);
+        }
     }
 
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
-        if (visitor.visitExternalBooleanExpression(this)) {
-            this.selector.visit(visitor);
-            for (const in_param of this.in_params)
-                in_param.visit(visitor);
+        if (visitor.visitInvocationExpression(this))
+            this.invocation.visit(visitor);
+        visitor.exit(this);
+    }
+    clone() : InvocationExpression {
+        return new InvocationExpression(
+            this.location,
+            this.invocation.clone(),
+            this.schema ? this.schema.clone() : null
+        );
+    }
+
+    *iterateSlots(scope : ScopeMap) : Generator<OldSlot, [InvocationLike|null, ScopeMap]> {
+        return yield* this.invocation.iterateSlots(scope);
+    }
+
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+        return yield* this.invocation.iterateSlots2(scope);
+    }
+}
+
+export class FilterExpression extends Expression {
+    expression : Expression;
+    filter : BooleanExpression;
+
+    constructor(location : SourceRange|null,
+                expression : Expression,
+                filter : BooleanExpression,
+                schema : FunctionDef|null) {
+        super(location, schema);
+
+        assert(expression instanceof Expression);
+        this.expression = expression;
+
+        assert(filter instanceof BooleanExpression);
+        this.filter = filter;
+    }
+
+    get priority() : SyntaxPriority {
+        return SyntaxPriority.Filter;
+    }
+
+    toSource() : TokenStream {
+        return List.concat(addParenthesis(this.priority, this.expression.priority,
+            this.expression.toSource()), 'filter', this.filter.toSource());
+    }
+
+    equals(other : Expression) : boolean {
+        return other instanceof FilterExpression &&
+            this.expression.equals(other.expression) &&
+            this.filter.equals(other.filter);
+    }
+
+    toLegacy(into_params : InputParam[] = [], scope_params : string[] = []) : legacy.FilteredTable|legacy.EdgeFilterStream {
+        const schema = this.schema!;
+        assert(schema.functionType !== 'action');
+        if (schema.functionType === 'query')
+            return new legacy.FilteredTable(this.location, this.expression.toLegacy(into_params, scope_params) as legacy.Table, this.filter, this.schema);
+        else
+            return new legacy.EdgeFilterStream(this.location, this.expression.toLegacy(into_params, scope_params) as legacy.Stream, this.filter, this.schema);
+    }
+
+    visit(visitor : NodeVisitor) : void {
+        visitor.enter(this);
+        if (visitor.visitFilterExpression(this)) {
+            this.expression.visit(visitor);
             this.filter.visit(visitor);
         }
         visitor.exit(this);
     }
 
-    clone() : ExternalBooleanExpression {
-        return new ExternalBooleanExpression(
+    clone() : FilterExpression {
+        return new FilterExpression(
             this.location,
-            this.selector.clone(),
-            this.channel,
-            this.in_params.map((p) => p.clone()),
+            this.expression.clone(),
             this.filter.clone(),
-            this.schema ? this.schema.clone(): null
+            this.schema ? this.schema.clone() : null
         );
     }
 
-    *iterateSlots(schema : FunctionDef|null,
-                  prim : InvocationLike|null,
-                  scope : ScopeMap) : Generator<OldSlot, void> {
-        yield* Invocation.prototype.iterateSlots.call(this, scope);
-        yield* this.filter.iterateSlots(this.schema, prim, makeScope(this));
+    *iterateSlots(scope : ScopeMap) : Generator<OldSlot, [InvocationLike|null, ScopeMap]> {
+        const [prim, newScope] = yield* this.expression.iterateSlots(scope);
+        yield* this.filter.iterateSlots(this.expression.schema, prim, newScope);
+        return [prim, newScope];
     }
 
-    *iterateSlots2(schema : FunctionDef|null,
-                   prim : InvocationLike|null,
-                   scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
-        yield this.selector;
-        yield* iterateSlots2InputParams(this, scope);
-        yield* this.filter.iterateSlots2(this.schema, this, makeScope(this));
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+        const [prim, newScope] = yield* this.expression.iterateSlots2(scope);
+        yield* this.filter.iterateSlots2(this.expression.schema, prim, newScope);
+        return [prim, newScope];
     }
 }
-BooleanExpression.External = ExternalBooleanExpression;
-BooleanExpression.External.prototype.isExternal = true;
 
-/**
- * A boolean expression that calls a Thingpedia query function
- * and filters the result.
- *
- * The boolean expression is true if at least one result from the function
- * call satisfies the filter.
- *
- */
-export class ExistentialSubqueryBooleanExpression extends BooleanExpression {
-    subquery : Expression;
+export class MonitorExpression extends Expression {
+    expression : Expression;
+    args : string[]|null;
 
-    /**
-     * Construct a new existential subquery boolean expression.
-     *
-     * @param location
-     * @param subquery: the query used for check existence of result
-     */
     constructor(location : SourceRange|null,
-                subquery : Expression) {
-        super(location);
-        this.subquery = subquery;
+                expression : Expression,
+                args : string[]|null,
+                schema : FunctionDef|null) {
+        super(location, schema);
+
+        assert(expression instanceof Expression);
+        this.expression = expression;
+
+        assert(args === null || (Array.isArray(args) && args.length > 0));
+        this.args = args;
     }
 
     get priority() : SyntaxPriority {
@@ -929,428 +373,757 @@ export class ExistentialSubqueryBooleanExpression extends BooleanExpression {
     }
 
     toSource() : TokenStream {
-        return List.concat('any', '(', this.subquery.toSource(), ')');
-    }
-
-    toString() : string {
-        return `ExistentialSubquery(${this.subquery})`;
-    }
-
-    toLegacy() : ExternalBooleanExpression {
-        if (this.subquery instanceof FilterExpression && this.subquery.expression instanceof InvocationExpression) {
-            const invocation = this.subquery.expression.invocation;
-            return new ExternalBooleanExpression(
-                null,
-                invocation.selector,
-                invocation.channel,
-                invocation.in_params,
-                this.subquery.filter.toLegacy(),
-                this.subquery.schema
-            );
+        if (this.args === null) {
+            return List.concat('monitor', '(', this.expression.toSource(), ')');
+        } else {
+            return List.concat('monitor', '(',
+                List.join(this.args.map((a) => List.singleton(a)), ','),
+                'of', this.expression.toSource(), ')');
         }
-        throw new UnserializableError('Existential Subquery');
     }
 
-    equals(other : BooleanExpression) : boolean {
-        return other instanceof ExistentialSubqueryBooleanExpression &&
-            this.subquery.equals(other.subquery);
+    equals(other : Expression) : boolean {
+        return other instanceof MonitorExpression &&
+            this.expression.equals(other.expression) &&
+            primitiveArrayEquals(this.args, other.args);
+    }
+
+    toLegacy(into_params : InputParam[] = [], scope_params : string[] = []) : legacy.MonitorStream {
+        const el = this.expression.toLegacy(into_params, scope_params);
+        assert(el instanceof legacy.Table);
+        return new legacy.MonitorStream(this.location, el, this.args, this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
-        if (visitor.visitExistentialSubqueryBooleanExpression(this))
-            this.subquery.visit(visitor);
+        if (visitor.visitMonitorExpression(this))
+            this.expression.visit(visitor);
         visitor.exit(this);
     }
 
-    clone() : ExistentialSubqueryBooleanExpression {
-        return new ExistentialSubqueryBooleanExpression(
+    clone() : MonitorExpression {
+        return new MonitorExpression(
             this.location,
-            this.subquery.clone()
+            this.expression.clone(),
+            this.args ? this.args.map((a) => a) : null,
+            this.schema ? this.schema.clone() : null
         );
     }
 
-    *iterateSlots(schema : FunctionDef|null,
-                  prim : InvocationLike|null,
-                  scope : ScopeMap) : Generator<OldSlot, void> {
-        yield* this.subquery.iterateSlots(scope);
+    *iterateSlots(scope : ScopeMap) : Generator<OldSlot, [InvocationLike|null, ScopeMap]> {
+        return yield* this.expression.iterateSlots(scope);
     }
 
-    *iterateSlots2(schema : FunctionDef|null,
-                   prim : InvocationLike|null,
-                   scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
-        yield* this.subquery.iterateSlots2(scope);
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+        return yield* this.expression.iterateSlots2(scope);
     }
 }
-BooleanExpression.ExistentialSubquery = ExistentialSubqueryBooleanExpression;
-BooleanExpression.ExistentialSubquery.prototype.isExistentialSubquery = true;
 
-/**
- * A boolean expression that calls a Thingpedia query function
- * and compares the result with another value.
- *
- */
-export class ComparisonSubqueryBooleanExpression extends BooleanExpression {
-    lhs : Value;
-    rhs : Expression;
-    operator : string;
-    overload : Type[]|null;
+export class ProjectionExpression extends Expression {
+    expression : Expression;
+    args : string[];
+    computations : Value[];
+    aliases : Array<string|null>;
 
-    /**
-     * Construct a new comparison subquery boolean expression.
-     *
-     * @param location
-     * @param lhs - the parameter name to compare
-     * @param operator - the comparison operator
-     * @param rhs - a projection subquery which returns one field
-     * @param overload - type overload
-     */
     constructor(location : SourceRange|null,
-                lhs : Value,
-                operator : string,
-                rhs : Expression,
-                overload : Type[]|null) {
-        super(location);
+                expression : Expression,
+                args : string[],
+                computations : Value[],
+                aliases : Array<string|null>,
+                schema : FunctionDef|null) {
+        super(location, schema);
 
-        this.lhs =lhs;
-        this.rhs = rhs;
-        this.operator = operator;
-        this.overload = overload;
+        assert(expression instanceof Expression);
+        this.expression = expression;
+
+        assert(Array.isArray(args));
+        // if there is a *, it's the only name projected
+        assert(args.every((x) => x !== '*') || args.length === 1);
+        this.args = args;
+
+        this.computations = computations;
+        this.aliases = aliases;
+
+        assert(this.args.length > 0 || this.computations.length > 0);
+        assert(this.computations.length === this.aliases.length);
     }
 
     get priority() : SyntaxPriority {
-        return INFIX_COMPARISON_OPERATORS.has(this.operator) ? SyntaxPriority.Comp : SyntaxPriority.Primary;
+        return SyntaxPriority.Projection;
     }
 
     toSource() : TokenStream {
-        if (INFIX_COMPARISON_OPERATORS.has(this.operator))
-            return List.concat(addParenthesis(SyntaxPriority.Add, this.lhs.priority, this.lhs.toSource()), this.operator, 'any', '(', this.rhs.toSource(), ')');
-        else
-            return List.concat(this.operator, '(', this.lhs.toSource(), ',', 'any', '(', this.rhs.toSource(), ')', ')');
-    }
-
-    toString() : string {
-        return `ComparisonSubquery(${this.lhs}, ${this.operator}, ${this.rhs})`;
-    }
-
-    toLegacy() : ExternalBooleanExpression {
-        if (this.rhs instanceof ProjectionExpression && this.rhs.args.length + this.rhs.computations.length === 1) {
-            const expr = this.rhs.expression;
-            if (expr instanceof FilterExpression && expr.expression instanceof InvocationExpression) {
-                const invocation = expr.expression.invocation;
-                const extraFilter = new ComputeBooleanExpression(
-                    null,
-                    this.lhs,
-                    this.operator,
-                    this.rhs.args.length ? new Value.VarRef(this.rhs.args[0]) : this.rhs.computations[0]
-                );
-                const filter = new AndBooleanExpression(null, [expr.filter.toLegacy(), extraFilter]);
-                return new ExternalBooleanExpression(
-                    null,
-                    invocation.selector,
-                    invocation.channel,
-                    invocation.in_params,
-                    filter,
-                    invocation.schema
-                );
-            }
+        const allprojections : TokenStream[] = this.args.map((a) => List.join(a.split('.').map((n) => List.singleton(n)), '.'));
+        for (let i = 0; i < this.computations.length; i++) {
+            const value = this.computations[i];
+            const alias = this.aliases[i];
+            if (alias)
+                allprojections.push(List.concat(value.toSource(), 'as', alias));
+            else
+                allprojections.push(value.toSource());
         }
-        throw new UnserializableError('Comparison Subquery');
+
+        return List.concat('[', List.join(allprojections, ','), ']', 'of',
+            addParenthesis(this.priority, this.expression.priority, this.expression.toSource()));
     }
 
-    equals(other : BooleanExpression) : boolean {
-        return other instanceof ComparisonSubqueryBooleanExpression &&
-            this.lhs.equals(other.lhs) &&
-            this.operator === other.operator &&
-            this.rhs.equals(other.rhs);
+    equals(other : Expression) : boolean {
+        return other instanceof ProjectionExpression &&
+            this.expression.equals(other.expression) &&
+            primitiveArrayEquals(this.args, other.args) &&
+            arrayEquals(this.computations, other.computations);
+    }
+
+    toLegacy(into_params : InputParam[] = [], scope_params : string[] = []) : legacy.Table|legacy.Stream {
+        const schema = this.schema!;
+        assert(schema.functionType !== 'action');
+
+        const inner = this.expression.toLegacy(into_params, scope_params);
+        const names = this.args.slice();
+        if (schema.functionType === 'query') {
+            let table = inner as legacy.Table;
+            if (this.computations.length > 0) {
+                for (let i = 0; i < this.computations.length; i++) {
+                    const value = this.computations[i];
+                    const alias = this.aliases[i];
+                    table = new legacy.ComputeTable(this.location, table, value, alias, table.schema);
+                    names.push(alias || getScalarExpressionName(value));
+                }
+            }
+            if (names[0] === '*')
+                return table;
+            return new legacy.ProjectionTable(this.location, table, names, this.schema);
+        } else {
+            let stream = inner as legacy.Stream;
+            if (this.computations.length > 0) {
+                for (let i = 0; i < this.computations.length; i++) {
+                    const value = this.computations[i];
+                    const alias = this.aliases[i];
+                    stream = new legacy.ComputeStream(this.location, stream, value, alias, stream.schema);
+                    names.push(alias || getScalarExpressionName(value));
+                }
+            }
+            if (names[0] === '*')
+                return stream;
+            return new legacy.ProjectionStream(this.location, stream, names, this.schema);
+        }
     }
 
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
-        if (visitor.visitComparisonSubqueryBooleanExpression(this)) {
-            this.lhs.visit(visitor);
-            this.rhs.visit(visitor);
-        }
+        if (visitor.visitProjectionExpression(this))
+            this.expression.visit(visitor);
         visitor.exit(this);
     }
 
-    clone() : ComparisonSubqueryBooleanExpression {
-        return new ComparisonSubqueryBooleanExpression(
+    clone() : ProjectionExpression {
+        return new ProjectionExpression(
             this.location,
-            this.lhs.clone(),
-            this.operator,
-            this.rhs.clone(),
-            this.overload
+            this.expression.clone(),
+            this.args.slice(),
+            this.computations.map((v) => v.clone()),
+            this.aliases.slice(),
+            this.schema ? this.schema.clone() : null
         );
     }
 
-    *iterateSlots(schema : FunctionDef|null,
-                  prim : InvocationLike|null,
-                  scope : ScopeMap) : Generator<OldSlot, void> {
-        // XXX this API cannot support comparison subquery expressions
+    *iterateSlots(scope : ScopeMap) : Generator<OldSlot, [InvocationLike|null, ScopeMap]> {
+        const [prim, nestedScope] = yield* this.expression.iterateSlots(scope);
+        const newScope : ScopeMap = {};
+        for (const name of this.args)
+            newScope[name] = nestedScope[name];
+        return [prim, newScope];
     }
 
-    *iterateSlots2(schema : FunctionDef|null,
-                   prim : InvocationLike|null,
-                   scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
-        const [resolvedLhs, ] = this.overload || [null, null];
-        yield* recursiveYieldArraySlots(new FieldSlot(prim, scope, resolvedLhs || this.lhs.getType(), this, 'comparison_subquery_filter', 'lhs'));
-        yield* this.rhs.iterateSlots2(scope);
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+        const [prim, nestedScope] = yield* this.expression.iterateSlots2(scope);
+        for (let i = 0; i < this.computations.length; i++)
+            yield* recursiveYieldArraySlots(new ArrayIndexSlot(prim, nestedScope, this.computations[i].getType(), this.computations, 'computations', i));
+        const newScope : ScopeMap = {};
+        for (const name of this.args)
+            newScope[name] = nestedScope[name];
+        return [prim, newScope];
     }
 }
-BooleanExpression.ComparisonSubquery = ComparisonSubqueryBooleanExpression;
-BooleanExpression.ComparisonSubquery.prototype.isComparisonSubquery = true;
 
-/**
- * A boolean expression that expresses that the user does not care about a specific parameter.
- *
- * It is essentially the same as "true", but it has a parameter attached to it.
- */
-export class DontCareBooleanExpression extends BooleanExpression {
+export class AliasExpression extends Expression {
+    expression : Expression;
     name : string;
 
-    constructor(location : SourceRange|null, name : string) {
-        super(location);
+    constructor(location : SourceRange|null,
+                expression : Expression,
+                name : string,
+                schema : FunctionDef|null) {
+        super(location, schema);
+
+        assert(expression instanceof Expression);
+        this.expression = expression;
+
         assert(typeof name === 'string');
         this.name = name;
     }
 
     get priority() : SyntaxPriority {
-        return SyntaxPriority.Primary;
+        return SyntaxPriority.Alias;
     }
 
     toSource() : TokenStream {
-        return List.concat('true', '(', this.name, ')');
+        return List.concat(addParenthesis(this.priority, this.expression.priority,
+            this.expression.toSource()), 'as', this.name);
     }
 
-    toLegacy() : DontCareBooleanExpression {
-        return this;
+    equals(other : Expression) : boolean {
+        return other instanceof AliasExpression &&
+            this.expression.equals(other.expression) &&
+            this.name === other.name;
     }
 
-    equals(other : BooleanExpression) : boolean {
-        return other instanceof DontCareBooleanExpression && this.name === other.name;
+    toLegacy(into_params : InputParam[] = [], scope_params : string[] = []) : legacy.AliasTable|legacy.AliasStream {
+        const el = this.expression.toLegacy(into_params, scope_params);
+        if (el instanceof legacy.Table) {
+            return new legacy.AliasTable(this.location, el, this.name, this.schema);
+        } else {
+            assert(el instanceof legacy.Stream);
+            return new legacy.AliasStream(this.location, el, this.name, this.schema);
+        }
     }
 
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
-        visitor.visitDontCareBooleanExpression(this);
+        if (visitor.visitAliasExpression(this))
+            this.expression.visit(visitor);
         visitor.exit(this);
     }
 
-    clone() : DontCareBooleanExpression {
-        return new DontCareBooleanExpression(this.location, this.name);
+    clone() : AliasExpression {
+        return new AliasExpression(
+            this.location,
+            this.expression.clone(),
+            this.name,
+            this.schema ? this.schema.clone() : null
+        );
     }
 
-    *iterateSlots(schema : FunctionDef|null,
-                  prim : InvocationLike|null,
-                  scope : ScopeMap) : Generator<OldSlot, void> {
+    *iterateSlots(scope : ScopeMap) : Generator<OldSlot, [InvocationLike|null, ScopeMap]> {
+        return yield* this.expression.iterateSlots(scope);
     }
-    *iterateSlots2(schema : FunctionDef|null,
-                   prim : InvocationLike|null,
-                   scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
+
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+        return yield* this.expression.iterateSlots2(scope);
     }
 }
-BooleanExpression.DontCare = DontCareBooleanExpression;
-DontCareBooleanExpression.prototype.isDontCare = true;
 
-export class TrueBooleanExpression extends BooleanExpression {
-    constructor() {
-        super(null);
-    }
-
-    get priority() : SyntaxPriority {
-        return SyntaxPriority.Primary;
-    }
-
-    toSource() : TokenStream {
-        return List.singleton('true');
-    }
-
-    toLegacy() : TrueBooleanExpression {
-        return this;
-    }
-
-    equals(other : BooleanExpression) : boolean {
-        return this === other;
-    }
-
-    visit(visitor : NodeVisitor) : void {
-        visitor.enter(this);
-        visitor.visitTrueBooleanExpression(this);
-        visitor.exit(this);
-    }
-
-    clone() : TrueBooleanExpression {
-        return this;
-    }
-
-    *iterateSlots(schema : FunctionDef|null,
-                  prim : InvocationLike|null,
-                  scope : ScopeMap) : Generator<OldSlot, void> {
-    }
-    *iterateSlots2(schema : FunctionDef|null,
-                   prim : InvocationLike|null,
-                   scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
-    }
-}
-TrueBooleanExpression.prototype.isTrue = true;
-BooleanExpression.True = new TrueBooleanExpression();
-
-export class FalseBooleanExpression extends BooleanExpression {
-    constructor() {
-        super(null);
-    }
-
-    get priority() : SyntaxPriority {
-        return SyntaxPriority.Primary;
-    }
-
-    toSource() : TokenStream {
-        return List.singleton('false');
-    }
-
-    toLegacy() : FalseBooleanExpression {
-        return this;
-    }
-
-    equals(other : BooleanExpression) : boolean {
-        return this === other;
-    }
-
-    visit(visitor : NodeVisitor) : void {
-        visitor.enter(this);
-        visitor.visitFalseBooleanExpression(this);
-        visitor.exit(this);
-    }
-
-    clone() : FalseBooleanExpression {
-        return this;
-    }
-
-    *iterateSlots(schema : FunctionDef|null,
-                  prim : InvocationLike|null,
-                  scope : ScopeMap) : Generator<OldSlot, void> {
-    }
-    *iterateSlots2(schema : FunctionDef|null,
-                   prim : InvocationLike|null,
-                   scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
-    }
-}
-FalseBooleanExpression.prototype.isFalse = true;
-BooleanExpression.False = new FalseBooleanExpression();
-
-/**
- * A boolean expression that computes a scalar expression and then does a comparison
- *
- */
-export class ComputeBooleanExpression extends BooleanExpression {
-    /**
-     * The scalar expression being compared.
-     */
-    lhs : Value;
-    /**
-     * The comparison operator.
-     */
+export class AggregationExpression extends Expression {
+    expression : Expression;
+    field : string;
     operator : string;
-    /**
-     * The value being compared against.
-     */
-    rhs : Value;
     overload : Type[]|null;
+    // TODO
+    alias = null;
 
-    /**
-     * Construct a new compute boolean expression.
-     *
-     * @param {Ast~SourceRange|null} location - the position of this node
-     *        in the source code
-     * @param {Ast.ScalarExpression} lhs - the scalar expression to compute
-     * @param {string} operator - the comparison operator
-     * @param {Ast.Value} value - the value being compared against
-     */
     constructor(location : SourceRange|null,
-                lhs : Value,
+                expression : Expression,
+                field : string,
                 operator : string,
-                rhs : Value,
+                schema : FunctionDef|null,
                 overload : Type[]|null = null) {
-        super(location);
+        super(location, schema);
 
-        assert(lhs instanceof Value);
-        this.lhs = lhs;
+        assert(expression instanceof Expression);
+        this.expression = expression;
+
+        assert(typeof field === 'string');
+        this.field = field;
 
         assert(typeof operator === 'string');
         this.operator = operator;
-
-        assert(rhs instanceof Value);
-        this.rhs = rhs;
 
         this.overload = overload;
     }
 
     get priority() : SyntaxPriority {
-        return INFIX_COMPARISON_OPERATORS.has(this.operator) ? SyntaxPriority.Comp : SyntaxPriority.Primary;
+        return SyntaxPriority.Primary;
     }
 
     toSource() : TokenStream {
-        if (INFIX_COMPARISON_OPERATORS.has(this.operator)) {
-            return List.concat(
-                // force parenthesis around constants on the LHS of the filter, because it will be ambiguous otherwise
-                this.lhs.isConstant() ?
-                List.concat('(', this.lhs.toSource(), ')') :
-                addParenthesis(SyntaxPriority.Add, this.lhs.priority, this.lhs.toSource()),
-                this.operator,
-                addParenthesis(SyntaxPriority.Add, this.rhs.priority, this.rhs.toSource()));
+        if (this.field === '*') {
+            return List.concat(this.operator, '(', this.expression.toSource(), ')');
         } else {
-            return List.concat(this.operator, '(', this.lhs.toSource(), ',', this.rhs.toSource(), ')');
+            const field = List.join(this.field.split('.').map((n) => List.singleton(n)), '.');
+            return List.concat(this.operator, '(', field, 'of',
+                this.expression.toSource(), ')');
         }
     }
 
-    toLegacy() : ComputeBooleanExpression {
-        return this;
+    equals(other : Expression) : boolean {
+        return other instanceof AggregationExpression &&
+            this.expression.equals(other.expression) &&
+            this.field === other.field &&
+            this.operator === other.operator;
     }
 
-    equals(other : BooleanExpression) : boolean {
-        return other instanceof ComputeBooleanExpression &&
-            this.lhs.equals(other.lhs) &&
-            this.operator === other.operator &&
-            this.rhs.equals(other.rhs);
+    toLegacy(into_params : InputParam[] = [], scope_params : string[] = []) : legacy.AggregationTable {
+        const el = this.expression.toLegacy(into_params, scope_params);
+        assert(el instanceof legacy.Table);
+        return new legacy.AggregationTable(this.location, el, this.field, this.operator, null, this.schema);
     }
 
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
-        if (visitor.visitComputeBooleanExpression(this)) {
-            this.lhs.visit(visitor);
-            this.rhs.visit(visitor);
-        }
+        if (visitor.visitAggregationExpression(this))
+            this.expression.visit(visitor);
         visitor.exit(this);
     }
 
-    clone() : ComputeBooleanExpression {
-        return new ComputeBooleanExpression(
+    clone() : AggregationExpression {
+        return new AggregationExpression(
             this.location,
-            this.lhs.clone(),
+            this.expression.clone(),
+            this.field,
             this.operator,
-            this.rhs.clone(),
+            this.schema ? this.schema.clone() : null,
             this.overload
         );
     }
 
-    *iterateSlots(schema : FunctionDef|null,
-                  prim : InvocationLike|null,
-                  scope : ScopeMap) : Generator<OldSlot, void> {
-        // XXX this API cannot support Compute expressions
+    *iterateSlots(scope : ScopeMap) : Generator<OldSlot, [InvocationLike|null, ScopeMap]> {
+        return yield* this.expression.iterateSlots(scope);
     }
 
-    *iterateSlots2(schema : FunctionDef|null,
-                   prim : InvocationLike|null,
-                   scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
-        const [resolvedLhs, resolvedRhs] = this.overload || [null, null];
-        yield* recursiveYieldArraySlots(new FieldSlot(prim, scope, resolvedLhs || this.lhs.getType(), this, 'compute_filter', 'lhs'));
-        yield* recursiveYieldArraySlots(new FieldSlot(prim, scope, resolvedRhs || this.rhs.getType(), this, 'compute_filter', 'rhs'));
-    }
-
-    toString() : string {
-        return `Compute(${this.lhs}, ${this.operator}, ${this.rhs})`;
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+        return yield* this.expression.iterateSlots2(scope);
     }
 }
-BooleanExpression.Compute = ComputeBooleanExpression;
-BooleanExpression.Compute.prototype.isCompute = true;
+
+export class SortExpression extends Expression {
+    expression : Expression;
+    value : Value;
+    direction : 'asc'|'desc';
+
+    constructor(location : SourceRange|null,
+                expression : Expression,
+                value : Value,
+                direction : 'asc'|'desc',
+                schema : FunctionDef|null) {
+        super(location, schema);
+
+        assert(expression instanceof Expression);
+        this.expression = expression;
+
+        this.value = value;
+
+        assert(direction === 'asc' || direction === 'desc');
+        this.direction = direction;
+    }
+
+    get priority() : SyntaxPriority {
+        return SyntaxPriority.Primary;
+    }
+
+    toSource() : TokenStream {
+        return List.concat('sort', '(', this.value.toSource(), ' ', this.direction, 'of',
+            this.expression.toSource(), ')');
+    }
+
+    equals(other : Expression) : boolean {
+        return other instanceof SortExpression &&
+            this.expression.equals(other.expression) &&
+            this.value.equals(other.value) &&
+            this.direction === other.direction;
+    }
+
+    toLegacy(into_params : InputParam[] = [], scope_params : string[] = []) : legacy.SortedTable {
+        const el = this.expression.toLegacy(into_params, scope_params);
+        assert(el instanceof legacy.Table);
+        if (this.value instanceof VarRefValue) {
+            return new legacy.SortedTable(this.location, el, this.value.name, this.direction, this.schema);
+        } else {
+            return new legacy.SortedTable(this.location,
+                new legacy.ComputeTable(this.location, el, this.value, null, this.schema),
+                getScalarExpressionName(this.value), this.direction, this.schema);
+        }
+    }
+
+    visit(visitor : NodeVisitor) : void {
+        visitor.enter(this);
+        if (visitor.visitSortExpression(this)) {
+            this.expression.visit(visitor);
+            this.value.visit(visitor);
+        }
+        visitor.exit(this);
+    }
+
+    clone() : SortExpression {
+        return new SortExpression(
+            this.location,
+            this.expression.clone(),
+            this.value.clone(),
+            this.direction,
+            this.schema ? this.schema.clone() : null
+        );
+    }
+
+    *iterateSlots(scope : ScopeMap) : Generator<OldSlot, [InvocationLike|null, ScopeMap]> {
+        return yield* this.expression.iterateSlots(scope);
+    }
+
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+        const [prim, innerScope] = yield* this.expression.iterateSlots2(scope);
+        yield* recursiveYieldArraySlots(new FieldSlot(prim, innerScope, Type.Number, this, 'sort', 'value'));
+        return [prim, innerScope];
+    }
+}
+
+export class IndexExpression extends Expression {
+    expression : Expression;
+    indices : Value[];
+
+    constructor(location : SourceRange|null,
+                expression : Expression,
+                indices : Value[],
+                schema : FunctionDef|null) {
+        super(location, schema);
+
+        assert(expression instanceof Expression);
+        this.expression = expression;
+
+        assert(Array.isArray(indices));
+        this.indices = indices;
+    }
+
+    get priority() : SyntaxPriority {
+        return SyntaxPriority.Index;
+    }
+
+    toSource() : TokenStream {
+        return List.concat(addParenthesis(this.priority, this.expression.priority, this.expression.toSource()),
+            '[', List.join(this.indices.map((i) => i.toSource()), ','), ']');
+    }
+
+    equals(other : Expression) : boolean {
+        return other instanceof IndexExpression &&
+            this.expression.equals(other.expression) &&
+            arrayEquals(this.indices, other.indices);
+    }
+
+    toLegacy(into_params : InputParam[] = [], scope_params : string[] = []) : legacy.IndexTable {
+        const el = this.expression.toLegacy(into_params, scope_params);
+        assert(el instanceof legacy.Table);
+        return new legacy.IndexTable(this.location, el, this.indices, this.schema);
+    }
+
+    visit(visitor : NodeVisitor) : void {
+        visitor.enter(this);
+        if (visitor.visitIndexExpression(this)) {
+            this.expression.visit(visitor);
+            for (const index of this.indices)
+                index.visit(visitor);
+        }
+        visitor.exit(this);
+    }
+
+    clone() : IndexExpression {
+        return new IndexExpression(
+            this.location,
+            this.expression.clone(),
+            this.indices.map((i) => i.clone()),
+            this.schema ? this.schema.clone() : null
+        );
+    }
+
+    *iterateSlots(scope : ScopeMap) : Generator<OldSlot, [InvocationLike|null, ScopeMap]> {
+        return yield* this.expression.iterateSlots(scope);
+    }
+
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+        const [prim, innerScope] = yield* this.expression.iterateSlots2(scope);
+        for (let i = 0; i < this.indices.length; i++)
+            yield* recursiveYieldArraySlots(new ArrayIndexSlot(prim, innerScope, Type.Number, this.indices, 'expression.index', i));
+        return [prim, innerScope];
+    }
+}
+
+export class SliceExpression extends Expression {
+    expression : Expression;
+    base : Value;
+    limit : Value;
+
+    constructor(location : SourceRange|null,
+                expression : Expression,
+                base : Value,
+                limit : Value,
+                schema : FunctionDef|null) {
+        super(location, schema);
+
+        assert(expression instanceof Expression);
+        this.expression = expression;
+
+        assert(base instanceof Value);
+        this.base = base;
+
+        assert(limit instanceof Value);
+        this.limit = limit;
+    }
+
+    get priority() : SyntaxPriority {
+        return SyntaxPriority.Index;
+    }
+
+    toSource() : TokenStream {
+        return List.concat(addParenthesis(this.priority, this.expression.priority, this.expression.toSource()),
+            '[', this.base.toSource(), ':', this.limit.toSource(), ']');
+    }
+
+    equals(other : Expression) : boolean {
+        return other instanceof SliceExpression &&
+            this.expression.equals(other.expression) &&
+            this.base.equals(other.base) &&
+            this.limit.equals(other.limit);
+    }
+
+    toLegacy(into_params : InputParam[] = [], scope_params : string[] = []) : legacy.SlicedTable {
+        const el = this.expression.toLegacy(into_params, scope_params);
+        assert(el instanceof legacy.Table);
+        return new legacy.SlicedTable(this.location, el, this.base, this.limit, this.schema);
+    }
+
+    visit(visitor : NodeVisitor) : void {
+        visitor.enter(this);
+        if (visitor.visitSliceExpression(this)) {
+            this.expression.visit(visitor);
+            this.base.visit(visitor);
+            this.limit.visit(visitor);
+        }
+        visitor.exit(this);
+    }
+
+    clone() : SliceExpression {
+        return new SliceExpression(
+            this.location,
+            this.expression.clone(),
+            this.base.clone(),
+            this.limit.clone(),
+            this.schema ? this.schema.clone() : null
+        );
+    }
+
+    *iterateSlots(scope : ScopeMap) : Generator<OldSlot, [InvocationLike|null, ScopeMap]> {
+        return yield* this.expression.iterateSlots(scope);
+    }
+
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+        const [prim, innerScope] = yield* this.expression.iterateSlots2(scope);
+        yield* recursiveYieldArraySlots(new FieldSlot(prim, innerScope, Type.Number, this, 'slice', 'base'));
+        yield* recursiveYieldArraySlots(new FieldSlot(prim, innerScope, Type.Number, this, 'slice', 'limit'));
+        return [prim, innerScope];
+    }
+}
+
+/**
+ * Evaluates a list of expressions, passing the result of the previous one
+ * to the next.
+ *
+ * In syntax, the expressions are separated by "=>"
+ */
+export class ChainExpression extends Expression {
+    expressions : Expression[];
+
+    constructor(location : SourceRange|null,
+                expressions : Expression[],
+                schema : FunctionDef|null) {
+        super(location, schema);
+
+        assert(Array.isArray(expressions));
+        this.expressions = expressions;
+    }
+
+    get priority() : SyntaxPriority {
+        return SyntaxPriority.Chain;
+    }
+
+    get first() : Expression {
+        return this.expressions[0];
+    }
+
+    set first(expr : Expression) {
+        this.expressions[0] = expr;
+    }
+
+    get last() : Expression {
+        return this.expressions[this.expressions.length-1];
+    }
+
+    set last(expr : Expression) {
+        this.expressions[this.expressions.length-1] = expr;
+    }
+
+    get lastQuery() : Expression|null {
+        const expressions = this.expressions;
+        const last = expressions[expressions.length-1];
+        if (last.schema!.functionType === 'action') {
+            if (expressions.length === 1)
+                return null;
+            else
+                return expressions[expressions.length-2];
+        } else {
+            return last;
+        }
+    }
+
+    setLastQuery(expr : Expression) {
+        const expressions = this.expressions;
+        const last = expressions[expressions.length-1];
+        if (last.schema!.functionType === 'action') {
+            if (expressions.length === 1)
+                expressions.unshift(expr);
+            else
+                expressions[expressions.length-2] = expr;
+        } else {
+            expressions[expressions.length-1] = expr;
+        }
+    }
+
+    toSource() : TokenStream {
+        return List.join(this.expressions.map((exp) => exp.toSource()), '=>');
+    }
+
+    equals(other : Expression) : boolean {
+        return other instanceof ChainExpression &&
+            arrayEquals(this.expressions, other.expressions);
+    }
+
+    toLegacy(into_params : InputParam[] = [], scope_params : string[] = []) : legacy.Stream|legacy.Table|legacy.Action {
+        if (this.expressions.length === 1)
+            return this.expressions[0].toLegacy(into_params, scope_params);
+
+        // note: schemas and parameter passing work differently in old thingtalk
+        // table/stream join and new thingtalk chain expressions
+        // so this is not a perfect conversion
+
+        const first = this.expressions[0];
+        if (first.schema!.functionType === 'stream') {
+            const fl = first.toLegacy(into_params, scope_params);
+            assert(fl instanceof legacy.Stream);
+            if (this.expressions.length > 2) {
+                const newIntoParams : InputParam[] = [];
+                const sl = this.expressions[1].toLegacy(newIntoParams, scope_params);
+                assert(sl instanceof legacy.Table);
+                const rest : legacy.Table = this.expressions.slice(2).reduce((al, b) => {
+                    const newIntoParams : InputParam[] = [];
+                    const bl = b.toLegacy(newIntoParams, scope_params);
+                    assert(bl instanceof legacy.Table);
+
+                    const joinParams = newIntoParams.filter((ip) => {
+                        if (ip.value instanceof VarRefValue) {
+                            if (al.schema!.hasArgument(ip.value.name)) {
+                                return true;
+                            } else {
+                                into_params.push(ip);
+                                return false;
+                            }
+                        } else { // $event
+                            return true;
+                        }
+                    });
+                    return new legacy.JoinTable(null, al, bl, joinParams, b.schema);
+                }, sl);
+
+                const joinParams = newIntoParams.filter((ip) => {
+                    if (ip.value instanceof VarRefValue) {
+                        if (fl.schema!.hasArgument(ip.value.name)) {
+                            return true;
+                        } else {
+                            into_params.push(ip);
+                            return false;
+                        }
+                    } else { // $event
+                        return true;
+                    }
+                });
+                return new legacy.JoinStream(this.location, fl, rest, joinParams, this.expressions[this.expressions.length-1].schema);
+            } else {
+                const newIntoParams : InputParam[] = [];
+                const rest = this.expressions[1].toLegacy(newIntoParams, scope_params);
+                assert(rest instanceof legacy.Table);
+
+                const joinParams = newIntoParams.filter((ip) => {
+                    if (ip.value instanceof VarRefValue) {
+                        if (fl.schema!.hasArgument(ip.value.name)) {
+                            return true;
+                        } else {
+                            into_params.push(ip);
+                            return false;
+                        }
+                    } else { // $event
+                        return true;
+                    }
+                });
+                return new legacy.JoinStream(this.location, fl, rest, joinParams, this.expressions[1].schema);
+            }
+        } else {
+            const fl = this.expressions[0].toLegacy(into_params, scope_params);
+            assert(fl instanceof legacy.Table);
+            return this.expressions.slice(1).reduce((al, b) => {
+                const newIntoParams : InputParam[] = [];
+                let bl = b.toLegacy(newIntoParams, scope_params);
+                if (bl instanceof legacy.Action) {
+                    // this can occur with chain expressions in assignments
+                    assert(bl instanceof legacy.VarRefAction);
+                    // this is a hack! we generate a table that calls an action
+                    bl = new legacy.VarRefTable(bl.location, bl.name, bl.in_params, bl.schema);
+                }
+                assert(bl instanceof legacy.Table);
+
+                const joinParams = newIntoParams.filter((ip) => {
+                    if (ip.value instanceof VarRefValue) {
+                        if (al.schema!.hasArgument(ip.value.name)) {
+                            return true;
+                        } else {
+                            into_params.push(ip);
+                            return false;
+                        }
+                    } else { // $event
+                        return true;
+                    }
+                });
+
+                return new legacy.JoinTable(null, al, bl, joinParams, b.schema);
+            }, fl);
+        }
+    }
+
+    visit(visitor : NodeVisitor) : void {
+        visitor.enter(this);
+        if (visitor.visitChainExpression(this)) {
+            for (const expr of this.expressions)
+                expr.visit(visitor);
+        }
+        visitor.exit(this);
+    }
+
+    clone() : ChainExpression {
+        return new ChainExpression(
+            this.location,
+            this.expressions.map((ex) => ex.clone()),
+            this.schema ? this.schema.clone() : null
+        );
+    }
+
+    *iterateSlots(scope : ScopeMap) : Generator<OldSlot, [InvocationLike|null, ScopeMap]> {
+        const newScope : ScopeMap = {};
+        for (const expr of this.expressions) {
+            [, scope] = yield* expr.iterateSlots(scope);
+            Object.assign(newScope, scope);
+        }
+        return [null, newScope];
+    }
+
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+        const newScope : ScopeMap = {};
+        for (const expr of this.expressions) {
+            [, scope] = yield* expr.iterateSlots2(scope);
+            Object.assign(newScope, scope);
+        }
+        return [null, newScope];
+    }
+}

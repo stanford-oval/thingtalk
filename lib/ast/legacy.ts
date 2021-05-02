@@ -17,16 +17,18 @@
 // limitations under the License.
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
-import assert from 'assert';
 
+import assert from 'assert';
 import Node, { SourceRange } from './base';
 import { FunctionDef } from './function_def';
 import {
     Invocation,
     DeviceSelector,
     InputParam,
+} from './invocation';
+import {
     BooleanExpression
-} from './expression';
+} from './boolean_expression';
 import {
     Expression,
     FunctionCallExpression,
@@ -40,7 +42,7 @@ import {
     AggregationExpression,
     MonitorExpression,
     ChainExpression
-} from './expression2';
+} from './expression';
 import { Value } from './values';
 import {
     iterateSlots2InputParams,
@@ -62,6 +64,7 @@ import List from '../utils/list';
 /**
  * The base class of all ThingTalk query expressions.
  *
+ * @deprecated This class is part of ThingTalk 1.0. Use {@link Ast.Expression} in ThingTalk 2.0.
  */
 export abstract class Table extends Node {
     static VarRef : typeof VarRefTable;
@@ -770,6 +773,7 @@ Table.Join.prototype.isJoin = true;
 /**
  * The base class of all ThingTalk stream expressions.
  *
+ * @deprecated This class is part of ThingTalk 1.0. Use {@link Ast.Expression} in ThingTalk 2.0.
  */
 export abstract class Stream extends Node {
     static VarRef : typeof VarRefStream;
@@ -1478,6 +1482,8 @@ Stream.Join.prototype.isJoin = true;
 
 /**
  * Base class for all expressions that invoke an action.
+ *
+ * @deprecated This class is part of ThingTalk 1.0. Use {@link Ast.Expression} in ThingTalk 2.0.
  */
 export abstract class Action extends Node {
     static VarRef : typeof VarRefAction;
@@ -1732,212 +1738,3 @@ export class NotifyAction extends Action {
 }
 Action.Notify = NotifyAction;
 Action.Notify.prototype.isNotify = true;
-
-/**
- * The base class of all function clauses in a ThingTalk
- * permission rule.
- *
- */
-export abstract class PermissionFunction extends Node {
-    static Specified : typeof SpecifiedPermissionFunction;
-    isSpecified ! : boolean;
-    static Builtin : PermissionFunction;
-    isBuiltin ! : boolean;
-    static ClassStar : typeof ClassStarPermissionFunction;
-    isClassStar ! : boolean;
-    static Star : PermissionFunction;
-    isStar ! : boolean;
-
-    abstract clone() : PermissionFunction;
-
-    *iterateSlots(scope : ScopeMap) : Generator<OldSlot, [InvocationLike|null, ScopeMap]> {
-        return [null, {}];
-    }
-
-    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
-        return [null, {}];
-    }
-}
-PermissionFunction.prototype.isSpecified = false;
-PermissionFunction.prototype.isBuiltin = false;
-PermissionFunction.prototype.isClassStar = false;
-PermissionFunction.prototype.isStar = false;
-
-/**
- * A permission function that applies only to a specific
- * Thingpedia function.
- *
- */
-export class SpecifiedPermissionFunction extends PermissionFunction {
-    kind : string;
-    channel : string;
-    filter : BooleanExpression;
-    schema : FunctionDef|null;
-
-    /**
-     * Construct a new specified permission function.
-     *
-     * @param location - the position of this node in the source code
-     * @param kind - the class that the function belongs to
-     * @param channel - the name of the function
-     * @param filter - a predicate on the input and output
-     *        parameters of the function restricting when the permission applies
-     * @param schema - type signature of the underlying Thingpedia function
-     */
-    constructor(location : SourceRange|null,
-                kind : string,
-                channel : string,
-                filter : BooleanExpression,
-                schema : FunctionDef|null) {
-        super(location);
-
-        assert(typeof kind === 'string');
-        this.kind = kind;
-
-        assert(typeof channel === 'string');
-        this.channel = channel;
-
-        assert(filter instanceof BooleanExpression);
-        this.filter = filter;
-
-        assert(schema === null || schema instanceof FunctionDef);
-        this.schema = schema;
-    }
-
-    optimize() : this {
-        this.filter = this.filter.optimize();
-        return this;
-    }
-
-    toSource() : TokenStream {
-        if (this.filter.isTrue)
-            return List.concat('@' + this.kind, '.', this.channel);
-        return List.concat('@' + this.kind, '.', this.channel, 'filter',
-            this.filter.toSource());
-    }
-
-    visit(visitor : NodeVisitor) : void {
-        visitor.enter(this);
-        if (visitor.visitSpecifiedPermissionFunction(this))
-            this.filter.visit(visitor);
-        visitor.exit(this);
-    }
-
-    clone() : SpecifiedPermissionFunction {
-        return new SpecifiedPermissionFunction(
-            this.location,
-            this.kind,
-            this.channel,
-            this.filter.clone(),
-            this.schema ? this.schema.clone() : null
-        );
-    }
-
-    *iterateSlots(scope : ScopeMap) : Generator<OldSlot, [InvocationLike, ScopeMap]> {
-        yield* this.filter.iterateSlots(this.schema, this, scope);
-        return [this, makeScope(this)];
-    }
-
-    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike, ScopeMap]> {
-        yield* this.filter.iterateSlots2(this.schema, this, scope);
-        return [this, makeScope(this)];
-    }
-}
-PermissionFunction.Specified = SpecifiedPermissionFunction;
-PermissionFunction.Specified.prototype.isSpecified = true;
-
-export class BuiltinPermissionFunction extends PermissionFunction {
-    constructor() {
-        super(null);
-    }
-
-    visit(visitor : NodeVisitor) : void {
-        visitor.enter(this);
-        visitor.visitBuiltinPermissionFunction(this);
-        visitor.exit(this);
-    }
-
-    toSource() : TokenStream {
-        return List.singleton('notify');
-    }
-
-    clone() : BuiltinPermissionFunction {
-        return this;
-    }
-}
-BuiltinPermissionFunction.prototype.isBuiltin = true;
-
-/**
- * A permission function that applies only to the builtins `now` and
- * `notify`.
- *
- * This is a singleton, not a class.
- */
-PermissionFunction.Builtin = new BuiltinPermissionFunction();
-
-/**
- * A permission function that applies to all functions of a class,
- * unconditionally.
- *
- */
-export class ClassStarPermissionFunction extends PermissionFunction {
-    kind : string;
-
-    /**
-     * Construct a new class start permission function.
-     *
-     * @param location - the position of this node in the source code
-     * @param kind - the class to apply the permission to
-     */
-    constructor(location : SourceRange|null, kind : string) {
-        super(location);
-
-        assert(typeof kind === 'string');
-        this.kind = kind;
-    }
-
-    toSource() : TokenStream {
-        return List.concat('@' + this.kind, '.', '*');
-    }
-
-    visit(visitor : NodeVisitor) : void {
-        visitor.enter(this);
-        visitor.visitClassStarPermissionFunction(this);
-        visitor.exit(this);
-    }
-
-    clone() : ClassStarPermissionFunction {
-        return new ClassStarPermissionFunction(this.location, this.kind);
-    }
-}
-PermissionFunction.ClassStar = ClassStarPermissionFunction;
-PermissionFunction.ClassStar.prototype.isClassStar = true;
-
-export class StarPermissionFunction extends PermissionFunction {
-    constructor() {
-        super(null);
-    }
-
-    visit(visitor : NodeVisitor) : void {
-        visitor.enter(this);
-        visitor.visitStarPermissionFunction(this);
-        visitor.exit(this);
-    }
-
-    toSource() : TokenStream {
-        return List.singleton('*');
-    }
-
-    clone() : StarPermissionFunction {
-        return this;
-    }
-}
-StarPermissionFunction.prototype.isStar = true;
-
-/**
- * The universal permission function, that applies to all functions
- * of all classes, unconditionally.
- *
- * This is a singleton, not a class.
- */
-PermissionFunction.Star = new StarPermissionFunction();

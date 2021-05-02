@@ -20,7 +20,7 @@
 
 import assert from 'assert';
 
-import {
+import Node, {
     SourceRange,
     NLAnnotationMap,
     AnnotationMap,
@@ -29,8 +29,8 @@ import {
     nlAnnotationsToSource,
 } from './base';
 import { cleanKind } from '../utils';
-import { DeviceSelector } from './expression';
-import { Statement, MixinImportStmt, EntityDef } from './program';
+import { DeviceSelector, InputParam } from './invocation';
+import { Statement } from './statement';
 import { FunctionType, FunctionDef } from './function_def';
 import { OldSlot, AbstractSlot } from './slots';
 import NodeVisitor from './visitor';
@@ -332,5 +332,175 @@ export class ClassDef extends Statement {
      */
     getAnnotation<T>(name : string) : T|undefined {
         return this.getImplementationAnnotation<T>(name);
+    }
+}
+
+
+
+/**
+ * A `import` statement that imports a mixin inside a ThingTalk class.
+ *
+ * Mixins add implementation functionality to ThingTalk classes, such as specifying
+ * how the class is loaded (which language, which format, which version of the SDK)
+ * and how devices are configured.
+ */
+ export class MixinImportStmt extends Node {
+    facets : string[];
+    module : string;
+    in_params : InputParam[];
+
+    /**
+     * Construct a new mixin import statement.
+     *
+     * @param location - the position of this node in the source code
+     * @param facets - which facets to import from the mixin (`config`, `auth`, `loader`, ...)
+     * @param module - the mixin identifier to import
+     * @param in_params - input parameters to pass to the mixin
+     */
+    constructor(location : SourceRange|null,
+                facets : string[],
+                module : string,
+                in_params : InputParam[]) {
+        super(location);
+
+        assert(Array.isArray(facets));
+        this.facets = facets;
+
+        assert(typeof module === 'string');
+        this.module = module;
+
+        assert(Array.isArray(in_params));
+        this.in_params = in_params;
+    }
+
+    toSource() : TokenStream {
+        return List.concat('import', List.join(this.facets.map((f) => List.singleton(f)), ','), ' ',
+            'from', ' ', '@' + this.module,
+            '(', List.join(this.in_params.map((ip) => ip.toSource()), ','), ')', ';');
+    }
+
+    clone() : MixinImportStmt {
+        return new MixinImportStmt(
+            this.location,
+            this.facets.slice(0),
+            this.module,
+            this.in_params.map((p) => p.clone())
+        );
+    }
+
+    visit(visitor : NodeVisitor) : void {
+        visitor.enter(this);
+        if (visitor.visitMixinImportStmt(this)) {
+            for (const in_param of this.in_params)
+                in_param.visit(visitor);
+        }
+        visitor.exit(this);
+    }
+}
+
+/**
+ * An `entity` statement inside a ThingTalk class.
+ *
+ */
+export class EntityDef extends Node {
+    isEntityDef = true;
+    /**
+     * The entity name.
+     */
+    name : string;
+    extends : string|null;
+    /**
+     * The entity metadata (translatable annotations).
+     */
+    nl_annotations : NLAnnotationMap;
+    /**
+     * The entity annotations.
+     */
+    impl_annotations : AnnotationMap;
+
+    /**
+     * Construct a new entity declaration.
+     *
+     * @param location - the position of this node in the source code
+     * @param name - the entity name (the part after the ':')
+     * @param extends - the parent entity type, if any (this can be a fully qualified name with ':', or just the part after ':')
+     * @param annotations - annotations of the entity type
+     * @param [annotations.nl={}] - natural-language annotations (translatable annotations)
+     * @param [annotations.impl={}] - implementation annotations
+     */
+    constructor(location : SourceRange|null,
+                name : string,
+                _extends : string|null,
+                annotations : AnnotationSpec) {
+        super(location);
+        this.name = name;
+
+        this.extends = _extends;
+
+        this.nl_annotations = annotations.nl || {};
+        this.impl_annotations = annotations.impl || {};
+    }
+
+    toSource() : TokenStream {
+        if (this.extends) {
+            return List.concat('entity', ' ', this.name,
+                'extends', (this.extends.includes(':') ? '^^' + this.extends : this.extends), '\t+',
+                nlAnnotationsToSource(this.nl_annotations),
+                implAnnotationsToSource(this.impl_annotations),
+            '\t-', ';');
+        } else {
+            return List.concat('entity', ' ', this.name, '\t+',
+                nlAnnotationsToSource(this.nl_annotations),
+                implAnnotationsToSource(this.impl_annotations),
+            '\t-', ';');
+        }
+    }
+
+    /**
+     * Clone this entity and return a new object with the same properties.
+     *
+     * @return the new instance
+     */
+    clone() : EntityDef {
+        const nl : NLAnnotationMap = {};
+        Object.assign(nl, this.nl_annotations);
+        const impl : AnnotationMap = {};
+        Object.assign(impl, this.impl_annotations);
+
+        return new EntityDef(this.location, this.name, this.extends, { nl, impl });
+    }
+
+    /**
+     * Read and normalize an implementation annotation from this entity definition.
+     *
+     * @param {string} name - the annotation name
+     * @return {any|undefined} the annotation normalized value, or `undefined` if the
+     *         annotation is not present
+     */
+    getImplementationAnnotation<T>(name : string) : T|undefined {
+        if (Object.prototype.hasOwnProperty.call(this.impl_annotations, name))
+            return this.impl_annotations[name].toJS() as T;
+        else
+            return undefined;
+    }
+
+    /**
+     * Read a natural-language annotation from this entity definition.
+     *
+     * @param {string} name - the annotation name
+     * @return {any|undefined} the annotation value, or `undefined` if the
+     *         annotation is not present
+     */
+    getNaturalLanguageAnnotation(name : string) : any|undefined {
+        if (Object.prototype.hasOwnProperty.call(this.nl_annotations, name))
+            return this.nl_annotations[name];
+        else
+            return undefined;
+    }
+
+    visit(visitor : NodeVisitor) : void {
+        visitor.enter(this);
+        visitor.visitEntityDef(this);
+        visitor.exit(this);
     }
 }

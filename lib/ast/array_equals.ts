@@ -1,8 +1,9 @@
+
 // -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
-// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2019-2020 The Board of Trustees of the Leland Stanford Junior University
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,16 +16,21 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
+// Author: Silei Xu <silei@cs.stanford.edu>
 
-import { Invocation, DeviceSelector } from './invocation';
-
-export function isRemoteReceive(fn : Invocation) : boolean {
-    return (fn.selector instanceof DeviceSelector &&
-        (fn.selector.kind === 'org.thingpedia.builtin.thingengine.remote' || fn.selector.kind.startsWith('__dyn_'))
-        && fn.channel === 'receive');
+interface EqualsComparable {
+    equals(x : unknown) : boolean;
 }
-export function isRemoteSend(fn : Invocation) : boolean {
-    return (fn.selector instanceof DeviceSelector &&
-        (fn.selector.kind === 'org.thingpedia.builtin.thingengine.remote' || fn.selector.kind.startsWith('__dyn_'))
-        && fn.channel === 'send');
+
+export default function arrayEquals<T extends EqualsComparable>(a1 : T[], a2 : T[]) : boolean {
+    if (a1 === a2)
+        return true;
+    if (a1.length !== a2.length)
+        return false;
+    for (let i = 0; i < a1.length; i++) {
+        if (!a1[i].equals(a2[i]))
+            return false;
+    }
+    return true;
 }
