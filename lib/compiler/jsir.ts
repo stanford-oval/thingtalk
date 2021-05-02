@@ -419,37 +419,19 @@ class UnaryOp {
     }
 }
 
-class UnaryMethodOp {
+class MethodOp {
     private _obj : Register;
-    private _v : Register;
+    private _args : Register[];
     private _op : string;
 
-    constructor(obj : Register, v : Register, op : string) {
+    constructor(obj : Register, op : string, ...args : Register[]) {
         this._obj = obj;
-        this._v = v;
+        this._args = args;
         this._op = op;
     }
 
     codegen(prefix : string) : string {
-        return `${prefix}_t_${this._obj}.${this._op}(_t_${this._v});`;
-    }
-}
-
-class BinaryMethodOp {
-    private _obj : Register;
-    private _a : Register;
-    private _b : Register;
-    private _op : string;
-
-    constructor(obj : Register, a : Register, b : Register, op : string) {
-        this._obj = obj;
-        this._a = a;
-        this._b = b;
-        this._op = op;
-    }
-
-    codegen(prefix : string) : string {
-        return `${prefix}_t_${this._obj}.${this._op}(_t_${this._a}, _t_${this._b});`;
+        return `${prefix}_t_${this._obj}.${this._op}(${this._args.map((a) => '_t_' + a).join(', ')});`;
     }
 }
 
@@ -1170,8 +1152,7 @@ export {
     BinaryFunctionOp,
     BinaryOp,
     UnaryOp,
-    UnaryMethodOp,
-    BinaryMethodOp,
+    MethodOp,
     VoidFunctionOp,
     FunctionOp,
     MapAndReadField,
