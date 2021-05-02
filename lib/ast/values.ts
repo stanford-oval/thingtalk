@@ -25,7 +25,7 @@ import Type, { TypeMap, EntityType, MeasureType, ArrayType } from '../type';
 import { normalizeDate } from '../utils/date_utils';
 import AstNode from './base';
 import NodeVisitor from './visitor';
-import { BooleanExpression } from './expression';
+import { BooleanExpression } from './boolean_expression';
 import type { ArgumentDef } from './function_def';
 
 import {

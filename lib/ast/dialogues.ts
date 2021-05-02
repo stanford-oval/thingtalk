@@ -21,10 +21,11 @@
 import assert from 'assert';
 
 import AstNode, { SourceRange } from './base';
-import { Input, ExpressionStatement } from './program';
+import { Input } from './program';
+import { ExpressionStatement } from './statement';
 import * as Optimizer from '../optimize';
 import TypeChecker from '../typecheck';
-import { DeviceSelector, Invocation } from './expression';
+import { DeviceSelector, Invocation } from './invocation';
 import { Value, NumberValue } from './values';
 import { FunctionDef } from './function_def';
 import NodeVisitor from './visitor';
