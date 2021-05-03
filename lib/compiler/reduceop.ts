@@ -61,7 +61,8 @@ function setScopeFromResult(currentScope : Scope,
             tt_type: currentScopeObj.tt_type,
             register: value,
             direction: currentScopeObj.direction,
-            isInVarScopeNames: currentScopeObj.isInVarScopeNames
+            isInVarScopeNames: currentScopeObj.isInVarScopeNames,
+            isPersistent: false
         });
 
         if (currentScopeObj.tt_type instanceof CompoundType) {
@@ -112,7 +113,7 @@ abstract class AggregationOp<StateType> extends ReduceOp<StateType> {
         const newOutputType = irBuilder.allocRegister();
         const keyword = irBuilder.allocRegister();
         irBuilder.add(new JSIr.LoadConstant(new Ast.Value.String(this.operator), keyword));
-        irBuilder.add(new JSIr.BinaryFunctionOp(keyword, getRegister('$outputType', currentScope), 'aggregateOutputType', newOutputType));
+        irBuilder.add(new JSIr.BinaryFunctionOp(keyword, getRegister(irBuilder, '$outputType', currentScope), 'aggregateOutputType', newOutputType));
 
         const newTuple = irBuilder.allocRegister();
         irBuilder.add(new JSIr.CreateObject(newTuple));
@@ -127,6 +128,7 @@ abstract class AggregationOp<StateType> extends ReduceOp<StateType> {
             direction: 'output',
             register: value,
             isInVarScopeNames: true,
+            isPersistent: false
         });
         newScope.set('$outputType', {
             type: 'scalar',
@@ -134,6 +136,7 @@ abstract class AggregationOp<StateType> extends ReduceOp<StateType> {
             direction: 'special',
             register: newOutputType,
             isInVarScopeNames: false,
+            isPersistent: false
         });
         newScope.set('$output', {
             type: 'scalar',
@@ -141,6 +144,7 @@ abstract class AggregationOp<StateType> extends ReduceOp<StateType> {
             direction: 'special',
             register: newTuple,
             isInVarScopeNames: false,
+            isPersistent: false
         });
         return [newScope, [this.field]];
     }
@@ -198,7 +202,7 @@ export class CountDistinct extends AggregationOp<JSIr.Register> {
     advance(set : JSIr.Register,
             irBuilder : JSIr.IRBuilder,
             currentScope : Scope) {
-        irBuilder.add(new JSIr.MethodOp(set, 'add', getRegister('$output', currentScope)));
+        irBuilder.add(new JSIr.MethodOp(set, 'add', getRegister(irBuilder, '$output', currentScope)));
     }
 
     protected compute(set : JSIr.Register, irBuilder : JSIr.IRBuilder) {
@@ -231,7 +235,7 @@ export class Average extends AggregationOp<{ count : JSIr.Register, sum : JSIr.R
     advance({ count, sum } : { count : JSIr.Register, sum : JSIr.Register },
             irBuilder : JSIr.IRBuilder,
             currentScope : Scope) {
-        const field = getRegister(this.field, currentScope);
+        const field = getRegister(irBuilder, this.field, currentScope);
         const one = irBuilder.allocRegister();
         irBuilder.add(new JSIr.LoadConstant(new Ast.Value.Number(1), one));
         irBuilder.add(new JSIr.BinaryOp(count, one, '+', count));
@@ -269,7 +273,7 @@ export class SimpleAggregation extends AggregationOp<JSIr.Register> {
     advance(value : JSIr.Register,
             irBuilder : JSIr.IRBuilder,
             currentScope : Scope) {
-        const field = getRegister(this.field, currentScope);
+        const field = getRegister(irBuilder, this.field, currentScope);
         irBuilder.add(new JSIr.BinaryFunctionOp(value, field, this.operator, value));
     }
 
@@ -310,7 +314,7 @@ export class SimpleArgMinMax extends ReduceOp<SimpleArgMinMaxState> {
             irBuilder : JSIr.IRBuilder,
             currentScope : Scope,
             varScopeNames : string[]) : void {
-        const newValue = getRegister(this.field, currentScope);
+        const newValue = getRegister(irBuilder, this.field, currentScope);
         const comp = this.operator === 'argmax' ? '<' : '>';
 
         const isBetter = irBuilder.allocRegister();
@@ -321,8 +325,8 @@ export class SimpleArgMinMax extends ReduceOp<SimpleArgMinMaxState> {
         irBuilder.pushBlock(ifStmt.iftrue);
 
         irBuilder.add(new JSIr.Copy(newValue, previousValue));
-        irBuilder.add(new JSIr.Copy(getRegister('$output', currentScope), tuple));
-        irBuilder.add(new JSIr.Copy(getRegister('$outputType', currentScope), outputType));
+        irBuilder.add(new JSIr.Copy(getRegister(irBuilder, '$output', currentScope), tuple));
+        irBuilder.add(new JSIr.Copy(getRegister(irBuilder, '$outputType', currentScope), outputType));
         irBuilder.add(new JSIr.LoadConstant(new Ast.Value.Boolean(true), anyResult));
 
         irBuilder.popBlock();
@@ -338,14 +342,16 @@ export class SimpleArgMinMax extends ReduceOp<SimpleArgMinMaxState> {
             tt_type: null,
             register: outputType,
             direction: 'special',
-            isInVarScopeNames: false
+            isInVarScopeNames: false,
+            isPersistent: false
         });
         newScope.set('$output', {
             type: 'scalar',
             tt_type: null,
             register: tuple,
             direction: 'special',
-            isInVarScopeNames: false
+            isInVarScopeNames: false,
+            isPersistent: false
         });
 
         const ifStmt = new JSIr.IfStatement(anyResult);
@@ -395,7 +401,7 @@ export class ComplexArgMinMax extends ReduceOp<JSIr.Register> {
             varScopeNames : string[],
             compiler : OpCompiler) : void {
         const field = compiler.compileValue(this.field, currentScope);
-        irBuilder.add(new JSIr.MethodOp(state, 'update', getRegister('$output', currentScope), getRegister('$outputType', currentScope), field));
+        irBuilder.add(new JSIr.MethodOp(state, 'update', getRegister(irBuilder, '$output', currentScope), getRegister(irBuilder, '$outputType', currentScope), field));
     }
 
     finish(state : JSIr.Register,
@@ -420,14 +426,16 @@ export class ComplexArgMinMax extends ReduceOp<JSIr.Register> {
             tt_type: null,
             register: outputType,
             direction: 'special',
-            isInVarScopeNames: false
+            isInVarScopeNames: false,
+            isPersistent: false
         });
         newScope.set('$output', {
             type: 'scalar',
             tt_type: null,
             register: result,
             direction: 'special',
-            isInVarScopeNames: false
+            isInVarScopeNames: false,
+            isPersistent: false
         });
 
         setScopeFromResult(currentScope, newScope, result, irBuilder);
@@ -512,8 +520,8 @@ abstract class ArrayReduceOp<StateType extends ArrayReduceState> extends ReduceO
             compiler : OpCompiler) : void {
         const resultAndTypeTuple = irBuilder.allocRegister();
         irBuilder.add(new JSIr.CreateTuple(2, resultAndTypeTuple));
-        irBuilder.add(new JSIr.SetIndex(resultAndTypeTuple, 0, getRegister('$output', currentScope)));
-        irBuilder.add(new JSIr.SetIndex(resultAndTypeTuple, 1, getRegister('$outputType', currentScope)));
+        irBuilder.add(new JSIr.SetIndex(resultAndTypeTuple, 0, getRegister(irBuilder, '$output', currentScope)));
+        irBuilder.add(new JSIr.SetIndex(resultAndTypeTuple, 1, getRegister(irBuilder, '$outputType', currentScope)));
 
         irBuilder.add(new JSIr.MethodOp(array, 'push', resultAndTypeTuple));
     }
@@ -544,14 +552,16 @@ abstract class ArrayReduceOp<StateType extends ArrayReduceState> extends ReduceO
             tt_type: null,
             register: outputType,
             direction: 'special',
-            isInVarScopeNames: false
+            isInVarScopeNames: false,
+            isPersistent: false
         });
         newScope.set('$output', {
             type: 'scalar',
             tt_type: null,
             register: result,
             direction: 'special',
-            isInVarScopeNames: false
+            isInVarScopeNames: false,
+            isPersistent: false
         });
 
         setScopeFromResult(currentScope, newScope, result, irBuilder);
@@ -613,8 +623,8 @@ export class ComplexSort extends ArrayReduceOp<ArrayReduceState> {
 
         const resultAndTypeTuple = irBuilder.allocRegister();
         irBuilder.add(new JSIr.CreateTuple(3, resultAndTypeTuple));
-        irBuilder.add(new JSIr.SetIndex(resultAndTypeTuple, 0, getRegister('$output', currentScope)));
-        irBuilder.add(new JSIr.SetIndex(resultAndTypeTuple, 1, getRegister('$outputType', currentScope)));
+        irBuilder.add(new JSIr.SetIndex(resultAndTypeTuple, 0, getRegister(irBuilder, '$output', currentScope)));
+        irBuilder.add(new JSIr.SetIndex(resultAndTypeTuple, 1, getRegister(irBuilder, '$outputType', currentScope)));
         irBuilder.add(new JSIr.SetIndex(resultAndTypeTuple, 2, sortKey));
 
         irBuilder.add(new JSIr.MethodOp(array, 'push', resultAndTypeTuple));

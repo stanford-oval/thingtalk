@@ -19,7 +19,6 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 {
-import assert from 'assert';
 import * as Ast from '../ast';
 import Type, { TypeMap } from '../type';
 import { KEYWORDS, FORBIDDEN_KEYWORDS } from './keywords';
@@ -47,7 +46,6 @@ function makeInput($ : $runtime.ParserInterface, statements : Ast.TopLevelStatem
         } else if (stmt instanceof Ast.FunctionDeclaration) {
             declarations.push(stmt);
         } else {
-            assert(stmt instanceof Ast.ExpressionStatement || stmt instanceof Ast.Assignment);
             executable.push(stmt);
         }
     }
@@ -503,6 +501,8 @@ toplevel_statement : Ast.TopLevelStatement = {
     udf_declaration;
     expr:expression_statement ';' => expr;
     assignment;
+    ask_statement;
+    say_statement;
 }
 
 statement : Ast.FunctionDeclaration|Ast.ExecutableStatement = {
@@ -510,11 +510,26 @@ statement : Ast.FunctionDeclaration|Ast.ExecutableStatement = {
     expr:expression_statement ';' => expr;
     assignment;
     'return' expr:chain_expression ';' => new Ast.ReturnStatement(null, expr);
+    ask_statement;
+    say_statement;
 }
 
 assignment : Ast.Assignment = {
-    'let' name:variable_name '=' expr:chain_expression ';'
-        => new Ast.Assignment($.location, name, expr, null);
+    'let' name:IDENTIFIER '=' expr:chain_expression ';'
+        => new Ast.Assignment($.location, name.value, expr, null);
+}
+
+ask_statement : Ast.AskStatement = {
+    'let' name:IDENTIFIER '=' '$ask' '(' type:type_ref ',' question:QUOTED_STRING ')' ';'
+        => new Ast.AskStatement($.location, name.value, type, question.value);
+
+    'let' name:IDENTIFIER '=' '$ask' '(' type:type_ref ')' ';'
+        => new Ast.AskStatement($.location, name.value, type, null);
+}
+
+say_statement : Ast.SayStatement = {
+    '$say' '(' message:QUOTED_STRING ')' ';'
+        => new Ast.SayStatement($.location, message.value);
 }
 
 class_specifier : boolean = {

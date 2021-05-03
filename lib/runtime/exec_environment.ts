@@ -29,7 +29,7 @@ type CompiledParams = { [key : string] : unknown };
 
 type CompiledFilterHint = [string, string, unknown];
 
-interface CompiledQueryHints {
+export interface CompiledQueryHints {
     filter ?: CompiledFilterHint[];
     sort ?: [string, 'asc' | 'desc'];
     projection ?: string[];
@@ -140,6 +140,14 @@ export default abstract class ExecEnvironment {
     output(outputType : string, output : PlainObject) : Promise<void> {
         throw new Error('Must be overridden');
     }
+    /* istanbul ignore next */
+    ask(name : string, type : string, question : string|null) : Promise<unknown> {
+        throw new Error('Must be overridden');
+    }
+    /* istanbul ignore next */
+    say(message : string) : Promise<void> {
+        throw new Error('Must be overridden');
+    }
 
     /* istanbul ignore next */
     readState(stateId : number) : Promise<unknown> {
@@ -153,7 +161,7 @@ export default abstract class ExecEnvironment {
     reportError(message : string, err : Error) : Promise<void> {
         throw new Error('Must be overridden');
     }
-
+    /* istanbul ignore next */
     formatEvent(outputType : string, output : PlainObject, hint : string) : Promise<string> {
         throw new Error('Must be overridden');
     }

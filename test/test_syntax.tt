@@ -1952,3 +1952,23 @@ $dialogue @org.thingpedia.dialogue.transaction.sys_choose_device("bedroom lights
 // ** expect TypeError **
 $dialogue @org.thingpedia.dialogue.transaction.sys_invalid(5 + 3);
 @light-bulb.set_power(power=enum on);
+
+====
+
+// Ask & Say
+let status = $ask(String, "what would you like to post?");
+@com.twitter.post(status=status);
+$say("i posted it for you");
+
+====
+
+// Ask 2
+let status = $ask(String); // no question specified
+@com.twitter.post(status=status);
+
+====
+
+// Bad Ask
+// ** expect TypeError **
+let status = $ask(Number);
+@com.twitter.post(status=status);

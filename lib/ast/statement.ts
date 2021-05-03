@@ -21,7 +21,7 @@
 
 import assert from 'assert';
 
-import { TypeMap } from '../type';
+import Type, { TypeMap } from '../type';
 import Node, {
     SourceRange,
     NLAnnotationMap,
@@ -54,8 +54,9 @@ import TypeChecker from '../typecheck';
 import SchemaRetriever from '../schema';
 import * as Optimizer from '../optimize';
 
-import { TokenStream } from '../new-syntax/tokenstream';
+import { AnyConstantToken, ConstantToken, TokenStream } from '../new-syntax/tokenstream';
 import List from '../utils/list';
+import { UnserializableError } from '../utils/errors';
 
 /**
  * The base class of all AST nodes that represent complete ThingTalk
@@ -264,8 +265,6 @@ export class FunctionDeclaration extends Statement {
 }
 
 /**
- * `let result` statements, that assign the value of a ThingTalk expression to a name.
- *
  * Assignment statements are executable statements that evaluate the ThingTalk expression
  * and assign the result to the name, which becomes available for later use in the program.
  *
@@ -692,9 +691,78 @@ export class ReturnStatement extends Statement {
     }
 }
 
-export type ExecutableStatement = Assignment | ExpressionStatement | ReturnStatement;
+/**
+ * A statement that asks the user for a specific value.
+ *
+ * This is similar to an assignment statement, but it returns a scalar value, not a table.
+ */
+export class AskStatement extends Statement {
+    constructor(location : SourceRange|null,
+                public name : string,
+                public type : Type,
+                public question : string|null) {
+        super(location);
+    }
+
+    *iterateSlots() {
+    }
+    *iterateSlots2() {
+    }
+    clone() : AskStatement {
+        return new AskStatement(this.location, this.name, this.type, this.question);
+    }
+    visit(visitor : NodeVisitor) : void {
+        visitor.enter(this);
+        visitor.visitAskStatement(this);
+        visitor.exit(this);
+    }
+    toSource() : TokenStream {
+        if (this.question) {
+            return List.concat('let', this.name, '=', '$ask', '(',
+                this.type.toSource(), ',', new ConstantToken("QUOTED_STRING", this.question), ')', ';');
+        } else {
+            return List.concat('let', this.name, '=', '$ask', '(', this.type.toSource(), ')', ';');
+        }
+    }
+
+    toLegacy() : never {
+        throw new UnserializableError('AskStatement');
+    }
+}
+
+/**
+ * A statement that says something to the user.
+ */
+ export class SayStatement extends Statement {
+    constructor(location : SourceRange|null,
+                public message : string) {
+        super(location);
+    }
+
+    *iterateSlots() {
+    }
+    *iterateSlots2() {
+    }
+    clone() : SayStatement {
+        return new SayStatement(this.location, this.message);
+    }
+    visit(visitor : NodeVisitor) : void {
+        visitor.enter(this);
+        visitor.visitSayStatement(this);
+        visitor.exit(this);
+    }
+    toSource() : TokenStream {
+        return List.concat<string | AnyConstantToken>('$say', '(', new ConstantToken("QUOTED_STRING", this.message), ')', ';');
+    }
+
+    toLegacy() : never {
+        throw new UnserializableError('SayStatement');
+    }
+}
+
+export type ExecutableStatement = Assignment | ExpressionStatement | ReturnStatement | AskStatement | SayStatement;
 export type TopLevelStatement = ClassDef | Dataset | FunctionDeclaration | TopLevelExecutableStatement;
-export type TopLevelExecutableStatement = Assignment | ExpressionStatement;
+export type TopLevelExecutableStatement = Assignment | ExpressionStatement | AskStatement | SayStatement;
 
 /**
  * A single example (primitive template) in a ThingTalk dataset

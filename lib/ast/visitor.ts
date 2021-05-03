@@ -469,6 +469,14 @@ export default abstract class NodeVisitor {
         return true;
     }
     /* istanbul ignore next */
+    visitAskStatement(node : Stmt.AskStatement) {
+        return true;
+    }
+    /* istanbul ignore next */
+    visitSayStatement(node : Stmt.SayStatement) {
+        return true;
+    }
+    /* istanbul ignore next */
     visitDataset(node : Stmt.Dataset) : boolean {
         return true;
     }

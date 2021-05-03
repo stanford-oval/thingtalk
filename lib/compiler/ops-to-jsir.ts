@@ -156,6 +156,7 @@ export default class OpCompiler {
                 tt_type: elementtype,
                 direction: 'output',
                 isInVarScopeNames: false,
+                isPersistent: false
             });
         }
 
@@ -207,7 +208,7 @@ export default class OpCompiler {
         if (ast instanceof Ast.EventValue)
             return compileEvent(this._irBuilder, scope, ast.name as EventType);
         if (ast instanceof Ast.VarRefValue)
-            return getRegister(ast.name, scope);
+            return getRegister(this._irBuilder, ast.name, scope);
 
         if (ast instanceof Ast.ComputationValue)
             return this._compileScalarExpression(ast, scope);
@@ -327,14 +328,16 @@ export default class OpCompiler {
             tt_type: null,
             direction: 'special',
             register: outputType,
-            isInVarScopeNames: false
+            isInVarScopeNames: false,
+            isPersistent: false
         });
         this._currentScope.set('$output', {
             type: 'scalar',
             tt_type: null,
             direction: 'special',
             register: result,
-            isInVarScopeNames: false
+            isInVarScopeNames: false,
+            isPersistent: false
         });
 
         for (const arg in argmap) {
@@ -343,7 +346,8 @@ export default class OpCompiler {
                 tt_type: schema.inReq[arg] || schema.inOpt[arg],
                 register: argmap[arg],
                 direction: 'input',
-                isInVarScopeNames: false
+                isInVarScopeNames: false,
+                isPersistent: false
             });
             // note: input parameters && __result do not participate in varScopeNames (which is used to
             // compare tuples for equality in monitor())
@@ -422,14 +426,16 @@ export default class OpCompiler {
             tt_type: null,
             register: outputType,
             direction: 'special',
-            isInVarScopeNames: false
+            isInVarScopeNames: false,
+            isPersistent: false
         });
         this._currentScope.set('$output', {
             type: 'scalar',
             tt_type: null,
             register: result,
             direction: 'special',
-            isInVarScopeNames: false
+            isInVarScopeNames: false,
+            isPersistent: false
         });
     }
 
@@ -460,14 +466,16 @@ export default class OpCompiler {
             tt_type: null,
             register: outputType,
             direction: 'special',
-            isInVarScopeNames: false
+            isInVarScopeNames: false,
+            isPersistent: false
         });
         this._currentScope.set('$output', {
             type: 'scalar',
             tt_type: null,
             register: result,
             direction: 'special',
-            isInVarScopeNames: false
+            isInVarScopeNames: false,
+            isPersistent: false
         });
     }
 
@@ -576,7 +584,6 @@ export default class OpCompiler {
 
     private _compileInvokeTableVarRef(tableop : TableOp.InvokeVarRef) {
         const decl = this._currentScope.get(tableop.name);
-        assert(decl.type !== 'scalar');
 
         if (decl.type === 'declaration' || decl.type === 'procedure') {
             const tryCatch = new JSIr.TryCatch("Failed to invoke query");
@@ -586,6 +593,7 @@ export default class OpCompiler {
             this._compileInvokeGenericVarRef(tableop);
         } else {
             // assignment
+            assert(decl.type === 'assignment');
 
             let list;
             if (decl.isPersistent) {
@@ -612,11 +620,11 @@ export default class OpCompiler {
     }
 
     private _compileInvokeOutput() {
-        this._irBuilder.add(new JSIr.InvokeOutput(getRegister('$outputType', this._currentScope), getRegister('$output', this._currentScope)));
+        this._irBuilder.add(new JSIr.InvokeOutput(getRegister(this._irBuilder, '$outputType', this._currentScope), getRegister(this._irBuilder, '$output', this._currentScope)));
     }
 
     private _compileInvokeEmit() {
-        this._irBuilder.add(new JSIr.InvokeEmit(getRegister('$outputType', this._currentScope), getRegister('$output', this._currentScope)));
+        this._irBuilder.add(new JSIr.InvokeEmit(getRegister(this._irBuilder, '$outputType', this._currentScope), getRegister(this._irBuilder, '$output', this._currentScope)));
     }
 
     private _compileInvokeAction(action : ActionOp.InvokeDo) {
@@ -767,7 +775,8 @@ export default class OpCompiler {
             tt_type: null,
             register: newOutput,
             direction: 'special',
-            isInVarScopeNames: false
+            isInVarScopeNames: false,
+            isPersistent: false
         });
 
         this._currentScope = newScope;
@@ -778,7 +787,7 @@ export default class OpCompiler {
         const computeresult = this.compileValue(compute.expression, this._currentScope);
         const type = compute.expression.getType();
 
-        this._irBuilder.add(new JSIr.SetKey(getRegister('$output', this._currentScope),
+        this._irBuilder.add(new JSIr.SetKey(getRegister(this._irBuilder, '$output', this._currentScope),
             compute.alias, computeresult));
 
         this._currentScope.set(compute.alias, {
@@ -786,7 +795,8 @@ export default class OpCompiler {
             register: computeresult,
             tt_type: type,
             direction: 'output',
-            isInVarScopeNames: false
+            isInVarScopeNames: false,
+            isPersistent: false
         });
     }
 
@@ -835,11 +845,11 @@ export default class OpCompiler {
         this._compileStream(streamop.stream);
 
         const isNewTuple = this._irBuilder.allocRegister();
-        this._irBuilder.add(new JSIr.CheckIsNewTuple(isNewTuple, state, getRegister('$output', this._currentScope),
+        this._irBuilder.add(new JSIr.CheckIsNewTuple(isNewTuple, state, getRegister(this._irBuilder, '$output', this._currentScope),
                             this._varScopeNames));
 
         const newState = this._irBuilder.allocRegister();
-        this._irBuilder.add(new JSIr.AddTupleToState(newState, state, getRegister('$output', this._currentScope)));
+        this._irBuilder.add(new JSIr.AddTupleToState(newState, state, getRegister(this._irBuilder, '$output', this._currentScope)));
 
         this._irBuilder.add(new JSIr.InvokeWriteState(newState, stateId));
         this._irBuilder.add(new JSIr.Copy(newState, state));
@@ -890,8 +900,8 @@ export default class OpCompiler {
     }
 
     private _mergeResults(lhsScope : Scope, rhsScope : Scope) : [JSIr.Register, JSIr.Register] {
-        const lhsOutputType = getRegister('$outputType', lhsScope);
-        const rhsOutputType = getRegister('$outputType', rhsScope);
+        const lhsOutputType = getRegister(this._irBuilder, '$outputType', lhsScope);
+        const rhsOutputType = getRegister(this._irBuilder, '$outputType', rhsScope);
 
         const newOutputType = this._irBuilder.allocRegister();
         this._irBuilder.add(new JSIr.BinaryFunctionOp(lhsOutputType, rhsOutputType, 'combineOutputTypes', newOutputType));
@@ -902,12 +912,12 @@ export default class OpCompiler {
         for (const outParam of rhsScope.ownKeys()) {
             if (outParam.startsWith('$'))
                 continue;
-            this._irBuilder.add(new JSIr.SetKey(newResult, outParam, getRegister(outParam, rhsScope)));
+            this._irBuilder.add(new JSIr.SetKey(newResult, outParam, getRegister(this._irBuilder, outParam, rhsScope)));
         }
         for (const outParam of lhsScope.ownKeys()) {
             if (outParam.startsWith('$') || rhsScope.hasOwnKey(outParam))
                 continue;
-            this._irBuilder.add(new JSIr.SetKey(newResult, outParam, getRegister(outParam, lhsScope)));
+            this._irBuilder.add(new JSIr.SetKey(newResult, outParam, getRegister(this._irBuilder, outParam, lhsScope)));
         }
 
         return [newOutputType, newResult];
@@ -921,14 +931,16 @@ export default class OpCompiler {
             tt_type: null,
             register: outputType,
             direction: 'special',
-            isInVarScopeNames: false
+            isInVarScopeNames: false,
+            isPersistent: false
         });
         this._currentScope.set('$output', {
             type: 'scalar',
             tt_type: null,
             register: result,
             direction: 'special',
-            isInVarScopeNames: false
+            isInVarScopeNames: false,
+            isPersistent: false
         });
         this._varScopeNames = [];
 
@@ -945,7 +957,8 @@ export default class OpCompiler {
                 tt_type: currentScopeObj.tt_type,
                 direction: currentScopeObj.direction,
                 register: reg,
-                isInVarScopeNames: currentScopeObj.isInVarScopeNames
+                isInVarScopeNames: currentScopeObj.isInVarScopeNames,
+                isPersistent: false
             });
             if (currentScopeObj.isInVarScopeNames)
                 this._varScopeNames.push(outParam);
@@ -964,7 +977,8 @@ export default class OpCompiler {
                 tt_type: currentScopeObj.tt_type,
                 direction: currentScopeObj.direction,
                 register: reg,
-                isInVarScopeNames: currentScopeObj.isInVarScopeNames
+                isInVarScopeNames: currentScopeObj.isInVarScopeNames,
+                isPersistent: false
             });
             if (currentScopeObj.isInVarScopeNames)
                 this._varScopeNames.push(outParam);
@@ -981,7 +995,7 @@ export default class OpCompiler {
         let upto = this._irBuilder.pushBlock(lhsbody.body);
 
         this._compileStream(streamop.lhs);
-        this._irBuilder.add(new JSIr.InvokeEmit(getRegister('$outputType', this._currentScope), getRegister('$output', this._currentScope)));
+        this._irBuilder.add(new JSIr.InvokeEmit(getRegister(this._irBuilder, '$outputType', this._currentScope), getRegister(this._irBuilder, '$output', this._currentScope)));
 
         const lhsScope = this._currentScope;
         this._irBuilder.popTo(upto);
@@ -993,7 +1007,7 @@ export default class OpCompiler {
         upto = this._irBuilder.pushBlock(rhsbody.body);
 
         this._compileStream(streamop.rhs);
-        this._irBuilder.add(new JSIr.InvokeEmit(getRegister('$outputType', this._currentScope), getRegister('$output', this._currentScope)));
+        this._irBuilder.add(new JSIr.InvokeEmit(getRegister(this._irBuilder, '$outputType', this._currentScope), getRegister(this._irBuilder, '$output', this._currentScope)));
 
         const rhsScope = this._currentScope;
         this._irBuilder.popTo(upto);
@@ -1032,7 +1046,7 @@ export default class OpCompiler {
         this._compileStream(streamop.stream);
 
         const timestamp = this._irBuilder.allocRegister();
-        this._irBuilder.add(new JSIr.GetKey(getRegister('$output', this._currentScope), '__timestamp', timestamp));
+        this._irBuilder.add(new JSIr.GetKey(getRegister(this._irBuilder, '$output', this._currentScope), '__timestamp', timestamp));
 
         const isOldTimestamp = this._irBuilder.allocRegister();
         this._irBuilder.add(new JSIr.BinaryOp(timestamp, state, '<=', isOldTimestamp));
@@ -1090,7 +1104,7 @@ export default class OpCompiler {
         let upto = this._irBuilder.pushBlock(lhsbody.body);
 
         this._compileTable(tableop.lhs);
-        this._irBuilder.add(new JSIr.InvokeEmit(getRegister('$outputType', this._currentScope), getRegister('$output', this._currentScope)));
+        this._irBuilder.add(new JSIr.InvokeEmit(getRegister(this._irBuilder, '$outputType', this._currentScope), getRegister(this._irBuilder, '$output', this._currentScope)));
 
         const lhsScope = this._currentScope;
         this._irBuilder.popTo(upto);
@@ -1102,7 +1116,7 @@ export default class OpCompiler {
         upto = this._irBuilder.pushBlock(rhsbody.body);
 
         this._compileTable(tableop.rhs);
-        this._irBuilder.add(new JSIr.InvokeEmit(getRegister('$outputType', this._currentScope), getRegister('$output', this._currentScope)));
+        this._irBuilder.add(new JSIr.InvokeEmit(getRegister(this._irBuilder, '$outputType', this._currentScope), getRegister(this._irBuilder, '$output', this._currentScope)));
 
         const rhsScope = this._currentScope;
         this._irBuilder.popTo(upto);
@@ -1228,14 +1242,14 @@ export default class OpCompiler {
 
     compileStreamDeclaration(streamop : StreamOp) : void {
         this._compileStream(streamop);
-        this._irBuilder.add(new JSIr.InvokeEmit(getRegister('$outputType', this._currentScope), getRegister('$output', this._currentScope)));
+        this._irBuilder.add(new JSIr.InvokeEmit(getRegister(this._irBuilder, '$outputType', this._currentScope), getRegister(this._irBuilder, '$output', this._currentScope)));
 
         this._irBuilder.popAll();
     }
 
     compileQueryDeclaration(tableop : TableOp) : void {
         this._compileTable(tableop);
-        this._irBuilder.add(new JSIr.InvokeEmit(getRegister('$outputType', this._currentScope), getRegister('$output', this._currentScope)));
+        this._irBuilder.add(new JSIr.InvokeEmit(getRegister(this._irBuilder, '$outputType', this._currentScope), getRegister(this._irBuilder, '$output', this._currentScope)));
 
         this._irBuilder.popAll();
     }
@@ -1265,8 +1279,8 @@ export default class OpCompiler {
         if (hasResult) {
             const resultAndTypeTuple = this._irBuilder.allocRegister();
             this._irBuilder.add(new JSIr.CreateTuple(2, resultAndTypeTuple));
-            this._irBuilder.add(new JSIr.SetIndex(resultAndTypeTuple, 0, getRegister('$outputType', this._currentScope)));
-            this._irBuilder.add(new JSIr.SetIndex(resultAndTypeTuple, 1, getRegister('$output', this._currentScope)));
+            this._irBuilder.add(new JSIr.SetIndex(resultAndTypeTuple, 0, getRegister(this._irBuilder, '$outputType', this._currentScope)));
+            this._irBuilder.add(new JSIr.SetIndex(resultAndTypeTuple, 1, getRegister(this._irBuilder, '$output', this._currentScope)));
 
             this._irBuilder.add(new JSIr.MethodOp(register, 'push', resultAndTypeTuple));
         }
@@ -1290,8 +1304,8 @@ export default class OpCompiler {
         this._compileTable(tableop);
         const resultAndTypeTuple = this._irBuilder.allocRegister();
         this._irBuilder.add(new JSIr.CreateTuple(2, resultAndTypeTuple));
-        this._irBuilder.add(new JSIr.SetIndex(resultAndTypeTuple, 0, getRegister('$outputType', this._currentScope)));
-        this._irBuilder.add(new JSIr.SetIndex(resultAndTypeTuple, 1, getRegister('$output', this._currentScope)));
+        this._irBuilder.add(new JSIr.SetIndex(resultAndTypeTuple, 0, getRegister(this._irBuilder, '$outputType', this._currentScope)));
+        this._irBuilder.add(new JSIr.SetIndex(resultAndTypeTuple, 1, getRegister(this._irBuilder, '$output', this._currentScope)));
 
         this._irBuilder.add(new JSIr.MethodOp(register, 'push', resultAndTypeTuple));
 

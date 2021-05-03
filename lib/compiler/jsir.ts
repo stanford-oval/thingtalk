@@ -23,6 +23,7 @@ import * as Builtin from '../builtin';
 import * as Ast from '../ast';
 import { stringEscape } from '../utils/escaping';
 import type ExecEnvironment from '../runtime/exec_environment';
+import Type from '../type';
 
 // A register-based IR for ThingTalk to JS
 // Typed like ThingTalk
@@ -710,6 +711,36 @@ class InvokeWriteState {
     }
 }
 
+class InvokeSay {
+    private _message : string;
+
+    constructor(message : string) {
+        this._message = message;
+    }
+
+    codegen(prefix : string) {
+        return `${prefix}await __env.say(${stringEscape(this._message)});`;
+    }
+}
+
+class InvokeAsk {
+    private _into : Register;
+    private _name : string;
+    private _type : Type;
+    private _question : string|null;
+
+    constructor(into : Register, name : string, type : Type, question : string|null) {
+        this._into = into;
+        this._name = name;
+        this._type = type;
+        this._question = question;
+    }
+
+    codegen(prefix : string) {
+        return `${prefix}_t_${this._into} = await __env.ask(${stringEscape(this._name)}, ${stringEscape(String(this._type))}, ${this._question ? stringEscape(this._question) : 'null'});`;
+    }
+}
+
 class CheckIsNewTuple {
     private _into : Register;
     private _state : Register;
@@ -1171,6 +1202,8 @@ export {
     InvokeReadState,
     InvokeWriteState,
     InvokeEmit,
+    InvokeAsk,
+    InvokeSay,
     CheckIsNewTuple,
     AddTupleToState,
     LabeledLoop,

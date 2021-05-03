@@ -28,8 +28,9 @@ export interface RegisterScopeEntry {
     type : 'scalar';
     register : Register;
     tt_type : Type|null;
-    direction : 'input'|'output'|'special';
+    direction : 'input'|'output'|'global'|'special';
     isInVarScopeNames : boolean;
+    isPersistent : boolean;
 }
 export interface DeclarationScopeEntry {
     type : 'declaration';

@@ -200,6 +200,8 @@ export const DOLLAR_KEYWORDS = new Set<string>([
     '$stop',
     '$help',
     '$wakeup',
+    '$say',
+    '$ask',
 
     // special values
     '$end_of',

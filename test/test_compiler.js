@@ -10400,6 +10400,31 @@ p_recip();`,
   } finally {
     await __env.exitProcedure(2, null);
   }`]],
+
+    // 110 ask & say
+    [`let status = $ask(String, "what would you like to post?");
+    @com.twitter.post(status=status);
+    $say("i posted it for you");`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  await __env.enterProcedure(0, null);
+  try {
+    _t_0 = await __env.ask("status", "String", "what would you like to post?");
+    __env.clearGetCache();
+    try {
+      _t_1 = {};
+      _t_1.status = _t_0;
+      await __builtin.drainAction(__env.invokeAction("com.twitter", { }, "post", _t_1));
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke action", _exc_);
+    }
+    __env.clearGetCache();
+    await __env.say("i posted it for you");
+  } finally {
+    await __env.exitProcedure(0, null);
+  }`]]
+
 ];
 
 // eslint-disable-next-line prefer-arrow-callback

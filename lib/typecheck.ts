@@ -52,23 +52,23 @@ function log(message : string) : void {
 
 class Scope {
     private _parentScope : Scope|null;
-    private _globalScope : { [key : string] : Ast.FunctionDef };
-    private _lambda_args : TypeMap;
-    private _scope : TypeMap;
+    // _explicitScope contains all the names that were explicitly declared by the developer
+    // while _scope contains all the names that are implicitly in scope as output parameters
+    private _explicitScope : Record<string, Ast.FunctionDef|Type>;
+    private _scope : Record<string, Ast.FunctionDef|Type>;
     $has_event : boolean;
     $has_source : boolean;
 
     constructor(parentScope : Scope|null = null) {
         this._parentScope = parentScope;
-        this._globalScope = {};
+        this._explicitScope = {};
         this._scope = {};
-        this._lambda_args = {};
         this.$has_event = false;
         this.$has_source = false;
     }
 
     has(name : string) : boolean {
-        const here = name in this._scope || name in this._lambda_args || name in this._globalScope;
+        const here = name in this._scope || name in this._explicitScope;
         if (here)
             return true;
         if (this._parentScope)
@@ -76,44 +76,30 @@ class Scope {
         return false;
     }
 
-    addLambdaArgs(args : TypeMap) : void {
+    add(name : string, signature : Ast.FunctionDef|Type, explicit = false) : void {
+        if (explicit) {
+            if (name in this._explicitScope)
+                throw new TypeError(name + ' was already declared');
+            this._explicitScope[name] = signature;
+        } else {
+            this._scope[name] = signature;
+        }
+    }
+    addAll(args : TypeMap, explicit = false) : void {
         for (const name in args)
-            this._lambda_args[name] = args[name];
-    }
-
-    add(name : string, type : Type) : void {
-        this._scope[name] = type;
-    }
-    addAll(args : TypeMap) : void {
-        for (const name in args)
-            this._scope[name] = args[name];
-    }
-
-    addGlobal(name : string, schema : Ast.FunctionDef) : void {
-        if (name in this._globalScope)
-            throw new TypeError(name + ' is already declared');
-        this._globalScope[name] = schema;
+            this.add(name, args[name], explicit);
     }
 
     remove(name : string) : void {
         delete this._scope[name];
     }
 
-    merge(scope : Scope) : void {
-        Object.assign(this._scope, scope._scope);
-    }
-
-    clean() : void {
-        this._scope = {};
-        this.$has_event = false;
-        this._lambda_args = {};
-    }
-
     clone() : Scope {
         const newself = new Scope(this._parentScope);
         Object.assign(newself._scope, this._scope);
+        Object.assign(newself._explicitScope, this._explicitScope);
         newself.$has_event = this.$has_event;
-        Object.assign(newself._lambda_args, this._lambda_args);
+        newself.$has_source = this.$has_source;
         return newself;
     }
 
@@ -122,7 +108,7 @@ class Scope {
     }
 
     prefix(prefix : string) : void {
-        const new_scope : TypeMap = {};
+        const new_scope : Record<string, Ast.FunctionDef|Type> = {};
         for (const name in this._scope) {
             new_scope[name] = this._scope[name];
             new_scope[prefix + '.' + name] = this._scope[name];
@@ -131,7 +117,7 @@ class Scope {
     }
 
     get(name : string) : Type|Ast.FunctionDef|undefined {
-        let v : Type|Ast.FunctionDef|undefined = this._scope[name] || this._lambda_args[name] || this._globalScope[name];
+        let v : Type|Ast.FunctionDef|undefined = this._scope[name] || this._explicitScope[name];
         if (!v && this._parentScope)
             v = this._parentScope.get(name);
         return v;
@@ -293,8 +279,7 @@ export default class TypeChecker {
                 return value.getType();
 
             const type = scope.get(value.name);
-
-            if (!type || !(type instanceof Type))
+            if (!(type instanceof Type))
                 throw new TypeError('Variable ' + value.name + ' is not in scope');
             value.type = type;
             return type;
@@ -413,7 +398,7 @@ export default class TypeChecker {
 
     private _typeCheckFilter(ast : Ast.BooleanExpression,
                              schema : Ast.FunctionDef|null,
-                             scope : Scope = new Scope()) {
+                             scope : Scope) {
         log('Type check filter ...');
         if (schema && schema.no_filter)
             throw new TypeError('Filter is not allowed on a query that has been filtered on a parameter marked as unique');
@@ -423,7 +408,7 @@ export default class TypeChecker {
 
     private async _typeCheckFilterHelper(ast : Ast.BooleanExpression,
                                          schema : Ast.FunctionDef|null,
-                                         scope : Scope = new Scope()) {
+                                         scope : Scope) {
         if (ast.isTrue || ast.isFalse)
             return;
         if (ast instanceof Ast.AndBooleanExpression || ast instanceof Ast.OrBooleanExpression) {
@@ -724,7 +709,7 @@ export default class TypeChecker {
 
             const dupes = new Set;
 
-            const attrscope = scope ? scope.clone() : new Scope;
+            const attrscope = scope.clone();
             attrscope.cleanOutput();
             for (const attr of ast.selector.attributes) {
                 if (dupes.has(attr.name))
@@ -811,7 +796,7 @@ export default class TypeChecker {
             await this._typeCheckExpression(ast.expression, scope);
             this._checkExpressionType(ast.expression, ['query', 'stream'], 'alias');
             ast.schema = ast.expression.schema;
-            scope.addGlobal(ast.name, ast.schema!);
+            scope.add(ast.name, ast.schema!);
             scope.prefix(ast.name);
         } else if (ast instanceof Ast.AggregationExpression) {
             await this._typeCheckExpression(ast.expression, scope);
@@ -1123,7 +1108,7 @@ export default class TypeChecker {
     private async _typeCheckDeclarationCommon(ast : Ast.Example|Ast.FunctionDeclaration,
                                               scope : Scope) {
         this._typeCheckDeclarationArgs(ast.args);
-        scope.addLambdaArgs(ast.args);
+        scope.addAll(ast.args, true);
         await this._loadAllSchemas(ast);
     }
 
@@ -1157,6 +1142,10 @@ export default class TypeChecker {
                     throw new TypeError(`Streams are not allowed in return statements`);
                 anyAction = anyAction || stmt.expression.schema!.functionType === 'action';
                 returnExpression = stmt.expression;
+            } else if (stmt instanceof Ast.SayStatement) {
+                // nothing to do, the statement always typechecks
+            } else if (stmt instanceof Ast.AskStatement) {
+                nestedScope.add(stmt.name, stmt.type, true);
             } else {
                 await this._typeCheckExpressionStatement(stmt, new Scope(nestedScope));
 
@@ -1195,7 +1184,7 @@ export default class TypeChecker {
             { nl: ast.nl_annotations, impl: ast.impl_annotations });
 
         ast.schema = schema;
-        scope.addGlobal(ast.name, schema);
+        scope.add(ast.name, schema, true);
     }
 
     async typeCheckExample(ast : Ast.Example) : Promise<void> {
@@ -1272,7 +1261,7 @@ export default class TypeChecker {
         const args = Array.from(schema.iterateArguments()).filter((a) => !a.is_input);
         ast.schema = new Ast.FunctionDef(ast.location, 'query', null, ast.name, [],
             { is_list: schema.is_list, is_monitorable: false }, args, {});
-        scope.addGlobal(ast.name, ast.schema);
+        scope.add(ast.name, ast.schema, true);
     }
 
     private async _typeCheckExpressionStatement(ast : Ast.ExpressionStatement,
@@ -1317,17 +1306,17 @@ export default class TypeChecker {
 
         for (const klass of ast.classes)
             await this.typeCheckClass(klass, false);
-        for (const decl of ast.declarations) {
-            scope.clean();
+        for (const decl of ast.declarations)
             await this._typeCheckDeclaration(decl, scope);
-        }
 
-        for (const decl of ast.statements) {
-            scope.clean();
-            if (decl instanceof Ast.Assignment)
-                await this._typeCheckAssignment(decl, scope);
-            else
-                await this._typeCheckExpressionStatement(decl, scope);
+        for (const stmt of ast.statements) {
+            if (stmt instanceof Ast.Assignment)
+                await this._typeCheckAssignment(stmt, scope);
+            else if (stmt instanceof Ast.AskStatement)
+                scope.add(stmt.name, stmt.type, true);
+            else if (stmt instanceof Ast.ExpressionStatement)
+                await this._typeCheckExpressionStatement(stmt, scope);
+            // nothing to do for SayStatement
         }
     }
 

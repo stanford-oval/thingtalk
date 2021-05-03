@@ -27,10 +27,18 @@ import Type, { EntityType, CompoundType } from '../type';
 import * as JSIr from './jsir';
 import Scope from './scope';
 
-function getRegister(name : string, scope : Scope) : JSIr.Register {
+function getRegister(irBuilder : JSIr.IRBuilder, name : string, scope : Scope) : JSIr.Register {
     const decl = scope.get(name);
     assert(decl.type === 'scalar');
-    return decl.register;
+    if (decl.isPersistent) {
+        const register = irBuilder.allocRegister();
+        const state = decl.register;
+        assert(state !== null);
+        irBuilder.add(new JSIr.InvokeReadState(register, state));
+        return register;
+    } else {
+        return decl.register;
+    }
 }
 
 export type EventType = 'type' | 'program_id' | 'title' | 'body' | null;
@@ -38,14 +46,14 @@ export type EventType = 'type' | 'program_id' | 'title' | 'body' | null;
 function compileEvent(irBuilder : JSIr.IRBuilder, scope : Scope, name : EventType) : JSIr.Register {
     let reg;
     if (name === 'type') {
-        return getRegister('$outputType', scope);
+        return getRegister(irBuilder, '$outputType', scope);
     } else if (name === 'program_id') {
         reg = irBuilder.allocRegister();
         irBuilder.add(new JSIr.GetEnvironment('program_id', reg));
     } else {
         const hint = name ? 'string-' + name : 'string';
         reg = irBuilder.allocRegister();
-        irBuilder.add(new JSIr.FormatEvent(hint, getRegister('$outputType', scope), getRegister('$output', scope), reg));
+        irBuilder.add(new JSIr.FormatEvent(hint, getRegister(irBuilder, '$outputType', scope), getRegister(irBuilder, '$output', scope), reg));
     }
     return reg;
 }
@@ -136,7 +144,8 @@ function readResultKey(irBuilder : JSIr.IRBuilder,
         tt_type: type,
         register: reg,
         direction: 'output',
-        isInVarScopeNames
+        isInVarScopeNames,
+        isPersistent: false
     });
 
     if (type instanceof CompoundType) {
@@ -173,14 +182,16 @@ function readScopeVariables(irBuilder : JSIr.IRBuilder,
         tt_type: null,
         register: outputType,
         direction: 'special',
-        isInVarScopeNames: false
+        isInVarScopeNames: false,
+        isPersistent: false
     });
     newScope.set('$output', {
         type: 'scalar',
         tt_type: null,
         register: resultReg,
         direction: 'special',
-        isInVarScopeNames: false
+        isInVarScopeNames: false,
+        isPersistent: false
     });
 
     for (const name of currentScope.ownKeys()) {
