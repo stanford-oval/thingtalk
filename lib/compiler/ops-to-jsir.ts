@@ -22,7 +22,7 @@ import assert from 'assert';
 
 import * as Ast from '../ast';
 import Type, { ArrayType, CompoundType } from '../type';
-import * as Builtin from '../builtin/defs';
+import * as Builtin from '../operators';
 
 import * as JSIr from './jsir';
 import {

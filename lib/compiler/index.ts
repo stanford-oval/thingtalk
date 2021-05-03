@@ -30,29 +30,11 @@ import { QueryInvocationHints } from './ops';
 import { getDefaultProjection } from './utils';
 import OpCompiler from './ops-to-jsir';
 import Scope from './scope';
-import type ExecEnvironment from '../runtime/exec_environment';
+import {
+    CompiledProgram,
+    CompiledStatement
+ } from '../runtime/exec_environment';
 import type SchemaRetriever from '../schema';
-
-export interface CompiledStatement {
-    (env : ExecEnvironment) : Promise<void>;
-}
-
-export class CompiledProgram {
-    hasTrigger : boolean;
-    states : number;
-    command : CompiledStatement|string|null;
-    rules : Array<CompiledStatement|string>;
-
-    constructor(states : number,
-                command : CompiledStatement|string|null,
-                rules : Array<CompiledStatement|string>) {
-        this.hasTrigger = rules.length > 0;
-
-        this.states = states;
-        this.command = command;
-        this.rules = rules;
-    }
-}
 
 type TopLevelScope = {
     [key : string] : CompiledStatement|string
@@ -226,12 +208,13 @@ export default class AppCompiler {
             opCompiler.compileStatement(ruleop);
     }
 
-    private _compileRule(rule : Ast.Rule|Ast.Command) : string|CompiledStatement {
+    private _compileRule(rule : Ast.Rule|Ast.Command) : CompiledStatement {
         // each rule goes into its own JS function
         const irBuilder = new JSIr.IRBuilder();
         this._doCompileStatement(rule, irBuilder, false, false);
 
-        return this._testMode ? irBuilder.codegen() : irBuilder.compile(this._toplevelscope, this._astVars);
+        return this._testMode ? irBuilder.codegen() as unknown as CompiledStatement
+            : irBuilder.compile(this._toplevelscope, this._astVars);
     }
 
     private _compileInScope(declarations : Ast.FunctionDeclaration[],
@@ -313,7 +296,7 @@ export default class AppCompiler {
         await program.typecheck(this._schemaRetriever);
         this._verifyCompilable(program);
 
-        const compiledRules : Array<string|CompiledStatement> = [];
+        const compiledRules : CompiledStatement[] = [];
         const immediate : Array<Ast.Assignment|Ast.ExpressionStatement> = [];
         const rules : Ast.ExpressionStatement[] = [];
 
@@ -331,8 +314,10 @@ export default class AppCompiler {
         });
         let compiledCommand;
         if (commandIRBuilder !== null) {
+            // HACK: in test mode, we compile a string instead of a function
+            // we use an unsound cast to avoid exposing this in the compiler public API
             if (this._testMode)
-                compiledCommand = commandIRBuilder.codegen();
+                compiledCommand = commandIRBuilder.codegen() as unknown as CompiledStatement;
             else
                 compiledCommand = commandIRBuilder.compile(this._toplevelscope, this._astVars);
         } else {

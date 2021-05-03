@@ -23,8 +23,8 @@ import * as smt from 'smtlib';
 
 import * as Ast from './ast';
 import Type, { EnumType, EntityType, ArrayType } from './type';
-import * as BuiltinDefs from './builtin/defs';
-import * as BuiltinOps from './builtin/primitive_ops';
+import * as BuiltinDefs from './operators';
+import * as BuiltinOps from './runtime/primitive_ops';
 import SchemaRetriever from './schema';
 import { flipOperator } from './utils';
 

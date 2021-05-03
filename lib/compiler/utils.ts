@@ -19,7 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
-import * as Builtin from '../builtin/defs';
+import * as Builtin from '../operators';
 import NodeVisitor from '../ast/visitor';
 import * as Ast from '../ast';
 import Type, { EntityType, CompoundType } from '../type';

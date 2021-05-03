@@ -21,14 +21,19 @@
 import * as Units from 'thingtalk-units';
 
 import * as Ast from './ast';
-import Compiler, { CompiledProgram } from './compiler';
+import Compiler from './compiler';
+export * from './compiler';
 import * as Syntax from './syntax_api';
-import ExecEnvironment from './runtime/exec_environment';
+import { ExecEnvironment } from './runtime/exec_environment';
+import * as Runtime from './runtime/exec_environment';
 import Type from './type';
 import SchemaRetriever from './schema';
+export * from './schema';
 import PermissionChecker from './permission_checker';
 import * as Helper from './helper';
-import * as Builtin from './builtin';
+import * as Builtin from './runtime/builtins';
+import { Location, Entity, Time } from './runtime/values';
+import * as Operators from './operators';
 
 /**
  * Version information
@@ -42,15 +47,23 @@ export {
     // AST definitions
     Ast,
     Type,
+    SchemaRetriever,
 
     // Syntax support
     Syntax,
 
     // Compiler and runtime
     Compiler,
-    CompiledProgram,
+    Runtime,
     ExecEnvironment,
-    SchemaRetriever,
+    Builtin,
+
+    // Value Types, exposed so that Thingpedia can reexpose them to device impls
+    // (to create values of the appropriate types)
+    // these are obsolete aliases for the same in the Builtin namespace
+    Location,
+    Entity,
+    Time,
 
     // Policy support
     PermissionChecker,
@@ -60,11 +73,5 @@ export {
 
     // Misc
     Units,
-
-    Builtin
+    Operators
 };
-// Value Types, exposed so that Thingpedia can reexpose them to device impls
-// (to create values of the appropriate types)
-export const Location = Builtin.Location;
-export const Entity = Builtin.Entity;
-export const Time = Builtin.Time;

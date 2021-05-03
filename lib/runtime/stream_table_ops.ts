@@ -23,8 +23,7 @@ import AsyncQueue from 'consumer-queue';
 
 import { combineOutputTypes } from './output_type_ops';
 import { equality } from './primitive_ops';
-
-import type ExecEnvironment from '../runtime/exec_environment';
+import type { ExecEnvironment } from './exec_environment';
 
 // Library helpers used by the compiled TT code
 

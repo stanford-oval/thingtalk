@@ -38,7 +38,7 @@ import Type, {
     UnknownType
 } from './type';
 import * as Utils from './utils';
-import * as Builtin from './builtin/defs';
+import * as Builtin from './operators';
 import type SchemaRetriever from './schema';
 
 const ALLOWED_PRINCIPAL_TYPES = new Set([

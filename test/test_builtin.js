@@ -18,7 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import * as Builtin from '../lib/builtin';
+import * as Builtin from '../lib/runtime/builtins';
 
 function sleep(timeout) {
     return new Promise((resolve, reject) => {
