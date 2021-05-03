@@ -351,10 +351,12 @@ export class ArgMinMaxState<T> {
                 for (let j = last; j > i; j--) {
                     this._tuples[j] = this._tuples[j-1];
                     this._outputTypes[j] = this._outputTypes[j-1];
+                    this._values[j] = this._values[j-1];
                 }
 
                 this._tuples[i] = tuple;
                 this._outputTypes[i] = outputType;
+                this._values[i] = value;
                 return;
             }
         }
@@ -362,6 +364,7 @@ export class ArgMinMaxState<T> {
         if (this._filled < this._total) {
             this._tuples[this._filled] = tuple;
             this._outputTypes[this._filled] = outputType;
+            this._values[this._filled] = value;
             this._filled ++;
         }
     }
