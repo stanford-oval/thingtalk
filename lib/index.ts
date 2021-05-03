@@ -21,9 +21,11 @@
 import * as Units from 'thingtalk-units';
 
 import * as Ast from './ast';
-import Compiler, { CompiledProgram } from './compiler';
+import Compiler from './compiler';
+export * from './compiler';
 import * as Syntax from './syntax_api';
 import ExecEnvironment from './runtime/exec_environment';
+export * from './runtime/exec_environment';
 import Type from './type';
 import SchemaRetriever from './schema';
 import PermissionChecker from './permission_checker';
@@ -48,7 +50,6 @@ export {
 
     // Compiler and runtime
     Compiler,
-    CompiledProgram,
     ExecEnvironment,
     SchemaRetriever,
 
