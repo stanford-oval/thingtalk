@@ -127,8 +127,8 @@ export abstract class AbstractEntityRetriever {
      *   of throwing an exception.
      * @return the list of tokens making up this entity.
      */
-    abstract findEntity(entityType : string, value : AnyEntity, options : { ignoreNotFound : true }) : List<string>|null;
-    abstract findEntity(entityType : string, value : AnyEntity, options ?: { ignoreNotFound ?: false }) : List<string>;
+    abstract findEntity(entityType : string, value : AnyEntity, options : { ignoreNotFound : true, includeEntityValue ?: boolean }) : List<string>|null;
+    abstract findEntity(entityType : string, value : AnyEntity, options ?: { ignoreNotFound ?: false, includeEntityValue ?: boolean }) : List<string>;
 }
 
 /**
@@ -213,7 +213,8 @@ export class EntityRetriever extends AbstractEntityRetriever {
     private  _findStringLikeEntity(entityType : string,
                                    entity : AnyEntity,
                                    entityString : string,
-                                   ignoreNotFound : boolean) : List<string>|undefined {
+                                   ignoreNotFound : boolean,
+                                   includeEntityValue : boolean) : List<string>|undefined {
         if (entityType === 'DATE') {
             const dateStr = (entity as Date).toISOString();
             if (this._sentenceContains([dateStr]))
@@ -249,10 +250,13 @@ export class EntityRetriever extends AbstractEntityRetriever {
                     else
                         return List.concat('"', ...found, '"', '^^' + entityType.substring('GENERIC_ENTITY_'.length));
                 } else {
-                    if (entityType === 'LOCATION')
+                    if (entityType === 'LOCATION') {
                         return List.concat('new', 'Location', '(', '"', ...found, '"', ')');
-                    else
-                        return List.concat('null', '^^' + entityType.substring('GENERIC_ENTITY_'.length), '(', '"', ...found, '"', ')');
+                    } else {
+                        const genericEntity = entity as GenericEntity;
+                        const entityId = includeEntityValue && genericEntity.value ? [ '"', ...genericEntity.value.split(' '), '"'] : ['null'];
+                        return List.concat(...entityId, '^^' + entityType.substring('GENERIC_ENTITY_'.length), '(', '"', ...found, '"', ')');
+                    } 
                 }
             }
         }
@@ -292,16 +296,16 @@ export class EntityRetriever extends AbstractEntityRetriever {
         return undefined;
     }
 
-    findEntity(entityType : string, entity : AnyEntity, options : { ignoreNotFound : true }) : List<string>|null;
-    findEntity(entityType : string, entity : AnyEntity, options ?: { ignoreNotFound ?: false }) : List<string>;
-    findEntity(entityType : string, entity : AnyEntity, { ignoreNotFound = false } = {}) : List<string>|null {
+    findEntity(entityType : string, entity : AnyEntity, options : { ignoreNotFound : true, includeEntityValue ?: boolean }) : List<string>|null;
+    findEntity(entityType : string, entity : AnyEntity, options ?: { ignoreNotFound ?: false, includeEntityValue ?: boolean }) : List<string>;
+    findEntity(entityType : string, entity : AnyEntity, { ignoreNotFound = false, includeEntityValue = false } = {}) : List<string>|null {
         const entityString = entityToString(entityType, entity);
 
         // try in the sentence before we look in the bag of entities (which comes from the context)
         // this is so that we predict
         // " foo " ^^tt:whatever
         // if the sentence contains "foo", regardless of whether GENERIC_ENTITY_tt:whatever_0 is "foo" or not
-        let found = this._findStringLikeEntity(entityType, entity, entityString, true);
+        let found = this._findStringLikeEntity(entityType, entity, entityString, true, includeEntityValue);
         if (found)
             return found;
 
@@ -316,12 +320,14 @@ export class EntityRetriever extends AbstractEntityRetriever {
             const genericEntity = entity as GenericEntity;
             if (genericEntity.display) {
                 found = this._findEntityInBag('QUOTED_STRING', genericEntity.display, this.entities);
-                if (found)
-                    return List.concat('null', '^^' + entityType.substring('GENERIC_ENTITY_'.length), '(', found, ')');
+                if (found) {
+                    const entityId = includeEntityValue && genericEntity.value ? ['"', genericEntity.value, '"'] : ['null'];
+                    return List.concat(...entityId, '^^' + entityType.substring('GENERIC_ENTITY_'.length), '(', found, ')');
+                }
             }
         }
 
-        found = this._findStringLikeEntity(entityType, entity, entityString, false);
+        found = this._findStringLikeEntity(entityType, entity, entityString, false, includeEntityValue);
         if (found)
             return found;
 
@@ -356,7 +362,7 @@ export class SequentialEntityAllocator extends AbstractEntityRetriever {
         }
     }
 
-    findEntity(entityType : string, entity : AnyEntity, { ignoreNotFound = false } = {}) : List<string> {
+    findEntity(entityType : string, entity : AnyEntity, { ignoreNotFound = false, includeEntityValue = false } = {}) : List<string> {
         if (this.explicitStrings &&
             (entityType === 'QUOTED_STRING' || entityType === 'HASHTAG' || entityType === 'USERNAME' ||
             entityType === 'LOCATION' || entityType.startsWith('GENERIC_ENTITY_'))) {
@@ -375,10 +381,13 @@ export class SequentialEntityAllocator extends AbstractEntityRetriever {
                 else
                     return List.concat('"', ...entityString, '"', '^^' + entityType.substring('GENERIC_ENTITY_'.length));
             } else {
-                if (entityType === 'LOCATION')
+                if (entityType === 'LOCATION') {
                     return List.concat('new', 'Location', '(', '"', ...entityString, '"', ')');
-                else
-                    return List.concat('null', '^^' + entityType.substring('GENERIC_ENTITY_'.length), '(', '"', ...entityString, '"', ')');
+                } else {
+                    const genericEntity = entity as GenericEntity;
+                    const entityId = includeEntityValue && genericEntity.value ? ['"', genericEntity.value, '"'] : ['null']; 
+                    return List.concat(...entityId, '^^' + entityType.substring('GENERIC_ENTITY_'.length), '(', '"', ...entityString, '"', ')');
+                }
             }
         }
 
