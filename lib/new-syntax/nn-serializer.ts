@@ -91,7 +91,7 @@ function findYear(year : number, entityRetriever : AbstractEntityRetriever) : Li
 
 function findEntity(constant : AnyConstantToken,
                     entityRetriever : AbstractEntityRetriever,
-                    options ?: { entityIdAnnotation ?: boolean }) : List<string> {
+                    options ?: { includeEntityValue ?: boolean }) : List<string> {
     switch (constant.name) {
     case 'QUOTED_STRING':
         if (constant.value === '')
@@ -189,7 +189,7 @@ function findEntity(constant : AnyConstantToken,
 
 export function nnSerialize(tokens : TokenStream,
                             entityRetriever : AbstractEntityRetriever,
-                            options ?: { entityIdAnnotation ?: boolean }) : string[] {
+                            options ?: { includeEntityValue ?: boolean }) : string[] {
     const output = [];
 
     for (const token of tokens) {

@@ -92,7 +92,7 @@ export function parse(code : string|string[], syntaxType : SyntaxType = SyntaxTy
 
 export interface SerializeOptions {
     typeAnnotations ?: boolean;
-    entityIdAnnotation ?: boolean;
+    includeEntityValue ?: boolean;
     compatibility ?: string;
 }
 
