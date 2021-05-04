@@ -22,7 +22,7 @@ import type * as Ast from '../ast';
 
 import { Register } from './jsir';
 import Type from '../type';
-import type { CompiledStatement } from './index';
+import type { CompiledStatement } from '../runtime/exec_environment';
 
 export interface RegisterScopeEntry {
     type : 'scalar';

@@ -1,3 +1,28 @@
+2.0.0-beta.1
+============
+
+* New syntax: return statements. These statements have the form:
+  ```
+  return <expression>;
+  ```
+  They allow to mark explicitly which statement should be the result
+  of a user-defined function [#326].
+* Added support for not preprocessing numbers, by looking up numbers
+  in the utterance during serialization to tokenized ThingTalk [#325].
+* Dialogue act parameters can now be arbitrary values instead of just
+  identifiers [#327].
+* Added `$ood;` (out-of-domain) control command to indicate a command
+  that is not representable in ThingTalk.
+* Added the ability to have conditionally required parameters, using
+  the `#[required_if]` annotation, which complements the existing
+  `#[require_either]` [#334].
+* Added the option to include entity values explicitly in tokenized
+  ThingTalk syntax [#345].
+* Misc bug fixes [#330, #331, #332].
+* Updated and improved documentation [#328].
+* Updated dependencies [#335, #336, #337, #338, #339, #340, #341,
+  #342, #343].
+
 2.0.0-alpha.5
 =============
 

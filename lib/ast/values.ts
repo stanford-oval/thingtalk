@@ -46,7 +46,7 @@ import {
     AnyEntity
 } from '../entities';
 
-import * as builtin from '../builtin/values';
+import * as builtin from '../runtime/values';
 
 export abstract class Location {
     static Absolute : typeof AbsoluteLocation;

@@ -18,13 +18,14 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import Type from '../type';
+import Type from './type';
 import {
     ArgDirection,
     FunctionDef,
     ArgumentDef
-} from '../ast/function_def';
-import { DateValue } from '../ast/values';
+} from './ast/function_def';
+import { DateValue } from './ast/values';
+import type * as Builtin from './runtime/builtins';
 
 // Definitions of ThingTalk operators
 
@@ -40,7 +41,7 @@ export interface OpImplementation {
     /**
      * A function in the {@link Builtin} namespace that implements this operator.
      */
-    fn ?: string;
+    fn ?: keyof typeof Builtin;
 
     /**
      * Invert the arguments of the JS function/operator compared to the ThingTalk operator.
@@ -48,7 +49,7 @@ export interface OpImplementation {
     flip ?: boolean;
 }
 
-type OverloadResolver = (...types : Type[]) => OpImplementation;
+export type OverloadResolver = (...types : Type[]) => OpImplementation;
 
 /**
  * Definition of a ThingTalk operator.
@@ -211,17 +212,11 @@ export const BinaryOps : { [op : string] : OpDefinition } = {
 
 /**
  * Definitions (type signatures) of ThingTalk unary operators.
- *
- * @package
  */
 export const UnaryOps : { [op : string] : OpDefinition } = {
     '!': {
         types: [[Type.Boolean, Type.Boolean]],
         op: '!'
-    },
-    'is_not_null': {
-        types: [[Type.Any, Type.Boolean]],
-        fn: 'is_not_null'
     },
     'get_time': {
         types: [[Type.Date, Type.Time]],
@@ -235,8 +230,6 @@ export const UnaryOps : { [op : string] : OpDefinition } = {
 
 /**
  * Definitions (type signatures) of ThingTalk scalar operators.
- *
- * @package
  */
 export const ScalarExpressionOps : { [op : string] : OpDefinition } = {
     '+': {
@@ -327,8 +320,6 @@ export const ScalarExpressionOps : { [op : string] : OpDefinition } = {
 
 /**
  * Definitions (type signatures) of ThingTalk aggregation operators.
- *
- * @package
  */
 export const Aggregations : { [op : string] : OpDefinition } = {
     'max': {

@@ -22,7 +22,7 @@ import assert from 'assert';
 
 import * as Ast from '../lib/ast';
 import Type from '../lib/type';
-import * as Builtin from '../lib/builtin';
+import * as Builtin from '../lib/runtime/builtins';
 
 const VALUE_TESTS = [
     [Type.Boolean, true],

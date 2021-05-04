@@ -19,10 +19,10 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
-import * as Builtin from '../builtin';
+import * as Builtin from '../runtime/builtins';
 import * as Ast from '../ast';
 import { stringEscape } from '../utils/escaping';
-import type ExecEnvironment from '../runtime/exec_environment';
+import type { ExecEnvironment } from '../runtime/exec_environment';
 import Type from '../type';
 
 // A register-based IR for ThingTalk to JS

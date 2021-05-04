@@ -11,7 +11,7 @@ all = \
 	lib/grammar.js \
 	test/test_sr_parser_generator.ts
 
-dist: lib lib/* lib/ast/* lib/builtin/* lib/compiler/* lib/nn-syntax/* lib/runtime/* $(all) tsconfig.json
+dist: lib lib/* lib/ast/* lib/compiler/* lib/nn-syntax/* lib/runtime/* $(all) tsconfig.json
 	tsc --build tsconfig.json
 	touch $@
 

@@ -21,13 +21,9 @@
 import assert from 'assert';
 
 import * as Ast from '../ast';
-import type * as builtin from '../builtin/values';
+import type * as builtin from './values';
 
-type PlainObject = { [key : string] : unknown };
-type CompiledDeviceAttributes = { [key : string] : string };
-type CompiledParams = { [key : string] : unknown };
-
-type CompiledFilterHint = [string, string, unknown];
+export type CompiledFilterHint = [string, string, unknown];
 
 export interface CompiledQueryHints {
     filter ?: CompiledFilterHint[];
@@ -36,12 +32,30 @@ export interface CompiledQueryHints {
     limit ?: number;
 }
 
-interface StreamValue {
+export interface StreamValue {
     [key : string] : unknown;
     __timestamp : number;
 }
 
-export default abstract class ExecEnvironment {
+export type CompiledStatement = (env : ExecEnvironment) => Promise<void>;
+export class CompiledProgram {
+    hasTrigger : boolean;
+    states : number;
+    command : CompiledStatement|null;
+    rules : CompiledStatement[];
+
+    constructor(states : number,
+                command : CompiledStatement|null,
+                rules : CompiledStatement[]) {
+        this.hasTrigger = rules.length > 0;
+
+        this.states = states;
+        this.command = command;
+        this.rules = rules;
+    }
+}
+
+export abstract class ExecEnvironment {
     // this is accessed from compiled ThingTalk code
     _scope : { [key : string] : any };
 
@@ -89,9 +103,9 @@ export default abstract class ExecEnvironment {
 
     /* istanbul ignore next */
     invokeMonitor(kind : string,
-                  attrs : CompiledDeviceAttributes,
+                  attrs : Record<string, string>,
                   fname : string,
-                  params : CompiledParams,
+                  params : Record<string, unknown>,
                   hints : CompiledQueryHints) : AsyncIterator<[string, StreamValue]> {
         throw new Error('Must be overridden');
     }
@@ -108,23 +122,23 @@ export default abstract class ExecEnvironment {
     }
     /* istanbul ignore next */
     invokeQuery(kind : string,
-                attrs : CompiledDeviceAttributes,
+                attrs : Record<string, string>,
                 fname : string,
-                params : CompiledParams,
-                hints : CompiledQueryHints) : AsyncIterable<[string, PlainObject]> {
+                params : Record<string, unknown>,
+                hints : CompiledQueryHints) : AsyncIterable<[string, Record<string, unknown>]> {
         throw new Error('Must be overridden');
     }
     /* istanbul ignore next */
     invokeDBQuery(kind : string,
-                  attrs : CompiledDeviceAttributes,
-                  query : Ast.Program) : AsyncIterable<[string, PlainObject]> {
+                  attrs : Record<string, string>,
+                  query : Ast.Program) : AsyncIterable<[string, Record<string, unknown>]> {
         throw new Error('Must be overridden');
     }
     /* istanbul ignore next */
     invokeAction(kind : string,
-                 attrs : CompiledDeviceAttributes,
+                 attrs : Record<string, string>,
                  fname : string,
-                 params : CompiledParams) : AsyncIterable<[string, PlainObject]> {
+                 params : Record<string, unknown>) : AsyncIterable<[string, Record<string, unknown>]> {
         throw new Error('Must be overridden');
     }
     /* istanbul ignore next */
@@ -137,7 +151,7 @@ export default abstract class ExecEnvironment {
         throw new Error('Must be overridden');
     }
     /* istanbul ignore next */
-    output(outputType : string, output : PlainObject) : Promise<void> {
+    output(outputType : string, output : Record<string, unknown>) : Promise<void> {
         throw new Error('Must be overridden');
     }
     /* istanbul ignore next */
@@ -161,8 +175,9 @@ export default abstract class ExecEnvironment {
     reportError(message : string, err : Error) : Promise<void> {
         throw new Error('Must be overridden');
     }
+
     /* istanbul ignore next */
-    formatEvent(outputType : string, output : PlainObject, hint : string) : Promise<string> {
+    formatEvent(outputType : string, output : Record<string, unknown>, hint : string) : Promise<string> {
         throw new Error('Must be overridden');
     }
 }

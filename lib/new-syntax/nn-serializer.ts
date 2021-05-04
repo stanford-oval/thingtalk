@@ -90,7 +90,8 @@ function findYear(year : number, entityRetriever : AbstractEntityRetriever) : Li
 }
 
 function findEntity(constant : AnyConstantToken,
-                    entityRetriever : AbstractEntityRetriever) : List<string> {
+                    entityRetriever : AbstractEntityRetriever,
+                    options ?: { includeEntityValue ?: boolean }) : List<string> {
     switch (constant.name) {
     case 'QUOTED_STRING':
         if (constant.value === '')
@@ -111,7 +112,7 @@ function findEntity(constant : AnyConstantToken,
             // remove "type" property from entity
             value: entity.value,
             display: entity.display
-        });
+        }, options);
     }
 
     case 'NUMBER':
@@ -187,7 +188,8 @@ function findEntity(constant : AnyConstantToken,
 }
 
 export function nnSerialize(tokens : TokenStream,
-                            entityRetriever : AbstractEntityRetriever) : string[] {
+                            entityRetriever : AbstractEntityRetriever,
+                            options ?: { includeEntityValue ?: boolean }) : string[] {
     const output = [];
 
     for (const token of tokens) {
@@ -210,7 +212,7 @@ export function nnSerialize(tokens : TokenStream,
 
             output.push(token);
         } else {
-            findEntity(token, entityRetriever).traverse((tok) => {
+            findEntity(token, entityRetriever, options).traverse((tok) => {
                 output.push(tok);
             });
         }

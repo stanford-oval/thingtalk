@@ -20,7 +20,7 @@
 
 import assert from 'assert';
 
-import * as Builtin from '../lib/builtin';
+import * as Builtin from '../lib/runtime/builtins';
 
 function testSort() {
     const array = [

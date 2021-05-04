@@ -24,8 +24,8 @@ import assert from 'assert';
 import Compiler from '../lib/compiler';
 import SchemaRetriever from '../lib/schema';
 
-import ExecEnvironment from '../lib/runtime/exec_environment';
-import * as builtin from '../lib/builtin/values';
+import { ExecEnvironment } from '../lib/runtime/exec_environment';
+import * as builtin from '../lib/runtime/values';
 
 import _mockSchemaDelegate from './mock_schema_delegate';
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
