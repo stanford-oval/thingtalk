@@ -1967,3 +1967,13 @@ $dialogue @org.thingpedia.dialogue.transaction.sys_invalid(5 + 3);
 
 // parameter passing a subtype to its ancestor
 @com.test.entitysubtype3.add(name="alice", stuff=null^^com.test.entitysubtype3:city("stanford"));
+
+====
+
+// yes no questions
+[contains(shares_border_with, "Q65"^^org.wikidata:city("los angeles"))] of (@org.wikidata.city(), id == "Q16739"^^org.wikidata:city("long beach"));
+
+====
+
+// yes no questions
+[popularity >= 0.5] of @com.spotify2.album();

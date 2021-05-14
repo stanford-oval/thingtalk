@@ -55,6 +55,7 @@ import {
 } from './syntax_priority';
 import arrayEquals from './array_equals';
 import { getScalarExpressionName } from '../utils';
+import { UnserializableError } from "../utils/errors";
 
 function primitiveArrayEquals<T>(a1 : T[]|null, a2 : T[]|null) : boolean {
     if (a1 === a2)
@@ -416,6 +417,69 @@ export class MonitorExpression extends Expression {
 
     *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         return yield* this.expression.iterateSlots2(scope);
+    }
+}
+
+export class BooleanQuestionExpression extends Expression {
+    expression : Expression;
+    booleanExpression : BooleanExpression;
+
+    constructor(location : SourceRange|null, 
+                expression : Expression,
+                booleanExpression : BooleanExpression,
+                schema : FunctionDef|null) {
+        super(location, schema);
+        this.expression = expression;
+        this.booleanExpression = booleanExpression;
+    }
+
+    get priority() : SyntaxPriority {
+        return SyntaxPriority.Projection;
+    }
+
+    toSource() : TokenStream {
+        return List.concat('[', this.booleanExpression.toSource(), ']', 'of',
+            addParenthesis(this.priority, this.expression.priority, this.expression.toSource()));
+    }
+
+    equals(other : Expression) : boolean {
+        return other instanceof BooleanQuestionExpression && 
+            this.expression.equals(other.expression) &&
+            this.booleanExpression.equals(other.booleanExpression);
+    }
+
+    visit(visitor : NodeVisitor) : void {
+        visitor.enter(this);
+        if (visitor.visitBooleanQuestionExpression(this)) {
+            this.expression.visit(visitor);
+            this.booleanExpression.visit(visitor);
+        }
+        visitor.exit(this);
+    }
+
+    toLegacy(into_params : InputParam[] = [], scope_params : string[] = []) : legacy.Table|legacy.Stream {
+        throw new UnserializableError('Boolean question expression');
+    }
+
+    clone() : BooleanQuestionExpression {
+        return new BooleanQuestionExpression(
+            this.location,
+            this.expression.clone(),
+            this.booleanExpression.clone(),
+            this.schema
+        );
+    }
+
+    *iterateSlots(scope : ScopeMap) : Generator<OldSlot, [InvocationLike|null, ScopeMap]> {
+        const [prim, newScope] = yield* this.expression.iterateSlots(scope);
+        yield* this.booleanExpression.iterateSlots(this.expression.schema, prim, newScope);
+        return [prim, newScope];
+    }
+
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+        const [prim, newScope] = yield* this.expression.iterateSlots2(scope);
+        yield* this.booleanExpression.iterateSlots2(this.expression.schema, prim, newScope);
+        return [prim, newScope];
     }
 }
 

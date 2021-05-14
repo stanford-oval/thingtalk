@@ -419,6 +419,10 @@ export default abstract class NodeVisitor {
         return true;
     }
     /* istanbul ignore next */
+    visitBooleanQuestionExpression(node : Exp2.BooleanQuestionExpression) : boolean {
+        return true;
+    }
+    /* istanbul ignore next */
     visitAliasExpression(node : Exp2.AliasExpression) : boolean {
         return true;
     }
