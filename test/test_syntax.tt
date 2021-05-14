@@ -1955,4 +1955,11 @@ $dialogue @org.thingpedia.dialogue.transaction.sys_invalid(5 + 3);
 
 ====
 
+// relaxed parameter passing for entities with shared subtypes
 @com.test.entitysubtype3.people() filter place_of_birth == any([highest_point] of @com.test.entitysubtype3.country());
+
+
+====
+
+// yes no questions
+[contains(shares_border_with, "Q65"^^org.wikidata:city("los angeles"))] of (@org.wikidata.city(), id == "Q16739"^^org.wikidata:city("long beach"));
