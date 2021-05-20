@@ -236,17 +236,23 @@ export function recurrentTimeSpecContains(spec : RecurrentTimeRule[],
     return contained;
 }
 
-export function contains(a : unknown[], b : unknown) : boolean {
+export function contains(a : unknown[]|null|undefined, b : unknown) : boolean {
+    if (a === null || a === undefined)
+        return false;
     return a.some((x) => equality(x, b));
 }
 
 // b is a substring of any element of a
-export function containsLike(a : unknown[], b : string) {
+export function containsLike(a : unknown[]|null|undefined, b : string) {
+    if (a === null || a === undefined)
+        return false;
     return a.some((x) => like(x, b));
 }
 
 // any element of b is a substring of a
-export function inArrayLike(a : string, b : string[]) {
+export function inArrayLike(a : string, b : string[]|null|undefined) {
+    if (b === null || b === undefined)
+        return false;
     return b.some((x) => like(a, x));
 }
 
