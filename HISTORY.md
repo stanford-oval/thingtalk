@@ -1,3 +1,12 @@
+2.0.0
+=====
+
+* Misc bug fixes [#348].
+* Updated dependencies [#346].
+
+Please see the previous release for the full list of changes in
+ThingTalk 2.0.
+
 2.0.0-beta.1
 ============
 
