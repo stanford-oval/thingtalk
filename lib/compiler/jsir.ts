@@ -23,6 +23,7 @@ import * as Builtin from '../runtime/builtins';
 import * as Ast from '../ast';
 import { stringEscape } from '../utils/escaping';
 import type { ExecEnvironment } from '../runtime/exec_environment';
+import Type from '../type';
 
 // A register-based IR for ThingTalk to JS
 // Typed like ThingTalk
@@ -419,37 +420,19 @@ class UnaryOp {
     }
 }
 
-class UnaryMethodOp {
+class MethodOp {
     private _obj : Register;
-    private _v : Register;
+    private _args : Register[];
     private _op : string;
 
-    constructor(obj : Register, v : Register, op : string) {
+    constructor(obj : Register, op : string, ...args : Register[]) {
         this._obj = obj;
-        this._v = v;
+        this._args = args;
         this._op = op;
     }
 
     codegen(prefix : string) : string {
-        return `${prefix}_t_${this._obj}.${this._op}(_t_${this._v});`;
-    }
-}
-
-class BinaryMethodOp {
-    private _obj : Register;
-    private _a : Register;
-    private _b : Register;
-    private _op : string;
-
-    constructor(obj : Register, a : Register, b : Register, op : string) {
-        this._obj = obj;
-        this._a = a;
-        this._b = b;
-        this._op = op;
-    }
-
-    codegen(prefix : string) : string {
-        return `${prefix}_t_${this._obj}.${this._op}(_t_${this._a}, _t_${this._b});`;
+        return `${prefix}_t_${this._obj}.${this._op}(${this._args.map((a) => '_t_' + a).join(', ')});`;
     }
 }
 
@@ -725,6 +708,36 @@ class InvokeWriteState {
 
     codegen(prefix : string) : string {
         return `${prefix}await __env.writeState(${this._stateId}, _t_${this._state});`;
+    }
+}
+
+class InvokeSay {
+    private _message : string;
+
+    constructor(message : string) {
+        this._message = message;
+    }
+
+    codegen(prefix : string) {
+        return `${prefix}await __env.say(${stringEscape(this._message)});`;
+    }
+}
+
+class InvokeAsk {
+    private _into : Register;
+    private _name : string;
+    private _type : Type;
+    private _question : string|null;
+
+    constructor(into : Register, name : string, type : Type, question : string|null) {
+        this._into = into;
+        this._name = name;
+        this._type = type;
+        this._question = question;
+    }
+
+    codegen(prefix : string) {
+        return `${prefix}_t_${this._into} = await __env.ask(${stringEscape(this._name)}, ${stringEscape(String(this._type))}, ${this._question ? stringEscape(this._question) : 'null'});`;
     }
 }
 
@@ -1170,8 +1183,7 @@ export {
     BinaryFunctionOp,
     BinaryOp,
     UnaryOp,
-    UnaryMethodOp,
-    BinaryMethodOp,
+    MethodOp,
     VoidFunctionOp,
     FunctionOp,
     MapAndReadField,
@@ -1190,6 +1202,8 @@ export {
     InvokeReadState,
     InvokeWriteState,
     InvokeEmit,
+    InvokeAsk,
+    InvokeSay,
     CheckIsNewTuple,
     AddTupleToState,
     LabeledLoop,

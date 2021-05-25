@@ -1635,6 +1635,7 @@ const TEST_CASES = [
   let _t_12;
   let _t_13;
   let _t_14;
+  let _t_15;
   _t_0 = await __env.readState(0);
   try {
     _t_1 = {};
@@ -1642,33 +1643,35 @@ const TEST_CASES = [
     _t_1.__flow = _t_2;
     _t_3 = new __builtin.Entity("mock-account:12345678", "me");
     _t_1.__principal = _t_3;
-    _t_4 = await __env.invokeMonitor("org.thingpedia.builtin.thingengine.remote", { }, "receive", _t_1, { projection: ["__kindChannel", "interval"] });
+    _t_4 = __env.program_id;
+    _t_1.__program_id = _t_4;
+    _t_5 = await __env.invokeMonitor("org.thingpedia.builtin.thingengine.remote", { }, "receive", _t_1, { projection: ["__kindChannel", "interval"] });
     {
-      let _iter_tmp = await _t_4.next();
+      let _iter_tmp = await _t_5.next();
       while (!_iter_tmp.done) {
-        _t_5 = _iter_tmp.value;
-        _t_6 = _t_5[0];
-        _t_7 = _t_5[1];
-        _t_8 = _t_7.__response;
-        _t_9 = _t_7.__kindChannel;
-        _t_10 = _t_7.interval;
-        _t_11 = __builtin.isNewTuple(_t_0, _t_7, ["__kindChannel", "interval"]);
-        _t_12 = __builtin.addTuple(_t_0, _t_7);
-        await __env.writeState(0, _t_12);
-        _t_0 = _t_12;
-        if (_t_11) {
+        _t_6 = _iter_tmp.value;
+        _t_7 = _t_6[0];
+        _t_8 = _t_6[1];
+        _t_9 = _t_8.__response;
+        _t_10 = _t_8.__kindChannel;
+        _t_11 = _t_8.interval;
+        _t_12 = __builtin.isNewTuple(_t_0, _t_8, ["__kindChannel", "interval"]);
+        _t_13 = __builtin.addTuple(_t_0, _t_8);
+        await __env.writeState(0, _t_13);
+        _t_0 = _t_13;
+        if (_t_12) {
           try {
-            _t_13 = {};
-            _t_14 = "on";
-            _t_13.power = _t_14;
-            await __builtin.drainAction(__env.invokeAction("security-camera", { }, "set_power", _t_13));
+            _t_14 = {};
+            _t_15 = "on";
+            _t_14.power = _t_15;
+            await __builtin.drainAction(__env.invokeAction("security-camera", { }, "set_power", _t_14));
           } catch(_exc_) {
             __env.reportError("Failed to invoke action", _exc_);
           }
         } else {
 
         }
-        _iter_tmp = await _t_4.next();
+        _iter_tmp = await _t_5.next();
       }
     }
   } catch(_exc_) {
@@ -3646,60 +3649,58 @@ const TEST_CASES = [
   let _t_34;
   let _t_35;
   let _t_36;
-  let _t_37;
   await __env.enterProcedure(0, null);
   try {
     _t_0 = 2;
     _t_1 = 1;
     _t_2 = __builtin.argmax;
-    _t_3 = "file_size";
-    _t_4 = new __builtin.ArgMinMaxState(_t_2, _t_3, _t_0, _t_1);
+    _t_3 = new __builtin.ArgMinMaxState(_t_2, _t_0, _t_1);
     try {
-      _t_5 = {};
-      _t_6 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_5, { projection: ["file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "file_size", "last_modified_by", "link"], sort: ["file_size", "desc"], limit: 2 });
-      _t_7 = __builtin.getAsyncIterator(_t_6);
+      _t_4 = {};
+      _t_5 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_4, { projection: ["file_id", "file_name", "mime_type", "description", "starred", "created_time", "modified_time", "file_size", "last_modified_by", "link"], sort: ["file_size", "desc"], limit: 2 });
+      _t_6 = __builtin.getAsyncIterator(_t_5);
       {
-        let _iter_tmp = await _t_7.next();
+        let _iter_tmp = await _t_6.next();
         while (!_iter_tmp.done) {
-          _t_8 = _iter_tmp.value;
-          _t_9 = _t_8[0];
-          _t_10 = _t_8[1];
-          _t_11 = _t_10.order_by;
-          _t_12 = _t_10.__response;
-          _t_13 = _t_10.file_id;
-          _t_14 = _t_10.file_name;
-          _t_15 = _t_10.mime_type;
-          _t_16 = _t_10.description;
-          _t_17 = _t_10.starred;
-          _t_18 = _t_10.created_time;
-          _t_19 = _t_10.modified_time;
-          _t_20 = _t_10.file_size;
-          _t_21 = _t_10.last_modified_by;
-          _t_22 = _t_10.link;
-          _t_4.update(_t_10, _t_9);
-          _iter_tmp = await _t_7.next();
+          _t_7 = _iter_tmp.value;
+          _t_8 = _t_7[0];
+          _t_9 = _t_7[1];
+          _t_10 = _t_9.order_by;
+          _t_11 = _t_9.__response;
+          _t_12 = _t_9.file_id;
+          _t_13 = _t_9.file_name;
+          _t_14 = _t_9.mime_type;
+          _t_15 = _t_9.description;
+          _t_16 = _t_9.starred;
+          _t_17 = _t_9.created_time;
+          _t_18 = _t_9.modified_time;
+          _t_19 = _t_9.file_size;
+          _t_20 = _t_9.last_modified_by;
+          _t_21 = _t_9.link;
+          _t_3.update(_t_9, _t_8, _t_19);
+          _iter_tmp = await _t_6.next();
         }
       }
     } catch(_exc_) {
       __env.reportError("Failed to invoke query", _exc_);
     }
-    for (_t_23 of _t_4) {
-      _t_24 = _t_23[0];
-      _t_25 = _t_23[1];
-      _t_26 = _t_25.order_by;
-      _t_27 = _t_25.__response;
-      _t_28 = _t_25.file_id;
-      _t_29 = _t_25.file_name;
-      _t_30 = _t_25.mime_type;
-      _t_31 = _t_25.description;
-      _t_32 = _t_25.starred;
-      _t_33 = _t_25.created_time;
-      _t_34 = _t_25.modified_time;
-      _t_35 = _t_25.file_size;
-      _t_36 = _t_25.last_modified_by;
-      _t_37 = _t_25.link;
+    for (_t_22 of _t_3) {
+      _t_23 = _t_22[0];
+      _t_24 = _t_22[1];
+      _t_25 = _t_24.order_by;
+      _t_26 = _t_24.__response;
+      _t_27 = _t_24.file_id;
+      _t_28 = _t_24.file_name;
+      _t_29 = _t_24.mime_type;
+      _t_30 = _t_24.description;
+      _t_31 = _t_24.starred;
+      _t_32 = _t_24.created_time;
+      _t_33 = _t_24.modified_time;
+      _t_34 = _t_24.file_size;
+      _t_35 = _t_24.last_modified_by;
+      _t_36 = _t_24.link;
       try {
-        await __env.output(String(_t_24), _t_25);
+        await __env.output(String(_t_23), _t_24);
       } catch(_exc_) {
         __env.reportError("Failed to invoke action", _exc_);
       }
@@ -4439,6 +4440,7 @@ const TEST_CASES = [
   try {
     try {
       _t_1 = {};
+      _t_1.query = _t_0;
       _t_2 = await __env.invokeQuery("com.bing", { }, "web_search", _t_1, { projection: ["title", "description", "link"] });
       _t_3 = __builtin.getAsyncIterator(_t_2);
       {
@@ -4958,6 +4960,7 @@ const TEST_CASES = [
   try {
     try {
       _t_1 = {};
+      _t_1.query = _t_0;
       _t_2 = await __env.invokeQuery("com.bing", { }, "web_search", _t_1, { projection: ["title", "description", "link"] });
       _t_3 = __builtin.getAsyncIterator(_t_2);
       {
@@ -5176,6 +5179,7 @@ const TEST_CASES = [
     _t_1 = new Array(0);
     try {
       _t_2 = {};
+      _t_2.query = _t_0;
       _t_3 = await __env.invokeQuery("com.bing", { }, "web_search", _t_2, { projection: ["title", "description", "link"] });
       _t_4 = __builtin.getAsyncIterator(_t_3);
       {
@@ -5362,6 +5366,7 @@ const TEST_CASES = [
       try {
         try {
           _t_1 = {};
+          _t_1.query = _t_0;
           _t_2 = await __env.invokeQuery("com.bing", { }, "web_search", _t_1, { projection: ["title", "description", "link"] });
           _t_3 = __builtin.getAsyncIterator(_t_2);
           {
@@ -6582,7 +6587,7 @@ const TEST_CASES = [
   try {
     try {
       _t_0 = {};
-      _t_1 = await __env.invokeQuery("org.schema", { }, "place", _t_0, { projection: ["distance", "geo"] });
+      _t_1 = await __env.invokeQuery("org.schema", { }, "place", _t_0, { projection: ["geo"] });
       _t_2 = __builtin.getAsyncIterator(_t_1);
       {
         let _iter_tmp = await _t_2.next();
@@ -6706,7 +6711,7 @@ const TEST_CASES = [
   try {
     try {
       _t_0 = {};
-      _t_1 = await __env.invokeQuery("com.twitter", { }, "home_timeline", _t_0, { projection: ["result", "text"] });
+      _t_1 = await __env.invokeQuery("com.twitter", { }, "home_timeline", _t_0, { projection: ["text"] });
       _t_2 = __builtin.getAsyncIterator(_t_1);
       {
         let _iter_tmp = await _t_2.next();
@@ -6769,7 +6774,7 @@ const TEST_CASES = [
   try {
     try {
       _t_0 = {};
-      _t_1 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_0, { projection: ["result", "file_size"] });
+      _t_1 = await __env.invokeQuery("com.google.drive", { }, "list_drive_files", _t_0, { projection: ["file_size"] });
       _t_2 = __builtin.getAsyncIterator(_t_1);
       {
         let _iter_tmp = await _t_2.next();
@@ -7001,13 +7006,16 @@ const TEST_CASES = [
   let _t_34;
   let _t_35;
   let _t_36;
+  let _t_37;
   await __env.enterProcedure(0, null);
   try {
-    _t_0 = false;
-    _t_1 = Infinity;
+    _t_0 = 1;
+    _t_1 = 1;
+    _t_2 = __builtin.argmin;
+    _t_3 = new __builtin.ArgMinMaxState(_t_2, _t_0, _t_1);
     try {
       _t_4 = {};
-      _t_5 = await __env.invokeQuery("com.yelp", { }, "restaurant", _t_4, { projection: ["id", "link", "rating", "cuisines", "geo", "image_url"], sort: ["distance", "asc"], limit: 1 });
+      _t_5 = await __env.invokeQuery("com.yelp", { }, "restaurant", _t_4, { projection: ["id", "link", "rating", "cuisines", "geo", "image_url"] });
       _t_6 = __builtin.getAsyncIterator(_t_5);
       {
         let _iter_tmp = await _t_6.next();
@@ -7028,49 +7036,39 @@ const TEST_CASES = [
           _t_20 = _t_9.openingHours;
           _t_21 = new __builtin.Location(13, 13, null);
           _t_22 = __builtin.distance(_t_18, _t_21);
-          _t_9.distance = _t_22;
-          _t_23 = _t_1 > _t_22;
-          if (_t_23) {
-            _t_1 = _t_22;
-            _t_2 = _t_9;
-            _t_3 = _t_8;
-            _t_0 = true;
-          } else {
-
-          }
+          _t_3.update(_t_9, _t_8, _t_22);
           _iter_tmp = await _t_6.next();
         }
       }
     } catch(_exc_) {
       __env.reportError("Failed to invoke query", _exc_);
     }
-    if (_t_0) {
-      _t_24 = _t_2.__response;
-      _t_25 = _t_2.id;
-      _t_26 = _t_2.image_url;
-      _t_27 = _t_2.link;
-      _t_28 = _t_2.cuisines;
-      _t_29 = _t_2.price;
-      _t_30 = _t_2.rating;
-      _t_31 = _t_2.reviewCount;
-      _t_32 = _t_2.geo;
-      _t_33 = _t_2.phone;
-      _t_34 = _t_2.openingHours;
-      _t_35 = _t_2.distance;
-      _t_36 = {};
-      _t_36.id = _t_25;
-      _t_36.link = _t_27;
-      _t_36.rating = _t_30;
-      _t_36.cuisines = _t_28;
-      _t_36.geo = _t_32;
-      _t_36.image_url = _t_26;
+    for (_t_23 of _t_3) {
+      _t_24 = _t_23[0];
+      _t_25 = _t_23[1];
+      _t_26 = _t_25.__response;
+      _t_27 = _t_25.id;
+      _t_28 = _t_25.image_url;
+      _t_29 = _t_25.link;
+      _t_30 = _t_25.cuisines;
+      _t_31 = _t_25.price;
+      _t_32 = _t_25.rating;
+      _t_33 = _t_25.reviewCount;
+      _t_34 = _t_25.geo;
+      _t_35 = _t_25.phone;
+      _t_36 = _t_25.openingHours;
+      _t_37 = {};
+      _t_37.id = _t_27;
+      _t_37.link = _t_29;
+      _t_37.rating = _t_32;
+      _t_37.cuisines = _t_30;
+      _t_37.geo = _t_34;
+      _t_37.image_url = _t_28;
       try {
-        await __env.output(String(_t_3), _t_36);
+        await __env.output(String(_t_24), _t_37);
       } catch(_exc_) {
         __env.reportError("Failed to invoke action", _exc_);
       }
-    } else {
-
     }
   } finally {
     await __env.exitProcedure(0, null);
@@ -7306,7 +7304,7 @@ const TEST_CASES = [
   try {
     try {
       _t_0 = {};
-      _t_1 = await __env.invokeQuery("com.yelp", { }, "restaurant", _t_0, { projection: ["id", "count", "cuisines"] });
+      _t_1 = await __env.invokeQuery("com.yelp", { }, "restaurant", _t_0, { projection: ["id", "cuisines"] });
       _t_2 = __builtin.getAsyncIterator(_t_1);
       {
         let _iter_tmp = await _t_2.next();
@@ -7613,13 +7611,16 @@ const TEST_CASES = [
   let _t_56;
   let _t_57;
   let _t_58;
+  let _t_59;
   await __env.enterProcedure(0, null);
   try {
-    _t_0 = false;
-    _t_1 = Infinity;
+    _t_0 = 1;
+    _t_1 = 1;
+    _t_2 = __builtin.argmin;
+    _t_3 = new __builtin.ArgMinMaxState(_t_2, _t_0, _t_1);
     try {
       _t_4 = {};
-      _t_5 = await __env.invokeQuery("org.schema.full", { }, "Recipe", _t_4, { projection: ["id", "recipeYield", "recipeCategory", "recipeIngredient", "recipeInstructions", "nutrition", "suitableForDiet", "recipeCuisine", "cookTime", "cookingMethod", "nutrition.saturatedFatContent", "nutrition.fatContent", "nutrition.unsaturatedFatContent", "nutrition.sugarContent", "nutrition.cholesterolContent", "nutrition.carbohydrateContent", "nutrition.proteinContent", "nutrition.sodiumContent", "nutrition.transFatContent", "nutrition.fiberContent", "nutrition.calories", "nutrition.servingSize"], sort: ["count", "asc"], limit: 1 });
+      _t_5 = await __env.invokeQuery("org.schema.full", { }, "Recipe", _t_4, { projection: ["id", "recipeYield", "recipeCategory", "recipeIngredient", "recipeInstructions", "nutrition", "suitableForDiet", "recipeCuisine", "cookTime", "cookingMethod", "nutrition.saturatedFatContent", "nutrition.fatContent", "nutrition.unsaturatedFatContent", "nutrition.sugarContent", "nutrition.cholesterolContent", "nutrition.carbohydrateContent", "nutrition.proteinContent", "nutrition.sodiumContent", "nutrition.transFatContent", "nutrition.fiberContent", "nutrition.calories", "nutrition.servingSize"] });
       _t_6 = __builtin.getAsyncIterator(_t_5);
       {
         let _iter_tmp = await _t_6.next();
@@ -7655,58 +7656,48 @@ const TEST_CASES = [
           _t_31 = _t_9.cookTime;
           _t_32 = _t_9.cookingMethod;
           _t_33 = __builtin.count(_t_13);
-          _t_9.count = _t_33;
-          _t_34 = _t_1 > _t_33;
-          if (_t_34) {
-            _t_1 = _t_33;
-            _t_2 = _t_9;
-            _t_3 = _t_8;
-            _t_0 = true;
-          } else {
-
-          }
+          _t_3.update(_t_9, _t_8, _t_33);
           _iter_tmp = await _t_6.next();
         }
       }
     } catch(_exc_) {
       __env.reportError("Failed to invoke query", _exc_);
     }
-    if (_t_0) {
-      _t_35 = _t_2.__response;
-      _t_36 = _t_2.id;
-      _t_37 = _t_2.recipeYield;
-      _t_38 = _t_2.recipeCategory;
-      _t_39 = _t_2.recipeIngredient;
-      _t_40 = _t_2.recipeInstructions;
-      _t_41 = _t_2.nutrition;
-      if (_t_41) {
-        _t_42 = _t_41.saturatedFatContent;
-        _t_43 = _t_41.fatContent;
-        _t_44 = _t_41.unsaturatedFatContent;
-        _t_45 = _t_41.sugarContent;
-        _t_46 = _t_41.cholesterolContent;
-        _t_47 = _t_41.carbohydrateContent;
-        _t_48 = _t_41.proteinContent;
-        _t_49 = _t_41.sodiumContent;
-        _t_50 = _t_41.transFatContent;
-        _t_51 = _t_41.fiberContent;
-        _t_52 = _t_41.calories;
-        _t_53 = _t_41.servingSize;
+    for (_t_34 of _t_3) {
+      _t_35 = _t_34[0];
+      _t_36 = _t_34[1];
+      _t_37 = _t_36.__response;
+      _t_38 = _t_36.id;
+      _t_39 = _t_36.recipeYield;
+      _t_40 = _t_36.recipeCategory;
+      _t_41 = _t_36.recipeIngredient;
+      _t_42 = _t_36.recipeInstructions;
+      _t_43 = _t_36.nutrition;
+      if (_t_43) {
+        _t_44 = _t_43.saturatedFatContent;
+        _t_45 = _t_43.fatContent;
+        _t_46 = _t_43.unsaturatedFatContent;
+        _t_47 = _t_43.sugarContent;
+        _t_48 = _t_43.cholesterolContent;
+        _t_49 = _t_43.carbohydrateContent;
+        _t_50 = _t_43.proteinContent;
+        _t_51 = _t_43.sodiumContent;
+        _t_52 = _t_43.transFatContent;
+        _t_53 = _t_43.fiberContent;
+        _t_54 = _t_43.calories;
+        _t_55 = _t_43.servingSize;
       } else {
 
       }
-      _t_54 = _t_2.suitableForDiet;
-      _t_55 = _t_2.recipeCuisine;
-      _t_56 = _t_2.cookTime;
-      _t_57 = _t_2.cookingMethod;
-      _t_58 = _t_2.count;
+      _t_56 = _t_36.suitableForDiet;
+      _t_57 = _t_36.recipeCuisine;
+      _t_58 = _t_36.cookTime;
+      _t_59 = _t_36.cookingMethod;
       try {
-        await __env.output(String(_t_3), _t_2);
+        await __env.output(String(_t_35), _t_36);
       } catch(_exc_) {
         __env.reportError("Failed to invoke action", _exc_);
       }
-    } else {
-
     }
   } finally {
     await __env.exitProcedure(0, null);
@@ -9659,7 +9650,7 @@ const TEST_CASES = [
           _t_15 = false;
           try {
             _t_16 = {};
-            _t_17 = await __env.invokeQuery("org.thingpedia.builtin.thingengine.builtin", { }, "get_gps", _t_16, { projection: ["distance", "location"] });
+            _t_17 = await __env.invokeQuery("org.thingpedia.builtin.thingengine.builtin", { }, "get_gps", _t_16, { projection: ["location"] });
             _t_18 = __builtin.getAsyncIterator(_t_17);
             {
               let _iter_tmp = await _t_18.next();
@@ -10409,6 +10400,31 @@ p_recip();`,
   } finally {
     await __env.exitProcedure(2, null);
   }`]],
+
+    // 110 ask & say
+    [`let status = $ask(String, "what would you like to post?");
+    @com.twitter.post(status=status);
+    $say("i posted it for you");`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  await __env.enterProcedure(0, null);
+  try {
+    _t_0 = await __env.ask("status", "String", "what would you like to post?");
+    __env.clearGetCache();
+    try {
+      _t_1 = {};
+      _t_1.status = _t_0;
+      await __builtin.drainAction(__env.invokeAction("com.twitter", { }, "post", _t_1));
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke action", _exc_);
+    }
+    __env.clearGetCache();
+    await __env.say("i posted it for you");
+  } finally {
+    await __env.exitProcedure(0, null);
+  }`]]
+
 ];
 
 // eslint-disable-next-line prefer-arrow-callback
@@ -10461,9 +10477,12 @@ async function test(i) {
 }
 
 export default async function main() {
-    const max = !module.parent && process.argv[2] ? parseInt(process.argv[2]) : Infinity;
-    for (let i = 0; i < Math.min(max, TEST_CASES.length); i++)
-      await test(i);
+    if (!module.parent && process.argv[2]) {
+        await test(parseInt(process.argv[2])-1);
+    } else {
+        for (let i = 0; i < TEST_CASES.length; i++)
+            await test(i);
+    }
 }
 if (!module.parent)
     main();

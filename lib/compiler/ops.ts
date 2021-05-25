@@ -31,24 +31,30 @@ import ReduceOp from './reduceop';
 
 // PointWiseOp : operates on each produced tuple
 export class PointWiseOp {
-    static Projection : typeof ProjectionPointWiseOp;
-    static Compute : typeof ComputePointWiseOp;
 }
 
-export class ProjectionPointWiseOp extends PointWiseOp {
+export namespace PointWiseOp {
+export class Projection extends PointWiseOp {
     constructor(public args : Set<string>) {
         super();
     }
-}
-PointWiseOp.Projection = ProjectionPointWiseOp;
 
-export class ComputePointWiseOp extends PointWiseOp {
+    toString() {
+        return `PointWiseOp.Projection(${this.args})`;
+    }
+}
+
+export class Compute extends PointWiseOp {
     constructor(public expression : Ast.Value,
                 public alias : string) {
         super();
     }
+
+    toString() {
+        return `PointWiseOp.Compute(${this.expression} as ${this.alias})`;
+    }
 }
-PointWiseOp.Compute = ComputePointWiseOp;
+}
 
 type SortHint = [string, 'asc'|'desc'];
 export class QueryInvocationHints {
@@ -81,258 +87,315 @@ export class QueryInvocationHints {
  * A low-level operation on streams
  */
 export abstract class StreamOp {
-    static Now : NowStreamOp;
-    static InvokeVarRef : typeof InvokeVarRefStreamOp;
-    static InvokeSubscribe : typeof InvokeSubscribeStreamOp;
-    static InvokeTable : typeof InvokeTableStreamOp;
-    static Timer : typeof TimerStreamOp;
-    static AtTimer : typeof AtTimerStreamOp;
-    static Filter : typeof FilterStreamOp;
-    static Map : typeof MapStreamOp;
-    static EdgeNew : typeof EdgeNewStreamOp;
-    static EdgeFilter : typeof EdgeFilterStreamOp;
-    static Union : typeof UnionStreamOp;
-    static Join : typeof JoinStreamOp;
-
-    abstract ast : Ast.Stream|Ast.Table|null;
+    abstract ast : Ast.Expression|null;
 }
 
-export class NowStreamOp extends StreamOp {
-    ast = null;
-}
-StreamOp.Now = new NowStreamOp;
+export namespace StreamOp {
+export class Now extends StreamOp {
+    constructor(public table : TableOp,
+                public ast : Ast.Expression) {
+        super();
+    }
 
-export class InvokeVarRefStreamOp extends StreamOp {
+    toString() {
+        return `StreamOp.Now(${this.table})`;
+    }
+}
+
+export class InvokeVarRef extends StreamOp {
     constructor(public name : string,
                 public in_params : Ast.InputParam[],
-                public ast : Ast.Stream,
+                public ast : Ast.Expression,
                 public hints : QueryInvocationHints) {
         super();
     }
-}
-StreamOp.InvokeVarRef = InvokeVarRefStreamOp;
 
-export class InvokeSubscribeStreamOp extends StreamOp {
+    toString() {
+        return `StreamOp.InvokeVarRef(${this.name}, ${this.in_params.map((ip) => ip.prettyprint()).join(', ')})`;
+    }
+}
+
+export class InvokeSubscribe extends StreamOp {
     constructor(public invocation : Ast.Invocation,
-                public ast : Ast.Table,
+                public ast : Ast.Expression,
                 public hints : QueryInvocationHints) {
         super();
     }
-}
-StreamOp.InvokeSubscribe = InvokeSubscribeStreamOp;
 
-export class TimerStreamOp extends StreamOp {
-    constructor(public base : Ast.Value,
+    toString() {
+        return `StreamOp.InvokeSubscribe(${this.invocation.prettyprint()})`;
+    }
+}
+
+export class Timer extends StreamOp {
+    constructor(public base : Ast.Value|undefined,
                 public interval : Ast.Value,
-                public frequency : Ast.Value|null,
-                public ast : Ast.Stream) {
+                public frequency : Ast.Value|undefined,
+                public ast : Ast.Expression) {
         super();
     }
-}
-StreamOp.Timer = TimerStreamOp;
 
-export class AtTimerStreamOp extends StreamOp {
-    constructor(public time : Ast.Value[],
-                public expiration_date : Ast.Value|null,
-                public ast : Ast.Stream) {
-        super();
+    toString() {
+        return `StreamOp.Timer(${this.base}, ${this.interval}, ${this.frequency})`;
     }
 }
-StreamOp.AtTimer = AtTimerStreamOp;
 
-export class FilterStreamOp extends StreamOp {
+export class AtTimer extends StreamOp {
+    constructor(public time : Ast.Value,
+                public expiration_date : Ast.Value|undefined,
+                public ast : Ast.Expression) {
+        super();
+    }
+
+    toString() {
+        return `StreamOp.AtTimer(${this.time}, ${this.expiration_date})`;
+    }
+}
+
+export class Filter extends StreamOp {
     constructor(public stream : StreamOp,
                 public filter : BooleanExpressionOp,
-                public ast : Ast.Stream|Ast.Table) {
+                public ast : Ast.Expression) {
         super();
     }
-}
-StreamOp.Filter = FilterStreamOp;
 
-export class MapStreamOp extends StreamOp {
+    toString() {
+        return `StreamOp.Filter(${this.stream}, ${this.filter})`;
+    }
+}
+
+export class Map extends StreamOp {
     constructor(public stream : StreamOp,
                 public op : PointWiseOp,
-                public ast : Ast.Stream|Ast.Table) {
+                public ast : Ast.Expression) {
         super();
     }
-}
-StreamOp.Map = MapStreamOp;
 
-export class EdgeNewStreamOp extends StreamOp {
+    toString() {
+        return `StreamOp.Map(${this.stream}, ${this.op})`;
+    }
+}
+
+export class EdgeNew extends StreamOp {
     constructor(public stream : StreamOp,
-                public ast : Ast.Stream|Ast.Table) {
+                public ast : Ast.Expression) {
         super();
     }
-}
-StreamOp.EdgeNew = EdgeNewStreamOp;
 
-export class EdgeFilterStreamOp extends StreamOp {
+    toString() {
+        return `StreamOp.EdgeNew(${this.stream})`;
+    }
+}
+
+export class EdgeFilter extends StreamOp {
     constructor(public stream : StreamOp,
                 public filter : BooleanExpressionOp,
-                public ast : Ast.Stream|Ast.Table) {
+                public ast : Ast.Expression) {
         super();
     }
-}
-StreamOp.EdgeFilter = EdgeFilterStreamOp;
 
-export class UnionStreamOp extends StreamOp {
+    toString() {
+        return `StreamOp.EdgeFilter(${this.stream}, ${this.filter})`;
+    }
+}
+
+export class Union extends StreamOp {
     constructor(public lhs : StreamOp,
                 public rhs : StreamOp,
-                public ast : Ast.Stream|Ast.Table) {
+                public ast : Ast.Expression) {
         super();
     }
+
+    toString() {
+        return `StreamOp.Union(${this.lhs}, ${this.rhs})`;
+    }
 }
-StreamOp.Union = UnionStreamOp;
 
 /**
   When the stream fires, get the whole table (ignore the stream).
   This is used to implement certain "monitor(table)" where the
   table needs to be recomputed on subscribe.
  */
-export class InvokeTableStreamOp extends StreamOp {
+export class InvokeTable extends StreamOp {
     constructor(public stream : StreamOp,
                 public table : TableOp,
-                public ast : Ast.Table) {
+                public ast : Ast.Expression) {
         super();
     }
+
+    toString() {
+        return `StreamOp.InvokeTable(${this.stream}, ${this.table})`;
+    }
 }
-StreamOp.InvokeTable = InvokeTableStreamOp;
 
 /**
  * When the stream fires, get the whole table and join it.
  */
-export class JoinStreamOp extends StreamOp {
+export class Join extends StreamOp {
     constructor(public stream : StreamOp,
                 public table : TableOp,
-                public ast : Ast.Stream|Ast.Table) {
+                public ast : Ast.Expression) {
         super();
     }
-}
-StreamOp.Join = JoinStreamOp;
 
-type UnaryStreamOp = FilterStreamOp | MapStreamOp | EdgeFilterStreamOp | EdgeNewStreamOp;
+    toString() {
+        return `StreamOp.Join(${this.stream}, ${this.table})`;
+    }
+}
+}
+
+type UnaryStreamOp = StreamOp.Filter | StreamOp.Map | StreamOp.EdgeFilter | StreamOp.EdgeNew;
 export function isUnaryStreamOp(op : StreamOp) : op is UnaryStreamOp {
-    return op instanceof FilterStreamOp ||
-        op instanceof MapStreamOp ||
-        op instanceof EdgeFilterStreamOp ||
-        op instanceof EdgeNewStreamOp;
+    return op instanceof StreamOp.Filter ||
+        op instanceof StreamOp.Map ||
+        op instanceof StreamOp.EdgeFilter ||
+        op instanceof StreamOp.EdgeNew;
 }
 
 /**
  * A low-level operation on an in-memory table.
  */
 export abstract class TableOp {
-    static InvokeVarRef : typeof InvokeVarRefTableOp;
-    static InvokeGet : typeof InvokeGetTableOp;
-    static Filter : typeof FilterTableOp;
-    static Map : typeof MapTableOp;
-    static Reduce : typeof ReduceTableOp;
-    static Sort : typeof SortTableOp;
-    static CrossJoin : typeof CrossJoinTableOp;
-    static NestedLoopJoin : typeof NestedLoopJoinTableOp;
-
     handle_thingtalk = false;
     abstract device : Ast.DeviceSelector|null;
-    abstract ast : Ast.Table;
+    abstract ast : Ast.Expression;
 }
 
-export class InvokeVarRefTableOp extends TableOp {
+export namespace TableOp {
+export class InvokeVarRef extends TableOp {
     device = null;
 
     constructor(public name : string,
                 public in_params : Ast.InputParam[],
-                public ast : Ast.Table,
+                public ast : Ast.Expression,
                 public hints : QueryInvocationHints) {
         super();
     }
-}
-TableOp.InvokeVarRef = InvokeVarRefTableOp;
 
-export class InvokeGetTableOp extends TableOp {
+    toString() {
+        return `TableOp.InvokeVarRef(${this.name}, ${this.in_params.map((ip) => ip.prettyprint())})`;
+    }
+}
+
+export class InvokeGet extends TableOp {
     constructor(public invocation : Ast.Invocation,
-                public extra_in_params : Ast.InputParam[],
                 public device : Ast.DeviceSelector|null,
                 public handle_thingtalk : boolean,
-                public ast : Ast.Table,
+                public ast : Ast.Expression,
                 public hints : QueryInvocationHints) {
         super();
     }
-}
-TableOp.InvokeGet = InvokeGetTableOp;
 
-export class FilterTableOp extends TableOp {
+    toString() {
+        return `TableOp.InvokeGet(${this.invocation.prettyprint()})`;
+    }
+}
+
+export class Filter extends TableOp {
     constructor(public table : TableOp,
                 public filter : BooleanExpressionOp,
                 public device : Ast.DeviceSelector|null,
                 public handle_thingtalk : boolean,
-                public ast : Ast.Table) {
+                public ast : Ast.Expression) {
         super();
     }
-}
-TableOp.Filter = FilterTableOp;
 
-export class MapTableOp extends TableOp {
+    toString() {
+        return `TableOp.Filter(${this.table}, ${this.filter})`;
+    }
+}
+
+export class Map extends TableOp {
     constructor(public table : TableOp,
                 public op : PointWiseOp,
                 public device : Ast.DeviceSelector|null,
                 public handle_thingtalk : boolean,
-                public ast : Ast.Table) {
+                public ast : Ast.Expression) {
         super();
     }
-}
-TableOp.Map = MapTableOp;
 
-export class ReduceTableOp extends TableOp {
+    toString() {
+        return `TableOp.Map(${this.table}, ${this.op})`;
+    }
+}
+
+export class Reduce extends TableOp {
     constructor(public table : TableOp,
                 public op : ReduceOp<unknown>,
                 public device : Ast.DeviceSelector|null,
                 public handle_thingtalk : boolean,
-                public ast : Ast.Table) {
+                public ast : Ast.Expression) {
         super();
     }
-}
-TableOp.Reduce = ReduceTableOp;
 
-export class SortTableOp extends TableOp {
-    constructor(public table : TableOp,
-                public field : string,
-                public direction : 'asc'|'desc',
-                public device : Ast.DeviceSelector|null,
-                public handle_thingtalk : boolean,
-                public ast : Ast.Table) {
-        super();
+    toString() {
+        return `TableOp.Reduce(${this.table}, ${this.op})`;
     }
 }
-TableOp.Sort = SortTableOp;
 
-export class CrossJoinTableOp extends TableOp {
+export class CrossJoin extends TableOp {
     constructor(public lhs : TableOp,
                 public rhs : TableOp,
                 public device : Ast.DeviceSelector|null,
                 public handle_thingtalk : boolean,
-                public ast : Ast.Table) {
+                public ast : Ast.Expression) {
         super();
     }
-}
-TableOp.CrossJoin = CrossJoinTableOp;
 
-export class NestedLoopJoinTableOp extends TableOp {
+    toString() {
+        return `TableOp.CrossJoin(${this.lhs}, ${this.rhs})`;
+    }
+}
+
+export class NestedLoopJoin extends TableOp {
     constructor(public lhs : TableOp,
                 public rhs : TableOp,
                 public device : Ast.DeviceSelector|null,
                 public handle_thingtalk : boolean,
-                public ast : Ast.Table) {
+                public ast : Ast.Expression) {
         super();
     }
-}
-TableOp.NestedLoopJoin = NestedLoopJoinTableOp;
 
-type UnaryTableOp = FilterTableOp | MapTableOp | ReduceTableOp | SortTableOp;
+    toString() {
+        return `TableOp.NestedLoopJoin(${this.lhs}, ${this.rhs})`;
+    }
+}
+}
+
+type UnaryTableOp = TableOp.Filter | TableOp.Map | TableOp.Reduce;
 export function isUnaryTableOp(op : TableOp) : op is UnaryTableOp {
-    return op instanceof FilterTableOp ||
-        op instanceof MapTableOp ||
-        op instanceof ReduceTableOp ||
-        op instanceof SortTableOp;
+    return op instanceof TableOp.Filter ||
+        op instanceof TableOp.Map ||
+        op instanceof TableOp.Reduce;
+}
+
+export abstract class ActionOp {
+
+}
+
+export namespace ActionOp {
+export class InvokeDo extends ActionOp {
+    constructor(public invocation : Ast.Invocation,
+                public ast : Ast.Expression) {
+        super();
+    }
+
+    toString() {
+        return `ActionOp.InvokeDo(${this.invocation.prettyprint()})`;
+    }
+}
+
+export class InvokeVarRef extends ActionOp {
+    constructor(public name : string,
+                public in_params : Ast.InputParam[],
+                public ast : Ast.Expression) {
+        super();
+    }
+
+    toString() {
+        return `ActionOp.InvokeVarRef(${this.name}, ${this.in_params.map((ip) => ip.prettyprint())})`;
+    }
+}
 }
 
 /**
@@ -341,22 +404,19 @@ export function isUnaryTableOp(op : TableOp) : op is UnaryTableOp {
  * which is what it optimizes for.
  */
 export class RuleOp {
-    constructor(public stream : StreamOp,
-                public actions : Ast.Action[],
-                public ast : Ast.Statement) {
+    constructor(public stream : StreamOp|null,
+                public action : ActionOp|null,
+                public ast : Ast.ExpressionStatement|Ast.ReturnStatement) {
+    }
+
+    toString() {
+        return `RuleOp(${this.stream}, ${this.action})`;
     }
 }
 
 export abstract class BooleanExpressionOp {
-    static And : typeof AndBooleanExpressionOp;
-    static Or : typeof OrBooleanExpressionOp;
-    static Not : typeof NotBooleanExpressionOp;
-    static Atom : typeof AtomBooleanExpressionOp;
-    static External : typeof ExternalBooleanExpressionOp;
-    static ExistentialSubquery : typeof ExistentialSubqueryBooleanExpressionOp;
-    static ComparisonSubquery : typeof ComparisonSubqueryBooleanExpressionOp;
-    static True : TrueBooleanExpressionOp;
-    static False : FalseBooleanExpressionOp;
+    static True : ConstantBooleanExpressionOp;
+    static False : ConstantBooleanExpressionOp;
 
     public ast : Ast.BooleanExpression;
 
@@ -365,31 +425,53 @@ export abstract class BooleanExpressionOp {
     }
 }
 
-export class AndBooleanExpressionOp extends BooleanExpressionOp {
+class ConstantBooleanExpressionOp extends BooleanExpressionOp {
+    constructor(public readonly value : boolean) {
+        super(value ? Ast.BooleanExpression.True : Ast.BooleanExpression.False);
+    }
+
+    toString() {
+        return `BooleanExpressionOp.Constant(${this.value})`;
+    }
+}
+BooleanExpressionOp.True = new ConstantBooleanExpressionOp(true);
+BooleanExpressionOp.False = new ConstantBooleanExpressionOp(false);
+
+export namespace BooleanExpressionOp {
+export class And extends BooleanExpressionOp {
     constructor(ast : Ast.AndBooleanExpression,
                 public operands : BooleanExpressionOp[]) {
         super(ast);
     }
-}
-BooleanExpressionOp.And = AndBooleanExpressionOp;
 
-export class OrBooleanExpressionOp extends BooleanExpressionOp {
+    toString() {
+        return `BooleanExpressionOp.And(${this.operands.join(', ')})`;
+    }
+}
+
+export class Or extends BooleanExpressionOp {
     constructor(ast : Ast.OrBooleanExpression,
                 public operands : BooleanExpressionOp[]) {
         super(ast);
     }
-}
-BooleanExpressionOp.Or = OrBooleanExpressionOp;
 
-export class NotBooleanExpressionOp extends BooleanExpressionOp {
+    toString() {
+        return `BooleanExpressionOp.Or(${this.operands.join(', ')})`;
+    }
+}
+
+export class Not extends BooleanExpressionOp {
     constructor(ast : Ast.NotBooleanExpression,
                 public expr : BooleanExpressionOp) {
         super(ast);
     }
-}
-BooleanExpressionOp.Not = NotBooleanExpressionOp;
 
-export class AtomBooleanExpressionOp extends BooleanExpressionOp {
+    toString() {
+        return `BooleanExpressionOp.Not(${this.expr})`;
+    }
+}
+
+export class Atom extends BooleanExpressionOp {
     constructor(ast : Ast.AtomBooleanExpression|Ast.ComputeBooleanExpression,
                 public lhs : Ast.Value,
                 public operator : string,
@@ -397,31 +479,24 @@ export class AtomBooleanExpressionOp extends BooleanExpressionOp {
                 public overload : Type[]|null){
         super(ast);
     }
-}
-BooleanExpressionOp.Atom = AtomBooleanExpressionOp;
 
-export class ExternalBooleanExpressionOp extends BooleanExpressionOp {
-    constructor(ast : Ast.ExternalBooleanExpression,
-                public selector : Ast.DeviceSelector,
-                public channel : string,
-                public in_parms : Ast.InputParam[],
-                public filter : BooleanExpressionOp,
-                public schema : Ast.FunctionDef|null,
-                public __effectiveSelector : Ast.DeviceSelector|null) {
-        super(ast);
+    toString() {
+        return `BooleanExpressionOp.Atom(${this.lhs}, ${this.operator}, ${this.rhs})`;
     }
 }
-BooleanExpressionOp.External = ExternalBooleanExpressionOp;
 
-export class ExistentialSubqueryBooleanExpressionOp extends BooleanExpressionOp {
+export class ExistentialSubquery extends BooleanExpressionOp {
     constructor(ast : Ast.ExistentialSubqueryBooleanExpression,
                 public subquery : TableOp) {
         super(ast);
     }
-}
-BooleanExpressionOp.ExistentialSubquery = ExistentialSubqueryBooleanExpressionOp;
 
-export class ComparisonSubqueryBooleanExpressionOp extends BooleanExpressionOp {
+    toString() {
+        return `BooleanExpressionOp.ExistentialSubquery(${this.subquery})`;
+    }
+}
+
+export class ComparisonSubquery extends BooleanExpressionOp {
     constructor(ast : Ast.ComparisonSubqueryBooleanExpression,
                 public lhs : Ast.Value,
                 public operator : string,
@@ -430,19 +505,9 @@ export class ComparisonSubqueryBooleanExpressionOp extends BooleanExpressionOp {
                 public overload : Type[]|null) {
         super(ast);
     }
-}
-BooleanExpressionOp.ComparisonSubquery = ComparisonSubqueryBooleanExpressionOp;
 
-export class TrueBooleanExpressionOp extends BooleanExpressionOp {
-    constructor(ast : Ast.TrueBooleanExpression) {
-        super(ast);
+    toString() {
+        return `BooleanExpressionOp.ComparisonSubquery(${this.lhs}, ${this.operator}, ${this.rhs}, ${this.subquery})`;
     }
 }
-BooleanExpressionOp.True = new TrueBooleanExpressionOp(Ast.BooleanExpression.True);
-
-export class FalseBooleanExpressionOp extends BooleanExpressionOp {
-    constructor(ast : Ast.FalseBooleanExpression) {
-        super(ast);
-    }
 }
-BooleanExpressionOp.False = new FalseBooleanExpressionOp(Ast.BooleanExpression.False);

@@ -20,13 +20,16 @@
 
 import AstNode from './base';
 import type * as Values from './values';
-import type * as BK from './bookkeeping';
-import type { ClassDef } from './class_def';
+import type * as BK from './control_commands';
+import type * as CD from './class_def';
 import type { FunctionDef, ArgumentDef } from './function_def';
 import type * as Prog from './program';
-import type * as Exp from './expression';
-import type * as Exp2 from './expression2';
-import type * as Prim from './primitive';
+import type * as Stmt from './statement';
+import type * as Perm from './permissions';
+import type * as Inv from './invocation';
+import type * as BE from './boolean_expression';
+import type * as Exp2 from './expression';
+import type * as Prim from './legacy';
 import type * as D from './dialogues';
 
 /**
@@ -196,7 +199,7 @@ export default abstract class NodeVisitor {
 
     // classes
     /* istanbul ignore next */
-    visitClassDef(node : ClassDef) : boolean {
+    visitClassDef(node : CD.ClassDef) : boolean {
         return true;
     }
     /* istanbul ignore next */
@@ -208,69 +211,69 @@ export default abstract class NodeVisitor {
         return true;
     }
     /* istanbul ignore next */
-    visitMixinImportStmt(node : Prog.MixinImportStmt) : boolean {
+    visitMixinImportStmt(node : CD.MixinImportStmt) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitEntityDef(node : Prog.EntityDef) : boolean {
+    visitEntityDef(node : CD.EntityDef) : boolean {
         return true;
     }
 
     // expressions
     /* istanbul ignore next */
-    visitDeviceSelector(node : Exp.DeviceSelector) : boolean {
+    visitDeviceSelector(node : Inv.DeviceSelector) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitInputParam(node : Exp.InputParam) : boolean {
+    visitInputParam(node : Inv.InputParam) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitInvocation(node : Exp.Invocation) : boolean {
+    visitInvocation(node : Inv.Invocation) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitTrueBooleanExpression(node : Exp.TrueBooleanExpression) : boolean {
+    visitTrueBooleanExpression(node : BE.TrueBooleanExpression) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitFalseBooleanExpression(node : Exp.FalseBooleanExpression) : boolean {
+    visitFalseBooleanExpression(node : BE.FalseBooleanExpression) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitAndBooleanExpression(node : Exp.AndBooleanExpression) : boolean {
+    visitAndBooleanExpression(node : BE.AndBooleanExpression) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitOrBooleanExpression(node : Exp.OrBooleanExpression) : boolean {
+    visitOrBooleanExpression(node : BE.OrBooleanExpression) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitNotBooleanExpression(node : Exp.NotBooleanExpression) : boolean {
+    visitNotBooleanExpression(node : BE.NotBooleanExpression) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitAtomBooleanExpression(node : Exp.AtomBooleanExpression) : boolean {
+    visitAtomBooleanExpression(node : BE.AtomBooleanExpression) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitExternalBooleanExpression(node : Exp.ExternalBooleanExpression) : boolean {
+    visitExternalBooleanExpression(node : BE.ExternalBooleanExpression) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitDontCareBooleanExpression(node : Exp.DontCareBooleanExpression) : boolean {
+    visitDontCareBooleanExpression(node : BE.DontCareBooleanExpression) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitComputeBooleanExpression(node : Exp.ComputeBooleanExpression) : boolean {
+    visitComputeBooleanExpression(node : BE.ComputeBooleanExpression) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitComparisonSubqueryBooleanExpression(node : Exp.ComparisonSubqueryBooleanExpression) : boolean {
+    visitComparisonSubqueryBooleanExpression(node : BE.ComparisonSubqueryBooleanExpression) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitExistentialSubqueryBooleanExpression(node : Exp.ExistentialSubqueryBooleanExpression) : boolean {
+    visitExistentialSubqueryBooleanExpression(node : BE.ExistentialSubqueryBooleanExpression) : boolean {
         return true;
     }
 
@@ -378,19 +381,19 @@ export default abstract class NodeVisitor {
         return true;
     }
     /* istanbul ignore next */
-    visitSpecifiedPermissionFunction(node : Prim.SpecifiedPermissionFunction) : boolean {
+    visitSpecifiedPermissionFunction(node : Perm.SpecifiedPermissionFunction) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitBuiltinPermissionFunction(node : Prim.BuiltinPermissionFunction) : boolean {
+    visitBuiltinPermissionFunction(node : Perm.BuiltinPermissionFunction) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitClassStarPermissionFunction(node : Prim.ClassStarPermissionFunction) : boolean {
+    visitClassStarPermissionFunction(node : Perm.ClassStarPermissionFunction) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitStarPermissionFunction(node : Prim.StarPermissionFunction) : boolean {
+    visitStarPermissionFunction(node : Perm.StarPermissionFunction) : boolean {
         return true;
     }
 
@@ -442,31 +445,43 @@ export default abstract class NodeVisitor {
 
     // statements and inputs
     /* istanbul ignore next */
-    visitFunctionDeclaration(node : Prog.FunctionDeclaration) : boolean {
+    visitFunctionDeclaration(node : Stmt.FunctionDeclaration) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitAssignment(node : Prog.Assignment) : boolean {
+    visitAssignment(node : Stmt.Assignment) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitRule(node : Prog.Rule) : boolean {
+    visitRule(node : Stmt.Rule) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitCommand(node : Prog.Command) : boolean {
+    visitCommand(node : Stmt.Command) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitExpressionStatement(node : Prog.ExpressionStatement) : boolean {
+    visitExpressionStatement(node : Stmt.ExpressionStatement) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitReturnStatement(node : Prog.ReturnStatement) : boolean {
+    visitReturnStatement(node : Stmt.ReturnStatement) : boolean {
         return true;
     }
     /* istanbul ignore next */
-    visitDataset(node : Prog.Dataset) : boolean {
+    visitAskStatement(node : Stmt.AskStatement) {
+        return true;
+    }
+    /* istanbul ignore next */
+    visitSayStatement(node : Stmt.SayStatement) {
+        return true;
+    }
+    /* istanbul ignore next */
+    visitDataset(node : Stmt.Dataset) : boolean {
+        return true;
+    }
+    /* istanbul ignore next */
+    visitExample(node : Stmt.Example) : boolean {
         return true;
     }
     /* istanbul ignore next */
@@ -479,10 +494,6 @@ export default abstract class NodeVisitor {
     }
     /* istanbul ignore next */
     visitLibrary(node : Prog.Library) : boolean {
-        return true;
-    }
-    /* istanbul ignore next */
-    visitExample(node : Prog.Example) : boolean {
         return true;
     }
 

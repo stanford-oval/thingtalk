@@ -154,6 +154,14 @@ export abstract class ExecEnvironment {
     output(outputType : string, output : Record<string, unknown>) : Promise<void> {
         throw new Error('Must be overridden');
     }
+    /* istanbul ignore next */
+    ask(name : string, type : string, question : string|null) : Promise<unknown> {
+        throw new Error('Must be overridden');
+    }
+    /* istanbul ignore next */
+    say(message : string) : Promise<void> {
+        throw new Error('Must be overridden');
+    }
 
     /* istanbul ignore next */
     readState(stateId : number) : Promise<unknown> {
@@ -168,6 +176,7 @@ export abstract class ExecEnvironment {
         throw new Error('Must be overridden');
     }
 
+    /* istanbul ignore next */
     formatEvent(outputType : string, output : Record<string, unknown>, hint : string) : Promise<string> {
         throw new Error('Must be overridden');
     }

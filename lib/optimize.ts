@@ -561,9 +561,11 @@ function optimizeProgram<T extends Ast.Program|Ast.FunctionDeclaration>(program 
             const optimized = optimizeExpression(stmt.expression);
             stmt.expression = optimized;
             statements.push(stmt);
-        } else {
+        } else if (stmt instanceof Ast.ExpressionStatement) {
             const newrule = optimizeRule(stmt);
             statements.push(newrule);
+        } else {
+            statements.push(stmt);
         }
     });
     program.statements = statements;
