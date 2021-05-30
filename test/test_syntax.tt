@@ -251,17 +251,6 @@ class @foo.bar {
 }
 ====
 
-// ** expect TypeError **
-// sub function with conflict types
-class @foo.bar {
-  query q1(out a : Number)
-  #[minimal_projection=[]];
-
-  monitorable query q2 extends q1(out b : String)
-  #[minimal_projection=[]];
-}
-====
-
 // without wrapping it should still work
 
 monitor(@com.twitter.home_timeline());
