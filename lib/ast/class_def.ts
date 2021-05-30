@@ -31,7 +31,7 @@ import {
 import { cleanKind } from '../utils';
 import { DeviceSelector } from './expression';
 import { Statement, MixinImportStmt, EntityDef } from './program';
-import { FunctionType, FunctionDef } from './function_def';
+import { FunctionDef } from './function_def';
 import { OldSlot, AbstractSlot } from './slots';
 import NodeVisitor from './visitor';
 
@@ -209,7 +209,7 @@ export class ClassDef extends Statement {
      * @return {module.Ast.FunctionDef|undefined} the function definition, or `undefined`
      *         if the function does not exist
      */
-    getFunction(type : FunctionType, name : string) : FunctionDef|undefined {
+    getFunction(type : 'query'|'action', name : string) : FunctionDef|undefined {
         if (type === 'query')
             return this.queries[name];
         if (type === 'action')
