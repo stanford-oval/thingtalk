@@ -1048,11 +1048,6 @@ export default class TypeChecker {
                     args[a] = argtype;
                 }
             }
-
-            if (func.is_monitorable && !f.is_monitorable)
-                throw new TypeError(`Monitorable query ${func.name} cannot extends non-monitorable query ${f.name}`);
-                // the reverse is allowed
-                // e.g., if func add a new non-monitorable parameter to monitable function f, func becomes non-monitorable
         }
     }
 
