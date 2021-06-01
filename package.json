@@ -1,6 +1,6 @@
 {
   "name": "thingtalk",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "ThingTalk Just-In-Time Compiler, Library and Runtime",
   "license": "Apache-2.0",
   "repository": "https://github.com/stanford-oval/thingtalk",
@@ -27,9 +27,9 @@
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.1",
-    "@types/node": "^15.6.0",
-    "@typescript-eslint/eslint-plugin": "^4.24.0",
-    "@typescript-eslint/parser": "^4.24.0",
+    "@types/node": "^15.6.1",
+    "@typescript-eslint/eslint-plugin": "^4.25.0",
+    "@typescript-eslint/parser": "^4.25.0",
     "coveralls": "^3.0.0",
     "deep-equal": "^2.0.5",
     "eslint": "^7.27.0",
@@ -37,9 +37,9 @@
     "pegjs": "~0.10.0",
     "seedrandom": "^3.0.0",
     "source-map-support": "^0.5.19",
-    "ts-node": "^9.1.1",
+    "ts-node": "^10.0.0",
     "typedoc": "^0.20.30",
-    "typescript": "^4.2.3"
+    "typescript": "~4.2.4"
   },
   "scripts": {
     "lint": "eslint --ext .js,.jsx,.ts,.tsx ./lib ./tools ./test",

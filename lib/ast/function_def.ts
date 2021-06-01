@@ -642,8 +642,18 @@ export class FunctionDef extends Node {
      * @param argname - the argument name
      * @return `true` if the argument is present on this or a parent signature
      */
-    hasArgument(argname : string) : boolean {
-        return !!this.getArgument(argname);
+    hasArgument(arg : string) : boolean {
+        if (arg in this._argmap)
+            return true;
+        if (this.extends.length > 0) {
+            const functionType = this.functionType === 'stream' ? 'query' : this.functionType;
+            for (const fname of this.extends) {
+                const f = this.class!.getFunction(functionType, fname)!;
+                if (f.hasArgument(arg))
+                    return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -684,7 +694,8 @@ export class FunctionDef extends Node {
         const arg = this.getArgument(argname);
         if (arg)
             return arg.type;
-        return undefined;
+        else
+            return undefined;
     }
 
     /**
@@ -701,7 +712,8 @@ export class FunctionDef extends Node {
         const arg = this.getArgument(argname);
         if (arg)
             return arg.canonical;
-        return undefined;
+        else
+            return undefined;
     }
 
     /**
@@ -718,7 +730,8 @@ export class FunctionDef extends Node {
         const arg = this.getArgument(argname);
         if (arg)
             return arg.nl_annotations;
-        return undefined;
+        else
+            return undefined;
     }
 
     /**
@@ -735,11 +748,12 @@ export class FunctionDef extends Node {
         const arg = this.getArgument(argname);
         if (arg)
             return arg.is_input;
-        return undefined;
+        else
+            return undefined;
     }
 
     /**
-     * Check if the argument with the given name is an input.
+     * Check if the argument with the given name is required.
      *
      * This is a convenience method that combines {@link Ast.FunctionDef.getArgument}
      * and {@link Ast.ArgumentDef.required}.
@@ -752,7 +766,8 @@ export class FunctionDef extends Node {
         const arg = this.getArgument(argname);
         if (arg)
             return arg.required;
-        return undefined;
+        else
+            return undefined;
     }
 
     /**
