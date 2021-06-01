@@ -21,10 +21,8 @@
 import assert from 'assert';
 import NodeVisitor from './visitor';
 
-import type {
-    Invocation,
-    ExternalBooleanExpression
-} from './expression';
+import type { Invocation } from './invocation';
+import type { ExternalBooleanExpression } from './boolean_expression';
 import type { Value } from './values';
 import type {
     InvocationAction,
@@ -32,11 +30,11 @@ import type {
     InvocationTable,
     VarRefTable,
     VarRefStream
-} from './primitive';
+} from './legacy';
 import type {
     InvocationExpression,
     FunctionCallExpression
-} from './expression2';
+} from './expression';
 import {
     SourceRange,
     SourceLocation

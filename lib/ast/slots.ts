@@ -23,7 +23,8 @@ import Type, { ArrayType, EntityType } from '../type';
 import { clean } from '../utils';
 
 import { Value, VarRefValue, ArrayValue, ComputationValue } from './values';
-import { Invocation, DeviceSelector, InputParam, AtomBooleanExpression }  from './expression';
+import { Invocation, DeviceSelector, InputParam } from './invocation';
+import { AtomBooleanExpression }  from './boolean_expression';
 import { ArgumentDef, FunctionDef } from './function_def';
 
 export interface ScopeEntry {
@@ -105,7 +106,7 @@ export abstract class AbstractSlot {
     /**
      * The available options to parameter pass from.
      *
-     * This is the subset of {Ast~AbstractSlot#scope} whose type matches
+     * This is the subset of {@link AbstractSlot.scope} whose type matches
      * that of this slot.
      */
     get options() : ScopeEntry[] {

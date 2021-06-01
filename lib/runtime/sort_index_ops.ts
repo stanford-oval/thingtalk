@@ -43,6 +43,28 @@ export function sortdesc<T, K extends keyof T>(array : Array<[T, string]>,
     return sortGeneric(array, field, true);
 }
 
+function sortkeyGeneric<T, V>(array : Array<[T, string, V]>,
+                              reverse : boolean) : Array<[T, string, V]> {
+    array.sort(([a, aType, akey], [b, bType, bkey]) => {
+        let result = 0;
+        if (akey < bkey)
+            result = -1;
+        else if (bkey < akey)
+            result = 1;
+        if (reverse)
+            result = -result;
+        return result;
+    });
+    return array;
+}
+
+export function sortkeyasc<T, V>(array : Array<[T, string, V]>) : Array<[T, string, V]> {
+    return sortkeyGeneric(array, false);
+}
+export function sortkeydesc<T, V>(array : Array<[T, string, V]>) : Array<[T, string, V]> {
+    return sortkeyGeneric(array, true);
+}
+
 export function sliceArray<T>(array : T[], base : number, limit : number) : T[] {
     if (base < -array.length || base > array.length)
         return [];

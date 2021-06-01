@@ -21,8 +21,8 @@
 import {
     DeviceSelector,
     Invocation,
-    BooleanExpression
-} from './expression';
+} from './invocation';
+import { BooleanExpression } from './boolean_expression';
 import {
     Expression,
     InvocationExpression,
@@ -31,19 +31,19 @@ import {
     AliasExpression,
     MonitorExpression,
     ChainExpression
-} from './expression2';
+} from './expression';
 import {
     SpecifiedPermissionFunction,
     PermissionFunction
-} from './primitive';
+} from './permissions';
 import { Value } from './values';
 import {
     isRemoteSend,
     isRemoteReceive
 } from './remote_utils';
+import { Assignment } from './statement';
 import {
     Program,
-    Assignment,
     PermissionRule
 } from './program';
 import * as Optimizer from '../optimize';

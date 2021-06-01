@@ -639,15 +639,15 @@ export class FunctionDef extends Node {
      *
      * This method takes into account function extension.
      *
-     * @param {string} arg - the argument name
-     * @return {boolean} `true` if the argument is present on this or a parent signature
+     * @param argname - the argument name
+     * @return `true` if the argument is present on this or a parent signature
      */
     hasArgument(arg : string) : boolean {
         if (arg in this._argmap)
             return true;
         if (this.extends.length > 0) {
+            const functionType = this.functionType === 'stream' ? 'query' : this.functionType;
             for (const fname of this.extends) {
-                const functionType = this.functionType === 'stream' ? 'query' : this.functionType;
                 const f = this.class!.getFunction(functionType, fname)!;
                 if (f.hasArgument(arg))
                     return true;
@@ -661,19 +661,20 @@ export class FunctionDef extends Node {
      *
      * This method takes into account function extension.
      *
-     * @param {string} arg - the argument name
-     * @return {Ast.ArgumentDef|undefined} the argument definition, or `undefined`
+     * @param argname - the argument name
+     * @return the argument definition, or `undefined`
      *         if the argument does not exist
      */
-    getArgument(arg : string) : ArgumentDef|undefined {
-        if (arg in this._argmap)
-            return this._argmap[arg];
+    getArgument(argname : string) : ArgumentDef|undefined {
+        if (argname in this._argmap)
+            return this._argmap[argname];
         if (this.extends.length > 0) {
+            const functionType = this.functionType === 'stream' ? 'query' : this.functionType;
             for (const fname of this.extends) {
-                const functionType = this.functionType === 'stream' ? 'query' : this.functionType;
                 const f = this.class!.getFunction(functionType, fname)!;
-                if (f.hasArgument(arg))
-                    return f.getArgument(arg);
+                const arg = f.getArgument(argname);
+                if (arg)
+                    return arg;
             }
         }
         return undefined;
@@ -685,8 +686,8 @@ export class FunctionDef extends Node {
      * This is a convenience method that combines {@link Ast.FunctionDef.getArgument}
      * and {@link Ast.ArgumentDef.type}.
      *
-     * @param {string} argname - the argument name
-     * @return {Type|undefined} the argument type, or `undefined`
+     * @param argname - the argument name
+     * @return the argument type, or `undefined`
      *         if the argument does not exist
      */
     getArgType(argname : string) : Type|undefined {
@@ -703,8 +704,8 @@ export class FunctionDef extends Node {
      * This is a convenience method that combines {@link Ast.FunctionDef.getArgument}
      * and {@link Ast.ArgumentDef.canonical}.
      *
-     * @param {string} argname - the argument name
-     * @return {string|undefined} the argument's canonical form, or `undefined`
+     * @param argname - the argument name
+     * @return the argument's canonical form, or `undefined`
      *         if the argument does not exist
      */
     getArgCanonical(argname : string) : string|undefined {
@@ -716,13 +717,13 @@ export class FunctionDef extends Node {
     }
 
     /**
-     * Retrieve the metadata of the argument with the given name.
+     * Retrieve the NL annotations of the argument with the given name.
      *
      * This is a convenience method that combines {@link Ast.FunctionDef.getArgument}
      * and {@link Ast.ArgumentDef.metadata}.
      *
-     * @param {string} argname - the argument name
-     * @return {Object.<string,any>|undefined} the argument's metadata, or `undefined`
+     * @param argname - the argument name
+     * @return the argument's NL annotations, or `undefined`
      *         if the argument does not exist
      */
     getArgMetadata(argname : string) : NLAnnotationMap|undefined {
@@ -739,8 +740,8 @@ export class FunctionDef extends Node {
      * This is a convenience method that combines {@link Ast.FunctionDef.getArgument}
      * and {@link Ast.ArgumentDef.is_input}.
      *
-     * @param {string} argname - the argument name
-     * @return {boolean|undefined} whether the argument is an input, or `undefined`
+     * @param argname - the argument name
+     * @return whether the argument is an input, or `undefined`
      *         if the argument does not exist
      */
     isArgInput(argname : string) : boolean|undefined {
@@ -757,8 +758,8 @@ export class FunctionDef extends Node {
      * This is a convenience method that combines {@link Ast.FunctionDef.getArgument}
      * and {@link Ast.ArgumentDef.required}.
      *
-     * @param {string} argname - the argument name
-     * @return {boolean|undefined} whether the argument is required, or `undefined`
+     * @param argname - the argument name
+     * @return whether the argument is required, or `undefined`
      *         if the argument does not exist
      */
     isArgRequired(argname : string) : boolean|undefined {
@@ -787,7 +788,8 @@ export class FunctionDef extends Node {
             if (!this.class)
                 throw new Error(`Class information missing from the function definition.`);
             for (const fname of this.extends) {
-                const parent = this.class.getFunction('query', fname);
+                const functionType = this.functionType === 'stream' ? 'query' : this.functionType;
+                const parent = this.class.getFunction(functionType, fname);
                 assert(parent);
                 yield *parent.iterateArguments(returned);
             }
@@ -1078,7 +1080,7 @@ export class FunctionDef extends Node {
     /**
      * Iterate all bases of this function (including indirect bases)
      */
-    *iterateBaseFunctions() : Generator<string, void> {
+    *iterateBaseFunctions() : IterableIterator<string> {
         yield this.name;
         if (this.extends.length > 0) {
             if (!this.class)

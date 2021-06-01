@@ -315,24 +315,23 @@ type ArgMinMaxOp = (value : number, previous : number) => number;
 
 export class ArgMinMaxState<T> {
     private _op : ArgMinMaxOp;
-    private _field : keyof T;
     private _total : number;
     private _filled : number;
     private _tuples : T[];
     private _outputTypes : string[];
+    private _values : number[];
     private _base : number;
 
     constructor(op : ArgMinMaxOp,
-                field : keyof T,
                 base : number,
                 limit : number) {
         this._op = op;
-        this._field = field;
 
         this._total = Math.max(base + limit - 1, 1);
         this._filled = 0;
         this._tuples = new Array(this._total);
         this._outputTypes = new Array(this._total);
+        this._values = new Array(this._total);
 
         this._base = Math.max(base-1, 0);
     }
@@ -342,11 +341,9 @@ export class ArgMinMaxState<T> {
             yield [this._outputTypes[i], this._tuples[i]];
     }
 
-    update(tuple : T, outputType : string) : void {
-        const value = tuple[this._field] as unknown as number;
-
+    update(tuple : T, outputType : string, value : number) : void {
         for (let i = 0; i < this._filled; i++) {
-            const candidate = this._tuples[i][this._field] as unknown as number;
+            const candidate = this._values[i];
             if (this._op(value, candidate)) {
                 // shift everything by one
 
@@ -360,10 +357,12 @@ export class ArgMinMaxState<T> {
                 for (let j = last; j > i; j--) {
                     this._tuples[j] = this._tuples[j-1];
                     this._outputTypes[j] = this._outputTypes[j-1];
+                    this._values[j] = this._values[j-1];
                 }
 
                 this._tuples[i] = tuple;
                 this._outputTypes[i] = outputType;
+                this._values[i] = value;
                 return;
             }
         }
@@ -371,6 +370,7 @@ export class ArgMinMaxState<T> {
         if (this._filled < this._total) {
             this._tuples[this._filled] = tuple;
             this._outputTypes[this._filled] = outputType;
+            this._values[this._filled] = value;
             this._filled ++;
         }
     }
