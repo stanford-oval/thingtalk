@@ -412,9 +412,6 @@ export default class TypeChecker {
     }
 
     private async _typeCheckHistoryQuery(ast : Ast.HistoryQueryExpression) {
-        const classdef = this._classes[ast.selector.kind];
-        assert(classdef);
-
         let schema = await Utils.getSchemaForSelector(this._schemas, ast.selector.kind, ast.channel, 'both', this._useMeta, this._classes);
         schema = schema.removeAllInputArguments();
         ast.schema = schema;
