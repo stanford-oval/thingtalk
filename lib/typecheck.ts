@@ -411,6 +411,12 @@ export default class TypeChecker {
         return overload;
     }
 
+    private async _typeCheckHistoryQuery(ast : Ast.HistoryQueryExpression) {
+        let schema = await Utils.getSchemaForSelector(this._schemas, ast.kind, ast.name, 'both', this._useMeta, this._classes);
+        schema = schema.removeAllInputArguments();
+        ast.schema = schema;
+    }
+
     private _typeCheckFilter(ast : Ast.BooleanExpression,
                              schema : Ast.FunctionDef|null,
                              scope : Scope = new Scope()) {
@@ -796,6 +802,8 @@ export default class TypeChecker {
         } else if (ast instanceof Ast.InvocationExpression) {
             ast.schema = await this._typeCheckInputArgs(ast.invocation, ast.invocation.schema!, scope);
             scope.addAll(ast.schema.out);
+        } else if (ast instanceof Ast.HistoryQueryExpression) {
+            await this._typeCheckHistoryQuery(ast);
         } else if (ast instanceof Ast.FilterExpression) {
             await this._typeCheckExpression(ast.expression, scope);
             this._checkExpressionType(ast.expression, ['query', 'stream'], 'filter');

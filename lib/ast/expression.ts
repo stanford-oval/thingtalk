@@ -55,6 +55,7 @@ import {
 } from './syntax_priority';
 import arrayEquals from './array_equals';
 import { getScalarExpressionName } from '../utils';
+import { UnserializableError } from '../utils/errors';
 
 function primitiveArrayEquals<T>(a1 : T[]|null, a2 : T[]|null) : boolean {
     if (a1 === a2)
@@ -276,6 +277,63 @@ export class InvocationExpression extends Expression {
 
     *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         return yield* this.invocation.iterateSlots2(scope);
+    }
+}
+
+export class HistoryQueryExpression extends Expression {
+    kind : string;
+    name : string;
+
+    constructor(location : SourceRange|null,
+                kind : string,
+                name : string,
+                schema : FunctionDef|null) {
+        super(location, schema);
+
+        assert(typeof kind === 'string');
+        this.kind = kind;
+        assert(typeof name === 'string');
+        this.name = name;
+    }
+
+    get priority() : SyntaxPriority {
+        return SyntaxPriority.Primary;
+    }
+
+    toSource() : TokenStream {
+        return List.concat('$history', '(', '@' + this.kind, '.', this.name, ')');
+    }
+
+    equals(other : Expression) : boolean {
+        return other instanceof HistoryQueryExpression &&
+            this.kind === other.kind &&
+            this.name === other.name;
+    }
+
+    toLegacy(into_params : InputParam[] = [], scope_params : string[] = []) : legacy.Stream {
+        throw new UnserializableError('History Query');
+    }
+
+    visit(visitor : NodeVisitor) : void {
+        visitor.enter(this);
+        visitor.exit(this);
+    }
+
+    clone() : HistoryQueryExpression {
+        return new HistoryQueryExpression(
+            this.location,
+            this.kind,
+            this.name,
+            this.schema ? this.schema.clone() : null
+        );
+    }
+
+    *iterateSlots(scope : ScopeMap) : Generator<OldSlot, [InvocationLike|null, ScopeMap]> {
+        return [null, {}];
+    }
+
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+       return [null, {}];
     }
 }
 

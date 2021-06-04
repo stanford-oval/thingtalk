@@ -291,6 +291,19 @@ export class InvokeGet extends TableOp {
     }
 }
 
+export class HistoryQuery extends TableOp {
+    constructor(public kind : string,
+                public name : string,
+                public device : Ast.DeviceSelector|null,
+                public ast : Ast.Expression) {
+        super();
+    }
+
+    toString() {
+        return `TableOp.HistoryQuery(${this.kind}, ${this.name})`;
+    }
+}
+
 export class Filter extends TableOp {
     constructor(public table : TableOp,
                 public filter : BooleanExpressionOp,

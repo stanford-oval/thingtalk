@@ -972,6 +972,9 @@ primary_expression : Ast.Expression = {
 
     call:thingpedia_call
         => new Ast.InvocationExpression($.location, call, null);
+
+    '$history' '(' function_call:thingpedia_function_name ')'
+        => new Ast.HistoryQueryExpression($.location, function_call.kind, function_call.name, null);
 }
 
 thingpedia_call : Ast.Invocation = {
@@ -980,7 +983,7 @@ thingpedia_call : Ast.Invocation = {
         const className = name.value.substring(0, lastDot);
         const functionName = name.value.substring(lastDot+1);
 
-        // we check that the function name is a valid identifier because the lexer will greedly parse through things
+        // we check that the function name is a valid identifier because the lexer will greedily parse through things
         // that are not identifiers but are allowed in the class name
         if (!isIdentifier(functionName))
             $.error(`${name.value} is not a valid function name`); //`

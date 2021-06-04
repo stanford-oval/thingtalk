@@ -129,6 +129,11 @@ export abstract class ExecEnvironment {
         throw new Error('Must be overridden');
     }
     /* istanbul ignore next */
+    invokeHistoryQuery(kind : string,
+                       fname : string) : AsyncIterable<[string, Record<string, unknown>]> {
+        throw new Error('Must be overridden');
+    }
+    /* istanbul ignore next */
     invokeDBQuery(kind : string,
                   attrs : Record<string, string>,
                   query : Ast.Program) : AsyncIterable<[string, Record<string, unknown>]> {

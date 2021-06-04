@@ -879,6 +879,19 @@ export class FunctionDef extends Node {
     }
 
     /**
+     * Remove all input arguments from this signature.
+     *
+     * This method does not mutate the instance, it returns a new instance with
+     * all inputs arguments removed.
+     *
+     * @return {Ast.FunctionDef} a clone of this signature with no input argument.
+     */
+    removeAllInputArguments() : FunctionDef {
+        const args = this._flattenSubFunctionArguments().filter((a) => !a.is_input);
+        return this._cloneInternal(args, true);
+    }
+
+    /**
      * Remove an argument from this signature.
      *
      * This method does not mutate the instance, it returns a new instance without

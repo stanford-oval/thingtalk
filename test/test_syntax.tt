@@ -1941,3 +1941,8 @@ $dialogue @org.thingpedia.dialogue.transaction.sys_choose_device("bedroom lights
 // ** expect TypeError **
 $dialogue @org.thingpedia.dialogue.transaction.sys_invalid(5 + 3);
 @light-bulb.set_power(power=enum on);
+
+====
+
+// history query
+$history(@org.wikidata.city) filter postal_code =~ '94305';

@@ -537,6 +537,18 @@ export default class OpCompiler {
         this._setInvocationOutputs(tableop.invocation.schema!, argmap, result);
     }
 
+    private _compileHistoryQuery(tableop : TableOp.HistoryQuery) {
+       assert(tableop.kind);
+       assert(tableop.name);
+       const kind = tableop.kind;
+       const fname = tableop.name;
+       const list = this._irBuilder.allocRegister();
+       this._irBuilder.add(new JSIr.InvokeHistoryQuery(kind, fname, list));
+
+       const result = this._compileIterateQuery(list);
+       this._setInvocationOutputs(tableop.ast.schema!, {}, result);
+    }
+
     private _compileVarRefInputParams(decl : DeclarationScopeEntry|ProcedureScopeEntry,
                                       in_params : Ast.InputParam[]) {
         const in_argmap : ArgMap = {};
@@ -1164,6 +1176,8 @@ export default class OpCompiler {
             this._compileInvokeTableVarRef(tableop);
         else if (tableop instanceof TableOp.InvokeGet)
             this._compileInvokeGet(tableop);
+        else if (tableop instanceof TableOp.HistoryQuery)
+            this._compileHistoryQuery(tableop);
         else if (tableop instanceof TableOp.Filter)
             this._compileTableFilter(tableop);
         else if (tableop instanceof TableOp.Map)

@@ -123,6 +123,16 @@ class MockExecEnvironment extends ExecEnvironment {
         }
     }
 
+    async *invokeHistoryQuery(kind, fname) {
+       const fn = this._getFn(kind, null, fname);
+
+       if (!(fn in this._query))
+           throw new Error('Unexpected query ' + fn);
+
+       for (const v of this._query[fn])
+           yield [fn, v];
+    }
+
     invokeDBQuery(kind, attrs, query) {
         return this.invokeQuery(kind, attrs, 'query', { query });
     }
@@ -2411,6 +2421,17 @@ const TEST_CASES = [
         fn: 'com.twitter:post',
         params: { status: '@org.wikidata.city() filter postal_code =~ "94305";' }
     }]],
+
+    [
+    `$history(@org.wikidata.city), postal_code =~ '94305';`,
+    {},
+    {
+        'org.wikidata:city': [({ query }) => {
+            return { postal_code: query.prettyprint() };
+        }]
+    },
+    []],
+
 ];
 
 async function test(i) {
