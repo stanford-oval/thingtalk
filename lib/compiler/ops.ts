@@ -292,14 +292,15 @@ export class InvokeGet extends TableOp {
 }
 
 export class HistoryQuery extends TableOp {
-    constructor(public device : Ast.DeviceSelector|null,
-                public channel : string,
+    constructor(public kind : string,
+                public name : string,
+                public device : Ast.DeviceSelector|null,
                 public ast : Ast.Expression) {
         super();
     }
 
     toString() {
-        return `TableOp.History(${this.device}, ${this.channel})`;
+        return `TableOp.HistoryQuery(${this.kind}, ${this.name})`;
     }
 }
 

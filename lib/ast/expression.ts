@@ -281,19 +281,19 @@ export class InvocationExpression extends Expression {
 }
 
 export class HistoryQueryExpression extends Expression {
-    selector : DeviceSelector;
-    channel : string;
+    kind : string;
+    name : string;
 
     constructor(location : SourceRange|null,
-                selector : DeviceSelector,
-                channel : string,
+                kind : string,
+                name : string,
                 schema : FunctionDef|null) {
         super(location, schema);
 
-        assert(selector instanceof DeviceSelector);
-        this.selector = selector;
-        assert(typeof channel === 'string');
-        this.channel = channel;
+        assert(typeof kind === 'string');
+        this.kind = kind;
+        assert(typeof name === 'string');
+        this.name = name;
     }
 
     get priority() : SyntaxPriority {
@@ -301,13 +301,13 @@ export class HistoryQueryExpression extends Expression {
     }
 
     toSource() : TokenStream {
-        return List.concat('$history', '(', this.selector.toSource(), '.', this.channel, ')');
+        return List.concat('$history', '(', '@' + this.kind, '.', this.name, ')');
     }
 
     equals(other : Expression) : boolean {
         return other instanceof HistoryQueryExpression &&
-            this.selector.equals(other.selector) &&
-            this.channel === other.channel;
+            this.kind === other.kind &&
+            this.name === other.name;
     }
 
     toLegacy(into_params : InputParam[] = [], scope_params : string[] = []) : legacy.Stream {
@@ -316,16 +316,14 @@ export class HistoryQueryExpression extends Expression {
 
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
-        if (visitor.visitHistoryQueryExpression(this))
-            this.selector.visit(visitor);
         visitor.exit(this);
     }
 
     clone() : HistoryQueryExpression {
         return new HistoryQueryExpression(
             this.location,
-            this.selector.clone(),
-            this.channel,
+            this.kind,
+            this.name,
             this.schema ? this.schema.clone() : null
         );
     }

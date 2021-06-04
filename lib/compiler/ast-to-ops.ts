@@ -366,13 +366,14 @@ function compileTableToOps(table : Ast.Expression,
             hints
         );
     } else if (table instanceof Ast.HistoryQueryExpression) {
-        const device = table.selector;
-        assert(device instanceof Ast.DeviceSelector);
-        const channel = table.channel;
-        assert(typeof channel === 'string');
+        const kind = table.kind;
+        assert(typeof kind === 'string');
+        const name = table.name;
+        assert(typeof name === 'string');
         return new TableOp.HistoryQuery(
-            device,
-            channel,
+            kind,
+            name,
+            null,
             table
         );
     } else if (table instanceof Ast.FilterExpression) {

@@ -974,7 +974,7 @@ primary_expression : Ast.Expression = {
         => new Ast.InvocationExpression($.location, call, null);
 
     '$history' '(' function_call:thingpedia_function_name ')'
-        => new Ast.HistoryQueryExpression($.location, new Ast.DeviceSelector($.location, function_call.kind, null, null), function_call.name, null);
+        => new Ast.HistoryQueryExpression($.location, function_call.kind, function_call.name, null);
 }
 
 thingpedia_call : Ast.Invocation = {

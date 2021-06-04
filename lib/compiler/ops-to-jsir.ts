@@ -538,10 +538,10 @@ export default class OpCompiler {
     }
 
     private _compileHistoryQuery(tableop : TableOp.HistoryQuery) {
-       assert(tableop.device);
-       assert(tableop.channel);
-       const kind = tableop.device.kind;
-       const fname = tableop.channel;
+       assert(tableop.kind);
+       assert(tableop.name);
+       const kind = tableop.kind;
+       const fname = tableop.name;
        const list = this._irBuilder.allocRegister();
        this._irBuilder.add(new JSIr.InvokeHistoryQuery(kind, fname, list));
 

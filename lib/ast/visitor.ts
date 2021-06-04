@@ -407,10 +407,6 @@ export default abstract class NodeVisitor {
         return true;
     }
     /* istanbul ignore next */
-    visitHistoryQueryExpression(node : Exp2.HistoryQueryExpression) : boolean {
-        return true;
-    }
-    /* istanbul ignore next */
     visitMonitorExpression(node : Exp2.MonitorExpression) : boolean {
         return true;
     }
