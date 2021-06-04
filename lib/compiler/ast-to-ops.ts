@@ -365,6 +365,16 @@ function compileTableToOps(table : Ast.Expression,
             table,
             hints
         );
+    } else if (table instanceof Ast.HistoryQueryExpression) {
+        const device = table.selector;
+        assert(device instanceof Ast.DeviceSelector);
+        const channel = table.channel;
+        assert(typeof channel === 'string');
+        return new TableOp.HistoryQuery(
+            device,
+            channel,
+            table
+        );
     } else if (table instanceof Ast.FilterExpression) {
         const hintsclone = hints.clone();
         const schema = table.schema;

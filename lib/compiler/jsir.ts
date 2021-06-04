@@ -586,6 +586,24 @@ class InvokeQuery {
     }
 }
 
+class InvokeHistoryQuery {
+    private _kind : string;
+    private _fname : string;
+    private _into : Register;
+
+    constructor(kind : string,
+                fname : string,
+                into : Register) {
+        this._kind = kind;
+        this._fname = fname;
+        this._into = into;
+    }
+
+    codegen(prefix : string) : string {
+        return `${prefix}_t_${this._into} = await __env.invokeHistoryQuery(${stringEscape(this._kind)}, ${stringEscape(this._fname)})`;
+    }
+}
+
 class InvokeDBQuery {
     private _kind : string;
     private _attrs : AttributeMap;
@@ -1163,6 +1181,7 @@ export {
     InvokeTimer,
     InvokeAtTimer,
     InvokeQuery,
+    InvokeHistoryQuery,
     InvokeDBQuery,
     InvokeStreamVarRef,
     InvokeAction,

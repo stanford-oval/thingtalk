@@ -1941,3 +1941,21 @@ $dialogue @org.thingpedia.dialogue.transaction.sys_choose_device("bedroom lights
 // ** expect TypeError **
 $dialogue @org.thingpedia.dialogue.transaction.sys_invalid(5 + 3);
 @light-bulb.set_power(power=enum on);
+
+====
+
+// history query
+class @foo.bar {
+  query q1(in req input : Number, out output : Number)
+  #[minimal_projection=[]];
+}
+$history(@foo.bar.q1);
+
+====
+
+// history query with filter
+class @foo.bar {
+  query q1(in req input : Number, out output : String)
+  #[minimal_projection=[]];
+}
+$history(@foo.bar.q1) filter output =~ 'bar';
