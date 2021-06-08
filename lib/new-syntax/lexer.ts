@@ -138,7 +138,7 @@ export function* surfaceLexer(input : string) : IterableIterator<Token> {
     // NOTE: ALL operators from JavaScript are recognized, plus the ThingTalk specific ones
     // Of course, most operators will be rejected by the parser, but that's a different problem
     // NOTE 2: this regexp needs to be sorted so that greedy left-first matches are longer
-    const PUNCTUATOR = /(?:>>>=|\.\.\.|===|!==|>>>|\*\*=|>>=|<<=|#_\[|#\[|[><+*/%~!&|^:-]=|=[~>]|==|\*\*|\+\+|--|<<|>>|&&|\|\||::|[{}()[\].;><*/+&|^!~?:=-])/y;
+    const PUNCTUATOR = /(?:>>>=|\.\.\.|===|!==|>>>|\*\*=|>>=|<<=|#_\[|#\[|[><+*/%~!&|^:-]=|=[~>]|==|~~|\*\*|\+\+|--|<<|>>|&&|\|\||::|[{}()[\].;><*/+&|^!~?:=-])/y;
 
     const DECIMAL_LITERAL = /-?(?:(?:0|[1-9][0-9]*)\.[0-9]*(?:[eE][+-]?[0-9]+)?|\.[0-9]+(?:[eE][+-]?[0-9]+)?|(?:0|[1-9][0-9]*)(?:[eE][+-]?[0-9]+)?)/y;
     const BASE_INT_LITERAL = /-?(?:0[bB][01]+|0[xX][0-9A-Fa-f]+|0[oO][0-7]+)/y;

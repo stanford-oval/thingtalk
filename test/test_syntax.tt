@@ -2086,3 +2086,8 @@ $dialogue @org.thingpedia.dialogue.transaction.execute;
 #[results=[
   { first.id="..."^^org.wikidata:city, second.id="..."^^org.wikidata:city }
 ]];
+
+====
+
+// approximately equal (from csqa)
+@org.wikidata.city() filter area ~~ 1000m2;
