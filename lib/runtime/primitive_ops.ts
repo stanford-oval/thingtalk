@@ -175,6 +175,13 @@ export function equality(a : unknown, b : unknown) : boolean {
     return false;
 }
 
+export function approx(a : unknown, b : unknown) : boolean {
+    // TODO: implement a real approximation operator 
+    if (a === b)
+        return true;
+    return false;
+}
+
 export function like(a_ : unknown, b : string) : boolean {
     if (a_ instanceof Entity && a_.display)
         return like(a_.display, b);

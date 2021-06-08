@@ -274,7 +274,7 @@ export class OrBooleanExpression extends BooleanExpression {
 BooleanExpression.Or = OrBooleanExpression;
 BooleanExpression.Or.prototype.isOr = true;
 
-const INFIX_COMPARISON_OPERATORS = new Set(['==', '>=', '<=', '>', '<', '=~', '~=']);
+const INFIX_COMPARISON_OPERATORS = new Set(['==', '>=', '<=', '>', '<', '=~', '~=', '~~']);
 
 /**
  * A comparison expression (predicate atom)

@@ -92,6 +92,15 @@ export const BinaryOps : { [op : string] : OpDefinition } = {
                 [Type.Currency, Type.Currency, Type.Boolean]],
         op: '<='
     },
+    '~~': {
+        types: [[Type.String, Type.String, Type.Boolean],
+                [new Type.Measure(''), new Type.Measure(''), Type.Boolean],
+                [Type.Number, Type.Number, Type.Boolean],
+                [Type.Date, Type.Date, Type.Boolean],
+                [Type.Time, Type.Time, Type.Boolean],
+                [Type.Currency, Type.Currency, Type.Boolean]],
+        fn: 'approx'
+    },
     '==': {
         types: [['a', 'a', Type.Boolean]],
         fn: 'equality',

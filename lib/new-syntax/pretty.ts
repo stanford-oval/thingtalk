@@ -219,6 +219,7 @@ export function prettyprint(tokens : TokenStream) : string {
         case '<':
         case '=~':
         case '~=':
+        case '~~':
         case '||':
         case '&&':
         case '::':
