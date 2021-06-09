@@ -10400,6 +10400,74 @@ p_recip();`,
   } finally {
     await __env.exitProcedure(2, null);
   }`]],
+
+    // 110
+    [`ontimer(date=[new Date(2021, 1, 1, 12, 30, 0)]) => notify;`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  try {
+    _t_1 = new Array(1);
+    _t_2 = new Date(XNOWX);
+    _t_1[0] = _t_2;
+    _t_0 = await __env.invokeOnTimer(_t_1);
+    _t_3 = null;
+    {
+      let _iter_tmp = await _t_0.next();
+      while (!_iter_tmp.done) {
+        _t_4 = _iter_tmp.value;
+        try {
+          await __env.output(String(_t_3), _t_4);
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_0.next();
+      }
+    }
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke on-timer", _exc_);
+  }`]],
+
+    // 111
+    [`ontimer(date=[new Date(2021, 1, 1, 12, 30, 0), new Date(2021, 3, 1, 1, 30, 0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="hello");`,
+    [`"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  try {
+    _t_1 = new Array(2);
+    _t_2 = new Date(XNOWX);
+    _t_1[0] = _t_2;
+    _t_3 = new Date(XNOWX);
+    _t_1[1] = _t_3;
+    _t_0 = await __env.invokeOnTimer(_t_1);
+    _t_4 = null;
+    {
+      let _iter_tmp = await _t_0.next();
+      while (!_iter_tmp.done) {
+        _t_5 = _iter_tmp.value;
+        try {
+          _t_6 = {};
+          _t_7 = "hello";
+          _t_6.message = _t_7;
+          await __builtin.drainAction(__env.invokeAction("org.thingpedia.builtin.thingengine.builtin", { }, "say", _t_6));
+        } catch(_exc_) {
+          __env.reportError("Failed to invoke action", _exc_);
+        }
+        _iter_tmp = await _t_0.next();
+      }
+    }
+  } catch(_exc_) {
+    __env.reportError("Failed to invoke on-timer", _exc_);
+  }`]],
 ];
 
 // eslint-disable-next-line prefer-arrow-callback

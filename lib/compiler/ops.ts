@@ -152,6 +152,17 @@ export class AtTimer extends StreamOp {
     }
 }
 
+export class OnTimer extends StreamOp {
+    constructor(public date : Ast.Value,
+                public ast : Ast.Expression) {
+        super();
+    }
+
+    toString() {
+        return `StreamOp.OnTimer(${this.date})`;
+    }
+}
+
 export class Filter extends StreamOp {
     constructor(public stream : StreamOp,
                 public filter : BooleanExpressionOp,
