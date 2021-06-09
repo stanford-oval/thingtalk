@@ -558,6 +558,20 @@ class InvokeAtTimer {
     }
 }
 
+class InvokeOnTimer {
+    private _into : Register;
+    private _date : Register;
+
+    constructor(into : Register, date : Register) {
+        this._into = into;
+        this._date = date;
+    }
+
+    codegen(prefix : string) : string {
+        return `${prefix}_t_${this._into} = await __env.invokeOnTimer(_t_${this._date});`;
+    }
+}
+
 class InvokeQuery {
     private _kind : string;
     private _attrs : AttributeMap;
@@ -1162,6 +1176,7 @@ export {
     InvokeMonitor,
     InvokeTimer,
     InvokeAtTimer,
+    InvokeOnTimer,
     InvokeQuery,
     InvokeDBQuery,
     InvokeStreamVarRef,

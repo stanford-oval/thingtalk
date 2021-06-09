@@ -121,6 +121,10 @@ export abstract class ExecEnvironment {
         throw new Error('Must be overridden');
     }
     /* istanbul ignore next */
+    invokeOnTimer(dateArray : Date[]) {
+        throw new Error('Must be overridden');
+    }
+    /* istanbul ignore next */
     invokeQuery(kind : string,
                 attrs : Record<string, string>,
                 fname : string,

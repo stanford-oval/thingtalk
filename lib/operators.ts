@@ -382,6 +382,21 @@ const AT_TIMER_SCHEMA = new FunctionDef(null,
     {}
 );
 
+const ON_TIMER_SCHEMA = new FunctionDef(null,
+    'stream',
+    null, //class
+    'ontimer',
+    [], //extends
+    {
+        is_list: false,
+        is_monitorable: true
+    },
+    [
+        new ArgumentDef(null, ArgDirection.IN_REQ, 'date', new Type.Array(Type.Date))
+    ],
+    {}
+);
+
 /**
  * Definitions (type signatures) of builtin ThingTalk functions.
  *
@@ -389,5 +404,6 @@ const AT_TIMER_SCHEMA = new FunctionDef(null,
  */
 export const Functions : { [key : string] : FunctionDef } = {
     'timer': TIMER_SCHEMA,
-    'attimer': AT_TIMER_SCHEMA
+    'attimer': AT_TIMER_SCHEMA,
+    'ontimer': ON_TIMER_SCHEMA
 };

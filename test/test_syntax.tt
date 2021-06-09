@@ -1016,6 +1016,14 @@ attimer(time=[new Time(9, 0), new Time(15, 0)]) => @org.thingpedia.builtin.thing
 attimer(time=[new Time(9, 0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's 9am or 3pm");
 ====
 
+// ontimer with List
+ontimer(date=[new Date(2021, 9, 30), new Date(2021, 9, 30, 12, 30, 0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="hello");
+====
+
+// list syntax with single ontimer
+ontimer(date=[new Date(2021, 9, 30)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="hello");
+====
+
 // ** expect TypeError **
 // procedure with a monitor
 

@@ -471,6 +471,41 @@ export default class OpCompiler {
         });
     }
 
+    private _compileOnTimer(streamop : StreamOp.OnTimer) {
+        const tryCatch = new JSIr.TryCatch("Failed to invoke on-timer");
+        this._irBuilder.add(tryCatch);
+        this._irBuilder.pushBlock(tryCatch.try);
+
+        const iterator = this._irBuilder.allocRegister();
+        const dateArray = this.compileValue(streamop.date, this._currentScope);
+
+        this._irBuilder.add(new JSIr.InvokeOnTimer(iterator, dateArray));
+
+        const outputType = this._irBuilder.allocRegister();
+        this._irBuilder.add(new JSIr.LoadConstant(null, outputType));
+
+        const result = this._irBuilder.allocRegister();
+        const loop = new JSIr.AsyncWhileLoop(result, iterator);
+        this._irBuilder.add(loop);
+        this._irBuilder.pushBlock(loop.body);
+
+        this._currentScope = new Scope(this._globalScope);
+        this._currentScope.set('$outputType', {
+            type: 'scalar',
+            tt_type: null,
+            register: outputType,
+            direction: 'special',
+            isInVarScopeNames: false
+        });
+        this._currentScope.set('$output', {
+            type: 'scalar',
+            tt_type: null,
+            register: result,
+            direction: 'special',
+            isInVarScopeNames: false
+        });
+    }
+
     private _compileInvocationHints(invocation : Ast.Invocation,
                                     hints : QueryInvocationHints) {
         if (!invocation.schema!.is_list) {
@@ -1064,6 +1099,8 @@ export default class OpCompiler {
             this._compileTimer(streamop);
         else if (streamop instanceof StreamOp.AtTimer)
             this._compileAtTimer(streamop);
+        else if (streamop instanceof StreamOp.OnTimer)
+            this._compileOnTimer(streamop);
         else if (streamop instanceof StreamOp.Filter)
             this._compileStreamFilter(streamop);
         else if (streamop instanceof StreamOp.Map)
