@@ -269,7 +269,7 @@ function compileStreamToOps(stream : Ast.Expression,
             const time = findInputParam(stream, 'time');
             const expiration_date = findInputParam(stream, 'expiration_date');
             return new StreamOp.AtTimer(time!, expiration_date, stream);
-        } else if (stream.name == 'ontimer') {
+        } else if (stream.name === 'ontimer') {
             const date = findInputParam(stream, 'date');
             return new StreamOp.OnTimer(date!, stream);
         } else {
