@@ -108,7 +108,7 @@ export interface SerializeOptions {
  */
 export function serialize(node : Ast.Input, syntaxType : SyntaxType.LegacyNN, entities : AbstractEntityRetriever, options ?: SerializeOptions) : string[];
 export function serialize(node : Ast.Node, syntaxType : SyntaxType.Tokenized, entities : AbstractEntityRetriever, options ?: SerializeOptions) : string[];
-export function serialize(node : Ast.Node, syntaxType ?: SyntaxType.Normal|SyntaxType.Legacy) : string;
+export function serialize(node : Ast.Node, syntaxType ?: SyntaxType.Normal|SyntaxType.Legacy, entities ?: undefined, options ?: SerializeOptions) : string;
 export function serialize(node : Ast.Node,
                           syntaxType : SyntaxType = SyntaxType.Normal,
                           entityRetriever ?: AbstractEntityRetriever,
