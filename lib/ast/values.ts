@@ -1346,12 +1346,12 @@ export class DateValue extends Value {
     constructor(value : DateLike|null, time ?: TimeValue) {
         super(null);
         assert(value === null || isValidDate(value));
-        assert(time === undefined || time === null || time instanceof TimeValue);
+        assert(time === undefined || time === null || (time instanceof TimeValue && time.value instanceof AbsoluteTime));
 
         // a DatePiece with non-null year is actually a fully specified date
         if (value instanceof DatePiece && value.year !== null) {
             let hour = 0, minute = 0, second = 0;
-            if (time && time.value && time.value instanceof AbsoluteTime) {
+            if (time && time.value instanceof AbsoluteTime) {
                 hour = time.value.hour;
                 minute = time.value.minute;
                 second = time.value.second;
@@ -1365,7 +1365,7 @@ export class DateValue extends Value {
                              hour, minute, second);
         } 
 
-        if (time && time.value && time.value instanceof AbsoluteTime) {
+        if (time && time.value instanceof AbsoluteTime) {
             if (value instanceof Date) {
                 value.setHours(time.value.hour);
                 value.setMinutes(time.value.minute);
