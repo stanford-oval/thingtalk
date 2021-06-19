@@ -1343,14 +1343,19 @@ function dateToSource(date : DateLike) : TokenStream {
 export class DateValue extends Value {
     value : DateLike|null;
 
-    constructor(value : DateLike|null) {
+    constructor(value : DateLike|null, time ?: TimeValue) {
         super(null);
         assert(value === null || isValidDate(value));
+        assert(time === undefined || time === null || time instanceof TimeValue);
 
         // a DatePiece with non-null year is actually a fully specified date
         if (value instanceof DatePiece && value.year !== null) {
             let hour = 0, minute = 0, second = 0;
-            if (value.time) {
+            if (time && time.value && time.value instanceof AbsoluteTime) {
+                hour = time.value.hour;
+                minute = time.value.minute;
+                second = time.value.second;
+            } else if (value.time) {
                 hour = value.time.hour;
                 minute = value.time.minute;
                 second = value.time.second;
@@ -1358,6 +1363,17 @@ export class DateValue extends Value {
 
             value = new Date(value.year, value.month !== null ? value.month-1 : 0, value.day !== null ? value.day : 1,
                              hour, minute, second);
+        } 
+
+        if (time && time.value && time.value instanceof AbsoluteTime) {
+            if (value instanceof Date) {
+                value.setHours(time.value.hour);
+                value.setMinutes(time.value.minute);
+                value.setSeconds(time.value.second);
+            } else if (value instanceof WeekDayDate) {
+                if (value.time) 
+                    value = new WeekDayDate(value.weekday, time.value);
+            }
         }
 
         this.value = value;

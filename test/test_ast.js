@@ -79,6 +79,7 @@ const IS_CONSTANT_TESTS = [
     [new Ast.Value.Computation('+', [new Ast.Value.Number(2), new Ast.Value.Number(2)]), false],
     [new Ast.Value.Undefined(true), false],
     [new Ast.Value.Undefined(false), false],
+    [new Ast.Value.Date(new Date('2020-01-29'), new Ast.Value.Time(12, 30)), true]
 ];
 
 function testIsConstant() {
