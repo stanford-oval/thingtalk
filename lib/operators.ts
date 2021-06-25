@@ -315,6 +315,10 @@ export const ScalarExpressionOps : { [op : string] : OpDefinition } = {
     'count': {
         types: [[new Type.Array('x'), Type.Number]],
         fn: 'count',
+    },
+    'set_time': {
+        types: [[Type.Date, Type.Time, Type.Date]],
+        fn: 'setTime'
     }
 };
 

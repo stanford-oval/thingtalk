@@ -74,7 +74,6 @@ const IS_CONSTANT_TESTS = [
     [new Ast.Value.Date(new Ast.DateEdge('start_of', 'week')), true],
     [new Ast.Value.Date(new Ast.DatePiece(null, null, 11, null)), true],
     [new Ast.Value.Date(null), true],
-    [new Ast.Value.Date(new Date('2020-01-29'), new Ast.Value.Time(new Ast.AbsoluteTime(12, 30, 0))), true],
     [new Ast.Value.VarRef('foo'), false],
     [new Ast.Value.VarRef('__const_QUOTED_STRING_0'), true],
     [new Ast.Value.Computation('+', [new Ast.Value.Number(2), new Ast.Value.Number(2)]), false],

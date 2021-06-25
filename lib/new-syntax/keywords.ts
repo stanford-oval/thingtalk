@@ -177,6 +177,8 @@ export const CONTEXTUAL_KEYWORDS = new Set<string>([
     'avg',
     'count',
     'distance',
+    'set_time',
+
 ]);
 
 export const DOLLAR_KEYWORDS = new Set<string>([

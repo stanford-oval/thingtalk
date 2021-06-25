@@ -1187,8 +1187,9 @@ aggr_op : ('min'|'max'|'sum'|'avg') = {
     'avg';
 }
 
-scalar_op : 'distance' = {
+scalar_op : ('distance'|'set_time') = {
     'distance' => 'distance';
+    'set_time' => 'set_time';
 }
 
 atom_filter : Ast.BooleanExpression = {
