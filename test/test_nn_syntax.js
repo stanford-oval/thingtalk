@@ -367,6 +367,26 @@ const TEST_CASES = [
     { QUOTED_STRING_0: "it's noon" },
     `attimer(time=[new Time(12, 0)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's noon");`],
 
+    ['ontimer ( date = [ DATE_0 ] ) => @org.thingpedia.builtin.thingengine.builtin . say ( message = QUOTED_STRING_0 ) ;',
+    `say QUOTED_STRING_0 on DATE_0`,
+    { DATE_0: { year: 2021, month: 1, day: 1 }, QUOTED_STRING_0: "hello, world" },
+    `ontimer(date=[new Date("2021-01-01T08:00:00.000Z")]) => @org.thingpedia.builtin.thingengine.builtin.say(message="hello, world");`],
+
+    ['ontimer ( date = [ set_time ( DATE_0 , TIME_0 ) ] ) => @org.thingpedia.builtin.thingengine.builtin . say ( message = QUOTED_STRING_0 ) ;',
+    `say QUOTED_STRING_0 at TIME_0 on DATE_0`,
+    { DATE_0: { year: 2021, month: 1, day: 1 }, TIME_0: { hour: 9, minute: 30 }, QUOTED_STRING_0: "hello, world" },
+    `ontimer(date=[set_time(new Date("2021-01-01T08:00:00.000Z"), new Time(9, 30))]) => @org.thingpedia.builtin.thingengine.builtin.say(message="hello, world");`],
+
+    ['ontimer ( date = [ set_time ( DATE_0 , $time . morning ) ] ) => @org.thingpedia.builtin.thingengine.builtin . say ( message = QUOTED_STRING_0 ) ;',
+    `say QUOTED_STRING_0 on the morning of DATE_0`,
+    { DATE_0: { year: 2021, month: 1, day: 1 }, TIME_0: { hour: 9, minute: 30 }, QUOTED_STRING_0: "good morning, world" },
+    `ontimer(date=[set_time(new Date("2021-01-01T08:00:00.000Z"), $time.morning)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="good morning, world");`],
+
+    ['ontimer ( date = [ set_time ( $now + DURATION_0 , TIME_0 ) ] ) => @org.thingpedia.builtin.thingengine.builtin . say ( message = QUOTED_STRING_0 ) ;',
+    `say QUOTED_STRING_0 DURATION_0 from now at TIME_0`,
+    { DURATION_0: { value: 2, unit: 'day' }, TIME_0: { hour: 9, minute: 30 }, QUOTED_STRING_0: "hello, world" },
+    `ontimer(date=[set_time($now + 2day, new Time(9, 30))]) => @org.thingpedia.builtin.thingengine.builtin.say(message="hello, world");`],
+
     ['[ description , title ] of @com.bing . web_search ( ) ;',
     'get title and description from bing', {},
     '[description, title] of @com.bing.web_search();'],
