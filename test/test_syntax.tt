@@ -1024,6 +1024,10 @@ ontimer(date=[new Date(2021, 9, 30), new Date(2021, 9, 30, 12, 30, 0)]) => @org.
 ontimer(date=[new Date(2021, 9, 30)]) => @org.thingpedia.builtin.thingengine.builtin.say(message="hello");
 ====
 
+// ontimer using set_time
+ontimer(date=[set_time(new Date(2021, 9, 30), new Time(10, 0))]) => @org.thingpedia.builtin.thingengine.builtin.say(message="hello");
+====
+
 // ** expect TypeError **
 // procedure with a monitor
 
