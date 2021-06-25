@@ -407,6 +407,16 @@ export function aggregateAvg(array : number[]) : number {
     }
     return sum/count;
 }
+export function setTime(d : Date, t : Time) : Date {
+    if (d === null)
+        d = new Date();
+    if (t === null) 
+        return d;
+    d.setHours(t.hour);
+    d.setMinutes(t.minute);
+    d.setSeconds(t.second);
+    return d;
+}
 export function dateAdd(date : Date, offset : number) : Date {
     return new Date(date.getTime() + offset);
 }

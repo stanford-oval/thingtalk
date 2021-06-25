@@ -19,7 +19,7 @@
 import assert from 'assert';
 
 import * as __builtin from '../lib/runtime/values';
-import { equality, like } from '../lib/runtime/primitive_ops';
+import { equality, like, setTime} from '../lib/runtime/primitive_ops';
 
 function testValueOf(what, expected) {
     assert.strictEqual(+what, expected);
@@ -125,6 +125,7 @@ export default function main() {
     assert(equality(new Date('2019-04-30T15:00:00.000Z'), new Date('2019-04-30T15:00:00.000Z')));
     assert(equality(new Date('2019-04-30T15:00:00.000Z'), 1556636400000));
     assert(equality(1556636400000, new Date('2019-04-30T15:00:00.000Z')));
+    assert(equality(setTime(new Date(2019, 4, 30), new __builtin.Time(9, 30)), new Date(2019, 4, 30, 9, 30, 0)));
 
     assert(equality([1, 2], [1, 2]));
     assert(equality([], []));
@@ -148,6 +149,7 @@ export default function main() {
     assert(like("r&b", "r & b"));
     assert(!like("john legend", "john the legend"));
     assert(!like("21", "twenty one"));
+
 }
 if (!module.parent)
     main();
