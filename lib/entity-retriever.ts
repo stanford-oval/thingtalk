@@ -233,7 +233,8 @@ export class EntityRetriever extends AbstractEntityRetriever {
         }
 
         if (entityType === 'QUOTED_STRING' || entityType === 'HASHTAG' || entityType === 'USERNAME' ||
-            entityType === 'LOCATION' || entityType.startsWith('GENERIC_ENTITY_')) {
+            entityType === 'PATH_NAME' || entityType === 'URL' || entityType === 'PHONE_NUMBER' ||
+            entityType === 'EMAIL_ADDRESS' || entityType === 'LOCATION' || entityType.startsWith('GENERIC_ENTITY_')) {
 
             const found = this._findEntityFromSentence(entityType, entityString, ignoreNotFound);
             if (found) {
@@ -243,6 +244,14 @@ export class EntityRetriever extends AbstractEntityRetriever {
                     return List.concat('"', ...found, '"', '^^tt:hashtag');
                 else if (entityType === 'USERNAME')
                     return List.concat('"', ...found, '"', '^^tt:username');
+                else if (entityType === 'PATH_NAME')
+                    return List.concat('"', ...found, '"', '^^tt:path_name');
+                else if (entityType === 'URL')
+                    return List.concat('"', ...found, '"', '^^tt:url');
+                else if (entityType === 'PHONE_NUMBER')
+                    return List.concat('"', ...found, '"', '^^tt:phone_number');
+                else if (entityType === 'EMAIL_ADDRESS')
+                    return List.concat('"', ...found, '"', '^^tt:email_address');
 
                 if (this._syntaxType === SyntaxType.LegacyNN) {
                     if (entityType === 'LOCATION')
@@ -256,7 +265,7 @@ export class EntityRetriever extends AbstractEntityRetriever {
                         const genericEntity = entity as GenericEntity;
                         const entityId = includeEntityValue && genericEntity.value ? [ '"', ...genericEntity.value.split(' '), '"'] : ['null'];
                         return List.concat(...entityId, '^^' + entityType.substring('GENERIC_ENTITY_'.length), '(', '"', ...found, '"', ')');
-                    } 
+                    }
                 }
             }
         }
@@ -385,7 +394,7 @@ export class SequentialEntityAllocator extends AbstractEntityRetriever {
                     return List.concat('new', 'Location', '(', '"', ...entityString, '"', ')');
                 } else {
                     const genericEntity = entity as GenericEntity;
-                    const entityId = includeEntityValue && genericEntity.value ? ['"', genericEntity.value, '"'] : ['null']; 
+                    const entityId = includeEntityValue && genericEntity.value ? ['"', genericEntity.value, '"'] : ['null'];
                     return List.concat(...entityId, '^^' + entityType.substring('GENERIC_ENTITY_'.length), '(', '"', ...entityString, '"', ')');
                 }
             }
