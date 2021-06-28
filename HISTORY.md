@@ -1,3 +1,22 @@
+2.1.0-alpha.1
+=============
+
+* New features for timers:
+  - `ontimer`: a new type of timer that fires at a given set of dates
+    and does not repeat [#347].
+  - `set_time`: a scalar operator that combines a date and a time;
+    this is useful with relative dates and times [#356].
+* The compiler was updated to avoid legacy code paths. Going forward,
+  legacy AST classes and legacy syntax will no longer support all
+  features in ThingTalk. Where possible, conversion will be maintained
+  for a few more releases, but users are encouraged to upgrade their
+  datasets to ThingTalk 2.0. [#349].
+* All entities now can be represented implicitly in the sentence and
+  not preprocessed, including phone numbers, email addresses, urls,
+  path names, etc. This helps for cases where the entity cannot be
+  detected deterministically [#357].
+* Updated dependencies [#351, #352, #353].
+
 2.0.1
 =====
 
