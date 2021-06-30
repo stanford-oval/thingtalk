@@ -23,6 +23,12 @@ import assert from 'assert';
 import * as Ast from '../lib/ast';
 import Type from '../lib/type';
 import * as Builtin from '../lib/runtime/builtins';
+import * as Syntax from '../lib/syntax_api';
+import SchemaRetriever from '../lib/schema';
+
+import _mockSchemaDelegate from './mock_schema_delegate';
+import _mockMemoryClient from './mock_memory_client';
+let schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, _mockMemoryClient, true);
 
 const VALUE_TESTS = [
     [Type.Boolean, true],
@@ -104,10 +110,64 @@ function testClone() {
     assert(clone.out !== fn.out);
 }
 
-export default function main() {
+async function testDialogueState() {
+    const s1 = Syntax.parse(`$dialogue @org.thingpedia.dialogue.transaction.execute;
+    @com.bing.web_search(query="almond")
+    #[results=[]];
+    @com.bing.image_search(query="almond")
+    #[results=[
+        { picture_url="http://example.com"^^tt:picture }
+    ]];
+    @com.twitter.post_picture(picture_url=$?);
+    @com.facebook.post_picture(picture_url=$?);
+    `);
+    await s1.typecheck(schemaRetriever);
+
+    assert.strictEqual(s1.current.stmt.prettyprint(), `@com.bing.image_search(query="almond");`);
+    assert.strictEqual(s1.currentFunction.qualifiedName, `com.bing.image_search`);
+    assert.strictEqual(s1.currentQuery.qualifiedName, `com.bing.image_search`);
+    assert.strictEqual(s1.currentResults.results.length, 1);
+
+    assert.strictEqual(s1.next.stmt.prettyprint(), `@com.twitter.post_picture();`);
+    assert.strictEqual(s1.nextFunction.qualifiedName, `com.twitter.post_picture`);
+
+    const s2 = Syntax.parse(`$dialogue @org.thingpedia.dialogue.transaction.execute;
+    @com.bing.web_search(query="almond")
+    #[results=[]];
+    @com.bing.image_search(query="almond")
+    #[results=[
+        { picture_url="http://example.com"^^tt:picture }
+    ]];
+    `);
+    await s2.typecheck(schemaRetriever);
+
+    assert.strictEqual(s2.current.stmt.prettyprint(), `@com.bing.image_search(query="almond");`);
+    assert.strictEqual(s2.currentFunction.qualifiedName, `com.bing.image_search`);
+    assert.strictEqual(s2.currentQuery.qualifiedName, `com.bing.image_search`);
+    assert.strictEqual(s2.currentResults.results.length, 1);
+
+    assert.strictEqual(s2.next, null);
+    assert.strictEqual(s2.nextFunction, null);
+
+    const s3 = Syntax.parse(`$dialogue @org.thingpedia.dialogue.transaction.execute;
+    @com.bing.web_search(query="almond");
+    `);
+    await s3.typecheck(schemaRetriever);
+
+    assert.strictEqual(s3.current, null);
+    assert.strictEqual(s3.currentFunction, null);
+    assert.strictEqual(s3.currentQuery, null);
+    assert.strictEqual(s3.currentResults, null);
+
+    assert.strictEqual(s3.next.prettyprint(), `@com.bing.web_search(query="almond");`);
+    assert.strictEqual(s3.nextFunction.qualifiedName, 'com.bing.web_search');
+}
+
+export default async function main() {
     testValues();
     testIsConstant();
     testClone();
+    await testDialogueState();
 }
 if (!module.parent)
     main();

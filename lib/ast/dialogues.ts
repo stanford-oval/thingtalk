@@ -333,12 +333,38 @@ export class DialogueHistoryItem extends AstNode {
  *
  */
 export class DialogueState extends Input {
+    /**
+     * The identifier of the current dialogue policy.
+     * This is a reverse-DNS name and acts as a namespace
+     * for the dialogue act.
+     * Most commonly it will be the string "org.thingpedia.dialogue.transaction".
+     */
     policy : string;
+    /**
+     * The dialogue act at this point of the conversation.
+     *
+     * Immediately after the user speaks, this is the dialogue act of the last
+     * user turn. Immediately before the user speaks, this is the dialogue act
+     * of the last agent state.
+     */
     dialogueAct : string;
+    /**
+     * Parameters associated with this dialogue act.
+     *
+     * This is a container for arbitrary constants or identifiers that parametrize
+     * a dialogue act. It is used, among other things, to parametrize the
+     * "sys_slot_fill" dialogue act with the list of slots being requested by the
+     * agent at this turn.
+     */
     dialogueActParam : Array<string|Value>|null;
+    /**
+     * The history of all executed ThingTalk statements and their results, as well
+     * as the future, yet to be executed statements.
+     */
     history : DialogueHistoryItem[];
 
     private _current : DialogueHistoryItem|null;
+    private _next : DialogueHistoryItem|null;
 
     constructor(location : SourceRange|null,
                 policy : string,
@@ -356,20 +382,85 @@ export class DialogueState extends Input {
         this.policy = policy;
 
         this._current = null;
+        this._next = null;
         this.updateCurrent();
     }
 
     /**
-     * The most recently executed history item.
+     * A pointer to the most recently executed ThingTalk statement, if any.
+     *
+     * This is a pointer into the history, provided for API convenience only.
      */
     get current() : DialogueHistoryItem|null {
         return this._current;
     }
 
-    private updateCurrent() {
+    /**
+     * The definition of the main Thingpedia function associated with the current
+     * statement, if any.
+     */
+    get currentFunction() : FunctionDef|null {
+        return this._current ? this._current.stmt.expression.schema : null;
+    }
+
+    /**
+     * The definition of the main Thingpedia query associated with the current
+     * statement, if any.
+     *
+     * If the current statement is a query, this will be the same as
+     * {@link currentFunction}. Otherwise, it will be the last query before
+     * the action is invoked.
+     */
+    get currentQuery() : FunctionDef|null {
+        if (!this._current)
+            return null;
+        const lastQuery = this._current.stmt.expression.lastQuery;
+        if (!lastQuery)
+            return null;
+        return lastQuery.schema;
+    }
+
+    /**
+     * The results of the current ThingTalk statements, if any.
+     *
+     * This is a convenience API to access the results of the current statement.
+     */
+    get currentResults() : DialogueHistoryResultList|null {
+        return this._current ? this._current.results : null;
+    }
+
+    /**
+     * A pointer to the immediate next unexecuted ThingTalk statement, if any.
+     *
+     * This is a pointer into the history, provided for API convenience only.
+     */
+    get next() : DialogueHistoryItem|null {
+        return this._next;
+    }
+
+    /**
+     * The definition of the main Thingpedia function associated with the next
+     * statement, if any.
+     */
+    get nextFunction() : FunctionDef|null {
+        return this._next ? this._next.stmt.expression.schema : null;
+    }
+
+    /**
+     * Update the {@link current} and {@link next} pointers.
+     *
+     * This method should be called when {@link history} is modified or statements
+     * are executed.
+     */
+    updateCurrent() {
         for (const item of this.history) {
-            if (item.results !== null)
-                this._current = item;
+            if (item.confirm === 'proposed')
+                continue;
+            if (item.results === null) {
+                this._next = item;
+                break;
+            }
+            this._current = item;
         }
     }
 
