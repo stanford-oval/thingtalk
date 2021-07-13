@@ -61,8 +61,11 @@ export default abstract class List<T> {
         return into;
     }
 
+    [Symbol.iterator]() : Iterator<T> {
+        return new ListIterator(this);
+    }
+
     abstract traverse(cb : (x : T) => void) : void;
-    abstract [Symbol.iterator]() : Iterator<T>;
     abstract getFirst() : T;
 }
 
@@ -72,9 +75,6 @@ class NilClass extends List<never> {
 
     getFirst() : never {
         throw new Error('getFirst on an empty list');
-    }
-
-    *[Symbol.iterator]() : Iterator<never> {
     }
 }
 List.Nil = new NilClass();
@@ -93,11 +93,6 @@ class Cons<T> extends List<T> {
     getFirst() : T {
         return this.head;
     }
-
-    *[Symbol.iterator]() : Iterator<T> {
-        yield this.head;
-        yield *this.tail;
-    }
 }
 
 class Snoc<T> extends List<T> {
@@ -113,11 +108,6 @@ class Snoc<T> extends List<T> {
 
     getFirst() : T {
         return this.head.getFirst();
-    }
-
-    *[Symbol.iterator]() : Iterator<T> {
-        yield *this.head;
-        yield this.tail;
     }
 }
 
@@ -137,9 +127,27 @@ class Concat<T> extends List<T> {
     getFirst() : T {
         return this.first.getFirst();
     }
+}
 
-    *[Symbol.iterator]() : Iterator<T> {
-        yield *this.first;
-        yield *this.second;
+class ListIterator<T> implements Iterator<T> {
+    private _stack : Array<T|List<T>>;
+
+    constructor(list : List<T>) {
+        this._stack = [list];
+    }
+
+    next() : IteratorResult<T, void> {
+        while (this._stack.length > 0) {
+            const x = this._stack.pop()!;
+            if (x instanceof List) {
+                if (x instanceof Cons || x instanceof Snoc)
+                    this._stack.push(x.tail, x.head);
+                else if (x instanceof Concat)
+                    this._stack.push(x.second, x.first);
+            } else { 
+                return { done: false, value: x };
+            }
+        }
+        return { done: true, value: undefined };
     }
 }
