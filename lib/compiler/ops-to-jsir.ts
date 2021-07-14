@@ -825,6 +825,20 @@ export default class OpCompiler {
         });
     }
 
+    private _compileVerification(verification : PointWiseOp.Verification) {
+        const answer = this._compileFilter(compileBooleanExpressionToOp(verification.booleanExpression), this._currentScope);
+        this._irBuilder.add(new JSIr.SetKey(getRegister('$output', this._currentScope), '__verification_answer', answer));
+
+        this._currentScope.set('__verification_answer', {
+            type: 'scalar',
+            register: answer,
+            tt_type: Type.Boolean,
+            direction: 'output',
+            isInVarScopeNames: true
+        });
+
+    }
+
     private _compileStreamMap(streamop : StreamOp.Map) {
         this._compileStream(streamop.stream);
 
@@ -843,6 +857,8 @@ export default class OpCompiler {
             this._compileProjection(tableop.op);
         else if (tableop.op instanceof PointWiseOp.Compute)
             this._compileCompute(tableop.op);
+        else if (tableop.op instanceof PointWiseOp.Verification)
+            this._compileVerification(tableop.op);
         else
             throw new TypeError();
     }
