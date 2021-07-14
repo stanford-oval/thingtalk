@@ -1848,13 +1848,11 @@ now => @com.facebook.post();
 ====
 
 // Entity subtyping
-// ** expect TypeError **
 @com.test.entitysubtype1.sub(), id == "foo"^^tt:test_entity_parenttype1;
 
 ====
 
 // Entity subtyping
-// ** expect TypeError **
 @com.test.entitysubtype1.sub(), "foo"^^tt:test_entity_parenttype1 == id;
 
 ====
@@ -1953,3 +1951,19 @@ $dialogue @org.thingpedia.dialogue.transaction.sys_choose_device("bedroom lights
 // ** expect TypeError **
 $dialogue @org.thingpedia.dialogue.transaction.sys_invalid(5 + 3);
 @light-bulb.set_power(power=enum on);
+
+====
+
+// comparison for entities with shared ancestor
+@com.test.entitysubtype3.people() filter place_of_birth == any([highest_point] of @com.test.entitysubtype3.country());
+
+====
+
+// parameter passing for entities with shared ancestor
+// ** expect TypeError **
+@com.test.entitysubtype3.add(name="alice", place_of_birth=null^^com.test.entitysubtype3:highest_point("mission peak"));
+
+====
+
+// parameter passing a subtype to its ancestor
+@com.test.entitysubtype3.add(name="alice", stuff=null^^com.test.entitysubtype3:city("stanford"));

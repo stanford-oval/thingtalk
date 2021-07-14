@@ -196,6 +196,7 @@ export default class TypeChecker {
     private _classes : ClassMap;
     private _useMeta : boolean;
     private _entitySubTypeMap : EntitySubTypeMap;
+    private _cachedEntityAncestors : Record<string, string[]>;
 
     constructor(schemas : SchemaRetriever,
                 useMeta = false) {
@@ -203,6 +204,7 @@ export default class TypeChecker {
         this._useMeta = useMeta;
         this._classes = {};
         this._entitySubTypeMap = {};
+        this._cachedEntityAncestors = {};
     }
 
     private async _ensureEntitySubTypes(entityType : string) {
@@ -215,6 +217,19 @@ export default class TypeChecker {
         this._entitySubTypeMap[entityType] = parents;
         for (const parent of parents)
             await this._ensureEntitySubTypes(parent);
+    }
+
+    private _getEntityAncestors(entityType : string) {
+        if (entityType in this._cachedEntityAncestors)
+            return this._cachedEntityAncestors[entityType];
+        const ancestors : string[] = [];
+        const parents : string[] = this._entitySubTypeMap[entityType] || [];
+        for (const parent of parents) {
+            ancestors.push(parent);
+            ancestors.push(...this._getEntityAncestors(parent));
+        }
+        this._cachedEntityAncestors[entityType] = ancestors;
+        return ancestors;
     }
 
     private async _isAssignable(type : Type,
@@ -368,6 +383,32 @@ export default class TypeChecker {
             throw new TypeError(`Invalid principal ${principal}, must be a contact or a group`);
     }
 
+    /**
+     * Given a key and a typeScope, return a list of typeScopes where the value 
+     * of the key is each ancestor of the original entity
+     * 
+     * During overload, entities with the common ancestor is allowed to be assigned
+     * to each other. Thus, we would try with all ancestors to see if ant of them
+     * is assignable. 
+     */
+    private _expandTypeScope(typeScope : TypeScope, key : string) : TypeScope[] {
+        if (!(key in typeScope))
+            return [typeScope];  
+        const type = typeScope[key];
+        if (!(type instanceof EntityType))
+            return [typeScope]; 
+            
+        const entityType = type.type;
+        const ancestors = this._getEntityAncestors(entityType);
+        const newScopes = ancestors.map((ancestor) => {
+            const scope = Object.assign({}, typeScope);
+            scope[key] = ancestor;
+            return scope;
+        });
+
+        return [typeScope, ...newScopes];
+    }
+
     private async _resolveOverload(overloads : Builtin.OpDefinition,
                                    operator : string,
                                    argTypes : Type[]) : Promise<[Type[], Type]> {
@@ -377,7 +418,16 @@ export default class TypeChecker {
             const typeScope : TypeScope = {};
             let good = true;
             for (let i = 0; i < argTypes.length; i++) {
-                if (!await this._isAssignable(argTypes[i], overload[i], typeScope)) {
+                const o = overload[i];
+                const typeScopes = typeof o === 'string' ? this._expandTypeScope(typeScope, o) : [typeScope];
+                let hasAssignable = false;
+                for (const scope of typeScopes) {
+                    if (await this._isAssignable(argTypes[i], o, scope)) {
+                        hasAssignable = true;
+                        break;
+                    }
+                }
+                if (!hasAssignable) {
                     good = false;
                     break;
                 }
