@@ -54,6 +54,16 @@ export class Compute extends PointWiseOp {
         return `PointWiseOp.Compute(${this.expression} as ${this.alias})`;
     }
 }
+
+export class Verification extends PointWiseOp {
+    constructor(public booleanExpression : Ast.BooleanExpression) {
+        super();
+    }
+
+    toString() {
+        return `PointWiseOp.Verification(${this.booleanExpression})`;
+    }
+}
 }
 
 type SortHint = [string, 'asc'|'desc'];

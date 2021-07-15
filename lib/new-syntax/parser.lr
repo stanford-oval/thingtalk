@@ -887,6 +887,10 @@ chain_expression_list : Ast.Expression[] = {
 projection_expression : Ast.Expression = {
     filter_expression;
 
+    '[' boolean_expression: or_filter ']' 'of' expr:filter_expression => {
+        return new Ast.BooleanQuestionExpression($.location, expr, boolean_expression, null);
+    };
+
     '[' args:projection_param_list ']' 'of' expr:projection_expression => {
         const names : string[] = [], computations : Ast.Value[] = [],
             aliases : Array<string|null> = [];
@@ -922,9 +926,9 @@ projection_nonstar_param_list : Array<[Ast.Value, string|null]> = {
 }
 
 projection_param : [Ast.Value, string|null] = {
-    v:value => [v, null];
+    v:filter_lhs_filter_value => [v, null];
 
-    v:value 'as' alias:variable_name => [v, alias];
+    v:filter_lhs_filter_value 'as' alias:variable_name => [v, alias];
 }
 
 filter_expression : Ast.Expression = {
