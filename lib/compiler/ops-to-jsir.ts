@@ -1014,6 +1014,61 @@ export default class OpCompiler {
         }
     }
 
+    private _mergeJoinScope(lhsScope : Scope, rhsScope : Scope,
+                            outputType : JSIr.Register, result : JSIr.Register) {
+        this._currentScope = new Scope(this._globalScope);
+        this._currentScope.set('$outputType', {
+            type: 'scalar',
+            tt_type: null,
+            register: outputType,
+            direction: 'special',
+            isInVarScopeNames: false
+        });
+        this._currentScope.set('$output', {
+            type: 'scalar',
+            tt_type: null,
+            register: result,
+            direction: 'special',
+            isInVarScopeNames: false
+        });
+        this._varScopeNames = [];
+
+        for (const outParam of lhsScope.ownKeys()) {
+            if (outParam.startsWith('$'))
+                continue;
+            const reg = this._irBuilder.allocRegister();
+            this._irBuilder.add(new JSIr.GetKey(result, `first.${outParam}`, reg));
+            const currentScopeObj = lhsScope.get(outParam);
+            assert(currentScopeObj.type === 'scalar');
+            this._currentScope.set(`first.${outParam}`, {
+                type: 'scalar',
+                tt_type: currentScopeObj.tt_type,
+                direction: currentScopeObj.direction,
+                register: reg,
+                isInVarScopeNames: currentScopeObj.isInVarScopeNames
+            });
+            if (currentScopeObj.isInVarScopeNames)
+                this._varScopeNames.push(`first.${outParam}`);
+        }
+        for (const outParam of rhsScope.ownKeys()) {
+            if (outParam.startsWith('$'))
+                continue;
+            const reg = this._irBuilder.allocRegister();
+            this._irBuilder.add(new JSIr.GetKey(result, `second.${outParam}`, reg));
+            const currentScopeObj = rhsScope.get(outParam);
+            assert(currentScopeObj.type === 'scalar');
+            this._currentScope.set(`second.${outParam}`, {
+                type: 'scalar',
+                tt_type: currentScopeObj.tt_type,
+                direction: currentScopeObj.direction,
+                register: reg,
+                isInVarScopeNames: currentScopeObj.isInVarScopeNames
+            });
+            if (currentScopeObj.isInVarScopeNames)
+                this._varScopeNames.push(`second.${outParam}`);
+        }
+    }
+
     private _compileStreamUnion(streamop : StreamOp.Union) {
         // compile the two streams to two generator expressions, and then pass
         // them to a builtin which will do the right thing
@@ -1125,10 +1180,7 @@ export default class OpCompiler {
             throw new TypeError();
     }
 
-    private _compileTableCrossJoin(tableop : TableOp.CrossJoin) {
-        // compile the two tables to two generator expressions, and then pass
-        // them to a builtin which will compute the cross join
-
+    private _compileTableJoinHelper(tableop : TableOp.Join|TableOp.CrossJoin) : [JSIr.Register, Scope, JSIr.Register, Scope] {
         const lhs = this._irBuilder.allocRegister();
         const lhsbody = new JSIr.AsyncFunctionExpression(lhs);
         this._irBuilder.add(lhsbody);
@@ -1151,15 +1203,38 @@ export default class OpCompiler {
 
         const rhsScope = this._currentScope;
         this._irBuilder.popTo(upto);
+        return [lhs, lhsScope, rhs, rhsScope];
 
+    }
+
+    private _compileTableJoin(tableop : TableOp.Join) {
+        const [lhs, lhsScope, rhs, rhsScope] = this._compileTableJoinHelper(tableop);
         const iterator = this._irBuilder.allocRegister();
-        this._irBuilder.add(new JSIr.BinaryFunctionOp(lhs, rhs, 'tableCrossJoin', iterator));
-
+        this._irBuilder.add(new JSIr.BinaryFunctionOp(lhs, rhs, 'tableJoin', iterator));
         const typeAndResult = this._irBuilder.allocRegister();
         const loop = new JSIr.AsyncWhileLoop(typeAndResult, iterator);
         this._irBuilder.add(loop);
         this._irBuilder.pushBlock(loop.body);
+        const [outputType, result] = this._readTypeResult(typeAndResult);
+        this._mergeJoinScope(lhsScope, rhsScope, outputType, result);
+        if (tableop.condition) {
+            const filter = this._compileFilter(tableop.condition, this._currentScope);
+            const ifStmt = new JSIr.IfStatement(filter);
+            this._irBuilder.add(ifStmt);
+            this._irBuilder.pushBlock(ifStmt.iftrue);
+        }
+    }
 
+    private _compileTableCrossJoin(tableop : TableOp.CrossJoin) {
+        // compile the two tables to two generator expressions, and then pass
+        // them to a builtin which will compute the cross join
+        const [lhs, lhsScope, rhs, rhsScope] = this._compileTableJoinHelper(tableop);
+        const iterator = this._irBuilder.allocRegister();
+        this._irBuilder.add(new JSIr.BinaryFunctionOp(lhs, rhs, 'tableCrossJoin', iterator));
+        const typeAndResult = this._irBuilder.allocRegister();
+        const loop = new JSIr.AsyncWhileLoop(typeAndResult, iterator);
+        this._irBuilder.add(loop);
+        this._irBuilder.pushBlock(loop.body);
         const [outputType, result] = this._readTypeResult(typeAndResult);
         this._mergeScopes(lhsScope, rhsScope, outputType, result);
     }
@@ -1215,6 +1290,8 @@ export default class OpCompiler {
             this._compileTableMap(tableop);
         else if (tableop instanceof TableOp.Reduce)
             this._compileTableReduce(tableop);
+        else if (tableop instanceof TableOp.Join) 
+            this._compileTableJoin(tableop);
         else if (tableop instanceof TableOp.CrossJoin)
             this._compileTableCrossJoin(tableop);
         else if (tableop instanceof TableOp.NestedLoopJoin)

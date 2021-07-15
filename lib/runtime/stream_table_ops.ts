@@ -167,6 +167,29 @@ class DelayedIterator<T> implements AsyncIterator<T> {
     }
 }
 
+export function tableJoin<T1, T2>(lhs : Stream<T1>, rhs : Stream<T2>) : AsyncIterator<ResultT<T1 & T2>, void> {
+    return new DelayedIterator(Promise.all([
+        accumulateStream(lhs),
+        accumulateStream(rhs)
+    ]).then(([left, right]) => {
+        return (function*() : Generator<ResultT<T1 & T2>, void> {
+            for (const l of left) {
+                for (const r of right) {
+                    const [leftType, leftValue] = l;
+                    const [rightType, rightValue] = r;
+                    const newValue : Record<string, any> = {};
+                    for (const [key, value] of Object.entries(leftValue))
+                        newValue[`first.${key}`] = value;
+                    for (const [key, value] of Object.entries(rightValue))
+                        newValue[`second.${key}`] = value;
+                    const newType = combineOutputTypes(leftType, rightType);
+                    yield [newType, newValue as (T1 & T2)];
+                }
+            }
+        })();
+    }));
+}
+
 export function tableCrossJoin<T>(lhs : Stream<T>, rhs : Stream<T>) : AsyncIterator<ResultT<T>, void> {
     return new DelayedIterator(Promise.all([
         accumulateStream(lhs),

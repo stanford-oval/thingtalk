@@ -649,6 +649,17 @@ function compileTableToOps(table : Ast.Expression,
             compiled.handle_thingtalk, 
             table
         );
+    } else if (table instanceof Ast.JoinExpression) {
+        const lhsop = compileTableToOps(table.lhs, restrictHintsForJoin(hints, table.lhs.schema!));
+        const rhsop = compileTableToOps(table.rhs, restrictHintsForJoin(hints, table.rhs.schema!));
+        const condition = table.condition ? compileBooleanExpressionToOp(table.condition) : null;
+        let device : Ast.DeviceSelector|null = null;
+        let handle_thingtalk = false;
+        if (lhsop.device && rhsop.device) {
+            device = sameDevice(lhsop.device, rhsop.device) ? lhsop.device : null;
+            handle_thingtalk = sameDevice(lhsop.device, rhsop.device) ? lhsop.handle_thingtalk && rhsop.handle_thingtalk : false;
+        }
+        return new TableOp.Join(lhsop, rhsop, condition, device, handle_thingtalk, table);
     } else {
         throw new TypeError(table.constructor.name);
     }

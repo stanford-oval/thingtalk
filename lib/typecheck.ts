@@ -679,6 +679,58 @@ export default class TypeChecker {
         return Promise.resolve();
     }
 
+    private async _typeCheckJoin(ast : Ast.JoinExpression, scope : Scope) {
+        assert(ast.lhs.schema && ast.rhs.schema);
+        const name = `join(${ast.lhs.schema.qualifiedName},${ast.rhs.schema.qualifiedName})`;
+        const classDef = null;
+        const qualifiers = {
+            is_list : true,
+            is_monitorable: ast.lhs.schema.is_monitorable || ast.rhs.schema.is_monitorable
+        };
+        const args = [];
+        for (const arg of ast.lhs.schema.iterateArguments()) {
+            if (arg.is_input)
+                continue;
+            const newArg = arg.clone();
+            newArg.name = `first.${arg.name}`;
+            args.push(newArg);
+        }
+        for (const arg of ast.rhs.schema.iterateArguments()) {
+            if (arg.is_input)
+                continue;
+            const newArg = arg.clone();
+            newArg.name = `second.${arg.name}`;
+            args.push(newArg);
+        }
+        ast.schema = new Ast.FunctionDef(null, 'query', classDef, name, [], qualifiers, args);
+        await this._typeCheckJoinCondition(ast.condition, ast.schema);
+        return Promise.resolve();
+    }
+
+    private async _typeCheckJoinCondition(ast : Ast.BooleanExpression, schema : Ast.FunctionDef) {
+        if (ast instanceof Ast.AtomBooleanExpression) {
+            if (!ast.name.startsWith('first.'))
+                throw new TypeError('Fields on the left-hand side in a join condition needs a `first.` prefix');
+            if (!schema.hasArgument(ast.name))
+                throw new TypeError(`Field ${ast.name.slice('first.'.length)} is not available on the left-hand side of the join`);
+            if (!(ast.value instanceof Ast.VarRefValue))
+                throw new TypeError(`Only field reference can be used in join condition`);
+            if (!ast.value.name.startsWith('second.'))
+                throw new TypeError('Fields on the right-hand side in a join condition needs a `second.` prefix');
+            if (!schema.hasArgument(ast.value.name))
+                throw new TypeError(`Field ${ast.value.name.slice('second.'.length)} is not available on the left-hand side of the join`);
+            const type_lhs = schema.getArgType(ast.name);
+            const type_rhs = schema.getArgType(ast.value.name);
+            ast.overload = await this._resolveFilterOverload(type_lhs!, ast.operator, type_rhs!);
+        } else if (ast instanceof Ast.NotBooleanExpression) {
+            this._typeCheckJoinCondition(ast.expr, schema);
+        } else if (ast instanceof Ast.AndBooleanExpression || ast instanceof Ast.OrBooleanExpression) {
+            ast.operands.forEach((o) => this._typeCheckJoinCondition(o, schema));
+        } else if (!(ast instanceof Ast.TrueBooleanExpression || ast instanceof Ast.FalseBooleanExpression)) {
+            throw new TypeError(`Invalid condition: only simple expressions and basic logics (and, or, not) are allowed`);
+        }
+    }
+
     private _resolveFilter(filter : Ast.BooleanExpression,
                            schema : Ast.FunctionDef) {
         schema = schema.clone();
@@ -926,6 +978,12 @@ export default class TypeChecker {
             }
 
             ast.schema = this._resolveChain(ast);
+        } else if (ast instanceof Ast.JoinExpression) {
+            for (const expr of [ast.lhs, ast.rhs]) {
+                await this._typeCheckExpression(expr, scope);   
+                this._checkExpressionType(expr, ['query'], 'join');
+            }
+            await this._typeCheckJoin(ast, scope);
         } else {
             throw new Error('Not Implemented');
         }

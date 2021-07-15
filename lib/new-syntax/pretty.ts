@@ -263,6 +263,8 @@ export function prettyprint(tokens : TokenStream) : string {
         case 'of':
         case 'as':
         case 'extends':
+        case 'join':
+        case 'on':
             buffer += ' ' + token + ' ';
             break;
 

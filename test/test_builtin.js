@@ -80,6 +80,40 @@ function testStreamUnion() {
     });
 }
 
+function testJoin() {
+    let lhs = testStream([[1000, ['a', {a:1}]], [5000, ['a', {a:2}]], [0, ['a', {a:3}]], [10000, ['a', {a:4}]]]);
+    let rhs = testStream([[500, ['b', {b:5}]], [6000, ['b', {b:6}]], [1000, ['b', {b:7}]]]);
+    let expect = JSON.stringify([
+        ['a+b', { 'first.a': 1, 'second.b': 5 }],
+        ['a+b', { 'first.a': 1, 'second.b': 6 }],
+        ['a+b', { 'first.a': 1, 'second.b': 7 }],
+        ['a+b', { 'first.a': 2, 'second.b': 5 }],
+        ['a+b', { 'first.a': 2, 'second.b': 6 }],
+        ['a+b', { 'first.a': 2, 'second.b': 7 }],
+        ['a+b', { 'first.a': 3, 'second.b': 5 }],
+        ['a+b', { 'first.a': 3, 'second.b': 6 }],
+        ['a+b', { 'first.a': 3, 'second.b': 7 }],
+        ['a+b', { 'first.a': 4, 'second.b': 5 }],
+        ['a+b', { 'first.a': 4, 'second.b': 6 }],
+        ['a+b', { 'first.a': 4, 'second.b': 7 }],
+    ]);
+
+    let acc = [];
+
+    let union = Builtin.tableJoin(lhs, rhs);
+    return runStream(acc, union).then(() => {
+        if (JSON.stringify(acc) !== expect) {
+            console.error('Expected:', expect);
+            console.error('Computed:', acc);
+            throw new Error();
+        }
+    }).catch((e) => {
+        console.error('testCrossJoin FAILED', e.stack);
+        if (process.env.TEST_MODE)
+            throw e;
+    });
+}
+
 function testCrossJoin() {
     let lhs = testStream([[1000, ['a', {a:1}]], [5000, ['a', {a:2}]], [0, ['a', {a:3}]], [10000, ['a', {a:4}]]]);
     let rhs = testStream([[500, ['b', {b:5}]], [6000, ['b', {b:6}]], [1000, ['b', {b:7}]]]);
@@ -154,6 +188,8 @@ function testEdgeNew() {
 export default async function main() {
     console.log('testStreamUnion');
     await timeout(30000, testStreamUnion());
+    console.log('testJoin');
+    await timeout(30000, testJoin());
     console.log('testCrossJoin');
     await timeout(30000, testCrossJoin());
     console.log('testEdgeNew');
