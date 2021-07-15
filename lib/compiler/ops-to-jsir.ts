@@ -658,21 +658,13 @@ export default class OpCompiler {
         const [kind, attrs, fname] = this._compileTpFunctionCall(action.invocation);
         const [argmap, args] = this._compileInputParams(action.invocation);
 
-        // for compatibility with existing actions that return nothing or random stuff (usually
-        // an HTTP response), we ignore the return value of actions that are declared without
-        // output parameters
-        if (action.ast.schema!.hasAnyOutputArg()) {
-            const list = this._irBuilder.allocRegister();
-            this._irBuilder.add(new JSIr.InvokeAction(kind, attrs, fname, list, args));
+        const list = this._irBuilder.allocRegister();
+        this._irBuilder.add(new JSIr.InvokeAction(kind, attrs, fname, list, args));
 
-            const result = this._compileIterateQuery(list);
-            this._setInvocationOutputs(action.ast.schema!, argmap, result);
+        const result = this._compileIterateQuery(list);
+        this._setInvocationOutputs(action.ast.schema!, argmap, result);
 
-            return true;
-        } else {
-            this._irBuilder.add(new JSIr.InvokeVoidAction(kind, attrs, fname, args));
-            return false;
-        }
+        return true;
     }
 
     private _compileAction(op : ActionOp|null) {

@@ -661,27 +661,6 @@ class InvokeAction {
     }
 }
 
-class InvokeVoidAction {
-    private _kind : string;
-    private _attrs : AttributeMap;
-    private _fname : string;
-    private _args : Register;
-
-    constructor(kind : string,
-                attrs : AttributeMap,
-                fname : string,
-                args : Register) {
-        this._kind = kind;
-        this._attrs = attrs;
-        this._fname = fname;
-        this._args = args;
-    }
-
-    codegen(prefix : string) : string {
-        return `${prefix}await __builtin.drainAction(__env.invokeAction(${stringEscape(this._kind)}, ${objectToJS(this._attrs)}, ${stringEscape(this._fname)}, _t_${this._args}));`;
-    }
-}
-
 class InvokeOutput {
     private _outputType : Register;
     private _output : Register;
@@ -1181,7 +1160,6 @@ export {
     InvokeDBQuery,
     InvokeStreamVarRef,
     InvokeAction,
-    InvokeVoidAction,
     InvokeOutput,
     InvokeReadState,
     InvokeWriteState,
