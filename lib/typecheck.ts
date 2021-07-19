@@ -857,6 +857,17 @@ export default class TypeChecker {
             for (const compute of ast.computations)
                 await this._typeCheckValue(compute, scope);
             ast.schema = this._resolveNewProjection(ast, scope);
+        } else if (ast instanceof Ast.BooleanQuestionExpression) {
+            await this._typeCheckExpression(ast.expression, scope);
+            this._checkExpressionType(ast.expression, ['query', 'stream'], 'boolean question');
+            await this._typeCheckFilter(ast.booleanExpression, ast.expression.schema, scope);
+            ast.schema = ast.expression.schema!.addArguments([new Ast.ArgumentDef(
+                ast.location,
+                Ast.ArgDirection.OUT,
+                '__answer',
+                Type.Boolean,
+                {}
+            )]);
         } else if (ast instanceof Ast.AliasExpression) {
             await this._typeCheckExpression(ast.expression, scope);
             this._checkExpressionType(ast.expression, ['query', 'stream'], 'alias');

@@ -637,6 +637,18 @@ function compileTableToOps(table : Ast.Expression,
         }
 
         return tableop;
+    } else if (table instanceof Ast.BooleanQuestionExpression) {
+        const schema = table.expression.schema;
+        assert(schema);
+        const hintsclone = hints.clone();
+        const compiled = compileTableToOps(table.expression, hintsclone);
+        return new TableOp.Map(
+            compiled, 
+            new PointWiseOp.BooleanCompute(table.booleanExpression), 
+            compiled.device, 
+            compiled.handle_thingtalk, 
+            table
+        );
     } else {
         throw new TypeError(table.constructor.name);
     }

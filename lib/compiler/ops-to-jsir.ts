@@ -817,6 +817,20 @@ export default class OpCompiler {
         });
     }
 
+    private _compileBooleanCompute(booleanCompute : PointWiseOp.BooleanCompute) {
+        const answer = this._compileFilter(compileBooleanExpressionToOp(booleanCompute.booleanExpression), this._currentScope);
+        this._irBuilder.add(new JSIr.SetKey(getRegister('$output', this._currentScope), '__answer', answer));
+
+        this._currentScope.set('__answer', {
+            type: 'scalar',
+            register: answer,
+            tt_type: Type.Boolean,
+            direction: 'output',
+            isInVarScopeNames: false
+        });
+
+    }
+
     private _compileStreamMap(streamop : StreamOp.Map) {
         this._compileStream(streamop.stream);
 
@@ -835,6 +849,8 @@ export default class OpCompiler {
             this._compileProjection(tableop.op);
         else if (tableop.op instanceof PointWiseOp.Compute)
             this._compileCompute(tableop.op);
+        else if (tableop.op instanceof PointWiseOp.BooleanCompute)
+            this._compileBooleanCompute(tableop.op);
         else
             throw new TypeError();
     }
