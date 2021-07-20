@@ -1,3 +1,19 @@
+2.1.0-alpha.2
+=============
+
+* New syntax: boolean questions. Similar to a projection, but compute
+  a boolean expression based on the result and add it to the other
+  fields in the result [#363].
+* Added multiple inheritance for entities. Multiple inheritance is
+  accounted for when resolving equality filters [#361].
+* Added convenience APIs to dialogue states to access current, next
+  item [#358].
+* Action outputs are now emitted unconditionally, regardless of whether
+  the action is declared with an output parameter or not [#365].
+* Fixed stack overflow when serializing large programs [#362].
+* Misc bug fixes [#368].
+* Updated dependencies [#359, #360].
+
 2.1.0-alpha.1
 =============
 
