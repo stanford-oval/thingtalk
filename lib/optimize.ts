@@ -263,6 +263,19 @@ function valueUsesParam(expr : Ast.Value, pname : string) {
     return visitor.used;
 }
 
+function compareProjArg(one : string, two : string) {
+    if (one === two)
+        return 0;
+    if (one === '*')
+        return -1;
+    if (two === '*')
+        return 1;
+    if (one < two)
+        return -1;
+    else
+        return 1;
+}
+
 function optimizeExpression(expression : Ast.Expression, allow_projection=true) : Ast.Expression {
     if (expression instanceof Ast.FunctionCallExpression) {
         expression.in_params.sort(compareInputParam);
@@ -275,6 +288,7 @@ function optimizeExpression(expression : Ast.Expression, allow_projection=true) 
 
     if (expression instanceof Ast.ProjectionExpression) {
         let optimized = optimizeExpression(expression.expression, allow_projection);
+        expression.args.sort(compareProjArg);
 
         // convert projection-of-chain to chain-of-projection (push the projection
         // down to the last element)
@@ -348,6 +362,7 @@ function optimizeExpression(expression : Ast.Expression, allow_projection=true) 
             expression.args = expression.args.filter((a) => !innerNames.includes(a));
             if (expression.args[0] === '*')
                 expression.args = innerArgs.concat(reusedNames);
+            expression.args.sort(compareProjArg);
 
             // append the computations
             expression.computations.push(...innerComputations);
@@ -396,6 +411,7 @@ function optimizeExpression(expression : Ast.Expression, allow_projection=true) 
     if (expression instanceof Ast.MonitorExpression) {
         // always allow projection inside a monitor, because the projection affects which parameters we monitor
         const optimized = optimizeExpression(expression.expression, true);
+        expression.args?.sort(compareProjArg);
 
         // convert monitor of a projection to a projection of a monitor
         if (optimized instanceof Ast.ProjectionExpression && optimized.computations.length === 0) {
