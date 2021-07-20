@@ -63,17 +63,17 @@ const TEST_CASES = [
 
     [
         `monitor ([text, author] of @com.twitter.home_timeline()) => notify;`,
-        `[text, author] of monitor(text, author of @com.twitter.home_timeline());`
+        `[author, text] of monitor(author, text of @com.twitter.home_timeline());`
     ],
 
     [
         `monitor (text of [text, author] of @com.twitter.home_timeline()) => notify;`,
-        `[text, author] of monitor(text of @com.twitter.home_timeline());`
+        `[author, text] of monitor(text of @com.twitter.home_timeline());`
     ],
 
     [
         `monitor ([text, author] of @com.twitter.home_timeline()) => @com.twitter.post(status=text);`,
-        `monitor(text, author of @com.twitter.home_timeline()) => @com.twitter.post(status=text);`
+        `monitor(author, text of @com.twitter.home_timeline()) => @com.twitter.post(status=text);`
     ],
 
     [
