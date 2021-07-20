@@ -1,3 +1,8 @@
+2.1.0-alpha.3
+=============
+
+Empty release to workaround NPM issues
+
 2.1.0-alpha.2
 =============
 
