@@ -25,6 +25,8 @@ export default abstract class List<T> {
     static concat<T>(...lists : Array<T|List<T>>) : List<T> {
         let result : List<T> = List.Nil;
         for (let i = lists.length-1; i >= 0; i--) {
+            if (lists[i] === List.Nil)
+                continue;
             if (lists[i] instanceof List && result === List.Nil)
                 result = lists[i] as List<T>;
             else if (lists[i] instanceof List)
@@ -144,7 +146,7 @@ class ListIterator<T> implements Iterator<T> {
                     this._stack.push(x.tail, x.head);
                 else if (x instanceof Concat)
                     this._stack.push(x.second, x.first);
-            } else { 
+            } else {
                 return { done: false, value: x };
             }
         }

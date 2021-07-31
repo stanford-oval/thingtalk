@@ -20,7 +20,14 @@
 
 import assert from 'assert';
 
-import AstNode, { SourceRange } from './base';
+import AstNode, {
+    SourceRange,
+    AnnotationMap,
+    NLAnnotationMap,
+    AnnotationSpec,
+    implAnnotationsToSource,
+    nlAnnotationsToSource,
+} from './base';
 import { Input } from './program';
 import { ExpressionStatement } from './statement';
 import * as Optimizer from '../optimize';
@@ -220,11 +227,14 @@ export class DialogueHistoryItem extends AstNode {
     stmt : ExpressionStatement;
     results : DialogueHistoryResultList|null;
     confirm : ConfirmationState;
+    nl_annotations : NLAnnotationMap;
+    impl_annotations : AnnotationMap;
 
     constructor(location : SourceRange|null,
                 stmt : ExpressionStatement,
                 results : DialogueHistoryResultList|null,
-                confirm : string|boolean) {
+                confirm : string|boolean,
+                { nl, impl } : AnnotationSpec = {}) {
         super(location);
         assert(stmt instanceof ExpressionStatement);
         assert(results === null || results instanceof DialogueHistoryResultList);
@@ -236,17 +246,31 @@ export class DialogueHistoryItem extends AstNode {
         this.stmt = stmt;
         this.results = results;
         this.confirm = confirm;
+
+        this.nl_annotations = nl || {};
+        this.impl_annotations = impl || {};
     }
 
     toSource() : TokenStream {
+        // ensure that recursive toSource() calls occur in source order,
+        // so values are fetched from the entity allocator in the right order
+
+        const expression = this.stmt.expression.toSource();
+        const results = this.results !== null ? this.results.toSource() : null;
+
+        const annotations : TokenStream = List.concat(
+            nlAnnotationsToSource(this.nl_annotations),
+            implAnnotationsToSource(this.impl_annotations),
+        );
+
         // note: we punch through to stmt.expression because stmt.toSource() will
         // add the semicolon, which we don't want
-        if (this.results !== null)
-            return List.concat(this.stmt.expression.toSource(), '\n', this.results.toSource(), ';');
-        else if (this.confirm !== 'accepted')
-            return List.concat(this.stmt.expression.toSource(), '\n', '#[', 'confirm', '=', new Value.Enum(this.confirm).toSource(), ']', ';');
+        if (results !== null)
+            return List.concat(expression, '\n', results, annotations, ';');
+        else if (this.confirm !== 'accepted' || annotations !== List.Nil)
+            return List.concat(expression, '\n', '#[', 'confirm', '=', new Value.Enum(this.confirm).toSource(), ']', annotations, ';');
         else
-            return List.concat(this.stmt.expression.toSource(), ';');
+            return List.concat(expression, annotations, ';');
     }
 
     private _getFunctions() {
@@ -294,7 +318,14 @@ export class DialogueHistoryItem extends AstNode {
     }
 
     clone() : DialogueHistoryItem {
-        return new DialogueHistoryItem(this.location, this.stmt.clone(), this.results ? this.results.clone() : null, this.confirm);
+        // clone annotations
+        const nl : NLAnnotationMap = {};
+        Object.assign(nl, this.nl_annotations);
+        const impl : AnnotationMap = {};
+        Object.assign(impl, this.impl_annotations);
+        const annotations : AnnotationSpec = { nl, impl };
+
+        return new DialogueHistoryItem(this.location, this.stmt.clone(), this.results ? this.results.clone() : null, this.confirm, annotations);
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -363,6 +394,9 @@ export class DialogueState extends Input {
      */
     history : DialogueHistoryItem[];
 
+    nl_annotations : NLAnnotationMap;
+    impl_annotations : AnnotationMap;
+
     private _current : DialogueHistoryItem|null;
     private _next : DialogueHistoryItem|null;
 
@@ -370,7 +404,8 @@ export class DialogueState extends Input {
                 policy : string,
                 dialogueAct : string,
                 dialogueActParam : Array<string|Value>|string|null,
-                history : DialogueHistoryItem[]) {
+                history : DialogueHistoryItem[],
+                { nl, impl } : AnnotationSpec = {}) {
         super(location);
         assert(typeof policy === 'string');
         assert(typeof dialogueAct === 'string');
@@ -380,6 +415,9 @@ export class DialogueState extends Input {
         this.dialogueActParam = typeof dialogueActParam === 'string' ? [dialogueActParam] : dialogueActParam;
         this.history = history;
         this.policy = policy;
+
+        this.nl_annotations = nl || {};
+        this.impl_annotations = impl || {};
 
         this._current = null;
         this._next = null;
@@ -474,16 +512,29 @@ export class DialogueState extends Input {
         let list : TokenStream = List.concat('$dialogue', '@' + this.policy, '.', this.dialogueAct);
         if (this.dialogueActParam)
             list = List.concat(list, '(', List.join(this.dialogueActParam.map((p) => typeof p === 'string' ? List.singleton(p) : p.toSource()), ','), ')');
-        list = List.concat(list, ';');
+
+        const annotations : TokenStream = List.concat(
+            nlAnnotationsToSource(this.nl_annotations),
+            implAnnotationsToSource(this.impl_annotations),
+        );
+
+        list = List.concat(list, annotations, ';');
         for (const item of this.history)
             list = List.concat(list, '\n', item.toSource());
         return list;
     }
 
     clone() : DialogueState {
+        // clone annotations
+        const nl : NLAnnotationMap = {};
+        Object.assign(nl, this.nl_annotations);
+        const impl : AnnotationMap = {};
+        Object.assign(impl, this.impl_annotations);
+        const annotations : AnnotationSpec = { nl, impl };
+
         return new DialogueState(this.location, this.policy, this.dialogueAct,
             this.dialogueActParam ? this.dialogueActParam.map((v) => typeof v === 'string' ? v : v.clone()) : null,
-            this.history.map((item) => item.clone()));
+            this.history.map((item) => item.clone()), annotations);
     }
 
     async typecheck(schemas : SchemaRetriever, getMeta = false) : Promise<this> {
