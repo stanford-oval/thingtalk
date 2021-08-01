@@ -1977,3 +1977,29 @@ $dialogue @org.thingpedia.dialogue.transaction.sys_invalid(5 + 3);
 
 // yes no questions
 [popularity >= 0.5] of @com.spotify2.album();
+
+====
+
+// dialogue annotations
+$dialogue @org.thingpedia.dialogue.transaction
+#[f="foo"] #[b="bar"] #_[b="baz"];
+
+@com.thecatapi.get();
+
+====
+
+// dialogue annotations on history items
+$dialogue @org.thingpedia.dialogue.transaction;
+@com.thecatapi.get()
+#[results=[]]
+#[f="foo"] #[b="bar"] #_[b="baz"];
+
+@com.thecatapi.get()
+#[results=[]]
+#[error=enum foo]
+#[error_detail="bad things happened"]
+#[error_stack="index.js@123"];
+
+@com.thecatapi.get()
+#[confirm=enum accepted]
+#[program_counter=123];

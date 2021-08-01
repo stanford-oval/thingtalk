@@ -290,6 +290,10 @@ now => [distance(geo, $location.current_location)] of @com.yelp.restaurant() => 
     // test parsing of dates
     [`@com.washingtonpost.get_article() filter updated == new Date(2020, 6, 15);`,
      `@com.washingtonpost.get_article() filter updated == new Date("2020-06-15T07:00:00.000Z");`],
+
+    // hide redundant #[confirm=accepted]
+    [`$dialogue @org.thingpedia.dialogue.transaction; @com.thecatapi.get() #[confirm=enum accepted];`,
+    `$dialogue @org.thingpedia.dialogue.transaction;\n@com.thecatapi.get();`]
 ];
 
 

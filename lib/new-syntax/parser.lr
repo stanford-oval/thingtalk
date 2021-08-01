@@ -28,10 +28,12 @@ import { TypeOfToken } from './token';
 import { parseDate } from '../utils/date_utils';
 
 type DialogueHistoryAnnotation =
-      { key : 'results', value : Ast.DialogueHistoryResultItem[] }
-    | { key : 'error', value : Ast.Value }
-    | { key : 'count', value : Ast.Value }
-    | { key : 'more', value : true };
+      { key : 'results', value : Ast.DialogueHistoryResultItem[], type : 'impl' }
+    | { key : 'error', value : Ast.Value, type : 'impl' }
+    | { key : 'count', value : Ast.Value, type : 'impl' }
+    | { key : 'more', value : true, type : 'impl' }
+    | { key : string, value : Ast.Value, type : 'impl' }
+    | { key : string, value : Ast.Value, type : 'nl' };
 
 function makeInput($ : $runtime.ParserInterface, statements : Ast.TopLevelStatement[], annotations : Ast.AnnotationSpec) {
     const classes : Ast.ClassDef[] = [];
@@ -263,6 +265,17 @@ function parseIncompleteDate($ : $runtime.ParserInterface,
     }
 }
 
+function checkDialogueHistoryAnnotationSpec($ : $runtime.ParserInterface,
+                                            spec : Ast.AnnotationSpec) {
+    if (!spec.impl)
+        return spec;
+    if (spec.impl.confirm)
+        $.error(`Duplicate #[confirm] annotation`);
+    if (spec.impl.results || spec.impl.more || spec.impl.count || spec.impl.error)
+        $.error(`Invalid dialogue history item annotation`);
+    return spec;
+}
+
 }
 
 terminal CLASS_OR_FUNCTION_REF : TypeOfToken<'CLASS_OR_FUNCTION_REF'>;
@@ -352,6 +365,20 @@ dialogue_state : Ast.DialogueState = {
     '$dialogue' dialogueAct:thingpedia_function_name '(' pnames:array_literal_values ')' ';' => {
         return new Ast.DialogueState($.location, dialogueAct.kind, dialogueAct.name, pnames.map((p) => p instanceof Ast.VarRefValue ? p.name : p), []);
     };
+
+    '$dialogue' dialogueAct:thingpedia_function_name annot:annotation_spec ';' history:dialogue_history_item_list => {
+        return new Ast.DialogueState($.location, dialogueAct.kind, dialogueAct.name, null, history, annot);
+    };
+    '$dialogue' dialogueAct:thingpedia_function_name '(' pnames:array_literal_values ')' annot:annotation_spec ';' history:dialogue_history_item_list => {
+        return new Ast.DialogueState($.location, dialogueAct.kind, dialogueAct.name, pnames.map((p) => p instanceof Ast.VarRefValue ? p.name : p), history, annot);
+    };
+
+    '$dialogue' dialogueAct:thingpedia_function_name annot:annotation_spec ';' => {
+        return new Ast.DialogueState($.location, dialogueAct.kind, dialogueAct.name, null, [], annot);
+    };
+    '$dialogue' dialogueAct:thingpedia_function_name '(' pnames:array_literal_values ')' annot:annotation_spec ';' => {
+        return new Ast.DialogueState($.location, dialogueAct.kind, dialogueAct.name, pnames.map((p) => p instanceof Ast.VarRefValue ? p.name : p), [], annot);
+    };
 }
 
 dialogue_history_item_list : Ast.DialogueHistoryItem[] = {
@@ -369,10 +396,13 @@ dialogue_history_item : Ast.DialogueHistoryItem = {
     // to be generic, otherwise it's hard to manipulate
 
     // results
-    rule:expression_statement results:dialogue_result_annotation_bag ';' => new Ast.DialogueHistoryItem($.location, rule, results, 'confirmed');
+    rule:expression_statement results:dialogue_result_annotation_bag ';' => new Ast.DialogueHistoryItem($.location, rule, results[0], 'confirmed', results[1]);
 
     // confirm
     rule:expression_statement '#[' 'confirm' '=' venum:enum_literal ']' ';' => new Ast.DialogueHistoryItem($.location, rule, null, venum);
+
+    // confirm
+    rule:expression_statement '#[' 'confirm' '=' venum:enum_literal ']' annot:annotation_spec ';' => new Ast.DialogueHistoryItem($.location, rule, null, venum, checkDialogueHistoryAnnotationSpec($, annot));
 }
 
 dialogue_result_annotation_list : DialogueHistoryAnnotation[] = {
@@ -381,32 +411,39 @@ dialogue_result_annotation_list : DialogueHistoryAnnotation[] = {
     list:dialogue_result_annotation_list ann:dialogue_result_annotation => list.concat([ann]);
 }
 
-dialogue_result_annotation_bag : Ast.DialogueHistoryResultList = {
+dialogue_result_annotation_bag : [Ast.DialogueHistoryResultList, Ast.AnnotationSpec] = {
     list:dialogue_result_annotation_list => {
         let results, _error, more, count;
+        const others : Ast.AnnotationSpec = { nl: {}, impl: {} };
 
         for (const annot of list) {
-            switch (annot.key) {
-            case 'results':
-                if (results !== undefined)
-                    return $.error(`Duplicate history annotation #[results]`);
-                results = annot.value;
-                break;
-            case 'error':
-                if (_error !== undefined)
-                    return $.error(`Duplicate history annotation #[results]`);
-                _error = annot.value;
-                break;
-            case 'more':
-                if (more !== undefined)
-                    return $.error(`Duplicate history annotation #[more]`);
-                more = annot.value;
-                break;
-            case 'count':
-                if (count !== undefined)
-                    return $.error(`Duplicate history annotation #[count]`);
-                count = annot.value;
-                break;
+            if (annot.type === 'impl') {
+                switch (annot.key) {
+                case 'results':
+                    if (results !== undefined)
+                        return $.error(`Duplicate history annotation #[results]`);
+                    results = annot.value as Ast.DialogueHistoryResultItem[];
+                    break;
+                case 'error':
+                    if (_error !== undefined)
+                        return $.error(`Duplicate history annotation #[error]`);
+                    _error = annot.value;
+                    break;
+                case 'more':
+                    if (more !== undefined)
+                        return $.error(`Duplicate history annotation #[more]`);
+                    more = annot.value as boolean;
+                    break;
+                case 'count':
+                    if (count !== undefined)
+                        return $.error(`Duplicate history annotation #[count]`);
+                    count = annot.value;
+                    break;
+                default:
+                    others.impl![annot.key] = annot.value as Ast.Value;
+                }
+            } else {
+                others.nl![annot.key] = annot.value.toJS();
             }
         }
         if (results === undefined)
@@ -414,15 +451,18 @@ dialogue_result_annotation_bag : Ast.DialogueHistoryResultList = {
         if (count === undefined)
             count = new Ast.Value.Number(results.length);
 
-        return new Ast.DialogueHistoryResultList($.location, results, count, more, _error);
+        return [new Ast.DialogueHistoryResultList($.location, results, count, more, _error), others];
     };
 }
 
 dialogue_result_annotation : DialogueHistoryAnnotation = {
-    '#[' 'results' '=' results:dialogue_result_list ']' => ({ key: 'results', value: results });
-    '#[' 'count' '=' count:value ']' => ({ key: 'count', value: count });
-    '#[' 'more' '=' 'true' ']' => ({ key: 'more', value: true });
-    '#[' 'error' '=' error:value ']' => ({ key: 'error', value: error });
+    '#[' 'results' '=' results:dialogue_result_list ']' => ({ key: 'results', value: results, type: 'impl' });
+    '#[' 'count' '=' count:value ']' => ({ key: 'count', value: count, type: 'impl' });
+    '#[' 'more' '=' 'true' ']' => ({ key: 'more', value: true, type: 'impl' });
+    '#[' 'error' '=' error:value ']' => ({ key: 'error', value: error, type: 'impl' });
+
+    '#[' key:non_dialogue_variable_name '=' value ']' => ({ key, value, type: 'impl' });
+    '#_[' key:variable_name '=' value ']' => ({ key, value, type: 'nl' });
 }
 
 dialogue_result_list : Ast.DialogueHistoryResultItem[] = {
@@ -467,6 +507,9 @@ policy_fn : Ast.PermissionFunction = {
     fn:thingpedia_function_name 'filter' filter:or_filter => new Ast.PermissionFunction.Specified($.location, fn.kind, fn.name, filter, null);
     fn:thingpedia_function_name ',' filter:or_filter => new Ast.PermissionFunction.Specified($.location, fn.kind, fn.name, filter, null);
 }
+
+// Annotations
+// "annotation_spec" is a non-terminal that collects arbitrary annotations
 
 annotation_spec : Ast.AnnotationSpec = {
     list:annotation_list => splitAnnotations(list);
@@ -1658,6 +1701,14 @@ identifier_list : string[] = {
 
 // a contextual keyword (as defined in lexer.ts CONTEXTUAL_KEYWORDS)
 contextual_keyword : string = {
+    'error';
+    'confirm';
+    'more';
+    'results';
+    non_dialogue_contextual_keyword;
+}
+
+non_dialogue_contextual_keyword : string = {
     'action';
     'entity';
     'from';
@@ -1667,11 +1718,6 @@ contextual_keyword : string = {
     'program';
     'query';
     'stream';
-
-    'error';
-    'confirm';
-    'more';
-    'results';
 
     'beginDate';
     'beginTime';
@@ -1695,6 +1741,17 @@ variable_name : string = {
     aggr_op;
     scalar_op;
     'count';
+}
+
+// an identifier or a contextual keyword, except those keywords that have special meaning
+// as dialogue history annotations
+non_dialogue_variable_name : string = {
+    name:IDENTIFIER => name.value;
+
+    non_dialogue_contextual_keyword;
+    function_like_comparison_op;
+    aggr_op;
+    scalar_op;
 }
 
 // this is identical to variable_name, except it is always followed by (
