@@ -1,3 +1,10 @@
+2.1.0-alpha.4
+=============
+
+* New syntax: annotations on dialogue states, dialogue history items [#370].
+* Misc bug fixes [#369].
+* Updated dependencies [#371, #372, #373, #374, #375, #376, #377].
+
 2.1.0-alpha.3
 =============
 
