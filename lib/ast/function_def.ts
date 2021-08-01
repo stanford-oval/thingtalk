@@ -996,7 +996,8 @@ export class FunctionDef extends Node {
 
     private _setMinimalProjection() {
         if (this.minimal_projection === undefined) {
-            if (this.hasArgument('id')) {
+            const idArg = this.getArgument('id');
+            if (idArg && !idArg.is_input) {
                 this.minimal_projection = ['id'];
                 this._impl_annotations.minimal_projection = new Value.Array([new Value.String('id')]);
             } else {
