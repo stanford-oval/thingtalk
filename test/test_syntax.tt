@@ -2003,3 +2003,15 @@ $dialogue @org.thingpedia.dialogue.transaction;
 @com.thecatapi.get()
 #[confirm=enum accepted]
 #[program_counter=123];
+
+====
+
+// bad relative location
+// ** expect TypeError **
+@org.thingpedia.weather.current(location=$location.foo);
+
+====
+
+// bad relative time
+// ** expect TypeError **
+@org.thingpedia.builtin.thingengine.builtin.get_time(), time == $time.foo;
