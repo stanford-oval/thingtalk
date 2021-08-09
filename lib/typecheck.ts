@@ -44,6 +44,8 @@ import type SchemaRetriever from './schema';
 const ALLOWED_PRINCIPAL_TYPES = new Set([
     'tt:contact', 'tt:username'
 ]);
+const ALLOWED_RELATIVE_TIMES = new Set(['morning', 'evening']);
+const ALLOWED_RELATIVE_LOCATIONS = new Set(['current_location', 'home', 'work']);
 
 function log(message : string) : void {
     const debug = false;
@@ -334,6 +336,18 @@ export default class TypeChecker {
                     throw new TypeError(`Invalid unit for $${date.edge}`);
             }
         }
+        if (value instanceof Ast.TimeValue) {
+            if (value.value instanceof Ast.RelativeTime) {
+                if (!ALLOWED_RELATIVE_TIMES.has(value.value.relativeTag))
+                    throw new TypeError(`Invalid relative time specifier ${value.value.relativeTag}`);
+            }
+        }
+        if (value instanceof Ast.LocationValue) {
+            if (value.value instanceof Ast.RelativeLocation) {
+                if (!ALLOWED_RELATIVE_LOCATIONS.has(value.value.relativeTag))
+                    throw new TypeError(`Invalid relative location specifier ${value.value.relativeTag}`);
+            }
+        }
 
         if (value instanceof Ast.ArrayValue) {
             const typeScope = {};
@@ -384,20 +398,20 @@ export default class TypeChecker {
     }
 
     /**
-     * Given a key and a typeScope, return a list of typeScopes where the value 
+     * Given a key and a typeScope, return a list of typeScopes where the value
      * of the key is each ancestor of the original entity
-     * 
+     *
      * During overload, entities with the common ancestor is allowed to be assigned
      * to each other. Thus, we would try with all ancestors to see if ant of them
-     * is assignable. 
+     * is assignable.
      */
     private _expandTypeScope(typeScope : TypeScope, key : string) : TypeScope[] {
         if (!(key in typeScope))
-            return [typeScope];  
+            return [typeScope];
         const type = typeScope[key];
         if (!(type instanceof EntityType))
-            return [typeScope]; 
-            
+            return [typeScope];
+
         const entityType = type.type;
         const ancestors = this._getEntityAncestors(entityType);
         const newScopes = ancestors.map((ancestor) => {
