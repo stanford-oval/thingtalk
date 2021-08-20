@@ -202,7 +202,7 @@ export function prettyprint(tokens : TokenStream) : string {
             if (buffer.endsWith('[')) // projection
                 buffer += token;
             else // multiplication
-                buffer += ' ' + token + ' ';
+                buffer += (buffer.endsWith(' ') ? '' : ' ') + token + ' ';
             break;
 
         // add a space before and after certain operators
@@ -253,7 +253,9 @@ export function prettyprint(tokens : TokenStream) : string {
         case 'while':
         case '$dialogue':
         case '$policy':
-            buffer += token + ' ';
+            buffer += token;
+            if (!buffer.endsWith('enum '))
+                buffer += ' ';
             break;
 
         // add a space BEFORE and AFTER filter, with, of, and as
@@ -265,7 +267,10 @@ export function prettyprint(tokens : TokenStream) : string {
         case 'extends':
         case 'join':
         case 'on':
-            buffer += ' ' + token + ' ';
+            if (buffer.endsWith('enum '))
+                buffer += token;
+            else
+                buffer += ' ' + token + ' ';
             break;
 
         // the following keywords DO NOT receive a space: null, true, false, sort
