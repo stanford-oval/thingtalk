@@ -11621,20 +11621,20 @@ ontimer(date=[set_time(new Date(2021, 0, 1), new Time(10, 30, 0))]) => @org.thin
         _t_29 = _iter_tmp.value;
         _t_30 = _t_29[0];
         _t_31 = _t_29[1];
-        _t_32 = _t_31.first.__response;
-        _t_33 = _t_31.first.id;
-        _t_34 = _t_31.first.artists;
-        _t_35 = _t_31.first.album;
-        _t_36 = _t_31.first.genres;
-        _t_37 = _t_31.first.release_date;
-        _t_38 = _t_31.first.popularity;
-        _t_39 = _t_31.first.energy;
-        _t_40 = _t_31.first.danceability;
-        _t_41 = _t_31.second.__response;
-        _t_42 = _t_31.second.id;
-        _t_43 = _t_31.second.artists;
-        _t_44 = _t_31.second.release_date;
-        _t_45 = _t_31.second.popularity;
+        _t_32 = _t_31["first.__response"];
+        _t_33 = _t_31["first.id"];
+        _t_34 = _t_31["first.artists"];
+        _t_35 = _t_31["first.album"];
+        _t_36 = _t_31["first.genres"];
+        _t_37 = _t_31["first.release_date"];
+        _t_38 = _t_31["first.popularity"];
+        _t_39 = _t_31["first.energy"];
+        _t_40 = _t_31["first.danceability"];
+        _t_41 = _t_31["second.__response"];
+        _t_42 = _t_31["second.id"];
+        _t_43 = _t_31["second.artists"];
+        _t_44 = _t_31["second.release_date"];
+        _t_45 = _t_31["second.popularity"];
         _t_46 = __builtin.equality(_t_35, _t_42);
         if (_t_46) {
           try {

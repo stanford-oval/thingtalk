@@ -2076,3 +2076,13 @@ $dialogue @org.thingpedia.dialogue.transaction;
 // ** expect TypeError **
 // wrong projection over join
 [id] of (@org.wikidata.city() join @org.wikidata.city()) filter in_array(first.id, second.twinned_administrative_body);
+
+
+====
+
+// result of join
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+@org.wikidata.city() join @org.wikidata.city()
+#[results=[
+  { first.id="..."^^org.wikidata:city, second.id="..."^^org.wikidata:city }
+]];
