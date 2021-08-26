@@ -526,8 +526,7 @@ function optimizeExpression(expression : Ast.Expression, allow_projection=true) 
     if (expression instanceof Ast.JoinExpression) {
         const lhs = optimizeExpression(expression.lhs);
         const rhs = optimizeExpression(expression.rhs);
-        const condition = optimizeFilter(expression.condition);
-        return new Ast.JoinExpression(expression.location, lhs, rhs, condition, expression.schema);
+        return new Ast.JoinExpression(expression.location, lhs, rhs, expression.schema);
     }
 
     if (isUnaryExpressionOp(expression)) {

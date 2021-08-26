@@ -1217,12 +1217,6 @@ export default class OpCompiler {
         this._irBuilder.pushBlock(loop.body);
         const [outputType, result] = this._readTypeResult(typeAndResult);
         this._mergeJoinScope(lhsScope, rhsScope, outputType, result);
-        if (tableop.condition) {
-            const filter = this._compileFilter(tableop.condition, this._currentScope);
-            const ifStmt = new JSIr.IfStatement(filter);
-            this._irBuilder.add(ifStmt);
-            this._irBuilder.pushBlock(ifStmt.iftrue);
-        }
     }
 
     private _compileTableCrossJoin(tableop : TableOp.CrossJoin) {

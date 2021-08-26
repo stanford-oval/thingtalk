@@ -703,32 +703,9 @@ export default class TypeChecker {
             args.push(newArg);
         }
         ast.schema = new Ast.FunctionDef(null, 'query', classDef, name, [], qualifiers, args);
-        await this._typeCheckJoinCondition(ast.condition, ast.schema);
+        scope.cleanOutput();
+        scope.addAll(ast.schema.out);
         return Promise.resolve();
-    }
-
-    private async _typeCheckJoinCondition(ast : Ast.BooleanExpression, schema : Ast.FunctionDef) {
-        if (ast instanceof Ast.AtomBooleanExpression) {
-            if (!ast.name.startsWith('first.'))
-                throw new TypeError('Fields on the left-hand side in a join condition needs a `first.` prefix');
-            if (!schema.hasArgument(ast.name))
-                throw new TypeError(`Field ${ast.name.slice('first.'.length)} is not available on the left-hand side of the join`);
-            if (!(ast.value instanceof Ast.VarRefValue))
-                throw new TypeError(`Only field reference can be used in join condition`);
-            if (!ast.value.name.startsWith('second.'))
-                throw new TypeError('Fields on the right-hand side in a join condition needs a `second.` prefix');
-            if (!schema.hasArgument(ast.value.name))
-                throw new TypeError(`Field ${ast.value.name.slice('second.'.length)} is not available on the left-hand side of the join`);
-            const type_lhs = schema.getArgType(ast.name);
-            const type_rhs = schema.getArgType(ast.value.name);
-            ast.overload = await this._resolveFilterOverload(type_lhs!, ast.operator, type_rhs!);
-        } else if (ast instanceof Ast.NotBooleanExpression) {
-            this._typeCheckJoinCondition(ast.expr, schema);
-        } else if (ast instanceof Ast.AndBooleanExpression || ast instanceof Ast.OrBooleanExpression) {
-            ast.operands.forEach((o) => this._typeCheckJoinCondition(o, schema));
-        } else if (!(ast instanceof Ast.TrueBooleanExpression || ast instanceof Ast.FalseBooleanExpression)) {
-            throw new TypeError(`Invalid condition: only simple expressions and basic logics (and, or, not) are allowed`);
-        }
     }
 
     private _resolveFilter(filter : Ast.BooleanExpression,

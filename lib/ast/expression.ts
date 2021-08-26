@@ -27,7 +27,7 @@ import {
     DeviceSelector,
     InputParam,
 } from './invocation';
-import { BooleanExpression, TrueBooleanExpression } from './boolean_expression';
+import { BooleanExpression } from './boolean_expression';
 import * as legacy from './legacy';
 import {
     Value,
@@ -1196,18 +1196,15 @@ export class ChainExpression extends Expression {
 export class JoinExpression extends Expression {
     lhs : Expression;
     rhs : Expression;
-    condition : BooleanExpression;
 
     constructor(location : SourceRange|null,
                 left : Expression,
                 right : Expression,
-                condition : BooleanExpression, 
                 schema : FunctionDef|null) {
         super(location, schema);
 
         this.lhs = left;
         this.rhs = right;
-        this.condition = condition;
     }
 
     get priority() : SyntaxPriority {
@@ -1215,26 +1212,16 @@ export class JoinExpression extends Expression {
     }
 
     toSource() : TokenStream {
-        if (this.condition instanceof TrueBooleanExpression) {
-            return List.concat(
-                addParenthesis(this.priority, this.lhs.priority, this.lhs.toSource()),
-                'join',
-                addParenthesis(this.priority, this.rhs.priority, this.rhs.toSource())
-            );
-        } else {
-            return List.concat(
-                addParenthesis(this.priority, this.lhs.priority, this.lhs.toSource()),
-                'join',
-                addParenthesis(this.priority, this.rhs.priority, this.rhs.toSource()),
-                'on',
-                addParenthesis(this.priority, this.condition.priority, this.condition.toSource())
-            );
-        }
+        return List.concat(
+            addParenthesis(this.priority, this.lhs.priority, this.lhs.toSource()),
+            'join',
+            addParenthesis(this.priority, this.rhs.priority, this.rhs.toSource())
+        );
     }
 
     equals(other : Expression) : boolean {
         return other instanceof JoinExpression &&
-            this.lhs.equals(other.lhs) && this.rhs.equals(other.rhs) && this.condition.equals(other.condition);
+            this.lhs.equals(other.lhs) && this.rhs.equals(other.rhs);
     }
 
     toLegacy(into_params : InputParam[] = [], scope_params : string[] = []) : legacy.Table {
@@ -1246,7 +1233,6 @@ export class JoinExpression extends Expression {
         if (visitor.visitJoinExpression(this)) {
             this.lhs.visit(visitor);
             this.rhs.visit(visitor);
-            this.condition.visit(visitor);
         }
         visitor.exit(this);
     }
@@ -1256,7 +1242,6 @@ export class JoinExpression extends Expression {
             this.location,
             this.lhs.clone(),
             this.rhs.clone(),
-            this.condition.clone(),
             this.schema ? this.schema.clone() : null
         );
     }

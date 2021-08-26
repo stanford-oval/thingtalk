@@ -931,11 +931,7 @@ join_expression : Ast.Expression = {
     projection_expression;
     
     lhs:join_expression 'join' rhs:projection_expression => {
-        return new Ast.JoinExpression($.location, lhs, rhs, Ast.BooleanExpression.True, null);
-    };
-
-    lhs:join_expression 'join' rhs:projection_expression 'on' condition:or_filter => {
-        return new Ast.JoinExpression($.location, lhs, rhs, condition, null);
+        return new Ast.JoinExpression($.location, lhs, rhs, null);
     };
 }
 
