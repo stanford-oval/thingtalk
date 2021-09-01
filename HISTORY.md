@@ -1,3 +1,13 @@
+2.1.0-alpha.5
+=============
+
+* New syntax: join. A join constructs an output that combines the
+  fields of two queries. The fields are prefixed with `first.` and
+  `second.` so they are not ambiguous [#380].
+* Invalid relative locations and relative times are now rejected by
+  typechecking [#378].
+* Updated dependencies [#379, #381, #383, #384, #385].
+
 2.1.0-alpha.4
 =============
 
