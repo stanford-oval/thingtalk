@@ -147,6 +147,8 @@ class GetKey {
     }
 
     codegen(prefix : string) : string {
+        if (this._key.includes('.'))
+            return `${prefix}_t_${this._into} = _t_${this._object}["${this._key}"];`;
         return `${prefix}_t_${this._into} = _t_${this._object}.${this._key};`;
     }
 }

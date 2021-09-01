@@ -1191,3 +1191,74 @@ export class ChainExpression extends Expression {
         return [null, newScope];
     }
 }
+
+
+export class JoinExpression extends Expression {
+    lhs : Expression;
+    rhs : Expression;
+
+    constructor(location : SourceRange|null,
+                left : Expression,
+                right : Expression,
+                schema : FunctionDef|null) {
+        super(location, schema);
+
+        this.lhs = left;
+        this.rhs = right;
+    }
+
+    get priority() : SyntaxPriority {
+        return SyntaxPriority.Join;
+    }
+
+    toSource() : TokenStream {
+        return List.concat(
+            addParenthesis(this.priority, this.lhs.priority, this.lhs.toSource()),
+            'join',
+            addParenthesis(this.priority, this.rhs.priority, this.rhs.toSource())
+        );
+    }
+
+    equals(other : Expression) : boolean {
+        return other instanceof JoinExpression &&
+            this.lhs.equals(other.lhs) && this.rhs.equals(other.rhs);
+    }
+
+    toLegacy(into_params : InputParam[] = [], scope_params : string[] = []) : legacy.Table {
+        throw new UnserializableError('Join expression');
+    }
+
+    visit(visitor : NodeVisitor) : void {
+        visitor.enter(this);
+        if (visitor.visitJoinExpression(this)) {
+            this.lhs.visit(visitor);
+            this.rhs.visit(visitor);
+        }
+        visitor.exit(this);
+    }
+
+    clone() : JoinExpression {
+        return new JoinExpression(
+            this.location,
+            this.lhs.clone(),
+            this.rhs.clone(),
+            this.schema ? this.schema.clone() : null
+        );
+    }
+
+    *iterateSlots(scope : ScopeMap) : Generator<OldSlot, [InvocationLike|null, ScopeMap]> {
+        const [, leftScope] = yield* this.lhs.iterateSlots(scope);
+        const [, rightScope] = yield* this.rhs.iterateSlots(scope);
+        const newScope : ScopeMap = {};
+        Object.assign(newScope, leftScope, rightScope);
+        return [null, newScope];
+    }
+
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+        const [, leftScope] = yield* this.lhs.iterateSlots2(scope);
+        const [, rightScope] = yield* this.rhs.iterateSlots2(scope);
+        const newScope : ScopeMap = {};
+        Object.assign(newScope, leftScope, rightScope);
+        return [null, newScope];
+    }
+}

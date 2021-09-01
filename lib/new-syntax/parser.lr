@@ -919,11 +919,19 @@ toplevel_chain_expression : Ast.ChainExpression = {
 // ```
 
 chain_expression_list : Ast.Expression[] = {
-    expr:projection_expression => [expr];
-
-    list:chain_expression_list '=>' expr:projection_expression => {
+    expr:join_expression => [expr];
+    
+    list:chain_expression_list '=>' expr:join_expression => {
         list.push(expr);
         return list;
+    };
+}
+
+join_expression : Ast.Expression = {
+    projection_expression;
+    
+    lhs:join_expression 'join' rhs:projection_expression => {
+        return new Ast.JoinExpression($.location, lhs, rhs, null);
     };
 }
 
@@ -1824,6 +1832,7 @@ identifier_or_keyword : string = {
     'opt';
     'req';
     'sort';
+    'on';
 
     // reserved words from JavaScript
     'await';

@@ -2015,3 +2015,74 @@ $dialogue @org.thingpedia.dialogue.transaction;
 // bad relative time
 // ** expect TypeError **
 @org.thingpedia.builtin.thingengine.builtin.get_time(), time == $time.foo;
+
+====
+
+// join
+@org.wikidata.city() join @org.wikidata.city();
+
+
+====
+
+// join with condition 1
+(@org.wikidata.city() join @org.wikidata.city()) filter in_array(first.id, second.twinned_administrative_body);
+
+
+====
+
+// join with condition 2
+(@org.wikidata.city() join @org.wikidata.city()) filter (in_array(first.id, second.twinned_administrative_body) && !(first.id == second.id)) ;
+
+====
+
+// projection over join
+[first.id, second.id] of ((@org.wikidata.city() join @org.wikidata.city()) filter in_array(first.id, second.twinned_administrative_body));
+
+====
+
+// projection inside join
+(([id] of @org.wikidata.city()) join @org.wikidata.city()) filter in_array(first.id, second.twinned_administrative_body);
+
+====
+
+// filter over join
+((@org.wikidata.city() join @org.wikidata.city()) filter in_array(first.id, second.twinned_administrative_body)) filter first.population <= 10000;
+
+====
+
+// filter inside join
+(@org.wikidata.city() filter population <= 10000 join @org.wikidata.city()) filter in_array(first.id, second.twinned_administrative_body);
+
+====
+
+// multiple joins
+[first.first.id, first.second.id, second.id] of (((@org.wikidata.city() join @org.wikidata.city()) filter in_array(first.id, second.twinned_administrative_body)) join @org.wikidata.city()) filter in_array(first.second.id, second.twinned_administrative_body);
+
+====
+
+// ** expect TypeError **
+// Join with invalid condition 1
+(@org.wikidata.city() join @org.wikidata.city()) filter in_array(first.xyz, second.twinned_administrative_body);
+
+
+====
+
+// ** expect TypeError **
+// Join with invalid condition 2
+(@org.wikidata.city() join @org.wikidata.city()) filter id =~ "xyz";
+
+====
+
+// ** expect TypeError **
+// wrong projection over join
+[id] of (@org.wikidata.city() join @org.wikidata.city()) filter in_array(first.id, second.twinned_administrative_body);
+
+
+====
+
+// result of join
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+@org.wikidata.city() join @org.wikidata.city()
+#[results=[
+  { first.id="..."^^org.wikidata:city, second.id="..."^^org.wikidata:city }
+]];

@@ -523,6 +523,12 @@ function optimizeExpression(expression : Ast.Expression, allow_projection=true) 
         return expression;
     }
 
+    if (expression instanceof Ast.JoinExpression) {
+        const lhs = optimizeExpression(expression.lhs);
+        const rhs = optimizeExpression(expression.rhs);
+        return new Ast.JoinExpression(expression.location, lhs, rhs, expression.schema);
+    }
+
     if (isUnaryExpressionOp(expression)) {
         const inner = optimizeExpression(expression.expression, allow_projection);
         expression.expression = inner;

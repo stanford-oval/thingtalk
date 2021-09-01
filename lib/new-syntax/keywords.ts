@@ -49,6 +49,7 @@ export const KEYWORDS = new Set<string>([
     'opt',
     'req',
     'sort',
+    'on',
 
     // keywords and reserved words from JavaScript are reserved for future extensions
     'await',

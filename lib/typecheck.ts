@@ -679,6 +679,35 @@ export default class TypeChecker {
         return Promise.resolve();
     }
 
+    private async _typeCheckJoin(ast : Ast.JoinExpression, scope : Scope) {
+        assert(ast.lhs.schema && ast.rhs.schema);
+        const name = `join(${ast.lhs.schema.qualifiedName},${ast.rhs.schema.qualifiedName})`;
+        const classDef = null;
+        const qualifiers = {
+            is_list : true,
+            is_monitorable: ast.lhs.schema.is_monitorable || ast.rhs.schema.is_monitorable
+        };
+        const args = [];
+        for (const arg of ast.lhs.schema.iterateArguments()) {
+            if (arg.is_input)
+                continue;
+            const newArg = arg.clone();
+            newArg.name = `first.${arg.name}`;
+            args.push(newArg);
+        }
+        for (const arg of ast.rhs.schema.iterateArguments()) {
+            if (arg.is_input)
+                continue;
+            const newArg = arg.clone();
+            newArg.name = `second.${arg.name}`;
+            args.push(newArg);
+        }
+        ast.schema = new Ast.FunctionDef(null, 'query', classDef, name, [], qualifiers, args);
+        scope.cleanOutput();
+        scope.addAll(ast.schema.out);
+        return Promise.resolve();
+    }
+
     private _resolveFilter(filter : Ast.BooleanExpression,
                            schema : Ast.FunctionDef) {
         schema = schema.clone();
@@ -926,6 +955,12 @@ export default class TypeChecker {
             }
 
             ast.schema = this._resolveChain(ast);
+        } else if (ast instanceof Ast.JoinExpression) {
+            for (const expr of [ast.lhs, ast.rhs]) {
+                await this._typeCheckExpression(expr, scope);   
+                this._checkExpressionType(expr, ['query'], 'join');
+            }
+            await this._typeCheckJoin(ast, scope);
         } else {
             throw new Error('Not Implemented');
         }

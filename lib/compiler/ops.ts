@@ -354,6 +354,20 @@ export class Reduce extends TableOp {
     }
 }
 
+export class Join extends TableOp {
+    constructor(public lhs : TableOp,
+                public rhs : TableOp,
+                public device : Ast.DeviceSelector|null,
+                public handle_thingtalk : boolean,
+                public ast : Ast.Expression) {
+        super();
+    }
+
+    toString() {
+        return `TableOp.Join(${this.lhs}, ${this.rhs})`;
+    }
+}
+
 export class CrossJoin extends TableOp {
     constructor(public lhs : TableOp,
                 public rhs : TableOp,

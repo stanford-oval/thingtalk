@@ -24,26 +24,27 @@ import List from '../utils/list';
 export enum SyntaxPriority {
     // priority of table-like expressions
     Chain = 0,
-    Projection = 1,
-    Filter = 2,
-    Alias = 3,
-    Index = 4,
+    Join = 1,
+    Projection = 2,
+    Filter = 3,
+    Alias = 4,
+    Index = 5,
 
     // low-priority scalar expression
-    ArrayField = 5,
+    ArrayField = 6,
 
     // priority of boolean expressions
-    Or = 6,
-    And = 7,
-    Comp = 8,
-    Not = 9,
+    Or = 7,
+    And = 8,
+    Comp = 9,
+    Not = 10,
 
     // priority of scalar expression
-    Add = 10,
-    Mul = 11,
-    Exp = 12,
+    Add = 11,
+    Mul = 12,
+    Exp = 13,
 
-    Primary = 13,
+    Primary = 14,
 }
 
 export function addParenthesis(p1 : SyntaxPriority, p2 : SyntaxPriority, syntax : TokenStream) : TokenStream {

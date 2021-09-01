@@ -446,6 +446,10 @@ export default abstract class NodeVisitor {
     visitChainExpression(node : Exp2.ChainExpression) : boolean {
         return true;
     }
+    /* istanbul ignore next */
+    visitJoinExpression(node : Exp2.JoinExpression) : boolean {
+        return true;
+    }
 
     // statements and inputs
     /* istanbul ignore next */
