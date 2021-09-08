@@ -101,7 +101,12 @@ const TEST_CASES = [
 // entity inheritance
 `class @com.example {
   entity a extends b, c;
-}`
+}`,
+
+// enums that are keywords
+`dataset @foo {
+  action (p : Enum(on, off)) = @light-bulb.set_power(power=p);
+}`,
 ];
 
 export default function main() {
