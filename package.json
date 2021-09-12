@@ -18,6 +18,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "dependencies": {
+    "@js-temporal/polyfill": "^0.2.0",
     "@types/semver": "^7.3.7",
     "byline": "^5.0.0",
     "consumer-queue": "^1.0.0",
