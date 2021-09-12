@@ -375,15 +375,20 @@ class FunctionOp {
     private _fn : string;
     private _into : Register;
     private _args : Register[];
+    private _passEnv : boolean;
 
-    constructor(fn : string, into : Register, ...args : Register[]) {
+    constructor(fn : string, passEnv : boolean, into : Register, ...args : Register[]) {
         this._fn = fn;
         this._into = into;
         this._args = args;
+        this._passEnv = passEnv;
     }
 
     codegen(prefix : string) : string {
-        return `${prefix}_t_${this._into} = __builtin.${this._fn}(${this._args.map((a) => '_t_' + a).join(', ')});`;
+        if (this._passEnv)
+            return `${prefix}_t_${this._into} = __builtin.${this._fn}(__env, ${this._args.map((a) => '_t_' + a).join(', ')});`;
+        else
+            return `${prefix}_t_${this._into} = __builtin.${this._fn}(${this._args.map((a) => '_t_' + a).join(', ')});`;
     }
 }
 

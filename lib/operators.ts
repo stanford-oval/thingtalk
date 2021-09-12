@@ -47,6 +47,11 @@ export interface OpImplementation {
      * Invert the arguments of the JS function/operator compared to the ThingTalk operator.
      */
     flip ?: boolean;
+
+    /**
+     * Pass the ExecEnvironment as the first argument to the function.
+     */
+    env ?: boolean;
 }
 
 export type OverloadResolver = (...types : Type[]) => OpImplementation;
@@ -318,7 +323,8 @@ export const ScalarExpressionOps : { [op : string] : OpDefinition } = {
     },
     'set_time': {
         types: [[Type.Date, Type.Time, Type.Date]],
-        fn: 'setTime'
+        fn: 'setTime',
+        env: true
     }
 };
 

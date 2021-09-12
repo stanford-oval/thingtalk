@@ -19,6 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
+import { Temporal, toTemporalInstant, } from '@js-temporal/polyfill';
 
 import { stringEscape } from '../utils/escaping';
 
@@ -205,6 +206,10 @@ export class Time {
         return new Time(hour, minute, seconds);
     }
 
+    static fromTemporal(time : Temporal.PlainTime) {
+        return new Time(time.hour, time.minute, time.second);
+    }
+
     // for comparisons
     /**
      * Convert this time value to the number of seconds since midnight.
@@ -340,26 +345,47 @@ export class RecurrentTimeRule implements RecurrentTimeRuleLike {
         + '})';
     }
 
-    contains(dateOrTime : Date|Time) : boolean {
+    contains(dateOrTime : Date|Temporal.ZonedDateTime|Temporal.PlainTime|Time) : boolean {
+        let time;
+        let instant;
+        let dayOfWeek;
+
         if (dateOrTime instanceof Date) {
-            const time = +(new Time(dateOrTime.getHours(), dateOrTime.getMinutes(), dateOrTime.getSeconds()));
-            if (!(Number(this.beginTime) <= time && Number(this.endTime) >= time))
-                return false;
-
-            if (this.beginDate && this.beginDate > dateOrTime)
-                return false;
-            if (this.endDate && this.endDate < dateOrTime)
-                return false;
-
-            if (this.dayOfWeek !== null && this.dayOfWeek !== dateOrTime.getDay())
-                return false;
-
-            // TODO frequency and interval
-
-            return true;
+            // this is not correct wrt timezone but if all we have is a date that's all we can do
+            time = new Time(dateOrTime.getHours(), dateOrTime.getMinutes(), dateOrTime.getSeconds());
+            dayOfWeek = dateOrTime.getDay();
+            instant = toTemporalInstant.call(dateOrTime);
+        } else if (dateOrTime instanceof Temporal.ZonedDateTime) {
+            time = Time.fromTemporal(dateOrTime.toPlainTime());
+            dayOfWeek = dateOrTime.dayOfWeek;
+            instant = dateOrTime.toInstant();
+        } else if (dateOrTime instanceof Temporal.PlainTime) {
+            time = Time.fromTemporal(dateOrTime);
+            dayOfWeek = undefined;
+            instant = undefined;
         } else {
-            return this.beginTime <= dateOrTime && this.endTime >= dateOrTime;
+            time = dateOrTime;
+            dayOfWeek = undefined;
+            instant = undefined;
         }
+
+        if (!(this.beginTime <= time && this.endTime >= time))
+            return false;
+
+        if (instant) {
+            if (this.beginDate && this.beginDate.getTime() > instant.epochMilliseconds)
+                return false;
+            if (this.endDate && this.endDate.getTime() < instant.epochMilliseconds)
+                return false;
+        }
+
+        if (dayOfWeek) {
+            if (this.dayOfWeek !== null && this.dayOfWeek !== dayOfWeek)
+                return false;
+        }
+
+        // TODO frequency and interval
+        return true;
     }
 }
 
