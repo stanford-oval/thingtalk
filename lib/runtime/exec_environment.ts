@@ -76,6 +76,16 @@ export abstract class ExecEnvironment {
         throw new Error('Must be overridden');
     }
 
+    /* istanbul ignore next */
+    get locale() : string {
+        throw new Error('Must be overridden');
+    }
+
+    /* istanbul ignore next */
+    get timezone() : string {
+        throw new Error('Must be overridden');
+    }
+
     /**
      * Returns a unique id of the current stack frame.
      *

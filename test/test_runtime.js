@@ -81,6 +81,12 @@ class MockExecEnvironment extends ExecEnvironment {
     get program_id() {
         return 'uuid-XXXXXXXXXXXX';
     }
+    get locale() {
+        return 'en-US';
+    }
+    get timezone() {
+        return 'America/Los_Angeles';
+    }
 
     _getFn(kind, attrs, fname) {
         return `${kind}:${fname}`;
