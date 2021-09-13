@@ -97,7 +97,9 @@ async function testCase(test, i) {
 
     console.log('Test Case #' + (i+1));
     try {
-        let program1 = Grammar.parse(sequence1.split(' '), Grammar.SyntaxType.Tokenized, {});
+        let program1 = Grammar.parse(sequence1.split(' '), Grammar.SyntaxType.Tokenized, {}, {
+            timezone: 'America/Los_Angeles'
+        });
         await program1.typecheck(schemaRetriever);
 
         const into = {};

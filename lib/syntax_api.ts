@@ -68,7 +68,7 @@ export enum SyntaxType {
 
 export interface ParseOptions {
     locale ?: string,
-    timezone ?: string
+    timezone : string|undefined
 }
 
 /**
@@ -77,8 +77,8 @@ export interface ParseOptions {
  * @param {string} code - the ThingTalk code to parse
  * @return {Ast.Input} the parsed program, library or permission rule
  */
-export function parse(code : string|string[], syntaxType : SyntaxType.Tokenized|SyntaxType.LegacyNN, entities : EntityMap|EntityResolver, options ?: ParseOptions) : Ast.Input;
-export function parse(code : string, syntaxType ?: SyntaxType.Normal|SyntaxType.Legacy, options ?: ParseOptions) : Ast.Input;
+export function parse(code : string|string[], syntaxType : SyntaxType.Tokenized|SyntaxType.LegacyNN, entities : EntityMap|EntityResolver, options : ParseOptions) : Ast.Input;
+export function parse(code : string, syntaxType : SyntaxType.Normal|SyntaxType.Legacy, options : ParseOptions) : Ast.Input;
 export function parse(code : string|string[], syntaxType : SyntaxType = SyntaxType.Normal, entities ?: EntityMap|EntityResolver|ParseOptions, options ?: ParseOptions) : Ast.Input {
     let input : Ast.Input;
     if (syntaxType === SyntaxType.Tokenized) {

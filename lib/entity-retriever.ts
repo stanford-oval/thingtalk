@@ -112,11 +112,9 @@ export abstract class AbstractEntityRetriever {
     protected _timezone : string;
 
     constructor(options : {
-        timezone ?: string
+        timezone : string|undefined
     }) {
-        if (!options.timezone)
-            console.log('Serializing ThingTalk without a timezone is deprecated');
-        this._timezone = options.timezone || Temporal.Now.timeZone().id;
+        this._timezone = options.timezone ?? Temporal.Now.timeZone().id;
         this._syntaxType = SyntaxType.LegacyNN;
     }
 
@@ -151,8 +149,8 @@ export class EntityRetriever extends AbstractEntityRetriever {
     entities : EntityMap;
 
     constructor(sentence : string|string[], entities : EntityMap, options : {
-        timezone ?: string
-    } = {}) {
+        timezone : string|undefined
+    }) {
         super(options);
         if (typeof sentence === 'string')
             sentence = sentence.split(' ');
@@ -363,9 +361,9 @@ export class SequentialEntityAllocator extends AbstractEntityRetriever {
     explicitStrings : boolean;
 
     constructor(entities : EntityMap, options : {
-        timezone ?: string,
+        timezone : string|undefined,
         explicitStrings ?: boolean
-    } = {}) {
+    }) {
         super(options);
         this.offsets = {};
         this.entities = entities;
