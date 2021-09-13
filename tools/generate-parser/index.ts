@@ -40,7 +40,7 @@ function handleRule(rule : Ast.Rule,
                     typeMap : TypeMap) : ProcessedRule {
     const head = rule.head.map((h) => h.getGeneratorInput());
 
-    const bodyArgs = ['$ : $runtime.ParserInterface'];
+    const bodyArgs = [`$ : $runtime.ParserInterface<${typeMap.$options ?? 'any'}>`];
     let i = 0;
     for (const headPart of rule.head) {
         if (headPart instanceof Ast.RuleHeadPart.Terminal) {
@@ -132,8 +132,9 @@ async function main() {
     if (output === '--wsn') {
         wsnDump(grammar);
     } else {
-        const generator = new SLRParserGenerator(grammar, 'input', typeMap['input'] || 'any');
-        await writeout(firstFile.preamble, generator, fs.createWriteStream(output), output, typeMap['input'] || 'any');
+        const generator = new SLRParserGenerator(grammar, 'input', typeMap['input'] || 'any', typeMap['$options'] || 'any');
+        await writeout(firstFile.preamble, generator, fs.createWriteStream(output), output, typeMap['input'] || 'any',
+            typeMap['$options'] || 'any');
     }
 }
 main();

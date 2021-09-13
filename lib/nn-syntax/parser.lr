@@ -28,7 +28,15 @@ type DialogueHistoryAnnotation =
     | { key : 'error', value : Ast.Value }
     | { key : 'count', value : Ast.Value }
     | { key : 'more', value : true };
+
+type ParserOptions = {
+    locale ?: string;
+    timezone ?: string;
+};
+
 }
+
+$options = ParserOptions;
 
 /**
  * Missing features, compared with full TT:
@@ -803,7 +811,7 @@ absolute_or_edge_date : Ast.DateValue = {
         return new Ast.Value.Date(new Date(iso));
     };
 
-    abs:DATE => new Ast.Value.Date(parseDate(abs.value));
+    abs:DATE => new Ast.Value.Date(parseDate(abs.value, $.timezone));
 
     'new' 'Date' '(' year:constant_Number ',' ',' ',' ')' => {
         return new Ast.Value.Date(new Ast.DatePiece(year.value, null, null, null));

@@ -315,10 +315,11 @@ export class SLRParserGenerator {
     private _followSets ! : Map<string, Set<string>>;
     private _stateTransitionMatrix ! : Array<Map<string, number>>;
 
-    constructor(grammar : ProcessedGrammar, startSymbol : string, rootType : string) {
+    constructor(grammar : ProcessedGrammar, startSymbol : string, rootType : string, optionType : string) {
         // optimizations first
         this._startSymbol = startSymbol;
-        grammar[ROOT_NT.symbol] = [[[new NonTerminal(startSymbol), EOF_TOKEN], `($ : $runtime.ParserInterface, $0 : ${rootType}) : ${rootType} => $0`]];
+        grammar[ROOT_NT.symbol] = [[[new NonTerminal(startSymbol), EOF_TOKEN],
+            `($ : $runtime.ParserInterface<${optionType}>, $0 : ${rootType}) : ${rootType} => $0`]];
         this._numberRules(grammar);
         this._extractTerminalsNonTerminals();
         this._buildFirstSets();

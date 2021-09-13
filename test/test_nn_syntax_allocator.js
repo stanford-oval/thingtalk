@@ -139,7 +139,9 @@ async function testCase(test, i) {
         await program.typecheck(schemaRetriever);
 
         const into = {};
-        const allocator = new Grammar.SequentialEntityAllocator(into);
+        const allocator = new Grammar.SequentialEntityAllocator(into, {
+            timezone: 'America/Los_Angeles'
+        });
         let reconstructed = Grammar.serialize(program, Grammar.SyntaxType.Tokenized, allocator).join(' ');
         if (reconstructed !== test[0]) {
             console.error('Test Case #' + (i+1) + ' failed (wrong NN syntax)');

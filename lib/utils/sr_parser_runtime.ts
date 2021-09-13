@@ -37,12 +37,12 @@ export type ActionTable = { [key : number] : { [key : number] : [ParserAction, n
 export type GotoTable = { [key : number] : { [key : number] : number } };
 export type SymbolTable = { [key : string] : number };
 
-export interface ParserInterface {
+export type ParserInterface<OptionType> = OptionType & {
     location : SourceRange|null;
     error(msg : string) : never;
 }
 
-type SemanticAction = ($ : ParserInterface, ...args : any[]) => any;
+type SemanticAction = ($ : ParserInterface<any>, ...args : any[]) => any;
 
 interface ParserConfig {
     TERMINAL_IDS : SymbolTable;
@@ -70,8 +70,8 @@ interface Parser<RootType> {
     parse(sequence : Iterable<TokenWrapper<unknown>>) : RootType;
 }
 
-export interface ParserConstructor<RootType> {
-    new() : Parser<RootType>;
+export interface ParserConstructor<RootType, OptionType> {
+    new(options : OptionType) : Parser<RootType>;
 }
 
 export interface TokenWrapper<T> {
@@ -109,8 +109,14 @@ function tokenToString(tok : TokenWrapper<any>|string) : string {
         return tok.token;
 }
 
-export function createParser<RootType>({ TERMINAL_IDS, RULE_NON_TERMINALS, ARITY, GOTO, PARSER_ACTION, SEMANTIC_ACTION } : ParserConfig) : ParserConstructor<RootType> {
+export function createParser<RootType, OptionType = any>({ TERMINAL_IDS, RULE_NON_TERMINALS, ARITY, GOTO, PARSER_ACTION, SEMANTIC_ACTION } : ParserConfig) : ParserConstructor<RootType, OptionType> {
     return class ShiftReduceParser {
+        private _options : OptionType;
+
+        constructor(options : OptionType) {
+            this._options = options;
+        }
+
         private _helper(sequence : Iterable<TokenWrapper<any>>, applySemanticAction : boolean) : [number[], RootType] {
             const iterator = sequence[Symbol.iterator]();
 
@@ -132,7 +138,9 @@ export function createParser<RootType>({ TERMINAL_IDS, RULE_NON_TERMINALS, ARITY
                 tokenno++;
             }
 
-            const $ = {
+            const $ : ParserInterface<OptionType> = {
+                ...this._options,
+
                 location: currentLocation,
 
                 error(msg : string) {

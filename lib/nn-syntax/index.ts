@@ -54,14 +54,17 @@ import applyCompatibility from './compat';
  * @param {Object<string, any>} entities - concrete values of the entities referred in the program.
  * @return {Ast.Input} - the parsed program
  */
-function fromNN(input : string|string[], entities : EntityMap|EntityResolver) : Ast.Input {
+function fromNN(input : string|string[], entities : EntityMap|EntityResolver, options : {
+    locale ?: string,
+    timezone ?: string
+} = {}) : Ast.Input {
     let sequence : string[];
     if (typeof input === 'string')
         sequence = input.split(' ');
     else
         sequence = input;
 
-    const parser = new Parser();
+    const parser = new Parser(options);
     return parser.parse({
         [Symbol.iterator]() {
             return new Lexer(sequence, entities);
