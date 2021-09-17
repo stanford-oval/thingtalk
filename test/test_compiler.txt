@@ -11422,7 +11422,7 @@ ontimer(date=[set_time(new Date(2021, 0, 1), new Time(10, 30, 0))]) => @org.thin
     _t_1 = new Array(1);
     _t_2 = new Date(XNOWX);
     _t_3 = new __builtin.Time(10, 30, 0);
-    _t_4 = __builtin.setTime(_t_2, _t_3);
+    _t_4 = __builtin.setTime(__env, _t_2, _t_3);
     _t_1[0] = _t_4;
     _t_0 = await __env.invokeOnTimer(_t_1);
     _t_5 = null;

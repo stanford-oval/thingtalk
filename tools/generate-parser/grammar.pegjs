@@ -65,12 +65,18 @@ InitialCodeBlock = '{' code:Code '}' { return code; }
 
 Statement
   = TerminalDeclaration
+  / OptionDeclaration
   / NonTerminalDeclaration
 
 TerminalDeclaration
   = TerminalToken __ name:Identifier __ ':' __ type:CodeNoSemicolon __ ';' {
     return new Ast.TerminalStmt(name, type);
   }
+
+OptionDeclaration
+  = '$options' __ '=' __ type:CodeNoSemicolon __ ';' {
+    return new Ast.TerminalStmt('$options', type);
+}
 
 NonTerminalDeclaration
   = name:Identifier __ type:(':' __ CodeNoEqual)? '=' __ block:RuleBlock {

@@ -661,7 +661,7 @@ export class ComplexIndex extends ArrayReduceOp<ComplexIndexState> {
     _doFinish(irBuilder : JSIr.IRBuilder,
               { indices, array } : ComplexIndexState) : JSIr.Register {
         const newArray = irBuilder.allocRegister();
-        irBuilder.add(new JSIr.FunctionOp('indexArray', newArray, array, indices));
+        irBuilder.add(new JSIr.FunctionOp('indexArray', false, newArray, array, indices));
         return newArray;
     }
 }
@@ -698,7 +698,7 @@ export class Slice extends ArrayReduceOp<SliceState> {
     _doFinish(irBuilder : JSIr.IRBuilder,
               { base, limit, array } : SliceState) : JSIr.Register {
         const newArray = irBuilder.allocRegister();
-        irBuilder.add(new JSIr.FunctionOp('sliceArray', newArray, array, base, limit));
+        irBuilder.add(new JSIr.FunctionOp('sliceArray', false, newArray, array, base, limit));
         return newArray;
     }
 }

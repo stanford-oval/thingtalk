@@ -97,15 +97,21 @@ async function testCase(test, i) {
 
     console.log('Test Case #' + (i+1));
     try {
-        let program1 = Grammar.parse(sequence1.split(' '), Grammar.SyntaxType.Tokenized, {});
+        let program1 = Grammar.parse(sequence1.split(' '), Grammar.SyntaxType.Tokenized, {}, {
+            timezone: 'America/Los_Angeles'
+        });
         await program1.typecheck(schemaRetriever);
 
         const into = {};
-        const allocator1 = new Grammar.SequentialEntityAllocator(into);
+        const allocator1 = new Grammar.SequentialEntityAllocator(into, {
+            timezone: 'America/Los_Angeles'
+        });
         Grammar.serialize(program1, Grammar.SyntaxType.Tokenized, allocator1).join(' ');
         assert.deepStrictEqual(into, entities1);
 
-        const allocator2 = new Grammar.SequentialEntityAllocator(into);
+        const allocator2 = new Grammar.SequentialEntityAllocator(into, {
+            timezone: 'America/Los_Angeles'
+        });
         const program2 = Grammar.parse(sequence2.split(' '), Grammar.SyntaxType.Tokenized, {});
         await program2.typecheck(schemaRetriever);
         Grammar.serialize(program2, Grammar.SyntaxType.Tokenized, allocator2).join(' ');

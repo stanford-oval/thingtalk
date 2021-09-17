@@ -69,8 +69,8 @@ export default class AppCompiler {
         this._astVars = [];
     }
 
-    compileCode(code : string) : Promise<CompiledProgram> {
-        const parsed = Grammar.parse(code);
+    compileCode(code : string, options : Grammar.ParseOptions = { timezone: undefined }) : Promise<CompiledProgram> {
+        const parsed = Grammar.parse(code, Grammar.SyntaxType.Normal, options);
         if (!(parsed instanceof Ast.Program))
             throw new Error(`Not an executable program`);
         return this.compileProgram(parsed);

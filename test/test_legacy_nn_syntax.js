@@ -641,7 +641,9 @@ async function testCase(test, i) {
     console.log('Test Case #' + (i+1));
     try {
         sequence = sequence.split(' ');
-        let program = Grammar.parse(sequence, Grammar.SyntaxType.LegacyNN, entities);
+        let program = Grammar.parse(sequence, Grammar.SyntaxType.LegacyNN, entities, {
+            timezone: 'America/Los_Angeles'
+        });
         let generated = program.prettyprint();
 
         if (generated !== expected) {
@@ -656,7 +658,9 @@ async function testCase(test, i) {
             return;
         await program.typecheck(schemaRetriever);
 
-        let entityRetriever = new Grammar.EntityRetriever(sentence, entities);
+        let entityRetriever = new Grammar.EntityRetriever(sentence, entities, {
+            timezone: 'America/Los_Angeles'
+        });
         let reconstructed = Grammar.serialize(program, Grammar.SyntaxType.LegacyNN, entityRetriever).join(' ');
         if (reconstructed !== test[0]) {
             console.error('Test Case #' + (i+1) + ' failed (wrong NN syntax)');
@@ -666,7 +670,9 @@ async function testCase(test, i) {
                 throw new Error(`testNNSyntax ${i+1} FAILED`);
         }
 
-        entityRetriever = new Grammar.EntityRetriever(sentence, entities);
+        entityRetriever = new Grammar.EntityRetriever(sentence, entities, {
+            timezone: 'America/Los_Angeles'
+        });
         let withoutTypeAnnotations = Grammar.serialize(program, Grammar.SyntaxType.LegacyNN, entityRetriever, { typeAnnotations: false }).join(' ');
         if (withoutTypeAnnotations !== stripTypeAnnotations(test[0])) {
             console.error('Test Case #' + (i+1) + ' failed (wrong NN syntax without type annotations)');

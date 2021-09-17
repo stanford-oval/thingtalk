@@ -19,6 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import Type from '../type';
+import { toTemporalInstant } from '@js-temporal/polyfill';
 
 import {
     AbstractEntityRetriever,
@@ -148,19 +149,18 @@ function findEntity(constant : AnyConstantToken,
         if (str)
             return List.concat('new', 'Date', '(', str, ')');
 
-        const year = date.getFullYear();
-        const month = date.getMonth()+1;
-        const day = date.getDate();
-        const hour = date.getHours();
-        const minute = date.getMinutes();
-        const second = date.getSeconds();
-        let syntax = List.concat('new', 'Date', '(', findYear(year, entityRetriever));
-        if (month !== 1 || day !== 1 || hour !== 0 && minute !== 0 || second !== 0)
-            syntax = List.concat(syntax, ',', findNumber(month, entityRetriever));
-        if (day !== 1 || hour !== 0 && minute !== 0 || second !== 0)
-            syntax = List.concat(syntax, ',', findNumber(day, entityRetriever));
-        if (hour !== 0 || minute !== 0 || second !== 0)
-            syntax = List.concat(syntax, ',', findEntity(new ConstantToken('TIME', { hour, minute, second }), entityRetriever));
+        const datetz = toTemporalInstant.call(date).toZonedDateTime({
+            calendar: 'iso8601',
+            timeZone: entityRetriever.timezone
+        });
+
+        let syntax = List.concat('new', 'Date', '(', findYear(datetz.year, entityRetriever));
+        if (datetz.month !== 1 || datetz.day !== 1 || datetz.hour !== 0 && datetz.minute !== 0 || datetz.second !== 0)
+            syntax = List.concat(syntax, ',', findNumber(datetz.month, entityRetriever));
+        if (datetz.day !== 1 || datetz.hour !== 0 && datetz.minute !== 0 || datetz.second !== 0)
+            syntax = List.concat(syntax, ',', findNumber(datetz.day, entityRetriever));
+        if (datetz.hour !== 0 || datetz.minute !== 0 || datetz.second !== 0)
+            syntax = List.concat(syntax, ',', findEntity(new ConstantToken('TIME', { hour: datetz.hour, minute: datetz.minute, second: datetz.second }), entityRetriever));
         syntax = List.concat(syntax, ')');
         return syntax;
     }

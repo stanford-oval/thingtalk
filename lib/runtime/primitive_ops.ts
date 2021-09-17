@@ -19,9 +19,11 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
+import { Temporal, toTemporalInstant } from '@js-temporal/polyfill';
 
 import * as Ast from '../ast';
 
+import type { ExecEnvironment } from './exec_environment';
 import {
     LocationLike,
     Location,
@@ -137,6 +139,20 @@ function editDistance(one : (string|unknown[]), two : (string|unknown[])) : numb
     return get(one.length, two.length);
 }
 
+function isDateLike(a : unknown) : a is Date|Temporal.ZonedDateTime|Temporal.Instant {
+    return a instanceof Date || a instanceof Temporal.ZonedDateTime || a instanceof Temporal.Instant;
+}
+function toInstant(a : string|Date|Temporal.ZonedDateTime|Temporal.Instant) {
+    if (typeof a === 'string')
+        return Temporal.Instant.from(a);
+    if (a instanceof Date)
+        return toTemporalInstant.call(a);
+    else if (a instanceof Temporal.ZonedDateTime)
+        return a.toInstant();
+    else
+        return a;
+}
+
 export function equality(a : unknown, b : unknown) : boolean {
     if (a === b)
         return true;
@@ -146,10 +162,10 @@ export function equality(a : unknown, b : unknown) : boolean {
         return false;
     if (Number.isNaN(a) && Number.isNaN(b))
         return true;
-    if (a instanceof Date && typeof b === 'string')
-        return +a === +new Date(b);
-    if (typeof a === 'string' && b instanceof Date)
-        return +new Date(a) === +b;
+    if ((isDateLike(a) && isDateLike(b)) ||
+        (isDateLike(a) && typeof b === 'string') ||
+        (typeof a === 'string' && isDateLike(b)))
+        return toInstant(a).equals(toInstant(b));
     if (hasValueOf(a) && hasValueOf(b))
         return +a === +b;
     if (a instanceof Currency && b instanceof Currency)
@@ -221,7 +237,7 @@ export function endsWith(a : unknown, b : unknown) : boolean {
 }
 
 export function recurrentTimeSpecContains(spec : RecurrentTimeRule[],
-                                          timeOrDate : Date|Time) : boolean {
+                                          timeOrDate : Date|Temporal.ZonedDateTime|Temporal.PlainTime|Time) : boolean {
     assert(Array.isArray(spec));
 
     let contained = false;
@@ -407,25 +423,40 @@ export function aggregateAvg(array : number[]) : number {
     }
     return sum/count;
 }
-export function setTime(d : Date, t : Time) : Date {
+export function setTime(env : ExecEnvironment, d : Date|Temporal.ZonedDateTime|Temporal.Instant|null, t : Time|Temporal.PlainTime|null) : Date {
+    let dtz;
     if (d === null)
-        d = new Date();
-    if (t === null) 
-        return d;
-    d.setHours(t.hour);
-    d.setMinutes(t.minute);
-    d.setSeconds(t.second);
-    return d;
+        dtz = Temporal.Now.zonedDateTime('iso8601', env.timezone);
+    else if (d instanceof Date)
+        dtz = toTemporalInstant.call(d).toZonedDateTime({ timeZone: env.timezone, calendar: 'iso8601' });
+    else if (d instanceof Temporal.Instant)
+        dtz = d.toZonedDateTime({ timeZone: env.timezone, calendar: 'iso8601' });
+    else
+        dtz = d;
+
+    if (t !== null)
+        dtz = dtz.withPlainTime(t);
+
+    // convert back to legacy JS Date for compatibility with existing code
+    return new Date(dtz.epochMilliseconds);
 }
-export function dateAdd(date : Date, offset : number) : Date {
-    return new Date(date.getTime() + offset);
+export function dateAdd(date : Date|Temporal.Instant|Temporal.ZonedDateTime, offset : number) : Date {
+    return new Date(toInstant(date).epochMilliseconds + offset);
 }
-export function dateSub(date : Date, offset : number) : Date {
-    return new Date(date.getTime() - offset);
+export function dateSub(date : Date|Temporal.Instant|Temporal.ZonedDateTime, offset : number) : Date {
+    return new Date(toInstant(date).epochMilliseconds - offset);
 }
-export function timeAdd(time : Time, offset : number) : Time {
-    return Time.fromSeconds(Number(time) + Math.round(offset/1000));
+
+function timeToNumber(time : Time|Temporal.PlainTime) {
+    if (time instanceof Temporal.PlainTime)
+        return Time.fromTemporal(time).valueOf();
+    else
+        return time.valueOf();
+}
+
+export function timeAdd(time : Time|Temporal.PlainTime, offset : number) : Time {
+    return Time.fromSeconds(timeToNumber(time) + Math.round(offset/1000));
 }
 export function timeSub(time : Time, offset : number) : Time {
-    return Time.fromSeconds(Number(time) - Math.round(offset/1000));
+    return Time.fromSeconds(timeToNumber(time) - Math.round(offset/1000));
 }

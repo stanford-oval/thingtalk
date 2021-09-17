@@ -96,6 +96,8 @@ interface EntityTypeRecord {
  * implemented by the Thingpedia SDK.
  */
 export interface AbstractThingpediaClient {
+    get locale() : string;
+
     /**
      * Retrieve the full code of a Thingpedia class.
      *
@@ -255,7 +257,7 @@ export default class SchemaRetriever {
 
     private async _getManifestRequest(kind : string) {
         const code = await this._thingpediaClient.getDeviceCode(kind);
-        const parsed = await Grammar.parse(code).typecheck(this);
+        const parsed = await Grammar.parse(code, Grammar.SyntaxType.Normal, { locale: this._thingpediaClient.locale, timezone: undefined }).typecheck(this);
         assert(parsed instanceof Library && parsed.classes.length > 0);
         return parsed.classes[0];
     }
@@ -305,7 +307,7 @@ export default class SchemaRetriever {
             return {};
         }
 
-        const parsed = Grammar.parse(code) as Library;
+        const parsed = Grammar.parse(code, Grammar.SyntaxType.Normal, { locale: this._thingpediaClient.locale, timezone: undefined }) as Library;
         const result : ClassMap = {};
         const missing = new Set<string>(pending);
 
@@ -534,7 +536,7 @@ export default class SchemaRetriever {
             for (const kind of pending)
                 this._classCache.dataset.set(kind, result[kind] = new Dataset(null, kind, []));
         } else {
-            const parsed = Grammar.parse(code) as Library;
+            const parsed = Grammar.parse(code, Grammar.SyntaxType.Normal, { locale: this._thingpediaClient.locale, timezone: undefined }) as Library;
 
             const examples = new Map<string, Example[]>();
 

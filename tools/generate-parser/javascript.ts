@@ -34,7 +34,8 @@ export default function writeout(preamble : string,
                                  generator : slr.SLRParserGenerator,
                                  output : stream.Writable,
                                  outputPath : string,
-                                 rootType : string) {
+                                 rootType : string,
+                                 optionType : string) {
     const runtimePath = require.resolve('../../lib/utils/sr_parser_runtime');
     const runtimedir = path.relative(path.dirname(outputPath),
                                      path.dirname(runtimePath));
@@ -95,7 +96,7 @@ export default function writeout(preamble : string,
         output.write(`(${action}),\n`);
     output.write(`];\n`);
     output.write(`import * as $runtime from '${relativeruntimepath}';\n`);
-    output.write(`export default $runtime.createParser<${rootType}>({ TERMINAL_IDS, RULE_NON_TERMINALS, ARITY, GOTO, PARSER_ACTION, SEMANTIC_ACTION });\n`);
+    output.write(`export default $runtime.createParser<${rootType}, ${optionType}>({ TERMINAL_IDS, RULE_NON_TERMINALS, ARITY, GOTO, PARSER_ACTION, SEMANTIC_ACTION });\n`);
     output.end();
 
     return new Promise((resolve, reject) => {

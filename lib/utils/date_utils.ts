@@ -18,6 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import { Temporal } from '@js-temporal/polyfill';
 import assert from 'assert';
 
 import { DateEdge, DatePiece, WeekDayDate, AbsoluteTime, WeekDay } from '../ast';
@@ -162,22 +163,26 @@ interface TokenizerDate {
     second ?: number|undefined;
 }
 
-export function parseDate(form : Date|TokenizerDate) : Date {
+export function parseDate(form : Date|TokenizerDate|Temporal.ZonedDateTime|Temporal.Instant, timezone : string = Temporal.Now.timeZone().id) : Date {
     if (form instanceof Date)
         return form;
+    if (form instanceof Temporal.ZonedDateTime)
+        return new Date(form.epochMilliseconds);
+    if (form instanceof Temporal.Instant)
+        return new Date(form.epochMilliseconds);
 
-    const now = new Date;
-    now.setMilliseconds(0);
+    let now = Temporal.Now.zonedDateTime('iso8601', timezone);
+    now = now.with({ millisecond: 0 });
 
     let year = form.year;
     if (year === undefined || year < 0)
-        year = now.getFullYear();
+        year = now.year;
     let month = form.month;
     if (month === undefined || month < 0)
-        month = now.getMonth() + 1;
+        month = now.month;
     let day = form.day;
     if (day === undefined || day < 0)
-        day = now.getDate();
+        day = now.day;
     let hour = form.hour;
     if (hour === undefined || hour < 0)
         hour = 0;
@@ -190,5 +195,9 @@ export function parseDate(form : Date|TokenizerDate) : Date {
     const millisecond = (second - Math.floor(second))*1000;
     second = Math.floor(second);
 
-    return new Date(year, month-1, day, hour, minute, second, millisecond);
+    const tzdate = Temporal.ZonedDateTime.from({
+        year, month, day, hour, minute, second, millisecond,
+        timeZone: timezone
+    });
+    return new Date(tzdate.epochMilliseconds);
 }

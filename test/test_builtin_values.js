@@ -125,7 +125,7 @@ export default function main() {
     assert(equality(new Date('2019-04-30T15:00:00.000Z'), new Date('2019-04-30T15:00:00.000Z')));
     assert(equality(new Date('2019-04-30T15:00:00.000Z'), 1556636400000));
     assert(equality(1556636400000, new Date('2019-04-30T15:00:00.000Z')));
-    assert(equality(setTime(new Date(2019, 4, 30), new __builtin.Time(9, 30)), new Date(2019, 4, 30, 9, 30, 0)));
+    assert(equality(setTime({ timezone: 'America/Los_Angeles' }, new Date(2019, 4, 30), new __builtin.Time(9, 30)), new Date(2019, 4, 30, 9, 30, 0)));
 
     assert(equality([1, 2], [1, 2]));
     assert(equality([], []));

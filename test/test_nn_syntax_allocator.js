@@ -135,11 +135,15 @@ async function testCase(test, i) {
     console.log('Test Case #' + (i+1));
     try {
         sequence = sequence.split(' ');
-        let program = Grammar.parse(sequence, Grammar.SyntaxType.Tokenized, entities);
+        let program = Grammar.parse(sequence, Grammar.SyntaxType.Tokenized, entities, {
+            timezone: 'America/Los_Angeles'
+        });
         await program.typecheck(schemaRetriever);
 
         const into = {};
-        const allocator = new Grammar.SequentialEntityAllocator(into);
+        const allocator = new Grammar.SequentialEntityAllocator(into, {
+            timezone: 'America/Los_Angeles'
+        });
         let reconstructed = Grammar.serialize(program, Grammar.SyntaxType.Tokenized, allocator).join(' ');
         if (reconstructed !== test[0]) {
             console.error('Test Case #' + (i+1) + ' failed (wrong NN syntax)');

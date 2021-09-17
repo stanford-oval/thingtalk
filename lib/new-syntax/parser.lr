@@ -19,6 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 {
+import { Temporal } from '@js-temporal/polyfill';
 import assert from 'assert';
 import * as Ast from '../ast';
 import Type, { TypeMap } from '../type';
@@ -26,6 +27,11 @@ import { KEYWORDS, FORBIDDEN_KEYWORDS } from './keywords';
 import { TypeOfToken } from './token';
 
 import { parseDate } from '../utils/date_utils';
+
+type ParserOptions = {
+    locale ?: string;
+    timezone ?: string;
+};
 
 type DialogueHistoryAnnotation =
       { key : 'results', value : Ast.DialogueHistoryResultItem[], type : 'impl' }
@@ -35,7 +41,7 @@ type DialogueHistoryAnnotation =
     | { key : string, value : Ast.Value, type : 'impl' }
     | { key : string, value : Ast.Value, type : 'nl' };
 
-function makeInput($ : $runtime.ParserInterface, statements : Ast.TopLevelStatement[], annotations : Ast.AnnotationSpec) {
+function makeInput($ : $runtime.ParserInterface<ParserOptions>, statements : Ast.TopLevelStatement[], annotations : Ast.AnnotationSpec) {
     const classes : Ast.ClassDef[] = [];
     const datasets : Ast.Dataset[] = [];
     const declarations : Ast.FunctionDeclaration[] = [];
@@ -65,7 +71,7 @@ function makeInput($ : $runtime.ParserInterface, statements : Ast.TopLevelStatem
     return new Ast.Program($.location, classes, declarations, executable, annotations);
 }
 
-function makeClassDef($ : $runtime.ParserInterface,
+function makeClassDef($ : $runtime.ParserInterface<ParserOptions>,
                       name : string,
                       _extends : string[]|null,
                       members : Ast.ClassMember[],
@@ -120,7 +126,7 @@ interface AnnotationEntry {
     value : Ast.Value;
 }
 
-function checkExampleAnnotations($ : $runtime.ParserInterface, annotations : AnnotationEntry[]) : [number, string[], string[], Ast.AnnotationMap] {
+function checkExampleAnnotations($ : $runtime.ParserInterface<ParserOptions>, annotations : AnnotationEntry[]) : [number, string[], string[], Ast.AnnotationMap] {
     let id = -1;
     const utterances : string[] = [];
     const preprocessed : string[] = [];
@@ -173,7 +179,7 @@ function splitAnnotations(annotations : AnnotationEntry[]) {
     return { nl: nl_annotations, impl: impl_annotations };
 }
 
-function parseIncompleteDate($ : $runtime.ParserInterface,
+function parseIncompleteDate($ : $runtime.ParserInterface<ParserOptions>,
                              params : Array<number|','>,
                              time : Ast.AbsoluteTime|null) : Ast.DateValue {
     const parts : Array<number|null> = [];
@@ -211,7 +217,11 @@ function parseIncompleteDate($ : $runtime.ParserInterface,
         // (these are exactly equivalent because the incomplete bits are
         // set to 1 or 0)
 
-        const d = new Date;
+        let d = Temporal.Now.zonedDateTime('iso8601', $.timezone).with({
+            // remove excess precision
+            microsecond: 0,
+            nanosecond: 0
+        });
         if (parts.length === 1 && !time) {
             let unix_or_year = parts[0];
 
@@ -227,11 +237,13 @@ function parseIncompleteDate($ : $runtime.ParserInterface,
                         unix_or_year += 2000;
                 }
 
-                d.setFullYear(unix_or_year);
-                d.setMonth(0, 1);
-                d.setHours(0, 0, 0, 0);
+                d = d.with({ year: unix_or_year, month: 1, day: 1,
+                    hour: 0, minute: 0, second: 0, millisecond: 0 });
             } else {
-                d.setTime(unix_or_year);
+                d = Temporal.Instant.fromEpochMilliseconds(unix_or_year).toZonedDateTime({
+                    timeZone: $.timezone!,
+                    calendar: 'iso8601'
+                });
             }
         } else {
             let year = parts[0];
@@ -242,18 +254,17 @@ function parseIncompleteDate($ : $runtime.ParserInterface,
                     year += 2000;
             }
 
-            d.setFullYear(year);
-            // set both the month and the date at the same time
-            // otherwise when today's date is the 31st and the chosen
-            // month has 30 days, the Date will be adjusted to the
-            // first day of the subsequent month, which is wrong
-            d.setMonth((parts[1] || 1) - 1, parts[2] || 1);
+            d = d.with({
+                year: year,
+                month: (parts[1] || 1),
+                day: parts[2] || 1,
+            });
             if (time)
-                d.setHours(time.hour, time.minute, time.second, 0);
+                d = d.withPlainTime(time);
             else
-                d.setHours(parts[3] || 0, parts[4] || 0, parts[5] || 0, 0);
+                d = d.withPlainTime({ hour: parts[3] || 0, minute: parts[4] || 0, second: parts[5] || 0, millisecond: 0 });
         }
-        return new Ast.Value.Date(d);
+        return new Ast.Value.Date(new Date(d.epochMilliseconds));
     } else {
         const year = parts[0]||null;
         const month = parts[1]||null;
@@ -265,7 +276,7 @@ function parseIncompleteDate($ : $runtime.ParserInterface,
     }
 }
 
-function checkDialogueHistoryAnnotationSpec($ : $runtime.ParserInterface,
+function checkDialogueHistoryAnnotationSpec($ : $runtime.ParserInterface<ParserOptions>,
                                             spec : Ast.AnnotationSpec) {
     if (!spec.impl)
         return spec;
@@ -277,6 +288,8 @@ function checkDialogueHistoryAnnotationSpec($ : $runtime.ParserInterface,
 }
 
 }
+
+$options = ParserOptions;
 
 terminal CLASS_OR_FUNCTION_REF : TypeOfToken<'CLASS_OR_FUNCTION_REF'>;
 terminal SLOT : TypeOfToken<'SLOT'>;
@@ -920,7 +933,7 @@ toplevel_chain_expression : Ast.ChainExpression = {
 
 chain_expression_list : Ast.Expression[] = {
     expr:join_expression => [expr];
-    
+
     list:chain_expression_list '=>' expr:join_expression => {
         list.push(expr);
         return list;
@@ -929,7 +942,7 @@ chain_expression_list : Ast.Expression[] = {
 
 join_expression : Ast.Expression = {
     projection_expression;
-    
+
     lhs:join_expression 'join' rhs:projection_expression => {
         return new Ast.JoinExpression($.location, lhs, rhs, null);
     };
@@ -1548,7 +1561,7 @@ date_param_list : Array<number|','> = {
 }
 
 absolute_or_edge_date : Ast.DateValue = {
-    abs:DATE => new Ast.Value.Date(parseDate(abs.value));
+    abs:DATE => new Ast.Value.Date(parseDate(abs.value, $.timezone));
     'new' 'Date' '(' iso:any_string ')' => {
         return new Ast.Value.Date(new Date(iso));
     };

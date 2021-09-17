@@ -179,7 +179,7 @@ export default class OpCompiler {
         if (opimpl.op)
             this._irBuilder.add(new JSIr.BinaryOp(args[0], args[1], opimpl.op, result));
         else
-            this._irBuilder.add(new JSIr.FunctionOp(opimpl.fn as string, result, ...args));
+            this._irBuilder.add(new JSIr.FunctionOp(opimpl.fn as string, opimpl.env ?? false, result, ...args));
         return result;
     }
 
@@ -1284,7 +1284,7 @@ export default class OpCompiler {
             this._compileTableMap(tableop);
         else if (tableop instanceof TableOp.Reduce)
             this._compileTableReduce(tableop);
-        else if (tableop instanceof TableOp.Join) 
+        else if (tableop instanceof TableOp.Join)
             this._compileTableJoin(tableop);
         else if (tableop instanceof TableOp.CrossJoin)
             this._compileTableCrossJoin(tableop);

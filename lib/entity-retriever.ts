@@ -34,10 +34,11 @@ import {
     AnyEntity,
     EntityMap
 } from './entities';
+import { Temporal } from '@js-temporal/polyfill';
 
 const EPSILON = 1e-8;
 
-function entitiesEqual(type : string, one : AnyEntity, two : AnyEntity) : boolean {
+function entitiesEqual(type : string, one : AnyEntity, two : AnyEntity, timezone : string) : boolean {
     if (one === two)
         return true;
     if (!one || !two)
@@ -73,9 +74,9 @@ function entitiesEqual(type : string, one : AnyEntity, two : AnyEntity) : boolea
     }
     case 'DATE':
         if (!(one instanceof Date))
-            one = parseDate(one as DateEntity);
+            one = parseDate(one as DateEntity, timezone);
         if (!(two instanceof Date))
-            two = parseDate(two as DateEntity);
+            two = parseDate(two as DateEntity, timezone);
 
         return +one === +two;
     case 'LOCATION': {
@@ -108,9 +109,17 @@ function entityToString(entityType : string, entity : AnyEntity) : string {
  */
 export abstract class AbstractEntityRetriever {
     protected _syntaxType : SyntaxType.Tokenized|SyntaxType.LegacyNN;
+    protected _timezone : string;
 
-    constructor() {
+    constructor(options : {
+        timezone : string|undefined
+    }) {
+        this._timezone = options.timezone ?? Temporal.Now.timeZone().id;
         this._syntaxType = SyntaxType.LegacyNN;
+    }
+
+    get timezone() {
+        return this._timezone;
     }
 
     setSyntaxType(syntaxType : SyntaxType.Tokenized|SyntaxType.LegacyNN) {
@@ -139,8 +148,10 @@ export class EntityRetriever extends AbstractEntityRetriever {
     sentence : string[];
     entities : EntityMap;
 
-    constructor(sentence : string|string[], entities : EntityMap) {
-        super();
+    constructor(sentence : string|string[], entities : EntityMap, options : {
+        timezone : string|undefined
+    }) {
+        super(options);
         if (typeof sentence === 'string')
             sentence = sentence.split(' ');
         this.sentence = sentence;
@@ -299,7 +310,7 @@ export class EntityRetriever extends AbstractEntityRetriever {
             if (!what.startsWith(entityType + '_'))
                 continue;
 
-            if (entitiesEqual(entityType, entities[what], value))
+            if (entitiesEqual(entityType, entities[what], value, this._timezone))
                 return List.singleton(what);
         }
         return undefined;
@@ -349,11 +360,14 @@ export class SequentialEntityAllocator extends AbstractEntityRetriever {
     entities : EntityMap;
     explicitStrings : boolean;
 
-    constructor(entities : EntityMap, explicitStrings = false) {
-        super();
+    constructor(entities : EntityMap, options : {
+        timezone : string|undefined,
+        explicitStrings ?: boolean
+    }) {
+        super(options);
         this.offsets = {};
         this.entities = entities;
-        this.explicitStrings = explicitStrings;
+        this.explicitStrings = !!options.explicitStrings;
         this.updateOffsets();
     }
 
@@ -404,7 +418,7 @@ export class SequentialEntityAllocator extends AbstractEntityRetriever {
             if (!what.startsWith(entityType + '_'))
                 continue;
 
-            if (entitiesEqual(entityType, this.entities[what], entity))
+            if (entitiesEqual(entityType, this.entities[what], entity, this._timezone))
                 return List.singleton(what);
         }
 

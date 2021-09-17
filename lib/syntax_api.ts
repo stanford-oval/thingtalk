@@ -66,23 +66,28 @@ export enum SyntaxType {
     Tokenized,
 }
 
+export interface ParseOptions {
+    locale ?: string,
+    timezone : string|undefined
+}
+
 /**
  * Parse a string into a ThingTalk {@link Ast}
  *
  * @param {string} code - the ThingTalk code to parse
  * @return {Ast.Input} the parsed program, library or permission rule
  */
-export function parse(code : string|string[], syntaxType : SyntaxType.Tokenized|SyntaxType.LegacyNN, entities : EntityMap|EntityResolver) : Ast.Input;
-export function parse(code : string, syntaxType ?: SyntaxType.Normal|SyntaxType.Legacy) : Ast.Input;
-export function parse(code : string|string[], syntaxType : SyntaxType = SyntaxType.Normal, entities ?: EntityMap|EntityResolver) : Ast.Input {
+export function parse(code : string|string[], syntaxType : SyntaxType.Tokenized|SyntaxType.LegacyNN, entities : EntityMap|EntityResolver, options : ParseOptions) : Ast.Input;
+export function parse(code : string, syntaxType : SyntaxType.Normal|SyntaxType.Legacy, options : ParseOptions) : Ast.Input;
+export function parse(code : string|string[], syntaxType : SyntaxType = SyntaxType.Normal, entities ?: EntityMap|EntityResolver|ParseOptions, options ?: ParseOptions) : Ast.Input {
     let input : Ast.Input;
     if (syntaxType === SyntaxType.Tokenized) {
-        input = new Parser().parse(nnLexer(code, entities!));
+        input = new Parser(options ?? {}).parse(nnLexer(code, entities as EntityMap|EntityResolver));
     } else if (syntaxType === SyntaxType.LegacyNN) {
-        input = LegacyNNSyntax.fromNN(code, entities!);
+        input = LegacyNNSyntax.fromNN(code, entities as EntityMap|EntityResolver);
     } else if (syntaxType === SyntaxType.Normal) {
         assert(typeof code === 'string');
-        input = new Parser().parse(surfaceLexer(code as string));
+        input = new Parser((entities as ParseOptions) ?? {}).parse(surfaceLexer(code as string));
     } else {
         // workaround grammar bug with // comments at the end of input
         input = Grammar.parse(code + '\n') as any;
