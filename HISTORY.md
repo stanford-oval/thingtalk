@@ -1,3 +1,19 @@
+2.1.0-alpha.7
+=============
+
+This release includes the first batch of changes to make ThingTalk
+timezone-aware, using the Temporal proposed standard API, polyfilled.
+* Parsing and serialization APIs now have a timezone
+  parameter to interpret dates and times in ThingTalk syntax. The
+  parameter is required for TypeScript users and optional for
+  JavaScript users. If undefined, it defaults to the system timezone.
+* Runtime operators will now depend on the timezone exposed by the
+  execution environment, and will operate correctly on Temporal objects.
+
+We expect additional, more-invasive changes in the future to make
+ThingTalk fully timezone aware and completely independent of the system
+timezone.
+
 2.1.0-alpha.6
 =============
 

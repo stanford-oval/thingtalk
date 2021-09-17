@@ -39,7 +39,7 @@ import * as Operators from './operators';
  * Version information
  *
  */
-const version = '2.1.0-alpha.6';
+const version = '2.1.0-alpha.7';
 
 export {
     version,
