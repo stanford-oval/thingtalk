@@ -34,7 +34,7 @@ const _schemaRetriever = new SchemaRetriever(
 
 const TEST_CASES = [
 [
-`now => @org.wikidata.city() => notify;`,
+`@org.wikidata.city();`,
 `SELECT DISTINCT (?table0 as ?id) (?table0Label as ?idLabel) 
 WHERE {
   ?table0 p:P31/ps:P31/wdt:P279* wd:Q515.
@@ -48,7 +48,7 @@ LIMIT 5 OFFSET 0`
 
 [
 `// Test for handling filters, retrieving wikidata representations of strings and projections
-now => [postal_code] of @org.wikidata.city(), id =~ "palo alto" => notify;`,
+[postal_code] of @org.wikidata.city() filter id =~ "palo alto";`,
 `SELECT DISTINCT (?p16 as ?postal_code) 
 WHERE {
   ?table0 rdfs:label ?p23.
@@ -64,11 +64,27 @@ LIMIT 5 OFFSET 0`,
 ],
 
 [
+`// Test for handling filters, retrieving wikidata representations of strings and projections
+[postal_code] of @org.wikidata.city() filter id == "Q47265"^^org.wikidata:city("palo alto");`,
+`SELECT DISTINCT (?p16 as ?postal_code) 
+WHERE {
+  FILTER (?table0 = wd:Q47265).
+  ?table0 wdt:P281 ?p16.
+  ?table0 p:P31/ps:P31/wdt:P279* wd:Q515.
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language "en".
+    ?p16 rdfs:label ?p16Label.
+  }
+}
+LIMIT 5 OFFSET 0`,
+],
+
+[
 `
 // Test for filtering on string
 // since we don't know if the value is a string or an entity in wikidata, we need to try string match
 // on both the value itself, and its label
-now => @org.wikidata.city(),  postal_code =~ "94301" => notify;`,
+@org.wikidata.city() filter postal_code =~ "94301";`,
 `SELECT DISTINCT (?table0 as ?id) (?table0Label as ?idLabel) 
 WHERE {
   ?table0 wdt:P281 ?p16.
@@ -87,7 +103,7 @@ LIMIT 5 OFFSET 0`,
 
 [
 `// Test for handling dates within filters
-now => @org.wikidata.city(), inception == new Date(1894, 1, 1) => notify;`,
+@org.wikidata.city() filter inception == new Date(1894, 1, 1);`,
 `SELECT DISTINCT (?table0 as ?id) (?table0Label as ?idLabel) 
 WHERE {
   ?table0 wdt:P571 ?p0.
@@ -103,7 +119,7 @@ LIMIT 5 OFFSET 0`,
 
 [
 `// Test for handling measurements within filters and negating operators
-now => @org.wikidata.city(), !(elevation_above_sea_level <= 4000m ) => notify;`,
+@org.wikidata.city() filter !(elevation_above_sea_level <= 4000m );`,
 `SELECT DISTINCT (?table0 as ?id) (?table0Label as ?idLabel) 
 WHERE {
   ?table0 wdt:P2044 ?p11.
@@ -119,7 +135,7 @@ LIMIT 5 OFFSET 0`,
 
 [
 `// Test for handling entities within filters
-now => @org.wikidata.city(), contains(twinned_administrative_body, null^^org.wikidata:city("palo alto")) => notify;`,
+@org.wikidata.city() filter contains(twinned_administrative_body, null^^org.wikidata:city("palo alto"));`,
 `SELECT DISTINCT (?table0 as ?id) (?table0Label as ?idLabel) 
 WHERE {
   ?table0 wdt:P190 ?p13.
@@ -135,31 +151,24 @@ LIMIT 5 OFFSET 0`,
 ],
 
 [
-`// Test for handling joins and aliases
-// This causes a time out, so this is not tested if it can get a result or not
-now => (((@org.wikidata.city() as lhs), postal_code =~ "94301") => (@org.wikidata.city())), contains(twinned_administrative_body, lhs.id) => notify;`,
-`SELECT DISTINCT (?table1 as ?id) (?table1Label as ?idLabel) (?table0 as ?lhs__id) (?table0Label as ?lhs__idLabel) 
+`// Test for handling entities within filters
+@org.wikidata.city() filter contains(twinned_administrative_body, "Q47265"^^org.wikidata:city("palo alto"));`,
+`SELECT DISTINCT (?table0 as ?id) (?table0Label as ?idLabel) 
 WHERE {
-  ?table0 wdt:P281 ?p16.
-  OPTIONAL {
-    ?p16 rdfs:label ?p23 
-  }
-  FILTER (CONTAINS(lcase(?p23), '94301') || CONTAINS(lcase(?p16), '94301')) .
-  ?table1 wdt:P190 ?p37.
-  FILTER (?p37 = ?table0).
+  ?table0 wdt:P190 ?p13.
+  FILTER (?p13 = wd:Q47265).
   ?table0 p:P31/ps:P31/wdt:P279* wd:Q515.
-  ?table1 p:P31/ps:P31/wdt:P279* wd:Q515.
   SERVICE wikibase:label {
     bd:serviceParam wikibase:language "en".
-    ?table1 rdfs:label ?table1Label.
     ?table0 rdfs:label ?table0Label.
   }
 }
 LIMIT 5 OFFSET 0`,
 ],
+
 [
 `// Test for sorts and indexing
-now => sort(area desc of (@org.wikidata.city(), country == "Q30"^^org.wikidata:country))[1] => notify;`,
+sort(area desc of (@org.wikidata.city() filter country == "Q30"^^org.wikidata:country))[1];`,
 `SELECT DISTINCT (?table0 as ?id) (?table0Label as ?idLabel) 
 WHERE {
   ?table0 wdt:P17 ?p3.
@@ -173,9 +182,10 @@ WHERE {
 }
 ORDER BY desc(?p15) LIMIT 1 OFFSET 0`,
 ],
+
 [
 `// Test for slicing
-now => sort(area desc of (@org.wikidata.city(), country == "Q30"^^org.wikidata:country))[2:4] => notify;`,
+sort(area desc of (@org.wikidata.city() filter country == "Q30"^^org.wikidata:country))[2:4];`,
 `SELECT DISTINCT (?table0 as ?id) (?table0Label as ?idLabel) 
 WHERE {
   ?table0 wdt:P17 ?p3.
@@ -189,9 +199,10 @@ WHERE {
 }
 ORDER BY desc(?p15) LIMIT 2 OFFSET 2`,
 ],
+
 [
 `// Test for handling and statements
-now => @org.wikidata.city(), country == "Q30"^^org.wikidata:country && inception == new Date(1894, 1, 1) => notify;`,
+@org.wikidata.city() filter country == "Q30"^^org.wikidata:country && inception == new Date(1894, 1, 1);`,
 `SELECT DISTINCT (?table0 as ?id) (?table0Label as ?idLabel) 
 WHERE {
   ?table0 wdt:P17 ?p3.
