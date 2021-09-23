@@ -64,6 +64,23 @@ LIMIT 5 OFFSET 0`,
 ],
 
 [
+`// Test projections on entity
+[shares_border_with] of @org.wikidata.city() filter id =~ "palo alto";`,
+`SELECT DISTINCT (?p14 as ?shares_border_with) (?p14Label as ?shares_border_withLabel) 
+WHERE {
+  ?table0 rdfs:label ?p23.
+  FILTER CONTAINS(lcase(?p23), 'palo alto') .
+  ?table0 wdt:P47 ?p14.
+  ?table0 p:P31/ps:P31/wdt:P279* wd:Q515.
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language "en".
+    ?p14 rdfs:label ?p14Label.
+  }
+}
+LIMIT 5 OFFSET 0`,
+],
+
+[
 `// Test for handling filters, retrieving wikidata representations of strings and projections
 [postal_code] of @org.wikidata.city() filter id == "Q47265"^^org.wikidata:city("palo alto");`,
 `SELECT DISTINCT (?p16 as ?postal_code) 
