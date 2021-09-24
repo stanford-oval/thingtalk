@@ -19,7 +19,11 @@
 import WikidataSparqlConverter from "./wikidata_sparql";
 import { Program } from './ast/program';
 
-export function toSparql(input : Program) : string {
-    const converter = new WikidataSparqlConverter();
+interface SPARQLConverterOptions {
+    priority : 'speed'|'coverage';
+}
+
+export function toSparql(input : Program, options ?: SPARQLConverterOptions ) : string {
+    const converter = new WikidataSparqlConverter(options ?? { priority: 'coverage' });
     return converter.convert(input);
 }
