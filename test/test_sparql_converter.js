@@ -37,10 +37,12 @@ const TEST_CASES = [
 `@org.wikidata.city();`,
 `SELECT DISTINCT (?table0 as ?id) (?table0Label as ?idLabel) 
 WHERE {
+  ?table0 wdt:P31 ?domain0.
   ?table0 p:P31/ps:P31/wdt:P279* wd:Q515.
   SERVICE wikibase:label {
     bd:serviceParam wikibase:language "en".
     ?table0 rdfs:label ?table0Label.
+    ?domain0 rdfs:label ?domain0Label.
   }
 }
 LIMIT 5 OFFSET 0`
@@ -51,6 +53,7 @@ LIMIT 5 OFFSET 0`
 [postal_code] of @org.wikidata.city() filter id =~ "palo alto";`,
 `SELECT DISTINCT (?table0 as ?id) (?table0Label as ?idLabel) (?p16 as ?postal_code) 
 WHERE {
+  ?table0 wdt:P31 ?domain0.
   ?table0 rdfs:label ?p23.
   FILTER CONTAINS(lcase(?p23), 'palo alto') .
   ?table0 wdt:P281 ?p16.
@@ -58,6 +61,7 @@ WHERE {
   SERVICE wikibase:label {
     bd:serviceParam wikibase:language "en".
     ?table0 rdfs:label ?table0Label.
+    ?domain0 rdfs:label ?domain0Label.
     ?p16 rdfs:label ?p16Label.
   }
 }
@@ -69,6 +73,7 @@ LIMIT 5 OFFSET 0`,
 [shares_border_with] of @org.wikidata.city() filter id =~ "palo alto";`,
 `SELECT DISTINCT (?table0 as ?id) (?table0Label as ?idLabel) (?p14 as ?shares_border_with) (?p14Label as ?shares_border_withLabel) 
 WHERE {
+  ?table0 wdt:P31 ?domain0.
   ?table0 rdfs:label ?p23.
   FILTER CONTAINS(lcase(?p23), 'palo alto') .
   ?table0 wdt:P47 ?p14.
@@ -76,6 +81,7 @@ WHERE {
   SERVICE wikibase:label {
     bd:serviceParam wikibase:language "en".
     ?table0 rdfs:label ?table0Label.
+    ?domain0 rdfs:label ?domain0Label.
     ?p14 rdfs:label ?p14Label.
   }
 }
@@ -87,12 +93,14 @@ LIMIT 5 OFFSET 0`,
 [postal_code] of @org.wikidata.city() filter id == "Q47265"^^org.wikidata:city("palo alto");`,
 `SELECT DISTINCT (?table0 as ?id) (?table0Label as ?idLabel) (?p16 as ?postal_code) 
 WHERE {
+  ?table0 wdt:P31 ?domain0.
   FILTER (?table0 = wd:Q47265).
   ?table0 wdt:P281 ?p16.
   ?table0 p:P31/ps:P31/wdt:P279* wd:Q515.
   SERVICE wikibase:label {
     bd:serviceParam wikibase:language "en".
     ?table0 rdfs:label ?table0Label.
+    ?domain0 rdfs:label ?domain0Label.
     ?p16 rdfs:label ?p16Label.
   }
 }
@@ -107,6 +115,7 @@ LIMIT 5 OFFSET 0`,
 @org.wikidata.city() filter postal_code =~ "94301";`,
 `SELECT DISTINCT (?table0 as ?id) (?table0Label as ?idLabel) 
 WHERE {
+  ?table0 wdt:P31 ?domain0.
   ?table0 wdt:P281 ?p16.
   OPTIONAL {
     ?p16 rdfs:label ?p23 
@@ -116,6 +125,7 @@ WHERE {
   SERVICE wikibase:label {
     bd:serviceParam wikibase:language "en".
     ?table0 rdfs:label ?table0Label.
+    ?domain0 rdfs:label ?domain0Label.
   }
 }
 LIMIT 5 OFFSET 0`,
@@ -126,12 +136,14 @@ LIMIT 5 OFFSET 0`,
 @org.wikidata.city() filter inception == new Date(1894, 1, 1);`,
 `SELECT DISTINCT (?table0 as ?id) (?table0Label as ?idLabel) 
 WHERE {
+  ?table0 wdt:P31 ?domain0.
   ?table0 wdt:P571 ?p0.
   FILTER (?p0 = "1894-01-01"^^xsd:dateTime).
   ?table0 p:P31/ps:P31/wdt:P279* wd:Q515.
   SERVICE wikibase:label {
     bd:serviceParam wikibase:language "en".
     ?table0 rdfs:label ?table0Label.
+    ?domain0 rdfs:label ?domain0Label.
   }
 }
 LIMIT 5 OFFSET 0`,
@@ -142,12 +154,14 @@ LIMIT 5 OFFSET 0`,
 @org.wikidata.city() filter !(elevation_above_sea_level <= 4000m );`,
 `SELECT DISTINCT (?table0 as ?id) (?table0Label as ?idLabel) 
 WHERE {
+  ?table0 wdt:P31 ?domain0.
   ?table0 wdt:P2044 ?p11.
   FILTER (?p11 > "4000"^^xsd:decimal).
   ?table0 p:P31/ps:P31/wdt:P279* wd:Q515.
   SERVICE wikibase:label {
     bd:serviceParam wikibase:language "en".
     ?table0 rdfs:label ?table0Label.
+    ?domain0 rdfs:label ?domain0Label.
   }
 }
 LIMIT 5 OFFSET 0`,
@@ -158,6 +172,7 @@ LIMIT 5 OFFSET 0`,
 @org.wikidata.city() filter contains(twinned_administrative_body, null^^org.wikidata:city("palo alto"));`,
 `SELECT DISTINCT (?table0 as ?id) (?table0Label as ?idLabel) 
 WHERE {
+  ?table0 wdt:P31 ?domain0.
   ?table0 wdt:P190 ?p13.
   ?p13 rdfs:label ?p23.
   FILTER CONTAINS(lcase(?p23), 'palo alto') .
@@ -165,6 +180,7 @@ WHERE {
   SERVICE wikibase:label {
     bd:serviceParam wikibase:language "en".
     ?table0 rdfs:label ?table0Label.
+    ?domain0 rdfs:label ?domain0Label.
   }
 }
 LIMIT 5 OFFSET 0`,
@@ -175,12 +191,14 @@ LIMIT 5 OFFSET 0`,
 @org.wikidata.city() filter contains(twinned_administrative_body, "Q47265"^^org.wikidata:city("palo alto"));`,
 `SELECT DISTINCT (?table0 as ?id) (?table0Label as ?idLabel) 
 WHERE {
+  ?table0 wdt:P31 ?domain0.
   ?table0 wdt:P190 ?p13.
   FILTER (?p13 = wd:Q47265).
   ?table0 p:P31/ps:P31/wdt:P279* wd:Q515.
   SERVICE wikibase:label {
     bd:serviceParam wikibase:language "en".
     ?table0 rdfs:label ?table0Label.
+    ?domain0 rdfs:label ?domain0Label.
   }
 }
 LIMIT 5 OFFSET 0`,
@@ -191,6 +209,7 @@ LIMIT 5 OFFSET 0`,
 sort(area desc of (@org.wikidata.city() filter country == "Q30"^^org.wikidata:country))[1];`,
 `SELECT DISTINCT (?table0 as ?id) (?table0Label as ?idLabel) 
 WHERE {
+  ?table0 wdt:P31 ?domain0.
   ?table0 wdt:P17 ?p3.
   FILTER (?p3 = wd:Q30).
   ?table0 wdt:P2046 ?p15.
@@ -198,6 +217,7 @@ WHERE {
   SERVICE wikibase:label {
     bd:serviceParam wikibase:language "en".
     ?table0 rdfs:label ?table0Label.
+    ?domain0 rdfs:label ?domain0Label.
   }
 }
 ORDER BY desc(?p15) LIMIT 1 OFFSET 0`,
@@ -208,6 +228,7 @@ ORDER BY desc(?p15) LIMIT 1 OFFSET 0`,
 sort(area desc of (@org.wikidata.city() filter country == "Q30"^^org.wikidata:country))[2:4];`,
 `SELECT DISTINCT (?table0 as ?id) (?table0Label as ?idLabel) 
 WHERE {
+  ?table0 wdt:P31 ?domain0.
   ?table0 wdt:P17 ?p3.
   FILTER (?p3 = wd:Q30).
   ?table0 wdt:P2046 ?p15.
@@ -215,6 +236,7 @@ WHERE {
   SERVICE wikibase:label {
     bd:serviceParam wikibase:language "en".
     ?table0 rdfs:label ?table0Label.
+    ?domain0 rdfs:label ?domain0Label.
   }
 }
 ORDER BY desc(?p15) LIMIT 2 OFFSET 2`,
@@ -225,6 +247,7 @@ ORDER BY desc(?p15) LIMIT 2 OFFSET 2`,
 @org.wikidata.city() filter country == "Q30"^^org.wikidata:country && inception == new Date(1894, 1, 1);`,
 `SELECT DISTINCT (?table0 as ?id) (?table0Label as ?idLabel) 
 WHERE {
+  ?table0 wdt:P31 ?domain0.
   ?table0 wdt:P17 ?p3.
   ?table0 wdt:P571 ?p0.
   FILTER (?p3 = wd:Q30).
@@ -233,6 +256,7 @@ WHERE {
   SERVICE wikibase:label {
     bd:serviceParam wikibase:language "en".
     ?table0 rdfs:label ?table0Label.
+    ?domain0 rdfs:label ?domain0Label.
   }
 }
 LIMIT 5 OFFSET 0`,
