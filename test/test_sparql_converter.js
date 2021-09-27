@@ -279,6 +279,23 @@ WHERE {
 GROUP BY ?table0 ?table0Label HAVING (?p14_count >= 10) LIMIT 5 OFFSET 0`,
 ],
 
+[
+`// Test for sort by count
+sort (count desc of [count(shares_border_with)] of @org.wikidata.city());`,
+`SELECT DISTINCT (?table0 as ?id) (?table0Label as ?idLabel) (COUNT(?p14) as ?p14_count) 
+WHERE {
+  ?table0 wdt:P31 ?domain0.
+  ?table0 wdt:P47 ?p14.
+  ?table0 p:P31/ps:P31/wdt:P279* wd:Q515.
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language "en".
+    ?table0 rdfs:label ?table0Label.
+    ?domain0 rdfs:label ?domain0Label.
+  }
+}
+GROUP BY ?table0 ?table0Label ORDER BY desc(?p14) LIMIT 5 OFFSET 0`,
+],
+
 ];
 
 async function test(index) {
