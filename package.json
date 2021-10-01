@@ -39,7 +39,7 @@
     "seedrandom": "^3.0.0",
     "source-map-support": "^0.5.20",
     "ts-node": "^10.1.0",
-    "typedoc": "^0.21.2",
+    "typedoc": "^0.22.4",
     "typescript": "~4.3.5"
   },
   "scripts": {
