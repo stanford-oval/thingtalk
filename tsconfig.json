@@ -8,6 +8,7 @@
         "module": "commonjs",
         "allowJs": true,
         "esModuleInterop": true,
+        "useUnknownInCatchVariables": false,
         "strict": true,
         "noUnusedLocals": true,
         "outDir": "dist",
