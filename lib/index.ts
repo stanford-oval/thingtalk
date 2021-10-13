@@ -34,6 +34,7 @@ import * as Helper from './helper';
 import * as Builtin from './runtime/builtins';
 import { Location, Entity, Time } from './runtime/values';
 import * as Operators from './operators';
+import List from './utils/list';
 
 /**
  * Version information
@@ -73,5 +74,6 @@ export {
 
     // Misc
     Units,
-    Operators
+    Operators,
+    List
 };

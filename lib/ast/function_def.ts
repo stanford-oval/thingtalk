@@ -39,11 +39,8 @@ import List from '../utils/list';
 
 // Class and function definitions
 
-type ArgIndexMap = { [key : string] : number };
-type ArgMap = { [key : string] : ArgumentDef };
-
-function makeIndex(args : string[]) : ArgIndexMap {
-    const index : ArgIndexMap = {};
+function makeIndex(args : string[]) : Record<string, number> {
+    const index : Record<string, number> = {};
     let i = 0;
     for (const a of args)
         index[a] = i++;
@@ -291,14 +288,9 @@ export class ArgumentDef extends Node {
  * @param {Ast.ArgumentDef} arg - the argument to check
  * @return {boolean} whether the argument passes the filter
  */
-type ArgumentFilterCallback = (arg : ArgumentDef) => boolean;
+export type ArgumentFilterCallback = (arg : ArgumentDef) => boolean;
 
 export type FunctionType = 'stream' | 'query' | 'action';
-
-interface FunctionQualifiers {
-    is_list : boolean;
-    is_monitorable : boolean;
-}
 
 /**
  * The definition of a ThingTalk function (inside a class).
@@ -315,13 +307,16 @@ export class FunctionDef extends Node {
     private _functionType : FunctionType;
     private _name : string;
     private _qualifiedName : string;
-    private _qualifiers : FunctionQualifiers;
+    private _qualifiers : {
+        is_list : boolean;
+        is_monitorable : boolean;
+    };
     private _nl_annotations : NLAnnotationMap;
     private _impl_annotations : AnnotationMap;
     private _args : string[];
     private _types : Type[];
-    private _argmap : ArgMap;
-    private _index : ArgIndexMap;
+    private _argmap : Record<string, ArgumentDef>;
+    private _index : Record<string, number>;
     private _inReq : Type.TypeMap;
     private _inOpt : Type.TypeMap;
     private _out : Type.TypeMap;
@@ -382,7 +377,10 @@ export class FunctionDef extends Node {
                 klass : ClassDef|null,
                 name : string,
                 _extends : string[],
-                qualifiers : FunctionQualifiers,
+                qualifiers : {
+                    is_list : boolean;
+                    is_monitorable : boolean;
+                },
                 args : ArgumentDef[],
                 annotations : AnnotationSpec = {}) {
         super(location);
@@ -573,7 +571,7 @@ export class FunctionDef extends Node {
      *.
      * @deprecated This property is deprecated and will not work properly for functions with inheritance
      */
-    get index() : ArgIndexMap {
+    get index() : Record<string, number> {
         if (this.extends.length === 0)
             return this._index;
         throw new Error(`The index API for functions is deprecated and cannot be used with function inheritance`);
@@ -838,7 +836,7 @@ export class FunctionDef extends Node {
      */
     private _cloneInternal(args : ArgumentDef[], flattened = false) : FunctionDef {
         // clone qualifiers
-        const qualifiers : FunctionQualifiers = Object.assign({}, this._qualifiers);
+        const qualifiers = Object.assign({}, this._qualifiers);
 
         // clone annotations
         const nl : NLAnnotationMap = {};

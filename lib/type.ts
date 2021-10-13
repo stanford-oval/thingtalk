@@ -40,11 +40,6 @@ function normalizeUnit(unit : string) : string {
     }
 }
 
-interface Hashable<T> {
-    hash() : number;
-    equals(other : T) : boolean;
-}
-
 function stringHash(x : string) {
     // DJB2 algorithm
     let hash = 5381;
@@ -63,7 +58,7 @@ function stringHash(x : string) {
 /**
  * The base class of all ThingTalk types.
  */
-abstract class Type implements Hashable<Type> {
+abstract class Type {
     /**
      * @deprecated
      */
@@ -451,7 +446,7 @@ export class Array extends Type {
 }
 Array.prototype.isArray = true;
 
-type FieldMap = { [key : string] : Ast.ArgumentDef };
+export type FieldMap = Record<string, Ast.ArgumentDef>;
 
 const COMPOUND_HASH = stringHash('Compound');
 export class Compound extends Type {
@@ -542,8 +537,8 @@ export class Unknown extends Type {
 }
 Unknown.prototype.isUnknown = true;
 
-export type TypeMap = ({ [key : string] : Type });
-export type TypeScope = ({ [key : string] : Type|string });
+export type TypeMap = Record<string, Type>;
+export type TypeScope = Record<string, Type|string>;
 
 export type EntitySubTypeMap = Record<string, string[]>;
 }

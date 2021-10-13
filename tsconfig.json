@@ -21,6 +21,7 @@
         "readme": "README.md",
         "includeVersion": true,
         "excludeExternals": true,
+        "excludePrivate": true,
         "listInvalidSymbolLinks": true
     }
 }

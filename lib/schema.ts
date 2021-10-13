@@ -147,8 +147,6 @@ class DummyMemoryClient {
     }
 }
 
-type FunctionType = 'query' | 'action';
-
 type MetadataLevel = 'basic' | 'everything';
 
 type ClassMap = { [key : string] : ClassDef|Error };
@@ -383,7 +381,7 @@ export default class SchemaRetriever {
         return this._getClass(kind, 'everything');
     }
 
-    _where(where : FunctionType | 'both') : ('queries'|'actions'|'both') {
+    _where(where : 'query' | 'action' | 'both') : ('queries'|'actions'|'both') {
         switch (where) {
         case 'query': return 'queries';
         case 'action': return 'actions';
@@ -409,13 +407,13 @@ export default class SchemaRetriever {
      * @deprecated Use {@link SchemaRetriever.getSchemaAndNames} instead
      */
     async getSchema(kind : string,
-                    functionType : FunctionType | 'both',
+                    functionType : 'query' | 'action' | 'both',
                     name : string) : Promise<Type[]> {
         return (await this.getSchemaAndNames(kind, functionType, name)).types;
     }
 
     private async _getFunction(kind : string,
-                               functionType : FunctionType | 'both',
+                               functionType : 'query' | 'action' | 'both',
                                name : string,
                                useMeta : MetadataLevel) : Promise<FunctionDef> {
         const where = this._where(functionType);
@@ -447,7 +445,7 @@ export default class SchemaRetriever {
      * @return {Ast.FunctionDef} the function definition
      */
     getSchemaAndNames(kind : string,
-                      functionType : FunctionType | 'both',
+                      functionType : 'query' | 'action' | 'both',
                       name : string) : Promise<FunctionDef> {
         return this._getFunction(kind, functionType, name, 'basic');
     }
@@ -465,7 +463,7 @@ export default class SchemaRetriever {
      * @return {Ast.FunctionDef} the function definition
      */
     getMeta(kind : string,
-            functionType : FunctionType | 'both',
+            functionType : 'query' | 'action' | 'both',
             name : string) : Promise<FunctionDef> {
         return this._getFunction(kind, functionType, name, 'everything');
     }

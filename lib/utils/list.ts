@@ -18,7 +18,9 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-// A lazy functional list with O(1) concatenation
+/**
+ * A lazy functional list with O(1) concatenation
+ */
 export default abstract class List<T> {
     static Nil : List<never>;
 
