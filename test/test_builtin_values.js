@@ -19,7 +19,7 @@
 import assert from 'assert';
 
 import * as __builtin from '../lib/runtime/values';
-import { equality, like, setTime} from '../lib/runtime/primitive_ops';
+import { equality, like, setTime } from '../lib/runtime/primitive_ops';
 
 function testValueOf(what, expected) {
     assert.strictEqual(+what, expected);

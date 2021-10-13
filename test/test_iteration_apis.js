@@ -49,7 +49,7 @@ let TEST_CASES = [
     ['query: Invocation(Device(com.xkcd, , ), get_comic, , )'],
     ['Device(com.xkcd, , ) com.xkcd:get_comic'],
     ['Selector(@com.xkcd)'],
-     ],
+    ],
 
     [`monitor (@com.xkcd.get_comic()) => notify;`,
     ['query: Invocation(Device(com.xkcd, , ), get_comic, , )'],
@@ -63,7 +63,7 @@ let TEST_CASES = [
      'InputParam(number, Undefined(true)) com.xkcd:get_comic'],
     ['Selector(@com.xkcd)',
      'InputParamSlot(number : Number) in_param.number'],
-     ],
+    ],
 
     [`monitor (@com.xkcd.get_comic(number=1234)) => notify;`,
     ['query: Invocation(Device(com.xkcd, , ), get_comic, InputParam(number, Number(1234)), )'],
@@ -84,7 +84,7 @@ let TEST_CASES = [
      'InputParamSlot(number : Number) in_param.number',
      'Selector(@com.facebook)',
      'InputParamSlot(status : String) in_param.status'],
-     ],
+    ],
 
     [`monitor (@com.xkcd.get_comic(number=1234)) => @com.facebook.post(status=$result);`,
     ['query: Invocation(Device(com.xkcd, , ), get_comic, InputParam(number, Number(1234)), )',

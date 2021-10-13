@@ -879,7 +879,7 @@ export default class OpCompiler {
 
         const isNewTuple = this._irBuilder.allocRegister();
         this._irBuilder.add(new JSIr.CheckIsNewTuple(isNewTuple, state, getRegister('$output', this._currentScope),
-                            this._varScopeNames));
+            this._varScopeNames));
 
         const newState = this._irBuilder.allocRegister();
         this._irBuilder.add(new JSIr.AddTupleToState(newState, state, getRegister('$output', this._currentScope)));

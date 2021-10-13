@@ -40,7 +40,7 @@ import List from '../utils/list';
  * permission rule.
  *
  */
- export abstract class PermissionFunction extends Node {
+export abstract class PermissionFunction extends Node {
     static Specified : typeof SpecifiedPermissionFunction;
     isSpecified ! : boolean;
     static Builtin : PermissionFunction;

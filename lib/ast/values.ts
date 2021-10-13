@@ -376,7 +376,7 @@ export class RelativeTime extends Time {
         return List.concat('$time', '.', this.relativeTag);
     }
 
-    clone() : RelativeTime{
+    clone() : RelativeTime {
         return new RelativeTime(this.relativeTag);
     }
 
@@ -1336,7 +1336,7 @@ function dateEquals(a : DateLike|null, b : DateLike|null) : boolean {
 
 function dateToSource(date : DateLike) : TokenStream {
     if (date instanceof Date)
-            return List.singleton(new ConstantToken('DATE', date));
+        return List.singleton(new ConstantToken('DATE', date));
     return date.toSource();
 }
 
@@ -1357,7 +1357,7 @@ export class DateValue extends Value {
             }
 
             value = new Date(value.year, value.month !== null ? value.month-1 : 0, value.day !== null ? value.day : 1,
-                             hour, minute, second);
+                hour, minute, second);
         }
 
         this.value = value;

@@ -199,7 +199,7 @@ async function test(i) {
 
 export default async function main() {
     for (let i = 0; i < TEST_CASES.length; i++)
-      await test(i);
+        await test(i);
 }
 if (!module.parent)
     main();

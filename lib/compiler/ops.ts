@@ -511,7 +511,7 @@ export class Atom extends BooleanExpressionOp {
                 public lhs : Ast.Value,
                 public operator : string,
                 public rhs : Ast.Value,
-                public overload : Type[]|null){
+                public overload : Type[]|null) {
         super(ast);
     }
 

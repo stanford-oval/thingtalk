@@ -343,7 +343,7 @@ export class ClassDef extends Statement {
  * how the class is loaded (which language, which format, which version of the SDK)
  * and how devices are configured.
  */
- export class MixinImportStmt extends Node {
+export class MixinImportStmt extends Node {
     facets : string[];
     module : string;
     in_params : InputParam[];
@@ -448,12 +448,12 @@ export class EntityDef extends Node {
                 'extends', List.join(_extends.map((e) => List.singleton(e)), ','), '\t+',
                 nlAnnotationsToSource(this.nl_annotations),
                 implAnnotationsToSource(this.impl_annotations),
-            '\t-', ';');
+                '\t-', ';');
         } else {
             return List.concat('entity', ' ', this.name, '\t+',
                 nlAnnotationsToSource(this.nl_annotations),
                 implAnnotationsToSource(this.impl_annotations),
-            '\t-', ';');
+                '\t-', ';');
         }
     }
 

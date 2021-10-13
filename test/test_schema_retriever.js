@@ -42,7 +42,7 @@ const FAKE_TWITTER = `class @com.twitter {
 
 async function testBasic() {
     let schemaRetriever = new SchemaRetriever(_mockSchemaDelegate,
-                                              _mockMemoryClient);
+        _mockMemoryClient);
 
     const fndef1 = await schemaRetriever.getSchemaAndNames('com.xkcd', 'query', 'get_comic');
 
@@ -69,7 +69,7 @@ async function testInjectManifest() {
     const manifest = await util.promisify(fs.readFile)(require.resolve('./com.xkcd.tt'), { encoding: 'utf8' });
 
     let schemaRetriever = new SchemaRetriever(_mockSchemaDelegate,
-                                              _mockMemoryClient);
+        _mockMemoryClient);
 
     schemaRetriever.injectClass(Grammar.parse(manifest).classes[0]);
 
@@ -151,7 +151,7 @@ async function testInjectManifest() {
 
 async function testInvalid() {
     const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate,
-                                                _mockMemoryClient);
+        _mockMemoryClient);
 
     await assert.rejects(async () => {
         await schemaRetriever.getSchemaAndNames('org.thingpedia.nonexistent', 'query', 'foo');
@@ -162,7 +162,7 @@ async function testInvalid() {
 
 async function testDataset() {
     const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate,
-                                                _mockMemoryClient);
+        _mockMemoryClient);
 
     const BING = `dataset @com.bing {
   query (p_query : String) = @com.bing.web_search(query=p_query)

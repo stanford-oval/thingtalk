@@ -108,7 +108,7 @@ function prettyprintInfixComputation(ast : Ast.ComputationValue) {
         rhs = `(${prettyprintValue(ast.operands[1])})`;
     else
         rhs = prettyprintValue(ast.operands[1]);
-     return `${lhs} ${ast.op} ${rhs}`;
+    return `${lhs} ${ast.op} ${rhs}`;
 }
 
 function prettyprintValue(ast : Ast.Value) : string {
@@ -488,20 +488,20 @@ function prettyprintExample(ex : Ast.Example, prefix = '') {
 
     let value;
     switch (ex.type) {
-        case 'stream':
-            value = prettyprintStream(ex.value.toLegacy([], args) as Ast.Stream);
-            break;
-        case 'query':
-            value = prettyprintTable(ex.value.toLegacy([], args) as Ast.Table);
-            break;
-        case 'action':
-            value = prettyprintAction(ex.value.toLegacy([], args) as Ast.Action);
-            break;
-        case 'program':
-            value = `{ ${prettyprintStatement(new Ast.ExpressionStatement(null, ex.value).toLegacy(args))} }`;
-            break;
-        default:
-            throw new TypeError();
+    case 'stream':
+        value = prettyprintStream(ex.value.toLegacy([], args) as Ast.Stream);
+        break;
+    case 'query':
+        value = prettyprintTable(ex.value.toLegacy([], args) as Ast.Table);
+        break;
+    case 'action':
+        value = prettyprintAction(ex.value.toLegacy([], args) as Ast.Action);
+        break;
+    case 'program':
+        value = `{ ${prettyprintStatement(new Ast.ExpressionStatement(null, ex.value).toLegacy(args))} }`;
+        break;
+    default:
+        throw new TypeError();
     }
     let annotations = '';
     if (ex.utterances.length > 0)

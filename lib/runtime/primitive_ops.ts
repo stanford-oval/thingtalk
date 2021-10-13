@@ -68,7 +68,9 @@ export function distance(a : LocationLike, b : LocationLike) : number {
     const lat2 = b.y;
     const lon1 = a.x;
     const lon2 = a.x;
-    function toRadians(deg : number) { return deg * Math.PI / 180.0; }
+    function toRadians(deg : number) {
+        return deg * Math.PI / 180.0; 
+    }
 
     // formula courtesy of http://www.movable-type.co.uk/scripts/latlong.html
     const φ1 = toRadians(lat1);

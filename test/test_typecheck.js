@@ -30,7 +30,7 @@ const _schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, _mockMemoryCli
 export default async function main() {
     const tests = fs.readFileSync('./test/test_syntax.tt').toString('utf8').split('====');
 
-        for (let i = 0; i < tests.length; i++) {
+    for (let i = 0; i < tests.length; i++) {
         console.log('# Test Case ' + (i+1));
         const code = tests[i].trim();
 

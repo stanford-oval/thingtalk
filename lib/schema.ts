@@ -385,10 +385,10 @@ export default class SchemaRetriever {
 
     _where(where : FunctionType | 'both') : ('queries'|'actions'|'both') {
         switch (where) {
-            case 'query': return 'queries';
-            case 'action': return 'actions';
-            case 'both': return 'both';
-            default: throw new TypeError('unexpected function type ' + where);
+        case 'query': return 'queries';
+        case 'action': return 'actions';
+        case 'both': return 'both';
+        default: throw new TypeError('unexpected function type ' + where);
         }
     }
 
@@ -474,19 +474,19 @@ export default class SchemaRetriever {
         const resolved = await this._memoryClient.getSchema(table, null);
         if (!resolved)
             throw new TypeError(`No such table ${table}`);
-        const {args:argnames, types} = resolved;
+        const { args:argnames, types } = resolved;
 
         const args : ArgumentDef[] = [];
         for (let i = 0; i < types.length; i++)
             args.push(new ArgumentDef(null, ArgDirection.OUT, argnames[i], Type.fromString(types[i])));
 
         const functionDef = new FunctionDef(null, 'query',
-                                            null,
-                                            table,
-                                            [],
-                                            { is_list: true, is_monitorable: true },
-                                            args,
-                                            {});
+            null,
+            table,
+            [],
+            { is_list: true, is_monitorable: true },
+            args,
+            {});
         // complete initialization of the function
         functionDef.setClass(null);
         assert(functionDef.minimal_projection);

@@ -103,15 +103,15 @@ class MockExecEnvironment extends ExecEnvironment {
         // reset base
         base = 0;
 
-        return [{__timestamp: base},
-            {__timestamp: base+interval},
-            {__timestamp: base+2*interval}][Symbol.iterator]();
+        return [{ __timestamp: base },
+            { __timestamp: base+interval },
+            { __timestamp: base+2*interval }][Symbol.iterator]();
     }
     /* Expiration dates ignored because no way to easily test for expiration dates */
     invokeAtTimer(time, expiration_date) {
         let times = [];
         for (let i = 0; i < time.length; i++)
-          times.push({__timestamp: time[i]});
+            times.push({ __timestamp: time[i] });
         return times[Symbol.iterator]();
     }
 
@@ -188,7 +188,7 @@ const TEST_CASES = [
         { number: 1234, title: 'Douglas Engelbart (1925-2013)',
           link: 'https://xkcd.com/1234/',
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' }
-    ]},
+    ] },
     [
     { type: 'output',
       outputType: 'com.xkcd:get_comic',
@@ -204,7 +204,7 @@ const TEST_CASES = [
         { number: 1234, title: 'Douglas Engelbart (1925-2013)',
           link: 'https://xkcd.com/1234/',
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' }
-    ]},
+    ] },
     [
     {
      type: 'action',
@@ -219,7 +219,7 @@ const TEST_CASES = [
         { number: 1234, title: 'Douglas Engelbart (1925-2013)',
           link: 'https://xkcd.com/1234/',
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' }
-    ]},
+    ] },
     []],
 
     [`now => @com.xkcd.get_comic(), number >= 1234 => @com.twitter.post(status=title);`,
@@ -228,7 +228,7 @@ const TEST_CASES = [
         { number: 1234, title: 'Douglas Engelbart (1925-2013)',
           link: 'https://xkcd.com/1234/',
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' }
-    ]},
+    ] },
     [
     {
      type: 'action',
@@ -1058,7 +1058,7 @@ const TEST_CASES = [
             "created_time": new Date(0),
             "modified_time": new Date(1),
             "file_size": 1024
-        }
+      }
     }],
 
     ],
@@ -1112,7 +1112,7 @@ const TEST_CASES = [
             "created_time": new Date(0),
             "modified_time": new Date(1),
             "file_size": 1024
-        }
+      }
     }],
 
     ],
@@ -1166,7 +1166,7 @@ const TEST_CASES = [
             "created_time": new Date(0),
             "modified_time": new Date(1),
             "file_size": 1026
-        }
+      }
     }],
 
     ],
@@ -1220,7 +1220,7 @@ const TEST_CASES = [
             "created_time": new Date(0),
             "modified_time": new Date(1),
             "file_size": 1025
-        }
+      }
     }],
 
     ],
@@ -1274,7 +1274,7 @@ const TEST_CASES = [
             "created_time": new Date(0),
             "modified_time": new Date(1),
             "file_size": 1025
-        }
+      }
     }],
 
     ],
@@ -1328,7 +1328,7 @@ const TEST_CASES = [
             "created_time": new Date(0),
             "modified_time": new Date(1),
             "file_size": 1025
-        }
+      }
     }],
 
     ],
@@ -1382,7 +1382,7 @@ const TEST_CASES = [
             "created_time": new Date(0),
             "modified_time": new Date(1),
             "file_size": 1024
-        }
+      }
     }, {
       type: 'output',
       outputType: 'com.google.drive:list_drive_files',
@@ -1396,7 +1396,7 @@ const TEST_CASES = [
             "created_time": new Date(0),
             "modified_time": new Date(1),
             "file_size": 1025
-        }
+      }
     }],
 
     ],
@@ -1450,7 +1450,7 @@ const TEST_CASES = [
             "created_time": new Date(0),
             "modified_time": new Date(1),
             "file_size": 1025
-        }
+      }
     }, {
       type: 'output',
       outputType: 'com.google.drive:list_drive_files',
@@ -1464,7 +1464,7 @@ const TEST_CASES = [
             "created_time": new Date(0),
             "modified_time": new Date(1),
             "file_size": 1026
-        }
+      }
     }],
 
     ],
@@ -1518,7 +1518,7 @@ const TEST_CASES = [
             "created_time": new Date(0),
             "modified_time": new Date(1),
             "file_size": 1025
-        }
+      }
     }, {
       type: 'output',
       outputType: 'com.google.drive:list_drive_files',
@@ -1532,7 +1532,7 @@ const TEST_CASES = [
             "created_time": new Date(0),
             "modified_time": new Date(1),
             "file_size": 1026
-        }
+      }
     }],
 
     ],
@@ -1601,7 +1601,7 @@ const TEST_CASES = [
             "created_time": new Date(0),
             "modified_time": new Date(1),
             "file_size": 1025
-        }
+      }
     }, {
       type: 'output',
       outputType: 'com.google.drive:list_drive_files',
@@ -1615,7 +1615,7 @@ const TEST_CASES = [
             "created_time": new Date(0),
             "modified_time": new Date(1),
             "file_size": 1026
-        }
+      }
     }],
 
     ],
@@ -1670,7 +1670,7 @@ const TEST_CASES = [
             "created_time": new Date(0),
             "modified_time": new Date(1),
             "file_size": 1026
-        }
+      }
     }, {
       type: 'output',
       outputType: 'com.google.drive:list_drive_files',
@@ -1684,7 +1684,7 @@ const TEST_CASES = [
             "created_time": new Date(0),
             "modified_time": new Date(1),
             "file_size": 1025
-        }
+      }
     }, {
       type: 'output',
       outputType: 'com.google.drive:list_drive_files',
@@ -1753,7 +1753,7 @@ const TEST_CASES = [
             "created_time": new Date(0),
             "modified_time": new Date(1),
             "file_size": 1026
-        }
+      }
     }],
 
     ],
@@ -1808,7 +1808,7 @@ const TEST_CASES = [
             "created_time": new Date(0),
             "modified_time": new Date(1),
             "file_size": 1025
-        }
+      }
     }],
 
     ],
@@ -1864,7 +1864,7 @@ const TEST_CASES = [
             "created_time": new Date(0),
             "modified_time": new Date(1),
             "file_size": 1025
-        }
+      }
     }],
 
     ],
@@ -1920,7 +1920,7 @@ const TEST_CASES = [
             "created_time": new Date(0),
             "modified_time": new Date(1),
             "file_size": 1026
-        }
+      }
     }, {
       type: 'output',
       outputType: 'com.google.drive:list_drive_files',
@@ -1934,7 +1934,7 @@ const TEST_CASES = [
             "created_time": new Date(0),
             "modified_time": new Date(1),
             "file_size": 1024
-        }
+      }
     }],
 
     ],
@@ -1990,7 +1990,7 @@ const TEST_CASES = [
             "created_time": new Date(0),
             "modified_time": new Date(1),
             "file_size": 1025
-        }
+      }
     }, {
       type: 'output',
       outputType: 'com.google.drive:list_drive_files',
@@ -2004,7 +2004,7 @@ const TEST_CASES = [
             "created_time": new Date(0),
             "modified_time": new Date(1),
             "file_size": 1024
-        }
+      }
     }],
 
     ],
@@ -2060,7 +2060,7 @@ const TEST_CASES = [
             "created_time": new Date(0),
             "modified_time": new Date(1),
             "file_size": 1026
-        }
+      }
     }, {
       type: 'output',
       outputType: 'com.google.drive:list_drive_files',
@@ -2074,7 +2074,7 @@ const TEST_CASES = [
             "created_time": new Date(0),
             "modified_time": new Date(1),
             "file_size": 1024
-        }
+      }
     }],
 
     ],
@@ -2141,7 +2141,7 @@ const TEST_CASES = [
             link: new builtin.Entity('https://foo.com', null),
             image_id: '12345',
             picture_url: 'https://foo.com/cat.png'
-        }
+       }
      },
      {
        type: 'action',
@@ -2182,7 +2182,7 @@ const TEST_CASES = [
             link: new builtin.Entity('https://foo.com', null),
             image_id: '12345',
             picture_url: 'https://foo.com/cat.png'
-        }
+       }
      },
      {
        type: 'action',
@@ -2235,7 +2235,7 @@ const TEST_CASES = [
             link: new builtin.Entity('https://foo.com', null),
             image_id: '12345',
             picture_url: 'https://foo.com/cat.png'
-        }
+       }
      },
      {
        type: 'action',
@@ -2288,7 +2288,7 @@ const TEST_CASES = [
             link: new builtin.Entity('https://foo.com', null),
             image_id: '12345',
             picture_url: 'https://foo.com/cat.png'
-        }
+       }
      },
      {
        type: 'action',
@@ -2319,22 +2319,22 @@ const TEST_CASES = [
        type: 'action',
        fn: 'com.tumblr.blog:post_text',
        params: { title: 'title one', body: 'body one' },
-     },
+    },
     {
        type: 'action',
        fn: 'com.tumblr.blog:post_text',
        params: { title: 'title one', body: 'body two' },
-     },
+    },
     {
        type: 'action',
        fn: 'com.tumblr.blog:post_text',
        params: { title: 'title two', body: 'body one' },
-     },
+    },
     {
        type: 'action',
        fn: 'com.tumblr.blog:post_text',
        params: { title: 'title two', body: 'body two' },
-     },
+    },
 
     ]
 
@@ -2356,32 +2356,32 @@ const TEST_CASES = [
        type: 'action',
        fn: 'com.tumblr.blog:post_text',
        params: { title: 'title one', body: 'body one' },
-     },
+    },
     {
        type: 'action',
        fn: 'com.tumblr.blog:post_text',
        params: { title: 'title one', body: 'body two' },
-     },
+    },
     {
        type: 'action',
        fn: 'com.tumblr.blog:post_text',
        params: { title: 'title one', body: 'body one' },
-     },
+    },
     {
        type: 'action',
        fn: 'com.tumblr.blog:post_text',
        params: { title: 'title one', body: 'body two' },
-     },
+    },
     {
        type: 'action',
        fn: 'com.tumblr.blog:post_text',
        params: { title: 'title one', body: 'body one' },
-     },
+    },
     {
        type: 'action',
        fn: 'com.tumblr.blog:post_text',
        params: { title: 'title one', body: 'body two' },
-     },
+    },
 
     ]
 

@@ -62,7 +62,7 @@ import List from '../utils/list';
  * statements.
  *
  */
- export abstract class Statement extends Node {
+export abstract class Statement extends Node {
     /**
      * Iterate all slots (scalar value nodes) in this statement.
      *
@@ -700,7 +700,7 @@ export type TopLevelExecutableStatement = Assignment | ExpressionStatement;
  * A single example (primitive template) in a ThingTalk dataset
  *
  */
- export class Example extends Node {
+export class Example extends Node {
     isExample = true;
     id : number;
     type : string;
@@ -776,7 +776,7 @@ export type TopLevelExecutableStatement = Assignment | ExpressionStatement;
 
         let list : TokenStream = List.singleton(this.type);
         if (args !== List.Nil)
-             list = List.concat(list, ' ', '(', args, ')');
+            list = List.concat(list, ' ', '(', args, ')');
         list = List.concat(list, ' ', '=', ' ', this.value.toSource(),
             nlAnnotationsToSource(metadata),
             implAnnotationsToSource(annotations),
@@ -854,7 +854,7 @@ export type TopLevelExecutableStatement = Assignment | ExpressionStatement;
  * templates).
  *
  */
- export class Dataset extends Statement {
+export class Dataset extends Statement {
     name : string;
     examples : Example[];
     nl_annotations : NLAnnotationMap;

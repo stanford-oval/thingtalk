@@ -30,13 +30,13 @@ const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 const TEST_CASES = [
     [`now => @com.twitter.post ( status = " hello " ) ;`,
-     {'QUOTED_STRING_0': 'hello'},
+     { 'QUOTED_STRING_0': 'hello' },
      `now => @com.twitter.post ( status = " world " ) ;`,
-     {'QUOTED_STRING_0': 'hello', 'QUOTED_STRING_1': 'world'}
+     { 'QUOTED_STRING_0': 'hello', 'QUOTED_STRING_1': 'world' }
     ],
 
     [`now => @org.thingpedia.weather.current ( location = new Location ( " stanford california " ) ) => notify ;`,
-     {'LOCATION_0': { display: 'stanford california', latitude: NaN, longitude: NaN }},
+     { 'LOCATION_0': { display: 'stanford california', latitude: NaN, longitude: NaN } },
      `now => @org.thingpedia.weather.current ( location = new Location ( " palo alto california " ) ) => notify ;`,
      {
          'LOCATION_0': { display: 'stanford california', latitude: NaN, longitude: NaN },
@@ -56,37 +56,37 @@ const TEST_CASES = [
     ],
 
     [`now => @org.thingpedia.weather.current ( location = new Location ( " stanford california " ) ) => notify ;`,
-     {'LOCATION_0': { display: 'stanford california', latitude: NaN, longitude: NaN }},
+     { 'LOCATION_0': { display: 'stanford california', latitude: NaN, longitude: NaN } },
      `now => @org.thingpedia.weather.current ( location = new Location ( " stanford california " ) ) => notify ;`,
-     {'LOCATION_0': { display: 'stanford california', latitude: NaN, longitude: NaN }},
+     { 'LOCATION_0': { display: 'stanford california', latitude: NaN, longitude: NaN } },
     ],
 
     [
      `now => @com.cryptonator.get_price ( currency = " btc " ^^tt:cryptocurrency_code ) => notify ;`,
-     {'GENERIC_ENTITY_tt:cryptocurrency_code_0': { value: 'btc', display: null }},
+     { 'GENERIC_ENTITY_tt:cryptocurrency_code_0': { value: 'btc', display: null } },
      `now => @com.cryptonator.get_price ( currency = " btc " ^^tt:cryptocurrency_code ) => notify ;`,
-     {'GENERIC_ENTITY_tt:cryptocurrency_code_0': { value: 'btc', display: null }}
+     { 'GENERIC_ENTITY_tt:cryptocurrency_code_0': { value: 'btc', display: null } }
     ],
 
     [
      `now => @com.cryptonator.get_price ( currency = " btc " ^^tt:cryptocurrency_code ) => notify ;`,
-     {'GENERIC_ENTITY_tt:cryptocurrency_code_0': { value: 'btc', display: null }},
+     { 'GENERIC_ENTITY_tt:cryptocurrency_code_0': { value: 'btc', display: null } },
      `now => @com.cryptonator.get_price ( currency = " eth " ^^tt:cryptocurrency_code ) => notify ;`,
-     {'GENERIC_ENTITY_tt:cryptocurrency_code_0': { value: 'btc', display: null }, 'GENERIC_ENTITY_tt:cryptocurrency_code_1': { value: 'eth', display: null }}
+     { 'GENERIC_ENTITY_tt:cryptocurrency_code_0': { value: 'btc', display: null }, 'GENERIC_ENTITY_tt:cryptocurrency_code_1': { value: 'eth', display: null } }
     ],
 
     [
      `now => @com.cryptonator.get_price ( currency = null ^^tt:cryptocurrency_code ( " btc " ) ) => notify ;`,
-     {'GENERIC_ENTITY_tt:cryptocurrency_code_0': { display: 'btc', value: null }},
+     { 'GENERIC_ENTITY_tt:cryptocurrency_code_0': { display: 'btc', value: null } },
      `now => @com.cryptonator.get_price ( currency = null ^^tt:cryptocurrency_code ( " btc " ) ) => notify ;`,
-     {'GENERIC_ENTITY_tt:cryptocurrency_code_0': { display: 'btc', value: null }}
+     { 'GENERIC_ENTITY_tt:cryptocurrency_code_0': { display: 'btc', value: null } }
     ],
 
     [
      `now => @com.cryptonator.get_price ( currency = null ^^tt:cryptocurrency_code ( " btc " ) ) => notify ;`,
-     {'GENERIC_ENTITY_tt:cryptocurrency_code_0': { display: 'btc', value: null }},
+     { 'GENERIC_ENTITY_tt:cryptocurrency_code_0': { display: 'btc', value: null } },
      `now => @com.cryptonator.get_price ( currency = null ^^tt:cryptocurrency_code ( " eth " ) ) => notify ;`,
-     {'GENERIC_ENTITY_tt:cryptocurrency_code_0': { display: 'btc', value: null }, 'GENERIC_ENTITY_tt:cryptocurrency_code_1': { display: 'eth', value: null }}
+     { 'GENERIC_ENTITY_tt:cryptocurrency_code_0': { display: 'btc', value: null }, 'GENERIC_ENTITY_tt:cryptocurrency_code_1': { display: 'eth', value: null } }
     ],
 ];
 

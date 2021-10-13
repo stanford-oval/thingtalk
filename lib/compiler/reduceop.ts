@@ -572,9 +572,9 @@ export class SimpleSort extends ArrayReduceOp<ArrayReduceState> {
     }
 
     init(irBuilder : JSIr.IRBuilder,
-        currentScope : Scope,
-        compiler : OpCompiler) {
-       return { array: this._doInit(irBuilder, currentScope, compiler) };
+         currentScope : Scope,
+         compiler : OpCompiler) {
+        return { array: this._doInit(irBuilder, currentScope, compiler) };
     }
 
     _doFinish(irBuilder : JSIr.IRBuilder, { array } : ArrayReduceState) : JSIr.Register {
@@ -599,9 +599,9 @@ export class ComplexSort extends ArrayReduceOp<ArrayReduceState> {
     }
 
     init(irBuilder : JSIr.IRBuilder,
-        currentScope : Scope,
-        compiler : OpCompiler) {
-       return { array: this._doInit(irBuilder, currentScope, compiler) };
+         currentScope : Scope,
+         compiler : OpCompiler) {
+        return { array: this._doInit(irBuilder, currentScope, compiler) };
     }
 
     advance({ array } : ArrayReduceState,

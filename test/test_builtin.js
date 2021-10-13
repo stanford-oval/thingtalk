@@ -53,8 +53,8 @@ async function runStream(into, stream) {
 }
 
 function testStreamUnion() {
-    let lhs = testStream([[1000, ['a', {a:1}]], [5000, ['a', {a:2}]], [0, ['a', {a:3}]], [10000, ['a', {a:4}]]]);
-    let rhs = testStream([[500, ['b', {b:5}]], [6000, ['b', {b:6}]], [1000, ['b', {b:7}]]]);
+    let lhs = testStream([[1000, ['a', { a:1 }]], [5000, ['a', { a:2 }]], [0, ['a', { a:3 }]], [10000, ['a', { a:4 }]]]);
+    let rhs = testStream([[500, ['b', { b:5 }]], [6000, ['b', { b:6 }]], [1000, ['b', { b:7 }]]]);
     let expect = JSON.stringify([
         ['a+b', { a: 1, b: 5 }],
         ['a+b', { a: 2, b: 5 }],
@@ -81,8 +81,8 @@ function testStreamUnion() {
 }
 
 function testJoin() {
-    let lhs = testStream([[1000, ['a', {a:1}]], [5000, ['a', {a:2}]], [0, ['a', {a:3}]], [10000, ['a', {a:4}]]]);
-    let rhs = testStream([[500, ['b', {b:5}]], [6000, ['b', {b:6}]], [1000, ['b', {b:7}]]]);
+    let lhs = testStream([[1000, ['a', { a:1 }]], [5000, ['a', { a:2 }]], [0, ['a', { a:3 }]], [10000, ['a', { a:4 }]]]);
+    let rhs = testStream([[500, ['b', { b:5 }]], [6000, ['b', { b:6 }]], [1000, ['b', { b:7 }]]]);
     let expect = JSON.stringify([
         ['a+b', { 'first.a': 1, 'second.b': 5 }],
         ['a+b', { 'first.a': 1, 'second.b': 6 }],
@@ -115,8 +115,8 @@ function testJoin() {
 }
 
 function testCrossJoin() {
-    let lhs = testStream([[1000, ['a', {a:1}]], [5000, ['a', {a:2}]], [0, ['a', {a:3}]], [10000, ['a', {a:4}]]]);
-    let rhs = testStream([[500, ['b', {b:5}]], [6000, ['b', {b:6}]], [1000, ['b', {b:7}]]]);
+    let lhs = testStream([[1000, ['a', { a:1 }]], [5000, ['a', { a:2 }]], [0, ['a', { a:3 }]], [10000, ['a', { a:4 }]]]);
+    let rhs = testStream([[500, ['b', { b:5 }]], [6000, ['b', { b:6 }]], [1000, ['b', { b:7 }]]]);
     let expect = JSON.stringify([
         ['a+b', { a: 1, b: 5 }],
         ['a+b', { a: 1, b: 6 }],

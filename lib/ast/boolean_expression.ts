@@ -58,7 +58,7 @@ import arrayEquals from './array_equals';
  * An expression that computes a boolean predicate.
  * This AST node is used in filter expressions.
  */
- export abstract class BooleanExpression extends Node {
+export abstract class BooleanExpression extends Node {
     static And : any;
     isAnd ! : boolean;
     static Or : any;
@@ -973,8 +973,8 @@ export class ComputeBooleanExpression extends BooleanExpression {
             return List.concat(
                 // force parenthesis around constants on the LHS of the filter, because it will be ambiguous otherwise
                 this.lhs.isConstant() ?
-                List.concat('(', this.lhs.toSource(), ')') :
-                addParenthesis(SyntaxPriority.Add, this.lhs.priority, this.lhs.toSource()),
+                    List.concat('(', this.lhs.toSource(), ')') :
+                    addParenthesis(SyntaxPriority.Add, this.lhs.priority, this.lhs.toSource()),
                 this.operator,
                 addParenthesis(SyntaxPriority.Add, this.rhs.priority, this.rhs.toSource()));
         } else {

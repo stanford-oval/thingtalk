@@ -396,7 +396,7 @@ export class ArrayType extends Type {
     hash() : number {
         return ARRAY_HASH ^
             (typeof this.elem === 'string' ? stringHash(this.elem) :
-            this.elem.hash());
+                this.elem.hash());
     }
 
     equals(other : Type) : boolean {

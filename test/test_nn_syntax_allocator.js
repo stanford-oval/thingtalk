@@ -30,59 +30,59 @@ const TEST_CASES = [
     [`monitor ( @com.xkcd . get_comic ( ) ) ;`, {}],
 
     [`@com.twitter . post ( status = QUOTED_STRING_0 ) ;`,
-     {'QUOTED_STRING_0': 'hello'}],
+     { 'QUOTED_STRING_0': 'hello' }],
 
     [`@com.twitter . post ( status = "" ) ;`, {}],
 
     [`@com.xkcd . get_comic ( number = NUMBER_0 ) ;`,
-     {'NUMBER_0': 1234}],
+     { 'NUMBER_0': 1234 }],
 
     [`@com.xkcd . get_comic ( number = NUMBER_0 ) => @com.twitter . post ( status = title ) ;`,
-     {'NUMBER_0': 1234}],
+     { 'NUMBER_0': 1234 }],
 
     [`@org.thingpedia.builtin.thingengine.builtin . get_random_between ( high = NUMBER_0 , low = NUMBER_1 ) => @com.xkcd . get_comic ( number = random ) ;`,
-     {'NUMBER_0': 55, 'NUMBER_1': 1024}],
+     { 'NUMBER_0': 55, 'NUMBER_1': 1024 }],
 
     [`timer ( base = $now , interval = DURATION_0 ) => @org.thingpedia.builtin.thingengine.builtin . get_random_between ( high = NUMBER_0 , low = NUMBER_1 ) => @com.xkcd . get_comic ( number = random ) ;`,
-    {'NUMBER_0': 55, 'NUMBER_1': 1024, DURATION_0: { value: 24, unit: 'h'}}],
+    { 'NUMBER_0': 55, 'NUMBER_1': 1024, DURATION_0: { value: 24, unit: 'h' } }],
 
     [`timer ( base = $now , interval = DURATION_0 ) => @org.thingpedia.builtin.thingengine.builtin . get_random_between ( high = NUMBER_0 , low = NUMBER_1 ) => @com.xkcd . get_comic ( number = random ) ;`,
-     {'NUMBER_0': 55, 'NUMBER_1': 1024, DURATION_0: { value: 24, unit: 'h'}}],
+     { 'NUMBER_0': 55, 'NUMBER_1': 1024, DURATION_0: { value: 24, unit: 'h' } }],
 
     [`@org.thingpedia.builtin.thingengine.builtin . get_random_between ( high = NUMBER_0 , low = NUMBER_1 ) ;`,
-    {'NUMBER_0': 55, 'NUMBER_1': 1024}],
+    { 'NUMBER_0': 55, 'NUMBER_1': 1024 }],
 
     [`@org.thingpedia.builtin.thingengine.builtin . get_random_between ( high = NUMBER_0 , low = NUMBER_1 ) ;`,
-    {'NUMBER_0': 1024, 'NUMBER_1': 55}],
+    { 'NUMBER_0': 1024, 'NUMBER_1': 55 }],
 
     [`monitor ( @thermostat . get_temperature ( ) ) ;`, {}],
 
     [`monitor ( @thermostat . get_temperature ( ) filter value >= MEASURE_C_0 ) ;`,
-     {'MEASURE_C_0': { unit: 'F', value: 70 }}],
+     { 'MEASURE_C_0': { unit: 'F', value: 70 } }],
 
     [`@com.bing . image_search ( ) filter height >= NUMBER_0 || width >= NUMBER_1 ;`,
     { NUMBER_0: 100, NUMBER_1:200 }],
 
     [`@com.bing . image_search ( ) filter ( height >= NUMBER_0 || width <= NUMBER_1 ) && width >= NUMBER_2 ;`,
-    {NUMBER_0: 100, NUMBER_1:200, NUMBER_2: 500}],
+    { NUMBER_0: 100, NUMBER_1:200, NUMBER_2: 500 }],
 
     [`@com.bing . image_search ( ) filter height >= NUMBER_0 || width >= NUMBER_0 ;`,
-    {NUMBER_0: 100}],
+    { NUMBER_0: 100 }],
 
     [`@com.bing . image_search ( ) filter width >= NUMBER_0 ;`,
-     {NUMBER_0: 100 }],
+     { NUMBER_0: 100 }],
 
     ['monitor ( @com.instagram . get_pictures ( count = NUMBER_0 ) filter in_array ( caption , [ QUOTED_STRING_0 , QUOTED_STRING_1 ] ) ) ;',
-    {NUMBER_0: 100, QUOTED_STRING_0: 'abc', QUOTED_STRING_1: 'def'}],
+    { NUMBER_0: 100, QUOTED_STRING_0: 'abc', QUOTED_STRING_1: 'def' }],
 
     ['timer ( base = $now , interval = DURATION_0 ) ;',
-     {DURATION_0: { value: 24, unit: 'h'}}],
+     { DURATION_0: { value: 24, unit: 'h' } }],
 
     ['monitor ( @com.phdcomics . get_post ( ) filter ! ( title =~ QUOTED_STRING_0 ) ) ;',
-     {QUOTED_STRING_0: 'abc'}],
+     { QUOTED_STRING_0: 'abc' }],
 
     ['@com.uber . price_estimate ( end = $location . home , start = $location . work ) filter low_estimate >= CURRENCY_0 ;',
-     {CURRENCY_0: { value: 50, unit: 'usd' } }],
+     { CURRENCY_0: { value: 50, unit: 'usd' } }],
 
     ['@com.nytimes . get_front_page ( ) filter updated >= $now - DURATION_0 ;',
      { DURATION_0: { value: 24, unit: 'h' } }],

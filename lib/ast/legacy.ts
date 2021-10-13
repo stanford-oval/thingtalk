@@ -1198,9 +1198,9 @@ export class FilteredStream extends Stream {
         if (this.stream instanceof MonitorStream) {
             return new MonitorExpression(this.location,
                 new FilterExpression(this.location,
-                this.stream.table.toExpression([]),
-                this.filter,
-                this.schema),
+                    this.stream.table.toExpression([]),
+                    this.filter,
+                    this.schema),
                 this.stream.args,
                 this.stream.schema);
         }

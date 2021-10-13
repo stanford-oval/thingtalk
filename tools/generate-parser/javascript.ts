@@ -38,7 +38,7 @@ export default function writeout(preamble : string,
                                  optionType : string) {
     const runtimePath = require.resolve('../../lib/utils/sr_parser_runtime');
     const runtimedir = path.relative(path.dirname(outputPath),
-                                     path.dirname(runtimePath));
+        path.dirname(runtimePath));
     const relativeruntimepath = './' + path.join(runtimedir, 'sr_parser_runtime');
 
     const TERMINAL_IDS : { [key : string] : number } = {};

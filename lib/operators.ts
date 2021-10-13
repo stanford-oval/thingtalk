@@ -369,7 +369,7 @@ const TIMER_SCHEMA = new FunctionDef(null,
     [
         new ArgumentDef(null, ArgDirection.IN_OPT, 'base', Type.Date, { impl: {
             default: new DateValue(null) // $now
-        }}),
+        } }),
         new ArgumentDef(null, ArgDirection.IN_REQ, 'interval', new Type.Measure('ms')),
         new ArgumentDef(null, ArgDirection.IN_OPT, 'frequency', Type.Number),
     ],

@@ -454,7 +454,7 @@ function optimizeExpression(expression : Ast.Expression, allow_projection=true) 
                     inner.expression,
                     expression.filter,
                     inner.expression.schema),
-                    allow_projection);
+                allow_projection);
 
                 return new Ast.ProjectionExpression(
                     expression.location,
@@ -490,14 +490,14 @@ function optimizeExpression(expression : Ast.Expression, allow_projection=true) 
         if (optimized instanceof Ast.ProjectionExpression) {
             const inner = optimized.expression;
             return new Ast.ProjectionExpression(optimized.location,
-                                                new Ast.IndexExpression(expression.location,
-                                                                        inner,
-                                                                        expression.indices,
-                                                                        inner.schema),
-                                                optimized.args,
-                                                optimized.computations,
-                                                optimized.aliases,
-                                                optimized.schema);
+                new Ast.IndexExpression(expression.location,
+                    inner,
+                    expression.indices,
+                    inner.schema),
+                optimized.args,
+                optimized.computations,
+                optimized.aliases,
+                optimized.schema);
         }
         expression.expression = optimized;
         return expression;
@@ -509,15 +509,15 @@ function optimizeExpression(expression : Ast.Expression, allow_projection=true) 
         if (optimized instanceof Ast.ProjectionExpression) {
             const inner = optimized.expression;
             return new Ast.ProjectionExpression(optimized.location,
-                                                new Ast.SliceExpression(expression.location,
-                                                                        inner,
-                                                                        expression.base,
-                                                                        expression.limit,
-                                                                        inner.schema),
-                                                optimized.args,
-                                                optimized.computations,
-                                                optimized.aliases,
-                                                optimized.schema);
+                new Ast.SliceExpression(expression.location,
+                    inner,
+                    expression.base,
+                    expression.limit,
+                    inner.schema),
+                optimized.args,
+                optimized.computations,
+                optimized.aliases,
+                optimized.schema);
         }
         expression.expression = optimized;
         return expression;

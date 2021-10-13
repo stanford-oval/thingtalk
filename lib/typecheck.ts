@@ -1104,27 +1104,27 @@ export default class TypeChecker {
                 throw new Error(`Annotation #[${name}] must be a constant`);
 
             switch (name) {
-                case 'doc':
-                case 'url':
-                    if (!value.isString)
-                        throw new TypeError(`Invalid type ${value.getType()} for #[${name}] annotation, expected a string`);
-                    break;
-                case 'handle_thingtalk':
-                case 'require_filter':
-                    if (!value.isBoolean)
-                        throw new TypeError(`Invalid type ${value.getType()} for #[${name}] annotation, expected a boolean`);
-                    break;
-                case 'default_projection':
-                    if (!(value instanceof Ast.ArrayValue))
-                        throw new TypeError(`Invalid type ${value.getType()} for #[${name}] annotation, expected an array`);
-                    value.value.forEach((param : Ast.Value) => {
-                        if (!(param instanceof Ast.StringValue))
-                            throw new TypeError(`Invalid type ${param.getType()} in #[${name}] annotation, expected a string`);
-                        if (!func.args.includes(param.value))
-                            throw new TypeError(`Invalid parameter ${param.value} in #[${name}] annotation, the parameter does not exist.`);
-                    });
-                    break;
-                default:
+            case 'doc':
+            case 'url':
+                if (!value.isString)
+                    throw new TypeError(`Invalid type ${value.getType()} for #[${name}] annotation, expected a string`);
+                break;
+            case 'handle_thingtalk':
+            case 'require_filter':
+                if (!value.isBoolean)
+                    throw new TypeError(`Invalid type ${value.getType()} for #[${name}] annotation, expected a boolean`);
+                break;
+            case 'default_projection':
+                if (!(value instanceof Ast.ArrayValue))
+                    throw new TypeError(`Invalid type ${value.getType()} for #[${name}] annotation, expected an array`);
+                value.value.forEach((param : Ast.Value) => {
+                    if (!(param instanceof Ast.StringValue))
+                        throw new TypeError(`Invalid type ${param.getType()} in #[${name}] annotation, expected a string`);
+                    if (!func.args.includes(param.value))
+                        throw new TypeError(`Invalid parameter ${param.value} in #[${name}] annotation, the parameter does not exist.`);
+                });
+                break;
+            default:
             }
         });
     }

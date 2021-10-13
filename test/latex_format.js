@@ -119,7 +119,7 @@ function latexprintFilter(expr, renames) {
         let filter = expr.filter;
         if (isFilterInfix(filter.operator))
             return `\\textit{${cleanIdent(filter.name)}} ${opToLatex(filter.operator)} ${latexprintValue(filter.value, renames)}`;
-         else
+        else
             return `${opToLatex(filter.operator)}(\\textit{${cleanIdent(filter.name)}}, ${latexprintValue(filter.value, renames)})`;
 
     })(expr);

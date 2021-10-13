@@ -60,7 +60,7 @@ const TEST_CASES = [
     ],
 
     [`now => @com.twitter.post param:status:String = QUOTED_STRING_0`,
-     `tweet QUOTED_STRING_0`, {'QUOTED_STRING_0': 'hello'},
+     `tweet QUOTED_STRING_0`, { 'QUOTED_STRING_0': 'hello' },
      `@com.twitter.post(status="hello");`
     ],
 
@@ -70,31 +70,31 @@ const TEST_CASES = [
     ],
 
     [`now => @com.xkcd.get_comic param:number:Number = NUMBER_0 => notify`,
-     `get xkcd NUMBER_0`, {'NUMBER_0': 1234},
+     `get xkcd NUMBER_0`, { 'NUMBER_0': 1234 },
      `@com.xkcd.get_comic(number=1234);`],
 
     [`now => @com.xkcd.get_comic param:number:Number = NUMBER_0 => @com.twitter.post on param:status:String = param:title:String`,
-     `get xkcd NUMBER_0`, {'NUMBER_0': 1234},
+     `get xkcd NUMBER_0`, { 'NUMBER_0': 1234 },
      `@com.xkcd.get_comic(number=1234) => @com.twitter.post(status=title);`],
 
     [`now => ( @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_1 param:low:Number = NUMBER_0 ) join ( @com.xkcd.get_comic ) on param:number:Number = param:random:Number => notify`,
-    `get xkcd whose number is a random number between NUMBER_0 and NUMBER_1`, {'NUMBER_0': 55, 'NUMBER_1': 1024},
+    `get xkcd whose number is a random number between NUMBER_0 and NUMBER_1`, { 'NUMBER_0': 55, 'NUMBER_1': 1024 },
     `@org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55) => @com.xkcd.get_comic(number=random);`],
 
     [`( timer base = now , interval = 1 unit:h ) => ( ( @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_1 param:low:Number = NUMBER_0 ) join ( @com.xkcd.get_comic ) on param:number:Number = param:random:Number ) => notify`,
-    `every hour get xkcd whose number is a random number between NUMBER_0 and NUMBER_1`, {'NUMBER_0': 55, 'NUMBER_1': 1024},
+    `every hour get xkcd whose number is a random number between NUMBER_0 and NUMBER_1`, { 'NUMBER_0': 55, 'NUMBER_1': 1024 },
     `timer(base=$now, interval=1h) => @org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55) => @com.xkcd.get_comic(number=random);`],
 
     [`( timer base = now , interval = 1 unit:h , frequency = 3 ) => ( ( @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_1 param:low:Number = NUMBER_0 ) join ( @com.xkcd.get_comic ) on param:number:Number = param:random:Number ) => notify`,
-    `3 times every hour get xkcd whose number is a random number between NUMBER_0 and NUMBER_1`, {'NUMBER_0': 55, 'NUMBER_1': 1024 },
+    `3 times every hour get xkcd whose number is a random number between NUMBER_0 and NUMBER_1`, { 'NUMBER_0': 55, 'NUMBER_1': 1024 },
     `timer(base=$now, frequency=3, interval=1h) => @org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55) => @com.xkcd.get_comic(number=random);`],
 
     [`now => @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_1 param:low:Number = NUMBER_0 => notify`,
-    `get a random number between NUMBER_0 and NUMBER_1`,{'NUMBER_0': 55, 'NUMBER_1': 1024},
+    `get a random number between NUMBER_0 and NUMBER_1`,{ 'NUMBER_0': 55, 'NUMBER_1': 1024 },
     `@org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55);`],
 
     [`now => @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_0 param:low:Number = NUMBER_1 => notify`,
-    `get xkcd whose number is a random number max is NUMBER_0 min is NUMBER_1`, {'NUMBER_0': 1024, 'NUMBER_1': 55},
+    `get xkcd whose number is a random number max is NUMBER_0 min is NUMBER_1`, { 'NUMBER_0': 1024, 'NUMBER_1': 55 },
     `@org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55);`],
 
     [`monitor ( @thermostat.get_temperature ) => notify`,
@@ -102,23 +102,23 @@ const TEST_CASES = [
     `monitor(@thermostat.get_temperature());`],
 
     [`monitor ( ( @thermostat.get_temperature ) filter param:value:Measure(C) >= NUMBER_0 unit:F ) => notify`,
-    `notify me if the temperature is above NUMBER_0 degrees`, {'NUMBER_0': 70},
+    `notify me if the temperature is above NUMBER_0 degrees`, { 'NUMBER_0': 70 },
     `monitor(@thermostat.get_temperature() filter value >= 70F);`],
 
     [`now => ( @com.bing.image_search ) filter param:height:Number >= NUMBER_1 or param:width:Number >= NUMBER_0 => notify`,
-    `search images wider than NUMBER_0 pixels or taller than NUMBER_1 pixels`, {NUMBER_0: 100, NUMBER_1:200},
+    `search images wider than NUMBER_0 pixels or taller than NUMBER_1 pixels`, { NUMBER_0: 100, NUMBER_1:200 },
     `@com.bing.image_search() filter height >= 200 || width >= 100;`],
 
     [`now => ( @com.bing.image_search ) filter param:height:Number >= NUMBER_1 or param:width:Number >= NUMBER_0 and param:width:Number <= NUMBER_2 => notify`,
-    `search images wider than NUMBER_0 pixels or taller than NUMBER_1 pixels and narrower than NUMBER_2 pixels`, {NUMBER_0: 100, NUMBER_1:200, NUMBER_2: 500},
+    `search images wider than NUMBER_0 pixels or taller than NUMBER_1 pixels and narrower than NUMBER_2 pixels`, { NUMBER_0: 100, NUMBER_1:200, NUMBER_2: 500 },
     `@com.bing.image_search() filter (height >= 200 || width >= 100) && width <= 500;`],
 
     [`now => ( @com.bing.image_search ) filter param:height:Number >= NUMBER_0 or param:width:Number >= NUMBER_0 => notify`,
-    `search images larger than NUMBER_0 pixels in either dimension`, {NUMBER_0: 100},
+    `search images larger than NUMBER_0 pixels in either dimension`, { NUMBER_0: 100 },
     `@com.bing.image_search() filter height >= 100 || width >= 100;`],
 
     [`now => ( @com.bing.image_search ) filter param:width:Number >= NUMBER_0 => notify`,
-    `search images wider than NUMBER_0 pixels`, {NUMBER_0: 100 },
+    `search images wider than NUMBER_0 pixels`, { NUMBER_0: 100 },
     `@com.bing.image_search() filter width >= 100;`],
 
     ['monitor ( @com.xkcd.get_comic ) on new param:title:String => notify',
@@ -130,19 +130,19 @@ const TEST_CASES = [
     `monitor(alt_text, title of @com.xkcd.get_comic());`],
 
     ['monitor ( ( @com.instagram.get_pictures param:count:Number = NUMBER_0 ) filter param:caption:String in_array [ QUOTED_STRING_0 , QUOTED_STRING_1 ] ) => notify',
-    `monitor my last NUMBER_0 instagram pics if the caption is either QUOTED_STRING_0 or QUOTED_STRING_1`, {NUMBER_0: 100, QUOTED_STRING_0: 'abc', QUOTED_STRING_1: 'def'},
+    `monitor my last NUMBER_0 instagram pics if the caption is either QUOTED_STRING_0 or QUOTED_STRING_1`, { NUMBER_0: 100, QUOTED_STRING_0: 'abc', QUOTED_STRING_1: 'def' },
     `monitor(@com.instagram.get_pictures(count=100) filter in_array(caption, ["abc", "def"]));`],
 
     ['timer base = now , interval = DURATION_0 => notify',
-    `alert me every DURATION_0`, {DURATION_0: { value: 30, unit: 'min'}},
+    `alert me every DURATION_0`, { DURATION_0: { value: 30, unit: 'min' } },
     `timer(base=$now, interval=30min);`],
 
     ['monitor ( ( @com.phdcomics.get_post ) filter not param:title:String =~ QUOTED_STRING_0 ) => notify',
-    `monitor phd comics post that do n't have QUOTED_STRING_0 in the title`, {QUOTED_STRING_0: 'abc'}, //'
+    `monitor phd comics post that do n't have QUOTED_STRING_0 in the title`, { QUOTED_STRING_0: 'abc' }, //'
     `monitor(@com.phdcomics.get_post() filter !(title =~ "abc"));`],
 
     ['now => ( @com.uber.price_estimate param:end:Location = location:home param:start:Location = location:work ) filter param:low_estimate:Currency >= CURRENCY_0 => notify',
-    `get an uber price estimate from home to work if the low estimate is greater than CURRENCY_0`, {CURRENCY_0: { value: 50, unit: 'usd' } },
+    `get an uber price estimate from home to work if the low estimate is greater than CURRENCY_0`, { CURRENCY_0: { value: 50, unit: 'usd' } },
     `@com.uber.price_estimate(end=$location.home, start=$location.work) filter low_estimate >= 50$usd;`],
 
     ['now => ( @com.uber.price_estimate ) filter param:uber_type:Enum(pool,uber_x,uber_xl,uber_black,select,suv,assist) == enum:uber_x => notify',
@@ -274,11 +274,11 @@ const TEST_CASES = [
 }`],
 
     [`now => @com.xkcd.get_comic param:number:Number = SLOT_0 => notify`,
-     '', {'SLOT_0': new Ast.Value.Number(1234) },
+     '', { 'SLOT_0': new Ast.Value.Number(1234) },
      `@com.xkcd.get_comic(number=1234);`],
 
     [`now => @com.xkcd.get_comic param:number:Number = SLOT_0 => notify`,
-     '', {'SLOT_0': undefined},
+     '', { 'SLOT_0': undefined },
      `@com.xkcd.get_comic(number=$?);`],
 
     [`now => @com.xkcd.get_comic param:number:Number = undefined => notify`,

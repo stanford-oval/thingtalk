@@ -33,7 +33,7 @@ import Scope from './scope';
 import {
     CompiledProgram,
     CompiledStatement
- } from '../runtime/exec_environment';
+} from '../runtime/exec_environment';
 import type SchemaRetriever from '../schema';
 
 type TopLevelScope = {

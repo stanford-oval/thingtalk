@@ -33,7 +33,7 @@ const TEST_CASES = [
     ],
 
     [`@com.twitter . post ( status = QUOTED_STRING_0 ) ;`,
-     `tweet QUOTED_STRING_0`, {'QUOTED_STRING_0': 'hello'},
+     `tweet QUOTED_STRING_0`, { 'QUOTED_STRING_0': 'hello' },
      `@com.twitter.post(status="hello");`
     ],
 
@@ -43,31 +43,31 @@ const TEST_CASES = [
     ],
 
     [`@com.xkcd . get_comic ( number = NUMBER_0 ) ;`,
-     `get xkcd NUMBER_0`, {'NUMBER_0': 1234},
+     `get xkcd NUMBER_0`, { 'NUMBER_0': 1234 },
      `@com.xkcd.get_comic(number=1234);`],
 
     [`@com.xkcd . get_comic ( number = NUMBER_0 ) => @com.twitter . post ( status = title ) ;`,
-     `get xkcd NUMBER_0`, {'NUMBER_0': 1234},
+     `get xkcd NUMBER_0`, { 'NUMBER_0': 1234 },
      `@com.xkcd.get_comic(number=1234) => @com.twitter.post(status=title);`],
 
     [`@org.thingpedia.builtin.thingengine.builtin . get_random_between ( high = NUMBER_1 , low = NUMBER_0 ) => @com.xkcd . get_comic ( number = random ) ;`,
-    `get xkcd whose number is a random number between NUMBER_0 and NUMBER_1`, {'NUMBER_0': 55, 'NUMBER_1': 1024},
+    `get xkcd whose number is a random number between NUMBER_0 and NUMBER_1`, { 'NUMBER_0': 55, 'NUMBER_1': 1024 },
     `@org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55) => @com.xkcd.get_comic(number=random);`],
 
     [`timer ( base = $now , interval = 1 h ) => @org.thingpedia.builtin.thingengine.builtin . get_random_between ( high = NUMBER_1 , low = NUMBER_0 ) => @com.xkcd . get_comic ( number = random ) ;`,
-    `every hour get xkcd whose number is a random number between NUMBER_0 and NUMBER_1`, {'NUMBER_0': 55, 'NUMBER_1': 1024},
+    `every hour get xkcd whose number is a random number between NUMBER_0 and NUMBER_1`, { 'NUMBER_0': 55, 'NUMBER_1': 1024 },
     `timer(base=$now, interval=1h) => @org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55) => @com.xkcd.get_comic(number=random);`],
 
     [`timer ( base = $now , frequency = 3 , interval = 1 h ) => @org.thingpedia.builtin.thingengine.builtin . get_random_between ( high = NUMBER_1 , low = NUMBER_0 ) => @com.xkcd . get_comic ( number = random ) ;`,
-    `3 times every hour get xkcd whose number is a random number between NUMBER_0 and NUMBER_1`, {'NUMBER_0': 55, 'NUMBER_1': 1024 },
+    `3 times every hour get xkcd whose number is a random number between NUMBER_0 and NUMBER_1`, { 'NUMBER_0': 55, 'NUMBER_1': 1024 },
     `timer(base=$now, frequency=3, interval=1h) => @org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55) => @com.xkcd.get_comic(number=random);`],
 
     [`@org.thingpedia.builtin.thingengine.builtin . get_random_between ( high = NUMBER_1 , low = NUMBER_0 ) ;`,
-    `get a random number between NUMBER_0 and NUMBER_1`,{'NUMBER_0': 55, 'NUMBER_1': 1024},
+    `get a random number between NUMBER_0 and NUMBER_1`,{ 'NUMBER_0': 55, 'NUMBER_1': 1024 },
     `@org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55);`],
 
     [`@org.thingpedia.builtin.thingengine.builtin . get_random_between ( high = NUMBER_0 , low = NUMBER_1 ) ;`,
-    `get xkcd whose number is a random number max is NUMBER_0 min is NUMBER_1`, {'NUMBER_0': 1024, 'NUMBER_1': 55},
+    `get xkcd whose number is a random number max is NUMBER_0 min is NUMBER_1`, { 'NUMBER_0': 1024, 'NUMBER_1': 55 },
     `@org.thingpedia.builtin.thingengine.builtin.get_random_between(high=1024, low=55);`],
 
     [`monitor ( @thermostat . get_temperature ( ) ) ;`,
@@ -75,23 +75,23 @@ const TEST_CASES = [
     `monitor(@thermostat.get_temperature());`],
 
     [`monitor ( @thermostat . get_temperature ( ) filter value >= NUMBER_0 F ) ;`,
-    `notify me if the temperature is above NUMBER_0 degrees`, {'NUMBER_0': 70},
+    `notify me if the temperature is above NUMBER_0 degrees`, { 'NUMBER_0': 70 },
     `monitor(@thermostat.get_temperature() filter value >= 70F);`],
 
     [`@com.bing . image_search ( ) filter height >= NUMBER_1 || width >= NUMBER_0 ;`,
-    `search images wider than NUMBER_0 pixels or taller than NUMBER_1 pixels`, {NUMBER_0: 100, NUMBER_1:200},
+    `search images wider than NUMBER_0 pixels or taller than NUMBER_1 pixels`, { NUMBER_0: 100, NUMBER_1:200 },
     `@com.bing.image_search() filter height >= 200 || width >= 100;`],
 
     [`@com.bing . image_search ( ) filter ( height >= NUMBER_1 || width >= NUMBER_0 ) && width <= NUMBER_2 ;`,
-    `search images wider than NUMBER_0 pixels || taller than NUMBER_1 pixels and narrower than NUMBER_2 pixels`, {NUMBER_0: 100, NUMBER_1:200, NUMBER_2: 500},
+    `search images wider than NUMBER_0 pixels || taller than NUMBER_1 pixels and narrower than NUMBER_2 pixels`, { NUMBER_0: 100, NUMBER_1:200, NUMBER_2: 500 },
     `@com.bing.image_search() filter (height >= 200 || width >= 100) && width <= 500;`],
 
     [`@com.bing . image_search ( ) filter height >= NUMBER_0 || width >= NUMBER_0 ;`,
-    `search images larger than NUMBER_0 pixels in either dimension`, {NUMBER_0: 100},
+    `search images larger than NUMBER_0 pixels in either dimension`, { NUMBER_0: 100 },
     `@com.bing.image_search() filter height >= 100 || width >= 100;`],
 
     [`@com.bing . image_search ( ) filter width >= NUMBER_0 ;`,
-    `search images wider than NUMBER_0 pixels`, {NUMBER_0: 100 },
+    `search images wider than NUMBER_0 pixels`, { NUMBER_0: 100 },
     `@com.bing.image_search() filter width >= 100;`],
 
     ['monitor ( title of @com.xkcd . get_comic ( ) ) ;',
@@ -103,19 +103,19 @@ const TEST_CASES = [
     `monitor(alt_text, title of @com.xkcd.get_comic());`],
 
     ['monitor ( @com.instagram . get_pictures ( count = NUMBER_0 ) filter in_array ( caption , [ QUOTED_STRING_0 , QUOTED_STRING_1 ] ) ) ;',
-    `monitor my last NUMBER_0 instagram pics if the caption is either QUOTED_STRING_0 or QUOTED_STRING_1`, {NUMBER_0: 100, QUOTED_STRING_0: 'abc', QUOTED_STRING_1: 'def'},
+    `monitor my last NUMBER_0 instagram pics if the caption is either QUOTED_STRING_0 or QUOTED_STRING_1`, { NUMBER_0: 100, QUOTED_STRING_0: 'abc', QUOTED_STRING_1: 'def' },
     `monitor(@com.instagram.get_pictures(count=100) filter in_array(caption, ["abc", "def"]));`],
 
     ['timer ( base = $now , interval = DURATION_0 ) ;',
-    `alert me every DURATION_0`, {DURATION_0: { value: 30, unit: 'min'}},
+    `alert me every DURATION_0`, { DURATION_0: { value: 30, unit: 'min' } },
     `timer(base=$now, interval=30min);`],
 
     ['monitor ( @com.phdcomics . get_post ( ) filter ! ( title =~ QUOTED_STRING_0 ) ) ;',
-    `monitor phd comics post that do n't have QUOTED_STRING_0 in the title`, {QUOTED_STRING_0: 'abc'}, //'
+    `monitor phd comics post that do n't have QUOTED_STRING_0 in the title`, { QUOTED_STRING_0: 'abc' }, //'
     `monitor(@com.phdcomics.get_post() filter !(title =~ "abc"));`],
 
     ['@com.uber . price_estimate ( end = $location . home , start = $location . work ) filter low_estimate >= CURRENCY_0 ;',
-    `get an uber price estimate from home to work if the low estimate is greater than CURRENCY_0`, {CURRENCY_0: { value: 50, unit: 'usd' } },
+    `get an uber price estimate from home to work if the low estimate is greater than CURRENCY_0`, { CURRENCY_0: { value: 50, unit: 'usd' } },
     `@com.uber.price_estimate(end=$location.home, start=$location.work) filter low_estimate >= 50$usd;`],
 
     ['@com.uber . price_estimate ( ) filter uber_type == enum uber_x ;',
@@ -259,11 +259,11 @@ const TEST_CASES = [
 }`],
 
     [`@com.xkcd . get_comic ( number = SLOT_0 ) ;`,
-     '', {'SLOT_0': new Ast.Value.Number(1234) },
+     '', { 'SLOT_0': new Ast.Value.Number(1234) },
      `@com.xkcd.get_comic(number=1234);`],
 
     [`@com.xkcd . get_comic ( number = SLOT_0 ) ;`,
-     '', {'SLOT_0': undefined},
+     '', { 'SLOT_0': undefined },
      `@com.xkcd.get_comic(number=$?);`],
 
     [`@com.xkcd . get_comic ( number = $? ) ;`,
