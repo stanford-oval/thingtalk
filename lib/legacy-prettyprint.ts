@@ -21,13 +21,13 @@
 import assert from 'assert';
 import { stringEscape } from './utils/escaping';
 import * as Ast from './ast';
-import Type, { ArrayType, CompoundType } from './type';
+import Type from './type';
 import { UnserializableError } from './utils/errors';
 
 function prettyprintType(ast : Type, prefix='') : string {
-    if (ast instanceof ArrayType) {
+    if (ast instanceof Type.Array) {
         return 'Array(' + prettyprintType(ast.elem as Type, prefix) + ')';
-    } else if (ast instanceof CompoundType) {
+    } else if (ast instanceof Type.Compound) {
         const fields = Object.keys(ast.fields)
             .filter((f) => !f.includes('.')) // filter out fields flattened from compound
             .map((f) => `${f}: ${prettyprintType(ast.fields[f].type, prefix + '  ')}${prettyprintAnnotations(ast.fields[f], prefix + '  ', true)}`);

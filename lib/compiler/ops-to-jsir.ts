@@ -21,7 +21,7 @@
 import assert from 'assert';
 
 import * as Ast from '../ast';
-import Type, { ArrayType, CompoundType } from '../type';
+import Type from '../type';
 import * as Builtin from '../operators';
 
 import * as JSIr from './jsir';
@@ -134,7 +134,7 @@ export default class OpCompiler {
         const result = this._irBuilder.allocRegister();
         const element = this._irBuilder.allocRegister();
 
-        assert(expr.type instanceof ArrayType);
+        assert(expr.type instanceof Type.Array);
         const elementtype = expr.type.elem;
         assert(elementtype instanceof Type);
 
@@ -143,7 +143,7 @@ export default class OpCompiler {
         this._irBuilder.pushBlock(filterop.body);
 
         const newScope = new Scope(currentScope.parent);
-        if (elementtype instanceof CompoundType) {
+        if (elementtype instanceof Type.Compound) {
             for (const field in elementtype.fields) {
                 if (field.indexOf('.') >= 0)
                     continue;

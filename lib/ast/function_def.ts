@@ -28,7 +28,7 @@ import Node, {
     implAnnotationsToSource,
     nlAnnotationsToSource,
 } from './base';
-import Type, { TypeMap, ArrayType, CompoundType } from '../type';
+import Type from '../type';
 import { Value } from './values';
 import { ClassDef } from './class_def';
 import NodeVisitor from './visitor';
@@ -128,9 +128,9 @@ export class ArgumentDef extends Node {
         this._is_compound_field = is_compound_field || this.direction === null;
 
         this.unique = this.impl_annotations.unique && this.impl_annotations.unique.isBoolean && this.impl_annotations.unique.toJS() === true;
-        if (this.direction && type instanceof CompoundType)
+        if (this.direction && type instanceof Type.Compound)
             this._updateFields(type);
-        if (this.type instanceof ArrayType && this.type.elem instanceof CompoundType)
+        if (this.type instanceof Type.Array && this.type.elem instanceof Type.Compound)
             this._flattenCompoundArray();
     }
 
@@ -146,39 +146,39 @@ export class ArgumentDef extends Node {
         return list;
     }
 
-    private _updateFields(type : CompoundType) {
+    private _updateFields(type : Type.Compound) {
         for (const field in type.fields) {
             const argumentDef = type.fields[field];
             argumentDef.direction = this.direction;
             argumentDef.is_input = this.is_input;
             argumentDef.required = this.required;
 
-            if (argumentDef.type instanceof CompoundType)
+            if (argumentDef.type instanceof Type.Compound)
                 this._updateFields(argumentDef.type);
-            if (argumentDef.type instanceof ArrayType && argumentDef.type.elem instanceof CompoundType)
+            if (argumentDef.type instanceof Type.Array && argumentDef.type.elem instanceof Type.Compound)
                 this._updateFields(argumentDef.type.elem);
         }
     }
 
     // if a parameter is an array of compounds, flatten the compound
     private _flattenCompoundArray() {
-        assert(this.type instanceof ArrayType && this.type.elem instanceof CompoundType);
+        assert(this.type instanceof Type.Array && this.type.elem instanceof Type.Compound);
 
-        const compoundType = this.type.elem as CompoundType;
+        const compoundType = this.type.elem as Type.Compound;
         for (const [name, field] of this._iterateCompoundArrayFields(compoundType))
             compoundType.fields[name] = field;
     }
 
     // iteratively flatten compound fields inside an array
-    private *_iterateCompoundArrayFields(compound : CompoundType, prefix = '') : Generator<[string, ArgumentDef], void> {
+    private *_iterateCompoundArrayFields(compound : Type.Compound, prefix = '') : Generator<[string, ArgumentDef], void> {
         for (const fname in compound.fields) {
             const field = compound.fields[fname].clone();
             yield [prefix + fname, field];
 
-            if (field.type instanceof CompoundType)
+            if (field.type instanceof Type.Compound)
                 yield *this._iterateCompoundArrayFields(field.type, `${prefix}${fname}.`);
 
-            if (field.type instanceof ArrayType && field.type.elem instanceof CompoundType)
+            if (field.type instanceof Type.Array && field.type.elem instanceof Type.Compound)
                 field._flattenCompoundArray();
         }
     }
@@ -322,9 +322,9 @@ export class FunctionDef extends Node {
     private _types : Type[];
     private _argmap : ArgMap;
     private _index : ArgIndexMap;
-    private _inReq : TypeMap;
-    private _inOpt : TypeMap;
-    private _out : TypeMap;
+    private _inReq : Type.TypeMap;
+    private _inOpt : Type.TypeMap;
+    private _out : Type.TypeMap;
     private _extends : string[];
     private _class : ClassDef|null;
     /**
@@ -521,10 +521,10 @@ export class FunctionDef extends Node {
      *             function inheritance is used.
      *             Use {@link Ast.FunctionDef.iterateArguments} instead.
      */
-    get inReq() : TypeMap {
+    get inReq() : Type.TypeMap {
         if (this.extends.length === 0)
             return this._inReq;
-        const args : TypeMap = {};
+        const args : Type.TypeMap = {};
         for (const arg of this.iterateArguments()) {
             if (arg.required)
                 args[arg.name] = arg.type;
@@ -539,10 +539,10 @@ export class FunctionDef extends Node {
      *             function inheritance is used.
      *             Use {@link Ast.FunctionDef.iterateArguments} instead.
      */
-    get inOpt() : TypeMap {
+    get inOpt() : Type.TypeMap {
         if (this.extends.length === 0)
             return this._inOpt;
-        const args : TypeMap = {};
+        const args : Type.TypeMap = {};
         for (const arg of this.iterateArguments()) {
             if (arg.is_input && !arg.required)
                 args[arg.name] = arg.type;
@@ -557,10 +557,10 @@ export class FunctionDef extends Node {
      *             function inheritance is used.
      *             Use {@link Ast.FunctionDef.iterateArguments} instead.
      */
-    get out() : TypeMap {
+    get out() : Type.TypeMap {
         if (this.extends.length === 0)
             return this._out;
-        const args : TypeMap = {};
+        const args : Type.TypeMap = {};
         for (const arg of this.iterateArguments()) {
             if (!arg.is_input)
                 args[arg.name] = arg.type;
@@ -611,7 +611,7 @@ export class FunctionDef extends Node {
 
     private _flattenCompoundArgument(existed : string[], arg : ArgumentDef) {
         let flattened = existed.includes(arg.name) ? [] : [arg];
-        if (arg.type instanceof CompoundType) {
+        if (arg.type instanceof Type.Compound) {
             for (const f in arg.type.fields) {
                 const a = arg.type.fields[f].clone();
                 a.name = arg.name + '.' + a.name;

@@ -22,7 +22,7 @@ import assert from 'assert';
 import * as smt from 'smtlib';
 
 import * as Ast from './ast';
-import Type, { EnumType, EntityType, ArrayType } from './type';
+import Type from './type';
 import * as BuiltinDefs from './operators';
 import * as BuiltinOps from './runtime/primitive_ops';
 import SchemaRetriever from './schema';
@@ -69,7 +69,7 @@ class SmtReduction {
     private _declarations : smt.SNode[];
     private _entityTypes : Set<string>;
     private _currencies : Set<string>;
-    private _enumtypes : Array<[string, EnumType]>;
+    private _enumtypes : Array<[string, Type.Enum]>;
     private _fnparams : Map<string, string[]>;
     private _constants : Map<string, string>;
 
@@ -152,7 +152,7 @@ class SmtReduction {
             this._solver.assert(assert);
     }
 
-    private _makeEnumType(type : EnumType) {
+    private _makeEnumType(type : Type.Enum) {
         for (const [name, enumType] of this._enumtypes) {
             if (arrayEquals(type.entries, enumType.entries))
                 return name;
@@ -162,7 +162,7 @@ class SmtReduction {
         return name;
     }
 
-    private _declareEntityType(type : EntityType) {
+    private _declareEntityType(type : Type.Entity) {
         const entityType = type.type;
         const smtType = 'Entity_' + entityType.replace(/[^A-Za-z0-9_]/g, '_');
         if (this._entityTypes.has(entityType))
@@ -174,7 +174,7 @@ class SmtReduction {
         return smtType;
     }
 
-    private _getEntityValue(value : smt.SNode, type : EntityType) {
+    private _getEntityValue(value : smt.SNode, type : Type.Entity) {
         this._declareEntityType(type);
         const entityType = type.type;
         const smtType = 'Entity_' + entityType.replace(/[^A-Za-z0-9_]/g, '_');
@@ -182,7 +182,7 @@ class SmtReduction {
     }
 
     private _typeToSmtType(type : Type) : smt.SNode {
-        if (type instanceof ArrayType)
+        if (type instanceof Type.Array)
             return smt.SetType(this._typeToSmtType(type.elem as Type));
         if (type.isNumber || type.isMeasure)
             return 'Real';
@@ -194,9 +194,9 @@ class SmtReduction {
             return 'Location';
         if (type.isTime || type.isDate)
             return 'Int';
-        if (type instanceof EntityType)
+        if (type instanceof Type.Entity)
             return this._declareEntityType(type);
-        if (type instanceof EnumType)
+        if (type instanceof Type.Enum)
             return this._makeEnumType(type);
 
         throw new TypeError('Unsupported type ' + type);
@@ -225,7 +225,7 @@ class SmtReduction {
         return new smt.SExpr('mk.' + smtType, smt.StringLiteral(entityValue));
     }
 
-    private _enumToSmtValue(enumerant : string, type : EnumType) {
+    private _enumToSmtValue(enumerant : string, type : Type.Enum) {
         const typename = this._makeEnumType(type);
         return typename + '.' + enumerant;
     }
@@ -246,7 +246,7 @@ class SmtReduction {
         if (v.isUndefined)
             throw new TypeError('Unexpected undefined TT value');
         if (v instanceof Ast.ArrayValue) {
-            assert(type instanceof ArrayType);
+            assert(type instanceof Type.Array);
             if (v.value.length === 0)
                 return new smt.SExpr('as', 'emptyset', new smt.SExpr('Set', this._typeToSmtType(type.elem as Type)));
             return new smt.SExpr('insert',
@@ -266,7 +266,7 @@ class SmtReduction {
         if (v instanceof Ast.EntityValue)
             return this._entityToSmtValue(v.value!, v.type);
         if (v instanceof Ast.EnumValue) {
-            assert(type instanceof EnumType);
+            assert(type instanceof Type.Enum);
             return this._enumToSmtValue(v.value, type);
         }
         if (v instanceof Ast.DateValue)
@@ -297,12 +297,12 @@ class SmtReduction {
                          paramType : Type,
                          value : smt.SNode,
                          valueType : Type) {
-        if (valueType instanceof EnumType)
+        if (valueType instanceof Type.Enum)
             valueType = paramType;
         if (operator !== 'group_member' && !valueType.equals(paramType)) {
-            if (valueType instanceof EntityType)
+            if (valueType instanceof Type.Entity)
                 value = this._getEntityValue(value, valueType);
-            if (paramType instanceof EntityType)
+            if (paramType instanceof Type.Entity)
                 param = this._getEntityValue(param, paramType);
         }
 
@@ -436,7 +436,7 @@ class SmtReduction {
                 throw new TypeError('Invalid filter left-hand-side ' + filter.name);
             switch (filter.operator) {
             case 'contains':
-                ptype = (ptype as ArrayType).elem as Type;
+                ptype = (ptype as Type.Array).elem as Type;
                 break;
             case 'contains~':
                 ptype = Type.String;
@@ -509,7 +509,7 @@ class SmtReduction {
                 throw new TypeError('Invalid filter left-hand-side ' + filter.name);
             switch (filter.operator) {
             case 'contains':
-                ptype = (ptype as ArrayType).elem as Type;
+                ptype = (ptype as Type.Array).elem as Type;
                 break;
             case 'contains~':
                 ptype = Type.String;

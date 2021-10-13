@@ -19,7 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
-import Type, { ArrayType, EntityType } from '../type';
+import Type from '../type';
 import { clean } from '../utils';
 
 import { Value, VarRefValue, ArrayValue, ComputationValue } from './values';
@@ -156,7 +156,7 @@ export abstract class AbstractSlot {
 
         const valueType = value.getType();
         const slotType = this.type;
-        if (valueType instanceof EntityType && slotType instanceof EntityType &&
+        if (valueType instanceof Type.Entity && slotType instanceof Type.Entity &&
             valueType.type === 'tt:username' && slotType.type !== 'tt:username')
             return false;
 
@@ -326,7 +326,7 @@ export class FilterSlot extends AbstractSlot {
         if (this._arg) {
             switch (this._filter.operator) {
             case 'contains':
-                return (this._arg.type as ArrayType).elem as Type;
+                return (this._arg.type as Type.Array).elem as Type;
             case 'contains~':
                 return Type.String;
             case '~contains':
@@ -541,7 +541,7 @@ export function* recursiveYieldArraySlots(slot : AbstractSlot) : Generator<Abstr
     const value = slot.get();
     if (value instanceof ArrayValue) {
         const type = slot.type;
-        assert(type instanceof ArrayType);
+        assert(type instanceof Type.Array);
         for (let i = 0; i < value.value.length; i++)
             yield* recursiveYieldArraySlots(new ArrayIndexSlot(slot.primitive, slot.scope, type.elem as Type, value.value, slot, i));
     } else if (value instanceof ComputationValue) {

@@ -22,7 +22,7 @@
 import { Temporal } from '@js-temporal/polyfill';
 import assert from 'assert';
 import * as Ast from '../ast';
-import Type, { TypeMap } from '../type';
+import Type from '../type';
 import { KEYWORDS, FORBIDDEN_KEYWORDS } from './keywords';
 import { TypeOfToken } from './token';
 
@@ -682,10 +682,10 @@ decl_param : Ast.ArgumentDef = {
         => new Ast.ArgumentDef($.location, arg_direction, name, type, annot);
 }
 
-udf_decl_param_list : TypeMap = {
+udf_decl_param_list : Type.TypeMap = {
     '(' ')' => ({});
     '(' list:udf_decl_param_list_nonempty ')' => {
-        const typeMap : TypeMap = {};
+        const typeMap : Type.TypeMap = {};
         for (const [name, type] of list)
             typeMap[name] = type;
         return typeMap;
