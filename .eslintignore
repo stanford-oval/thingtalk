@@ -2,6 +2,7 @@ lib/grammar.js
 lib/nn-syntax/parser.ts
 lib/new-syntax/parser.ts
 tools/generate-parser/grammar.js
+test/test_sr_parser_generator.ts
 node_modules
 dist
 coverage
