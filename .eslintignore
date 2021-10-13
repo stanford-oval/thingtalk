@@ -1,5 +1,6 @@
 lib/grammar.js
-lib/nn-syntax/parser.js
+lib/nn-syntax/parser.ts
+lib/new-syntax/parser.ts
 tools/generate-parser/grammar.js
 node_modules
 dist
