@@ -40,16 +40,6 @@ function normalizeUnit(unit : string) : string {
     }
 }
 
-export type TypeMap = ({ [key : string] : Type });
-export type TypeScope = ({ [key : string] : Type|string });
-
-export type EntitySubTypeMap = Record<string, string[]>;
-
-interface Hashable<T> {
-    hash() : number;
-    equals(other : T) : boolean;
-}
-
 function stringHash(x : string) {
     // DJB2 algorithm
     let hash = 5381;
@@ -68,41 +58,87 @@ function stringHash(x : string) {
 /**
  * The base class of all ThingTalk types.
  */
-export default abstract class Type implements Hashable<Type> {
-    static Any : Type; // polymorphic hole
+abstract class Type {
+    /**
+     * @deprecated
+     */
     isAny ! : boolean;
-    static Boolean : Type;
+    /**
+     * @deprecated
+     */
     isBoolean ! : boolean;
-    static String : Type;
+    /**
+     * @deprecated
+     */
     isString ! : boolean;
-    static Number : Type;
+    /**
+     * @deprecated
+     */
     isNumber ! : boolean;
-    static Currency : Type;
+    /**
+     * @deprecated
+     */
     isCurrency ! : boolean;
-    static Entity : typeof EntityType; // a typed string (username, hashtag, url, picture...)
+    /**
+     * @deprecated
+     */
     isEntity ! : boolean;
-    static Measure : typeof MeasureType;
+    /**
+     * @deprecated
+     */
     isMeasure ! : boolean;
-    static Enum : typeof EnumType;
+    /**
+     * @deprecated
+     */
     isEnum ! : boolean;
-    static Array : typeof ArrayType;
+    /**
+     * @deprecated
+     */
     isArray ! : boolean;
-    static Time : Type;
+    /**
+     * @deprecated
+     */
     isTime ! : boolean;
-    static Date : Type;
+    /**
+     * @deprecated
+     */
     isDate ! : boolean;
-    static RecurrentTimeSpecification : Type;
+    /**
+     * @deprecated
+     */
     isRecurrentTimeSpecification ! : boolean;
-    static Location : Type;
+    /**
+     * @deprecated
+     */
     isLocation ! : boolean;
-    static ArgMap : Type;
+    /**
+     * @deprecated
+     */
     isArgMap ! : boolean;
-    static Object : Type;
-    isObject ! : boolean;
-    static Compound : typeof CompoundType;
+    /**
+     * @deprecated
+     */
     isCompound ! : boolean;
-    static Unknown : typeof UnknownType;
+    /**
+     * @deprecated
+     */
+    isObject ! : boolean;
+    /**
+     * @deprecated
+     */
     isUnknown ! : boolean;
+
+    static Any : Type; // polymorphic hole
+    static Boolean : Type;
+    static String : Type;
+    static Number : Type;
+    static Currency : Type;
+    static Time : Type;
+    static Date : Type;
+    static RecurrentTimeSpecification : Type;
+    static Location : Type;
+    static ArgMap : Type;
+    static Object : Type;
 
     static fromString(str : Type|string) : Type {
         if (str instanceof Type)
@@ -125,20 +161,20 @@ export default abstract class Type implements Hashable<Type> {
     abstract hash() : number;
     abstract equals(other : Type) : boolean;
 
-    static resolve(type : Type|string, typeScope : TypeScope) : Type {
+    static resolve(type : Type|string, typeScope : Type.TypeScope) : Type {
         if (typeof type === 'string')
             return Type.resolve(typeScope[type], typeScope);
 
-        if (type instanceof ArrayType)
-            return new ArrayType(Type.resolve(type.elem, typeScope));
-        if (type instanceof MeasureType && type.unit === '')
-            return new MeasureType(typeScope['_unit'] as string);
-        if (type instanceof EntityType && type.type === '')
-            return new EntityType(typeScope['_entity'] as string);
+        if (type instanceof Type.Array)
+            return new Type.Array(Type.resolve(type.elem, typeScope));
+        if (type instanceof Type.Measure && type.unit === '')
+            return new Type.Measure(typeScope['_unit'] as string);
+        if (type instanceof Type.Entity && type.type === '')
+            return new Type.Entity(typeScope['_entity'] as string);
         return type;
     }
 
-    static isAssignable(type : Type, assignableTo : Type|string, typeScope : TypeScope = {}, entitySubTypeMap : EntitySubTypeMap = {}) : boolean {
+    static isAssignable(type : Type, assignableTo : Type|string, typeScope : Type.TypeScope = {}, entitySubTypeMap : Type.EntitySubTypeMap = {}) : boolean {
         if (typeof assignableTo === 'string') {
             if (typeScope[assignableTo])
                 return Type.isAssignable(type, typeScope[assignableTo] as Type, typeScope, entitySubTypeMap);
@@ -151,7 +187,7 @@ export default abstract class Type implements Hashable<Type> {
         // if the types are different, and one of them is unknown, we err to
         // fail to assign (which causes a type error) because we don't know
         // the assignment rules
-        if (type instanceof UnknownType || assignableTo instanceof UnknownType)
+        if (type instanceof Type.Unknown || assignableTo instanceof Type.Unknown)
             return false;
 
         // Any type matches everything (like "any" in TypeScript - this is unsound but okay)
@@ -164,11 +200,11 @@ export default abstract class Type implements Hashable<Type> {
         if (type.isNumber && assignableTo.isCurrency)
             return true;
 
-        if (type instanceof MeasureType && assignableTo instanceof MeasureType && assignableTo.unit !== '') {
+        if (type instanceof Type.Measure && assignableTo instanceof Type.Measure && assignableTo.unit !== '') {
             if (type.unit === assignableTo.unit)
                 return true;
         }
-        if (type instanceof MeasureType && assignableTo instanceof MeasureType && assignableTo.unit === '') {
+        if (type instanceof Type.Measure && assignableTo instanceof Type.Measure && assignableTo.unit === '') {
             if (!typeScope['_unit']) {
                 typeScope['_unit'] = type.unit;
                 return true;
@@ -177,7 +213,7 @@ export default abstract class Type implements Hashable<Type> {
                 return true;
             return false;
         }
-        if (type instanceof ArrayType && assignableTo instanceof ArrayType) {
+        if (type instanceof Type.Array && assignableTo instanceof Type.Array) {
             if (typeof assignableTo.elem === 'string') {
                 if (typeof type.elem === 'string')
                     return true;
@@ -198,14 +234,14 @@ export default abstract class Type implements Hashable<Type> {
             if (Type.isAssignable(type.elem, assignableTo.elem, typeScope, entitySubTypeMap))
                 return true;
         }
-        if (type instanceof ArrayType) {
+        if (type instanceof Type.Array) {
             if (typeof type.elem === 'string')
                 return false;
-            if (assignableTo instanceof EntityType && assignableTo.type === 'tt:contact_group')
+            if (assignableTo instanceof Type.Entity && assignableTo.type === 'tt:contact_group')
                 return Type.isAssignable(type.elem, new Type.Entity('tt:contact'), typeScope, entitySubTypeMap);
         }
 
-        if (type instanceof EnumType && assignableTo instanceof EnumType) {
+        if (type instanceof Type.Enum && assignableTo instanceof Type.Enum) {
             if (type.entries === null)
                 return true;
             if (assignableTo.entries === null)
@@ -217,7 +253,7 @@ export default abstract class Type implements Hashable<Type> {
                 return true;
         }
 
-        if (type instanceof EntityType && assignableTo instanceof EntityType) {
+        if (type instanceof Type.Entity && assignableTo instanceof Type.Entity) {
             if (assignableTo.type === '') {
                 if (!typeScope['_entity']) {
                     typeScope['_entity'] = type.type;
@@ -287,8 +323,10 @@ Type.RecurrentTimeSpecification = new PrimitiveType('RecurrentTimeSpecification'
 Type.Location = new PrimitiveType('Location');
 Type.ArgMap = new PrimitiveType('ArgMap');
 
+namespace Type {
+
 const ENTITY_HASH = stringHash('Entity');
-export class EntityType extends Type {
+export class Entity extends Type {
     // the entity type, as RDF-style prefix:name
     constructor(public type : string) {
         super();
@@ -307,14 +345,13 @@ export class EntityType extends Type {
     }
 
     equals(other : Type) : boolean {
-        return other instanceof EntityType && this.type === other.type;
+        return other instanceof Entity && this.type === other.type;
     }
 }
-Type.Entity = EntityType;
-EntityType.prototype.isEntity = true;
+Entity.prototype.isEntity = true;
 
 const MEASURE_HASH = stringHash('Measure');
-export class MeasureType extends Type {
+export class Measure extends Type {
     unit : string;
 
     // '' means any unit, creating a polymorphic type
@@ -337,14 +374,13 @@ export class MeasureType extends Type {
     }
 
     equals(other : Type) : boolean {
-        return other instanceof MeasureType && this.unit === other.unit;
+        return other instanceof Measure && this.unit === other.unit;
     }
 }
-Type.Measure = MeasureType;
-MeasureType.prototype.isMeasure = true;
+Measure.prototype.isMeasure = true;
 
 const ENUM_HASH = stringHash('Enum');
-export class EnumType extends Type {
+export class Enum extends Type {
     constructor(public entries : string[]|null) {
         super();
     }
@@ -371,14 +407,13 @@ export class EnumType extends Type {
     }
 
     equals(other : Type) : boolean {
-        return other instanceof EnumType && arrayEquals(this.entries, other.entries);
+        return other instanceof Enum && arrayEquals(this.entries, other.entries);
     }
 }
-Type.Enum = EnumType;
-EnumType.prototype.isEnum = true;
+Enum.prototype.isEnum = true;
 
 const ARRAY_HASH = stringHash('Array');
-export class ArrayType extends Type {
+export class Array extends Type {
     constructor(public elem : Type|string) {
         super();
     }
@@ -400,7 +435,7 @@ export class ArrayType extends Type {
     }
 
     equals(other : Type) : boolean {
-        if (!(other instanceof ArrayType))
+        if (!(other instanceof Array))
             return false;
         if (typeof this.elem === 'string')
             return this.elem === other.elem;
@@ -409,13 +444,12 @@ export class ArrayType extends Type {
         return this.elem.equals(other.elem);
     }
 }
-Type.Array = ArrayType;
-ArrayType.prototype.isArray = true;
+Array.prototype.isArray = true;
 
-type FieldMap = { [key : string] : Ast.ArgumentDef };
+export type FieldMap = Record<string, Ast.ArgumentDef>;
 
 const COMPOUND_HASH = stringHash('Compound');
-export class CompoundType extends Type {
+export class Compound extends Type {
     private _hash : number|undefined = undefined;
 
     constructor(public name : string|null,
@@ -459,7 +493,7 @@ export class CompoundType extends Type {
     }
 
     equals(other : Type) : boolean {
-        if (!(other instanceof CompoundType))
+        if (!(other instanceof Compound))
             return false;
         if (this.name !== other.name)
             return false;
@@ -475,12 +509,11 @@ export class CompoundType extends Type {
         return true;
     }
 }
-Type.Compound = CompoundType;
-CompoundType.prototype.isCompound = true;
+Compound.prototype.isCompound = true;
 
 // forward compatibility: a type that we know nothing about,
 // because it was introduced in a later version of the language
-export class UnknownType extends Type {
+export class Unknown extends Type {
     constructor(public name : string) {
         super();
     }
@@ -498,12 +531,18 @@ export class UnknownType extends Type {
     }
 
     equals(other : Type) : boolean {
-        return other instanceof UnknownType &&
+        return other instanceof Unknown &&
             this.name === other.name;
     }
 }
-Type.Unknown = UnknownType;
-UnknownType.prototype.isUnknown = true;
+Unknown.prototype.isUnknown = true;
+
+export type TypeMap = Record<string, Type>;
+export type TypeScope = Record<string, Type|string>;
+
+export type EntitySubTypeMap = Record<string, string[]>;
+}
+export default Type;
 
 function arrayEquals(a : unknown[]|null, b : unknown[]|null) : boolean {
     if (a === null && b === null)
@@ -525,7 +564,7 @@ const DEFAULT_ENTITY_SUB_TYPE : Record<string, string[]> = {
     'tt:picture': ['tt:url']
 };
 
-function entitySubType(type : string, assignableTo : string, entitySubTypeMap : EntitySubTypeMap) : boolean {
+function entitySubType(type : string, assignableTo : string, entitySubTypeMap : Type.EntitySubTypeMap) : boolean {
     if (type === assignableTo)
         return true;
 

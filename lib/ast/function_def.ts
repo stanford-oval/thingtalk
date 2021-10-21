@@ -28,7 +28,7 @@ import Node, {
     implAnnotationsToSource,
     nlAnnotationsToSource,
 } from './base';
-import Type, { TypeMap, ArrayType, CompoundType } from '../type';
+import Type from '../type';
 import { Value } from './values';
 import { ClassDef } from './class_def';
 import NodeVisitor from './visitor';
@@ -39,11 +39,8 @@ import List from '../utils/list';
 
 // Class and function definitions
 
-type ArgIndexMap = { [key : string] : number };
-type ArgMap = { [key : string] : ArgumentDef };
-
-function makeIndex(args : string[]) : ArgIndexMap {
-    const index : ArgIndexMap = {};
+function makeIndex(args : string[]) : Record<string, number> {
+    const index : Record<string, number> = {};
     let i = 0;
     for (const a of args)
         index[a] = i++;
@@ -128,9 +125,9 @@ export class ArgumentDef extends Node {
         this._is_compound_field = is_compound_field || this.direction === null;
 
         this.unique = this.impl_annotations.unique && this.impl_annotations.unique.isBoolean && this.impl_annotations.unique.toJS() === true;
-        if (this.direction && type instanceof CompoundType)
+        if (this.direction && type instanceof Type.Compound)
             this._updateFields(type);
-        if (this.type instanceof ArrayType && this.type.elem instanceof CompoundType)
+        if (this.type instanceof Type.Array && this.type.elem instanceof Type.Compound)
             this._flattenCompoundArray();
     }
 
@@ -146,39 +143,39 @@ export class ArgumentDef extends Node {
         return list;
     }
 
-    private _updateFields(type : CompoundType) {
+    private _updateFields(type : Type.Compound) {
         for (const field in type.fields) {
             const argumentDef = type.fields[field];
             argumentDef.direction = this.direction;
             argumentDef.is_input = this.is_input;
             argumentDef.required = this.required;
 
-            if (argumentDef.type instanceof CompoundType)
+            if (argumentDef.type instanceof Type.Compound)
                 this._updateFields(argumentDef.type);
-            if (argumentDef.type instanceof ArrayType && argumentDef.type.elem instanceof CompoundType)
+            if (argumentDef.type instanceof Type.Array && argumentDef.type.elem instanceof Type.Compound)
                 this._updateFields(argumentDef.type.elem);
         }
     }
 
     // if a parameter is an array of compounds, flatten the compound
     private _flattenCompoundArray() {
-        assert(this.type instanceof ArrayType && this.type.elem instanceof CompoundType);
+        assert(this.type instanceof Type.Array && this.type.elem instanceof Type.Compound);
 
-        const compoundType = this.type.elem as CompoundType;
+        const compoundType = this.type.elem as Type.Compound;
         for (const [name, field] of this._iterateCompoundArrayFields(compoundType))
             compoundType.fields[name] = field;
     }
 
     // iteratively flatten compound fields inside an array
-    private *_iterateCompoundArrayFields(compound : CompoundType, prefix = '') : Generator<[string, ArgumentDef], void> {
+    private *_iterateCompoundArrayFields(compound : Type.Compound, prefix = '') : Generator<[string, ArgumentDef], void> {
         for (const fname in compound.fields) {
             const field = compound.fields[fname].clone();
             yield [prefix + fname, field];
 
-            if (field.type instanceof CompoundType)
+            if (field.type instanceof Type.Compound)
                 yield *this._iterateCompoundArrayFields(field.type, `${prefix}${fname}.`);
 
-            if (field.type instanceof ArrayType && field.type.elem instanceof CompoundType)
+            if (field.type instanceof Type.Array && field.type.elem instanceof Type.Compound)
                 field._flattenCompoundArray();
         }
     }
@@ -291,14 +288,9 @@ export class ArgumentDef extends Node {
  * @param {Ast.ArgumentDef} arg - the argument to check
  * @return {boolean} whether the argument passes the filter
  */
-type ArgumentFilterCallback = (arg : ArgumentDef) => boolean;
+export type ArgumentFilterCallback = (arg : ArgumentDef) => boolean;
 
 export type FunctionType = 'stream' | 'query' | 'action';
-
-interface FunctionQualifiers {
-    is_list : boolean;
-    is_monitorable : boolean;
-}
 
 /**
  * The definition of a ThingTalk function (inside a class).
@@ -315,16 +307,19 @@ export class FunctionDef extends Node {
     private _functionType : FunctionType;
     private _name : string;
     private _qualifiedName : string;
-    private _qualifiers : FunctionQualifiers;
+    private _qualifiers : {
+        is_list : boolean;
+        is_monitorable : boolean;
+    };
     private _nl_annotations : NLAnnotationMap;
     private _impl_annotations : AnnotationMap;
     private _args : string[];
     private _types : Type[];
-    private _argmap : ArgMap;
-    private _index : ArgIndexMap;
-    private _inReq : TypeMap;
-    private _inOpt : TypeMap;
-    private _out : TypeMap;
+    private _argmap : Record<string, ArgumentDef>;
+    private _index : Record<string, number>;
+    private _inReq : Type.TypeMap;
+    private _inOpt : Type.TypeMap;
+    private _out : Type.TypeMap;
     private _extends : string[];
     private _class : ClassDef|null;
     /**
@@ -382,7 +377,10 @@ export class FunctionDef extends Node {
                 klass : ClassDef|null,
                 name : string,
                 _extends : string[],
-                qualifiers : FunctionQualifiers,
+                qualifiers : {
+                    is_list : boolean;
+                    is_monitorable : boolean;
+                },
                 args : ArgumentDef[],
                 annotations : AnnotationSpec = {}) {
         super(location);
@@ -521,10 +519,10 @@ export class FunctionDef extends Node {
      *             function inheritance is used.
      *             Use {@link Ast.FunctionDef.iterateArguments} instead.
      */
-    get inReq() : TypeMap {
+    get inReq() : Type.TypeMap {
         if (this.extends.length === 0)
             return this._inReq;
-        const args : TypeMap = {};
+        const args : Type.TypeMap = {};
         for (const arg of this.iterateArguments()) {
             if (arg.required)
                 args[arg.name] = arg.type;
@@ -539,10 +537,10 @@ export class FunctionDef extends Node {
      *             function inheritance is used.
      *             Use {@link Ast.FunctionDef.iterateArguments} instead.
      */
-    get inOpt() : TypeMap {
+    get inOpt() : Type.TypeMap {
         if (this.extends.length === 0)
             return this._inOpt;
-        const args : TypeMap = {};
+        const args : Type.TypeMap = {};
         for (const arg of this.iterateArguments()) {
             if (arg.is_input && !arg.required)
                 args[arg.name] = arg.type;
@@ -557,10 +555,10 @@ export class FunctionDef extends Node {
      *             function inheritance is used.
      *             Use {@link Ast.FunctionDef.iterateArguments} instead.
      */
-    get out() : TypeMap {
+    get out() : Type.TypeMap {
         if (this.extends.length === 0)
             return this._out;
-        const args : TypeMap = {};
+        const args : Type.TypeMap = {};
         for (const arg of this.iterateArguments()) {
             if (!arg.is_input)
                 args[arg.name] = arg.type;
@@ -573,7 +571,7 @@ export class FunctionDef extends Node {
      *.
      * @deprecated This property is deprecated and will not work properly for functions with inheritance
      */
-    get index() : ArgIndexMap {
+    get index() : Record<string, number> {
         if (this.extends.length === 0)
             return this._index;
         throw new Error(`The index API for functions is deprecated and cannot be used with function inheritance`);
@@ -611,7 +609,7 @@ export class FunctionDef extends Node {
 
     private _flattenCompoundArgument(existed : string[], arg : ArgumentDef) {
         let flattened = existed.includes(arg.name) ? [] : [arg];
-        if (arg.type instanceof CompoundType) {
+        if (arg.type instanceof Type.Compound) {
             for (const f in arg.type.fields) {
                 const a = arg.type.fields[f].clone();
                 a.name = arg.name + '.' + a.name;
@@ -838,7 +836,7 @@ export class FunctionDef extends Node {
      */
     private _cloneInternal(args : ArgumentDef[], flattened = false) : FunctionDef {
         // clone qualifiers
-        const qualifiers : FunctionQualifiers = Object.assign({}, this._qualifiers);
+        const qualifiers = Object.assign({}, this._qualifiers);
 
         // clone annotations
         const nl : NLAnnotationMap = {};

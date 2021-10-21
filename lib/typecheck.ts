@@ -26,17 +26,7 @@ import assert from 'assert';
 import * as Units from 'thingtalk-units';
 
 import * as Ast from './ast';
-import Type, {
-    TypeMap,
-    TypeScope,
-    EntitySubTypeMap,
-    EnumType,
-    ArrayType,
-    CompoundType,
-    EntityType,
-    MeasureType,
-    UnknownType
-} from './type';
+import Type from './type';
 import * as Utils from './utils';
 import * as Builtin from './operators';
 import type SchemaRetriever from './schema';
@@ -55,8 +45,8 @@ function log(message : string) : void {
 class Scope {
     private _parentScope : Scope|null;
     private _globalScope : { [key : string] : Ast.FunctionDef };
-    private _lambda_args : TypeMap;
-    private _scope : TypeMap;
+    private _lambda_args : Type.TypeMap;
+    private _scope : Type.TypeMap;
     $has_event : boolean;
     $has_source : boolean;
 
@@ -78,7 +68,7 @@ class Scope {
         return false;
     }
 
-    addLambdaArgs(args : TypeMap) : void {
+    addLambdaArgs(args : Type.TypeMap) : void {
         for (const name in args)
             this._lambda_args[name] = args[name];
     }
@@ -86,7 +76,7 @@ class Scope {
     add(name : string, type : Type) : void {
         this._scope[name] = type;
     }
-    addAll(args : TypeMap) : void {
+    addAll(args : Type.TypeMap) : void {
         for (const name in args)
             this._scope[name] = args[name];
     }
@@ -124,7 +114,7 @@ class Scope {
     }
 
     prefix(prefix : string) : void {
-        const new_scope : TypeMap = {};
+        const new_scope : Type.TypeMap = {};
         for (const name in this._scope) {
             new_scope[name] = this._scope[name];
             new_scope[prefix + '.' + name] = this._scope[name];
@@ -149,12 +139,12 @@ class Scope {
 
 type ClassMap = { [key : string] : Ast.ClassDef };
 
-function resolveTypeVars(type : Type|string, typeScope : TypeScope) : Type {
+function resolveTypeVars(type : Type|string, typeScope : Type.TypeScope) : Type {
     if (typeof type === 'string')
         return resolveTypeVars(typeScope[type], typeScope);
-    if (type instanceof ArrayType)
+    if (type instanceof Type.Array)
         return new Type.Array(resolveTypeVars(type.elem, typeScope));
-    if (type instanceof MeasureType && typeScope._unit)
+    if (type instanceof Type.Measure && typeScope._unit)
         return new Type.Measure(typeScope._unit as string);
     return type;
 }
@@ -197,7 +187,7 @@ export default class TypeChecker {
     private _schemas : SchemaRetriever;
     private _classes : ClassMap;
     private _useMeta : boolean;
-    private _entitySubTypeMap : EntitySubTypeMap;
+    private _entitySubTypeMap : Type.EntitySubTypeMap;
     private _cachedEntityAncestors : Record<string, string[]>;
 
     constructor(schemas : SchemaRetriever,
@@ -236,7 +226,7 @@ export default class TypeChecker {
 
     private async _isAssignable(type : Type,
                                 assignableTo : Type|string,
-                                typeScope : TypeScope) {
+                                typeScope : Type.TypeScope) {
         if (type instanceof Type.Entity)
             await this._ensureEntitySubTypes(type.type);
         if (assignableTo instanceof Type.Entity)
@@ -263,10 +253,10 @@ export default class TypeChecker {
 
             const paramType = await this._typeCheckValue(value.value, scope);
 
-            if (!(paramType instanceof ArrayType))
+            if (!(paramType instanceof Type.Array))
                 throw new TypeError(`Invalid field access on value that is not array of record`);
             const elem = paramType.elem;
-            if (!(elem instanceof CompoundType))
+            if (!(elem instanceof Type.Compound))
                 throw new TypeError(`Invalid field access on value that is not array of record`);
             if (!(value.field in elem.fields))
                 throw new TypeError(`Invalid field ${value.field} in type ${elem}`);
@@ -280,12 +270,12 @@ export default class TypeChecker {
                 return value.type;
 
             const paramType = await this._typeCheckValue(value.value, scope);
-            if (!(paramType instanceof ArrayType))
+            if (!(paramType instanceof Type.Array))
                 throw new TypeError(`Invalid aggregation on non-array parameter`);
             const args = [];
             const elem = paramType.elem;
             const inner = new Scope(scope);
-            if (elem instanceof CompoundType) {
+            if (elem instanceof Type.Compound) {
                 for (const field in elem.fields) {
                     const type = elem.fields[field].type;
                     scope.add(field, type);
@@ -360,7 +350,7 @@ export default class TypeChecker {
                 const vtype = await this._typeCheckValue(v, scope);
 
                 // merge enum types if necessary
-                if (vtype instanceof EnumType && elem instanceof EnumType) {
+                if (vtype instanceof Type.Enum && elem instanceof Type.Enum) {
                     const ventries = vtype.entries;
                     const entries = elem.entries;
                     assert(ventries && entries);
@@ -393,7 +383,7 @@ export default class TypeChecker {
             throw new TypeError(`Program principal must be a constant`);
 
         const type = await this._typeCheckValue(principal, new Scope);
-        if (!(type instanceof EntityType) || !ALLOWED_PRINCIPAL_TYPES.has(type.type))
+        if (!(type instanceof Type.Entity) || !ALLOWED_PRINCIPAL_TYPES.has(type.type))
             throw new TypeError(`Invalid principal ${principal}, must be a contact or a group`);
     }
 
@@ -405,11 +395,11 @@ export default class TypeChecker {
      * to each other. Thus, we would try with all ancestors to see if ant of them
      * is assignable.
      */
-    private _expandTypeScope(typeScope : TypeScope, key : string) : TypeScope[] {
+    private _expandTypeScope(typeScope : Type.TypeScope, key : string) : Type.TypeScope[] {
         if (!(key in typeScope))
             return [typeScope];
         const type = typeScope[key];
-        if (!(type instanceof EntityType))
+        if (!(type instanceof Type.Entity))
             return [typeScope];
 
         const entityType = type.type;
@@ -429,7 +419,7 @@ export default class TypeChecker {
         for (const overload of overloads.types) {
             if (argTypes.length !== overload.length-1)
                 continue;
-            const typeScope : TypeScope = {};
+            const typeScope : Type.TypeScope = {};
             let good = true;
             for (let i = 0; i < argTypes.length; i++) {
                 const o = overload[i];
@@ -452,7 +442,7 @@ export default class TypeChecker {
             for (const type of overload)
                 resolved.push(Type.resolve(type, typeScope));
 
-            if (resolved[overload.length-1] instanceof MeasureType && typeScope['_unit'])
+            if (resolved[overload.length-1] instanceof Type.Measure && typeScope['_unit'])
                 return [resolved, new Type.Measure(typeScope['_unit'] as string)];
             return [resolved, resolved[overload.length-1]];
         }
@@ -957,7 +947,7 @@ export default class TypeChecker {
             ast.schema = this._resolveChain(ast);
         } else if (ast instanceof Ast.JoinExpression) {
             for (const expr of [ast.lhs, ast.rhs]) {
-                await this._typeCheckExpression(expr, scope);   
+                await this._typeCheckExpression(expr, scope);
                 this._checkExpressionType(expr, ['query'], 'join');
             }
             await this._typeCheckJoin(ast, scope);
@@ -1135,7 +1125,7 @@ export default class TypeChecker {
         if (func.functionType !== 'query')
             throw new TypeError(`Actions cannot extend other functions`);
         const functions : string[] = [];
-        const args : TypeMap = {};
+        const args : Type.TypeMap = {};
         for (const fname of func.iterateBaseFunctions()) {
             if (functions.includes(fname))
                 continue;
@@ -1165,7 +1155,7 @@ export default class TypeChecker {
                                         func : Ast.FunctionDef) {
         for (const argname of func.args) {
             const arg = func.getArgument(argname) as Ast.ArgumentDef;
-            if (arg.type instanceof UnknownType)
+            if (arg.type instanceof Type.Unknown)
                 throw new TypeError(`Invalid type ${arg.type.name}`);
             this._typeCheckMetadata(arg);
 
@@ -1217,10 +1207,10 @@ export default class TypeChecker {
         }
     }
 
-    private _typeCheckDeclarationArgs(args : TypeMap) {
+    private _typeCheckDeclarationArgs(args : Type.TypeMap) {
         for (const name in args) {
             const type = args[name];
-            if (type instanceof UnknownType)
+            if (type instanceof Type.Unknown)
                 throw new TypeError(`Invalid type ${type.name}`);
         }
     }

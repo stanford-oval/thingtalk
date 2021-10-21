@@ -47,16 +47,13 @@ import type SchemaRetriever from '../schema';
 import { TokenStream } from '../new-syntax/tokenstream';
 import List from '../utils/list';
 
-type ResultMap = { [key : string] : Value };
-type RawResultMap = { [key : string] : unknown };
-
 export class DialogueHistoryResultItem extends AstNode {
-    value : ResultMap;
-    raw : RawResultMap|null;
+    value : Record<string, Value>;
+    raw : Record<string, unknown>|null;
 
     constructor(location : SourceRange|null,
-                value : ResultMap,
-                raw : RawResultMap|null = null) {
+                value : Record<string, Value>,
+                raw : Record<string, unknown>|null = null) {
         super(location);
 
         assert(typeof value === 'object');
@@ -71,7 +68,7 @@ export class DialogueHistoryResultItem extends AstNode {
     }
 
     clone() : DialogueHistoryResultItem {
-        const newValue : ResultMap = {};
+        const newValue : Record<string, Value> = {};
         Object.assign(newValue, this.value);
         return new DialogueHistoryResultItem(this.location, newValue, this.raw);
     }

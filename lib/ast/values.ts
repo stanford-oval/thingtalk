@@ -21,7 +21,7 @@
 import assert from 'assert';
 import * as Units from 'thingtalk-units';
 
-import Type, { TypeMap, EntityType, MeasureType, ArrayType } from '../type';
+import Type from '../type';
 import { normalizeDate } from '../utils/date_utils';
 import AstNode from './base';
 import NodeVisitor from './visitor';
@@ -483,13 +483,13 @@ export abstract class Value extends AstNode {
             const o = v as ({ value : number, code : string });
             return new Value.Currency(o.value, o.code);
         }
-        if (type instanceof EntityType) {
+        if (type instanceof Type.Entity) {
             if (typeof v === 'string')
                 return new Value.Entity(v, type.type, null);
             const o = v as ({ value : string, display : string|null|undefined });
             return new Value.Entity(o.value, type.type, o.display||null);
         }
-        if (type instanceof MeasureType)
+        if (type instanceof Type.Measure)
             return new Value.Measure(v as number, type.unit);
         if (type.isEnum)
             return new Value.Enum(v as string);
@@ -506,13 +506,13 @@ export abstract class Value extends AstNode {
             return new Value.RecurrentTimeSpecification(o.map((r) => RecurrentTimeRule.fromJS(r)));
         }
         if (type.isArgMap) {
-            const map : TypeMap = {};
+            const map : Type.TypeMap = {};
             Object.entries(v as ({ [key : string] : string })).forEach(([key, value]) => {
                 map[key] = Type.fromString(value as string);
             });
             return new Value.ArgMap(map);
         }
-        if (type instanceof ArrayType) {
+        if (type instanceof Type.Array) {
             const array : Value[] = [];
             (v as unknown[]).forEach((elem) => {
                 array.push(Value.fromJS(type.elem as Type, elem));
@@ -1831,9 +1831,9 @@ EventValue.prototype.isEvent = true;
 Value.Event = EventValue;
 
 export class ArgMapValue extends Value {
-    value : TypeMap;
+    value : Type.TypeMap;
 
-    constructor(value : TypeMap) {
+    constructor(value : Type.TypeMap) {
         super(null);
         assert(typeof value === 'object');
         this.value = value;
@@ -1850,7 +1850,7 @@ export class ArgMapValue extends Value {
     }
 
     clone() : ArgMapValue {
-        const clone : TypeMap = {};
+        const clone : Type.TypeMap = {};
         for (const key in this.value)
             clone[key] = this.value[key];
         return new ArgMapValue(clone);
@@ -1876,7 +1876,7 @@ export class ArgMapValue extends Value {
         visitor.exit(this);
     }
 
-    toJS() : TypeMap {
+    toJS() : Type.TypeMap {
         return this.value;
     }
 

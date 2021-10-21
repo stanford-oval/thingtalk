@@ -22,7 +22,7 @@ import assert from 'assert';
 import * as Builtin from '../operators';
 import NodeVisitor from '../ast/visitor';
 import * as Ast from '../ast';
-import Type, { EntityType, CompoundType } from '../type';
+import Type from '../type';
 
 import * as JSIr from './jsir';
 import Scope from './scope';
@@ -77,7 +77,7 @@ function compileCast(irBuilder : JSIr.IRBuilder,
                      type : Type,
                      toType : Type) : JSIr.Register {
     if (type.equals(toType)) {
-        if (type instanceof EntityType && (type.type === 'tt:hashtag' || type.type === 'tt:username' || type.type === 'tt:picture')) {
+        if (type instanceof Type.Entity && (type.type === 'tt:hashtag' || type.type === 'tt:username' || type.type === 'tt:picture')) {
             // for compatibility with the ton of devices that take inputs of these types, we auto-cast to string,
             // this is ok because these types don't really need .display that much
             const casted = irBuilder.allocRegister();
@@ -139,7 +139,7 @@ function readResultKey(irBuilder : JSIr.IRBuilder,
         isInVarScopeNames
     });
 
-    if (type instanceof CompoundType) {
+    if (type instanceof Type.Compound) {
         const ifStmt = new JSIr.IfStatement(reg);
         irBuilder.add(ifStmt);
         irBuilder.pushBlock(ifStmt.iftrue);

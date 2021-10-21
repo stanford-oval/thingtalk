@@ -39,18 +39,16 @@ import { KEYWORDS, CONTEXTUAL_KEYWORDS } from './new-syntax/keywords';
 import {
     EntityMap,
     EntityResolver,
-    MeasureEntity,
-    LocationEntity,
-    TimeEntity,
-    GenericEntity,
-    DateEntity,
-    AnyEntity
 } from './entities';
 import {
     AbstractEntityRetriever,
     EntityRetriever,
     SequentialEntityAllocator,
 } from './entity-retriever';
+
+// reexport for documentation
+export * from './entities';
+export * from './new-syntax/tokenstream';
 
 /**
  * APIs to parse and serialize ThingTalk code.
@@ -154,13 +152,4 @@ export {
     AbstractEntityRetriever,
     SequentialEntityAllocator,
     EntityRetriever,
-
-    EntityMap,
-    EntityResolver,
-    MeasureEntity,
-    LocationEntity,
-    TimeEntity,
-    GenericEntity,
-    DateEntity,
-    AnyEntity
 };

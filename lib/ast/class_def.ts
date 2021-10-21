@@ -42,19 +42,6 @@ import List from '../utils/list';
 
 export type ClassMember = FunctionDef | MixinImportStmt | EntityDef;
 
-type FunctionMap = { [key : string] : FunctionDef };
-
-interface ClassMemberSpec {
-    imports ?: MixinImportStmt[];
-    entities ?: EntityDef[];
-    queries ?: FunctionMap;
-    actions ?: FunctionMap;
-}
-
-interface ClassConstructOptions {
-    is_abstract ?: boolean;
-}
-
 /**
  * The definition of a ThingTalk class.
  *
@@ -65,8 +52,8 @@ export class ClassDef extends Statement {
     extends : string[];
     imports : MixinImportStmt[];
     entities : EntityDef[];
-    queries : FunctionMap;
-    actions : FunctionMap;
+    queries : Record<string, FunctionDef>;
+    actions : Record<string, FunctionDef>;
     nl_annotations : NLAnnotationMap;
     impl_annotations : AnnotationMap;
 
@@ -82,22 +69,29 @@ export class ClassDef extends Statement {
      * @param kind - the class identifier in Thingpedia
      * @param _extends - parent classes (if any)
      * @param members - the class members including queries, actions, entities, imports
-     * @param [members.imports=[]] - import statements in this class
-     * @param [members.entities=[]] - entity declarations in this class
-     * @param [members.queries={}] - query functions in this class
-     * @param [members.actions={}] - action functions in this class
+     * @param members.imports - import statements in this class
+     * @param members.entities - entity declarations in this class
+     * @param members.queries - query functions in this class
+     * @param members.actions - action functions in this class
      * @param annotations - annotations of the class
-     * @param [annotations.nl={}] - natural language annotations of the class (translatable annotations)
-     * @param [annotations.impl={}] - implementation annotations of the class
+     * @param annotations.nl - natural language annotations of the class (translatable annotations)
+     * @param annotations.impl - implementation annotations of the class
      * @param options - additional options for the class
-     * @param [options.is_abstract=false] - `true` if this is an abstract class which has no implementation
+     * @param options.is_abstract - `true` if this is an abstract class which has no implementation
      */
     constructor(location : SourceRange|null,
                 kind : string,
                 _extends : string[]|null,
-                members : ClassMemberSpec,
+                members : {
+                    imports ?: MixinImportStmt[];
+                    entities ?: EntityDef[];
+                    queries ?: Record<string, FunctionDef>;
+                    actions ?: Record<string, FunctionDef>;
+                },
                 annotations : AnnotationSpec,
-                options ?: ClassConstructOptions) {
+                options ?: {
+                    is_abstract ?: boolean;
+                }) {
         super(location);
         this.name = kind;
         this.kind = kind;
@@ -253,8 +247,8 @@ export class ClassDef extends Statement {
         // clone members
         const imports = this.imports.map((i) => i.clone());
         const entities = this.entities.map((e) => e.clone());
-        const queries : FunctionMap = {};
-        const actions : FunctionMap = {};
+        const queries : Record<string, FunctionDef> = {};
+        const actions : Record<string, FunctionDef> = {};
         for (const name in this.queries)
             queries[name] = this.queries[name].clone();
         for (const name in this.actions)

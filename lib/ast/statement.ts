@@ -21,7 +21,7 @@
 
 import assert from 'assert';
 
-import { TypeMap } from '../type';
+import Type from '../type';
 import Node, {
     SourceRange,
     NLAnnotationMap,
@@ -130,7 +130,7 @@ export class FunctionDeclaration extends Statement {
     /**
      * Arguments available to the function.
      */
-    args : TypeMap;
+    args : Type.TypeMap;
     declarations : FunctionDeclaration[];
     statements : ExecutableStatement[];
     /**
@@ -163,7 +163,7 @@ export class FunctionDeclaration extends Statement {
      */
     constructor(location : SourceRange|null,
                 name : string,
-                args : TypeMap,
+                args : Type.TypeMap,
                 declarations : FunctionDeclaration[],
                 statements : ExecutableStatement[],
                 annotations : AnnotationSpec = {},
@@ -704,7 +704,7 @@ export class Example extends Node {
     isExample = true;
     id : number;
     type : string;
-    args : TypeMap;
+    args : Type.TypeMap;
     value : Expression;
     utterances : string[];
     preprocessed : string[];
@@ -726,7 +726,7 @@ export class Example extends Node {
     constructor(location : SourceRange|null,
                 id : number,
                 type : string,
-                args : TypeMap,
+                args : Type.TypeMap,
                 value : Expression,
                 utterances : string[],
                 preprocessed : string[],

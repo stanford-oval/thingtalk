@@ -20,7 +20,7 @@
 
 import assert from 'assert';
 import * as Ast from '../ast';
-import Type, { CompoundType } from '../type';
+import Type from '../type';
 
 import * as JSIr from './jsir';
 import { getRegister, typeForValue } from './utils';
@@ -64,7 +64,7 @@ function setScopeFromResult(currentScope : Scope,
             isInVarScopeNames: currentScopeObj.isInVarScopeNames
         });
 
-        if (currentScopeObj.tt_type instanceof CompoundType) {
+        if (currentScopeObj.tt_type instanceof Type.Compound) {
             const ifStmt = new JSIr.IfStatement(value);
             irBuilder.add(ifStmt);
             irBuilder.pushBlock(ifStmt.iftrue);

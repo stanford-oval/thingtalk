@@ -93,10 +93,10 @@ export function addTuple<T extends MonitorTupleLike>(state : T[]|null, tuple : T
     return state;
 }
 
-type ResultT<T> = [string, T];
+export type ResultT<T> = [string, T];
 
-type EmitFunction<T> = (type : string, value : T) => void;
-type Stream<T> = (emit : EmitFunction<T>) => Promise<void>;
+export type EmitFunction<T> = (type : string, value : T) => void;
+export type Stream<T> = (emit : EmitFunction<T>) => Promise<void>;
 
 export function streamUnion<T>(lhs : Stream<T>, rhs : Stream<T>) : AsyncIterator<ResultT<T>> {
     const queue = new AsyncQueue<IteratorResult<ResultT<T>, void>>();
@@ -211,7 +211,7 @@ export function tableCrossJoin<T>(lhs : Stream<T>, rhs : Stream<T>) : AsyncItera
     }));
 }
 
-type StreamFunction<T> = (env : ExecEnvironment, emit : EmitFunction<T>, ...args : any[]) => Promise<void>;
+export type StreamFunction<T> = (env : ExecEnvironment, emit : EmitFunction<T>, ...args : any[]) => Promise<void>;
 
 export function invokeStreamVarRef<T>(env : ExecEnvironment,
                                       varref : StreamFunction<T>,
@@ -230,7 +230,7 @@ export function invokeStreamVarRef<T>(env : ExecEnvironment,
     return queue;
 }
 
-interface IterableOrAsyncIterable<T> {
+export interface IterableOrAsyncIterable<T> {
     [Symbol.iterator] ?: () => Iterator<T>;
     [Symbol.asyncIterator] ?: () => AsyncIterator<T>;
 }

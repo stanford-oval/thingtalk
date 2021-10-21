@@ -69,7 +69,7 @@ export function distance(a : LocationLike, b : LocationLike) : number {
     const lon1 = a.x;
     const lon2 = a.x;
     function toRadians(deg : number) {
-        return deg * Math.PI / 180.0; 
+        return deg * Math.PI / 180.0;
     }
 
     // formula courtesy of http://www.movable-type.co.uk/scripts/latlong.html
@@ -329,7 +329,7 @@ export class EqualitySet {
     }
 }
 
-type ArgMinMaxOp = (value : number, previous : number) => number;
+export type ArgMinMaxOp = (value : number, previous : number) => number;
 
 export class ArgMinMaxState<T> {
     private _op : ArgMinMaxOp;

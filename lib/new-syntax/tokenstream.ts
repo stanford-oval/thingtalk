@@ -43,7 +43,7 @@ export class ConstantToken<K extends EntityType, V> {
 }
 
 // this differs from regular generic entity because it has a type
-interface GenericEntity {
+export interface GenericEntityToken {
     type : string;
     value : string|null;
     display ?: string|null;
@@ -56,6 +56,6 @@ export type AnyConstantToken =
     | ConstantToken<'LOCATION', LocationEntity>
     | ConstantToken<'DATE', Date>
     | ConstantToken<'TIME', TimeEntity>
-    | ConstantToken<'GENERIC_ENTITY', GenericEntity>;
+    | ConstantToken<'GENERIC_ENTITY', GenericEntityToken>;
 
 export type TokenStream = List<string | AnyConstantToken>;

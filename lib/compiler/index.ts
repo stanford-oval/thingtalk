@@ -22,7 +22,7 @@ import assert from 'assert';
 import * as Grammar from '../syntax_api';
 import { NotCompilableError } from '../utils/errors';
 import * as Ast from '../ast';
-import { TypeMap } from '../type';
+import Type from '../type';
 
 import * as JSIr from './jsir';
 import { compileActionToOps, compileStatementToOp, compileTableToOps } from './ast-to-ops';
@@ -85,7 +85,7 @@ export default class AppCompiler {
         return this._astVars.length-1;
     }
 
-    private _declareArguments(args : TypeMap,
+    private _declareArguments(args : Type.TypeMap,
                               scope : Scope,
                               irBuilder : JSIr.IRBuilder) {
         const compiledArgs = [];

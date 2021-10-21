@@ -59,7 +59,7 @@ export type AnyEntity =
     number |
     undefined;
 
-export type EntityMap = { [key : string] : AnyEntity };
+export type EntityMap = Record<string, AnyEntity>;
 export type EntityResolver = (key : string, lastparam : string|null, lastfunction : string|null, unit : string|null) => AnyEntity;
 
 export type EntityType =
