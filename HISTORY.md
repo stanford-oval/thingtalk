@@ -1,3 +1,9 @@
+2.1.0-alpha.8
+=============
+
+* Improved documentation and fixed TypeDoc warnings [#396].
+* Updated dependencies [#388, #389, #391, #392, #393, #394, #395].
+
 2.1.0-alpha.7
 =============
 
