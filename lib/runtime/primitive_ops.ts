@@ -95,7 +95,7 @@ function locationEquals(a : LocationLike, b : LocationLike) : boolean {
     //console.log('Comparing locations', [a,b]);
     const d = distance(a, b);
     //console.log('Distance (m): ' + d.toFixed(2));
-    return d <= 2000;
+    return d <= 1500;
 }
 
 function hasValueOf(x : unknown) : x is number|string|Date|Time|StringLike {
