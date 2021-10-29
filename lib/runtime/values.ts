@@ -56,7 +56,6 @@ export class Entity {
      * Compile the entity value to JS code.
      *
      * @return {string} JS code that evaluates to this entity value
-     * @package
      */
     toJSSource() : string {
         return `new __builtin.Entity(${stringEscape(this.value)}, ${stringEscape(this.display)})`;
@@ -67,7 +66,6 @@ export class Entity {
      *
      * @param {any} obj - the JS value to check
      * @return {boolean} `true` if the value is a string or an instance of this class
-     * @package
      */
     static isEntity(obj : unknown) : obj is (Entity|string) {
         return obj instanceof Entity || typeof obj === 'string';
@@ -85,8 +83,19 @@ export interface LocationLike {
  *
  */
 export class Location implements LocationLike {
+    /**
+     * Longitude value.
+     * @deprecated Use {@link lon}
+     */
     x : number;
+    /**
+     * Latitude value.
+     * @deprecated Use {@link lat}
+     */
     y : number;
+    /**
+     * Display name for this location.
+     */
     display : string|null;
 
     /**
@@ -100,21 +109,8 @@ export class Location implements LocationLike {
         if (typeof lat !== 'number' || typeof lon !== 'number')
             throw new Error(`Invalid location (${lat}, ${lon})`);
 
-        /**
-         * Longitude value.
-         * @deprecated Use {Builtin.Location#lon}
-         */
         this.x = lon;
-
-        /**
-         * Latitude value.
-         * @deprecated Use {Builtin.Location#lat}
-         */
         this.y = lat;
-
-        /**
-         * Display name for this location.
-         */
         this.display = display||null;
     }
 
@@ -170,8 +166,17 @@ export class Location implements LocationLike {
  *
  */
 export class Time {
+    /**
+     * Hour value.
+     */
     hour : number;
+    /**
+     * Minute value.
+     */
     minute : number;
+    /**
+     * Second value.
+     */
     second : number;
 
     /**
@@ -184,17 +189,8 @@ export class Time {
     constructor(hour : number, minute : number, second = 0) {
         if (!(hour >= 0) || !(minute >= 0) || !(second >= 0))
             throw new Error(`Invalid time ${hour}:${minute}:${second}`);
-        /**
-         * Hour value.
-         */
         this.hour = hour;
-        /**
-         * Minute value.
-         */
         this.minute = minute;
-        /**
-         * Second value.
-         */
         this.second = second;
     }
 
