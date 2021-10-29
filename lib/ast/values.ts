@@ -474,7 +474,7 @@ export abstract class Value extends AstNode {
         if (type.isBoolean)
             return new Value.Boolean(v as boolean);
         if (type.isString)
-            return new Value.String(v as string);
+            return new Value.String(String(v));
         if (type.isNumber)
             return new Value.Number(v as number);
         if (type.isCurrency) {

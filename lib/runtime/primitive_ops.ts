@@ -30,7 +30,8 @@ import {
     Entity,
     Time,
     Currency,
-    RecurrentTimeRule
+    RecurrentTimeRule,
+    StringLike
 } from './values';
 
 // Implementations of the ThingTalk operators
@@ -97,8 +98,8 @@ function locationEquals(a : LocationLike, b : LocationLike) : boolean {
     return d <= 10000;
 }
 
-function hasValueOf(x : unknown) : x is number|Date|Time {
-    return typeof x === 'number' || x instanceof Date || x instanceof Time;
+function hasValueOf(x : unknown) : x is number|string|Date|Time|StringLike {
+    return typeof x === 'number' || typeof x === 'string' || x instanceof Date || x instanceof Time || x instanceof StringLike;
 }
 
 function editDistance(one : (string|unknown[]), two : (string|unknown[])) : number {
@@ -169,7 +170,7 @@ export function equality(a : unknown, b : unknown) : boolean {
         (typeof a === 'string' && isDateLike(b)))
         return toInstant(a).equals(toInstant(b));
     if (hasValueOf(a) && hasValueOf(b))
-        return +a === +b;
+        return a.valueOf() === b.valueOf();
     if (a instanceof Currency && b instanceof Currency)
         return a.value === b.value && a.code.toLowerCase() === b.code.toLowerCase();
     if (a instanceof Currency && typeof b === 'number')
@@ -193,49 +194,68 @@ export function equality(a : unknown, b : unknown) : boolean {
     return false;
 }
 
-export function like(a_ : unknown, b : string) : boolean {
-    if (a_ instanceof Entity && a_.display)
-        return like(a_.display, b);
-
-    if (typeof a_ === 'string' && typeof b === 'string') {
-        let a = a_.toLowerCase();
-        a = a.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        a = a.replace(/[\p{Mark}\p{Punctuation}\p{Separator}\p{Other}_]/ug, ' ');
-        a = a.replace(/\p{White_Space}+/ug, ' ');
-        a = a.trim();
-        b = b.toLowerCase();
-        b = b.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        b = b.replace(/[\p{Mark}\p{Punctuation}\p{Separator}\p{Other}_]/ug, ' ');
-        b = b.replace(/\p{White_Space}+/ug, ' ');
-        b = b.trim();
-        if (a.indexOf(b) >= 0)
-            return true;
-        for (const token_b of b.split(' ')) {
-            let tokenFound = false;
-            for (const token_a of a.split(' ')) {
-                if (token_a === token_b || (editDistance(token_a, token_b) <= 1 && token_b.length > 1)) {
-                    tokenFound = true;
-                    break;
-                }
-            }
-            if (!tokenFound)
-                return false;
-        }
+function defaultLikeTest(a : string, b : string) : boolean {
+    a = a.toLowerCase();
+    a = a.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    a = a.replace(/[\p{Mark}\p{Punctuation}\p{Separator}\p{Other}_]/ug, ' ');
+    a = a.replace(/\p{White_Space}+/ug, ' ');
+    a = a.trim();
+    b = b.toLowerCase();
+    b = b.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    b = b.replace(/[\p{Mark}\p{Punctuation}\p{Separator}\p{Other}_]/ug, ' ');
+    b = b.replace(/\p{White_Space}+/ug, ' ');
+    b = b.trim();
+    if (a.indexOf(b) >= 0)
         return true;
+    for (const token_b of b.split(' ')) {
+        let tokenFound = false;
+        for (const token_a of a.split(' ')) {
+            if (token_a === token_b || (editDistance(token_a, token_b) <= 1 && token_b.length > 1)) {
+                tokenFound = true;
+                break;
+            }
+        }
+        if (!tokenFound)
+            return false;
     }
-    return false;
+    return true;
+}
+
+function anyToString(a : unknown) {
+    if (a === undefined)
+        return 'undefined';
+    if (a === null)
+        return 'null';
+    return (a as string).toString();
+}
+
+export function like(a : unknown, b : unknown) : boolean {
+    if (a === undefined || a === null ||
+        b === undefined || b === null)
+        return false;
+
+    if (a instanceof Entity) {
+        if (a.softmatch)
+            return a.softmatch(anyToString(b));
+        if (a.display)
+            return defaultLikeTest(a.display, anyToString(b));
+        return false;
+    }
+
+    if (a instanceof StringLike) {
+        if (a.softmatch)
+            return a.softmatch(anyToString(b));
+    }
+
+    return defaultLikeTest(anyToString(a), anyToString(b));
 }
 
 export function startsWith(a : unknown, b : unknown) : boolean {
-    if (typeof a === 'string' && typeof b === 'string')
-        return a.toLowerCase().startsWith(b.toLowerCase());
-    return false;
+    return anyToString(a).toLowerCase().startsWith(anyToString(b).toLowerCase());
 }
 
 export function endsWith(a : unknown, b : unknown) : boolean {
-    if (typeof a === 'string' && typeof b === 'string')
-        return a.toLowerCase().endsWith(b.toLowerCase());
-    return false;
+    return anyToString(a).toLowerCase().endsWith(anyToString(b).toLowerCase());
 }
 
 export function recurrentTimeSpecContains(spec : RecurrentTimeRule[],

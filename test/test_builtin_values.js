@@ -22,7 +22,7 @@ import * as __builtin from '../lib/runtime/values';
 import { equality, like, setTime } from '../lib/runtime/primitive_ops';
 
 function testValueOf(what, expected) {
-    assert.strictEqual(+what, expected);
+    assert.strictEqual(what.valueOf(), expected);
 }
 
 function testToString(what, expected) {
@@ -60,6 +60,7 @@ export default function main() {
     testValueOf(new __builtin.Currency(0, 'eur'), 0);
     testValueOf(new __builtin.Currency(1000, 'eur'), 1000);
     testValueOf(new __builtin.Currency(16.67, 'eur'), 16.67);
+    testValueOf(new __builtin.StringLike('foo'), 'foo');
 
     testToString(new __builtin.Time(6, 40), `6:40`);
     testToString(new __builtin.Time(6, 40, 44), `6:40:44`);
@@ -79,6 +80,7 @@ export default function main() {
     testToString(new __builtin.Entity('xyz'), 'xyz');
     testToString(new __builtin.Entity('xyz', ''), 'xyz');
     testToString(new __builtin.Entity('xyz', "Display"), 'xyz');
+    testToString(new __builtin.StringLike('foo'), 'foo');
 
     testEval(new __builtin.Time(2, 40));
     testEval(new __builtin.Time(10, 40));
@@ -119,6 +121,9 @@ export default function main() {
     assert(equality(new __builtin.Entity('foo', 'Foo'), new __builtin.Entity('foo', 'Bar')));
     assert(!equality(new __builtin.Entity('foo', null), new __builtin.Entity('bar', null)));
     assert(equality(new __builtin.Entity('foo', null), 'foo'));
+    assert(equality(new __builtin.StringLike('foo'), 'foo'));
+    assert(equality('foo', new __builtin.StringLike('foo')));
+    assert(equality(new __builtin.StringLike('foo'), new __builtin.StringLike('foo')));
 
     assert(equality(new Date('2019-04-30T15:00:00.000Z'), '2019-04-30T15:00:00.000Z'));
     assert(equality('2019-04-30T15:00:00.000Z', new Date('2019-04-30T15:00:00.000Z')));

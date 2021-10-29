@@ -28,24 +28,43 @@ import { stringEscape } from '../utils/escaping';
  *
  */
 export class Entity {
+    /**
+     * The entity identifier value.
+     */
     value : string;
+    /**
+     * The entity display name.
+     */
     display : string|null;
+
+    /**
+     * Match this entity against a query string.
+     *
+     * This optional property can be set to override the behavior of the `=~` operator
+     * for this entity.
+     *
+     * Note that the evaluation order of ThingTalk is unspecified, so this method must
+     * have no side effects.
+     *
+     * @param against the query to check against
+     * @returns true if the query matches, false otherwise
+     */
+    softmatch?(against : string) : boolean;
 
     /**
      * Construct a new entity value.
      *
-     * @param {string} value - the entity identifier value
-     * @param {string|null} [display] - optional human-readable display name for the entity
+     * @param value - the entity identifier value
+     * @param display - optional human-readable display name for the entity
      */
-    constructor(id : string, display ?: string|null) {
-        /**
-         * The entity identifier value.
-         */
+    constructor(id : string, display ?: string|null, options : { softmatch ?: (against : string) => boolean } = {}) {
         this.value = id;
-        /**
-         * The entity display name.
-         */
         this.display = display||null;
+
+        // set the property only if provided
+        // this allows subclasses to implement the method normally
+        if (options.softmatch)
+            this.softmatch = options.softmatch;
     }
 
     toString() : string {
@@ -69,6 +88,64 @@ export class Entity {
      */
     static isEntity(obj : unknown) : obj is (Entity|string) {
         return obj instanceof Entity || typeof obj === 'string';
+    }
+}
+
+/**
+ * Runtime representation of a string-like object.
+ *
+ * Objects of this class can be used to override the behavior of
+ * string operators at runtime.
+ */
+export class StringLike {
+    /**
+     * The underlying string value.
+     */
+    private value : string;
+
+    /**
+     * Match this string against a query string.
+     *
+     * This optional property can be set to override the behavior of the `=~` operator.
+     *
+     * Note that the evaluation order of ThingTalk is unspecified, so this method must
+     * have no side effects.
+     *
+     * @param against the query to check against
+     * @returns true if the query matches, false otherwise
+     */
+    softmatch?(against : string) : boolean;
+
+    /**
+     * Construct a new string-like object.
+     *
+     * @param value - the string value
+     */
+    constructor(id : string, options : { softmatch ?: (against : string) => boolean } = {}) {
+        this.value = id;
+
+        // set the property only if provided
+        // this allows subclasses to implement the method normally
+        if (options.softmatch)
+            this.softmatch = options.softmatch;
+    }
+
+    toString() {
+        return this.value;
+    }
+
+    valueOf() {
+        return this.value;
+    }
+
+    /**
+     * Compile this to JS code.
+     *
+     * @return {string} JS code that evaluates to this value
+     * @package
+     */
+    toJSSource() : string {
+        return stringEscape(this.value);
     }
 }
 

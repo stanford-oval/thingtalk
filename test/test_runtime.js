@@ -180,6 +180,11 @@ class MockExecEnvironment extends ExecEnvironment {
     }
 }
 
+class SpotifyEntity extends builtin.Entity {
+    softmatch(against) {
+        return this.display.toLowerCase() === against || this.display.toLowerCase().replace('2', 'tu') === against;
+    }
+}
 
 const TEST_CASES = [
     [`now => @com.xkcd.get_comic() => notify;`,
@@ -2417,6 +2422,77 @@ const TEST_CASES = [
         fn: 'com.twitter:post',
         params: { status: '@org.wikidata.city() filter postal_code =~ "94305";' }
     }]],
+
+    [
+      `@org.thingpedia.media-source.artist(), id =~ "tupac";`,
+    {},
+    {
+        'org.thingpedia.media-source:artist': [{
+            id: new SpotifyEntity('spotify:artist:1ZwdS5xdxEREPySFridCfh', '2Pac'),
+            genres: [
+              "g funk",
+              "gangster rap",
+              "hip hop",
+              "rap",
+              "west coast rap"
+            ],
+            popularity: 81
+        }]
+    },
+    [
+      {
+        type: 'output',
+        outputType: 'org.thingpedia.media-source:artist',
+        value: {
+          id: new SpotifyEntity('spotify:artist:1ZwdS5xdxEREPySFridCfh', '2Pac'),
+          genres: [
+            "g funk",
+            "gangster rap",
+            "hip hop",
+            "rap",
+            "west coast rap"
+          ],
+          popularity: 81
+        }
+      }
+    ]
+    ],
+
+    [
+      `@org.thingpedia.media-source.artist(), id =~ "2pac";`,
+    {},
+    {
+        'org.thingpedia.media-source:artist': [{
+            id: new SpotifyEntity('spotify:artist:1ZwdS5xdxEREPySFridCfh', '2Pac'),
+            genres: [
+              "g funk",
+              "gangster rap",
+              "hip hop",
+              "rap",
+              "west coast rap"
+            ],
+            popularity: 81
+        }]
+    },
+    [
+      {
+        type: 'output',
+        outputType: 'org.thingpedia.media-source:artist',
+        value: {
+          id: new SpotifyEntity('spotify:artist:1ZwdS5xdxEREPySFridCfh', '2Pac'),
+          genres: [
+            "g funk",
+            "gangster rap",
+            "hip hop",
+            "rap",
+            "west coast rap"
+          ],
+          popularity: 81
+        }
+      }
+    ]
+    ]
+
 ];
 
 async function test(i) {
