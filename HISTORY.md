@@ -1,3 +1,12 @@
+2.1.0-alpha.9
+=============
+
+* Added the ability to override the behavior of `=~` for specific
+  entities at runtime [#397].
+* Changed the behavior of `monitor()` so the first instance does
+  not return a lot of results [#397].
+* Misc fixes [#397].
+
 2.1.0-alpha.8
 =============
 
