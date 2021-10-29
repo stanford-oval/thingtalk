@@ -160,8 +160,9 @@ function testEdgeNew() {
         { __timestamp: 4, a: 1, x: 8 },
     ];
     let expect = [
-        { __timestamp: 0, a: 1, x: 1 },
-        { __timestamp: 0, a: 1, x: 2 },
+        // the first timestamp is ignored
+        //{ __timestamp: 0, a: 1, x: 1 },
+        //{ __timestamp: 0, a: 1, x: 2 },
         { __timestamp: 1, a: 2, x: 4 },
         { __timestamp: 2, a: 3, x: 5 },
         { __timestamp: 3, a: 4, x: 6 },

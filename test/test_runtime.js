@@ -180,6 +180,11 @@ class MockExecEnvironment extends ExecEnvironment {
     }
 }
 
+class SpotifyEntity extends builtin.Entity {
+    softmatch(against) {
+        return this.display.toLowerCase() === against || this.display.toLowerCase().replace('2', 'tu') === against;
+    }
+}
 
 const TEST_CASES = [
     [`now => @com.xkcd.get_comic() => notify;`,
@@ -240,7 +245,10 @@ const TEST_CASES = [
     [`monitor(@com.xkcd.get_comic()) => @com.twitter.post(status=title);`,
     { fn: 'com.xkcd:get_comic',
       value: [
-        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+        { __timestamp: 0, number: 1, title: 'Barrel - Part 1',
+          link: 'https://xkcd.com/1/',
+          picture_url: 'https://imgs.xkcd.com/comics/barrel_cropped_(1).jpg' },
+        { __timestamp: 1, number: 1234, title: 'Douglas Engelbart (1925-2013)',
           link: 'https://xkcd.com/1234/',
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' }
       ]
@@ -257,10 +265,13 @@ const TEST_CASES = [
     [`monitor(@com.xkcd.get_comic(), number >= 1235) => @com.twitter.post(status=title);`,
     { fn: 'com.xkcd:get_comic',
       value: [
-        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+        { __timestamp: 0, number: 1, title: 'Barrel - Part 1',
+          link: 'https://xkcd.com/1/',
+          picture_url: 'https://imgs.xkcd.com/comics/barrel_cropped_(1).jpg' },
+        { __timestamp: 1, number: 1234, title: 'Douglas Engelbart (1925-2013)',
           link: 'https://xkcd.com/1234/',
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
-        { __timestamp: 1, number: 1235, title: 'Settled',
+        { __timestamp: 2, number: 1235, title: 'Settled',
           link: 'https://xkcd.com/1235/',
           picture_url: 'https://imgs.xkcd.com/comics/settled.png' }
       ]
@@ -277,10 +288,13 @@ const TEST_CASES = [
     [`monitor(@com.xkcd.get_comic(), number >= 1234) => @com.twitter.post(status=title);`,
     { fn: 'com.xkcd:get_comic',
       value: [
-        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+        { __timestamp: 0, number: 1, title: 'Barrel - Part 1',
+          link: 'https://xkcd.com/1/',
+          picture_url: 'https://imgs.xkcd.com/comics/barrel_cropped_(1).jpg' },
+        { __timestamp: 1, number: 1234, title: 'Douglas Engelbart (1925-2013)',
           link: 'https://xkcd.com/1234/',
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
-        { __timestamp: 1, number: 1235, title: 'Settled',
+        { __timestamp: 2, number: 1235, title: 'Settled',
           link: 'https://xkcd.com/1235/',
           picture_url: 'https://imgs.xkcd.com/comics/settled.png' }
       ]
@@ -302,12 +316,9 @@ const TEST_CASES = [
     [`monitor(@com.xkcd.get_comic()) => @com.twitter.post(status=title);`,
     { fn: 'com.xkcd:get_comic',
       value: [
-        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
-          link: 'https://xkcd.com/1234/',
-          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
-        { __timestamp: 0, number: 1235, title: 'Settled',
-          link: 'https://xkcd.com/1235/',
-          picture_url: 'https://imgs.xkcd.com/comics/settled.png' },
+        { __timestamp: 0, number: 1, title: 'Barrel - Part 1',
+          link: 'https://xkcd.com/1/',
+          picture_url: 'https://imgs.xkcd.com/comics/barrel_cropped_(1).jpg' },
         { __timestamp: 1, number: 1234, title: 'Douglas Engelbart (1925-2013)',
           link: 'https://xkcd.com/1234/',
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
@@ -318,6 +329,12 @@ const TEST_CASES = [
           link: 'https://xkcd.com/1234/',
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
         { __timestamp: 2, number: 1235, title: 'Settled',
+          link: 'https://xkcd.com/1235/',
+          picture_url: 'https://imgs.xkcd.com/comics/settled.png' },
+        { __timestamp: 3, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+          link: 'https://xkcd.com/1234/',
+          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
+        { __timestamp: 3, number: 1235, title: 'Settled',
           link: 'https://xkcd.com/1235/',
           picture_url: 'https://imgs.xkcd.com/comics/settled.png' },
       ]
@@ -339,13 +356,16 @@ const TEST_CASES = [
     [`monitor(@com.xkcd.get_comic(), number >= 1234) => @com.twitter.post(status=title);`,
     { fn: 'com.xkcd:get_comic',
       value: [
-        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
-          link: 'https://xkcd.com/1234/',
-          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
+        { __timestamp: 0, number: 1, title: 'Barrel - Part 1',
+          link: 'https://xkcd.com/1/',
+          picture_url: 'https://imgs.xkcd.com/comics/barrel_cropped_(1).jpg' },
         { __timestamp: 1, number: 1234, title: 'Douglas Engelbart (1925-2013)',
           link: 'https://xkcd.com/1234/',
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
-        { __timestamp: 2, number: 1235, title: 'Settled',
+        { __timestamp: 2, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+          link: 'https://xkcd.com/1234/',
+          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
+        { __timestamp: 3, number: 1235, title: 'Settled',
           link: 'https://xkcd.com/1235/',
           picture_url: 'https://imgs.xkcd.com/comics/settled.png' }
       ]
@@ -367,13 +387,16 @@ const TEST_CASES = [
     [`monitor(@com.xkcd.get_comic(), number >= 1234) => @com.twitter.post(status=title);`,
     { fn: 'com.xkcd:get_comic',
       value: [
-        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+        { __timestamp: 0, number: 1, title: 'Barrel - Part 1',
+          link: 'https://xkcd.com/1/',
+          picture_url: 'https://imgs.xkcd.com/comics/barrel_cropped_(1).jpg' },
+        { __timestamp: 1, number: 1234, title: 'Douglas Engelbart (1925-2013)',
           link: 'https://xkcd.com/1234/',
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
-        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+        { __timestamp: 1, number: 1234, title: 'Douglas Engelbart (1925-2013)',
           link: 'https://xkcd.com/1234/',
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
-        { __timestamp: 1, number: 1235, title: 'Settled',
+        { __timestamp: 2, number: 1235, title: 'Settled',
           link: 'https://xkcd.com/1235/',
           picture_url: 'https://imgs.xkcd.com/comics/settled.png' }
       ]
@@ -400,13 +423,16 @@ const TEST_CASES = [
     [`monitor(@com.xkcd.get_comic(), number >= 1234) => @com.twitter.post(status=title);`,
     { fn: 'com.xkcd:get_comic',
       value: [
-        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+        { __timestamp: 0, number: 1, title: 'Barrel - Part 1',
+          link: 'https://xkcd.com/1/',
+          picture_url: 'https://imgs.xkcd.com/comics/barrel_cropped_(1).jpg' },
+        { __timestamp: 1, number: 1234, title: 'Douglas Engelbart (1925-2013)',
           link: 'https://xkcd.com/1234/',
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
-        { __timestamp: 1, number: 1235, title: 'Settled',
+        { __timestamp: 2, number: 1235, title: 'Settled',
           link: 'https://xkcd.com/1235/',
           picture_url: 'https://imgs.xkcd.com/comics/settled.png' },
-        { __timestamp: 2, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+        { __timestamp: 3, number: 1234, title: 'Douglas Engelbart (1925-2013)',
           link: 'https://xkcd.com/1234/',
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
       ]
@@ -433,13 +459,60 @@ const TEST_CASES = [
     [`monitor(@com.xkcd.get_comic(), number >= 1234) => @com.twitter.post(status=title);`,
     { fn: 'com.xkcd:get_comic',
       value: [
-        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+        { __timestamp: 0, number: 1, title: 'Barrel - Part 1',
+          link: 'https://xkcd.com/1/',
+          picture_url: 'https://imgs.xkcd.com/comics/barrel_cropped_(1).jpg' },
+        { __timestamp: 1, number: 1234, title: 'Douglas Engelbart (1925-2013)',
           link: 'https://xkcd.com/1234/',
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
-        { __timestamp: 1, number: 1235, title: 'Settled',
+        { __timestamp: 2, number: 1235, title: 'Settled',
           link: 'https://xkcd.com/1235/',
           picture_url: 'https://imgs.xkcd.com/comics/settled.png' },
-        { __timestamp: 2, number: 1236, title: 'Seashell',
+        { __timestamp: 3, number: 1236, title: 'Seashell',
+          link: 'https://xkcd.com/1236/',
+          picture_url: 'https://imgs.xkcd.com/comics/seashell_2x.png' },
+        { __timestamp: 4, number: 1237, title: 'QR Code',
+          link: 'https://xkcd.com/1237/',
+          picture_url: 'https://imgs.xkcd.com/comics/qr_code_2x.png' },
+      ]
+    },
+    {},
+    [
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'Douglas Engelbart (1925-2013)' }
+    },
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'Settled' }
+    },
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'Seashell' }
+    },
+    {
+     type: 'action',
+     fn: 'com.twitter:post',
+     params: { status: 'QR Code' }
+    },
+    ]],
+
+    [`monitor(@com.xkcd.get_comic(), number >= 1234) => @com.twitter.post(status=title);`,
+    { fn: 'com.xkcd:get_comic',
+      value: [
+        { __timestamp: 0, number: 1, title: 'Barrel - Part 1',
+          link: 'https://xkcd.com/1/',
+          picture_url: 'https://imgs.xkcd.com/comics/barrel_cropped_(1).jpg' },
+        { __timestamp: 1, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+          link: 'https://xkcd.com/1234/',
+          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
+        { __timestamp: 2, number: 1235, title: 'Settled',
+          link: 'https://xkcd.com/1235/',
+          picture_url: 'https://imgs.xkcd.com/comics/settled.png' },
+        { __timestamp: 3, number: 1236, title: 'Seashell',
           link: 'https://xkcd.com/1236/',
           picture_url: 'https://imgs.xkcd.com/comics/seashell_2x.png' },
         { __timestamp: 3, number: 1237, title: 'QR Code',
@@ -474,54 +547,16 @@ const TEST_CASES = [
     [`monitor(@com.xkcd.get_comic(), number >= 1234) => @com.twitter.post(status=title);`,
     { fn: 'com.xkcd:get_comic',
       value: [
-        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+        { __timestamp: 0, number: 1, title: 'Barrel - Part 1',
+          link: 'https://xkcd.com/1/',
+          picture_url: 'https://imgs.xkcd.com/comics/barrel_cropped_(1).jpg' },
+        { __timestamp: 1, number: 1234, title: 'Douglas Engelbart (1925-2013)',
           link: 'https://xkcd.com/1234/',
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
         { __timestamp: 1, number: 1235, title: 'Settled',
           link: 'https://xkcd.com/1235/',
           picture_url: 'https://imgs.xkcd.com/comics/settled.png' },
-        { __timestamp: 2, number: 1236, title: 'Seashell',
-          link: 'https://xkcd.com/1236/',
-          picture_url: 'https://imgs.xkcd.com/comics/seashell_2x.png' },
-        { __timestamp: 2, number: 1237, title: 'QR Code',
-          link: 'https://xkcd.com/1237/',
-          picture_url: 'https://imgs.xkcd.com/comics/qr_code_2x.png' },
-      ]
-    },
-    {},
-    [
-    {
-     type: 'action',
-     fn: 'com.twitter:post',
-     params: { status: 'Douglas Engelbart (1925-2013)' }
-    },
-    {
-     type: 'action',
-     fn: 'com.twitter:post',
-     params: { status: 'Settled' }
-    },
-    {
-     type: 'action',
-     fn: 'com.twitter:post',
-     params: { status: 'Seashell' }
-    },
-    {
-     type: 'action',
-     fn: 'com.twitter:post',
-     params: { status: 'QR Code' }
-    },
-    ]],
-
-    [`monitor(@com.xkcd.get_comic(), number >= 1234) => @com.twitter.post(status=title);`,
-    { fn: 'com.xkcd:get_comic',
-      value: [
-        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
-          link: 'https://xkcd.com/1234/',
-          picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
-        { __timestamp: 0, number: 1235, title: 'Settled',
-          link: 'https://xkcd.com/1235/',
-          picture_url: 'https://imgs.xkcd.com/comics/settled.png' },
-        { __timestamp: 1, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+        { __timestamp: 2, number: 1234, title: 'Douglas Engelbart (1925-2013)',
           link: 'https://xkcd.com/1234/',
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
       ]
@@ -543,7 +578,10 @@ const TEST_CASES = [
     [`monitor(@com.xkcd.get_comic()) => @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code, text=title) => @com.twitter.post(status=translated_text);`,
     { fn: 'com.xkcd:get_comic',
       value: [
-        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+        { __timestamp: 0, number: 1, title: 'Barrel - Part 1',
+          link: 'https://xkcd.com/1/',
+          picture_url: 'https://imgs.xkcd.com/comics/barrel_cropped_(1).jpg' },
+        { __timestamp: 1, number: 1234, title: 'Douglas Engelbart (1925-2013)',
           link: 'https://xkcd.com/1234/',
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' }
       ]
@@ -569,10 +607,13 @@ const TEST_CASES = [
     [`monitor(@com.xkcd.get_comic()) => @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code, text=title) => @com.twitter.post(status=translated_text);`,
     { fn: 'com.xkcd:get_comic',
       value: [
-        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+        { __timestamp: 0, number: 1, title: 'Barrel - Part 1',
+          link: 'https://xkcd.com/1/',
+          picture_url: 'https://imgs.xkcd.com/comics/barrel_cropped_(1).jpg' },
+        { __timestamp: 1, number: 1234, title: 'Douglas Engelbart (1925-2013)',
           link: 'https://xkcd.com/1234/',
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
-        { __timestamp: 1, number: 1235, title: 'Settled',
+        { __timestamp: 2, number: 1235, title: 'Settled',
           link: 'https://xkcd.com/1235/',
           picture_url: 'https://imgs.xkcd.com/comics/settled.png' },
       ]
@@ -605,10 +646,13 @@ const TEST_CASES = [
     [`monitor(@com.xkcd.get_comic()) => @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code, text=title) => @com.twitter.post(status=translated_text);`,
     { fn: 'com.xkcd:get_comic',
       value: [
-        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+        { __timestamp: 0, number: 1, title: 'Barrel - Part 1',
+          link: 'https://xkcd.com/1/',
+          picture_url: 'https://imgs.xkcd.com/comics/barrel_cropped_(1).jpg' },
+        { __timestamp: 1, number: 1234, title: 'Douglas Engelbart (1925-2013)',
           link: 'https://xkcd.com/1234/',
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
-        { __timestamp: 0, number: 1235, title: 'Settled',
+        { __timestamp: 1, number: 1235, title: 'Settled',
           link: 'https://xkcd.com/1235/',
           picture_url: 'https://imgs.xkcd.com/comics/settled.png' },
       ]
@@ -641,10 +685,13 @@ const TEST_CASES = [
     [`monitor(@com.xkcd.get_comic()) => @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code, text=title), translated_text =~ "deciso" => @com.twitter.post(status=translated_text);`,
     { fn: 'com.xkcd:get_comic',
       value: [
-        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+        { __timestamp: 0, number: 1, title: 'Barrel - Part 1',
+          link: 'https://xkcd.com/1/',
+          picture_url: 'https://imgs.xkcd.com/comics/barrel_cropped_(1).jpg' },
+        { __timestamp: 1, number: 1234, title: 'Douglas Engelbart (1925-2013)',
           link: 'https://xkcd.com/1234/',
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
-        { __timestamp: 0, number: 1235, title: 'Settled',
+        { __timestamp: 1, number: 1235, title: 'Settled',
           link: 'https://xkcd.com/1235/',
           picture_url: 'https://imgs.xkcd.com/comics/settled.png' },
       ]
@@ -672,10 +719,13 @@ const TEST_CASES = [
     [`monitor(@com.xkcd.get_comic()) => @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code, text=title), translated_text == "Deciso" => @com.twitter.post(status=translated_text);`,
     { fn: 'com.xkcd:get_comic',
       value: [
-        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+        { __timestamp: 0, number: 1, title: 'Barrel - Part 1',
+          link: 'https://xkcd.com/1/',
+          picture_url: 'https://imgs.xkcd.com/comics/barrel_cropped_(1).jpg' },
+        { __timestamp: 1, number: 1234, title: 'Douglas Engelbart (1925-2013)',
           link: 'https://xkcd.com/1234/',
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
-        { __timestamp: 0, number: 1235, title: 'Settled',
+        { __timestamp: 1, number: 1235, title: 'Settled',
           link: 'https://xkcd.com/1235/',
           picture_url: 'https://imgs.xkcd.com/comics/settled.png' },
       ]
@@ -703,10 +753,13 @@ const TEST_CASES = [
     [`monitor(@com.xkcd.get_comic()) => @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code,text=title), translated_text =~ "deciso" => @com.twitter.post(status=translated_text);`,
     { fn: 'com.xkcd:get_comic',
       value: [
-        { __timestamp: 0, number: 1234, title: 'Douglas Engelbart (1925-2013)',
+        { __timestamp: 0, number: 1, title: 'Barrel - Part 1',
+          link: 'https://xkcd.com/1/',
+          picture_url: 'https://imgs.xkcd.com/comics/barrel_cropped_(1).jpg' },
+        { __timestamp: 1, number: 1234, title: 'Douglas Engelbart (1925-2013)',
           link: 'https://xkcd.com/1234/',
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
-        { __timestamp: 0, number: 1235, title: 'Settled',
+        { __timestamp: 1, number: 1235, title: 'Settled',
           link: 'https://xkcd.com/1235/',
           picture_url: 'https://imgs.xkcd.com/comics/settled.png' },
       ]
@@ -2417,6 +2470,77 @@ const TEST_CASES = [
         fn: 'com.twitter:post',
         params: { status: '@org.wikidata.city() filter postal_code =~ "94305";' }
     }]],
+
+    [
+      `@org.thingpedia.media-source.artist(), id =~ "tupac";`,
+    {},
+    {
+        'org.thingpedia.media-source:artist': [{
+            id: new SpotifyEntity('spotify:artist:1ZwdS5xdxEREPySFridCfh', '2Pac'),
+            genres: [
+              "g funk",
+              "gangster rap",
+              "hip hop",
+              "rap",
+              "west coast rap"
+            ],
+            popularity: 81
+        }]
+    },
+    [
+      {
+        type: 'output',
+        outputType: 'org.thingpedia.media-source:artist',
+        value: {
+          id: new SpotifyEntity('spotify:artist:1ZwdS5xdxEREPySFridCfh', '2Pac'),
+          genres: [
+            "g funk",
+            "gangster rap",
+            "hip hop",
+            "rap",
+            "west coast rap"
+          ],
+          popularity: 81
+        }
+      }
+    ]
+    ],
+
+    [
+      `@org.thingpedia.media-source.artist(), id =~ "2pac";`,
+    {},
+    {
+        'org.thingpedia.media-source:artist': [{
+            id: new SpotifyEntity('spotify:artist:1ZwdS5xdxEREPySFridCfh', '2Pac'),
+            genres: [
+              "g funk",
+              "gangster rap",
+              "hip hop",
+              "rap",
+              "west coast rap"
+            ],
+            popularity: 81
+        }]
+    },
+    [
+      {
+        type: 'output',
+        outputType: 'org.thingpedia.media-source:artist',
+        value: {
+          id: new SpotifyEntity('spotify:artist:1ZwdS5xdxEREPySFridCfh', '2Pac'),
+          genres: [
+            "g funk",
+            "gangster rap",
+            "hip hop",
+            "rap",
+            "west coast rap"
+          ],
+          popularity: 81
+        }
+      }
+    ]
+    ]
+
 ];
 
 async function test(i) {

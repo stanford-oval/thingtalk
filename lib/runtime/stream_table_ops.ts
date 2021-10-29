@@ -39,12 +39,30 @@ function tupleEquals<T, K extends keyof T>(a : T, b : T, keys : K[]) : boolean {
     return true;
 }
 
+/**
+ * Check if a query returned a new result, compared to the previously returned results.
+ *
+ * This function checks if the state contains an identical tuple (comparing only `keys`)
+ * in the immediately previous round of polling (according to `__timestamp`)
+ *
+ * This is used to identify the delta between two polling queries in the `monitor`
+ * operator.
+ *
+ * @param state the monitoring state, consisting of the results returned in the prior
+ *   two polling rounds
+ * @param tuple the result tuple to check
+ * @param keys which keys of `tuple` should be compared
+ * @returns `true` if this is a new tuple, `false` otherwise
+ */
 export function isNewTuple<T extends MonitorTupleLike, K extends keyof T>(state : T[]|null,
                                                                           tuple : T,
                                                                           keys : K[]) : boolean {
+    // at the beginning no tuples are new, because we never polled and we don't want to spam
+    // the results
     if (state === null)
-        return true;
+        return false;
 
+    // find the timestamp of the last round of polling in the state, and the immediately previous one
     let tlast, tprevious;
     for (let i = state.length-1; i >= 0; i--) {
         if (tlast === undefined)
@@ -54,10 +72,15 @@ export function isNewTuple<T extends MonitorTupleLike, K extends keyof T>(state 
         else if (tprevious !== undefined && state[i].__timestamp < tprevious)
             break;
     }
+    // if this tuple belongs to a round of polling already in the state, shift the timestamps forward
     if (tuple.__timestamp === tlast)
         tlast = tprevious;
+
+    // if the state is empty (tlast === undefined before the if statement), or the state contains exactly
+    // one round of polling and we're in the same round of polling (tlast was assigned to tprevious,
+    // and tprevious === undefined), this is the first polling, and this is not a new tuple
     if (tlast === undefined)
-        return true;
+        return false;
 
     for (let i = 0; i < state.length; i++) {
         if (state[i].__timestamp !== tlast)
@@ -68,12 +91,19 @@ export function isNewTuple<T extends MonitorTupleLike, K extends keyof T>(state 
     return true;
 }
 
+/**
+ * Update the state used to monitor queries.
+ *
+ * @param state the monitoring state
+ * @param tuple the result tuple to add to the state
+ */
 export function addTuple<T extends MonitorTupleLike>(state : T[]|null, tuple : T) : T[] {
     if (state === null)
         return [tuple];
     state.push(tuple);
 
-    // trim the state to
+    // trim the state to the last two timestamps
+    // (see the logic in isNewTuple)
     let tlast, tprevious;
     let i;
     for (i = state.length-1; i >= 0; i--) {

@@ -17,7 +17,7 @@
 // limitations under the License.
 
 process.on('unhandledRejection', (up) => {
-    throw up; 
+    throw up;
 });
 
 process.env.TEST_MODE = '1';
@@ -40,7 +40,6 @@ seq([
     ('./test_date_utils'),
     ('./test_utils'),
     ('./test_builtin_values'),
-    ('./test_builtin_sort_index'),
     ('./test_ast'),
     ('./test_schema_retriever'),
     ('./test_compound_type'),
@@ -66,7 +65,9 @@ seq([
     ('./test_iteration_apis'),
 
     // test runtime APIs
-    ('./test_builtin'),
+    ('./test_builtin_primitive_ops'),
+    ('./test_builtin_sort_index'),
+    ('./test_builtin_stream_ops'),
     ('./test_runtime'),
 
     // test converters and integrations

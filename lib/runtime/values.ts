@@ -28,24 +28,43 @@ import { stringEscape } from '../utils/escaping';
  *
  */
 export class Entity {
+    /**
+     * The entity identifier value.
+     */
     value : string;
+    /**
+     * The entity display name.
+     */
     display : string|null;
+
+    /**
+     * Match this entity against a query string.
+     *
+     * This optional property can be set to override the behavior of the `=~` operator
+     * for this entity.
+     *
+     * Note that the evaluation order of ThingTalk is unspecified, so this method must
+     * have no side effects.
+     *
+     * @param against the query to check against
+     * @returns true if the query matches, false otherwise
+     */
+    softmatch?(against : string) : boolean;
 
     /**
      * Construct a new entity value.
      *
-     * @param {string} value - the entity identifier value
-     * @param {string|null} [display] - optional human-readable display name for the entity
+     * @param value - the entity identifier value
+     * @param display - optional human-readable display name for the entity
      */
-    constructor(id : string, display ?: string|null) {
-        /**
-         * The entity identifier value.
-         */
+    constructor(id : string, display ?: string|null, options : { softmatch ?: (against : string) => boolean } = {}) {
         this.value = id;
-        /**
-         * The entity display name.
-         */
         this.display = display||null;
+
+        // set the property only if provided
+        // this allows subclasses to implement the method normally
+        if (options.softmatch)
+            this.softmatch = options.softmatch;
     }
 
     toString() : string {
@@ -56,7 +75,6 @@ export class Entity {
      * Compile the entity value to JS code.
      *
      * @return {string} JS code that evaluates to this entity value
-     * @package
      */
     toJSSource() : string {
         return `new __builtin.Entity(${stringEscape(this.value)}, ${stringEscape(this.display)})`;
@@ -67,10 +85,67 @@ export class Entity {
      *
      * @param {any} obj - the JS value to check
      * @return {boolean} `true` if the value is a string or an instance of this class
-     * @package
      */
     static isEntity(obj : unknown) : obj is (Entity|string) {
         return obj instanceof Entity || typeof obj === 'string';
+    }
+}
+
+/**
+ * Runtime representation of a string-like object.
+ *
+ * Objects of this class can be used to override the behavior of
+ * string operators at runtime.
+ */
+export class StringLike {
+    /**
+     * The underlying string value.
+     */
+    private value : string;
+
+    /**
+     * Match this string against a query string.
+     *
+     * This optional property can be set to override the behavior of the `=~` operator.
+     *
+     * Note that the evaluation order of ThingTalk is unspecified, so this method must
+     * have no side effects.
+     *
+     * @param against the query to check against
+     * @returns true if the query matches, false otherwise
+     */
+    softmatch?(against : string) : boolean;
+
+    /**
+     * Construct a new string-like object.
+     *
+     * @param value - the string value
+     */
+    constructor(id : string, options : { softmatch ?: (against : string) => boolean } = {}) {
+        this.value = id;
+
+        // set the property only if provided
+        // this allows subclasses to implement the method normally
+        if (options.softmatch)
+            this.softmatch = options.softmatch;
+    }
+
+    toString() {
+        return this.value;
+    }
+
+    valueOf() {
+        return this.value;
+    }
+
+    /**
+     * Compile this to JS code.
+     *
+     * @return {string} JS code that evaluates to this value
+     * @package
+     */
+    toJSSource() : string {
+        return stringEscape(this.value);
     }
 }
 
@@ -85,8 +160,19 @@ export interface LocationLike {
  *
  */
 export class Location implements LocationLike {
+    /**
+     * Longitude value.
+     * @deprecated Use {@link lon}
+     */
     x : number;
+    /**
+     * Latitude value.
+     * @deprecated Use {@link lat}
+     */
     y : number;
+    /**
+     * Display name for this location.
+     */
     display : string|null;
 
     /**
@@ -100,21 +186,8 @@ export class Location implements LocationLike {
         if (typeof lat !== 'number' || typeof lon !== 'number')
             throw new Error(`Invalid location (${lat}, ${lon})`);
 
-        /**
-         * Longitude value.
-         * @deprecated Use {Builtin.Location#lon}
-         */
         this.x = lon;
-
-        /**
-         * Latitude value.
-         * @deprecated Use {Builtin.Location#lat}
-         */
         this.y = lat;
-
-        /**
-         * Display name for this location.
-         */
         this.display = display||null;
     }
 
@@ -170,8 +243,17 @@ export class Location implements LocationLike {
  *
  */
 export class Time {
+    /**
+     * Hour value.
+     */
     hour : number;
+    /**
+     * Minute value.
+     */
     minute : number;
+    /**
+     * Second value.
+     */
     second : number;
 
     /**
@@ -184,17 +266,8 @@ export class Time {
     constructor(hour : number, minute : number, second = 0) {
         if (!(hour >= 0) || !(minute >= 0) || !(second >= 0))
             throw new Error(`Invalid time ${hour}:${minute}:${second}`);
-        /**
-         * Hour value.
-         */
         this.hour = hour;
-        /**
-         * Minute value.
-         */
         this.minute = minute;
-        /**
-         * Second value.
-         */
         this.second = second;
     }
 

@@ -11651,3 +11651,118 @@ ontimer(date=[set_time(new Date(2021, 0, 1), new Time(10, 30, 0))]) => @org.thin
   } finally {
     await __env.exitProcedure(0, null);
   }
+====
+// 115
+sort(popularity desc of @org.thingpedia.media-source(id="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax")).song() filter contains(artists, "spotify:artist:0Zhyrxq8I0Mk23WSOnGcaw"^^org.thingpedia.media-source:artist("Beethoven")))[1];
+>>>>
+"use strict";
+  let _t_0;
+  let _t_1;
+  let _t_2;
+  let _t_3;
+  let _t_4;
+  let _t_5;
+  let _t_6;
+  let _t_7;
+  let _t_8;
+  let _t_9;
+  let _t_10;
+  let _t_11;
+  let _t_12;
+  let _t_13;
+  let _t_14;
+  let _t_15;
+  let _t_16;
+  let _t_17;
+  let _t_18;
+  let _t_19;
+  let _t_20;
+  let _t_21;
+  let _t_22;
+  let _t_23;
+  let _t_24;
+  let _t_25;
+  let _t_26;
+  let _t_27;
+  let _t_28;
+  let _t_29;
+  let _t_30;
+  let _t_31;
+  let _t_32;
+  let _t_33;
+  let _t_34;
+  let _t_35;
+  await __env.enterProcedure(0, null);
+  try {
+    _t_0 = false;
+    _t_1 = -Infinity;
+    try {
+      _t_4 = {};
+      _t_5 = new Array(1);
+      _t_6 = new Array(3);
+      _t_7 = "artists";
+      _t_6[0] = _t_7;
+      _t_8 = "contains";
+      _t_6[1] = _t_8;
+      _t_9 = new __builtin.Entity("spotify:artist:0Zhyrxq8I0Mk23WSOnGcaw", "Beethoven");
+      _t_6[2] = _t_9;
+      _t_5[0] = _t_6;
+      _t_10 = await __env.invokeQuery("org.thingpedia.media-source", { id: "com.spotify-gcampax", name: "Spotify Account of gcampax", }, "song", _t_4, { projection: ["id", "album", "energy", "danceability", "artists", "popularity", "release_date", "genres"], filter: _t_5, sort: ["popularity", "desc"], limit: 1 });
+      _t_11 = __builtin.getAsyncIterator(_t_10);
+      {
+        let _iter_tmp = await _t_11.next();
+        while (!_iter_tmp.done) {
+          _t_12 = _iter_tmp.value;
+          _t_13 = _t_12[0];
+          _t_14 = _t_12[1];
+          _t_15 = _t_14.__response;
+          _t_16 = _t_14.id;
+          _t_17 = _t_14.album;
+          _t_18 = _t_14.energy;
+          _t_19 = _t_14.danceability;
+          _t_20 = _t_14.artists;
+          _t_21 = _t_14.popularity;
+          _t_22 = _t_14.release_date;
+          _t_23 = _t_14.genres;
+          _t_25 = new __builtin.Entity("spotify:artist:0Zhyrxq8I0Mk23WSOnGcaw", "Beethoven");
+          _t_24 = __builtin.contains(_t_20, _t_25);
+          if (_t_24) {
+            _t_26 = _t_1 < _t_21;
+            if (_t_26) {
+              _t_1 = _t_21;
+              _t_2 = _t_14;
+              _t_3 = _t_13;
+              _t_0 = true;
+            } else {
+
+            }
+          } else {
+
+          }
+          _iter_tmp = await _t_11.next();
+        }
+      }
+    } catch(_exc_) {
+      __env.reportError("Failed to invoke query", _exc_);
+    }
+    if (_t_0) {
+      _t_27 = _t_2.__response;
+      _t_28 = _t_2.id;
+      _t_29 = _t_2.album;
+      _t_30 = _t_2.energy;
+      _t_31 = _t_2.danceability;
+      _t_32 = _t_2.artists;
+      _t_33 = _t_2.popularity;
+      _t_34 = _t_2.release_date;
+      _t_35 = _t_2.genres;
+      try {
+        await __env.output(String(_t_3), _t_2);
+      } catch(_exc_) {
+        __env.reportError("Failed to invoke action", _exc_);
+      }
+    } else {
+
+    }
+  } finally {
+    await __env.exitProcedure(0, null);
+  }
