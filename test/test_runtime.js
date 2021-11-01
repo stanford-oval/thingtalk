@@ -2553,7 +2553,7 @@ async function test(i) {
     const assistant = new MockAssistant();
     try {
         for (let prog of code) {
-            const compiler = new Compiler(schemaRetriever);
+            const compiler = new Compiler(schemaRetriever, 'America/Los_Angeles');
             const compiled = await compiler.compileCode(prog);
             const state = new MockState(compiled);
 

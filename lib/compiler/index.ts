@@ -50,6 +50,7 @@ export default class AppCompiler {
     private _declarations : Scope;
     private _toplevelscope : TopLevelScope;
 
+    private _timezone : string;
     private _schemaRetriever : SchemaRetriever;
     private _nextStateVar : number;
     private _nextProcId : number;
@@ -57,12 +58,14 @@ export default class AppCompiler {
     private _astVars : Ast.Node[];
 
     constructor(schemaRetriever : SchemaRetriever,
+                timezone : string,
                 testMode = false) {
         this._testMode = testMode;
         this._declarations = new Scope;
         this._toplevelscope = {};
 
         this._schemaRetriever = schemaRetriever;
+        this._timezone = timezone;
         this._nextStateVar = 0;
         this._nextProcId = 0;
 
@@ -108,7 +111,7 @@ export default class AppCompiler {
     private _compileAssignment(assignment : Ast.Assignment,
                                irBuilder : JSIr.IRBuilder,
                                { hasAnyStream, forProcedure } : StatementCompileOptions) {
-        const opCompiler = new OpCompiler(this, this._declarations, irBuilder);
+        const opCompiler = new OpCompiler(this, this._timezone, this._declarations, irBuilder);
 
         // at the top level, assignments can be referred to by streams, so
         // they need to be persistent (save to disk) such that when the program
@@ -188,7 +191,7 @@ export default class AppCompiler {
                                 irBuilder : JSIr.IRBuilder,
                                 forProcedure : boolean,
                                 returnResult : boolean) {
-        const opCompiler = new OpCompiler(this, this._declarations, irBuilder);
+        const opCompiler = new OpCompiler(this, this._timezone, this._declarations, irBuilder);
         const ruleop = compileStatementToOp(stmt);
         if (forProcedure)
             opCompiler.compileProcedureStatement(ruleop, returnResult);

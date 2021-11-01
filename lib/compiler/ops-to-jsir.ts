@@ -51,15 +51,18 @@ type ArgMap = { [key : string] : JSIr.Register };
 
 export default class OpCompiler {
     private _compiler : AppCompiler;
+    private _timezone : string;
     private _irBuilder : JSIr.IRBuilder;
     private _globalScope : Scope;
     private _currentScope : Scope;
     private _varScopeNames : string[];
 
     constructor(compiler : AppCompiler,
+                timezone : string,
                 globalScope : Scope,
                 irBuilder : JSIr.IRBuilder) {
         this._compiler = compiler;
+        this._timezone = timezone;
         this._irBuilder = irBuilder;
 
         this._globalScope = globalScope;
@@ -231,6 +234,9 @@ export default class OpCompiler {
             }
             return array;
         }
+
+        if (ast instanceof Ast.DateValue || ast instanceof Ast.RecurrentTimeSpecificationValue)
+            ast = ast.normalize(this._timezone);
 
         const reg = this._irBuilder.allocRegister();
         this._irBuilder.add(new JSIr.LoadConstant(ast, reg));

@@ -1400,8 +1400,14 @@ export class DateValue extends Value {
         visitor.exit(this);
     }
 
+    normalize(timezone : string) : DateValue {
+        return new DateValue(normalizeDate(this.value, timezone));
+    }
+
     toJS() : Date {
-        return normalizeDate(this.value);
+        if (this.value instanceof Date)
+            return this.value;
+        throw new Error(`Value is not a constant date, must normalize first`);
     }
 
     getType() : Type {
@@ -1478,6 +1484,13 @@ interface RecurrentTimeRuleLike {
     beginDate : DateLike|null;
     endDate : DateLike|null;
     subtract : boolean;
+}
+
+function checkAbsoluteDate(dateLike : DateLike) : Date {
+    if (dateLike instanceof Date)
+        return dateLike;
+
+    throw new Error(`Date is not normalized`);
 }
 
 /**
@@ -1580,6 +1593,19 @@ export class RecurrentTimeRule extends AstNode {
         });
     }
 
+    normalize(timezone : string) {
+        return new RecurrentTimeRule({
+            beginTime: this.beginTime,
+            endTime: this.endTime,
+            interval: this.interval,
+            frequency: this.frequency,
+            dayOfWeek: this.dayOfWeek,
+            beginDate: this.beginDate ? normalizeDate(this.beginDate, timezone) : null,
+            endDate: this.endDate ? normalizeDate(this.endDate, timezone) : null,
+            subtract: this.subtract
+        });
+    }
+
     toJS() : builtin.RecurrentTimeRule {
         return new builtin.RecurrentTimeRule({
             beginTime: this.beginTime.toJS(),
@@ -1587,8 +1613,8 @@ export class RecurrentTimeRule extends AstNode {
             interval: this.interval.toJS(),
             frequency: this.frequency,
             dayOfWeek: this.dayOfWeek ? ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].indexOf(this.dayOfWeek) : null,
-            beginDate: this.beginDate ? normalizeDate(this.beginDate) : null,
-            endDate: this.endDate ? normalizeDate(this.endDate) : null,
+            beginDate: this.beginDate ? checkAbsoluteDate(this.beginDate) : null,
+            endDate: this.endDate ? checkAbsoluteDate(this.endDate) : null,
             subtract: this.subtract
         });
     }
@@ -1629,6 +1655,10 @@ export class RecurrentTimeSpecificationValue extends Value {
                 rule.visit(visitor);
         }
         visitor.exit(this);
+    }
+
+    normalize(timezone : string) {
+        return new RecurrentTimeSpecificationValue(this.rules.map((r) => r.normalize(timezone)));
     }
 
     toJS() : builtin.RecurrentTimeRule[] {

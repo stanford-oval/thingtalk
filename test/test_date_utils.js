@@ -24,7 +24,7 @@ import { parseDate, normalizeDate } from '../lib/utils/date_utils';
 function test(value, expected) {
     expected = parseDate(expected);
 
-    assert.strictEqual(+normalizeDate(value), +expected);
+    assert.strictEqual(+normalizeDate(value, 'America/Los_Angeles'), +expected);
 }
 
 export default function main() {
@@ -112,7 +112,7 @@ export default function main() {
     eleven_thirty.setMilliseconds(0);
     test(new DatePiece(null, null, 25, new Time.Absolute(11, 30, 0)), eleven_thirty);
 
-    const weekdays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const weekdays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
     for (let j = 0; j < 7; j++) {
         const date = new Date;
         date.setHours(12, 0, 0, 0);

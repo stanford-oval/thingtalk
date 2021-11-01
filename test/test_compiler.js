@@ -54,7 +54,7 @@ async function test(TEST_CASES, i) {
     let [code, expected] = TEST_CASES[i];
 
     try {
-        const compiler = new Compiler(schemaRetriever, true);
+        const compiler = new Compiler(schemaRetriever, 'America/Los_Angeles', true);
 
         const compiled = await compiler.compileCode(code);
 
