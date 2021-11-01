@@ -8843,7 +8843,7 @@ now => @com.yelp.restaurant(), contains(openingHours, new Date(enum sunday)) => 
           _t_20 = _t_10.phone;
           _t_21 = _t_10.openingHours;
           _t_23 = new Date(XNOWX);
-          _t_22 = __builtin.recurrentTimeSpecContains(_t_21, _t_23);
+          _t_22 = __builtin.recurrentTimeSpecContains(__env, _t_21, _t_23);
           if (_t_22) {
             _t_24 = {};
             _t_24.id = _t_12;
@@ -8932,7 +8932,7 @@ now => @com.yelp.restaurant(), contains(openingHours, new Date()) => notify;
           _t_20 = _t_10.phone;
           _t_21 = _t_10.openingHours;
           _t_23 = new Date(XNOWX);
-          _t_22 = __builtin.recurrentTimeSpecContains(_t_21, _t_23);
+          _t_22 = __builtin.recurrentTimeSpecContains(__env, _t_21, _t_23);
           if (_t_22) {
             _t_24 = {};
             _t_24.id = _t_12;
@@ -9021,7 +9021,7 @@ now => @com.yelp.restaurant(), contains(openingHours, new Time(17, 0)) => notify
           _t_20 = _t_10.phone;
           _t_21 = _t_10.openingHours;
           _t_23 = new __builtin.Time(17, 0, 0);
-          _t_22 = __builtin.recurrentTimeSpecContains(_t_21, _t_23);
+          _t_22 = __builtin.recurrentTimeSpecContains(__env, _t_21, _t_23);
           if (_t_22) {
             _t_24 = {};
             _t_24.id = _t_12;

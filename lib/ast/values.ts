@@ -1586,7 +1586,7 @@ export class RecurrentTimeRule extends AstNode {
             endTime: AbsoluteTime.fromJS(v.endTime),
             interval: new MeasureValue(v.interval, 'ms'),
             frequency: v.frequency,
-            dayOfWeek: v.dayOfWeek !== null ? ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][v.dayOfWeek] : null,
+            dayOfWeek: v.dayOfWeek !== null ? ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'][v.dayOfWeek] : null,
             beginDate: v.beginDate,
             endDate: v.endDate,
             subtract: v.subtract,
@@ -1612,7 +1612,7 @@ export class RecurrentTimeRule extends AstNode {
             endTime: this.endTime.toJS(),
             interval: this.interval.toJS(),
             frequency: this.frequency,
-            dayOfWeek: this.dayOfWeek ? ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].indexOf(this.dayOfWeek) : null,
+            dayOfWeek: this.dayOfWeek ? ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].indexOf(this.dayOfWeek) : null,
             beginDate: this.beginDate ? checkAbsoluteDate(this.beginDate) : null,
             endDate: this.endDate ? checkAbsoluteDate(this.endDate) : null,
             subtract: this.subtract

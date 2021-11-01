@@ -339,24 +339,6 @@ class FormatEvent {
     }
 }
 
-class BinaryFunctionOp {
-    private _a : Register;
-    private _b : Register;
-    private _fn : string;
-    private _into : Register;
-
-    constructor(a : Register, b : Register, fn : string, into : Register) {
-        this._a = a;
-        this._b = b;
-        this._fn = fn;
-        this._into = into;
-    }
-
-    codegen(prefix : string) : string {
-        return `${prefix}_t_${this._into} = __builtin.${this._fn}(_t_${this._a}, _t_${this._b});`;
-    }
-}
-
 class VoidFunctionOp {
     private _fn : string;
     private _args : Register[];
@@ -1149,7 +1131,6 @@ export {
     LoadConstant,
     LoadBuiltin,
     NewObject,
-    BinaryFunctionOp,
     BinaryOp,
     UnaryOp,
     MethodOp,

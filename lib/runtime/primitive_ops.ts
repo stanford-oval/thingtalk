@@ -258,13 +258,14 @@ export function endsWith(a : unknown, b : unknown) : boolean {
     return anyToString(a).toLowerCase().endsWith(anyToString(b).toLowerCase());
 }
 
-export function recurrentTimeSpecContains(spec : RecurrentTimeRule[],
+export function recurrentTimeSpecContains(env : ExecEnvironment,
+                                          spec : RecurrentTimeRule[],
                                           timeOrDate : Date|Temporal.ZonedDateTime|Temporal.PlainTime|Time) : boolean {
     assert(Array.isArray(spec));
 
     let contained = false;
     for (const rule of spec) {
-        if (rule.contains(timeOrDate)) {
+        if (rule.contains(timeOrDate, env.timezone)) {
             if (rule.subtract)
                 contained = false;
             else

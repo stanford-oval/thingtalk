@@ -199,9 +199,9 @@ export default class OpCompiler {
         if (opimpl.op)
             this._irBuilder.add(new JSIr.BinaryOp(lhs, rhs, opimpl.op, into));
         else if (opimpl.flip)
-            this._irBuilder.add(new JSIr.BinaryFunctionOp(rhs, lhs, opimpl.fn as string, into));
+            this._irBuilder.add(new JSIr.FunctionOp(opimpl.fn!, opimpl.env ?? false, into, rhs, lhs));
         else
-            this._irBuilder.add(new JSIr.BinaryFunctionOp(lhs, rhs, opimpl.fn as string, into));
+            this._irBuilder.add(new JSIr.FunctionOp(opimpl.fn!, opimpl.env ?? false, into, lhs, rhs));
     }
 
     compileValue(ast : Ast.Value, scope : Scope) : JSIr.Register {
@@ -943,7 +943,7 @@ export default class OpCompiler {
         const rhsOutputType = getRegister('$outputType', rhsScope);
 
         const newOutputType = this._irBuilder.allocRegister();
-        this._irBuilder.add(new JSIr.BinaryFunctionOp(lhsOutputType, rhsOutputType, 'combineOutputTypes', newOutputType));
+        this._irBuilder.add(new JSIr.FunctionOp('combineOutputTypes', false, newOutputType, lhsOutputType, rhsOutputType));
 
         const newResult = this._irBuilder.allocRegister();
         this._irBuilder.add(new JSIr.CreateObject(newResult));
@@ -1103,7 +1103,7 @@ export default class OpCompiler {
         this._irBuilder.popTo(upto);
 
         const iterator = this._irBuilder.allocRegister();
-        this._irBuilder.add(new JSIr.BinaryFunctionOp(lhs, rhs, 'streamUnion', iterator));
+        this._irBuilder.add(new JSIr.FunctionOp('streamUnion', false, iterator, lhs, rhs));
 
         const typeAndResult = this._irBuilder.allocRegister();
         const loop = new JSIr.AsyncWhileLoop(typeAndResult, iterator);
@@ -1216,7 +1216,7 @@ export default class OpCompiler {
     private _compileTableJoin(tableop : TableOp.Join) {
         const [lhs, lhsScope, rhs, rhsScope] = this._compileTableJoinHelper(tableop);
         const iterator = this._irBuilder.allocRegister();
-        this._irBuilder.add(new JSIr.BinaryFunctionOp(lhs, rhs, 'tableJoin', iterator));
+        this._irBuilder.add(new JSIr.FunctionOp('tableJoin', false, iterator, lhs, rhs));
         const typeAndResult = this._irBuilder.allocRegister();
         const loop = new JSIr.AsyncWhileLoop(typeAndResult, iterator);
         this._irBuilder.add(loop);
@@ -1230,7 +1230,7 @@ export default class OpCompiler {
         // them to a builtin which will compute the cross join
         const [lhs, lhsScope, rhs, rhsScope] = this._compileTableJoinHelper(tableop);
         const iterator = this._irBuilder.allocRegister();
-        this._irBuilder.add(new JSIr.BinaryFunctionOp(lhs, rhs, 'tableCrossJoin', iterator));
+        this._irBuilder.add(new JSIr.FunctionOp('tableCrossJoin', false, iterator, lhs, rhs));
         const typeAndResult = this._irBuilder.allocRegister();
         const loop = new JSIr.AsyncWhileLoop(typeAndResult, iterator);
         this._irBuilder.add(loop);

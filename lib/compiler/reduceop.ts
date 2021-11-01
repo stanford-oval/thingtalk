@@ -112,7 +112,7 @@ abstract class AggregationOp<StateType> extends ReduceOp<StateType> {
         const newOutputType = irBuilder.allocRegister();
         const keyword = irBuilder.allocRegister();
         irBuilder.add(new JSIr.LoadConstant(new Ast.Value.String(this.operator), keyword));
-        irBuilder.add(new JSIr.BinaryFunctionOp(keyword, getRegister('$outputType', currentScope), 'aggregateOutputType', newOutputType));
+        irBuilder.add(new JSIr.FunctionOp('aggregateOutputType', false, newOutputType, keyword, getRegister('$outputType', currentScope)));
 
         const newTuple = irBuilder.allocRegister();
         irBuilder.add(new JSIr.CreateObject(newTuple));
@@ -270,7 +270,7 @@ export class SimpleAggregation extends AggregationOp<JSIr.Register> {
             irBuilder : JSIr.IRBuilder,
             currentScope : Scope) {
         const field = getRegister(this.field, currentScope);
-        irBuilder.add(new JSIr.BinaryFunctionOp(value, field, this.operator, value));
+        irBuilder.add(new JSIr.FunctionOp(this.operator, false, value, value, field));
     }
 
     protected compute(value : JSIr.Register,

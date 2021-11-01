@@ -142,7 +142,7 @@ export const BinaryOps : { [op : string] : OpDefinition } = {
                 [Type.RecurrentTimeSpecification, Type.Time, Type.Boolean]],
         overload: (t1 : Type, t2 : Type, t3 : Type) : OpImplementation => {
             if (t1 === Type.RecurrentTimeSpecification)
-                return { fn: 'recurrentTimeSpecContains' };
+                return { fn: 'recurrentTimeSpecContains', env: true };
             else
                 return { fn: 'contains' };
         }

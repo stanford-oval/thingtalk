@@ -368,6 +368,14 @@ export class RecurrentTimeRule implements RecurrentTimeRuleLike {
     endTime : Time;
     interval : number;
     frequency : number;
+    /**
+     * Day of the week where this time rule applies, if any.
+     *
+     * This is a number between 0 and 6, where 0 is Monday and
+     * 6 is Sunday.
+     *
+     * If null, this rule applies any day of the week.
+     */
     dayOfWeek : number|null;
     beginDate : Date|null;
     endDate : Date|null;
@@ -418,16 +426,17 @@ export class RecurrentTimeRule implements RecurrentTimeRuleLike {
         + '})';
     }
 
-    contains(dateOrTime : Date|Temporal.ZonedDateTime|Temporal.PlainTime|Time) : boolean {
+    contains(dateOrTime : Date|Temporal.ZonedDateTime|Temporal.PlainTime|Time, timezone : string) : boolean {
         let time;
         let instant;
         let dayOfWeek;
 
         if (dateOrTime instanceof Date) {
-            // this is not correct wrt timezone but if all we have is a date that's all we can do
-            time = new Time(dateOrTime.getHours(), dateOrTime.getMinutes(), dateOrTime.getSeconds());
-            dayOfWeek = dateOrTime.getDay();
             instant = toTemporalInstant.call(dateOrTime);
+            const datetz = instant.toZonedDateTimeISO(timezone);
+            // this is not correct wrt timezone but if all we have is a date that's all we can do
+            time = new Time(datetz.hour, datetz.minute, datetz.second);
+            dayOfWeek = datetz.dayOfWeek;
         } else if (dateOrTime instanceof Temporal.ZonedDateTime) {
             time = Time.fromTemporal(dateOrTime.toPlainTime());
             dayOfWeek = dateOrTime.dayOfWeek;
