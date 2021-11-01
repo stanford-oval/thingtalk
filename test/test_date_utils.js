@@ -21,10 +21,10 @@ import assert from 'assert';
 import { DateEdge, DatePiece, Time, WeekDayDate } from '../lib/ast';
 import { parseDate, normalizeDate } from '../lib/utils/date_utils';
 
-function test(value, expected) {
+function test(value, expected, msg) {
     expected = parseDate(expected);
 
-    assert.strictEqual(+normalizeDate(value, 'America/Los_Angeles'), +expected);
+    assert.strictEqual(normalizeDate(value, 'America/Los_Angeles').toISOString(), expected.toISOString());
 }
 
 export default function main() {
@@ -112,7 +112,7 @@ export default function main() {
     eleven_thirty.setMilliseconds(0);
     test(new DatePiece(null, null, 25, new Time.Absolute(11, 30, 0)), eleven_thirty);
 
-    const weekdays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const weekdays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
     for (let j = 0; j < 7; j++) {
         const date = new Date;
         date.setHours(12, 0, 0, 0);
@@ -121,7 +121,7 @@ export default function main() {
         nextweekday.setDate(nextweekday.getDate() + 1);
         while (nextweekday.getDay() !== j)
             nextweekday.setDate(nextweekday.getDate() + 1);
-        test(new WeekDayDate(weekday, new Time.Absolute(12, 0, 0)), nextweekday);
+        test(new WeekDayDate(weekday, new Time.Absolute(12, 0, 0)), nextweekday, `failed test for ${weekday}`);
     }
 }
 if (!module.parent)

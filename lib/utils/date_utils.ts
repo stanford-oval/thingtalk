@@ -121,13 +121,13 @@ function createDatePiece(year : number|null, month : number|null, day : number|n
 
 function weekdayToNumber(weekday : WeekDay) : number {
     switch (weekday) {
-    case "monday": return 0;
-    case "tuesday": return 1;
-    case "wednesday": return 2;
-    case "thursday": return 3;
-    case "friday": return 4;
-    case "saturday": return 5;
-    case "sunday": return 6;
+    case "monday": return 1;
+    case "tuesday": return 2;
+    case "wednesday": return 3;
+    case "thursday": return 4;
+    case "friday": return 5;
+    case "saturday": return 6;
+    case "sunday": return 7;
     }
     throw new Error(`Invalid weekday: ${weekday}`);
 }
@@ -135,7 +135,7 @@ function weekdayToNumber(weekday : WeekDay) : number {
 function createWeekDayDate(weekday : WeekDay, time : AbsoluteTime|null, timezone : string) {
     const now = Temporal.Now.zonedDateTimeISO(timezone);
     const weekdayNumber = weekdayToNumber(weekday);
-    const diff = (weekdayNumber - now.dayOfWeek) % 7;
+    const diff = (weekdayNumber - now.dayOfWeek + 7) % 7;
     // get the date of next specified weekday, today excluded
 
     let tgt = now;
