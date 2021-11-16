@@ -532,7 +532,16 @@ export default class OpCompiler {
         else
             clauses = [optimized];
 
-        const toCompile = clauses.filter((c : Ast.BooleanExpression) => c instanceof Ast.AtomBooleanExpression) as Ast.AtomBooleanExpression[];
+        const toCompile = clauses.filter((c : Ast.BooleanExpression) : c is Ast.AtomBooleanExpression|(Ast.ComputeBooleanExpression & { lhs : Ast.ComputationValue }) => {
+            if (c instanceof Ast.AtomBooleanExpression)
+                return true;
+            if (c instanceof Ast.ComputeBooleanExpression) {
+                return c.lhs instanceof Ast.ComputationValue &&
+                    c.lhs.operands[0] instanceof Ast.VarRefValue &&
+                    c.lhs.operands[1].isConstant();
+            }
+            return false;
+        });
         if (toCompile.length === 0) {
             return {
                 projection: [...hints.projection],
@@ -547,11 +556,22 @@ export default class OpCompiler {
         for (let i = 0; i < toCompile.length; i++) {
             const clause = toCompile[i];
             // a bit ugly but it works and avoids a ton of temporaries
-            const clauseTuple = this.compileValue(new Ast.Value.Array([
-                new Ast.Value.String(clause.name),
-                new Ast.Value.String(clause.operator),
-                clause.value
-            ]), this._currentScope);
+            let clauseTuple;
+            if (clause instanceof Ast.AtomBooleanExpression) {
+                clauseTuple = this.compileValue(new Ast.Value.Array([
+                    new Ast.Value.String(clause.name),
+                    new Ast.Value.String(clause.operator),
+                    clause.value
+                ]), this._currentScope);
+            } else {
+                clauseTuple = this.compileValue(new Ast.Value.Array([
+                    new Ast.Value.String(clause.lhs.op),
+                    new Ast.Value.String((clause.lhs.operands[0] as Ast.VarRefValue).name),
+                    clause.lhs.operands[1],
+                    new Ast.Value.String(clause.operator),
+                    clause.rhs
+                ]), this._currentScope);
+            }
             this._irBuilder.add(new JSIr.SetIndex(filterArray, i, clauseTuple));
         }
 
