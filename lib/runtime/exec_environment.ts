@@ -23,7 +23,13 @@ import assert from 'assert';
 import * as Ast from '../ast';
 import type * as builtin from './values';
 
-export type CompiledFilterHint = [string, string, unknown];
+export type CompiledFilterHint =
+    // direct comparison
+    [string, string, unknown]
+    // unary operator
+    | [string, string, string, unknown]
+    // binary operator
+    | [string, string, unknown, string, unknown];
 
 export interface CompiledQueryHints {
     filter ?: CompiledFilterHint[];

@@ -537,8 +537,11 @@ export default class OpCompiler {
                 return true;
             if (c instanceof Ast.ComputeBooleanExpression) {
                 return c.lhs instanceof Ast.ComputationValue &&
-                    c.lhs.operands[0] instanceof Ast.VarRefValue &&
-                    c.lhs.operands[1].isConstant();
+                    ((c.lhs.operands.length === 2 &&
+                      c.lhs.operands[0] instanceof Ast.VarRefValue &&
+                      c.lhs.operands[1].isConstant()) ||
+                    (c.lhs.operands.length === 1 &&
+                     c.lhs.operands[0] instanceof Ast.VarRefValue));
             }
             return false;
         });
@@ -562,6 +565,13 @@ export default class OpCompiler {
                     new Ast.Value.String(clause.name),
                     new Ast.Value.String(clause.operator),
                     clause.value
+                ]), this._currentScope);
+            } else if (clause.lhs.operands.length === 1) {
+                clauseTuple = this.compileValue(new Ast.Value.Array([
+                    new Ast.Value.String(clause.lhs.op),
+                    new Ast.Value.String((clause.lhs.operands[0] as Ast.VarRefValue).name),
+                    new Ast.Value.String(clause.operator),
+                    clause.rhs
                 ]), this._currentScope);
             } else {
                 clauseTuple = this.compileValue(new Ast.Value.Array([
