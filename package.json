@@ -28,7 +28,7 @@
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.1",
-    "@types/node": "^16.11.6",
+    "@types/node": "^16.11.7",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
     "coveralls": "^3.1.1",
@@ -39,7 +39,7 @@
     "seedrandom": "^3.0.0",
     "source-map-support": "^0.5.20",
     "ts-node": "^10.4.0",
-    "typedoc": "^0.22.7",
+    "typedoc": "^0.22.9",
     "typescript": "~4.4.4"
   },
   "scripts": {
