@@ -1,3 +1,12 @@
+2.1.0-alpha.10
+==============
+
+* Fixed computing the distance between two locations.
+* Changed the range of location equality filters.
+* Fixed timezone handling in relative and unspecified dates. Date
+  values must now be normalized prior to calling `toJS`.
+* Added support for distance filters in query hints [#398].
+
 2.1.0-alpha.9
 =============
 

@@ -40,7 +40,7 @@ import List from './utils/list';
  * Version information
  *
  */
-const version = '2.1.0-alpha.9';
+const version = '2.1.0-alpha.10';
 
 export {
     version,
