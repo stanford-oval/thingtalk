@@ -1,3 +1,8 @@
+2.1.0-alpha.11
+==============
+
+* Fixed compiling programs with unary operators in filters.
+
 2.1.0-alpha.10
 ==============
 
