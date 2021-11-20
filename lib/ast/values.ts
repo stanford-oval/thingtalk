@@ -201,9 +201,10 @@ export class DatePiece {
     month : number|null;
     day : number|null;
     time : AbsoluteTime|null;
+    future : boolean;
 
-    constructor(year : number|null, month : number|null, day : number|null, time : AbsoluteTime|null) {
-        assert((year !== null && year >= 0) || (month !== null && month > 0) || (day !== null && day > 0));
+    constructor(year : number|null, month : number|null, day : number|null, time : AbsoluteTime|null, future ?: boolean) {
+        assert((year !== null && year >= 0) || (month !== null && month > 0) || (day !== null && day > 0) || (time !== null));
         assert(year === null || month === null || day === null);
         this.year = year;
         if (year !== null && year >= 0 && year < 100) { // then assume 1950-2050
@@ -215,6 +216,7 @@ export class DatePiece {
         this.month = month;
         this.day = day;
         this.time = time;
+        this.future = future ? future : false;
     }
 
     toSource() : TokenStream {
@@ -240,7 +242,8 @@ export class DatePiece {
             return false;
         if (!(this.year === other.year
             && this.month === other.month
-            && this.day === other.day))
+            && this.day === other.day
+            && this.future === other.future))
             return false;
 
         if (this.time === other.time)
@@ -248,6 +251,7 @@ export class DatePiece {
 
         if (this.time && other.time)
             return this.time.equals(other.time);
+
         return false;
     }
 }

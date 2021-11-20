@@ -208,7 +208,7 @@ function parseIncompleteDate($ : $runtime.ParserInterface<ParserOptions>,
         return $.error(`Too many values in Date constructor`);
     if (parts.length === 4) // 4 would be year month day hour without minute or second, which is not allowed
         return $.error(`Wrong number of values in Date constructor (must be 1, 2, 3, 5, or 6)`);
-    if (parts.length === 0 || parts.every((p) => p === null))
+    if (parts.length === 0 || (!time && parts.every((p) => p === null)))
         return $.error(`Not enough values in Date constructor`);
 
     if (parts[0] !== null) {

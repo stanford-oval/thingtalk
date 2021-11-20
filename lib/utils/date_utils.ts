@@ -71,11 +71,67 @@ function createEdgeDate(edge : ('start_of'|'end_of'), unit : string, timezone : 
     return new Date(date.epochMilliseconds);
 }
 
-function createDatePiece(year : number|null, month : number|null, day : number|null, time : AbsoluteTime|null, timezone : string) : Date {
+function getTimeMs(hour : number, minute : number, second : number) {
+    const hourMs = hour * 1000 * 60 * 60;
+    const minMs = minute * 1000 * 60;
+    const secMs = second * 1000;
+    return hourMs + minMs + secMs;
+}
+
+function createDatePiece(year : number|null, month : number|null, day : number|null, time : AbsoluteTime|null, timezone: string, future ?: boolean) : Date {
+    let date = Temporal.Now.zonedDateTimeISO(timezone);
+    //Get the next instance of the supplied values
+    //Use the last blank value to get the next instance
+    if (future) {
+        if (day === null) {
+            if (time !== null) {
+                const curTime = getTimeMs(date.hour, date.minute, date.second);
+                const timeMs = getTimeMs(time.hour, time.minute, time.second);
+                //if the desired time is in the past for this day, get tomorrow
+                if (curTime > timeMs) {
+                    date.withPlainDate({
+                        year: date.year,
+                        month: date.month,
+                        day: date.day + 1
+                    });
+                }
+            }
+        } else if (month === null) {
+            //the desired day is in the past for this month, get the next month
+            if (date.day > day) { 
+                date.withPlainDate({
+                    year: date.year,
+                    month: date.month + 1,
+                    day
+                });
+            }
+        } else if (year === null) {
+            //the desired month is in the past for this year, get the next year
+            if (date.month > month) {
+                date.withPlainDate({
+                    year: date.year + 1,
+                    month,
+                    day
+                });
+            }
+        }
+
+        if (time !== null) {
+            date.withPlainTime(time);
+        } else {
+            date.withPlainTime({
+                hour: 0,
+                minute: 0,
+                second: 0
+            });
+        }
+        
+        return new Date(date.epochMilliseconds);
+    }
+
     // All non-supplied values to the left of the largest supplied
     // value are set to the present. All non-supplied values to the
     // right of the largest supplied value are set to the minimum.
-    let date = Temporal.Now.zonedDateTimeISO(timezone);
     if (year !== null && year > 0) {
         date = date.withPlainDate({
             // 1st of Jan
@@ -156,7 +212,7 @@ export function normalizeDate(value : Date|WeekDayDate|DateEdge|DatePiece|null, 
     else if (value instanceof WeekDayDate)
         return createWeekDayDate(value.weekday, value.time, timezone);
     else if (value instanceof DatePiece)
-        return createDatePiece(value.year, value.month, value.day, value.time, timezone);
+        return createDatePiece(value.year, value.month, value.day, value.time, timezone, value.future);
     else
         return createEdgeDate(value.edge, value.unit, timezone);
 }

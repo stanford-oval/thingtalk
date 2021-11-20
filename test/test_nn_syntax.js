@@ -603,6 +603,10 @@ const TEST_CASES = [
      `get sunrise sunset on the 10 th at TIME_0`, { TIME_0: { hour: 5, minute: 0 } },
      `@org.thingpedia.weather.sunrise(date=new Date(, , 10, new Time(5, 0)));`],
 
+    [`@org.thingpedia.weather . sunrise ( date = new Date ( , , , TIME_0 ) ) ;`,
+    `get sunrise sunset at TIME_0`, { TIME_0: { hour: 5, minute: 0 } },
+    `@org.thingpedia.weather.sunrise(date=new Date(, , , new Time(5, 0)));`],
+
     [`@org.thingpedia.weather . sunrise ( date = new Date ( NUMBER_0 , 3 ) ) ;`,
      `get sunrise sunset on March, NUMBER_0`, { NUMBER_0: 2020 },
      `@org.thingpedia.weather.sunrise(date=new Date("2020-03-01T08:00:00.000Z"));`],
