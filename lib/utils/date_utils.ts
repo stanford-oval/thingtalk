@@ -78,7 +78,7 @@ function getTimeMs(hour : number, minute : number, second : number) {
     return hourMs + minMs + secMs;
 }
 
-function createDatePiece(year : number|null, month : number|null, day : number|null, time : AbsoluteTime|null, timezone: string, future ?: boolean) : Date {
+function createDatePiece(year : number|null, month : number|null, day : number|null, time : AbsoluteTime|null, timezone : string, future ?: boolean) : Date {
     let date = Temporal.Now.zonedDateTimeISO(timezone);
     //Get the next instance of the supplied values
     //Use the last blank value to get the next instance
