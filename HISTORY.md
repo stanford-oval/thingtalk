@@ -1,3 +1,11 @@
+2.1.0
+=====
+
+* Updated dependencies [#400, #401, #402].
+
+Please see the previous releases for the full list of changes in
+ThingTalk 2.1.
+
 2.1.0-alpha.11
 ==============
 
