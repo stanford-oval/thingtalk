@@ -782,7 +782,8 @@ export class FunctionDef extends Node {
                 yield this._argmap[arg];
             }
         }
-        if (this.extends.length > 0) {
+        const inheritArguments = this.getImplementationAnnotation<boolean>('inherit_arguments');
+        if (this.extends.length > 0 && inheritArguments !== false) {
             if (!this.class)
                 throw new Error(`Class information missing from the function definition.`);
             for (const fname of this.extends) {
