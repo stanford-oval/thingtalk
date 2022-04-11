@@ -2086,3 +2086,8 @@ $dialogue @org.thingpedia.dialogue.transaction.execute;
 #[results=[
   { first.id="..."^^org.wikidata:city, second.id="..."^^org.wikidata:city }
 ]];
+
+====
+
+// projection with type constraint
+[shares_border_with : Entity(org.wikidata:city), twinned_administrative_body] of @org.wikidata.city();

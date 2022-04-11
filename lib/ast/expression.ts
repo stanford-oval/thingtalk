@@ -610,6 +610,46 @@ export class ProjectionExpression extends Expression {
     }
 }
 
+export class ProjectionExpressionWithTypeConstraint extends ProjectionExpression {
+    types : Array<Type|null>;
+
+    constructor(location : SourceRange|null,
+                expression : Expression,
+                args : string[],
+                types : Array<Type|null>,
+                computations : Value[],
+                aliases : Array<string|null>,
+                schema : FunctionDef|null) {
+        super(location, expression, args, computations, aliases, schema);
+        this.types = types;
+    }
+
+    toSource() : TokenStream {
+        const allprojections : TokenStream[] = [];
+        for (let i = 0; i < this.args.length; i++) {
+            const arg = this.args[i];
+            const type = this.types[i];
+            const projection = List.join(arg.split('.').map((n) => List.singleton(n)), '.');
+            if (type) 
+                allprojections.push(List.concat(projection, ':', type.toSource()));
+            else    
+                allprojections.push(projection);
+        }
+        this.args.map((a) => List.join(a.split('.').map((n) => List.singleton(n)), '.'));
+        for (let i = 0; i < this.computations.length; i++) {
+            const value = this.computations[i];
+            const alias = this.aliases[i];
+            if (alias)
+                allprojections.push(List.concat(value.toSource(), 'as', alias));
+            else
+                allprojections.push(value.toSource());
+        }
+
+        return List.concat('[', List.join(allprojections, ','), ']', 'of',
+            addParenthesis(this.priority, this.expression.priority, this.expression.toSource()));
+    }
+}
+
 export class AliasExpression extends Expression {
     expression : Expression;
     name : string;
