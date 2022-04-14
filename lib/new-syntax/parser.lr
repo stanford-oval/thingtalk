@@ -1178,6 +1178,25 @@ comparison_filter : Ast.BooleanExpression = {
 
     lhs:filter_lhs_add_expr op:comparison_op 'any' '(' rhs:projection_expression ')' =>
         new Ast.BooleanExpression.ComparisonSubquery($.location, lhs, op, rhs);
+
+    lhs:property_path op:comparison_op rhs:add_expr => 
+        new Ast.BooleanExpression.PropertyPath($.location, lhs, op, rhs);
+}
+
+property_path : Ast.PropertyPathSequence = {
+    property_path_sequence;
+}
+
+property_path_sequence : Ast.PropertyPathSequence = {
+    p:open_property_path_sequence '>' => p;
+}
+
+open_property_path_sequence : Ast.PropertyPathSequence = {
+    '<' v:var_ref_value => [new Ast.PropertyPathElement(v.name)];
+    '<' v:var_ref_value '+' => [new Ast.PropertyPathElement(v.name, true)];
+
+    p:open_property_path_sequence '/' v:var_ref_value => p.concat(new Ast.PropertyPathElement(v.name));
+    p:open_property_path_sequence '/' v:var_ref_value '+' => p.concat(new Ast.PropertyPathElement(v.name, true));
 }
 
 non_ambiguous_unary_filter : Ast.BooleanExpression = {
@@ -1289,6 +1308,9 @@ atom_filter : Ast.BooleanExpression = {
         else
             return new Ast.BooleanExpression.Compute($.location, lhs, op, rhs);
     };
+
+    op:function_like_comparison_op '(' lhs:property_path ',' rhs:value ')' => 
+        new Ast.BooleanExpression.PropertyPath($.location, lhs, op, rhs);
 
     op:function_like_comparison_op '(' lhs:value ',' 'any' '(' rhs:projection_expression ')' ')' =>
         new Ast.BooleanExpression.ComparisonSubquery($.location, lhs, op, rhs);

@@ -276,7 +276,10 @@ export default abstract class NodeVisitor {
     visitExistentialSubqueryBooleanExpression(node : BE.ExistentialSubqueryBooleanExpression) : boolean {
         return true;
     }
-
+    /* istanbul ignore next */
+    visitPropertyPathBooleanExpression(node : BE.PropertyPathBooleanExpression) : boolean {
+        return true;
+    }
 
 
     // streams, tables, actions

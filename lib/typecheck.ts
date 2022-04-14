@@ -536,6 +536,10 @@ export default class TypeChecker {
             await this._typeCheckFilterHelper(ast.filter, ast.schema, scope);
             return;
         }
+        if (ast instanceof Ast.PropertyPathBooleanExpression) {
+            // TODO: typecheck proeprty path boolean expresion
+            return;
+        }
 
         assert(ast instanceof Ast.ExistentialSubqueryBooleanExpression);
         await this._typeCheckSubquery(ast.subquery, scope);

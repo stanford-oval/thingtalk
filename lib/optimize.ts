@@ -214,6 +214,8 @@ function optimizeFilter(expr : Ast.BooleanExpression) : Ast.BooleanExpression {
     }
     if (expr instanceof Ast.ComparisonSubqueryBooleanExpression)
         return new Ast.BooleanExpression.ComparisonSubquery(null, expr.lhs, expr.operator, optimizeExpression(expr.rhs));
+    if (expr instanceof Ast.PropertyPathBooleanExpression)
+        return expr;
 
     assert(expr instanceof Ast.AtomBooleanExpression);
 

@@ -2091,3 +2091,15 @@ $dialogue @org.thingpedia.dialogue.transaction.execute;
 
 // projection with type constraint
 [shares_border_with : Entity(org.wikidata:city), twinned_administrative_body] of @org.wikidata.city();
+
+====
+
+// property path filter: one or more
+@org.wikidata.geographic_entity() filter < located_in_the_administrative_territorial_entity + > == null^^org.wikidata:administrative_territorial_entity("xx");
+
+====
+
+// property path filter: sequence
+@org.wikidata.human() filter < place_of_birth / located_in_the_administrative_territorial_entity + > == null^^org.wikidata:administrative_territorial_entity("xx");
+
+

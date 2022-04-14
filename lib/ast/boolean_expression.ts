@@ -91,6 +91,8 @@ export abstract class BooleanExpression extends Node {
     isCompute ! : boolean;
     static DontCare : any;
     isDontCare ! : boolean;
+    static PropertyPath : any;
+    isPropertyPath ! : boolean;
 
     optimize() : BooleanExpression {
         return Optimizer.optimizeFilter(this);
@@ -129,6 +131,7 @@ BooleanExpression.prototype.isTrue = false;
 BooleanExpression.prototype.isFalse = false;
 BooleanExpression.prototype.isCompute = false;
 BooleanExpression.prototype.isDontCare = false;
+BooleanExpression.prototype.isPropertyPath = false;
 
 /**
  * A conjunction boolean expression (ThingTalk operator `&&`)
@@ -1032,3 +1035,146 @@ export class ComputeBooleanExpression extends BooleanExpression {
 }
 BooleanExpression.Compute = ComputeBooleanExpression;
 BooleanExpression.Compute.prototype.isCompute = true;
+
+
+export class PropertyPathElement extends Node {
+    property : string;
+    one_or_more : boolean;
+
+    constructor(property : string, one_or_more = false) {
+        super();
+        this.property = property;
+        this.one_or_more = one_or_more;
+    }
+    
+    equals(other : PropertyPathElement) {
+        return this.property === other.property && this.one_or_more === other.one_or_more;
+    }
+
+    clone() : PropertyPathElement {
+        return new PropertyPathElement(this.property, this.one_or_more);
+    }
+
+    toSource() : TokenStream {
+        return this.one_or_more ? List.concat(this.property, '+') : List.singleton(this.property);
+    }
+
+    toString() {
+        return this.one_or_more ? this.property + '+' : this.property;
+    }
+
+    visit(visitor : NodeVisitor) : void {
+        visitor.enter(this);
+        visitor.visitPropertyPathElement(this);
+        visitor.exit(this);
+    }
+}
+
+export type PropertyPathSequence = PropertyPathElement[];
+
+/**
+ * A boolean expression with SPARQL-style property path
+ * this is only meaningful for knowledge graph such as wikidata 
+ */
+export class PropertyPathBooleanExpression extends BooleanExpression {
+    /**
+     * The parameter name to compare.
+     */
+    path : PropertyPathSequence;
+    /**
+     * The comparison operator.
+     */
+    operator : string;
+    /**
+      * The value being compared against.
+      */
+    value : Value;
+    overload : Type[]|null;
+
+    /**
+     * Construct a new atom boolean expression.
+     *
+     * @param location - the position of this node in the source code
+     * @param path - the property path to compare
+     * @param operator - the comparison operator
+     * @param value - the value being compared against
+     */
+    constructor(location : SourceRange|null,
+                path : PropertyPathSequence,
+                operator : string,
+                value : Value,
+                overload : Type[]|null) {
+        super(location);
+
+        this.path = path;
+
+        assert(typeof operator === 'string');
+        this.operator = operator;
+
+        assert(value instanceof Value);
+        this.value = value;
+
+        this.overload = overload;
+    }
+
+    get priority() : SyntaxPriority {
+        return INFIX_COMPARISON_OPERATORS.has(this.operator) ? SyntaxPriority.Comp : SyntaxPriority.Primary;
+    }
+
+    toSource() : TokenStream {
+        const path = List.join(this.path.map((elem) => elem.toSource()), '/');
+
+        if (INFIX_COMPARISON_OPERATORS.has(this.operator)) {
+            return List.concat('<', path, '>', this.operator,
+                addParenthesis(SyntaxPriority.Add, this.value.priority, this.value.toSource()));
+        } else {
+            return List.concat(this.operator, '(', '<', path, '>' , ',', this.value.toSource(), ')');
+        }
+    }
+
+    toLegacy() : BooleanExpression {
+        throw new UnserializableError('Property path boolean expression');
+    }
+
+    equals(other : BooleanExpression) : boolean {
+        return other instanceof PropertyPathBooleanExpression &&
+            arrayEquals(this.path, other.path) &&
+            this.operator === other.operator &&
+            this.value.equals(other.value);
+    }
+
+    visit(visitor : NodeVisitor) : void {
+        visitor.enter(this);
+        if (visitor.visitPropertyPathBooleanExpression(this))
+            this.value.visit(visitor);
+        visitor.exit(this);
+    }
+
+    clone() : PropertyPathBooleanExpression {
+        return new PropertyPathBooleanExpression(
+            this.location,
+            this.path.map((elem) => elem.clone()),
+            this.operator,
+            this.value.clone(),
+            this.overload
+        );
+    }
+
+    toString() : string {
+        return `PropertyPath(${this.path.map((elem) => elem.toString()).join('/')}, ${this.operator}, ${this.value})`;
+    }
+
+    *iterateSlots(schema : FunctionDef|null,
+                  prim : InvocationLike|null,
+                  scope : ScopeMap) : Generator<OldSlot, void> {
+        // TODO
+    }
+
+    *iterateSlots2(schema : FunctionDef|null,
+                   prim : InvocationLike|null,
+                   scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, void> {
+        // TODO
+    }
+}
+BooleanExpression.PropertyPath = PropertyPathBooleanExpression;
+BooleanExpression.PropertyPath.prototype.ifPropertyPath = true;
