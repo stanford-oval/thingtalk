@@ -207,16 +207,13 @@ export function prettyprint(tokens : TokenStream) : string {
 
         // add a space before and after certain operators
         case ':':
-        case '+':
         case '-':
-        case '/':
+        case '+':
         case '%':
         case '**':
         case '==':
         case '>=':
         case '<=':
-        case '>':
-        case '<':
         case '=~':
         case '~=':
         case '||':
@@ -224,6 +221,23 @@ export function prettyprint(tokens : TokenStream) : string {
         case '::':
         case '=>':
             buffer += ' ' + token + ' ';
+            break;
+        
+        // slash can also be used for property path sequence
+        case '/':
+            if (!buffer.endsWith(' '))
+                buffer += ' ';
+            buffer += token + ' ';
+            break;
+    
+        // we do not use < or > for comparison, this is only for property path
+        case '<':
+            buffer += token + ' ';
+            break;
+        case '>':
+            if (!buffer.endsWith(' '))
+                buffer += ' ';
+            buffer += token;
             break;
 
         // add a space after the comma and certain keywords,

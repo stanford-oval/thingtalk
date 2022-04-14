@@ -1924,7 +1924,9 @@ class @org.wikidata
   list query geographic_entity(out id: Entity(org.wikidata:geographic_entity),
                                out located_in_the_administrative_territorial_entity: Entity(org.wikidata:administrative_territorial_entity));
   list query administrative_territorial_entity(out id: Entity(org.wikidata:administrative_territorial_entity),
-                                               out located_in_the_administrative_territorial_entity: Entity(org.wikidata:administrative_territorial_entity));
+                                               out located_in_the_administrative_territorial_entity: Entity(org.wikidata:administrative_territorial_entity),
+                                               out population: Number,
+                                               out twinned_administrative_body : Array(Entity(org.wikidata:administrative_territorial_entity)));
 
   list query city(out id: Entity(org.wikidata:city)
                   #_[canonical={

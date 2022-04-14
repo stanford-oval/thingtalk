@@ -107,6 +107,9 @@ const TEST_CASES = [
 `dataset @foo {
   action (p : Enum(on, off)) = @light-bulb.set_power(power=p);
 }`,
+
+// 
+`@org.wikidata.human() filter < place_of_birth / located_in_the_administrative_territorial_entity + > == null^^org.wikidata:administrative_territorial_entity("xx");`
 ];
 
 export default function main() {

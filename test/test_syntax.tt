@@ -2099,7 +2099,19 @@ $dialogue @org.thingpedia.dialogue.transaction.execute;
 
 ====
 
-// property path filter: sequence
+// property path filter: sequence 
+@org.wikidata.human() filter < place_of_birth / located_in_the_administrative_territorial_entity > == null^^org.wikidata:administrative_territorial_entity("xx");
+
+====
+
+// property path filter: sequence with one or more
 @org.wikidata.human() filter < place_of_birth / located_in_the_administrative_territorial_entity + > == null^^org.wikidata:administrative_territorial_entity("xx");
 
+====
 
+// property path filter: sequence with one or more
+@org.wikidata.human() filter < located_in_the_administrative_territorial_entity + / population > >= 1000000;
+
+==== 
+
+@org.wikidata.city() filter contains( < twinned_administrative_body + >,  null^^org.wikidata:administrative_territorial_entity("yy"));
