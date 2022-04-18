@@ -161,6 +161,10 @@ abstract class Type {
     abstract hash() : number;
     abstract equals(other : Type) : boolean;
 
+    clone() : Type {
+        return this;
+    }
+
     static resolve(type : Type|string, typeScope : Type.TypeScope) : Type {
         if (typeof type === 'string')
             return Type.resolve(typeScope[type], typeScope);
@@ -300,6 +304,7 @@ class PrimitiveType extends Type {
     toString() {
         return this.name;
     }
+
     toSource() : TokenStream {
         return List.singleton(this.name);
     }
@@ -307,6 +312,11 @@ class PrimitiveType extends Type {
     hash() {
         return this._hash;
     }
+
+    clone() : PrimitiveType {
+        return new PrimitiveType(this.name);
+    }
+
     equals(other : Type) : boolean {
         // primitive types are singletons
         return this === other;
@@ -344,6 +354,10 @@ export class Entity extends Type {
         return ENTITY_HASH ^ stringHash(this.type);
     }
 
+    clone() : Entity {
+        return new Entity(this.type);
+    }
+
     equals(other : Type) : boolean {
         return other instanceof Entity && this.type === other.type;
     }
@@ -371,6 +385,10 @@ export class Measure extends Type {
 
     hash() : number {
         return MEASURE_HASH ^ stringHash(this.unit);
+    }
+
+    clone() : Measure {
+        return new Measure(this.unit);
     }
 
     equals(other : Type) : boolean {
@@ -406,6 +424,10 @@ export class Enum extends Type {
         return hash;
     }
 
+    clone() : Enum {
+        return new Enum(this.entries);
+    }
+
     equals(other : Type) : boolean {
         return other instanceof Enum && arrayEquals(this.entries, other.entries);
     }
@@ -432,6 +454,10 @@ export class Array extends Type {
         return ARRAY_HASH ^
             (typeof this.elem === 'string' ? stringHash(this.elem) :
                 this.elem.hash());
+    }
+
+    clone() {
+        return new Array(typeof this.elem === 'string' ? this.elem : this.elem.clone());
     }
 
     equals(other : Type) : boolean {
@@ -492,6 +518,13 @@ export class Compound extends Type {
         return this._hash = hash;
     }
 
+    clone() : Compound {
+        const fields : FieldMap = {};
+        for (const [field, argDef] of Object.entries(this.fields)) 
+            fields[field] = argDef.clone();
+        return new Compound(this.name, fields);
+    }
+
     equals(other : Type) : boolean {
         if (!(other instanceof Compound))
             return false;
@@ -528,6 +561,10 @@ export class Unknown extends Type {
 
     hash() : number {
         return stringHash(this.name);
+    }
+
+    clone() : Unknown {
+        return new Unknown(this.name);
     }
 
     equals(other : Type) : boolean {
