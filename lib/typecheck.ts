@@ -788,6 +788,60 @@ export default class TypeChecker {
         return clone;
     }
 
+    private _resolveNewProjection2(ast : Ast.ProjectionExpression2,
+                                   scope : Scope) {
+        const schema = ast.expression.schema;
+        assert(schema);
+        if (ast.projections.length === 0)
+            throw new TypeError(`Invalid empty projection`);
+
+        let clone = schema;
+        if (ast.projections[0].value !== '*') {
+            const argset = new Set(ast.projections
+                .filter((proj) => typeof proj.value === 'string')
+                .map((proj) => proj.value as string)
+            );
+            for (const argname of schema.minimal_projection||[])
+                argset.add(argname);
+            for (const argname of argset) {
+                const arg = schema.getArgument(argname);
+                if (!arg || arg.is_input)
+                    throw new TypeError('Invalid field name ' + argname);
+            }
+            for (const arg of schema.iterateArguments()) {
+                if (!arg.is_input && !argset.has(arg.name))
+                    scope.remove(arg.name);
+            }
+            clone = schema.filterArguments((a : Ast.ArgumentDef) => a.is_input || argset.has(a.name));
+        }
+
+        const newArgs = [];
+        for (const projection of ast.projections) {
+            if (projection.value instanceof Ast.Value) {
+                const comp = projection.value;
+                const name = projection.alias || Utils.getScalarExpressionName(comp);
+                const type = projection.types.length ? projection.types[0] : comp.getType();
+
+                scope.add(name, type);
+                newArgs.push(new Ast.ArgumentDef(schema.location,
+                    Ast.ArgDirection.OUT, name, type));
+            } else if (Array.isArray(projection.value)) {
+                // TODO: typecheck property path properly by checking joined tables
+                // TODO: handle multiple types (introducing union type)
+                const name = projection.alias || Utils.getPropertyPathName(projection.value);
+                const type = projection.types.length ? projection.types[0] : Type.Any;
+                scope.add(name, type);
+                newArgs.push(new Ast.ArgumentDef(schema.location, 
+                    Ast.ArgDirection.OUT, name, type));
+            }
+        }
+
+        clone = clone.addArguments(newArgs);
+        clone.default_projection = [];
+        assert(Array.isArray(clone.minimal_projection));
+        return clone;
+    }
+
     private _resolveChain(ast : Ast.ChainExpression) : Ast.FunctionDef {
         // the schema of a chain is just the schema of the last function in
         // the chain, nothing special about it - no joins, no merging, no
@@ -894,6 +948,14 @@ export default class TypeChecker {
             for (const compute of ast.computations)
                 await this._typeCheckValue(compute, scope);
             ast.schema = this._resolveNewProjection(ast, scope);
+        } else if (ast instanceof Ast.ProjectionExpression2) {
+            await this._typeCheckExpression(ast.expression, scope);
+            this._checkExpressionType(ast.expression, ['query', 'stream'], 'projection');
+            for (const projection of ast.projections) {
+                if (projection.value instanceof Ast.Value)
+                    await this._typeCheckValue(projection.value, scope);
+            }
+            ast.schema = this._resolveNewProjection2(ast, scope);
         } else if (ast instanceof Ast.BooleanQuestionExpression) {
             await this._typeCheckExpression(ast.expression, scope);
             this._checkExpressionType(ast.expression, ['query', 'stream'], 'boolean question');

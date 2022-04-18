@@ -82,6 +82,10 @@ export function getScalarExpressionName(ast : Ast.Value) : string {
         return 'result';
 }
 
+export function getPropertyPathName(sequence : Ast.PropertyPathSequence) : string {
+    return sequence.map((elem) => elem.toString()).join('/');
+}
+
 export async function getSchemaForSelector(schemaRetriever : SchemaRetriever,
                                            kind : string,
                                            name : string,
