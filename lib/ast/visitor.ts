@@ -277,6 +277,10 @@ export default abstract class NodeVisitor {
         return true;
     }
     /* istanbul ignore next */
+    visitPropertyPathElement(node : BE.PropertyPathElement) : boolean {
+        return true;
+    }
+    /* istanbul ignore next */
     visitPropertyPathBooleanExpression(node : BE.PropertyPathBooleanExpression) : boolean {
         return true;
     }
@@ -419,6 +423,14 @@ export default abstract class NodeVisitor {
     }
     /* istanbul ignore next */
     visitProjectionExpression(node : Exp2.ProjectionExpression) : boolean {
+        return true;
+    }
+    /* istanbul ignore next */
+    visitProjectionElement(node : Exp2.ProjectionElement) : boolean {
+        return true;
+    }
+    /* istanbul ignore next */
+    visitProjectionExpression2(node : Exp2.ProjectionExpression2) : boolean {
         return true;
     }
     /* istanbul ignore next */

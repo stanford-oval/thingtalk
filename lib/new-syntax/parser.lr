@@ -955,35 +955,46 @@ projection_expression : Ast.Expression = {
         return new Ast.BooleanQuestionExpression($.location, expr, boolean_expression, null);
     };
 
-    '[' args:projection_param_list ']' 'of' expr:projection_expression => {
+    '[' projs:projection_param_list ']' 'of' expr:projection_expression => {
+        // if any of the projections has type constraint or uses property path, 
+        // use the new projection expression ast
+        if (projs.some((proj) => proj[2] || Array.isArray(proj[0]))) {
+            const projections : Ast.ProjectionElement[] = [];
+            for (const [proj, alias, type] of projs) {
+                projections.push(new Ast.ProjectionElement(
+                    proj instanceof Ast.VarRefValue ? proj.name : proj,
+                    alias,
+                    type ? [type] : []
+                ))
+            }
+            return new Ast.ProjectionExpression2($.location, expr, projections, null);
+        }
+
         const names : string[] = [], computations : Ast.Value[] = [],
-            aliases : Array<string|null> = [], types : Array<Type|null> = [];
-        for (const [value, alias, type] of args) {
+            aliases : Array<string|null> = [];
+        for (const [value, alias, ] of projs) {
             if (value instanceof Ast.VarRefValue &&
                 (alias === null || alias === value.name)) {
                 names.push(value.name);
-                types.push(type);
             } else {
-                computations.push(value);
+                computations.push(value as Ast.Value);
                 aliases.push(alias);
             }
         }
-        if (types.some((t) => t !== null))
-            return new Ast.ProjectionExpressionWithTypeConstraint($.location, expr, names, types, computations, aliases, null);
         return new Ast.ProjectionExpression($.location, expr, names, computations, aliases, null);
     };
 }
 
-projection_param_list : Array<[Ast.Value, string|null, Type|null]> = {
+projection_param_list : Array<[Ast.Value|Ast.PropertyPathSequence, string|null, Type|null]> = {
     '*' => [[new Ast.VarRefValue('*'), null, null]];
     '*' ',' list:projection_nonstar_param_list => {
-        const arr : Array<[Ast.Value, string|null, Type|null]> = [[new Ast.VarRefValue('*'), null, null]];
+        const arr : Array<[Ast.Value|Ast.PropertyPathSequence, string|null, Type|null]> = [[new Ast.VarRefValue('*'), null, null]];
         return arr.concat(list);
     };
     projection_nonstar_param_list;
 }
 
-projection_nonstar_param_list : Array<[Ast.Value, string|null, Type|null]> = {
+projection_nonstar_param_list : Array<[Ast.Value|Ast.PropertyPathSequence, string|null, Type|null]> = {
     p:projection_param => [p];
 
     list:projection_nonstar_param_list ',' p:projection_param => {
@@ -992,18 +1003,26 @@ projection_nonstar_param_list : Array<[Ast.Value, string|null, Type|null]> = {
     };
 }
 
-projection_param : [Ast.Value, string|null, Type|null] = {
+projection_param : [Ast.Value|Ast.PropertyPathSequence, string|null, Type|null] = {
     v:filter_lhs_filter_value => [v, null, null];
 
     v:filter_lhs_filter_value 'as' alias:variable_name => [v, alias, null];
 
+    p:property_path => [p, null, null];
+
+    p:property_path 'as' alias:variable_name => [p, alias, null];
+
     projection_param_with_type;
 }
 
-projection_param_with_type : [Ast.Value, string|null, Type|null] = {
+projection_param_with_type : [Ast.Value|Ast.PropertyPathSequence, string|null, Type|null] = {
     v:filter_lhs_filter_value ':' type:type_ref => [v, null, type];
 
     v:filter_lhs_filter_value ':' type:type_ref 'as' alias:variable_name => [v, alias, type];
+
+    p:property_path ':' type:type_ref => [p, null, type];
+
+    p:property_path ':' type:type_ref 'as' alias:variable_name => [p, alias, type];
 }
 
 filter_expression : Ast.Expression = {

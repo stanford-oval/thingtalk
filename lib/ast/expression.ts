@@ -27,7 +27,10 @@ import {
     DeviceSelector,
     InputParam,
 } from './invocation';
-import { BooleanExpression } from './boolean_expression';
+import { 
+    BooleanExpression, 
+    PropertyPathSequence 
+} from './boolean_expression';
 import * as legacy from './legacy';
 import {
     Value,
@@ -610,43 +613,168 @@ export class ProjectionExpression extends Expression {
     }
 }
 
-export class ProjectionExpressionWithTypeConstraint extends ProjectionExpression {
-    types : Array<Type|null>;
 
-    constructor(location : SourceRange|null,
-                expression : Expression,
-                args : string[],
-                types : Array<Type|null>,
-                computations : Value[],
-                aliases : Array<string|null>,
-                schema : FunctionDef|null) {
-        super(location, expression, args, computations, aliases, schema);
+export class ProjectionElement extends Node {
+    value : string | Value | PropertyPathSequence;
+    alias : string|null;
+    types : Type[];
+
+    constructor(value : string | Value | PropertyPathSequence,
+                alias : string | null, 
+                types : Type[]) {
+        super();
+        this.value = value;
+        this.alias = alias;
         this.types = types;
     }
 
-    toSource() : TokenStream {
-        const allprojections : TokenStream[] = [];
-        for (let i = 0; i < this.args.length; i++) {
-            const arg = this.args[i];
-            const type = this.types[i];
-            const projection = List.join(arg.split('.').map((n) => List.singleton(n)), '.');
-            if (type) 
-                allprojections.push(List.concat(projection, ':', type.toSource()));
-            else    
-                allprojections.push(projection);
-        }
-        this.args.map((a) => List.join(a.split('.').map((n) => List.singleton(n)), '.'));
-        for (let i = 0; i < this.computations.length; i++) {
-            const value = this.computations[i];
-            const alias = this.aliases[i];
-            if (alias)
-                allprojections.push(List.concat(value.toSource(), 'as', alias));
-            else
-                allprojections.push(value.toSource());
-        }
+    clone() : ProjectionElement {
+        let value;
+        if (typeof this.value === 'string')
+            value = this.value;
+        else if (this.value instanceof Value)
+            value = this.value.clone();
+        else 
+            value = this.value.map((v) => v.clone());
+        return new ProjectionElement(value, this.alias, this.types.map((t) => t.clone()));
+    }
 
+    toSource() : TokenStream {
+        let tokens : TokenStream;
+        if (typeof this.value === 'string') 
+            tokens = List.join(this.value.split('.').map((v) => List.singleton(v)), '.');
+        else if (this.value instanceof Value) 
+            tokens = this.value.toSource();
+        else 
+            tokens = List.concat('<', List.join(this.value.map((e) => e.toSource()), '/'), '>');
+        
+        if (this.types.length > 0)
+            tokens = List.concat(tokens, ':', List.join(this.types.map((t) => t.toSource()), '|'));
+        if (this.alias)
+            tokens = List.concat(tokens, 'as', this.alias);
+        return tokens;
+    }
+
+    equals(other : ProjectionElement) : boolean {
+        if (this.alias !== other.alias || !arrayEquals(this.types, other.types))
+            return false;
+        if (typeof this.value === 'string' && typeof other.value === 'string')
+            return this.value === other.value;
+        if (this.value instanceof Value && other.value instanceof Value)
+            return this.value.equals(other.value);
+        if (Array.isArray(this.value) && Array.isArray(other.value))
+            return arrayEquals(this.value, other.value);
+        return false;
+    }
+
+    visit(visitor : NodeVisitor) : void {
+        visitor.enter(this);
+        visitor.visitProjectionElement(this);
+        visitor.exit(this);
+    }
+}
+
+export class ProjectionExpression2 extends Expression {
+    expression : Expression;
+    projections : ProjectionElement[];
+
+    constructor(location : SourceRange|null,
+                expression : Expression,
+                projections : ProjectionElement[],
+                schema : FunctionDef|null) {
+        super(location, schema);
+        this.expression = expression;
+        this.projections = projections;
+    }
+
+    get priority() : SyntaxPriority {
+        return SyntaxPriority.Projection;
+    }
+
+    toSource() : TokenStream {
+        const allprojections = this.projections.map((p) => p.toSource());
         return List.concat('[', List.join(allprojections, ','), ']', 'of',
             addParenthesis(this.priority, this.expression.priority, this.expression.toSource()));
+    }
+
+    equals(other : Expression) : boolean {
+        return other instanceof ProjectionExpression2 &&
+            this.expression.equals(other.expression) &&
+            arrayEquals(this.projections, other.projections);
+    }
+
+    toLegacy(into_params : InputParam[] = [], scope_params : string[] = []) : legacy.Table|legacy.Stream {
+        const schema = this.schema!;
+        assert(schema.functionType !== 'action');
+        if (this.projections.some((proj) => proj.types.length > 0))
+            throw new UnserializableError('Projection with type constraint');
+        if (this.projections.some((proj) => Array.isArray(proj.value)))
+            throw new UnserializableError('Projection with property path');
+
+        const inner = this.expression.toLegacy(into_params, scope_params);
+        const names = [];
+        if (schema.functionType === 'query') {
+            let table = inner as legacy.Table;
+            for (let i = 0; i < this.projections.length; i++) {
+                const projection = this.projections[i];
+                if (typeof projection.value === 'string') {
+                    names.push(projection.value);
+                } else {
+                    table = new legacy.ComputeTable(this.location, table, projection.value as Value, projection.alias, table.schema);
+                    names.push(projection.alias || getScalarExpressionName(projection.value as Value));
+                }
+            }
+            return new legacy.ProjectionTable(this.location, table, names, this.schema);
+        } else {
+            let stream = inner as legacy.Stream;
+            for (let i = 0; i < this.projections.length; i++) {
+                const projection = this.projections[i];
+                if (typeof projection.value === 'string') {
+                    names.push(projection.value);
+                } else {
+                    stream = new legacy.ComputeStream(this.location, stream, projection.value as Value, projection.alias, stream.schema);
+                    names.push(projection.alias || getScalarExpressionName(projection.value as Value));
+                }
+            }
+            return new legacy.ProjectionStream(this.location, stream, names, this.schema);
+        }
+    }
+
+    visit(visitor : NodeVisitor) : void {
+        visitor.enter(this);
+        if (visitor.visitProjectionExpression2(this))
+            this.expression.visit(visitor);
+        visitor.exit(this);
+    }
+
+    clone() : ProjectionExpression2 {
+        return new ProjectionExpression2(
+            this.location,
+            this.expression.clone(),
+            this.projections.map((proj) => proj.clone()),
+            this.schema ? this.schema.clone() : null
+        );
+    }
+
+    *iterateSlots(scope : ScopeMap) : Generator<OldSlot, [InvocationLike|null, ScopeMap]> {
+        const [prim, nestedScope] = yield* this.expression.iterateSlots(scope);
+        const newScope : ScopeMap = {};
+        const args = this.projections.filter((proj) => typeof proj.value === 'string').map((proj) => proj.value) as string[];
+        for (const name of args)
+            newScope[name] = nestedScope[name];
+        return [prim, newScope];
+    }
+
+    *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
+        const [prim, nestedScope] = yield* this.expression.iterateSlots2(scope);
+        const computations = this.projections.filter((proj) => proj instanceof Value).map((proj) => proj.value) as Value[];
+        for (let i = 0; i < computations.length; i++)
+            yield* recursiveYieldArraySlots(new ArrayIndexSlot(prim, nestedScope, computations[i].getType(), computations, 'computations', i));
+        const newScope : ScopeMap = {};
+        const args = this.projections.filter((proj) => typeof proj.value === 'string').map((proj) => proj.value) as string[];
+        for (const name of args)
+            newScope[name] = nestedScope[name];
+        return [prim, newScope];
     }
 }
 
