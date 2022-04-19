@@ -444,6 +444,8 @@ export abstract class Value extends AstNode {
     isArrayField ! : boolean;
     static Computation : typeof ComputationValue;
     isComputation ! : boolean;
+    static Null : typeof NullValue;
+    isNull ! : boolean; 
 
     get priority() : SyntaxPriority {
         return SyntaxPriority.Primary;
@@ -615,6 +617,7 @@ Value.prototype.isUndefined = false;
 Value.prototype.isFilter = false;
 Value.prototype.isArrayField = false;
 Value.prototype.isComputation = false;
+Value.prototype.isNull = false;
 
 export class ArrayValue extends Value {
     value : Value[];
@@ -970,6 +973,39 @@ export class UndefinedValue extends Value {
 }
 UndefinedValue.prototype.isUndefined = true;
 Value.Undefined = UndefinedValue;
+
+/**
+ * A null value meaning that there is no value (for not null mainly)
+ */
+export class NullValue extends Value {
+    toSource() : TokenStream {
+        return List.singleton('NULL');
+    }
+
+    toString() : string {
+        return `NULL`;
+    }
+
+    clone() : NullValue {
+        return new NullValue();
+    }
+
+    equals(other : Value) : boolean {
+        return other instanceof NullValue;
+    }
+
+    visit(visitor : NodeVisitor) : void {
+        visitor.enter(this);
+        visitor.visitValue(this) && visitor.visitNullValue(this);
+        visitor.exit(this);
+    }
+
+    getType() : Type {
+        return Type.Any;
+    }
+}
+NullValue.prototype.isNull = true;
+Value.Null = NullValue;
 
 export class ContextRefValue extends Value {
     name : string;

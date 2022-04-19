@@ -114,6 +114,10 @@ export default abstract class NodeVisitor {
         return true;
     }
     /* istanbul ignore next */
+    visitNullValue(node : Values.NullValue) : boolean {
+        return true;
+    }
+    /* istanbul ignore next */
     visitContextRefValue(node : Values.ContextRefValue) : boolean {
         return true;
     }

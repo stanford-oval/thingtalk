@@ -1347,6 +1347,7 @@ primary_value : Ast.Value = {
 
     scalar_function;
     undefined_value;
+    null_value;
     context_value;
     object_literal_value;
     array_value;
@@ -1408,6 +1409,10 @@ scalar_function : Ast.ComputationValue = {
 undefined_value : Ast.UndefinedValue = {
     '$undefined' => new Ast.Value.Undefined(true);
     '$?' => new Ast.Value.Undefined(true);
+}
+
+null_value : Ast.NullValue = {
+    'null' => new Ast.Value.Null();
 }
 
 event_value : Ast.EventValue = {

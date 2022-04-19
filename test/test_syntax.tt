@@ -2136,3 +2136,13 @@ $dialogue @org.thingpedia.dialogue.transaction.execute;
 
 // property path in projection with type and alias 
 [id, < twinned_administrative_body + > : Entity(org.wikidata:city) as ego] of @org.wikidata.city();
+
+====
+
+// not null in filter
+@org.wikidata.human() filter !(place_of_birth == null);
+
+====
+
+// not null in projection/verification
+[!(place_of_birth == null)] of @org.wikidata.human();
