@@ -1036,31 +1036,30 @@ export class ComputeBooleanExpression extends BooleanExpression {
 BooleanExpression.Compute = ComputeBooleanExpression;
 BooleanExpression.Compute.prototype.isCompute = true;
 
-
 export class PropertyPathElement extends Node {
     property : string;
-    one_or_more : boolean;
+    quantifier ?: '+'|'*'|'?';
 
-    constructor(property : string, one_or_more = false) {
+    constructor(property : string, quantifier ?: '+'|'*'|'?') {
         super();
         this.property = property;
-        this.one_or_more = one_or_more;
+        this.quantifier = quantifier;
     }
     
     equals(other : PropertyPathElement) {
-        return this.property === other.property && this.one_or_more === other.one_or_more;
+        return this.property === other.property && this.quantifier === other.quantifier;
     }
 
     clone() : PropertyPathElement {
-        return new PropertyPathElement(this.property, this.one_or_more);
+        return new PropertyPathElement(this.property, this.quantifier);
     }
 
     toSource() : TokenStream {
-        return this.one_or_more ? List.concat(this.property, '+') : List.singleton(this.property);
+        return this.quantifier ? List.concat(this.property, this.quantifier) : List.singleton(this.property);
     }
 
     toString() {
-        return this.one_or_more ? this.property + '+' : this.property;
+        return this.quantifier ? this.property + this.quantifier : this.property;
     }
 
     visit(visitor : NodeVisitor) : void {

@@ -1212,10 +1212,14 @@ property_path_sequence : Ast.PropertyPathSequence = {
 
 open_property_path_sequence : Ast.PropertyPathSequence = {
     '<' v:var_ref_value => [new Ast.PropertyPathElement(v.name)];
-    '<' v:var_ref_value '+' => [new Ast.PropertyPathElement(v.name, true)];
+    '<' v:var_ref_value '+' => [new Ast.PropertyPathElement(v.name, '+')];
+    '<' v:var_ref_value '*' => [new Ast.PropertyPathElement(v.name, '*')];
+    '<' v:var_ref_value '?' => [new Ast.PropertyPathElement(v.name, '?')];
 
     p:open_property_path_sequence '/' v:var_ref_value => p.concat(new Ast.PropertyPathElement(v.name));
-    p:open_property_path_sequence '/' v:var_ref_value '+' => p.concat(new Ast.PropertyPathElement(v.name, true));
+    p:open_property_path_sequence '/' v:var_ref_value '+' => p.concat(new Ast.PropertyPathElement(v.name, '+'));
+    p:open_property_path_sequence '/' v:var_ref_value '*' => p.concat(new Ast.PropertyPathElement(v.name, '*'));
+    p:open_property_path_sequence '/' v:var_ref_value '?' => p.concat(new Ast.PropertyPathElement(v.name, '?'));
 }
 
 non_ambiguous_unary_filter : Ast.BooleanExpression = {

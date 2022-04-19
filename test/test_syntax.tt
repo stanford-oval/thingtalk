@@ -2117,6 +2117,16 @@ $dialogue @org.thingpedia.dialogue.transaction.execute;
 // property path filter on function like operation
 @org.wikidata.city() filter contains( < twinned_administrative_body + >, null^^org.wikidata:administrative_territorial_entity("yy"));
 
+==== 
+
+// property path filter with * 
+@org.wikidata.city() filter contains( < twinned_administrative_body * >, null^^org.wikidata:administrative_territorial_entity("yy"));
+
+==== 
+
+// property path filter with ?
+@org.wikidata.city() filter contains( < twinned_administrative_body ? >, null^^org.wikidata:administrative_territorial_entity("yy"));
+
 ====
 
 // property path in projection
