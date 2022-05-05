@@ -1523,4 +1523,8 @@ export default class TypeChecker {
             await this._typeCheckValue(intent.value, new Scope);
         }
     }
+
+    async typeCheckLevenshtein(levenshtein : Ast.Levenshtein) : Promise<void> {
+        
+    }
 }

@@ -253,6 +253,7 @@ export function prettyprint(tokens : TokenStream) : string {
         case 'while':
         case '$dialogue':
         case '$policy':
+        case '$add_filter':
             buffer += token;
             if (!buffer.endsWith('enum '))
                 buffer += ' ';

@@ -317,6 +317,7 @@ terminal ENTITY_NAME : TypeOfToken<'ENTITY_NAME'>;
 
 
 input : Ast.Input = {
+    levenshtein;
     program_or_library;
     control_command;
     policy;
@@ -566,6 +567,24 @@ statement : Ast.FunctionDeclaration|Ast.ExecutableStatement = {
     expr:expression_statement ';' => expr;
     assignment;
     'return' expr:chain_expression ';' => new Ast.ReturnStatement(null, expr);
+}
+
+levenshtein : Ast.Levenshtein = {
+    '$add_filter' func:thingpedia_function_name ':' filter:or_filter ';' => {
+        const inv = new Ast.Invocation(
+            $.location, 
+            new Ast.DeviceSelector($.location, func.kind, null, null), 
+            func.name, 
+            [], 
+            null
+        );
+        const expr = new Ast.LevenshteinExpression.AddFilter(
+            $.location, 
+            new Ast.InvocationExpression($.location, inv, null),
+            filter
+        );
+        return new Ast.Levenshtein($.location, expr);
+    };
 }
 
 assignment : Ast.Assignment = {
@@ -1051,7 +1070,7 @@ thingpedia_call : Ast.Invocation = {
         const lastDot = name.value.lastIndexOf('.');
         const className = name.value.substring(0, lastDot);
         const functionName = name.value.substring(lastDot+1);
-
+ 
         // we check that the function name is a valid identifier because the lexer will greedly parse through things
         // that are not identifiers but are allowed in the class name
         if (!isIdentifier(functionName))

@@ -216,4 +216,7 @@ export const DOLLAR_KEYWORDS = new Set<string>([
     '$start_of',
     '$time',
     '$context',
+
+    // levenshtein
+    '$add_filter'
 ]);

@@ -49,6 +49,7 @@ import SchemaRetriever from '../schema';
 
 import { TokenStream } from '../new-syntax/tokenstream';
 import List from '../utils/list';
+import { LevenshteinExpression } from './levenshtein';
 
 /**
  * A collection of Statements from the same source file.
@@ -68,6 +69,8 @@ export abstract class Input extends Node {
     isPermissionRule ! : boolean;
     static DialogueState : any;
     isDialogueState ! : boolean;
+    static Levenshtein : any;
+    isLevenshtein ! : boolean;
 
     *iterateSlots() : Generator<OldSlot, void> {
     }
@@ -94,6 +97,7 @@ Input.prototype.isProgram = false;
 Input.prototype.isLibrary = false;
 Input.prototype.isPermissionRule = false;
 Input.prototype.isDialogueState = false;
+Input.prototype.isLevenshtein = false;
 
 /**
  * An executable ThingTalk program (containing at least one executable
@@ -391,3 +395,36 @@ export class Library extends Input {
 }
 Library.prototype.isLibrary = true;
 Input.Library = Library;
+
+
+export class Levenshtein extends Input {
+    delta : LevenshteinExpression;
+
+    constructor(location : SourceRange|null, delta : LevenshteinExpression) {
+        super(location);
+        this.delta = delta;
+    }
+
+    toSource() : TokenStream {
+        return List.concat(this.delta.toSource(), ';');
+    }
+
+    clone() {
+        return new Levenshtein(this.location, this.delta.clone());
+    }
+
+    visit(visitor : NodeVisitor) : void {
+        visitor.enter(this);
+        if (visitor.visitLevenshtein(this)) 
+            this.delta.visit(visitor);
+        visitor.exit(this);
+    }
+
+    async typecheck(schemas : SchemaRetriever, getMeta = false) : Promise<this> {
+        const typeChecker = new TypeChecker(schemas, getMeta);
+        await typeChecker.typeCheckLevenshtein(this);
+        return this;
+    }
+}
+Levenshtein.prototype.isLevenshtein = true;
+Input.Levenshtein = Levenshtein;

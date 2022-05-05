@@ -43,5 +43,6 @@ export * from './statement';
 export * from './program';
 export * from './control_commands';
 export * from './dialogues';
+export * from './levenshtein';
 export { default as NodeVisitor } from './visitor';
 export * from './slots';

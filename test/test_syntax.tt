@@ -2086,3 +2086,9 @@ $dialogue @org.thingpedia.dialogue.transaction.execute;
 #[results=[
   { first.id="..."^^org.wikidata:city, second.id="..."^^org.wikidata:city }
 ]];
+
+====
+
+// Levenshtein representation: add a filter
+$add_filter @org.wikidata.city: population <= 10000;
+
