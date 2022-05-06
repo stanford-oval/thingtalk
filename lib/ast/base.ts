@@ -46,6 +46,7 @@ import {
     serialize,
 } from '../syntax_api';
 import List from '../utils/list';
+import { LevenshteinExpression } from './levenshtein';
 
 // reexport those types for the benefit of ThingTalk API consumers
 export {
@@ -230,6 +231,10 @@ export default abstract class Node {
             }
             visitExternalBooleanExpression(node : ExternalBooleanExpression) {
                 buffer.push(['filter', node]);
+                return true;
+            }
+            visitLevenshteinExpression(node : LevenshteinExpression) : boolean {
+                buffer.push(['query', node.table.invocation]);
                 return true;
             }
         };

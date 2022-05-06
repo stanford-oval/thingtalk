@@ -2092,3 +2092,10 @@ $dialogue @org.thingpedia.dialogue.transaction.execute;
 // Levenshtein representation: add a filter
 $add_filter @org.wikidata.city: population <= 10000;
 
+====
+
+// ** expect TypeError ** 
+// property not in scope 
+// Levenshtein representation: add a filter
+$add_filter @org.wikidata.city: x <= 10000;
+

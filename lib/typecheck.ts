@@ -1525,6 +1525,13 @@ export default class TypeChecker {
     }
 
     async typeCheckLevenshtein(levenshtein : Ast.Levenshtein) : Promise<void> {
-        
+        await this._loadAllSchemas(levenshtein);
+        const table = levenshtein.delta.table;
+        const scope = new Scope();
+        await this._typeCheckExpression(table, scope);
+        if (levenshtein.delta instanceof Ast.AddFilterLevenshteinExpression) {
+            this._checkExpressionType(table, ['query', 'stream'], 'filter');
+            await this._typeCheckFilter(levenshtein.delta.filter, table.schema!, scope);
+        }
     }
 }
