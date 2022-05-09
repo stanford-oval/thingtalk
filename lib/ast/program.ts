@@ -32,10 +32,15 @@ import Node, {
 } from './base';
 import NodeVisitor from './visitor';
 import { Value } from './values';
-import { DeviceSelector } from './invocation';
-import { BooleanExpression } from './boolean_expression';
+import { Invocation, DeviceSelector } from './invocation';
+import { BooleanExpression, ComparisonSubqueryBooleanExpression, ExistentialSubqueryBooleanExpression } from './boolean_expression';
 import { PermissionFunction } from './permissions';
-import { Dataset, FunctionDeclaration, TopLevelExecutableStatement } from './statement';
+import { 
+    Dataset, 
+    FunctionDeclaration, 
+    TopLevelExecutableStatement,
+    ExpressionStatement 
+} from './statement';
 import { ClassDef } from './class_def';
 import {
     FieldSlot,
@@ -49,7 +54,22 @@ import SchemaRetriever from '../schema';
 
 import { TokenStream } from '../new-syntax/tokenstream';
 import List from '../utils/list';
-import { LevenshteinExpression } from './levenshtein';
+import { AddFilterLevenshteinExpression, LevenshteinExpression } from './levenshtein';
+import { 
+    AggregationExpression, 
+    Expression, 
+    FilterExpression, 
+    FunctionCallExpression, 
+    InvocationExpression, 
+    JoinExpression, 
+    MonitorExpression, 
+    ProjectionExpression,
+    BooleanQuestionExpression,
+    AliasExpression,
+    SortExpression,
+    IndexExpression,
+    SliceExpression
+} from './expression';
 
 /**
  * A collection of Statements from the same source file.
@@ -425,6 +445,155 @@ export class Levenshtein extends Input {
         await typeChecker.typeCheckLevenshtein(this);
         return this;
     }
+
+    apply(lastTurn : Program) : Program {
+        const program = lastTurn.clone();
+        apply(program, this.delta);
+        return program;
+    }
 }
 Levenshtein.prototype.isLevenshtein = true;
 Input.Levenshtein = Levenshtein;
+
+/**
+ * Given a program and an invocation, find the sub expression in program that contains the invocation
+ * to apply the levenshtein representation to  
+ * @param program 
+ * @param invocation 
+ * @return the parent expression
+ */
+function apply(program : Program, levenshtein : LevenshteinExpression) {
+    const invocation = levenshtein.table.invocation;
+    const supportChecker = new LevenshteinSupportChecker();
+    program.visit(supportChecker);
+    if (!supportChecker.supported)
+        throw new Error(`Unsupported program to apply Levenshtein expression`);
+
+    const statements = program.statements.filter((s) => s instanceof ExpressionStatement);
+    if (statements.length === 0)
+        throw new Error(`No statement in previous program to apply Levenshtein expression`);
+
+    // apply the levenshtein representation to the last expression statement from last turn
+    const statement = statements[statements.length - 1];
+    const chainExpression = (statement as ExpressionStatement).expression;
+    for (const [i, expression] of chainExpression.expressions.entries()) {
+        // check if the invocation appears in main expression (non-subquery)
+        const invocationFinder = new InvocationFinder(invocation, false);
+        expression.visit(invocationFinder);
+        if (invocationFinder.found) {
+            chainExpression.expressions[i] = applyLevenshtein(expression, levenshtein);
+            return;
+        }
+
+        // first check if the invocation appears in a subquery
+        const subqueryInvocationFinder = new SubqueryInvocationFinder(invocation);
+        expression.visit(subqueryInvocationFinder);
+        if (subqueryInvocationFinder.filter) {
+            const filter = subqueryInvocationFinder.filter;
+            if (filter instanceof ComparisonSubqueryBooleanExpression) 
+                filter.rhs = applyLevenshtein(filter.rhs, levenshtein);
+            else 
+                filter.subquery = applyLevenshtein(filter.subquery, levenshtein);
+            return;
+        } 
+    }
+    throw new Error(`Did not find the invocation ${levenshtein.table} in the previous program`);
+}
+
+function applyLevenshtein(expression : Expression, levenshtein : LevenshteinExpression) : Expression {
+    if (levenshtein instanceof AddFilterLevenshteinExpression) {
+        if (expression instanceof InvocationExpression || expression instanceof FilterExpression)
+            return new FilterExpression(expression.location, expression, levenshtein.filter, expression.schema); 
+        
+        if (expression instanceof MonitorExpression ||
+            expression instanceof BooleanQuestionExpression ||
+            expression instanceof ProjectionExpression ||
+            expression instanceof AliasExpression ||
+            expression instanceof AggregationExpression ||
+            expression instanceof SortExpression ||
+            expression instanceof IndexExpression ||
+            expression instanceof SliceExpression) {
+            const newExpression = expression.clone();
+            newExpression.expression = applyLevenshtein(expression.expression, levenshtein);
+            return newExpression;
+        }
+
+        // FuntionCallExpression, JoinExpression, ChainExpression
+        throw new Error(`Unsupported expression ${expression.prettyprint()} to add filter`);
+    }
+    throw new Error(`Unsupported Levenshtein expression ${levenshtein.prettyprint()}`);
+}
+
+class InvocationFinder extends NodeVisitor {
+    invocation : Invocation;
+    includeSubquery : boolean;
+    found : boolean;
+
+    constructor(invocation : Invocation, includeSubquery = true) {
+        super();
+        this.invocation = invocation;
+        this.includeSubquery = includeSubquery;
+        this.found = false;
+    }
+    
+    visitInvocationExpression(node : InvocationExpression) {
+        if (this.invocation.equals(node.invocation)) 
+            this.found = true;
+        return false;
+    }
+
+    visitComparisonSubqueryBooleanExpression(node : ComparisonSubqueryBooleanExpression) : boolean {
+        return this.includeSubquery;
+    }
+
+    visitExistentialSubqueryBooleanExpression(node : ExistentialSubqueryBooleanExpression) : boolean {
+        return this.includeSubquery;
+    }
+}
+
+class SubqueryInvocationFinder extends NodeVisitor {
+    invocation : Invocation;
+    filter : ComparisonSubqueryBooleanExpression|ExistentialSubqueryBooleanExpression|null;
+
+    constructor(invocation : Invocation) {
+        super();
+        this.invocation = invocation;
+        this.filter = null;
+    }
+
+    visitComparisonSubqueryBooleanExpression(node : ComparisonSubqueryBooleanExpression) : boolean {
+        const finder = new InvocationFinder(this.invocation);
+        node.visit(finder);
+        if (finder.found) 
+            this.filter = node;
+        return false;
+    }
+
+    visitExistentialSubqueryBooleanExpression(node : ExistentialSubqueryBooleanExpression) : boolean {
+        const finder = new InvocationFinder(this.invocation);
+        node.visit(finder);
+        if (finder.found) 
+            this.filter = node;
+        return false;
+    }
+}
+
+class LevenshteinSupportChecker extends NodeVisitor {
+    supported : boolean;
+
+    constructor() {
+        super();
+        this.supported = true;
+    }
+
+    visitJoinExpression(node : JoinExpression) : boolean {
+        this.supported = false;
+        return false;
+    }
+
+    visitFunctionCallExpression(node : FunctionCallExpression) : boolean {
+        this.supported = false;
+        return false;
+    }
+}
+
