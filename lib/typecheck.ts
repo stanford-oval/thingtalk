@@ -592,7 +592,7 @@ export default class TypeChecker {
     }
 
     private async _typeCheckAggregation(ast : Ast.AggregationTable|Ast.AggregationExpression, scope : Scope) {
-        const schema = (ast instanceof Ast.AggregationExpression ? ast.expression.schema : ast.table.schema)!;
+        let schema = (ast instanceof Ast.AggregationExpression ? ast.expression.schema : ast.table.schema)!;
 
         let name, type, nl_annotations;
         if (ast.field === '*') {
@@ -608,7 +608,19 @@ export default class TypeChecker {
             nl_annotations = schema.getArgument(ast.field)!.nl_annotations;
         }
 
-        ast.schema = addOutput(cleanOutput(schema, scope), name, type, scope, nl_annotations);
+        if (ast instanceof Ast.AggregationExpression && ast.groupBy) {
+            const groupByFieldType = schema.getArgType(ast.groupBy);
+            if (!groupByFieldType)
+                throw new TypeError('Invalid group by field ' + ast.groupBy);
+            if (groupByFieldType instanceof Type.Compound || groupByFieldType instanceof Type.Array)
+                throw new TypeError('Invalid group by field ' + ast.groupBy + ' with type ' + groupByFieldType.toString());     
+            schema = schema.filterArguments((a : Ast.ArgumentDef) => a.is_input || a.name === ast.groupBy);
+            schema.removeDefaultProjection();
+            schema.removeMinimalProjection();
+            ast.schema = addOutput(schema, name, type, scope, nl_annotations);
+        } else {
+            ast.schema = addOutput(cleanOutput(schema, scope), name, type, scope, nl_annotations);
+        }
     }
 
     private async _typeCheckSort(ast : Ast.SortExpression, scope : Scope) {

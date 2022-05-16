@@ -2151,3 +2151,20 @@ $dialogue @org.thingpedia.dialogue.transaction.execute;
 
 // group by 
 avg(height of @org.wikidata.human()) by country;
+
+====
+
+// ** expect TypeError **
+// invalid field for group by 
+avg(height of @org.wikidata.human()) by xyz;
+
+====
+
+// group by schema check
+[country, height] of (avg(height of @org.wikidata.human()) by country);
+
+====
+ 
+// ** expect TypeError **
+// group by schema check: invalid projection
+[id, country, height] of (avg(height of @org.wikidata.human()) by country);

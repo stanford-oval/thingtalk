@@ -308,7 +308,7 @@ function optimizeExpression(expression : Ast.Expression, allow_projection=true) 
                 return optimized;
             if (!allow_projection)
                 return optimized;
-            if (optimized instanceof Ast.AggregationExpression)
+            if (optimized instanceof Ast.AggregationExpression && !optimized.groupBy)
                 return optimized;
         }
 
