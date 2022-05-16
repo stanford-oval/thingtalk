@@ -850,6 +850,7 @@ export class AggregationExpression extends Expression {
     field : string;
     operator : string;
     overload : Type[]|null;
+    groupBy : string|null;
     // TODO
     alias = null;
 
@@ -858,7 +859,8 @@ export class AggregationExpression extends Expression {
                 field : string,
                 operator : string,
                 schema : FunctionDef|null,
-                overload : Type[]|null = null) {
+                overload : Type[]|null = null,
+                groupBy : string|null = null) {
         super(location, schema);
 
         assert(expression instanceof Expression);
@@ -870,6 +872,7 @@ export class AggregationExpression extends Expression {
         assert(typeof operator === 'string');
         this.operator = operator;
 
+        this.groupBy = groupBy;
         this.overload = overload;
     }
 
@@ -878,23 +881,30 @@ export class AggregationExpression extends Expression {
     }
 
     toSource() : TokenStream {
+        let source;
         if (this.field === '*') {
-            return List.concat(this.operator, '(', this.expression.toSource(), ')');
+            source = List.concat(this.operator, '(', this.expression.toSource(), ')');
         } else {
             const field = List.join(this.field.split('.').map((n) => List.singleton(n)), '.');
-            return List.concat(this.operator, '(', field, 'of',
+            source = List.concat(this.operator, '(', field, 'of',
                 this.expression.toSource(), ')');
         }
+        if (this.groupBy)
+            source = List.concat(source, 'by', this.groupBy);
+        return source;
     }
 
     equals(other : Expression) : boolean {
         return other instanceof AggregationExpression &&
             this.expression.equals(other.expression) &&
             this.field === other.field &&
-            this.operator === other.operator;
+            this.operator === other.operator &&
+            this.groupBy === other.groupBy;
     }
 
     toLegacy(into_params : InputParam[] = [], scope_params : string[] = []) : legacy.AggregationTable {
+        if (this.groupBy)
+            throw new UnserializableError('Group by');
         const el = this.expression.toLegacy(into_params, scope_params);
         assert(el instanceof legacy.Table);
         return new legacy.AggregationTable(this.location, el, this.field, this.operator, null, this.schema);
@@ -914,7 +924,8 @@ export class AggregationExpression extends Expression {
             this.field,
             this.operator,
             this.schema ? this.schema.clone() : null,
-            this.overload
+            this.overload,
+            this.groupBy
         );
     }
 

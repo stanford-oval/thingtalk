@@ -2146,3 +2146,8 @@ $dialogue @org.thingpedia.dialogue.transaction.execute;
 
 // not null in projection/verification
 [!(place_of_birth == null)] of @org.wikidata.human();
+
+====
+
+// group by 
+avg(height of @org.wikidata.human()) by country;

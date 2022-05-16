@@ -281,6 +281,7 @@ export function prettyprint(tokens : TokenStream) : string {
         case 'extends':
         case 'join':
         case 'on':
+        case 'by':
             if (buffer.endsWith('enum ') || buffer.endsWith('Enum('))
                 buffer += token;
             else

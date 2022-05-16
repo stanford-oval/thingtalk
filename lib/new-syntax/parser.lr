@@ -1063,6 +1063,13 @@ primary_expression : Ast.Expression = {
     'count' '(' expr:chain_expression ')'
         => new Ast.AggregationExpression($.location, expr, '*', 'count', null);
 
+    op:aggr_op '(' name:qualified_name 'of' expr:chain_expression ')' 'by' groupby:qualified_name
+        => new Ast.AggregationExpression($.location, expr, name, op, null, null, groupby);
+    'count' '(' name:qualified_name 'of' expr:chain_expression ')'  'by' groupby:qualified_name
+        => new Ast.AggregationExpression($.location, expr, name, 'count', null, null, groupby);
+    'count' '(' expr:chain_expression ')' 'by' groupby:qualified_name
+        => new Ast.AggregationExpression($.location, expr, '*', 'count', null, null, groupby);
+
     'monitor' '(' expr:chain_expression ')'
         => new Ast.MonitorExpression($.location, expr, null, null);
 
