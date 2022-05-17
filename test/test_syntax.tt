@@ -1307,7 +1307,7 @@ class @org.schema {
                          })
   #[minimal_projection=[]];
 }
-@org.schema.restaurants() filter rating.value >= 4;
+@org.schema.restaurants() filter rating >= 4;
 ====
 
 // nested compound value type
@@ -1337,7 +1337,7 @@ class @org.schema {
   list query restaurants extends local_business(out serveCuisine : String)
   #[minimal_projection=[]];
 }
-@org.schema.restaurants() filter rating.value >= 4 && serveCuisine =~ "seafood";
+@org.schema.restaurants() filter rating >= 4 && serveCuisine =~ "seafood";
 ====
 
 // aggregate filter on arrays
@@ -2168,3 +2168,13 @@ avg(height of @org.wikidata.human()) by xyz;
 // ** expect TypeError **
 // group by schema check: invalid projection
 [id, country, height] of (avg(height of @org.wikidata.human()) by country);
+
+====
+
+// default value for compound type
+@org.wikidata.administrative_territorial_entity() filter contains(member_of, null^^org.wikidata:organization("x"));
+
+====
+
+// default value for compound type
+@org.wikidata.administrative_territorial_entity() filter population >= 100 ; 

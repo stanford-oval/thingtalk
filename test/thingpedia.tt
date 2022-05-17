@@ -1928,7 +1928,16 @@ class @org.wikidata
   list query administrative_territorial_entity(out id: Entity(org.wikidata:administrative_territorial_entity),
                                                out located_in_the_administrative_territorial_entity: Entity(org.wikidata:administrative_territorial_entity),
                                                out population: Number,
-                                               out twinned_administrative_body : Array(Entity(org.wikidata:administrative_territorial_entity)));
+                                               out twinned_administrative_body : Array(Entity(org.wikidata:administrative_territorial_entity)),
+                                               out member_of : Array({
+                                                 value : Entity(org.wikidata:organization),
+                                                 start_time : Date,
+                                                 end_time : Date
+                                               }),
+                                               out population : {
+                                                 value : Number,
+                                                 point_in_time : Date
+                                               });
 
   list query city(out id: Entity(org.wikidata:city)
                   #_[canonical={

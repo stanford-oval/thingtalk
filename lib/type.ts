@@ -270,6 +270,13 @@ abstract class Type {
             if (entitySubType(type.type, assignableTo.type, entitySubTypeMap))
                 return true;
         }
+
+        // for compound type by default uses its "value" field
+        if (assignableTo instanceof Type.Compound && 'value' in assignableTo.fields) 
+            return this.isAssignable(assignableTo.fields.value.type, type, typeScope, entitySubTypeMap);
+        if (type instanceof Type.Compound && 'value' in type.fields)
+            return this.isAssignable(type.fields.value.type, assignableTo, typeScope, entitySubTypeMap);
+
         return false;
     }
 }
