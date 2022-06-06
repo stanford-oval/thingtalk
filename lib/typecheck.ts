@@ -227,10 +227,14 @@ export default class TypeChecker {
     private async _isAssignable(type : Type,
                                 assignableTo : Type|string,
                                 typeScope : Type.TypeScope) {
-        if (type instanceof Type.Entity)
-            await this._ensureEntitySubTypes(type.type);
-        if (assignableTo instanceof Type.Entity)
-            await this._ensureEntitySubTypes(assignableTo.type);
+        for (let t of [type, assignableTo]) {
+            while (t instanceof Type.Array)
+                t = t.elem;
+            if (typeof t === 'string' && t in typeScope)
+                t = typeScope[t];
+            if (t instanceof Type.Entity)
+                await this._ensureEntitySubTypes(t.type);
+        }
 
         return Type.isAssignable(type, assignableTo, typeScope, this._entitySubTypeMap);
     }
