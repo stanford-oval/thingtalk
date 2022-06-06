@@ -616,8 +616,6 @@ export default class TypeChecker {
             const groupByFieldType = schema.getArgType(ast.groupBy);
             if (!groupByFieldType)
                 throw new TypeError('Invalid group by field ' + ast.groupBy);
-            if (groupByFieldType instanceof Type.Compound || groupByFieldType instanceof Type.Array)
-                throw new TypeError('Invalid group by field ' + ast.groupBy + ' with type ' + groupByFieldType.toString());     
             schema = schema.filterArguments((a : Ast.ArgumentDef) => a.is_input || a.name === ast.groupBy);
             schema.removeDefaultProjection();
             schema.removeMinimalProjection();
