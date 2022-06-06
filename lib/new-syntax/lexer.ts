@@ -126,7 +126,7 @@ export function* surfaceLexer(input : string) : IterableIterator<Token> {
 
     // HACK: for compatibility with Thingpedia, we need to recognize Entity(...) type references without
     // the ^^ marker
-    const OLD_ENTITY_REFERENCE = /Entity\([A-Za-z_][A-Za-z0-9_-]*(?:\.[A-Za-z_][A-Za-z0-9_-]*)*:[A-Za-z_][A-Za-z0-9_]*\)/y;
+    const OLD_ENTITY_REFERENCE = /Entity\s?\(\s?[A-Za-z_][A-Za-z0-9_-]*(?:\.[A-Za-z_][A-Za-z0-9_-]*)*:[A-Za-z_][A-Za-z0-9_]*\s?\)/y;
 
     // note that line continuations are not handled, unlike in JS, because they are not very useful
     // and make the grammar very messy
@@ -213,8 +213,9 @@ export function* surfaceLexer(input : string) : IterableIterator<Token> {
             throw new ThingTalkSyntaxError(`Unterminated string literal`, { start, end });
         }
 
-        const oldEntityName = consume(OLD_ENTITY_REFERENCE);
+        let oldEntityName = consume(OLD_ENTITY_REFERENCE);
         if (oldEntityName) {
+            oldEntityName = oldEntityName.replace(/ /g, '');
             const end = makeLocation();
 
             yield Token.make('Entity', { start, end }, null);
