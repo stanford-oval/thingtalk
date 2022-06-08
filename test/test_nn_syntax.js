@@ -659,6 +659,10 @@ const TEST_CASES = [
      ['@com.uber . price_estimate ( end = $location . home , start = $location . work ) filter low_estimate >= 50 $usd ;',
     `get an uber price estimate from home to work if the low estimate is greater than $ 50`, {},
     `@com.uber.price_estimate(end=$location.home, start=$location.work) filter low_estimate >= 50$usd;`],
+
+     ['[ place_of_birth : Entity ( org.wikidata:entity ) ] of @org.wikidata . human ( ) ;', 
+    'where was he born?', {}, 
+     `[place_of_birth : Entity(org.wikidata:entity)] of @org.wikidata.human();`]
 ];
 
 async function testCase(test, i) {
