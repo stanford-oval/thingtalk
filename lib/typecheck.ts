@@ -228,8 +228,12 @@ export default class TypeChecker {
                                 assignableTo : Type|string,
                                 typeScope : Type.TypeScope) {
         for (let t of [type, assignableTo]) {
-            while (t instanceof Type.Array)
-                t = t.elem;
+            while (t instanceof Type.Array || (t instanceof Type.Compound && 'value' in t.fields)) {
+                if (t instanceof Type.Array)
+                    t = t.elem;
+                else 
+                    t = t.fields.value.type;
+            }
             if (typeof t === 'string' && t in typeScope)
                 t = typeScope[t];
             if (t instanceof Type.Entity)
