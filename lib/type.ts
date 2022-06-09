@@ -154,6 +154,8 @@ abstract class Type {
         return this.isNumber || this.isMeasure || this.isCurrency;
     }
     isComparable() : boolean {
+        if (this instanceof Type.Compound && 'value' in this.fields)
+            return this.fields.value.type.isComparable();
         return this.isNumeric() || this.isDate || this.isTime || this.isString;
     }
 

@@ -2178,3 +2178,8 @@ avg(height of @org.wikidata.human()) by xyz;
 
 // default value for compound type
 @org.wikidata.administrative_territorial_entity() filter population >= 100 ; 
+
+====
+
+// sort on default value for compound type
+sort(population desc of @org.wikidata.administrative_territorial_entity());
