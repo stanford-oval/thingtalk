@@ -979,11 +979,11 @@ Value.Undefined = UndefinedValue;
  */
 export class NullValue extends Value {
     toSource() : TokenStream {
-        return List.singleton('NULL');
+        return List.singleton('null');
     }
 
     toString() : string {
-        return `NULL`;
+        return `null`;
     }
 
     clone() : NullValue {
