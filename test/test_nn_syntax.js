@@ -662,7 +662,11 @@ const TEST_CASES = [
 
      ['[ place_of_birth : Entity ( org.wikidata:entity ) ] of @org.wikidata . human ( ) ;', 
     'where was he born?', {}, 
-     `[place_of_birth : Entity(org.wikidata:entity)] of @org.wikidata.human();`]
+     `[place_of_birth : Entity(org.wikidata:entity)] of @org.wikidata.human();`],
+
+     ['[ place_of_birth : Entity ( org.wikidata:administrative_territorial_entity ) ] of @org.wikidata . human ( ) ;', 
+    'where was he born?', {}, 
+     `[place_of_birth : Entity(org.wikidata:administrative_territorial_entity)] of @org.wikidata.human();`]
 ];
 
 async function testCase(test, i) {

@@ -31,7 +31,7 @@ const DECIMAL_LITERAL = /^-?(?:(?:0|[1-9][0-9]*)\.[0-9]*(?:[eE][+-]?[0-9]+)?|\.[
 // matches one or more identifiers separated by a period
 const IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9]*)*$/;
 
-const OLD_ENTITY_REFERENCE = /Entity\s?\(\s?[A-Za-z_][A-Za-z0-9_-]*(?:\.[A-Za-z_][A-Za-z0-9_-]*)*:[A-Za-z_][A-Za-z0-9_]*\s?\)/y;
+const OLD_ENTITY_REFERENCE = /Entity\s?\(\s?[A-Za-z_][A-Za-z0-9_-]*(?:\.[A-Za-z_][A-Za-z0-9_-]*)*:[A-Za-z_][A-Za-z0-9_]*\s?\)/;
 
 function isEntity(token : string) {
     return /^(?:QUOTED_STRING|NUMBER|CURRENCY|DURATION|MEASURE|TIME|DATE|LOCATION|USERNAME|HASHTAG|URL|PHONE_NUMBER|EMAIL_ADDRESS|PATH_NAME|PICTURE|GENERIC_ENTITY|SLOT)_/.test(token);
