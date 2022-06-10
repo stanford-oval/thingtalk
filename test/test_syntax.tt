@@ -1569,6 +1569,23 @@ class @org.schema {
   #[minimal_projection=[]];
 }
 [aggregateRating.reviews filter author == "Bob" as foo] of @org.schema.restaurants();
+
+====
+
+class @org.schema {
+  list query restaurants(out name : String,
+                         out aggregateRating : {
+                           reviewCount : Number,
+                           reviews : Array({
+                             author : String,
+                             reviewRating : {
+                               ratingValue : Number
+                             },
+                           })
+                         })
+  #[minimal_projection=[]];
+}
+[reviewRating of (aggregateRating.reviews filter author == "Bob")] of @org.schema.restaurants();
 ====
 
 function x(p_name : String) {

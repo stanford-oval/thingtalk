@@ -1004,9 +1004,9 @@ projection_nonstar_param_list : Array<[Ast.Value|Ast.PropertyPathSequence, strin
 }
 
 projection_param : [Ast.Value|Ast.PropertyPathSequence, string|null, Type|null] = {
-    v:filter_lhs_filter_value => [v, null, null];
+    v:filter_lhs_array_field_value => [v, null, null];
 
-    v:filter_lhs_filter_value 'as' alias:variable_name => [v, alias, null];
+    v:filter_lhs_array_field_value 'as' alias:variable_name => [v, alias, null];
 
     p:property_path => [p, null, null];
 
@@ -1016,9 +1016,9 @@ projection_param : [Ast.Value|Ast.PropertyPathSequence, string|null, Type|null] 
 }
 
 projection_param_with_type : [Ast.Value|Ast.PropertyPathSequence, string|null, Type|null] = {
-    v:filter_lhs_filter_value ':' type:type_ref => [v, null, type];
+    v:filter_lhs_array_field_value ':' type:type_ref => [v, null, type];
 
-    v:filter_lhs_filter_value ':' type:type_ref 'as' alias:variable_name => [v, alias, type];
+    v:filter_lhs_array_field_value ':' type:type_ref 'as' alias:variable_name => [v, alias, type];
 
     p:property_path ':' type:type_ref => [p, null, type];
 
