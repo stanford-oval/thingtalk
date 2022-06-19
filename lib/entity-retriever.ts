@@ -246,6 +246,12 @@ export class EntityRetriever extends AbstractEntityRetriever {
         if (entityType === 'QUOTED_STRING' || entityType === 'HASHTAG' || entityType === 'USERNAME' ||
             entityType === 'PATH_NAME' || entityType === 'URL' || entityType === 'PHONE_NUMBER' ||
             entityType === 'EMAIL_ADDRESS' || entityType === 'LOCATION' || entityType.startsWith('GENERIC_ENTITY_')) {
+            if (entityType.startsWith('GENERIC_ENTITY_') && includeEntityValue) {
+                const genericEntity = entity as GenericEntity;
+                const entityName = '^^' + entityType.substring('GENERIC_ENTITY_'.length);
+                if (genericEntity.value) 
+                    return List.concat('"', ...genericEntity.value.split(' '), '"', entityName);
+            }
 
             const found = this._findEntityFromSentence(entityType, entityString, ignoreNotFound);
             if (found) {
@@ -273,9 +279,8 @@ export class EntityRetriever extends AbstractEntityRetriever {
                     if (entityType === 'LOCATION') {
                         return List.concat('new', 'Location', '(', '"', ...found, '"', ')');
                     } else {
-                        const genericEntity = entity as GenericEntity;
-                        const entityId = includeEntityValue && genericEntity.value ? [ '"', ...genericEntity.value.split(' '), '"'] : ['null'];
-                        return List.concat(...entityId, '^^' + entityType.substring('GENERIC_ENTITY_'.length), '(', '"', ...found, '"', ')');
+                        const entityName = '^^' + entityType.substring('GENERIC_ENTITY_'.length);
+                        return List.concat('null', entityName, '(', '"', ...found, '"', ')');
                     }
                 }
             }
@@ -341,8 +346,10 @@ export class EntityRetriever extends AbstractEntityRetriever {
             if (genericEntity.display) {
                 found = this._findEntityInBag('QUOTED_STRING', genericEntity.display, this.entities);
                 if (found) {
-                    const entityId = includeEntityValue && genericEntity.value ? ['"', genericEntity.value, '"'] : ['null'];
-                    return List.concat(...entityId, '^^' + entityType.substring('GENERIC_ENTITY_'.length), '(', found, ')');
+                    const entityName = '^^' + entityType.substring('GENERIC_ENTITY_'.length);
+                    if (includeEntityValue && genericEntity.value) 
+                        return List.concat('"', ...genericEntity.value.split(' '), '"', entityName);
+                    return List.concat('null', entityName, '(', found, ')');
                 }
             }
         }
@@ -389,6 +396,13 @@ export class SequentialEntityAllocator extends AbstractEntityRetriever {
         if (this.explicitStrings &&
             (entityType === 'QUOTED_STRING' || entityType === 'HASHTAG' || entityType === 'USERNAME' ||
             entityType === 'LOCATION' || entityType.startsWith('GENERIC_ENTITY_'))) {
+            if (entityType.startsWith('GENERIC_ENTITY_') && includeEntityValue) {
+                const genericEntity = entity as GenericEntity;
+                const entityName = '^^' + entityType.substring('GENERIC_ENTITY_'.length);
+                if (includeEntityValue && genericEntity.value) 
+                    return List.concat('"', ...genericEntity.value.split(' '), '"', entityName);
+            }
+
             const entityString = entityToString(entityType, entity).split(' ');
 
             if (entityType === 'QUOTED_STRING')
@@ -407,9 +421,8 @@ export class SequentialEntityAllocator extends AbstractEntityRetriever {
                 if (entityType === 'LOCATION') {
                     return List.concat('new', 'Location', '(', '"', ...entityString, '"', ')');
                 } else {
-                    const genericEntity = entity as GenericEntity;
-                    const entityId = includeEntityValue && genericEntity.value ? ['"', genericEntity.value, '"'] : ['null'];
-                    return List.concat(...entityId, '^^' + entityType.substring('GENERIC_ENTITY_'.length), '(', '"', ...entityString, '"', ')');
+                    const entityName = '^^' + entityType.substring('GENERIC_ENTITY_'.length);
+                    return List.concat('null', entityName, '(', '"', ...entityString, '"', ')');
                 }
             }
         }
