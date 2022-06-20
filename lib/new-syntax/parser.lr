@@ -317,6 +317,7 @@ terminal ENTITY_NAME : TypeOfToken<'ENTITY_NAME'>;
 
 
 input : Ast.Input = {
+    levenshtein;
     program_or_library;
     control_command;
     policy;
@@ -842,6 +843,11 @@ toplevel_chain_expression : Ast.ChainExpression = {
     list:chain_expression_list '=>' 'notify' => new Ast.ChainExpression($.location, list, null);
 }
 
+levenshtein : Ast.Expression = {
+    '$edit' op:arithmetic_assign_op expr:toplevel_chain_expression ';' => 
+        return new Ast.Levenshtein($.location, expr, op, null);
+}
+
 // A note on the priority of expressions:
 //
 // The order, from least to highest priority, is
@@ -1262,6 +1268,11 @@ aggr_op : ('min'|'max'|'sum'|'avg') = {
 scalar_op : ('distance'|'set_time') = {
     'distance' => 'distance';
     'set_time' => 'set_time';
+}
+
+arithmetic_assign_op : ('add'|'add_choice') = {
+    'add';
+    'add_choice';
 }
 
 atom_filter : Ast.BooleanExpression = {
@@ -1762,6 +1773,7 @@ variable_name : string = {
     aggr_op;
     scalar_op;
     'count';
+    arithmetic_assign_op;
 }
 
 // an identifier or a contextual keyword, except those keywords that have special meaning
@@ -1773,6 +1785,7 @@ non_dialogue_variable_name : string = {
     function_like_comparison_op;
     aggr_op;
     scalar_op;
+    arithmetic_assign_op;
 }
 
 // this is identical to variable_name, except it is always followed by (
@@ -1786,6 +1799,7 @@ function_name : string = {
     aggr_op;
     scalar_op;
     'count';
+    arithmetic_assign_op;
 }
 
 // this is almost like function_name, but it is used for user-defined
