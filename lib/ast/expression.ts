@@ -239,10 +239,7 @@ export class InvocationExpression extends Expression {
     }
 
     equals(other : Expression) : boolean {
-        return other instanceof InvocationExpression &&
-            this.invocation.selector.equals(other.invocation.selector) &&
-            this.invocation.channel === other.invocation.channel &&
-            arrayEquals(this.invocation.in_params, other.invocation.in_params);
+        return other instanceof InvocationExpression && this.invocation.equals(other.invocation);
     }
 
     toLegacy(into_params : InputParam[] = [], scope_params : string[] = []) : legacy.InvocationTable|legacy.InvocationAction {

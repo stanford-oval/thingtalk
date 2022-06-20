@@ -317,6 +317,12 @@ export class Invocation extends Node {
         return `Invocation(${this.selector.toString()}, ${this.channel}, ${in_params}, )`;
     }
 
+    equals(other : Invocation) : boolean {
+        return this.selector.equals(other.selector) &&
+            this.channel === other.channel &&
+            arrayEquals(this.in_params, other.in_params);
+    }
+
     /**
      * Iterate all slots (scalar value nodes) in this invocation.
      *

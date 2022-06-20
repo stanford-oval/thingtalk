@@ -31,6 +31,7 @@ import type * as BE from './boolean_expression';
 import type * as Exp2 from './expression';
 import type * as Prim from './legacy';
 import type * as D from './dialogues';
+import type * as Lev from './levenshtein';
 
 /**
  * Base class (interface) for traversing the AST using the visitor
@@ -276,6 +277,10 @@ export default abstract class NodeVisitor {
     visitExistentialSubqueryBooleanExpression(node : BE.ExistentialSubqueryBooleanExpression) : boolean {
         return true;
     }
+    /* istanbul ignore next */
+    visitLevenshteinExpression(node : Lev.LevenshteinExpression) : boolean {
+        return true;
+    }
 
 
 
@@ -494,6 +499,10 @@ export default abstract class NodeVisitor {
     }
     /* istanbul ignore next */
     visitLibrary(node : Prog.Library) : boolean {
+        return true;
+    }
+    /* istanbul ignore next */
+    visitLevenshtein(node : Prog.Levenshtein) : boolean {
         return true;
     }
 
