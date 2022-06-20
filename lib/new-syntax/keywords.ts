@@ -180,6 +180,8 @@ export const CONTEXTUAL_KEYWORDS = new Set<string>([
     'distance',
     'set_time',
 
+    // levenshtein operators
+    'add'
 ]);
 
 export const DOLLAR_KEYWORDS = new Set<string>([
@@ -216,4 +218,7 @@ export const DOLLAR_KEYWORDS = new Set<string>([
     '$start_of',
     '$time',
     '$context',
+
+    // levenshtein
+    '$edit',
 ]);
