@@ -32,10 +32,19 @@ import Node, {
 } from './base';
 import NodeVisitor from './visitor';
 import { Value } from './values';
-import { DeviceSelector } from './invocation';
-import { BooleanExpression } from './boolean_expression';
+import { Invocation, DeviceSelector } from './invocation';
+import { 
+    BooleanExpression, 
+    ComparisonSubqueryBooleanExpression, 
+    ExistentialSubqueryBooleanExpression 
+} from './boolean_expression';
 import { PermissionFunction } from './permissions';
-import { Dataset, FunctionDeclaration, TopLevelExecutableStatement } from './statement';
+import { 
+    Dataset, 
+    FunctionDeclaration, 
+    TopLevelExecutableStatement,
+    ExpressionStatement 
+} from './statement';
 import { ClassDef } from './class_def';
 import {
     FieldSlot,
@@ -46,6 +55,22 @@ import * as Optimizer from '../optimize';
 import TypeChecker from '../typecheck';
 import convertToPermissionRule from './convert_to_permission_rule';
 import SchemaRetriever from '../schema';
+import { LevenshteinExpression } from './levenshtein';
+import { 
+    AggregationExpression, 
+    Expression, 
+    FilterExpression, 
+    FunctionCallExpression, 
+    InvocationExpression, 
+    JoinExpression, 
+    MonitorExpression, 
+    ProjectionExpression,
+    BooleanQuestionExpression,
+    AliasExpression,
+    SortExpression,
+    IndexExpression,
+    SliceExpression
+} from './expression';
 
 import { TokenStream } from '../new-syntax/tokenstream';
 import List from '../utils/list';
@@ -68,6 +93,8 @@ export abstract class Input extends Node {
     isPermissionRule ! : boolean;
     static DialogueState : any;
     isDialogueState ! : boolean;
+    static Levenshtein : any;
+    isLevenshtein ! : boolean;
 
     *iterateSlots() : Generator<OldSlot, void> {
     }
@@ -94,6 +121,7 @@ Input.prototype.isProgram = false;
 Input.prototype.isLibrary = false;
 Input.prototype.isPermissionRule = false;
 Input.prototype.isDialogueState = false;
+Input.prototype.isLevenshtein = false;
 
 /**
  * An executable ThingTalk program (containing at least one executable
@@ -391,3 +419,138 @@ export class Library extends Input {
 }
 Library.prototype.isLibrary = true;
 Input.Library = Library;
+
+
+export class Levenshtein extends Input {
+    delta : LevenshteinExpression;
+
+    constructor(location : SourceRange|null, delta : LevenshteinExpression) {
+        super(location);
+        this.delta = delta;
+    }
+
+    toSource() : TokenStream {
+        return List.concat(this.delta.toSource(), ';');
+    }
+
+    clone() {
+        return new Levenshtein(this.location, this.delta.clone());
+    }
+
+    visit(visitor : NodeVisitor) : void {
+        visitor.enter(this);
+        if (visitor.visitLevenshtein(this)) 
+            this.delta.visit(visitor);
+        visitor.exit(this);
+    }
+
+    async typecheck(schemas : SchemaRetriever, getMeta = false) : Promise<this> {
+        const typeChecker = new TypeChecker(schemas, getMeta);
+        await typeChecker.typeCheckLevenshtein(this);
+        return this;
+    }
+
+    apply(lastTurn : Program) : Program {
+        const program = lastTurn.clone();
+        apply(program, this.delta);
+        return program;
+    }
+}
+Levenshtein.prototype.isLevenshtein = true;
+Input.Levenshtein = Levenshtein;
+
+
+function apply(program : Program, levenshtein : LevenshteinExpression) {
+    const supportChecker = new LevenshteinSupportChecker();
+    program.visit(supportChecker);
+    if (!supportChecker.supported)
+        throw new Error(`Unsupported program to apply Levenshtein expression`);
+
+    const statements = program.statements.filter((s) => s instanceof ExpressionStatement);
+    if (statements.length === 0)
+        throw new Error(`No statement in previous program to apply Levenshtein expression`);
+
+    // apply the levenshtein representation to the last expression statement from last turn
+    const statement = statements[statements.length - 1];
+    const chainExpression = (statement as ExpressionStatement).expression;
+    for (const [i, expression] of chainExpression.expressions.entries()) {
+        
+    }
+}
+
+function applyLevenshtein(expression : Expression, levenshtein : LevenshteinExpression) : Expression {
+    throw new Error(`Unsupported Levenshtein expression ${levenshtein.prettyprint()}`);
+}
+
+class InvocationFinder extends NodeVisitor {
+    invocation : Invocation;
+    includeSubquery : boolean;
+    found : boolean;
+
+    constructor(invocation : Invocation, includeSubquery = true) {
+        super();
+        this.invocation = invocation;
+        this.includeSubquery = includeSubquery;
+        this.found = false;
+    }
+    
+    visitInvocationExpression(node : InvocationExpression) {
+        if (this.invocation.equals(node.invocation)) 
+            this.found = true;
+        return false;
+    }
+
+    visitComparisonSubqueryBooleanExpression(node : ComparisonSubqueryBooleanExpression) : boolean {
+        return this.includeSubquery;
+    }
+
+    visitExistentialSubqueryBooleanExpression(node : ExistentialSubqueryBooleanExpression) : boolean {
+        return this.includeSubquery;
+    }
+}
+
+class SubqueryInvocationFinder extends NodeVisitor {
+    invocation : Invocation;
+    filter : ComparisonSubqueryBooleanExpression|ExistentialSubqueryBooleanExpression|null;
+
+    constructor(invocation : Invocation) {
+        super();
+        this.invocation = invocation;
+        this.filter = null;
+    }
+
+    visitComparisonSubqueryBooleanExpression(node : ComparisonSubqueryBooleanExpression) : boolean {
+        const finder = new InvocationFinder(this.invocation);
+        node.visit(finder);
+        if (finder.found) 
+            this.filter = node;
+        return false;
+    }
+
+    visitExistentialSubqueryBooleanExpression(node : ExistentialSubqueryBooleanExpression) : boolean {
+        const finder = new InvocationFinder(this.invocation);
+        node.visit(finder);
+        if (finder.found) 
+            this.filter = node;
+        return false;
+    }
+}
+
+class LevenshteinSupportChecker extends NodeVisitor {
+    supported : boolean;
+
+    constructor() {
+        super();
+        this.supported = true;
+    }
+
+    visitJoinExpression(node : JoinExpression) : boolean {
+        this.supported = false;
+        return false;
+    }
+
+    visitFunctionCallExpression(node : FunctionCallExpression) : boolean {
+        this.supported = false;
+        return false;
+    }
+}
