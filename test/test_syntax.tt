@@ -2200,3 +2200,8 @@ avg(height of @org.wikidata.human()) by xyz;
 
 // sort on default value for compound type
 sort(population desc of @org.wikidata.administrative_territorial_entity());
+
+====
+
+// is there boolean questions
+[count >= 1] of count(@org.wikidata.human());
