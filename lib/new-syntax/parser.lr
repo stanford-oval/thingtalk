@@ -1347,9 +1347,6 @@ atom_filter : Ast.BooleanExpression = {
 
     'any' '(' subquery:chain_expression ')' =>
         new Ast.BooleanExpression.ExistentialSubquery($.location, subquery);
-
-    'any' '(' value:filter_lhs_array_field_value ')' =>
-        new Ast.BooleanExpression.Compute($.location, value, '!=', new Ast.Value.Null);
 }
 
 primary_value : Ast.Value = {
