@@ -136,8 +136,8 @@ export abstract class AbstractEntityRetriever {
      *   of throwing an exception.
      * @return the list of tokens making up this entity.
      */
-    abstract findEntity(entityType : string, value : AnyEntity, options : { ignoreNotFound : true, includeEntityValue ?: boolean }) : List<string>|null;
-    abstract findEntity(entityType : string, value : AnyEntity, options ?: { ignoreNotFound ?: false, includeEntityValue ?: boolean }) : List<string>;
+    abstract findEntity(entityType : string, value : AnyEntity, options : { ignoreNotFound : true, includeEntityValue ?: boolean, excludeEntityDisplay ?: boolean }) : List<string>|null;
+    abstract findEntity(entityType : string, value : AnyEntity, options ?: { ignoreNotFound ?: false, includeEntityValue ?: boolean, excludeEntityDisplay ?: boolean }) : List<string>;
 }
 
 /**
@@ -225,7 +225,8 @@ export class EntityRetriever extends AbstractEntityRetriever {
                                    entity : AnyEntity,
                                    entityString : string,
                                    ignoreNotFound : boolean,
-                                   includeEntityValue : boolean) : List<string>|undefined {
+                                   includeEntityValue = false,
+                                   excludeEntityDisplay = false) : List<string>|undefined {
         if (entityType === 'DATE') {
             const dateStr = (entity as Date).toISOString();
             if (this._sentenceContains([dateStr]))
@@ -246,7 +247,7 @@ export class EntityRetriever extends AbstractEntityRetriever {
         if (entityType === 'QUOTED_STRING' || entityType === 'HASHTAG' || entityType === 'USERNAME' ||
             entityType === 'PATH_NAME' || entityType === 'URL' || entityType === 'PHONE_NUMBER' ||
             entityType === 'EMAIL_ADDRESS' || entityType === 'LOCATION' || entityType.startsWith('GENERIC_ENTITY_')) {
-            if (entityType.startsWith('GENERIC_ENTITY_') && includeEntityValue) {
+            if (entityType.startsWith('GENERIC_ENTITY_') && includeEntityValue && excludeEntityDisplay) {
                 const genericEntity = entity as GenericEntity;
                 const entityName = '^^' + entityType.substring('GENERIC_ENTITY_'.length);
                 if (genericEntity.value) 
@@ -279,8 +280,9 @@ export class EntityRetriever extends AbstractEntityRetriever {
                     if (entityType === 'LOCATION') {
                         return List.concat('new', 'Location', '(', '"', ...found, '"', ')');
                     } else {
-                        const entityName = '^^' + entityType.substring('GENERIC_ENTITY_'.length);
-                        return List.concat('null', entityName, '(', '"', ...found, '"', ')');
+                        const genericEntity = entity as GenericEntity;
+                        const entityId = includeEntityValue && genericEntity.value ? [ '"', ...genericEntity.value.split(' '), '"'] : ['null'];
+                        return List.concat(...entityId, '^^' + entityType.substring('GENERIC_ENTITY_'.length), '(', '"', ...found, '"', ')');
                     }
                 }
             }
@@ -321,16 +323,16 @@ export class EntityRetriever extends AbstractEntityRetriever {
         return undefined;
     }
 
-    findEntity(entityType : string, entity : AnyEntity, options : { ignoreNotFound : true, includeEntityValue ?: boolean }) : List<string>|null;
-    findEntity(entityType : string, entity : AnyEntity, options ?: { ignoreNotFound ?: false, includeEntityValue ?: boolean }) : List<string>;
-    findEntity(entityType : string, entity : AnyEntity, { ignoreNotFound = false, includeEntityValue = false } = {}) : List<string>|null {
+    findEntity(entityType : string, entity : AnyEntity, options : { ignoreNotFound : true, includeEntityValue ?: boolean, excludeEntityDisplay ?: boolean }) : List<string>|null;
+    findEntity(entityType : string, entity : AnyEntity, options ?: { ignoreNotFound ?: false, includeEntityValue ?: boolean, excludeEntityDisplay ?: boolean }) : List<string>;
+    findEntity(entityType : string, entity : AnyEntity, { ignoreNotFound = false, includeEntityValue = false, excludeEntityDisplay = false } = {}) : List<string>|null {
         const entityString = entityToString(entityType, entity);
 
         // try in the sentence before we look in the bag of entities (which comes from the context)
         // this is so that we predict
         // " foo " ^^tt:whatever
         // if the sentence contains "foo", regardless of whether GENERIC_ENTITY_tt:whatever_0 is "foo" or not
-        let found = this._findStringLikeEntity(entityType, entity, entityString, true, includeEntityValue);
+        let found = this._findStringLikeEntity(entityType, entity, entityString, true, includeEntityValue, excludeEntityDisplay);
         if (found)
             return found;
 
@@ -347,14 +349,17 @@ export class EntityRetriever extends AbstractEntityRetriever {
                 found = this._findEntityInBag('QUOTED_STRING', genericEntity.display, this.entities);
                 if (found) {
                     const entityName = '^^' + entityType.substring('GENERIC_ENTITY_'.length);
-                    if (includeEntityValue && genericEntity.value) 
-                        return List.concat('"', ...genericEntity.value.split(' '), '"', entityName);
+                    if (includeEntityValue && genericEntity.value) {
+                        if (excludeEntityDisplay)
+                            return List.concat('"', ...genericEntity.value.split(' '), '"', entityName);
+                        return List.concat('"', ...genericEntity.value.split(' '), '"', entityName, '(', found, ')');
+                    }
                     return List.concat('null', entityName, '(', found, ')');
                 }
             }
         }
 
-        found = this._findStringLikeEntity(entityType, entity, entityString, false, includeEntityValue);
+        found = this._findStringLikeEntity(entityType, entity, entityString, false, includeEntityValue, excludeEntityDisplay);
         if (found)
             return found;
 
@@ -392,14 +397,14 @@ export class SequentialEntityAllocator extends AbstractEntityRetriever {
         }
     }
 
-    findEntity(entityType : string, entity : AnyEntity, { ignoreNotFound = false, includeEntityValue = false } = {}) : List<string> {
+    findEntity(entityType : string, entity : AnyEntity, { ignoreNotFound = false, includeEntityValue = false, excludeEntityDisplay = false } = {}) : List<string> {
         if (this.explicitStrings &&
             (entityType === 'QUOTED_STRING' || entityType === 'HASHTAG' || entityType === 'USERNAME' ||
             entityType === 'LOCATION' || entityType.startsWith('GENERIC_ENTITY_'))) {
-            if (entityType.startsWith('GENERIC_ENTITY_') && includeEntityValue) {
+            if (entityType.startsWith('GENERIC_ENTITY_') && includeEntityValue && excludeEntityDisplay) {
                 const genericEntity = entity as GenericEntity;
                 const entityName = '^^' + entityType.substring('GENERIC_ENTITY_'.length);
-                if (includeEntityValue && genericEntity.value) 
+                if (genericEntity.value) 
                     return List.concat('"', ...genericEntity.value.split(' '), '"', entityName);
             }
 
@@ -420,9 +425,10 @@ export class SequentialEntityAllocator extends AbstractEntityRetriever {
             } else {
                 if (entityType === 'LOCATION') {
                     return List.concat('new', 'Location', '(', '"', ...entityString, '"', ')');
-                } else {
-                    const entityName = '^^' + entityType.substring('GENERIC_ENTITY_'.length);
-                    return List.concat('null', entityName, '(', '"', ...entityString, '"', ')');
+                } else {                 
+                    const genericEntity = entity as GenericEntity;
+                    const entityId = includeEntityValue && genericEntity.value ? ['"', genericEntity.value, '"'] : ['null'];
+                    return List.concat(...entityId, '^^' + entityType.substring('GENERIC_ENTITY_'.length), '(', '"', ...entityString, '"', ')');
                 }
             }
         }

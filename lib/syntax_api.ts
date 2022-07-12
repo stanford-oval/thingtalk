@@ -96,6 +96,7 @@ export function parse(code : string|string[], syntaxType : SyntaxType = SyntaxTy
 export interface SerializeOptions {
     typeAnnotations ?: boolean;
     includeEntityValue ?: boolean;
+    excludeEntityDisplay ?: boolean;
     compatibility ?: string;
 }
 
