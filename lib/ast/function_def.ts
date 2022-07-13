@@ -643,7 +643,8 @@ export class FunctionDef extends Node {
     hasArgument(arg : string) : boolean {
         if (arg in this._argmap)
             return true;
-        if (this.extends.length > 0) {
+        const inheritArguments = this.getImplementationAnnotation<boolean>('inherit_arguments');
+        if (inheritArguments !== false && this.extends.length > 0) {
             const functionType = this.functionType === 'stream' ? 'query' : this.functionType;
             for (const fname of this.extends) {
                 const f = this.class!.getFunction(functionType, fname)!;
@@ -666,7 +667,8 @@ export class FunctionDef extends Node {
     getArgument(argname : string) : ArgumentDef|undefined {
         if (argname in this._argmap)
             return this._argmap[argname];
-        if (this.extends.length > 0) {
+        const inheritArguments = this.getImplementationAnnotation<boolean>('inherit_arguments');
+        if (inheritArguments !== false && this.extends.length > 0) {
             const functionType = this.functionType === 'stream' ? 'query' : this.functionType;
             for (const fname of this.extends) {
                 const f = this.class!.getFunction(functionType, fname)!;
