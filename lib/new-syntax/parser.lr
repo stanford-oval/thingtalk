@@ -1239,7 +1239,7 @@ non_ambiguous_unary_filter : Ast.BooleanExpression = {
 non_ambiguous_comparison_filter : Ast.BooleanExpression = {
     /*pname:variable_name op:comparison_op rhs:primary_value =>
         new Ast.BooleanExpression.Atom($.location, pname, op, rhs);*/
-    lhs:filter_lhs_add_expr op:comparison_op rhs:primary_value => {
+    lhs:filter_lhs_add_expr op:comparison_op rhs:add_expr => {
         if (lhs instanceof Ast.VarRefValue)
             return new Ast.BooleanExpression.Atom($.location, lhs.name, op, rhs);
         else

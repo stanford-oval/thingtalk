@@ -2205,3 +2205,13 @@ sort(population desc of @org.wikidata.administrative_territorial_entity());
 
 // is there boolean questions
 [count >= 1] of count(@org.wikidata.human());
+
+====
+
+// filter with qualifier
+@org.wikidata.administrative_territorial_entity() filter contains(member_of filter start_time <= new Date(enum saturday), null^^org.wikidata:organization("x"));
+
+====
+
+// filter with qualifier on computation value
+@org.wikidata.administrative_territorial_entity() filter contains(member_of filter start_time <= new Date(enum saturday) - 1week, null^^org.wikidata:organization("x"));
