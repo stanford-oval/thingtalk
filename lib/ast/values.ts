@@ -204,7 +204,6 @@ export class DatePiece {
 
     constructor(year : number|null, month : number|null, day : number|null, time : AbsoluteTime|null) {
         assert((year !== null && year >= 0) || (month !== null && month > 0) || (day !== null && day > 0));
-        assert(year === null || month === null || day === null);
         this.year = year;
         if (year !== null && year >= 0 && year < 100) { // then assume 1950-2050
             if (year >= 50)
