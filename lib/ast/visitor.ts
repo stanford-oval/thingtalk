@@ -31,6 +31,7 @@ import type * as BE from './boolean_expression';
 import type * as Exp2 from './expression';
 import type * as Prim from './legacy';
 import type * as D from './dialogues';
+import type * as Leven from './levenshtein';
 
 /**
  * Base class (interface) for traversing the AST using the visitor
@@ -494,6 +495,11 @@ export default abstract class NodeVisitor {
     }
     /* istanbul ignore next */
     visitLibrary(node : Prog.Library) : boolean {
+        return true;
+    }
+    // REVIEW: is this the right place?
+    /* istanbul ignore next */
+    visitLevenshtein(node : Leven.Levenshtein) : boolean {
         return true;
     }
 

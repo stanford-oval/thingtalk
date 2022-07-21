@@ -56,6 +56,7 @@ import * as Optimizer from '../optimize';
 
 import { TokenStream } from '../new-syntax/tokenstream';
 import List from '../utils/list';
+import { Levenshtein } from './levenshtein';
 
 /**
  * The base class of all AST nodes that represent complete ThingTalk
@@ -483,7 +484,7 @@ export class Command extends Statement {
     }
 }
 
-class IsExecutableVisitor extends NodeVisitor {
+export class IsExecutableVisitor extends NodeVisitor {
     isExecutable = true;
 
     visitInvocation(invocation : Invocation) {
@@ -694,7 +695,7 @@ export class ReturnStatement extends Statement {
 
 export type ExecutableStatement = Assignment | ExpressionStatement | ReturnStatement;
 export type TopLevelStatement = ClassDef | Dataset | FunctionDeclaration | TopLevelExecutableStatement;
-export type TopLevelExecutableStatement = Assignment | ExpressionStatement;
+export type TopLevelExecutableStatement = Assignment | ExpressionStatement | Levenshtein;
 
 /**
  * A single example (primitive template) in a ThingTalk dataset

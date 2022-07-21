@@ -2086,3 +2086,62 @@ $dialogue @org.thingpedia.dialogue.transaction.execute;
 #[results=[
   { first.id="..."^^org.wikidata:city, second.id="..."^^org.wikidata:city }
 ]];
+
+====
+
+// Levenshtein representation: $cont
+// same ThingTalk syntax should pass
+
+// adding a query
+$cont @com.twitter.home_timeline();
+
+====
+
+// adding a filter
+$cont @com.twitter.home_timeline() filter text =~ "foo";
+$cont @com.twitter.home_timeline() filter contains(hashtags, "foo"^^tt:hashtag);
+$cont @com.twitter.home_timeline() filter contains~(hashtags, "foo");
+
+====
+
+// adding a projection
+$cont [text, author] of @com.twitter.home_timeline();
+
+====
+
+// adding a computation
+$cont [distance(location, new Location(1, 2))] of @org.thingpedia.builtin.thingengine.builtin.get_gps();
+
+====
+
+// adding a join, and join-related
+$cont @org.wikidata.city() join @org.wikidata.city();
+$cont (@org.wikidata.city() join @org.wikidata.city()) filter in_array(first.id, second.twinned_administrative_body);
+$cont [first.id, second.id] of ((@org.wikidata.city() join @org.wikidata.city()) filter in_array(first.id, second.twinned_administrative_body));
+$cont (([id] of @org.wikidata.city()) join @org.wikidata.city()) filter in_array(first.id, second.twinned_administrative_body);
+
+====
+
+// adding a sort
+$cont sort(file_size asc of @com.dropbox.list_folder());
+
+====
+
+// adding an aggregation
+class @org.schema {
+  list query restaurants(out name : String,
+                         out reviews : Array({
+                           reviewRating : {
+                             ratingValue : Number
+                           },
+                         }))
+  #[minimal_projection=[]];
+}
+$cont @org.schema.restaurants() filter avg(reviewRating.ratingValue of reviews) >= 1;
+
+====
+
+// ** expect TypeError ** 
+// property not in scope 
+// Levenshtein representation: $cont
+$cont @org.wikidata.city() filter x <= 10000;

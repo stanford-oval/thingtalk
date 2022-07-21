@@ -45,3 +45,4 @@ export * from './control_commands';
 export * from './dialogues';
 export { default as NodeVisitor } from './visitor';
 export * from './slots';
+export * from './levenshtein';
