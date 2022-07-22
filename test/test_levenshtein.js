@@ -84,6 +84,16 @@ const TEST_CASES = [
     "[name] of (@com.twitter.post() filter location == 'Palo Alto');"
     ],
 
+    // joins
+    ["@com.theater() filter location == 'Palo Alto';",
+    "$cont [actor.name, theater.name] of (@com.theater() join @com.actors());",
+    "[actor.name, theater.name] of (@com.theater() join @com.actors()) filter location == 'Palo Alto';"
+    ],
+    ["avg(reviews of sort(stars desc of (@com.theater() filter location == 'Palo Alto'))[1:5]);",
+    "$cont [actor.name, theater.name] of (@com.theater() join @com.actors());",
+    "[actor.name, theater.name] of sort(stars desc of ((@com.theater() join @com.actors()) filter location == 'Palo Alto'))[1:5];"
+    ],
+
     // This currently cannot pass because filters are optimized
     ["(@com.twitter.post() filter name == 'Japanese') filter place == 'Palo Alto';",
     "$cont @com.twitter.post() filter name == 'Chinese';",
@@ -112,6 +122,7 @@ function test(i) {
         console.error('Incoming: ' + levenshtein);
         console.error('Expected: ' + expectedOutput);
         console.error('Generated: ' + actualOutput);
+        // console.log(applyLevenshtein(beforeChainExpression, levenshteinProgram));
         if (process.env.TEST_MODE)
             throw new Error(`testLevenshtein ${i+1} FAILED`);
     }

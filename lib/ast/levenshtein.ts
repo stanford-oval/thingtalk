@@ -162,6 +162,18 @@ function isSchema(expr : Expression) : boolean {
     return expr instanceof FunctionCallExpression || expr instanceof InvocationExpression || expr instanceof JoinExpression;
 }
 
+// TODO: investigate if there are better approchaes
+// building wheels here does not sound appealing
+function ifOverlap(e1Invocations : APICall[], apiCalls : APICall[]) : boolean {
+    for (const i of e1Invocations) {
+        for (const j of apiCalls) {
+            if (i.equals(j))
+                return true;
+        }
+    }
+    return false;
+}
+
 /**
  * Given a last-turn query (represented as a ChainExpression)
  * and a new (i.e., incoming) user utterance (represented as a Levenshtein)
@@ -206,10 +218,10 @@ export function applyLevenshtein(e1 : ChainExpression, e2 : Levenshtein) : Chain
     
     for (const e2expr of e2.expression.expressions) {
         let found  = false;
-        const [e2Predicates, returnType, apiCalls] = walkExpression(e2expr);
+        const [e2Predicates, returnType, apiCalls, joins] = walkExpression(e2expr);
         
         for (let i = 0; i < e1Invocations.length; i ++) {
-            if (e1Invocations[i].filter((value) => apiCalls.includes(value)) !== []) {
+            if (ifOverlap(e1Invocations[i], apiCalls)) {
                 // suppose e1 is of form: e1_0 => e1_1 => e1_2 => ...
                 // then, we have stored the API invocation of e1_i inside e1Invocations[i]
                 // here, we determine if e1_i has the same schema occuring in this part of e2 (expr)
@@ -220,9 +232,15 @@ export function applyLevenshtein(e1 : ChainExpression, e2 : Levenshtein) : Chain
                 const e1expr : Expression = e1.expressions[i].clone();
                 const [top, bottom, _] = chopExpression(e1expr, e2Predicates);
                 // console.debug(`applyLevenshtein: chopExpression returned top=${top.prettyprint()} and bottom=${bottom.prettyprint()}`);
-
+                
                 // step 4: add e2expr above `bottom`
-                let newBottom = changeSchema(e2expr, bottom);
+                // if the incoming schema is a join, use that
+                // TODO: if multiple join statement appears, TBD what to do
+                let newBottom : Expression;
+                if (joins.length === 0)
+                    newBottom = changeSchema(e2expr, bottom);
+                else
+                    newBottom = changeSchema(e2expr, changeSchema(bottom, joins[0]));
 
                 // step 5: determine based on `returnTypes` what to put at the top
                 if (returnType === ReturnTypes.Records) 
@@ -278,6 +296,9 @@ function changeSchema(before : Expression, newSchema : Expression, checkLevensht
 }
 
 
+// this is used as indication for where to substitute the new schema
+// technically, `(undefined as any as NoneSchemaType).expression` also works
+// but it is difficult to print out when debugging due to AST traversal algorithm calling `.toSource()`
 class LevenshteinPlaceholder extends Expression {
     get priority() {
         return SyntaxPriority.Primary;
@@ -458,6 +479,17 @@ class GetFilterPredicates extends NodeVisitor {
     }
 }
 
+// this returns all joins, if they exist
+class GetJoinVisitor extends NodeVisitor {
+    joins : JoinExpression[] = [];
+
+    visitJoinExpression(node : JoinExpression) : boolean {
+        this.joins.push(node);
+        return true;
+    }
+
+}
+
 
 function determineReturnType(expr : Expression) : ReturnTypes {
     if (expr instanceof ProjectionExpression || expr instanceof BooleanQuestionExpression) 
@@ -475,11 +507,16 @@ function determineReturnType(expr : Expression) : ReturnTypes {
 // walk the Levenshtein expression to retrieve the following 2 information:
 // 1. all predicates that appear in Levenshtein expression
 //          -> for static conflict resolution
-// 2. the result type (Records, Attributes, or Number);
+// 2. the result type (Records, Attributes, or Number)
 //          -> for adding compatible opeartors back on top
-// 3. all API invocations.
+// 3. all API invocations
 //          -> for determining if the incoming expression is referring to the same schema
-function walkExpression(expr : Expression) : [BooleanExpression[], ReturnTypes, APICall[]] {
+// 4. all joins
+//          -> for determining whether to use the join schema
+function walkExpression(expr : Expression) : [BooleanExpression[],
+                                              ReturnTypes,
+                                              APICall[],
+                                              JoinExpression[]] {
 
     // Here, we get all predicates stored into predicates
     const visitor = new GetFilterPredicates();
@@ -490,7 +527,11 @@ function walkExpression(expr : Expression) : [BooleanExpression[], ReturnTypes, 
     expr.visit(visitor2);
     const apiCalls = visitor2.invocation;
 
-    return [predicates, determineReturnType(expr), apiCalls];
+    const visitor3 = new GetJoinVisitor();
+    expr.visit(visitor3);
+    const joins = visitor3.joins;
+
+    return [predicates, determineReturnType(expr), apiCalls, joins];
 }
 
 
