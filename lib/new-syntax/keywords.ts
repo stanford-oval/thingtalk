@@ -218,5 +218,5 @@ export const DOLLAR_KEYWORDS = new Set<string>([
     '$context',
 
     // levenshtein
-    '$cont',
+    '$continue',
 ]);

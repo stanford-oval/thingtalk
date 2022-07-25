@@ -570,8 +570,8 @@ statement : Ast.FunctionDeclaration|Ast.ExecutableStatement = {
 }
 
 levenshtein: Ast.Levenshtein = {
-    '$cont' expr:toplevel_chain_expression ';'
-        => new Ast.Levenshtein($.location, expr, '$cont');
+    '$continue' expr:toplevel_chain_expression ';'
+        => new Ast.Levenshtein($.location, expr, '$continue');
 }
 
 assignment : Ast.Assignment = {

@@ -51,7 +51,7 @@ import { Program } from "./program";
 
 export class Levenshtein extends Statement {
     expression : ChainExpression;
-    // possibilities: `cont` for now
+    // possibilities: `$continue` for now
     op : string;
 
     constructor(location : SourceRange|null, 

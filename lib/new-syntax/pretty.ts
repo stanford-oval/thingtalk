@@ -255,7 +255,7 @@ export function prettyprint(tokens : TokenStream) : string {
         case '$policy':
             
         // Levenshtein
-        case '$cont':
+        case '$continue':
             buffer += token;
             if (!buffer.endsWith('enum '))
                 buffer += ' ';
