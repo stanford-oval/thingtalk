@@ -88,7 +88,6 @@ const TEST_CASES = [
      "@com.yelp.restaurant()[1];"
     ],
 
-
     // basic: changing a schema
     // NOTE: i copied these from the sheet for completeness
     //       but this is what needs to be discussed next
@@ -102,9 +101,13 @@ const TEST_CASES = [
     //  "$continue @com.yelp.book(id=$context.result.result);",
     //  "@com.yelp.book(id=$context.result.result);"
     // ],
+    ["[name] of @com.yelp.restaurant();",
+     "$continue @com.yelp.book(id=298) filter location == 'Palo Alto';",
+     "@com.yelp.book(id=298) filter location == 'Palo Alto';"
+    ],
 
     // basic: retaining an operation
-    //        unlikely to occur in deployment, but added for completeness
+    //        unlikely to occur in deployment, added for completeness
     ["@com.twitter.post() filter name == 'Chinese';",
      "$continue @com.twitter.post();",
      "@com.twitter.post() filter name == 'Chinese';"
@@ -121,7 +124,6 @@ const TEST_CASES = [
      "$continue @com.twitter.post();",
      "[address] of sort (stars asc of (@com.twitter.post() filter name == 'Chinese'));"
     ],
-
 
     // modifying or adding filters
     ["@com.twitter.post() filter name == 'Japanese';",
@@ -147,6 +149,29 @@ const TEST_CASES = [
     ["@com.yelp.restaurant() filter cuisine =~ 'chinese';",
      "$continue @com.yelp.restaurant(), rating >= 4;",
      "@com.yelp.restaurant() filter cuisine =~ 'chinese' && rating >= 4;"
+    ],
+    ["count(sort (stars desc of (@com.yelp.restaurant() filter location == 'Palo Alto'))[1:10] filter cuisine == 'Chinese');",
+     "$continue avg(review of @com.yelp.restaurant() filter cuisine == 'Japanese');",
+     "avg(review of (sort (stars desc of (@com.yelp.restaurant() filter location == 'Palo Alto'))[1:10] filter cuisine == 'Japanese'));"
+    ],
+    ["count(sort (stars desc of (@com.yelp.restaurant() filter location == 'Palo Alto'))[1:10] filter cuisine == 'Chinese');",
+     "$continue @com.yelp.restaurant() filter location == 'Mountain View';",
+     "count(sort (stars desc of (@com.yelp.restaurant() filter location == 'Mountain View'))[1:10] filter cuisine == 'Chinese');"
+    ],
+    ["sort (price asc of (@com.yelp.restaurant() filter location == 'Palo Alto'))[1:2];",
+     "$continue @com.yelp.restaurant() filter price <= 20;",
+     "sort (price asc of (@com.yelp.restaurant() filter location == 'Palo Alto'))[1:2] filter price <= 20;"
+    ],
+    // NOTE: the following is something that will be resolved by dynamic execution
+    ["sort (price asc of (@com.yelp.restaurant() filter location == 'Palo Alto'))[1:2];",
+     "$continue @com.yelp.restaurant() filter price >= 20;",
+     "sort (price asc of (@com.yelp.restaurant() filter location == 'Palo Alto'))[1:2] filter price >= 20;"
+    ],
+
+    // adding indexing
+    ["[name] of sort (stars desc of (@com.yelp.restaurant() filter location == 'Palo Alto'))[5:15];",
+    "$continue @com.yelp.restaurant()[8];",
+    "[name] of (sort (stars desc of (@com.yelp.restaurant() filter location == 'Palo Alto'))[5:15])[8];"
     ],
 
     // modifying projections

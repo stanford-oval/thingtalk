@@ -449,6 +449,7 @@ function locateBottom(expr : Expression, e2Predicates : BooleanExpression[]) : E
                 exprCopy = expr;
             }
         }
+        expr = (expr as NoneSchemaType).expression;
     }
     return exprCopy;
 }
