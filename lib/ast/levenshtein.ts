@@ -38,13 +38,14 @@ import NodeVisitor from "./visitor";
 import TypeChecker from "../typecheck";
 import List from "../utils/list";
 import { ChainExpression } from "./expression";
-import { Statement, IsExecutableVisitor } from "./statement";
+import { Statement, IsExecutableVisitor, ExpressionStatement } from "./statement";
 import { OldSlot, AbstractSlot, ScopeMap } from "./slots";
 import { DeviceSelector, InputParam } from "./invocation";
 import { Expression } from "./expression";
 import { Rule, Command } from "./statement";
 import { AtomBooleanExpression, BooleanExpression } from "./boolean_expression";
 import { SyntaxPriority } from "./syntax_priority";
+import { Program } from "./program";
 
 
 
@@ -167,11 +168,45 @@ function isSchema(expr : Expression) : boolean {
 function ifOverlap(e1Invocations : APICall[], apiCalls : APICall[]) : boolean {
     for (const i of e1Invocations) {
         for (const j of apiCalls) {
-            if (i.equals(j))
+            if (i instanceof FunctionCallExpression && j instanceof FunctionCallExpression && i.name === j.name)
+                return true;
+            if (i instanceof InvocationExpression && j instanceof InvocationExpression && i.invocation.channel === j.invocation.channel)
                 return true;
         }
     }
     return false;
+}
+
+/**
+ * Given a last-turn query and a new (i.e., incoming) user utterance
+ * constructs the new, complete query.
+ * This function is a wrapper for `applyLevenshtein`
+ * 
+ *
+ * @param {Program} e1 - last turn query before the new user utterance
+ * @param {Program} e2 - Levenshtein expressing the new user utterance
+ * 
+ * @return {Program}   - a completed, new query incorporating
+ *                       information from both queries
+ */
+export function applyLevenshteinWrapper(e1 : Program, e2 : Program) : Program {
+    const res : Program = e1.clone();
+    res.statements = [];
+    for (const e2Statement of e2.statements) {
+        if (!(e2Statement instanceof Levenshtein))
+            continue;
+        for (const e1Statement of e1.statements) {
+            if (!(e1Statement instanceof ExpressionStatement)) {
+                // TODO: test behavior of this
+                console.warn("WARNING: applyLevenshtein found last-turn statement that is not of ExpressionStatement type");
+                continue;
+            }
+            const thisStatement : ExpressionStatement = e1Statement.clone();
+            thisStatement.expression = applyLevenshtein(e1Statement.expression, e2Statement);
+            res.statements.push(thisStatement);
+        }
+    }
+    return res.optimize();
 }
 
 /**
@@ -189,7 +224,7 @@ function ifOverlap(e1Invocations : APICall[], apiCalls : APICall[]) : boolean {
  *            ReturnType.Record
  *       b. statically resolve any predicate conflicts, and determine where
  *            to start inserting;
- * 4. At that point, add all incoming query on top of it;
+ * 4. At that point, add all incoming query on top of it (and modify API call)
  * 5. Determine which of the old query is compatible (matches the return type of
  *    incoming query) and add them back.
  * 
@@ -240,7 +275,9 @@ export function applyLevenshtein(e1 : ChainExpression, e2 : Levenshtein) : Chain
                 if (joins.length === 0)
                     newBottom = changeSchema(e2expr, bottom);
                 else
-                    newBottom = changeSchema(e2expr, changeSchema(bottom, joins[0]));
+                    newBottom = changeSchema(e2expr, changeSchema(bottom, joins[0]));                    
+                // modify API calls
+                newBottom.visit(new ModifyInvocationExpressionVisitor(apiCalls));
 
                 // step 5: determine based on `returnTypes` what to put at the top
                 if (returnType === ReturnTypes.Records) 
@@ -270,11 +307,8 @@ export function applyLevenshtein(e1 : ChainExpression, e2 : Levenshtein) : Chain
  */
 
 function changeSchema(before : Expression, newSchema : Expression, checkLevenshteinPlaceholder ?: boolean) : Expression {
-    if (isSchema(before) || (checkLevenshteinPlaceholder && before instanceof LevenshteinPlaceholder))  {
-        // console.log("Levenshtein changeSchema: original expression (printed below) is already a schema, nothing to change");
-        // console.log(`${before.prettyprint()}`);
+    if (isSchema(before) || (checkLevenshteinPlaceholder && before instanceof LevenshteinPlaceholder))
         return newSchema;
-    }
 
     // REVIEW: whether clone is necessary
     before = before.clone();
@@ -450,6 +484,19 @@ function predicateResolution(expr : BooleanExpression,
     return [false, undefined];
 }
 
+// if a parameter exists in `old` parameter list that does not exist in `incoming`
+// add to `incoming`
+function changeParams(incoming : InputParam[], old : InputParam[]) : InputParam[] {
+    for (const i of old) {
+        const possiblePlace = incoming.map((param) => {
+            return param.name;
+        }).indexOf(i.name);
+        if (possiblePlace < 0)
+            incoming.push(i.clone());
+    }
+    return incoming;
+}
+
 
 // this records the API calls given an expression
 // it simply returns all API calls within an expression
@@ -464,6 +511,40 @@ class GetInvocationExpressionVisitor extends NodeVisitor {
 
     visitInvocationExpression(inv : InvocationExpression) : boolean {
         this.invocation.push(inv);
+        return true;
+    }
+}
+
+
+// given an old list of API call, modify the incoming levenshtein API call
+// in the following manner: if a parameter does not exist, add to it
+class ModifyInvocationExpressionVisitor extends NodeVisitor {
+    compareInvocation : APICall[];
+
+    constructor(compareInvocation : APICall[]) {
+        super();
+        this.compareInvocation = compareInvocation;
+    }
+
+    visitFunctionCallExpression(inv : FunctionCallExpression) : boolean {
+        for (const temp of this.compareInvocation) {
+            if (temp instanceof FunctionCallExpression && inv.name === temp.name) {
+                inv.in_params = changeParams(temp.in_params, inv.in_params);
+                break;
+            }
+        }
+        return true;
+    }
+
+    visitInvocationExpression(inv : InvocationExpression) : boolean {
+        for (const temp of this.compareInvocation) {
+            if (temp instanceof InvocationExpression &&
+                inv.invocation.channel === temp.invocation.channel &&
+                inv.invocation.selector.equals(temp.invocation.selector)) {
+                inv.invocation.in_params = changeParams(temp.invocation.in_params, inv.invocation.in_params);
+                break;
+            }
+        }
         return true;
     }
 }
