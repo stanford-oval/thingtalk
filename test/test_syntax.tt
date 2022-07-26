@@ -2086,3 +2086,17 @@ $dialogue @org.thingpedia.dialogue.transaction.execute;
 #[results=[
   { first.id="..."^^org.wikidata:city, second.id="..."^^org.wikidata:city }
 ]];
+
+====
+
+// multiple count array
+// program (p_count1: Number, p_count2: Number, p_count3: Number, p_count4: Number) := @arc.layout() filter count(working) == p_count1 && count(social) == p_count2 && count(visitor) == p_count3 && count(working) == p_count4
+//     #_[utterances= ["the floor space consists of ${p_count1:const} working zones, ${p_count2:const} social zones, ${p_count3:const} visitor zones and ${p_count4:const} utility zones"]];
+@arc.layout() filter count(working) == p_count1 && count(social) == p_count2 && count(visitor) == p_count3 && count(working) == p_count4;
+
+====
+// test multiple count array dataset
+dataset @arc {
+    program (p_count1: Number, p_count2: Number, p_count3: Number, p_count4: Number) := @arc.layout() filter count(working) == p_count1 && count(social) == p_count2 && count(visitor) == p_count3 && count(working) == p_count4
+    #_[utterances= ["the floor space consists of ${p_count1:const} working zones, ${p_count2:const} social zones, ${p_count3:const} visitor zones and ${p_count4:const} utility zones"]];
+}

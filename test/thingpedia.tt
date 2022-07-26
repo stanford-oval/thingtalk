@@ -5721,3 +5721,356 @@ abstract class @org.thingpedia.media-source
     #[doc="retrieve artists from user's library or favorite"];
 }
 
+class @arc
+#_[name="arc"]
+#_[description="architectural design intent project"]
+#[subcategory="service"] {
+import loader from @org.thingpedia.v2();
+import config from @org.thingpedia.config.none();
+
+// Define general node and zone/space node
+entity layout #_[description="layout"] #[has_ner=false];
+entity node #_[description="node"] #[has_ner=false];
+entity zone extends node #_[description="zone node"] #[has_ner=true];
+entity space extends node #_[description="space node"] #[has_ner=true];
+
+// Subclass of zone
+entity working extends zone #_[description="working zone node"] #[has_ner=true];
+entity social extends zone #_[description="social zone node"] #[has_ner=true];
+entity visitor extends zone #_[description="visitor zone node"] #[has_ner=true];
+entity utility extends zone #_[description="utility zone node"] #[has_ner=true];
+
+// Subclass of space
+entity office extends space #_[description="office space node"] #[has_ner=true];
+entity restroom extends space #_[description="restroom space node"] #[has_ner=true];
+entity meeting extends space #_[description="meeting room space node"] #[has_ner=true];
+entity in_meet extends space #_[description="internal meeting room space node"] #[has_ner=true];
+entity ex_meet extends space #_[description="external meeting room space node"] #[has_ner=true];
+entity desk extends space #_[description="open desk space node"] #[has_ner=true];
+entity lunch extends space #_[description="lunch space node"] #[has_ner=true];
+entity reception extends space #_[description="reception space node"] #[has_ner=true];
+entity storage extends space #_[description="storage space node"] #[has_ner=true];
+entity copy extends space #_[description="copy room space node"] #[has_ner=true];
+entity archive extends space #_[description="archive room space node"] #[has_ner=true];
+
+// Special node
+entity entry extends node #_[description="entry node"] #[has_ner=true];
+entity window extends node #_[description="window node"] #[has_ner=true];
+
+// Property
+entity location #_[description="the (orientation) location of zone/space"] #[has_ner=true];
+entity shape #_[description="the shape types of space"] #[has_ner=true];
+entity pattern #_[description="the pattern types of rooms in zone"] #[has_ner=true];
+entity size #_[description="size types"] #[has_ner=true];
+entity orientation #_[description="the door facing  / orientation of space"] #[has_ner=true];
+
+list query layout(out id: Entity(arc:layout)
+                    #[filterable=false]
+                    #_[canonical={
+                        base=["id"]
+                    }],
+                out working: Array(Entity(arc:working))
+                    #[filterable=false]
+                    #[conflict_filter=[]]
+                    #_[canonical={
+                        base=["working zones"]
+                    }],
+                out social: Array(Entity(arc:social))
+                    #[filterable=false]
+                    #[conflict_filter=[]]
+                    #_[canonical={
+                        base=["social zones"]
+                    }],
+                out visitor: Array(Entity(arc:visitor))
+                    #[filterable=false]
+                    #[conflict_filter=[]]
+                    #_[canonical={
+                        base=["visitor zones", "reception zones"]
+                    }],
+                out utility: Array(Entity(arc:utility))
+                    #[filterable=false]
+                    #[conflict_filter=[]]
+                    #_[canonical={
+                        base=["utility zones"]
+                    }]
+    )
+    #_[canonical=["layout", "floor plan", "design"]]
+    #[doc="declare layout"];
+
+list query zone(out id: Entity(arc:zone)
+                    #[filterable=false]
+                    #_[canonical={
+                        base=["id"]
+                    }],
+                out near: Array(Entity(arc:zone))
+                    #[conflict_filter=[]]
+                    #_[canonical={
+                        default="preposition",
+                        base=["nearby zone"],
+                        passive_verb=["located near the #"],
+                        preposition=["close to the #", "next to the #","near the #", "by the #"]
+                    }],
+                out away: Array(Entity(arc:zone))
+                    #[conflict_filter=[]]
+                    #_[canonical={
+                        default="preposition",
+                        base=["faraway zone"],
+                        passive_verb=["located far away from the #"],
+                        preposition=["far away from the #", "far from the #"]
+                    }],
+                out connect: Array(Entity(arc:zone))
+                    #[conflict_filter=[]]
+                    #_[canonical={
+                        default="passive_verb",
+                        base=["connected zone"],
+                        passive_verb=["connected to the #"]
+                    }],
+                out pattern: Entity(arc:pattern)
+                    #[conflict_filter=[]]
+                    #_[canonical={
+                        base=["pattern"],
+                        property = ["# pattern"],
+                        passive_verb=["arranged in #", "placed as #"],
+                        preposition=["in the # pattern", "in #"]
+                    }],
+                out location: Entity(arc:location)
+                    #[conflict_filter=[]]
+                    #_[canonical={
+                        base=["location"],
+                        passive_verb=["placed #", "located #"],
+                        preposition=["on the #", "at the #"]
+                    }],    
+                out restroom: Array(Entity(arc:restroom))
+                    #[filterable=false]
+                    #[conflict_filter=[]]
+                    #_[canonical={
+                        base=["restroom"]
+                    }]
+        )
+    #_[canonical=["zone"]]
+    #[doc="declare zone"];
+
+list query working extends zone(out id: Entity(arc:working)
+                                    #[filterable=false]
+                                    #[conflict_filter=[]]
+                                    #_[canonical={
+                                        base=["id"]
+                                    }],
+                                out office: Array(Entity(arc:office))
+                                    #[filterable=false]
+                                    #[conflict_filter=[]]
+                                    #_[canonical={
+                                        base=["office", "offices","office room"]
+                                    }],
+                                out desk: Array(Entity(arc:desk))
+                                    #[filterable=false]
+                                    #[conflict_filter=[]]
+                                    #_[canonical={
+                                        base=["open desk","open desks", "open desk spaces"]
+                                    }],
+                                out meeting: Array(Entity(arc:meeting))
+                                    #[filterable=false]
+                                    #[conflict_filter=[]]
+                                    #_[canonical={
+                                        base=["meeting room", "meeting rooms", "conference room", "conference rooms"]
+                                    }]
+        )
+    #_[canonical=["working zone"]]
+    #[doc="declare working zone"];
+
+list query social extends zone(out id: Entity(arc:social)
+                                    #[filterable=false]
+                                    #[conflict_filter=[]]
+                                    #_[canonical={
+                                        base=["id"]
+                                    }],
+                                out lunch: Array(Entity(arc:lunch))
+                                    #[filterable=false]
+                                    #[conflict_filter=[]]
+                                    #_[canonical={
+                                        base=["lunch space"]
+                                    }],
+                                out reception: Array(Entity(arc:reception))
+                                    #[filterable=false]
+                                    #[conflict_filter=[]]
+                                    #_[canonical={
+                                        base=["reception"]
+                                    }]
+        )
+    #_[canonical=["social zone"]]
+    #[doc="declare social zone"];
+
+list query visitor extends zone(out id: Entity(arc:visitor)
+                                    #[filterable=false]
+                                    #[conflict_filter=[]]
+                                    #_[canonical={
+                                        base=["id"]
+                                    }],
+                                out meeting: Array(Entity(arc:meeting))
+                                    #[filterable=false]
+                                    #[conflict_filter=[]]
+                                    #_[canonical={
+                                        base=["meeting room"]
+                                    }],
+                                out reception: Array(Entity(arc:reception))
+                                    #[filterable=false]
+                                    #[conflict_filter=[]]
+                                    #_[canonical={
+                                        base=["reception"]
+                                    }]
+        )
+    #_[canonical=["visitor zone"]]
+    #[doc="declare visitor zone"];
+
+list query utility extends zone(out id: Entity(arc:utility)
+                                    #[filterable=false]
+                                    #[conflict_filter=[]]
+                                    #_[canonical={
+                                        base=["id"]
+                                    }],
+                                out copy: Array(Entity(arc:copy))
+                                    #[filterable=false]
+                                    #[conflict_filter=[]]
+                                    #_[canonical={
+                                        base=["copy room"]
+                                    }],
+                                out archive: Array(Entity(arc:archive))
+                                    #[filterable=false]
+                                    #[conflict_filter=[]]
+                                    #_[canonical={
+                                        base=["archive room"]
+                                    }]
+        )
+    #_[canonical=["social zone"]]
+    #[doc="declare social zone"];
+
+list query space(out id: Entity(arc:space)
+                    #[conflict_filter=[]]
+                    #[filterable=false]
+                    #_[canonical={
+                        base=["id"]
+                    }],
+                out near: Array(Entity(arc:node))
+                    #[conflict_filter=[]]
+                    #_[canonical={
+                        default="preposition",
+                        base=["nearby zone", "nearby space"],
+                        passive_verb=["located near the #"],
+                        preposition=["close to the #", "next to the #","near the #", "by the #"]
+                    }],
+                out away: Array(Entity(arc:node))
+                    #[conflict_filter=[]]
+                    #_[canonical={
+                        default="preposition",
+                        base=["faraway zone", "faraway space"],
+                        passive_verb=["located far away from the #"],
+                        preposition=["far away from the #", "far from the #"]
+                    }],
+                out connect: Array(Entity(arc:node))
+                    #[conflict_filter=[]]
+                    #_[canonical={
+                        default="passive_verb",
+                        base=["connected zone", "connected space"],
+                        passive_verb=["connected to the #"]
+                    }],
+                out area: Measure(m2)
+                    #[conflict_filter=[]]
+                    #_[canonical={
+                        base=["area", "square footage"],
+                        property=["an area of #", "the area of #", "a size of", "the size of #"],
+                        adjective = ["# sized"]
+                    }],
+                out width: Measure(m)
+                    #[conflict_filter=[]]
+                    #_[canonical={
+                        base=["width"],
+                        property=["a width of #", "the width of #"],
+                        adjective = ["# wide"]
+                    }],
+                out length: Measure(m)
+                    #[conflict_filter=[]]
+                    #_[canonical={
+                        base=["length"],
+                        property=["a length of #", "the length of #"],
+                        adjective = ["# long"]
+                    }],
+                out num_space: Number
+                    #[conflict_filter=[]]
+                    #_[canonical={
+                        default="adjective",
+                        base=["number"],
+                        adjective=["#"]
+                    }],
+                out in_zone: Entity(arc:zone)
+                    #[conflict_filter=[]]
+                    #_[canonical={
+                        default="preposition",
+                        base=["zone"],
+                        preposition = ["at", "in", "at the", "in the"]
+                    }],
+                out location: Entity(arc:location)
+                    #[conflict_filter=[]]
+                    #_[canonical={
+                        default="preposition",
+                        base=["location"],
+                        preposition = ["on the # side", "on the #"]
+                    }],
+                out shape: Entity(arc:shape)
+                    #[conflict_filter=[]]
+                    #_[canonical={
+                        base=["shape"]
+                    }],
+                out size: Entity(arc:size)
+                    #[conflict_filter=[]]
+                    #_[canonical={
+                        base=["size"]
+                    }],
+                out orientation: Entity(arc:orientation)
+                    #[conflict_filter=[]]
+                    #_[canonical={
+                        base=["facing direction", "door orientation"]
+                    }]
+        )
+    #_[canonical=["space", "room", "room space"]]
+    #[doc="declare space"];
+
+list query office extends space(out id: Entity(arc:office)
+                                    #[filterable=false]
+                                    #[conflict_filter=[]]
+                                    #_[canonical={
+                                        base=["office id"]
+                                    }]
+        )
+    #_[canonical=["office", "office space"]]
+    #[doc="declare office"];
+
+list query restroom extends space(out id: Entity(arc:restroom)
+                                    #[filterable=false]
+                                    #[conflict_filter=[]]
+                                    #_[canonical={
+                                        base=["id"]
+                                    }]
+        )
+    #_[canonical=["restroom", "bathroom", "wc", "washroom", "toilet"]]
+    #[doc="declare restroom"];
+
+list query meeting extends space(out id: Entity(arc:meeting)
+                                    #[filterable=false]
+                                    #[conflict_filter=[]]
+                                    #_[canonical={
+                                        base=["id"]
+                                    }]
+        )
+    #_[canonical=["meeting room", "conference room"]]
+    #[doc="declare meeting room"];
+
+list query lunch extends space(out id: Entity(arc:lunch)
+                                    #[filterable=false]
+                                    #[conflict_filter=[]]
+                                    #_[canonical={
+                                        base=["id"]
+                                    }]
+        )
+    #_[canonical=["lunch space", "cafe", "cafeteria", "restaurant", "buffet", "canteen"]]
+    #[doc="declare lunch space"];
+}
