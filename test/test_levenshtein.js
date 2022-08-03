@@ -130,6 +130,14 @@ const TEST_CASES = [
      "$continue @com.twitter.post() filter name == 'Chinese';",
      "@com.twitter.post() filter name == 'Chinese';"
     ],
+    ["@com.twitter.post() filter name == 'Japanese';",
+     "$continue @com.twitter.post() filter name == 'Japanese';",
+     "@com.twitter.post() filter name == 'Japanese';"
+    ],
+    ["@com.yelp.restaurant() filter id == 'str:ENTITY_com.yelp:restaurant::2:'^^com.yelp:restaurant('str:ENTITY_com.yelp:restaurant::2:');",
+     "$continue @com.yelp.restaurant() filter id == 'str:ENTITY_com.yelp:restaurant::2:'^^com.yelp:restaurant('str:ENTITY_com.yelp:restaurant::2:') filter id == 'str:ENTITY_com.yelp:restaurant::2:'^^com.yelp:restaurant;",
+     "@com.yelp.restaurant() filter id == 'str:ENTITY_com.yelp:restaurant::2:'^^com.yelp:restaurant('str:ENTITY_com.yelp:restaurant::2:');"
+    ],
     ["(count(@com.twitter.post() filter name == 'Japanese')) filter place == 'Palo Alto';",
     "$continue @com.twitter.post() filter name == 'Chinese';",
     "(count(@com.twitter.post() filter name == 'Chinese')) filter place == 'Palo Alto';"
@@ -166,6 +174,14 @@ const TEST_CASES = [
     ["sort (price asc of (@com.yelp.restaurant() filter location == 'Palo Alto'))[1:2];",
      "$continue @com.yelp.restaurant() filter price >= 20;",
      "sort (price asc of (@com.yelp.restaurant() filter location == 'Palo Alto'))[1:2] filter price >= 20;"
+    ],
+    ['@com.yelp.restaurant() filter contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::9:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::9:"));',
+     '$continue @com.yelp.restaurant() filter contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::0:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::0:"));',
+     '@com.yelp.restaurant() filter contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::0:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::0:"));'
+    ],
+    ['@com.yelp.restaurant() filter contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::9:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::9:"));',
+     '$continue @com.yelp.restaurant() filter contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::0:"^^com.yelp:restaurant_cuisine);',
+     '@com.yelp.restaurant() filter contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::0:"^^com.yelp:restaurant_cuisine);'
     ],
 
     // adding indexing
@@ -260,15 +276,37 @@ const TEST_CASES = [
     "[name] of (sort (stars asc of @com.twitter.post(zime=986, name='vhfPni9pci29SEHrN1OtRg'^^com.yelp:restaurant('Ramen Nagi')) filter location == 'Mountain View'));"
     ],
 
-    // This currently cannot pass because filters are optimized
+    // entity types
+    ["@com.yelp.restaurant() filter id == 'str:ENTITY_com.yelp:restaurant::2:'^^com.yelp:restaurant('str:ENTITY_com.yelp:restaurant::2:');",
+     "$continue [image_url] of @com.yelp.restaurant() filter id == 'str:ENTITY_com.yelp:restaurant::2:'^^com.yelp:restaurant;",
+     "[image_url] of @com.yelp.restaurant() filter id == 'str:ENTITY_com.yelp:restaurant::2:'^^com.yelp:restaurant;"
+    ],
+
     ["(@com.twitter.post() filter name == 'Japanese') filter place == 'Palo Alto';",
     "$continue @com.twitter.post() filter name == 'Chinese';",
-    "@com.twitter.post() filter name == 'Chinese';"
+    "@com.twitter.post() filter name == 'Chinese' && place == 'Palo Alto';"
     ],
     // ["@com.yelp.review() filter id == any(@com.yelp.restaurant());",
     // "$continue @com.yelp.review() filter id == any(@com.yelp.restaurant(), rating >= 4);",
     // "@com.yelp.review() filter id == any(@com.yelp.restaurant(), rating >= 4);"
     // ]
+    
+    // optimize related issues:
+
+    // the following needs to be addressed
+    // ["sort(review_count desc of @com.yelp.restaurant())[1];",
+    //  "$continue sort(review_count desc of @com.yelp.restaurant())[1] filter id == 'str:ENTITY_com.yelp:restaurant::4:'^^com.yelp:restaurant;",
+    //  "sort(review_count desc of @com.yelp.restaurant() filter id == 'str:ENTITY_com.yelp:restaurant::4:'^^com.yelp:restaurant)[1];"
+    // ],
+
+    ["@com.yelp.restaurant() filter geo == new Location(12, 12) && id == 'str:ENTITY_com.yelp:restaurant::2:'^^com.yelp:restaurant('str:ENTITY_com.yelp:restaurant::2:') && review_count == 26;",
+     "$continue @com.yelp.restaurant() filter id == 'str:ENTITY_com.yelp:restaurant::2:'^^com.yelp:restaurant;",
+     "@com.yelp.restaurant() filter geo == new Location(12, 12) && id == 'str:ENTITY_com.yelp:restaurant::2:'^^com.yelp:restaurant && review_count == 26;"
+    ],
+    ['@com.yelp.restaurant() filter contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::6:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::6:")) && review_count <= 25;',
+     "$continue [link, image_url, rating] of @com.yelp.restaurant();",
+     '[image_url, link, rating] of @com.yelp.restaurant() filter contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::6:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::6:")) && review_count <= 25;'
+    ]
 ];
 
 function test(i) {

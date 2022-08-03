@@ -567,6 +567,16 @@ function optimizeRule(rule : Ast.ExpressionStatement) : Ast.ExpressionStatement 
     return rule;
 }
 
+function optimizeChainExpression(expr : Ast.ChainExpression) : Ast.ChainExpression {
+    const newExpression = optimizeExpression(expr);
+    let res : Ast.ChainExpression;
+    if (!(newExpression instanceof Ast.ChainExpression))
+        res = new Ast.ChainExpression(newExpression.location, [newExpression], newExpression.schema);
+    else
+        res = newExpression;
+    return res;
+}
+
 function optimizeProgram<T extends Ast.Program|Ast.FunctionDeclaration>(program : T) : T {
     const newDeclarations = [];
     for (const decl of program.declarations)
@@ -610,5 +620,6 @@ export {
     optimizeRule,
     optimizeProgram,
     optimizeDataset,
-    optimizeFilter
+    optimizeFilter,
+    optimizeChainExpression
 };

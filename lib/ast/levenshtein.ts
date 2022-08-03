@@ -43,9 +43,10 @@ import { OldSlot, AbstractSlot, ScopeMap } from "./slots";
 import { DeviceSelector, InputParam } from "./invocation";
 import { Expression } from "./expression";
 import { Rule, Command } from "./statement";
-import { AtomBooleanExpression, BooleanExpression } from "./boolean_expression";
+import { AndBooleanExpression, AtomBooleanExpression, BooleanExpression, OrBooleanExpression, TrueBooleanExpression } from "./boolean_expression";
 import { SyntaxPriority } from "./syntax_priority";
 import { Program } from "./program";
+import { optimizeChainExpression, optimizeFilter, optimizeRule } from "../optimize";
 
 
 
@@ -55,10 +56,14 @@ export class Levenshtein extends Statement {
     op : string;
 
     constructor(location : SourceRange|null, 
-                expression : ChainExpression, 
+                expression : Expression, 
                 op : string) {
         super(location);
-        this.expression = expression;
+        if (expression instanceof ChainExpression)
+            this.expression = expression;
+        else
+            this.expression = new ChainExpression(expression.location, [expression], expression.schema);
+                    
         this.op = op;
     }
 
@@ -89,6 +94,16 @@ export class Levenshtein extends Statement {
         if (visitor.visitLevenshtein(this))
             this.expression.visit(visitor);
         visitor.exit(this);
+    }
+
+    optimize() {
+        const res = this.clone();
+        res.expression = optimizeChainExpression(res.expression);
+
+        // we'd like to take care of some redundant filter issues
+        res.expression.visit(new OptimizeFilterPredicates());
+
+        return res;
     }
 
     async typecheck(schemas : SchemaRetriever, getMeta = false) : Promise<this> {
@@ -206,7 +221,31 @@ export function applyLevenshteinWrapper(e1 : Program, e2 : Program) : Program {
             res.statements.push(thisStatement);
         }
     }
+    // NOTE: this is a double optimization b/c I am yet to figure out if the two different
+    //       ways to optimize are equiv, in which case we don't need the second optimize here
     return res.optimize();
+}
+
+export function applyLevenshteinExpressionStatement(e1 : ExpressionStatement, e2 : Levenshtein) : ExpressionStatement {
+    const res = e1.clone();
+    res.expression = applyLevenshtein(e1.expression, e2);
+    return optimizeRule(res);
+}
+
+export function applyMultipleLevenshtein(e1 : ChainExpression, e2 : Levenshtein[]) : ChainExpression {
+    for (const expr of e2)
+        e1 = applyLevenshtein(e1, expr);
+    return e1;
+}
+
+export function levenshteinFindSchema(e1 : Expression) : Expression {
+    if (e1 instanceof ChainExpression) {
+        // NOTE: for now we are only using the first expression
+        e1 = e1.expressions[0];
+    }
+    while (!isSchema(e1))
+        e1 = (e1 as NoneSchemaType).expression;
+    return e1;
 }
 
 /**
@@ -237,7 +276,8 @@ export function applyLevenshteinWrapper(e1 : Program, e2 : Program) : Program {
  * @return {ChainExpression}   - a completed, new query incorporating
  *                               information from both queries
  */
-export function applyLevenshtein(e1 : ChainExpression, e2 : Levenshtein) : ChainExpression {
+export function applyLevenshtein(e1 : ChainExpression, e2 : Levenshtein) : ChainExpression {   
+    e2 = e2.optimize(); 
     // step 2: understand which part of e1 is related to which API call
     const e1Invocations : APICall[] [] = [];
     for (const expr of e1.expressions) {
@@ -293,7 +333,7 @@ export function applyLevenshtein(e1 : ChainExpression, e2 : Levenshtein) : Chain
             res.expressions.push(e2expr);
         
     }
-    return res;
+    return optimizeChainExpression(res);
 }
 
 
@@ -417,6 +457,15 @@ function chopExpression(expr : Expression, e2Predicates : BooleanExpression[]) :
             else
                 expr = expr.expression;
             return [new LevenshteinPlaceholder(null, null), locateBottom(expr, e2Predicates), true];
+        } else if (newFilter === undefined) {
+            // there is the case where there is no conflict, but the old expression
+            // still needs to be thrown away
+            // e.g.: both old and incoming expression contain the exact same filter
+            //       it is not a conflict, but we should throw away the old filter
+            //       (side note: `optimize` does not take care of this issue)
+            expr.filter = new TrueBooleanExpression();
+        } else {
+            expr.filter = newFilter;
         }
     }
 
@@ -455,34 +504,76 @@ function locateBottom(expr : Expression, e2Predicates : BooleanExpression[]) : E
 }
 
 
-// statically resolve predicate conflicts using SMT,
-// and return whether this e1Predicate conflict with any in e2Predicates
-// true for conflict (we don't care about which one it conflicts, just that it conflicts) 
-// and false for not conflict
-function predicateResolution(expr : BooleanExpression,
-                             e2Predicates : BooleanExpression[]) : [boolean, BooleanExpression|undefined] {
-    // this is super simple at the moment.
-    // for now, if e1Predicate is not atomic, return False;
-    // if it is, compare with each of e2Predicates
-    // conflict is only detected if they are all using direct comparison "==" and have different values
+function predicateResolutionBasics(e1 : BooleanExpression,
+                                   e2expr : BooleanExpression[]) : [boolean, BooleanExpression|undefined] {
+    for (const e2 of e2expr) {
+        if (e1 instanceof AtomBooleanExpression &&
+            e2 instanceof AtomBooleanExpression) {
+            if (e1.equals(e2))
+                return [false, undefined];
 
-    // TODO: in the future, use more advanced heuristics
-            
-    if (expr instanceof AtomBooleanExpression &&
-        expr.operator === "==") {
-        for (const expr2 of e2Predicates) {
-            if (expr2 instanceof AtomBooleanExpression &&
-                    expr2.operator === "==" &&
-                    expr.name === expr2.name &&
-                    !expr.value.equals(expr2.value)) {
-                // console.debug(`applyLevenshtein (predicateResolution): given ${expr} and ${e2Predicates} to compare, detected contradiction`);
-                return [true, undefined];
+            if ((e1.operator === "==" && e2.operator === "==" && e1.name === e2.name) ||
+                (e1.operator === "contains" && e2.operator === "contains" && e1.name === e2.name)) {
+                const e1Value = e1.value;
+                const e2Value = e2.value;
+                if (!e1Value.equals(e2Value))
+                    return [true, undefined];
             }
         }
     }
-    // console.debug(`applyLevenshtein (predicateResolution): given ${expr} and ${e2Predicates} to compare, no contradiction`);
 
-    return [false, undefined];
+    return [false, e1];
+}
+
+
+/** Given a predicate and a list of predicates to compare against, determine if the predicate
+ *  conflicts / does not conflict with the list of predicate.
+ *  If conflicts, it determines which part of the predicate does not conflict.
+ *  If does not conflict, it determines if it is a repetition (see below for details)
+ * 
+ * @param {BooleanExpression} expr - the single predicate to determine whether conflicts occur
+ * @param {BooleanExpression[]} e2Predicates - the list of predicates to compare against
+ * 
+ * @return {[boolean, BooleanExpression|undefined]} - the behavior is the following;
+ * if the first result is true, this indicates that there is a conflict
+ *     if the second result is undefined, this means that the entire `expr` conflicts
+ *     if the second result is not undefined, it is the non-conflicting part of `expr`
+ * 
+ * if the first result is false, this indicates that there is no conflict
+ *     if the second result is undefined, this means that `expr` is a repetition of some of the predicates in `e2Predicates`
+ *     if the second result is not undefined, it is the non-repetitive part of `expr`
+ * 
+*/
+function predicateResolution(expr : BooleanExpression,
+                             e2Predicates : BooleanExpression[]) : [boolean, BooleanExpression|undefined] {
+    // TODO: in the future, use more advanced heuristics
+    if (expr instanceof AndBooleanExpression) {
+        const res = expr.clone();
+        let resBoolean = false;
+        res.operands = [];
+        for (const i of expr.operands.map((i) => predicateResolution(i, e2Predicates))) {
+            if (i[0])
+                resBoolean = true;
+            
+            if (i[1] !== undefined)
+                res.operands.push(i[1]);
+        }
+        return [resBoolean, res];
+    } else if (expr instanceof OrBooleanExpression) {
+        const res = expr.clone();
+        let resBoolean = true;
+        res.operands = [];
+        for (const i of expr.operands.map((i) => predicateResolution(i, e2Predicates))) {
+            if (i[0] === false)
+                resBoolean = false;
+            
+            if (i[1] !== undefined)
+                res.operands.push(i[1]);
+        }
+        return [resBoolean, res];
+    }
+
+    return predicateResolutionBasics(expr, e2Predicates);
 }
 
 // if a parameter exists in `old` parameter list that does not exist in `incoming`
@@ -547,6 +638,37 @@ class ModifyInvocationExpressionVisitor extends NodeVisitor {
             }
         }
         return true;
+    }
+}
+
+
+// this deals with some optimization issues in filters
+class OptimizeFilterPredicates extends NodeVisitor {
+    visitFilterExpression(node : FilterExpression) : boolean {
+        if (node.filter instanceof AndBooleanExpression || node.filter instanceof OrBooleanExpression) {
+            // console.log(node.filter.operands);
+            node.filter.operands = this.recurse(node.filter.operands);
+            // console.log(node.filter.operands);
+            node.filter = optimizeFilter(node.filter);
+        }
+        return true;
+    }
+
+    recurse(predicates : BooleanExpression[]) : BooleanExpression[] {
+        if (predicates.length <= 0)
+            return [];
+        if (predicates.length === 1)
+            return predicates;
+        // console.log(predicates[0]);
+        // console.log(predicates.slice(1));
+        // console.log(predicateResolution(predicates[0], predicates.slice(1)));
+        // console.log(predicateResolution(predicates[0], predicates.slice(1))[0] === false);
+        const res = predicateResolution(predicates[0], predicates.slice(1));
+        if (res[0] === false && res[1] === undefined) {
+            // console.log("triggered");
+            return this.recurse(predicates.slice(1));
+        }
+        return [predicates[0], ...this.recurse(predicates.slice(1))];
     }
 }
 
@@ -616,6 +738,45 @@ function walkExpression(expr : Expression) : [BooleanExpression[],
     return [predicates, determineReturnType(expr), apiCalls, joins];
 }
 
+export function determineSameExpressionLevenshtein(e1 : ChainExpression, e2 : ChainExpression, flag = "queryRefinement") : boolean {
+    e1 = e1.clone();
+    e2 = e2.clone();
+    if (e1.equals(e2))
+        return true;
+
+    e1 = optimizeChainExpression(e1);
+    e2 = optimizeChainExpression(e2);
+    if (e1.equals(e2))
+        return true;
+    
+    const visitor1 = new GetFilterPredicates();
+    const visitor2 = new GetFilterPredicates();
+    e1.visit(visitor1);
+    e2.visit(visitor2);
+    let e1collapsed : BooleanExpression = new AndBooleanExpression(null, visitor1.predicates);
+    let e2collapsed : BooleanExpression = new AndBooleanExpression(null, visitor2.predicates);
+    e1collapsed = optimizeFilter(e1collapsed);
+    e2collapsed = optimizeFilter(e2collapsed);
+    if (e1collapsed.equals(e2collapsed)) {
+        e1.visit(new ResetFilterPredicates());
+        e2.visit(new ResetFilterPredicates());
+        e1 = optimizeChainExpression(e1);
+        e2 = optimizeChainExpression(e2);
+        if (e1.equals(e2))
+            return true;
+        console.log("After filters set to true, still fail, not the same expression");
+    } else {
+        console.log("returning false");
+    }
+    return false;
+}
+
+class ResetFilterPredicates extends NodeVisitor {
+    visitFilterExpression(node : FilterExpression) : boolean {
+        node.filter = new TrueBooleanExpression();
+        return true;
+    }
+}
 
 // determine at which stage of expr does the insertion become non-null
 // it first uses static resolution (using chopExpression)
