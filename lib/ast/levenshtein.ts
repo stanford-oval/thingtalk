@@ -43,10 +43,11 @@ import { OldSlot, AbstractSlot, ScopeMap } from "./slots";
 import { DeviceSelector, InputParam } from "./invocation";
 import { Expression } from "./expression";
 import { Rule, Command } from "./statement";
-import { AndBooleanExpression, AtomBooleanExpression, BooleanExpression, OrBooleanExpression, TrueBooleanExpression } from "./boolean_expression";
+import { AndBooleanExpression, AtomBooleanExpression, BooleanExpression, NotBooleanExpression, OrBooleanExpression, TrueBooleanExpression } from "./boolean_expression";
 import { SyntaxPriority } from "./syntax_priority";
 import { Program } from "./program";
 import { optimizeChainExpression, optimizeFilter, optimizeRule } from "../optimize";
+import assert from 'assert';
 
 
 
@@ -441,6 +442,7 @@ class LevenshteinPlaceholder extends Expression {
 //      -> if conflict detected, add current node to top
 //      -> if no conflict, add current node to bottom
 function chopExpression(expr : Expression, e2Predicates : BooleanExpression[]) : [Expression, Expression, boolean] {
+    // console.log(`chopExpression ${expr.prettyprint()}`);
     // base case 1
     if (isSchema(expr))
         return [new LevenshteinPlaceholder(null, null), expr, false];
@@ -503,28 +505,74 @@ function locateBottom(expr : Expression, e2Predicates : BooleanExpression[]) : E
     return exprCopy;
 }
 
-
-function predicateResolutionBasics(e1 : BooleanExpression,
-                                   e2expr : BooleanExpression[]) : [boolean, BooleanExpression|undefined] {
+/**
+ * @param e1     - AtomBooleanExpression-like expressions
+ */
+function predicateResolutionSingleE1(e1 : BooleanExpression,
+                                     e2expr : BooleanExpression[]) : [boolean, BooleanExpression|undefined] {
     for (const e2 of e2expr) {
-        if (e1 instanceof AtomBooleanExpression &&
-            e2 instanceof AtomBooleanExpression) {
-            if (e1.equals(e2))
-                return [false, undefined];
-
-            if ((e1.operator === "==" && e2.operator === "==" && e1.name === e2.name) ||
-                (e1.operator === "contains" && e2.operator === "contains" && e1.name === e2.name)) {
-                const e1Value = e1.value;
-                const e2Value = e2.value;
-                if (!e1Value.equals(e2Value))
+        if (e1.equals(e2))
+            return [false, undefined];
+        if (e1 instanceof AtomBooleanExpression) {
+            if (e2 instanceof AtomBooleanExpression) {
+                // if (e1.equals(e2))
+                    // return [false, undefined];
+    
+                if (e1.operator === "==" && e2.operator === "==" && e1.name === e2.name) {
+                    const e1Value = e1.value;
+                    const e2Value = e2.value;
+                    if (!e1Value.equals(e2Value))
+                        return [true, undefined];
+                }
+            } else if (e2 instanceof AndBooleanExpression) {                
+                for (const eachRes of e2.operands.map((x) => predicateResolutionSingleE1(e1, [x]))) {
+                    if (eachRes[0] === true)
+                        return [true, undefined];
+                }
+            } else if (e2 instanceof OrBooleanExpression) {
+                let isConflict = true;
+                // let res = false;
+                for (const eachRes of e2.operands.map((x) => predicateResolutionSingleE1(e1, [x]))) {
+                    if (eachRes[0] === false)
+                        isConflict = false;
+                    // if (eachRes[1] === undefined)
+                        // res = true;
+                }
+                if (isConflict)
+                    return [true, undefined];
+                // if (res)
+                //     return [false, undefined];
+            } else if (e2 instanceof NotBooleanExpression) {
+                // De-Morgan already done in e2 during Levenshtein optimize
+                assert(!(e2.expr instanceof AndBooleanExpression || e2.expr instanceof OrBooleanExpression));
+                if (e1.equals(e2.expr))
                     return [true, undefined];
             }
         }
+        if (e1 instanceof NotBooleanExpression && e2 instanceof AtomBooleanExpression) {
+            assert(!(e1.expr instanceof AndBooleanExpression || e1.expr instanceof OrBooleanExpression));
+            if (e1.expr instanceof AtomBooleanExpression && e1.expr.equals(e2))
+                return [true, undefined];
+        }
+    
     }
 
     return [false, e1];
 }
 
+function deMorgen(expr : BooleanExpression) : BooleanExpression {
+    // console.log(expr.prettyprint());
+    if (expr instanceof AndBooleanExpression) {
+        const res = new OrBooleanExpression(expr.location, []);
+        res.operands = expr.operands.map((x) => new NotBooleanExpression(x.location, deMorgen(x)));
+        return res;
+    } else if (expr instanceof OrBooleanExpression) {
+        const res = new AndBooleanExpression(expr.location, []);
+        res.operands = expr.operands.map((x) => new NotBooleanExpression(x.location, deMorgen(x)));
+        return res;
+    }
+    return expr;
+}
 
 /** Given a predicate and a list of predicates to compare against, determine if the predicate
  *  conflicts / does not conflict with the list of predicate.
@@ -547,6 +595,7 @@ function predicateResolutionBasics(e1 : BooleanExpression,
 function predicateResolution(expr : BooleanExpression,
                              e2Predicates : BooleanExpression[]) : [boolean, BooleanExpression|undefined] {
     // TODO: in the future, use more advanced heuristics
+    // console.log(`predicateResolution: ${expr.prettyprint()}`);
     if (expr instanceof AndBooleanExpression) {
         const res = expr.clone();
         let resBoolean = false;
@@ -571,9 +620,11 @@ function predicateResolution(expr : BooleanExpression,
                 res.operands.push(i[1]);
         }
         return [resBoolean, res];
+    } else if (expr instanceof NotBooleanExpression && (expr.expr instanceof AndBooleanExpression || expr.expr instanceof OrBooleanExpression)) {
+        return predicateResolution(deMorgen(expr.expr), e2Predicates);
     }
 
-    return predicateResolutionBasics(expr, e2Predicates);
+    return predicateResolutionSingleE1(expr, e2Predicates);
 }
 
 // if a parameter exists in `old` parameter list that does not exist in `incoming`
@@ -642,7 +693,9 @@ class ModifyInvocationExpressionVisitor extends NodeVisitor {
 }
 
 
-// this deals with some optimization issues in filters
+/** If a predicate in an AndBooleanExpression or OrBooleanExpression is a repetition of other predicates,
+ *  get rid of it (using `predicateResolution`)
+ */
 class OptimizeFilterPredicates extends NodeVisitor {
     visitFilterExpression(node : FilterExpression) : boolean {
         if (node.filter instanceof AndBooleanExpression || node.filter instanceof OrBooleanExpression) {
@@ -651,6 +704,8 @@ class OptimizeFilterPredicates extends NodeVisitor {
             // console.log(node.filter.operands);
             node.filter = optimizeFilter(node.filter);
         }
+        if (node.filter instanceof NotBooleanExpression && (node.filter.expr instanceof AndBooleanExpression || node.filter.expr instanceof OrBooleanExpression))
+            node.filter = deMorgen(node.filter.expr);
         return true;
     }
 
@@ -764,10 +819,11 @@ export function determineSameExpressionLevenshtein(e1 : ChainExpression, e2 : Ch
         e2 = optimizeChainExpression(e2);
         if (e1.equals(e2))
             return true;
-        console.log("After filters set to true, still fail, not the same expression");
-    } else {
-        console.log("returning false");
+        // console.log("After filters set to true, still fail, not the same expression");
     }
+    // else {
+    //     console.log("returning false");
+    // }
     return false;
 }
 

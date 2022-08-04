@@ -177,12 +177,30 @@ const TEST_CASES = [
     ],
     ['@com.yelp.restaurant() filter contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::9:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::9:"));',
      '$continue @com.yelp.restaurant() filter contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::0:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::0:"));',
-     '@com.yelp.restaurant() filter contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::0:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::0:"));'
+     '@com.yelp.restaurant() filter contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::0:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::0:")) && contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::9:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::9:"));'
     ],
     ['@com.yelp.restaurant() filter contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::9:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::9:"));',
-     '$continue @com.yelp.restaurant() filter contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::0:"^^com.yelp:restaurant_cuisine);',
-     '@com.yelp.restaurant() filter contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::0:"^^com.yelp:restaurant_cuisine);'
+     '$continue @com.yelp.restaurant() filter !contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::9:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::9:")) && contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::0:"^^com.yelp:restaurant_cuisine);',
+     '@com.yelp.restaurant() filter !contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::9:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::9:")) && contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::0:"^^com.yelp:restaurant_cuisine);'
     ],
+    ['@com.yelp.restaurant() filter contains(cuisines, "Chinese");',
+     '$continue @com.yelp.restaurant() filter !(contains(cuisines, "Chinese") || contains(cuisines, "Japanese"));',
+     '@com.yelp.restaurant() filter !contains(cuisines, "Chinese") && !contains(cuisines, "Japanese");'
+    ],
+    ['@com.yelp.restaurant() filter !(contains(cuisines, "Chinese") && contains(cuisines, "American"));',
+     '$continue @com.yelp.restaurant() filter contains(cuisines, "Chinese");',
+     '@com.yelp.restaurant() filter !contains(cuisines, "American") && contains(cuisines, "Chinese");'
+    ],
+    ['@com.yelp.restaurant() filter !(contains(cuisines, "Chinese") && contains(cuisines, "American"));',
+     '$continue @com.yelp.restaurant() filter !(contains(cuisines, "Chinese") || contains(cuisines, "Japanese"));',
+     '@com.yelp.restaurant() filter !contains(cuisines, "Chinese") && !contains(cuisines, "American");'
+    ],
+    [
+      '@com.yelp.restaurant() filter contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::9:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::9:")) && contains(opening_hours, new Date(enum monday) - 1week) && review_count >= 20;',
+      '$continue @com.yelp.restaurant() filter contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::7:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::7:")) && contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::1:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::1:"));',
+      '@com.yelp.restaurant() filter contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::7:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::7:")) && contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::1:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::1:")) && contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::9:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::9:")) && contains(opening_hours, new Date(enum monday) - 1week) && review_count >= 20;'
+    ],
+
 
     // adding indexing
     ["[name] of sort (stars desc of (@com.yelp.restaurant() filter location == 'Palo Alto'))[5:15];",
