@@ -46,8 +46,9 @@ import { Rule, Command } from "./statement";
 import { AndBooleanExpression, AtomBooleanExpression, BooleanExpression, NotBooleanExpression, OrBooleanExpression, TrueBooleanExpression } from "./boolean_expression";
 import { SyntaxPriority } from "./syntax_priority";
 import { Program } from "./program";
-import { optimizeChainExpression, optimizeFilter, optimizeRule } from "../optimize";
+import { optimizeChainExpression, optimizeFilter } from "../optimize";
 import assert from 'assert';
+import { Value } from "./values";
 
 
 
@@ -222,15 +223,13 @@ export function applyLevenshteinWrapper(e1 : Program, e2 : Program) : Program {
             res.statements.push(thisStatement);
         }
     }
-    // NOTE: this is a double optimization b/c I am yet to figure out if the two different
-    //       ways to optimize are equiv, in which case we don't need the second optimize here
-    return res.optimize();
+    return res;
 }
 
 export function applyLevenshteinExpressionStatement(e1 : ExpressionStatement, e2 : Levenshtein) : ExpressionStatement {
     const res = e1.clone();
     res.expression = applyLevenshtein(e1.expression, e2);
-    return optimizeRule(res);
+    return res;
 }
 
 export function applyMultipleLevenshtein(e1 : ChainExpression, e2 : Levenshtein[]) : ChainExpression {
@@ -267,6 +266,8 @@ export function levenshteinFindSchema(e1 : Expression) : Expression {
  * 4. At that point, add all incoming query on top of it (and modify API call)
  * 5. Determine which of the old query is compatible (matches the return type of
  *    incoming query) and add them back.
+ * 
+ * This will also return an optimized result for any wrapper function to use
  * 
  * Note that dynamic execution until we find a non-null result will be implemented in genie runtime
  * 
@@ -505,43 +506,98 @@ function locateBottom(expr : Expression, e2Predicates : BooleanExpression[]) : E
     return exprCopy;
 }
 
-/**
+function ifComparable(e1Value : Value, e2Value : Value) : boolean {
+    return (e1Value.isString && e2Value.isString) || (e1Value.isNumber && e2Value.isNumber);
+}
+
+
+/** This function iterates through all boolean expressions occuring in the incoming levenshtein
+ *  to determine whether an AtomBooleanExpression-like expression from last turn contradicts and/or repeats
+ *  any of the incoming filters
+ * 
+ * 
  * @param e1     - AtomBooleanExpression-like expressions
  */
 function predicateResolutionSingleE1(e1 : BooleanExpression,
                                      e2expr : BooleanExpression[]) : [boolean, BooleanExpression|undefined] {
-    for (const e2 of e2expr) {
-        if (e1.equals(e2))
-            return [false, undefined];
-        if (e1 instanceof AtomBooleanExpression) {
-            if (e2 instanceof AtomBooleanExpression) {
-                // if (e1.equals(e2))
-                    // return [false, undefined];
+    // we must finish iterating through all of e2expr before deciding if it's a repetition
+    // because we could have a conflict later on
+    // this flag is used for that purpose
+    let isRepetition = false;
     
-                if (e1.operator === "==" && e2.operator === "==" && e1.name === e2.name) {
-                    const e1Value = e1.value;
-                    const e2Value = e2.value;
-                    if (!e1Value.equals(e2Value))
-                        return [true, undefined];
-                }
-            } else if (e2 instanceof AndBooleanExpression) {                
-                for (const eachRes of e2.operands.map((x) => predicateResolutionSingleE1(e1, [x]))) {
-                    if (eachRes[0] === true)
-                        return [true, undefined];
-                }
-            } else if (e2 instanceof OrBooleanExpression) {
-                let isConflict = true;
-                // let res = false;
-                for (const eachRes of e2.operands.map((x) => predicateResolutionSingleE1(e1, [x]))) {
-                    if (eachRes[0] === false)
-                        isConflict = false;
-                    // if (eachRes[1] === undefined)
-                        // res = true;
-                }
-                if (isConflict)
+    for (const e2 of e2expr) {
+        // striaght up repetition
+        if (e1.equals(e2)) {
+            isRepetition = true;
+            continue;
+        }
+        // if anyone conflicts, it is a conflict
+        // if anyone repeats, it is a repetition
+        if (e2 instanceof AndBooleanExpression) {                
+            for (const eachRes of e2.operands.map((x) => predicateResolutionSingleE1(e1, [x]))) {
+                if (eachRes[0])
                     return [true, undefined];
-                // if (res)
-                //     return [false, undefined];
+                if (eachRes[1] === undefined)
+                    isRepetition = true;
+            }
+        } 
+        // if all conflict, it is a conflict
+        // if anyone repeats, it is a repetition
+        if (e2 instanceof OrBooleanExpression) {
+            let isConflict = true;
+            for (const eachRes of e2.operands.map((x) => predicateResolutionSingleE1(e1, [x]))) {
+                if (eachRes[0] === false)
+                    isConflict = false;
+                if (eachRes[1] === undefined)
+                    isRepetition = true;
+            }
+            if (isConflict)
+                return [true, undefined];
+        }
+        
+        if (e1 instanceof AtomBooleanExpression) {
+            if (e2 instanceof AtomBooleanExpression && e1.name === e2.name) {
+                // if both are quality, always a contradiction
+                if (e1.operator === "==" && e2.operator === "==")
+                    return [true, undefined];
+
+                const e1Value : Value = e1.value;
+                const e2Value : Value = e2.value;
+
+                // the new value is the same, it's a conflict (because the opeartor must be different, otherwise is picked up above)
+                if (e1Value.equals(e2Value)) {
+                    assert(e1.operator !== e2.operator);
+                    return [true, undefined];
+                }
+
+                // deal with arithmetic operators (==, <=, >=, <, >)
+                // NOTE: we prioritize judging the same expression as being contradictory
+                //       because there is no easier way to express a refinement conflict
+                if (ifComparable(e1Value, e2Value)) {
+                    // same operator, but updated value, always consdier as conflict
+                    if (e1.operator === e2.operator)
+                        return [true, undefined];
+                    
+                    // if one has equality, always consider as conflict
+                    if (e1.operator === "==" || e2.operator === "==")
+                        return [true, undefined];
+                    
+                    // 4 choice of opeartor (<, <=, >, >=), each has two options. A total of 8 conditions
+                    if ((e1.operator === "<=" && e2.operator === ">=" && e1Value < e2Value)  ||
+                        (e1.operator === ">=" && e2.operator === "<=" && e1Value > e2Value)  ||
+                        (e1.operator === "<"  && e2.operator === ">"  && e1Value <= e2Value) ||
+                        (e1.operator === "<=" && e2.operator === ">"  && e1Value <= e2Value) ||
+                        (e1.operator === "<"  && e2.operator === ">=" && e1Value <= e2Value) ||
+                        (e1.operator === ">"  && e2.operator === "<"  && e1Value >= e2Value) ||
+                        (e1.operator === ">=" && e2.operator === "<"  && e1Value >= e2Value) ||
+                        (e1.operator === ">" && e2.operator === "<="  && e1Value >= e2Value))
+                        return [true, undefined];
+                }
+
+                const softMatchOperators = ["==", "~=", "=~"];
+                if (e1Value.isString && e2Value.isString && softMatchOperators.includes(e1.operator) && softMatchOperators.includes(e2.operator))
+                    return [true, undefined];
+                
             } else if (e2 instanceof NotBooleanExpression) {
                 // De-Morgan already done in e2 during Levenshtein optimize
                 assert(!(e2.expr instanceof AndBooleanExpression || e2.expr instanceof OrBooleanExpression));
@@ -549,6 +605,7 @@ function predicateResolutionSingleE1(e1 : BooleanExpression,
                     return [true, undefined];
             }
         }
+        
         if (e1 instanceof NotBooleanExpression && e2 instanceof AtomBooleanExpression) {
             assert(!(e1.expr instanceof AndBooleanExpression || e1.expr instanceof OrBooleanExpression));
             if (e1.expr instanceof AtomBooleanExpression && e1.expr.equals(e2))
@@ -556,19 +613,29 @@ function predicateResolutionSingleE1(e1 : BooleanExpression,
         }
     
     }
-
+    
+    if (isRepetition)
+        return [false, undefined];
     return [false, e1];
 }
 
+/** Recursively apply de morgan laws to push down NOT opeartors at the lowest level
+ * 
+ * @param {BooleanExpression } expr
+ * @returns {BooleanExpression} expression in which de-morgan is recursively applied
+ */
 function deMorgen(expr : BooleanExpression) : BooleanExpression {
-    // console.log(expr.prettyprint());
-    if (expr instanceof AndBooleanExpression) {
-        const res = new OrBooleanExpression(expr.location, []);
-        res.operands = expr.operands.map((x) => new NotBooleanExpression(x.location, deMorgen(x)));
+    if (!(expr instanceof NotBooleanExpression))
+        return expr;
+    
+    const innerExpr = expr.expr;
+    if (innerExpr instanceof AndBooleanExpression) {
+        const res = new OrBooleanExpression(innerExpr.location, []);
+        res.operands = innerExpr.operands.map((x) => new NotBooleanExpression(x.location, deMorgen(x)));
         return res;
-    } else if (expr instanceof OrBooleanExpression) {
-        const res = new AndBooleanExpression(expr.location, []);
-        res.operands = expr.operands.map((x) => new NotBooleanExpression(x.location, deMorgen(x)));
+    } else if (innerExpr instanceof OrBooleanExpression) {
+        const res = new AndBooleanExpression(innerExpr.location, []);
+        res.operands = innerExpr.operands.map((x) => new NotBooleanExpression(x.location, deMorgen(x)));
         return res;
     }
     return expr;
@@ -594,13 +661,12 @@ function deMorgen(expr : BooleanExpression) : BooleanExpression {
 */
 function predicateResolution(expr : BooleanExpression,
                              e2Predicates : BooleanExpression[]) : [boolean, BooleanExpression|undefined] {
-    // TODO: in the future, use more advanced heuristics
-    // console.log(`predicateResolution: ${expr.prettyprint()}`);
+    expr = deMorgen(expr);
     if (expr instanceof AndBooleanExpression) {
         const res = expr.clone();
         let resBoolean = false;
         res.operands = [];
-        for (const i of expr.operands.map((i) => predicateResolution(i, e2Predicates))) {
+        for (const i of expr.operands.map((x) => predicateResolution(x, e2Predicates))) {
             if (i[0])
                 resBoolean = true;
             
@@ -612,7 +678,7 @@ function predicateResolution(expr : BooleanExpression,
         const res = expr.clone();
         let resBoolean = true;
         res.operands = [];
-        for (const i of expr.operands.map((i) => predicateResolution(i, e2Predicates))) {
+        for (const i of expr.operands.map((x) => predicateResolution(x, e2Predicates))) {
             if (i[0] === false)
                 resBoolean = false;
             
@@ -620,8 +686,6 @@ function predicateResolution(expr : BooleanExpression,
                 res.operands.push(i[1]);
         }
         return [resBoolean, res];
-    } else if (expr instanceof NotBooleanExpression && (expr.expr instanceof AndBooleanExpression || expr.expr instanceof OrBooleanExpression)) {
-        return predicateResolution(deMorgen(expr.expr), e2Predicates);
     }
 
     return predicateResolutionSingleE1(expr, e2Predicates);
@@ -698,14 +762,11 @@ class ModifyInvocationExpressionVisitor extends NodeVisitor {
  */
 class OptimizeFilterPredicates extends NodeVisitor {
     visitFilterExpression(node : FilterExpression) : boolean {
+        node.filter = deMorgen(node.filter);
         if (node.filter instanceof AndBooleanExpression || node.filter instanceof OrBooleanExpression) {
-            // console.log(node.filter.operands);
             node.filter.operands = this.recurse(node.filter.operands);
-            // console.log(node.filter.operands);
             node.filter = optimizeFilter(node.filter);
         }
-        if (node.filter instanceof NotBooleanExpression && (node.filter.expr instanceof AndBooleanExpression || node.filter.expr instanceof OrBooleanExpression))
-            node.filter = deMorgen(node.filter.expr);
         return true;
     }
 
@@ -714,15 +775,9 @@ class OptimizeFilterPredicates extends NodeVisitor {
             return [];
         if (predicates.length === 1)
             return predicates;
-        // console.log(predicates[0]);
-        // console.log(predicates.slice(1));
-        // console.log(predicateResolution(predicates[0], predicates.slice(1)));
-        // console.log(predicateResolution(predicates[0], predicates.slice(1))[0] === false);
         const res = predicateResolution(predicates[0], predicates.slice(1));
-        if (res[0] === false && res[1] === undefined) {
-            // console.log("triggered");
+        if (res[0] === false && res[1] === undefined)
             return this.recurse(predicates.slice(1));
-        }
         return [predicates[0], ...this.recurse(predicates.slice(1))];
     }
 }

@@ -193,12 +193,20 @@ const TEST_CASES = [
     ],
     ['@com.yelp.restaurant() filter !(contains(cuisines, "Chinese") && contains(cuisines, "American"));',
      '$continue @com.yelp.restaurant() filter !(contains(cuisines, "Chinese") || contains(cuisines, "Japanese"));',
-     '@com.yelp.restaurant() filter !contains(cuisines, "Chinese") && !contains(cuisines, "American");'
+     '@com.yelp.restaurant() filter !contains(cuisines, "Japanese") && !contains(cuisines, "American") && !contains(cuisines, "Chinese");'
     ],
     [
       '@com.yelp.restaurant() filter contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::9:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::9:")) && contains(opening_hours, new Date(enum monday) - 1week) && review_count >= 20;',
       '$continue @com.yelp.restaurant() filter contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::7:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::7:")) && contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::1:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::1:"));',
       '@com.yelp.restaurant() filter contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::7:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::7:")) && contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::1:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::1:")) && contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::9:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::9:")) && contains(opening_hours, new Date(enum monday) - 1week) && review_count >= 20;'
+    ],
+    ['@com.yelp.restaurant() filter contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::7:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::7:")) || contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::9:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::9:"));',
+     '$continue @com.yelp.restaurant() filter contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::6:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::6:"));',
+     '@com.yelp.restaurant() filter contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::6:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::6:")) && (contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::7:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::7:")) || contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::9:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::9:")));'
+    ],
+    ['@com.yelp.restaurant() filter rating >= 5;',
+     '$continue @com.yelp.restaurant() filter rating == 5;',
+     '@com.yelp.restaurant() filter rating == 5;'
     ],
 
 
@@ -325,6 +333,7 @@ const TEST_CASES = [
      "$continue [link, image_url, rating] of @com.yelp.restaurant();",
      '[image_url, link, rating] of @com.yelp.restaurant() filter contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::6:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::6:")) && review_count <= 25;'
     ]
+
 ];
 
 function test(i) {
