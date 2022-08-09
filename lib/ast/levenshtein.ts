@@ -57,6 +57,8 @@ export class Levenshtein extends Statement {
     // possibilities: `$continue` for now
     op : string;
 
+    // When constructiing new Levenshtein, there is no need to set location
+    // location is set from last-turn expression during apply
     constructor(location : SourceRange|null, 
                 expression : Expression, 
                 op : string) {
@@ -646,49 +648,48 @@ function deMorgen(expr : BooleanExpression) : BooleanExpression {
  *  If conflicts, it determines which part of the predicate does not conflict.
  *  If does not conflict, it determines if it is a repetition (see below for details)
  * 
- * @param {BooleanExpression} expr - the single predicate to determine whether conflicts occur
- * @param {BooleanExpression[]} e2Predicates - the list of predicates to compare against
+ * @param {BooleanExpression} oldExpr - the single predicate to determine whether conflicts occur
+ * @param {BooleanExpression[]} incomingExprs - the list of predicates to compare against (in delta)
  * 
  * @return {[boolean, BooleanExpression|undefined]} - the behavior is the following;
  * if the first result is true, this indicates that there is a conflict
- *     if the second result is undefined, this means that the entire `expr` conflicts
- *     if the second result is not undefined, it is the non-conflicting part of `expr`
+ *     if the second result is undefined, this means that the entire `oldExpr` conflicts
+ *     if the second result is defined, it is the non-conflicting part of `oldExpr`
  * 
  * if the first result is false, this indicates that there is no conflict
- *     if the second result is undefined, this means that `expr` is a repetition of some of the predicates in `e2Predicates`
- *     if the second result is not undefined, it is the non-repetitive part of `expr`
- * 
+ *     if the second result is undefined, this means that `oldExpr` is a repetition of some of the predicates in `incomingExprs`
+ *     if the second result is defined, it is the non-repetitive part of `oldExpr`
 */
-function predicateResolution(expr : BooleanExpression,
-                             e2Predicates : BooleanExpression[]) : [boolean, BooleanExpression|undefined] {
-    expr = deMorgen(expr);
-    if (expr instanceof AndBooleanExpression) {
-        const res = expr.clone();
-        let resBoolean = false;
-        res.operands = [];
-        for (const i of expr.operands.map((x) => predicateResolution(x, e2Predicates))) {
+function predicateResolution(oldExpr : BooleanExpression,
+                             incomingExprs : BooleanExpression[]) : [boolean, BooleanExpression|undefined] {
+    oldExpr = deMorgen(oldExpr);
+    if (oldExpr instanceof AndBooleanExpression) {
+        let   ifConflict = false;
+        const oldCompatiblePart = oldExpr.clone();
+        oldCompatiblePart.operands = [];
+        for (const i of oldExpr.operands.map((x) => predicateResolution(x, incomingExprs))) {
             if (i[0])
-                resBoolean = true;
+                ifConflict = true;
             
             if (i[1] !== undefined)
-                res.operands.push(i[1]);
+                oldCompatiblePart.operands.push(i[1]);
         }
-        return [resBoolean, res];
-    } else if (expr instanceof OrBooleanExpression) {
-        const res = expr.clone();
-        let resBoolean = true;
-        res.operands = [];
-        for (const i of expr.operands.map((x) => predicateResolution(x, e2Predicates))) {
+        return [ifConflict, oldCompatiblePart];
+    } else if (oldExpr instanceof OrBooleanExpression) {
+        let   ifConflict = true;
+        const oldCompatiblePart = oldExpr.clone();
+        oldCompatiblePart.operands = [];
+        for (const i of oldExpr.operands.map((x) => predicateResolution(x, incomingExprs))) {
             if (i[0] === false)
-                resBoolean = false;
+                ifConflict = false;
             
             if (i[1] !== undefined)
-                res.operands.push(i[1]);
+                oldCompatiblePart.operands.push(i[1]);
         }
-        return [resBoolean, res];
+        return [ifConflict, oldCompatiblePart];
     }
 
-    return predicateResolutionSingleE1(expr, e2Predicates);
+    return predicateResolutionSingleE1(oldExpr, incomingExprs);
 }
 
 // if a parameter exists in `old` parameter list that does not exist in `incoming`
