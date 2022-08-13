@@ -910,8 +910,10 @@ export class FilterValue extends Value {
 
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
-        if (visitor.visitValue(this) && visitor.visitFilterValue(this))
+        if (visitor.visitValue(this) && visitor.visitFilterValue(this)) {
             this.value.visit(visitor);
+            this.filter.visit(visitor);
+        }
         visitor.exit(this);
     }
 

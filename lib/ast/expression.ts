@@ -578,8 +578,10 @@ export class ProjectionExpression extends Expression {
 
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
-        if (visitor.visitProjectionExpression(this))
+        if (visitor.visitProjectionExpression(this)) {
             this.expression.visit(visitor);
+            this.computations.forEach((computation) => computation.visit(visitor));
+        }
         visitor.exit(this);
     }
 
