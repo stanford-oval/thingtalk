@@ -57,7 +57,7 @@ import arrayEquals from './array_equals';
 import { getScalarExpressionName } from '../utils';
 import { UnserializableError } from "../utils/errors";
 
-function primitiveArrayEquals<T>(a1 : T[]|null, a2 : T[]|null) : boolean {
+export function primitiveArrayEquals<T>(a1 : T[]|null, a2 : T[]|null) : boolean {
     if (a1 === a2)
         return true;
     if (!a1 || !a2)

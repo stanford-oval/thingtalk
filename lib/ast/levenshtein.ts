@@ -31,7 +31,8 @@ import {
     MonitorExpression,
     BooleanQuestionExpression,
     AliasExpression,
-    SliceExpression } from "./expression";
+    SliceExpression, 
+    primitiveArrayEquals } from "./expression";
 import { TokenStream } from "../syntax_api";
 import SchemaRetriever from "../schema";
 import NodeVisitor from "./visitor";
@@ -43,12 +44,13 @@ import { OldSlot, AbstractSlot, ScopeMap } from "./slots";
 import { DeviceSelector, InputParam } from "./invocation";
 import { Expression } from "./expression";
 import { Rule, Command } from "./statement";
-import { AndBooleanExpression, AtomBooleanExpression, BooleanExpression, NotBooleanExpression, OrBooleanExpression, TrueBooleanExpression } from "./boolean_expression";
+import { AndBooleanExpression, AtomBooleanExpression, BooleanExpression, ComparisonSubqueryBooleanExpression, DontCareBooleanExpression, ExistentialSubqueryBooleanExpression, NotBooleanExpression, OrBooleanExpression, TrueBooleanExpression } from "./boolean_expression";
 import { SyntaxPriority } from "./syntax_priority";
 import { Program } from "./program";
 import { optimizeChainExpression, optimizeFilter } from "../optimize";
 import assert from 'assert';
-import { Value } from "./values";
+import { UndefinedValue, Value } from "./values";
+// import arrayEquals from "./array_equals";
 
 
 
@@ -228,6 +230,10 @@ export function applyLevenshteinWrapper(e1 : Program, e2 : Program) : Program {
     return res;
 }
 
+export function toChainExpression(e1 : Program) : ChainExpression {
+    return (e1.statements[0] as ExpressionStatement).expression;
+}
+
 export function applyLevenshteinExpressionStatement(e1 : ExpressionStatement, e2 : Levenshtein) : ExpressionStatement {
     const res = e1.clone();
     res.expression = applyLevenshtein(e1.expression, e2);
@@ -280,7 +286,9 @@ export function levenshteinFindSchema(e1 : Expression) : Expression {
  * @return {ChainExpression}   - a completed, new query incorporating
  *                               information from both queries
  */
-export function applyLevenshtein(e1 : ChainExpression, e2 : Levenshtein) : ChainExpression {   
+export function applyLevenshtein(e1 : ChainExpression, e2 : Levenshtein) : ChainExpression {
+    // console.log(`old expression: ${e1.prettyprint()}`);
+    // console.log(`lev expression: ${e2.prettyprint()}`);
     e2 = e2.optimize(); 
     // step 2: understand which part of e1 is related to which API call
     const e1Invocations : APICall[] [] = [];
@@ -337,7 +345,9 @@ export function applyLevenshtein(e1 : ChainExpression, e2 : Levenshtein) : Chain
             res.expressions.push(e2expr);
         
     }
-    return optimizeChainExpression(res);
+    const res_ = optimizeChainExpression(res);
+    // console.log(res_.prettyprint());
+    return res_;
 }
 
 
@@ -606,6 +616,8 @@ function predicateResolutionSingleE1(e1 : BooleanExpression,
                 if (e1.equals(e2.expr))
                     return [true, undefined];
             }
+            if (e2 instanceof DontCareBooleanExpression && e1.name === e2.name)
+                return [true, undefined];
         }
         
         if (e1 instanceof NotBooleanExpression && e2 instanceof AtomBooleanExpression) {
@@ -627,8 +639,25 @@ function predicateResolutionSingleE1(e1 : BooleanExpression,
  * @returns {BooleanExpression} expression in which de-morgan is recursively applied
  */
 function deMorgen(expr : BooleanExpression) : BooleanExpression {
-    if (!(expr instanceof NotBooleanExpression))
+    // recursive step
+    if (!(expr instanceof NotBooleanExpression)) {
+        if (expr instanceof AndBooleanExpression || expr instanceof OrBooleanExpression) {
+            expr.operands = expr.operands.map((x) => deMorgen(x));
+        } else if (expr instanceof ExistentialSubqueryBooleanExpression) {
+            // for the following two cases, because we don't know whether expr.subquery or expr.rhs are boolean expressions
+            // we use the filter predicates to run through. This risks running the recurse optimize part twice
+            const visitor = new OptimizeFilterPredicates();
+            expr.subquery.visit(visitor);
+        } else if (expr instanceof ComparisonSubqueryBooleanExpression) {
+            const visitor = new OptimizeFilterPredicates();
+            expr.rhs.visit(visitor);
+        }
+
+        // if AtomBooleanExpression, DontCareBooleanExpression, TrueBooleanExpression, FalseBooleanExpression, ComputeBooleanExpression, don't do anything
         return expr;
+    }
+        
+
     
     const innerExpr = expr.expr;
     if (innerExpr instanceof AndBooleanExpression) {
@@ -686,6 +715,9 @@ function predicateResolution(oldExpr : BooleanExpression,
             if (i[1] !== undefined)
                 oldCompatiblePart.operands.push(i[1]);
         }
+        // for some reason, if an or expression has operands length === 0, it will optimize to false
+        if (oldCompatiblePart.operands.length === 0)
+            return [ifConflict, BooleanExpression.True];
         return [ifConflict, oldCompatiblePart];
     }
 
@@ -694,6 +726,7 @@ function predicateResolution(oldExpr : BooleanExpression,
 
 // if a parameter exists in `old` parameter list that does not exist in `incoming`
 // add to `incoming`
+// if a parameter exists in `old` that is `undefinied` in new, also replace the `undefined` with it
 function changeParams(incoming : InputParam[], old : InputParam[]) : InputParam[] {
     for (const i of old) {
         const possiblePlace = incoming.map((param) => {
@@ -701,10 +734,20 @@ function changeParams(incoming : InputParam[], old : InputParam[]) : InputParam[
         }).indexOf(i.name);
         if (possiblePlace < 0)
             incoming.push(i.clone());
+        else if (incoming[possiblePlace].value instanceof UndefinedValue)
+            incoming[possiblePlace] = i.clone();
     }
+    incoming.sort(sortByName);
     return incoming;
 }
 
+function sortByName(p1 : InputParam, p2 : InputParam) : -1|0|1 {
+    if (p1.name < p2.name)
+        return -1;
+    if (p1.name > p2.name)
+        return 1;
+    return 0;
+}
 
 // this records the API calls given an expression
 // it simply returns all API calls within an expression
@@ -727,15 +770,16 @@ class GetInvocationExpressionVisitor extends NodeVisitor {
 // given an old list of API call, modify the incoming levenshtein API call
 // in the following manner: if a parameter does not exist, add to it
 class ModifyInvocationExpressionVisitor extends NodeVisitor {
-    compareInvocation : APICall[];
+    incomingInvocation : APICall[];
 
-    constructor(compareInvocation : APICall[]) {
+    constructor(incomingInvocation : APICall[]) {
         super();
-        this.compareInvocation = compareInvocation;
+        this.incomingInvocation = incomingInvocation;
     }
 
+    // inv currently is from old
     visitFunctionCallExpression(inv : FunctionCallExpression) : boolean {
-        for (const temp of this.compareInvocation) {
+        for (const temp of this.incomingInvocation) {
             if (temp instanceof FunctionCallExpression && inv.name === temp.name) {
                 inv.in_params = changeParams(temp.in_params, inv.in_params);
                 break;
@@ -744,11 +788,16 @@ class ModifyInvocationExpressionVisitor extends NodeVisitor {
         return true;
     }
 
+    // inv currently is from old
     visitInvocationExpression(inv : InvocationExpression) : boolean {
-        for (const temp of this.compareInvocation) {
+        for (const temp of this.incomingInvocation) {
             if (temp instanceof InvocationExpression &&
-                inv.invocation.channel === temp.invocation.channel &&
-                inv.invocation.selector.equals(temp.invocation.selector)) {
+                inv.invocation.channel === temp.invocation.channel) {
+                // inv.invocation.selector.equals(temp.invocation.selector)) {
+
+                // NOTE: we do not require selector to be the same, because the constructed delta currently does not deal with this.
+                //       instead, we copy from the old expression
+                // TODO: investigate whether this is the best apporach.
                 inv.invocation.in_params = changeParams(temp.invocation.in_params, inv.invocation.in_params);
                 break;
             }
@@ -782,7 +831,6 @@ class OptimizeFilterPredicates extends NodeVisitor {
         return [predicates[0], ...this.recurse(predicates.slice(1))];
     }
 }
-
 
 // this returns all the predicates inside filter
 class GetFilterPredicates extends NodeVisitor {
@@ -849,17 +897,27 @@ function walkExpression(expr : Expression) : [BooleanExpression[],
     return [predicates, determineReturnType(expr), apiCalls, joins];
 }
 
-export function determineSameExpressionLevenshtein(e1 : ChainExpression, e2 : ChainExpression, flag = "queryRefinement") : boolean {
-    e1 = e1.clone();
-    e2 = e2.clone();
-    if (e1.equals(e2))
+/**
+ * 
+ * @param e1_ applied delta expression
+ * @param e2_ standard expression (Gio's expression)
+ * @param oldExpr 
+ * @returns 
+ */
+export function determineSameExpressionLevenshtein(e1_ : ChainExpression, e2_ : ChainExpression, incoming ?: Levenshtein[], old ?: ChainExpression) : boolean {
+    if (e1_.equals(e2_))
         return true;
 
+    let e1 = e1_.clone();
+    let e2 = e2_.clone();
     e1 = optimizeChainExpression(e1);
     e2 = optimizeChainExpression(e2);
     if (e1.equals(e2))
         return true;
     
+    // this chunk deals with filters being pushed down (or being swapped around)
+    // for any two expressions having the same filters (regardless of their locations)
+    // this will consider them as equal (provided the other parts equal too, of course)
     const visitor1 = new GetFilterPredicates();
     const visitor2 = new GetFilterPredicates();
     e1.visit(visitor1);
@@ -875,17 +933,176 @@ export function determineSameExpressionLevenshtein(e1 : ChainExpression, e2 : Ch
         e2 = optimizeChainExpression(e2);
         if (e1.equals(e2))
             return true;
-        // console.log("After filters set to true, still fail, not the same expression");
     }
-    // else {
-    //     console.log("returning false");
-    // }
+
+    // This chunk deals with projection occuring in last-turn being wiped out in new turn (II.)
+    e1 = e1_.clone();
+    e2 = e2_.clone();
+    if (e1.expressions.length !== e2.expressions.length)
+        return false;
+
+    if (incoming && old) {
+        const visitor3 = new GetAllFilterNames();
+        for (const eachL of incoming) {
+            // assert(eachL.statements.length === 1);
+            // assert(eachL.statements[0] instanceof Levenshtein);
+            eachL.visit(visitor3);
+        }
+        old.visit(visitor3);
+        // console.log(visitor3.names);
+
+        for (let i = 0; i < e1.expressions.length; i ++) {
+            let singleE1 = e1.expressions[i];
+            let singleE2 = e2.expressions[i];
+
+            // try to find a projection where they differ (must be in the same position)
+            while (!isSchema(singleE1) && !isSchema(singleE2)) {
+                if (singleE1 instanceof ProjectionExpression && singleE2 instanceof ProjectionExpression) {
+                    if (!primitiveArrayEquals(singleE1.args, singleE2.args)) {
+                        let same = true;
+                        // everything in expected has to appear in generated expression
+                        // console.log(singleE2.args);
+                        // console.log(singleE1.args);
+                        for (const j of singleE2.args) {
+                            if (!singleE1.args.includes(j)) {
+                                same = false;
+                                break;
+                            }
+                        }
+                        if (!same)
+                            break;
+                        // `same` must be true here
+
+                        // things in generated might not appear in expected, provided they appear in the added filter
+                        // but if something in generated that does not appear in expected and is not mentioned in added filter, discard
+                        // console.log(visitor3.names);
+                        for (const j of singleE1.args) {
+                            if (!singleE2.args.includes(j)) {
+                                if (!visitor3.names.includes(j)) {
+                                    same = false;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!same)
+                            break;
+                        // if execute to here it means they differ by some names that were mentioned in last turn filter
+                        singleE1.args = singleE2.args;
+                        break;
+                    }
+
+                }
+                singleE1 = (singleE1 as NoneSchemaType).expression;
+                singleE2 = (singleE2 as NoneSchemaType).expression;
+            }
+        }
+        if (e1.equals(e2))
+            return true;
+    }
+
+    // This chunk deals with old slot value being kept in static delta while thrown out in Gio's implementation
+    // This gets all the filters out of the applied result and Gio's expression, and check if both results are equal
+    // Further, it checks if Gio's result is always a subset of the applied result, and the ones not appearing must come from old filters
+    // namely: (gold \subseteq applied) && (applied - gold \subseteq old)
+    // Further, this also takes into account of possibly projection modified, so e1 and e2 are not cloned from source again
+
+    if (old) {
+        // e1 = e1_.clone();
+        // e2 = e2_.clone();
+        e1.visit(new ResetFilterPredicates());
+        e2.visit(new ResetFilterPredicates());
+        e1 = optimizeChainExpression(e1);
+        e2 = optimizeChainExpression(e2);
+        if (e1.equals(e2)) {
+            const visitor4 = new GetAllAtomBooleanExpressions();
+            const visitor5 = new GetAllAtomBooleanExpressions();
+            const visitor6 = new GetAllAtomBooleanExpressions();
+            e1_.visit(visitor4);
+            e2_.visit(visitor5);
+            old.visit(visitor6);
+            const appliedPredicates = visitor4.atomBooleanExpressions;
+            const goldPredicates    = visitor5.atomBooleanExpressions;
+            const oldPredicates     = visitor6.atomBooleanExpressions;
+            
+            let same = true;
+            // check if everything in gold appears in applied
+            for (const eachGold of goldPredicates) {
+                let found = false;
+                for (const eachApplied of appliedPredicates) {
+                    if (eachGold.equals(eachApplied)) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    same = false;
+                    break;
+                }
+            }
+            if (same) {
+                for (const eachApplied of appliedPredicates) {
+                    let found = false;
+                    for (const eachGold of goldPredicates) {
+                        if (eachApplied.equals(eachGold)) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    // if something in applied does not appear in gold, it must be from old expression
+                    if (!found) {
+                        for (const eachOld of oldPredicates) {
+                            if (eachApplied.equals(eachOld)) {
+                                found = true;
+                                break;
+                            }
+                        }
+
+                    }
+                    if (!found) {
+                        same = false;
+                        break;
+                    }
+                }
+            }
+            if (same)
+                return true;
+            
+        }
+    }
+    // const oldSelector = (old?.expressions[0] as InvocationExpression).invocation.selector;
+    // const incomingSelector = (incoming![0].expression.expressions[0] as InvocationExpression).invocation.selector;
+
+    // console.log(`incoming: ${incoming?.map((i) => i.prettyprint())}, ${incomingSelector.kind}, ${incomingSelector.id}, ${incomingSelector.all}, ${incomingSelector.attributes.map((i) => i.prettyprint())}`);
+    // console.log(`old     : ${old?.prettyprint()}, ${oldSelector.kind}, ${oldSelector.id}, ${oldSelector.all}, ${oldSelector.attributes.map((i) => i.prettyprint())}`);
+    // console.log(`Selector: ${(e1.expressions[0] as InvocationExpression).invocation.selector.equals((e2.expressions[0] as InvocationExpression).invocation.selector)}`);
+    // console.log(`Selector 1: ${(e1.expressions[0] as InvocationExpression).invocation.selector.kind}, ${(e1.expressions[0] as InvocationExpression).invocation.selector.id}, ${(e1.expressions[0] as InvocationExpression).invocation.selector.all}, ${(e1.expressions[0] as InvocationExpression).invocation.selector.attributes.map((i) => i.prettyprint())}`);
+    // console.log(`Selector 2: ${(e2.expressions[0] as InvocationExpression).invocation.selector.kind}, ${(e2.expressions[0] as InvocationExpression).invocation.selector.id}, ${(e2.expressions[0] as InvocationExpression).invocation.selector.all}, ${(e2.expressions[0] as InvocationExpression).invocation.selector.attributes.map((i) => i.prettyprint())}`);
+    // console.log(`Channel: ${(e1.expressions[0] as InvocationExpression).invocation.channel === (e2.expressions[0] as InvocationExpression).invocation.channel}`);
+    // console.log(`Input Params: ${arrayEquals((e1.expressions[0] as InvocationExpression).invocation.in_params, (e2.expressions[0] as InvocationExpression).invocation.in_params)}`);
+    // console.log(`Input Params 1: ${(e1.expressions[0] as InvocationExpression).invocation.in_params.map((i) => i.prettyprint())}`);
+    // console.log(`Input Params 2: ${(e2.expressions[0] as InvocationExpression).invocation.in_params.map((i) => i.prettyprint())}`);
     return false;
 }
 
 class ResetFilterPredicates extends NodeVisitor {
     visitFilterExpression(node : FilterExpression) : boolean {
         node.filter = new TrueBooleanExpression();
+        return true;
+    }
+}
+
+class GetAllFilterNames extends NodeVisitor {
+    names : string[] = [];
+    visitAtomBooleanExpression(node : AtomBooleanExpression) : boolean {
+        this.names.push(node.name);
+        return true;
+    }
+}
+
+class GetAllAtomBooleanExpressions extends NodeVisitor {
+    atomBooleanExpressions : AtomBooleanExpression[] = [];
+    visitAtomBooleanExpression(node : AtomBooleanExpression) : boolean {
+        this.atomBooleanExpressions.push(node);
         return true;
     }
 }

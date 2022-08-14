@@ -208,7 +208,14 @@ const TEST_CASES = [
      '$continue @com.yelp.restaurant() filter rating == 5;',
      '@com.yelp.restaurant() filter rating == 5;'
     ],
-
+    ['@com.yelp.restaurant() filter contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::14:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::14:"));',
+     '$continue @com.yelp.restaurant() filter true(cuisines);',
+     '@com.yelp.restaurant() filter true(cuisines);'
+    ],
+    ['@com.yelp.restaurant() filter contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::1:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::1:")) || contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::6:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::6:"));',
+     '$continue @com.yelp.restaurant() filter contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::1:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::1:")) && contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::6:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::6:"));',
+     '@com.yelp.restaurant() filter contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::1:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::1:")) && contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::6:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::6:"));'
+    ],
 
     // adding indexing
     ["[name] of sort (stars desc of (@com.yelp.restaurant() filter location == 'Palo Alto'))[5:15];",
@@ -301,6 +308,10 @@ const TEST_CASES = [
     "$continue [name] of @com.twitter.post(zime=986);",
     "[name] of (sort (stars asc of @com.twitter.post(zime=986, name='vhfPni9pci29SEHrN1OtRg'^^com.yelp:restaurant('Ramen Nagi')) filter location == 'Mountain View'));"
     ],
+    ["[author] of (sort (stars asc of @com.twitter.post(name='vhfPni9pci29SEHrN1OtRg'^^com.yelp:restaurant('Ramen Nagi')) filter location == 'Mountain View'));",
+    "$continue [name] of @com.twitter.post(zime=986, name=$undefined);",
+    "[name] of (sort (stars asc of @com.twitter.post(zime=986, name='vhfPni9pci29SEHrN1OtRg'^^com.yelp:restaurant('Ramen Nagi')) filter location == 'Mountain View'));"
+    ],
 
     // entity types
     ["@com.yelp.restaurant() filter id == 'str:ENTITY_com.yelp:restaurant::2:'^^com.yelp:restaurant('str:ENTITY_com.yelp:restaurant::2:');",
@@ -332,6 +343,18 @@ const TEST_CASES = [
     ['@com.yelp.restaurant() filter contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::6:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::6:")) && review_count <= 25;',
      "$continue [link, image_url, rating] of @com.yelp.restaurant();",
      '[image_url, link, rating] of @com.yelp.restaurant() filter contains(cuisines, "str:ENTITY_com.yelp:restaurant_cuisine::6:"^^com.yelp:restaurant_cuisine("str:ENTITY_com.yelp:restaurant_cuisine::6:")) && review_count <= 25;'
+    ],
+    ["@uk.ac.cam.multiwoz.Hotel.Hotel() filter type == enum guest_house;",
+     "$continue @uk.ac.cam.multiwoz.Hotel.Hotel() filter !(stars >= 2 && type == enum guest_house) && stars == 1;",
+     "@uk.ac.cam.multiwoz.Hotel.Hotel() filter (!(stars >= 2) || !(type == enum guest_house)) && stars == 1;"
+    ],
+    ['@uk.ac.cam.multiwoz.Hotel.make_booking(book_people=3);',
+     '$continue @uk.ac.cam.multiwoz.Hotel.make_booking(hotel="str:ENTITY_uk.ac.cam.multiwoz.Hotel:Hotel::1:"^^uk.ac.cam.multiwoz.Hotel:Hotel("str:ENTITY_uk.ac.cam.multiwoz.Hotel:Hotel::1:"));',
+     '@uk.ac.cam.multiwoz.Hotel.make_booking(book_people=3, hotel="str:ENTITY_uk.ac.cam.multiwoz.Hotel:Hotel::1:"^^uk.ac.cam.multiwoz.Hotel:Hotel("str:ENTITY_uk.ac.cam.multiwoz.Hotel:Hotel::1:"));'
+    ],
+    ['@uk.ac.cam.multiwoz.Hotel.make_booking(book_people=3, hotel=$?);',
+    '$continue @uk.ac.cam.multiwoz.Hotel.make_booking(hotel="str:ENTITY_uk.ac.cam.multiwoz.Hotel:Hotel::1:"^^uk.ac.cam.multiwoz.Hotel:Hotel("str:ENTITY_uk.ac.cam.multiwoz.Hotel:Hotel::1:"), book_people = $?);',
+    '@uk.ac.cam.multiwoz.Hotel.make_booking(book_people=3, hotel="str:ENTITY_uk.ac.cam.multiwoz.Hotel:Hotel::1:"^^uk.ac.cam.multiwoz.Hotel:Hotel("str:ENTITY_uk.ac.cam.multiwoz.Hotel:Hotel::1:"));'
     ]
 
 ];
@@ -340,7 +363,7 @@ function test(i) {
     console.log('Test Case #' + (i+1));
     let [before, levenshtein, expected] = TEST_CASES[i];
 
-    let beforeProrgram = Grammar.parse(before);
+    let beforeProrgram = Grammar.parse(before); 
     let levenshteinProgram = Grammar.parse(levenshtein);
     let expectedProgram = Grammar.parse(expected);
     let actualProgram = applyLevenshteinWrapper(beforeProrgram, levenshteinProgram);
