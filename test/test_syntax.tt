@@ -2145,3 +2145,61 @@ $continue @org.schema.restaurants() filter avg(reviewRating.ratingValue of revie
 // property not in scope 
 // Levenshtein representation: $continue
 $continue @org.wikidata.city() filter x <= 10000;
+
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+@com.thecatapi.get()
+$continue @com.thecatapi.get();
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+@com.thecatapi.get()
+$continue @com.thecatapi.get()
+#[results=[
+  { image_id="..."^^com.thecatapi:image_id, url="..."^^tt:url, link="..."^^tt:url }
+]];
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+@com.thecatapi.get()
+$continue @com.thecatapi.get()
+#[results=[
+  { image_id="..."^^com.thecatapi:image_id, url="..."^^tt:url, link="..."^^tt:url }
+]];
+@com.twitter.post()
+$continue @com.twitter.post();
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+@com.thecatapi.get()
+$continue @com.thecatapi.get()
+#[results=[
+  { image_id="..."^^com.thecatapi:image_id, url="..."^^tt:url, link="..."^^tt:url }
+]];
+@com.twitter.post()
+$continue @com.twitter.post()
+#[confirm=enum(confirmed)];
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+@com.thecatapi.get()
+$continue @com.thecatapi.get()
+#[results=[
+  { image_id="..."^^com.thecatapi:image_id, url="..."^^tt:url, link="..."^^tt:url }
+]];
+@com.twitter.post()
+#[results=[
+  { tweet_id="..."^^com.twitter:tweet_id, link="..."^^tt:url }
+]];
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+@com.thecatapi.get()
+$continue @com.thecatapi.get()
+#[results=[
+  { image_id="..."^^com.thecatapi:image_id, url="..."^^tt:url, link="..."^^tt:url }
+]];
+@com.twitter.post()
+#[results=[]]
+#[error="something bad happened"];

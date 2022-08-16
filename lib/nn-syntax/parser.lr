@@ -97,16 +97,16 @@ dialogue_history_item_list : Ast.DialogueHistoryItem[] = {
 }
 
 dialogue_history_item : Ast.DialogueHistoryItem = {
-    rule:rule ';' => new Ast.DialogueHistoryItem($.location, rule, null, 'accepted');
+    rule:rule ';' => new Ast.DialogueHistoryItem($.location, rule, null, 'accepted', null);
 
     // note: the syntax here is very hard-coded because we don't want the AST
     // to be generic, otherwise it's hard to manipulate
 
     // results
-    rule:rule results:dialogue_result_annotation_bag ';' => new Ast.DialogueHistoryItem($.location, rule, results, 'confirmed');
+    rule:rule results:dialogue_result_annotation_bag ';' => new Ast.DialogueHistoryItem($.location, rule, results, 'confirmed', null);
 
     // confirm
-    rule:rule '#[' 'confirm' '=' venum:ENUM ']' ';' => new Ast.DialogueHistoryItem($.location, rule, null, venum.value);
+    rule:rule '#[' 'confirm' '=' venum:ENUM ']' ';' => new Ast.DialogueHistoryItem($.location, rule, null, venum.value, null);
 }
 
 dialogue_result_annotation_list : DialogueHistoryAnnotation[] = {

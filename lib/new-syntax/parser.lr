@@ -403,19 +403,23 @@ dialogue_history_item_list : Ast.DialogueHistoryItem[] = {
 }
 
 dialogue_history_item : Ast.DialogueHistoryItem = {
-    rule:expression_statement ';' => new Ast.DialogueHistoryItem($.location, rule, null, 'accepted');
+    rule:expression_statement ';' => new Ast.DialogueHistoryItem($.location, rule, null, 'accepted', null);
+    rule:expression_statement lev:levenshtein ';' => new Ast.DialogueHistoryItem($.location, rule, null, 'accepted', lev);
 
     // note: the syntax here is very hard-coded because we don't want the AST
     // to be generic, otherwise it's hard to manipulate
 
     // results
-    rule:expression_statement results:dialogue_result_annotation_bag ';' => new Ast.DialogueHistoryItem($.location, rule, results[0], 'confirmed', results[1]);
+    rule:expression_statement results:dialogue_result_annotation_bag ';' => new Ast.DialogueHistoryItem($.location, rule, results[0], 'confirmed', null, results[1]);
+    rule:expression_statement lev:levenshtein results:dialogue_result_annotation_bag ';' => new Ast.DialogueHistoryItem($.location, rule, results[0], 'confirmed', lev, results[1]);
 
     // confirm
-    rule:expression_statement '#[' 'confirm' '=' venum:enum_literal ']' ';' => new Ast.DialogueHistoryItem($.location, rule, null, venum);
+    rule:expression_statement '#[' 'confirm' '=' venum:enum_literal ']' ';' => new Ast.DialogueHistoryItem($.location, rule, null, venum, null);
+    rule:expression_statement lev:levenshtein '#[' 'confirm' '=' venum:enum_literal ']' ';' => new Ast.DialogueHistoryItem($.location, rule, null, venum, lev);
 
     // confirm
-    rule:expression_statement '#[' 'confirm' '=' venum:enum_literal ']' annot:annotation_spec ';' => new Ast.DialogueHistoryItem($.location, rule, null, venum, checkDialogueHistoryAnnotationSpec($, annot));
+    rule:expression_statement '#[' 'confirm' '=' venum:enum_literal ']' annot:annotation_spec ';' => new Ast.DialogueHistoryItem($.location, rule, null, venum, null, checkDialogueHistoryAnnotationSpec($, annot));
+    rule:expression_statement lev:levenshtein '#[' 'confirm' '=' venum:enum_literal ']' annot:annotation_spec ';' => new Ast.DialogueHistoryItem($.location, rule, null, venum, lev, checkDialogueHistoryAnnotationSpec($, annot));
 }
 
 dialogue_result_annotation_list : DialogueHistoryAnnotation[] = {
@@ -559,7 +563,7 @@ toplevel_statement : Ast.TopLevelStatement = {
     udf_declaration;
     expr:expression_statement ';' => expr;
     assignment;
-    levenshtein;
+    lev:levenshtein ';' => lev;
 }
 
 statement : Ast.FunctionDeclaration|Ast.ExecutableStatement = {
@@ -570,7 +574,7 @@ statement : Ast.FunctionDeclaration|Ast.ExecutableStatement = {
 }
 
 levenshtein: Ast.Levenshtein = {
-    '$continue' expr:toplevel_chain_expression ';'
+    '$continue' expr:toplevel_chain_expression
         => new Ast.Levenshtein($.location, expr, '$continue');
 }
 

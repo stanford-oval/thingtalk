@@ -228,11 +228,13 @@ export class DialogueHistoryItem extends AstNode {
     confirm : ConfirmationState;
     nl_annotations : NLAnnotationMap;
     impl_annotations : AnnotationMap;
+    levenshtein : Levenshtein|null;
 
     constructor(location : SourceRange|null,
                 stmt : ExpressionStatement,
                 results : DialogueHistoryResultList|null,
                 confirm : string|boolean,
+                levenshtein : Levenshtein|null,
                 { nl, impl } : AnnotationSpec = {}) {
         super(location);
         assert(stmt instanceof ExpressionStatement);
@@ -248,6 +250,7 @@ export class DialogueHistoryItem extends AstNode {
 
         this.nl_annotations = nl || {};
         this.impl_annotations = impl || {};
+        this.levenshtein = levenshtein;
     }
 
     toSource() : TokenStream {
@@ -255,6 +258,7 @@ export class DialogueHistoryItem extends AstNode {
         // so values are fetched from the entity allocator in the right order
 
         const expression = this.stmt.expression.toSource();
+        const levenshtein = this.levenshtein ? this.levenshtein.toSource() : null;
         const results = this.results !== null ? this.results.toSource() : null;
 
         const annotations : TokenStream = List.concat(
@@ -264,12 +268,21 @@ export class DialogueHistoryItem extends AstNode {
 
         // note: we punch through to stmt.expression because stmt.toSource() will
         // add the semicolon, which we don't want
-        if (results !== null)
-            return List.concat(expression, '\n', results, annotations, ';');
-        else if (this.confirm !== 'accepted' || annotations !== List.Nil)
-            return List.concat(expression, '\n', '#[', 'confirm', '=', new Value.Enum(this.confirm).toSource(), ']', annotations, ';');
-        else
-            return List.concat(expression, annotations, ';');
+        if (levenshtein) {
+            if (results !== null)
+                return List.concat(expression, '\n', levenshtein, '\n', results, annotations, ';');
+            else if (this.confirm !== 'accepted' || annotations !== List.Nil)
+                return List.concat(expression, '\n', levenshtein, '\n', '#[', 'confirm', '=', new Value.Enum(this.confirm).toSource(), ']', annotations, ';');
+            else
+                return List.concat(expression, '\n', levenshtein, annotations, ';');
+        } else {
+            if (results !== null)
+                return List.concat(expression, '\n', results, annotations, ';');
+            else if (this.confirm !== 'accepted' || annotations !== List.Nil)
+                return List.concat(expression, '\n', '#[', 'confirm', '=', new Value.Enum(this.confirm).toSource(), ']', annotations, ';');
+            else
+                return List.concat(expression, annotations, ';');
+        }
     }
 
     private _getFunctions() {
@@ -324,13 +337,14 @@ export class DialogueHistoryItem extends AstNode {
         Object.assign(impl, this.impl_annotations);
         const annotations : AnnotationSpec = { nl, impl };
 
-        return new DialogueHistoryItem(this.location, this.stmt.clone(), this.results ? this.results.clone() : null, this.confirm, annotations);
+        return new DialogueHistoryItem(this.location, this.stmt.clone(), this.results ? this.results.clone() : null, this.confirm, this.levenshtein ? this.levenshtein.clone() : null, annotations);
     }
 
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
         if (visitor.visitDialogueHistoryItem(this)) {
             this.stmt.visit(visitor);
+            this.levenshtein?.visit(visitor);
             if (this.results !== null)
                 this.results.visit(visitor);
         }
@@ -544,10 +558,10 @@ export class DialogueState extends Input {
         for (const item of this.history)
             list = List.concat(list, '\n', item.toSource());
         
-        for (const item of this.historyLevenshtein)
-            list = List.concat(list, '\n', item.toSource());
-        for (const item of this.historyAppliedLevenshtein)
-            list = List.concat(list, '\n', item.toSource());
+        // for (const item of this.historyLevenshtein)
+        //     list = List.concat(list, '\n', item.toSource());
+        // for (const item of this.historyAppliedLevenshtein)
+        //     list = List.concat(list, '\n', item.toSource());
             
 
         return list;

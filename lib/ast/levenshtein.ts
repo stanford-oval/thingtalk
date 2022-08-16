@@ -76,8 +76,7 @@ export class Levenshtein extends Statement {
     toSource() : TokenStream {
         return List.concat( 
             this.op,
-            this.expression.toSource(),
-            ';',
+            this.expression.toSource()
         );
     }
 
