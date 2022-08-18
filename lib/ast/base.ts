@@ -163,7 +163,7 @@ export default abstract class Node {
     /**
      * Convert this AST node to a sequence of tokens.
      */
-    abstract toSource() : TokenStream;
+    abstract toSource(option ?: string) : TokenStream;
 
     /**
      * Convert this AST node to a normalized surface form in ThingTalk.

@@ -253,11 +253,16 @@ export class DialogueHistoryItem extends AstNode {
         this.levenshtein = levenshtein;
     }
 
-    toSource() : TokenStream {
+    toSource(option ?: string) : TokenStream {
         // ensure that recursive toSource() calls occur in source order,
         // so values are fetched from the entity allocator in the right order
 
-        const expression = this.stmt.expression.toSource();
+        let list : TokenStream = List.concat();
+        
+        // note: we punch through to stmt.expression because stmt.toSource() will
+        // add the semicolon, which we don't want
+        if (option !== "no-statement")
+            list = List.concat(list, this.stmt.expression.toSource());
         const levenshtein = this.levenshtein ? this.levenshtein.toSource() : null;
         const results = this.results !== null ? this.results.toSource() : null;
 
@@ -266,23 +271,15 @@ export class DialogueHistoryItem extends AstNode {
             implAnnotationsToSource(this.impl_annotations),
         );
 
-        // note: we punch through to stmt.expression because stmt.toSource() will
-        // add the semicolon, which we don't want
-        if (levenshtein) {
-            if (results !== null)
-                return List.concat(expression, '\n', levenshtein, '\n', results, annotations, ';');
-            else if (this.confirm !== 'accepted' || annotations !== List.Nil)
-                return List.concat(expression, '\n', levenshtein, '\n', '#[', 'confirm', '=', new Value.Enum(this.confirm).toSource(), ']', annotations, ';');
-            else
-                return List.concat(expression, '\n', levenshtein, annotations, ';');
-        } else {
-            if (results !== null)
-                return List.concat(expression, '\n', results, annotations, ';');
-            else if (this.confirm !== 'accepted' || annotations !== List.Nil)
-                return List.concat(expression, '\n', '#[', 'confirm', '=', new Value.Enum(this.confirm).toSource(), ']', annotations, ';');
-            else
-                return List.concat(expression, annotations, ';');
-        }
+        if (levenshtein && option !== "no-levenshtein")
+            list = List.concat(list, '\n', levenshtein);
+        if (results !== null)
+            return List.concat(list, '\n', results, annotations, ';');
+        else if (this.confirm !== 'accepted' || annotations !== List.Nil)
+            return List.concat(list, '\n', '#[', 'confirm', '=', new Value.Enum(this.confirm).toSource(), ']', annotations, ';');
+        else
+            return List.concat(list, annotations, ';');
+        
     }
 
     private _getFunctions() {
@@ -544,7 +541,7 @@ export class DialogueState extends Input {
         return this;
     }
 
-    toSource() : TokenStream {
+    toSource(option ?: string) : TokenStream {
         let list : TokenStream = List.concat('$dialogue', '@' + this.policy, '.', this.dialogueAct);
         if (this.dialogueActParam)
             list = List.concat(list, '(', List.join(this.dialogueActParam.map((p) => typeof p === 'string' ? List.singleton(p) : p.toSource()), ','), ')');
@@ -556,7 +553,7 @@ export class DialogueState extends Input {
 
         list = List.concat(list, annotations, ';');
         for (const item of this.history)
-            list = List.concat(list, '\n', item.toSource());
+            list = List.concat(list, '\n', item.toSource(option));
         
         // for (const item of this.historyLevenshtein)
         //     list = List.concat(list, '\n', item.toSource());

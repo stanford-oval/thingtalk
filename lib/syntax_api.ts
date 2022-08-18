@@ -97,6 +97,7 @@ export interface SerializeOptions {
     typeAnnotations ?: boolean;
     includeEntityValue ?: boolean;
     compatibility ?: string;
+    toSourceArgument ?: string;
 }
 
 /**
@@ -131,7 +132,7 @@ export function serialize(node : Ast.Node,
         entityRetriever!.setSyntaxType(syntaxType);
 
         if (syntaxType === SyntaxType.Tokenized)
-            return nnSerialize(node.toSource(), entityRetriever!, options);
+            return nnSerialize(node.toSource(options.toSourceArgument), entityRetriever!, options);
         else
             return LegacyNNSyntax.toNN(node as Ast.Input, entityRetriever!, options);
     } else if (syntaxType === SyntaxType.Normal && options.compatibility &&
