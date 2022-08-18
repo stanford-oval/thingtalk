@@ -405,6 +405,7 @@ dialogue_history_item_list : Ast.DialogueHistoryItem[] = {
 dialogue_history_item : Ast.DialogueHistoryItem = {
     rule:expression_statement ';' => new Ast.DialogueHistoryItem($.location, rule, null, 'accepted', null);
     rule:expression_statement lev:levenshtein ';' => new Ast.DialogueHistoryItem($.location, rule, null, 'accepted', lev);
+    lev:levenshtein ';' => new Ast.DialogueHistoryItem($.location, new Ast.ExpressionStatement($.location, lev.expression), null, 'accepted', lev);
 
     // note: the syntax here is very hard-coded because we don't want the AST
     // to be generic, otherwise it's hard to manipulate
