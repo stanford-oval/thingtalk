@@ -171,6 +171,29 @@ function addOutput(schema : Ast.FunctionDef,
     return clone;
 }
 
+function getArgument(schema : Ast.FunctionDef, argname : string) : Ast.ArgumentDef|undefined {
+    const arg = schema.getArgument(argname);
+    if (arg)
+        return arg;
+
+    if (argname.includes('.')) {
+        const [property, field] = argname.split('.');
+        const propertyArg = schema.getArgument(property);
+        if (!propertyArg)
+            return undefined;
+        if (!(propertyArg.type instanceof Type.Array))
+            return undefined;
+        if (!(propertyArg.type.elem instanceof Type.Compound))
+            return undefined;
+        if (!(field in propertyArg.type.elem.fields))
+            return undefined;
+        const fieldArg =  propertyArg.type.elem.fields[field];
+        fieldArg.is_input = propertyArg.is_input;
+        return fieldArg;
+    }
+    return undefined;
+}
+
 const VALID_DEVICE_ATTRIBUTES = ['name'];
 type OldPrimType = 'stream'|'table'|'query'|'action'|'filter'|'expression';
 
@@ -613,7 +636,7 @@ export default class TypeChecker {
         } else {
             type = await this._resolveAggregationOverload(ast, ast.operator, ast.field, schema);
             name = ast.alias ? ast.alias : ast.field;
-            nl_annotations = schema.getArgument(ast.field)!.nl_annotations;
+            nl_annotations = getArgument(schema, ast.field)!.nl_annotations;
         }
 
         if (ast instanceof Ast.AggregationExpression && ast.groupBy) {
@@ -778,7 +801,7 @@ export default class TypeChecker {
             for (const argname of schema.minimal_projection||[])
                 argset.add(argname);
             for (const argname of argset) {
-                const arg = schema.getArgument(argname);
+                const arg = getArgument(schema, argname);
                 if (!arg || arg.is_input)
                     throw new TypeError('Invalid field name ' + argname);
             }
@@ -822,7 +845,7 @@ export default class TypeChecker {
             for (const argname of schema.minimal_projection||[])
                 argset.add(argname);
             for (const argname of argset) {
-                const arg = schema.getArgument(argname);
+                const arg = getArgument(schema, argname);
                 if (!arg || arg.is_input)
                     throw new TypeError('Invalid field name ' + argname);
             }
