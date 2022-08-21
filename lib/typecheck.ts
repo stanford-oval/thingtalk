@@ -554,6 +554,8 @@ export default class TypeChecker {
         if (ast instanceof Ast.ComparisonSubqueryBooleanExpression) {
             const type_lhs = await this._typeCheckValue(ast.lhs, scope);
             const type_rhs = await this._typeCheckSubqueryValue(ast.rhs, scope);
+            if (!type_rhs)
+                throw new Error('Failed to find projection type for subquery');
             ast.overload = await this._resolveFilterOverload(type_lhs, ast.operator, type_rhs);
             return;
         }
@@ -568,7 +570,7 @@ export default class TypeChecker {
             return;
         }
         if (ast instanceof Ast.PropertyPathBooleanExpression) {
-            // TODO: typecheck proeprty path boolean expresion
+            // TODO: typecheck property path boolean expression
             return;
         }
 
@@ -584,17 +586,24 @@ export default class TypeChecker {
     }
 
     private async _typeCheckSubqueryValue(expr : Ast.Expression, scope : Scope) {
-        if (!(expr instanceof Ast.ProjectionExpression))
-            throw new TypeError('Subquery function must be a projection');
-        if (expr.args.length + expr.computations.length !== 1)
-            throw new TypeError('Subquery function must be a projection with one field');
-
         await this._typeCheckExpression(expr, scope);
         this._checkExpressionType(expr, ['query'], 'projection');
-        if (expr.args.length)
-            return expr.schema!.getArgType(expr.args[0])!;
-        else
-            return this._typeCheckValue(expr.computations[0], scope);
+        if (expr instanceof Ast.ProjectionExpression) {
+            if (expr.args.length)
+                return expr.schema!.getArgType(expr.args[0]);
+            else
+                return this._typeCheckValue(expr.computations[0], scope);
+        } else if (expr instanceof Ast.ProjectionExpression2) {
+            const proj = expr.projections[0].value;
+            if (proj instanceof Ast.Value)
+                return this._typeCheckValue(proj, scope);
+            if (typeof proj === 'string')
+                return expr.schema!.getArgType(proj);
+            // TODO: properly property path boolean expression
+            return Type.Any;
+        } 
+
+        return expr.schema!.getArgType('id');
 
 
     }
