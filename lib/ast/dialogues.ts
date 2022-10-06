@@ -403,16 +403,6 @@ export class DialogueState extends Input {
      * as the future, yet to be executed statements.
      */
     history : DialogueHistoryItem[];
-    /**
-     * The history of all Levenshtein statements
-     */
-    historyLevenshtein : Levenshtein[];
-    /**
-     * The history of all applied Levenshtein statements
-     * which should be of the same length as `history`.
-     * Each Levenshtein corresponds to one applied result
-     */
-    historyAppliedLevenshtein : ExpressionStatement[];
 
     nl_annotations : NLAnnotationMap;
     impl_annotations : AnnotationMap;
@@ -444,16 +434,6 @@ export class DialogueState extends Input {
         this._current = null;
         this._next = null;
         
-        // these are set to optimal now so that existing code can still be run
-        if (historyLevenshtein) 
-            this.historyLevenshtein = historyLevenshtein;
-        else
-            this.historyLevenshtein = [];
-
-        if (historyAppliedLevenshtein)
-            this.historyAppliedLevenshtein = historyAppliedLevenshtein;
-        else
-            this.historyAppliedLevenshtein = [];
         this.updateCurrent();
     }
 
@@ -574,7 +554,7 @@ export class DialogueState extends Input {
 
         return new DialogueState(this.location, this.policy, this.dialogueAct,
             this.dialogueActParam ? this.dialogueActParam.map((v) => typeof v === 'string' ? v : v.clone()) : null,
-            this.history.map((item) => item.clone()), annotations, this.historyLevenshtein, this.historyAppliedLevenshtein);
+            this.history.map((item) => item.clone()), annotations);
     }
 
     async typecheck(schemas : SchemaRetriever, getMeta = false) : Promise<this> {

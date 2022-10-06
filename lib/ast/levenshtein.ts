@@ -18,7 +18,7 @@
 //
 // Author: Shicheng Liu <shicheng@cs.stanford.edu>
 
-import { SourceRange } from "./base";
+import Node, { SourceRange } from "./base";
 import { 
     FilterExpression,
     IndexExpression,
@@ -164,7 +164,7 @@ enum ReturnTypes {
     Number = 3,
 }
 
-type APICall = 
+export type APICall = 
     ( FunctionCallExpression
     | InvocationExpression)
 
@@ -185,7 +185,7 @@ function isSchema(expr : Expression) : boolean {
 
 // TODO: investigate if there are better approchaes
 // building wheels here does not sound appealing
-function ifOverlap(e1Invocations : APICall[], apiCalls : APICall[]) : boolean {
+export function ifOverlap(e1Invocations : APICall[], apiCalls : APICall[]) : boolean {
     for (const i of e1Invocations) {
         for (const j of apiCalls) {
             if (i instanceof FunctionCallExpression && j instanceof FunctionCallExpression && i.name === j.name)
@@ -336,6 +336,10 @@ export function applyLevenshtein(e1 : ChainExpression, e2 : Levenshtein) : Chain
 
                 res.expressions.push(newBottom);
                 found = true;
+                if (newBottom.schema === null) {
+                    console.log(`${newBottom.prettyprint()}`);
+                    throw new Error('levenshtein apply: schema == null unexpectedly in applied result');
+                }
                 break;
             }
         }
@@ -765,6 +769,11 @@ class GetInvocationExpressionVisitor extends NodeVisitor {
     }
 }
 
+export function getAllInvocationExpression(node : Node) {
+    const visitor = new GetInvocationExpressionVisitor();
+    node.visit(visitor);
+    return visitor.invocation;
+}
 
 // given an old list of API call, modify the incoming levenshtein API call
 // in the following manner: if a parameter does not exist, add to it
