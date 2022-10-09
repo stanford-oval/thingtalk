@@ -413,14 +413,18 @@ dialogue_history_item : Ast.DialogueHistoryItem = {
     // results
     rule:expression_statement results:dialogue_result_annotation_bag ';' => new Ast.DialogueHistoryItem($.location, rule, results[0], 'confirmed', null, results[1]);
     rule:expression_statement lev:levenshtein results:dialogue_result_annotation_bag ';' => new Ast.DialogueHistoryItem($.location, rule, results[0], 'confirmed', lev, results[1]);
+    lev:levenshtein results:dialogue_result_annotation_bag ';' => new Ast.DialogueHistoryItem($.location, new Ast.ExpressionStatement($.location, lev.expression), results[0], 'confirmed', lev, results[1]);
 
     // confirm
     rule:expression_statement '#[' 'confirm' '=' venum:enum_literal ']' ';' => new Ast.DialogueHistoryItem($.location, rule, null, venum, null);
     rule:expression_statement lev:levenshtein '#[' 'confirm' '=' venum:enum_literal ']' ';' => new Ast.DialogueHistoryItem($.location, rule, null, venum, lev);
+    lev:levenshtein '#[' 'confirm' '=' venum:enum_literal ']' ';' => new Ast.DialogueHistoryItem($.location, new Ast.ExpressionStatement($.location, lev.expression), null, venum, lev);
+
 
     // confirm
     rule:expression_statement '#[' 'confirm' '=' venum:enum_literal ']' annot:annotation_spec ';' => new Ast.DialogueHistoryItem($.location, rule, null, venum, null, checkDialogueHistoryAnnotationSpec($, annot));
     rule:expression_statement lev:levenshtein '#[' 'confirm' '=' venum:enum_literal ']' annot:annotation_spec ';' => new Ast.DialogueHistoryItem($.location, rule, null, venum, lev, checkDialogueHistoryAnnotationSpec($, annot));
+    lev:levenshtein '#[' 'confirm' '=' venum:enum_literal ']' annot:annotation_spec ';' => new Ast.DialogueHistoryItem($.location, new Ast.ExpressionStatement($.location, lev.expression), null, venum, lev, checkDialogueHistoryAnnotationSpec($, annot));
 }
 
 dialogue_result_annotation_list : DialogueHistoryAnnotation[] = {
