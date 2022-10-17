@@ -1529,5 +1529,6 @@ export default class TypeChecker {
         const expression = levenshtein.expression;
         const scope = new Scope();
         await this._typeCheckExpression(expression, scope);
+        levenshtein.expression.schema = this._resolveChain(expression);
     }
 }
