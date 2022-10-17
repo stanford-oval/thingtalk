@@ -49,7 +49,8 @@ import { SyntaxPriority } from "./syntax_priority";
 import { Program } from "./program";
 import { optimizeChainExpression, optimizeFilter } from "../optimize";
 import assert from 'assert';
-import { UndefinedValue, Value } from "./values";
+import { EntityValue, UndefinedValue, Value } from "./values";
+import { DialogueHistoryResultItem, DialogueState } from "./dialogues";
 // import arrayEquals from "./array_equals";
 
 
@@ -209,7 +210,7 @@ export function ifOverlap(e1Invocations : APICall[], apiCalls : APICall[]) : boo
  * @return {Program}   - a completed, new query incorporating
  *                       information from both queries
  */
-export function applyLevenshteinWrapper(e1 : Program, e2 : Program) : Program {
+export function applyLevenshteinWrapper(e1 : Program, e2 : Program, dialogueState ?: DialogueState) : Program {
     const res : Program = e1.clone();
     res.statements = [];
     for (const e2Statement of e2.statements) {
@@ -222,7 +223,7 @@ export function applyLevenshteinWrapper(e1 : Program, e2 : Program) : Program {
                 continue;
             }
             const thisStatement : ExpressionStatement = e1Statement.clone();
-            thisStatement.expression = applyLevenshtein(e1Statement.expression, e2Statement);
+            thisStatement.expression = applyLevenshtein(e1Statement.expression, e2Statement, dialogueState);
             res.statements.push(thisStatement);
         }
     }
@@ -233,9 +234,9 @@ export function toChainExpression(e1 : Program) : ChainExpression {
     return (e1.statements[0] as ExpressionStatement).expression;
 }
 
-export function applyLevenshteinExpressionStatement(e1 : ExpressionStatement, e2 : Levenshtein) : ExpressionStatement {
+export function applyLevenshteinExpressionStatement(e1 : ExpressionStatement, e2 : Levenshtein, dialogueState ?: DialogueState) : ExpressionStatement {
     const res = e1.clone();
-    res.expression = applyLevenshtein(e1.expression, e2);
+    res.expression = applyLevenshtein(e1.expression, e2, dialogueState);
     return res;
 }
 
@@ -285,7 +286,7 @@ export function levenshteinFindSchema(e1 : Expression) : Expression {
  * @return {ChainExpression}   - a completed, new query incorporating
  *                               information from both queries
  */
-export function applyLevenshtein(e1 : ChainExpression, e2 : Levenshtein) : ChainExpression {
+export function applyLevenshtein(e1 : ChainExpression, e2 : Levenshtein, dialogueState ?: DialogueState) : ChainExpression {
     // console.log(`old expression: ${e1.prettyprint()}`);
     // console.log(`lev expression: ${e2.prettyprint()}`);
     e2 = e2.optimize(); 
@@ -316,7 +317,7 @@ export function applyLevenshtein(e1 : ChainExpression, e2 : Levenshtein) : Chain
                 
                 // step 3: understand where to insert the new query
                 const e1expr : Expression = e1.expressions[i].clone();
-                const [top, bottom, _] = chopExpression(e1expr, e2Predicates);
+                const [top, bottom, _] = chopExpression(e1expr, e2Predicates, dialogueState);
                 // console.debug(`applyLevenshtein: chopExpression returned top=${top.prettyprint()} and bottom=${bottom.prettyprint()}`);
                 
                 // step 4: add e2expr above `bottom`
@@ -336,10 +337,6 @@ export function applyLevenshtein(e1 : ChainExpression, e2 : Levenshtein) : Chain
 
                 res.expressions.push(newBottom);
                 found = true;
-                if (newBottom.schema === null) {
-                    console.log(`${newBottom.prettyprint()}`);
-                    throw new Error('levenshtein apply: schema == null unexpectedly in applied result');
-                }
                 break;
             }
         }
@@ -348,8 +345,8 @@ export function applyLevenshtein(e1 : ChainExpression, e2 : Levenshtein) : Chain
             res.expressions.push(e2expr);
         
     }
+    res.schema = res.last.schema;
     const res_ = optimizeChainExpression(res);
-    // console.log(res_.prettyprint());
     return res_;
 }
 
@@ -457,7 +454,7 @@ class LevenshteinPlaceholder extends Expression {
 // 2. a non-conflicting ReturnTypes.Record statement
 //      -> if conflict detected, add current node to top
 //      -> if no conflict, add current node to bottom
-function chopExpression(expr : Expression, e2Predicates : BooleanExpression[]) : [Expression, Expression, boolean] {
+function chopExpression(expr : Expression, e2Predicates : BooleanExpression[], dialogueState ?: DialogueState) : [Expression, Expression, boolean] {
     // console.log(`chopExpression ${expr.prettyprint()}`);
     // base case 1
     if (isSchema(expr))
@@ -465,7 +462,7 @@ function chopExpression(expr : Expression, e2Predicates : BooleanExpression[]) :
     
     // base case 2
     if (expr instanceof FilterExpression) {
-        const [ifConflict, newFilter] = predicateResolution(expr.filter, e2Predicates);
+        const [ifConflict, newFilter] = predicateResolution(expr.filter, e2Predicates, dialogueState);
         if (ifConflict) {
             // if the filter needs to be modified, ask `locateBottom` to determine the new bottom,
             // possibly including the modified filter 
@@ -488,7 +485,7 @@ function chopExpression(expr : Expression, e2Predicates : BooleanExpression[]) :
     }
 
     // recursive cases
-    const [top, bottom, ifConflict] = chopExpression((expr as NoneSchemaType).expression, e2Predicates);
+    const [top, bottom, ifConflict] = chopExpression((expr as NoneSchemaType).expression, e2Predicates, dialogueState);
     if (determineReturnType(expr) !== ReturnTypes.Records || ifConflict) {
         (expr as NoneSchemaType).expression = top;
         return [expr, bottom, ifConflict];
@@ -532,9 +529,11 @@ function ifComparable(e1Value : Value, e2Value : Value) : boolean {
  * 
  * 
  * @param e1     - AtomBooleanExpression-like expressions
+ * 
  */
 function predicateResolutionSingleE1(e1 : BooleanExpression,
-                                     e2expr : BooleanExpression[]) : [boolean, BooleanExpression|undefined] {
+                                     e2expr : BooleanExpression[],
+                                     dialogueState ?: DialogueState) : [boolean, BooleanExpression|undefined] {
     // we must finish iterating through all of e2expr before deciding if it's a repetition
     // because we could have a conflict later on
     // this flag is used for that purpose
@@ -549,7 +548,7 @@ function predicateResolutionSingleE1(e1 : BooleanExpression,
         // if anyone conflicts, it is a conflict
         // if anyone repeats, it is a repetition
         if (e2 instanceof AndBooleanExpression) {                
-            for (const eachRes of e2.operands.map((x) => predicateResolutionSingleE1(e1, [x]))) {
+            for (const eachRes of e2.operands.map((x) => predicateResolutionSingleE1(e1, [x], dialogueState))) {
                 if (eachRes[0])
                     return [true, undefined];
                 if (eachRes[1] === undefined)
@@ -560,7 +559,7 @@ function predicateResolutionSingleE1(e1 : BooleanExpression,
         // if anyone repeats, it is a repetition
         if (e2 instanceof OrBooleanExpression) {
             let isConflict = true;
-            for (const eachRes of e2.operands.map((x) => predicateResolutionSingleE1(e1, [x]))) {
+            for (const eachRes of e2.operands.map((x) => predicateResolutionSingleE1(e1, [x], dialogueState))) {
                 if (eachRes[0] === false)
                     isConflict = false;
                 if (eachRes[1] === undefined)
@@ -621,6 +620,19 @@ function predicateResolutionSingleE1(e1 : BooleanExpression,
             }
             if (e2 instanceof DontCareBooleanExpression && e1.name === e2.name)
                 return [true, undefined];
+            
+            // special case id parameter
+            // if e1 is of the form `filter id === ...`, this implies that we are carrying certain results by value
+            // instead of by reference (filter by the qualities)
+            // in such cases, we search back the dialogue state to retrieve the attributes information about this id
+            // and determine if it conflicts with the given expression 
+            if (e1.name === "id" && e1.operator === "==" && e1.value instanceof EntityValue && e2 instanceof AtomBooleanExpression) {
+                const IdVisitor = new RetrieveIDInformation(e1.value);
+                dialogueState?.visit(IdVisitor);
+                if (IdVisitor.res && IdVisitor.res[e2.name] && !IdVisitor.res[e2.name].equals(e2.value)) {
+                    return [true, undefined];
+                }
+            }
         }
         
         if (e1 instanceof NotBooleanExpression && e2 instanceof AtomBooleanExpression) {
@@ -682,6 +694,7 @@ function deMorgen(expr : BooleanExpression) : BooleanExpression {
  * 
  * @param {BooleanExpression} oldExpr - the single predicate to determine whether conflicts occur
  * @param {BooleanExpression[]} incomingExprs - the list of predicates to compare against (in delta)
+ * @param {DialogueState} dialogueState - the current dialogue state, to facilitate resolutions regarding the id field
  * 
  * @return {[boolean, BooleanExpression|undefined]} - the behavior is the following;
  * if the first result is true, this indicates that there is a conflict
@@ -693,13 +706,14 @@ function deMorgen(expr : BooleanExpression) : BooleanExpression {
  *     if the second result is defined, it is the non-repetitive part of `oldExpr`
 */
 function predicateResolution(oldExpr : BooleanExpression,
-                             incomingExprs : BooleanExpression[]) : [boolean, BooleanExpression|undefined] {
+                             incomingExprs : BooleanExpression[],
+                             dialogueState ?: DialogueState) : [boolean, BooleanExpression|undefined] {
     oldExpr = deMorgen(oldExpr);
     if (oldExpr instanceof AndBooleanExpression) {
         let   ifConflict = false;
         const oldCompatiblePart = oldExpr.clone();
         oldCompatiblePart.operands = [];
-        for (const i of oldExpr.operands.map((x) => predicateResolution(x, incomingExprs))) {
+        for (const i of oldExpr.operands.map((x) => predicateResolution(x, incomingExprs, dialogueState))) {
             if (i[0])
                 ifConflict = true;
             
@@ -711,7 +725,7 @@ function predicateResolution(oldExpr : BooleanExpression,
         let   ifConflict = true;
         const oldCompatiblePart = oldExpr.clone();
         oldCompatiblePart.operands = [];
-        for (const i of oldExpr.operands.map((x) => predicateResolution(x, incomingExprs))) {
+        for (const i of oldExpr.operands.map((x) => predicateResolution(x, incomingExprs, dialogueState))) {
             if (i[0] === false)
                 ifConflict = false;
             
@@ -724,7 +738,7 @@ function predicateResolution(oldExpr : BooleanExpression,
         return [ifConflict, oldCompatiblePart];
     }
 
-    return predicateResolutionSingleE1(oldExpr, incomingExprs);
+    return predicateResolutionSingleE1(oldExpr, incomingExprs, dialogueState);
 }
 
 // if a parameter exists in `old` parameter list that does not exist in `incoming`
@@ -809,6 +823,23 @@ class ModifyInvocationExpressionVisitor extends NodeVisitor {
                 inv.invocation.in_params = changeParams(temp.invocation.in_params, inv.invocation.in_params);
                 break;
             }
+        }
+        return true;
+    }
+}
+
+class RetrieveIDInformation extends NodeVisitor {
+    res ?: Record<string, Value>;
+    
+    constructor(private id : EntityValue) {
+        super();
+    }
+
+    visitDialogueHistoryResultItem(node: DialogueHistoryResultItem): boolean {
+        const nodeId = node.value!['id'] as Value;
+        if (nodeId && nodeId.equals(this.id) && !this.res) {
+            this.res = node.value! as Record<string, Value>;
+            return false;
         }
         return true;
     }
