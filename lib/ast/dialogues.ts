@@ -406,6 +406,7 @@ export class DialogueState extends Input {
 
     nl_annotations : NLAnnotationMap;
     impl_annotations : AnnotationMap;
+    userIsDone : boolean | undefined;
 
     private _current : DialogueHistoryItem|null;
     private _next : DialogueHistoryItem|null;
