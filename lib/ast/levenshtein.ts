@@ -191,7 +191,7 @@ export function ifOverlap(e1Invocations : APICall[], apiCalls : APICall[]) : boo
         for (const j of apiCalls) {
             if (i instanceof FunctionCallExpression && j instanceof FunctionCallExpression && i.name === j.name)
                 return true;
-            if (i instanceof InvocationExpression && j instanceof InvocationExpression && i.invocation.channel === j.invocation.channel)
+            if (i instanceof InvocationExpression && j instanceof InvocationExpression && i.invocation.channel === j.invocation.channel && i.invocation.selector.kind === j.invocation.selector.kind)
                 return true;
         }
     }
@@ -612,6 +612,11 @@ function predicateResolutionSingleE1(e1 : BooleanExpression,
                 if (e1Value.isString && e2Value.isString && softMatchOperators.includes(e1.operator) && softMatchOperators.includes(e2.operator))
                     return [true, undefined];
                 
+                // special cased ID processing
+                // in first turn, ID is soft-matched, while in later turns it is picked up as ==
+                // so if we see an == later on, discard the previous soft match
+                if (e1.operator === "=~" && e2.operator === "==" && e1.name === "id")
+                    return [true, undefined];
             } else if (e2 instanceof NotBooleanExpression) {
                 // De-Morgan already done in e2 during Levenshtein optimize
                 assert(!(e2.expr instanceof AndBooleanExpression || e2.expr instanceof OrBooleanExpression));
