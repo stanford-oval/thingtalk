@@ -794,6 +794,12 @@ export function getAllInvocationExpression(node : Node) {
     return visitor.invocation;
 }
 
+export function getAllFilterNames(node : Node) {
+    const visitor = new GetAllFilterNames();
+    node.visit(visitor);
+    return visitor.names;
+}
+
 // given an old list of API call, modify the incoming levenshtein API call
 // in the following manner: if a parameter does not exist, add to it
 class ModifyInvocationExpressionVisitor extends NodeVisitor {
