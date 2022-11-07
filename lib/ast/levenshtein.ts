@@ -634,9 +634,8 @@ function predicateResolutionSingleE1(e1 : BooleanExpression,
             if (e1.name === "id" && e1.operator === "==" && e1.value instanceof EntityValue && e2 instanceof AtomBooleanExpression) {
                 const IdVisitor = new RetrieveIDInformation(e1.value);
                 dialogueState?.visit(IdVisitor);
-                if (IdVisitor.res && IdVisitor.res[e2.name] && !IdVisitor.res[e2.name].equals(e2.value)) {
+                if (IdVisitor.res && IdVisitor.res[e2.name] && !IdVisitor.res[e2.name].equals(e2.value))
                     return [true, undefined];
-                }
             }
         }
         
@@ -840,7 +839,7 @@ class RetrieveIDInformation extends NodeVisitor {
         super();
     }
 
-    visitDialogueHistoryResultItem(node: DialogueHistoryResultItem): boolean {
+    visitDialogueHistoryResultItem(node : DialogueHistoryResultItem) : boolean {
         const nodeId = node.value!['id'] as Value;
         if (nodeId && nodeId.equals(this.id) && !this.res) {
             this.res = node.value! as Record<string, Value>;
