@@ -636,10 +636,11 @@ function predicateResolutionSingleE1(e1 : BooleanExpression,
             // in such cases, we search back the dialogue state to retrieve the attributes information about this id
             // and determine if it conflicts with the given expression 
             if (e1.name === "id" && e1.operator === "==" && e1.value instanceof EntityValue && e2 instanceof AtomBooleanExpression) {
-                const IdVisitor = new RetrieveIDInformation(e1.value);
-                dialogueState?.visit(IdVisitor);
-                if (IdVisitor.res && IdVisitor.res[e2.name] && !IdVisitor.res[e2.name].equals(e2.value))
-                    return [true, undefined];
+                return [true, undefined];
+                // const IdVisitor = new RetrieveIDInformation(e1.value);
+                // dialogueState?.visit(IdVisitor);
+                // if (IdVisitor.res && IdVisitor.res[e2.name] && !IdVisitor.res[e2.name].equals(e2.value))
+                //     return [true, undefined];
             }
         }
         
@@ -842,7 +843,7 @@ class ModifyInvocationExpressionVisitor extends NodeVisitor {
     }
 }
 
-class RetrieveIDInformation extends NodeVisitor {
+export class RetrceveIDInformation extends NodeVisitor {
     res ?: Record<string, Value>;
     
     constructor(private id : EntityValue) {
