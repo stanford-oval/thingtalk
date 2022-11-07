@@ -574,6 +574,10 @@ function predicateResolutionSingleE1(e1 : BooleanExpression,
                 // if both are quality, always a contradiction
                 if (e1.operator === "==" && e2.operator === "==")
                     return [true, undefined];
+                
+                // REVIEW: circumvent contains issue
+                if (e1.operator === "contains" && e2.operator === "contains")
+                    return [true, undefined];
 
                 const e1Value : Value = e1.value;
                 const e2Value : Value = e2.value;
