@@ -642,6 +642,13 @@ function predicateResolutionSingleE1(e1 : BooleanExpression,
                 // if (IdVisitor.res && IdVisitor.res[e2.name] && !IdVisitor.res[e2.name].equals(e2.value))
                 //     return [true, undefined];
             }
+            if (e1.name === "room_id" && e1.operator === "==" && e2 instanceof AtomBooleanExpression &&
+                e2.name === 'bld_system')
+                return [true, undefined];
+            
+            if (e1.name === "bld_system" && e2 instanceof AtomBooleanExpression &&
+                e2.name === 'room_id' && e2.operator === "==")
+                return [true, undefined];
         }
         
         if (e1 instanceof NotBooleanExpression && e2 instanceof AtomBooleanExpression) {
