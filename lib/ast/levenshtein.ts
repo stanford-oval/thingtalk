@@ -635,13 +635,12 @@ function predicateResolutionSingleE1(e1 : BooleanExpression,
             // instead of by reference (filter by the qualities)
             // in such cases, we search back the dialogue state to retrieve the attributes information about this id
             // and determine if it conflicts with the given expression 
-            if (e1.name === "id" && e1.operator === "==" && e1.value instanceof EntityValue && e2 instanceof AtomBooleanExpression) {
+            if (e1.name === "id" && e1.operator === "==" && e1.value instanceof EntityValue && e2 instanceof AtomBooleanExpression)
                 return [true, undefined];
-                // const IdVisitor = new RetrieveIDInformation(e1.value);
-                // dialogueState?.visit(IdVisitor);
-                // if (IdVisitor.res && IdVisitor.res[e2.name] && !IdVisitor.res[e2.name].equals(e2.value))
-                //     return [true, undefined];
-            }
+
+            if (e2 instanceof AtomBooleanExpression && e2.name === "id" && e2.operator === "==")
+                return [true, undefined];
+
             if (e1.name === "room_id" && e1.operator === "==" && e2 instanceof AtomBooleanExpression &&
                 e2.name === 'bld_system')
                 return [true, undefined];
