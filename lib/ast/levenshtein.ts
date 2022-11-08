@@ -1185,6 +1185,12 @@ class GetAllAtomBooleanExpressions extends NodeVisitor {
     }
 }
 
+
+export function getAllAtomBooleanExpressions(node : Node) {
+    const visitor = new GetAllAtomBooleanExpressions();
+    node.visit(visitor);
+    return visitor.atomBooleanExpressions;
+}
 // determine at which stage of expr does the insertion become non-null
 // it first uses static resolution (using chopExpression)
 // then, it dynamically executes until found a non-null solution
