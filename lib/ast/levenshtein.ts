@@ -648,6 +648,24 @@ function predicateResolutionSingleE1(e1 : BooleanExpression,
             if (e1.name === "bld_system" && e2 instanceof AtomBooleanExpression &&
                 e2.name === 'room_id' && e2.operator === "==")
                 return [true, undefined];
+
+            if (e1.name === "room_id" && e2 instanceof AtomBooleanExpression && e2.name === 'room_type')
+                return [true, undefined];
+            
+            if (e1.name === "room_type" && e2 instanceof AtomBooleanExpression && e2.name === 'room_id' && e2.operator === "==")
+                return [true, undefined];
+            
+            if (e1.name === "system_name" && e2 instanceof AtomBooleanExpression && e2.name === 'bld_system')
+                return [true, undefined];
+
+            if (e1.name === "bld_system" && e2 instanceof AtomBooleanExpression && e2.name === 'system_name')
+                return [true, undefined];
+
+            if (e1.name === "room_id" && e2 instanceof AtomBooleanExpression && e2.name === 'system_name')
+                return [true, undefined];
+
+            if (e1.name === "system_name" && e2 instanceof AtomBooleanExpression && e2.name === 'room_id')
+                return [true, undefined];
         }
         
         if (e1 instanceof NotBooleanExpression && e2 instanceof AtomBooleanExpression) {
