@@ -229,13 +229,15 @@ export class DialogueHistoryItem extends AstNode {
     nl_annotations : NLAnnotationMap;
     impl_annotations : AnnotationMap;
     levenshtein : Levenshtein|null;
+    utterance : string|null;
 
     constructor(location : SourceRange|null,
                 stmt : ExpressionStatement,
                 results : DialogueHistoryResultList|null,
                 confirm : string|boolean,
                 levenshtein : Levenshtein|null,
-                { nl, impl } : AnnotationSpec = {}) {
+                { nl, impl } : AnnotationSpec = {},
+                utterance : string|null = null) {
         super(location);
         assert(stmt instanceof ExpressionStatement);
         assert(results === null || results instanceof DialogueHistoryResultList);
@@ -251,6 +253,7 @@ export class DialogueHistoryItem extends AstNode {
         this.nl_annotations = nl || {};
         this.impl_annotations = impl || {};
         this.levenshtein = levenshtein;
+        this.utterance = utterance;
     }
 
     toSource(option ?: string) : TokenStream {
@@ -334,7 +337,7 @@ export class DialogueHistoryItem extends AstNode {
         Object.assign(impl, this.impl_annotations);
         const annotations : AnnotationSpec = { nl, impl };
 
-        return new DialogueHistoryItem(this.location, this.stmt.clone(), this.results ? this.results.clone() : null, this.confirm, this.levenshtein ? this.levenshtein.clone() : null, annotations);
+        return new DialogueHistoryItem(this.location, this.stmt.clone(), this.results ? this.results.clone() : null, this.confirm, this.levenshtein ? this.levenshtein.clone() : null, annotations, this.utterance);
     }
 
     visit(visitor : NodeVisitor) : void {
