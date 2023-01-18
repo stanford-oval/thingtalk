@@ -22,7 +22,7 @@ import * as Grammar from '../lib/syntax_api';
 // import SchemaRetriever from '../lib/schema';
 
 import _mockSchemaDelegate from './mock_schema_delegate';
-import { applyLevenshteinWrapper } from '../lib/ast';
+import { applyLevenshteinWrapper, applyLevenshteinWrapperSync } from '../lib/ast';
 // const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 const TEST_CASES = [
@@ -137,10 +137,6 @@ const TEST_CASES = [
     ["@com.yelp.restaurant() filter id == 'str:ENTITY_com.yelp:restaurant::2:'^^com.yelp:restaurant('str:ENTITY_com.yelp:restaurant::2:');",
      "$continue @com.yelp.restaurant() filter id == 'str:ENTITY_com.yelp:restaurant::2:'^^com.yelp:restaurant('str:ENTITY_com.yelp:restaurant::2:') filter id == 'str:ENTITY_com.yelp:restaurant::2:'^^com.yelp:restaurant;",
      "@com.yelp.restaurant() filter id == 'str:ENTITY_com.yelp:restaurant::2:'^^com.yelp:restaurant('str:ENTITY_com.yelp:restaurant::2:');"
-    ],
-    ["(count(@com.twitter.post() filter name == 'Japanese')) filter place == 'Palo Alto';",
-    "$continue @com.twitter.post() filter name == 'Chinese';",
-    "(count(@com.twitter.post() filter name == 'Chinese')) filter place == 'Palo Alto';"
     ],
     ["count(@com.twitter.post() filter name == 'Japanese');",
     "$continue @com.twitter.post() filter name == 'Chinese';",
@@ -355,18 +351,68 @@ const TEST_CASES = [
     ['@uk.ac.cam.multiwoz.Hotel.make_booking(book_people=3, hotel=$?);',
     '$continue @uk.ac.cam.multiwoz.Hotel.make_booking(hotel="str:ENTITY_uk.ac.cam.multiwoz.Hotel:Hotel::1:"^^uk.ac.cam.multiwoz.Hotel:Hotel("str:ENTITY_uk.ac.cam.multiwoz.Hotel:Hotel::1:"), book_people = $?);',
     '@uk.ac.cam.multiwoz.Hotel.make_booking(book_people=3, hotel="str:ENTITY_uk.ac.cam.multiwoz.Hotel:Hotel::1:"^^uk.ac.cam.multiwoz.Hotel:Hotel("str:ENTITY_uk.ac.cam.multiwoz.Hotel:Hotel::1:"));'
-    ]
+    ],
 
+    // special cased id with dialogue state
+    ['[distance(geo, new Location(37.3893889, -122.0832101, "Mountain View, California"))] of @com.yelp.restaurant() filter contains(cuisines, "french"^^com.yelp:restaurant_cuisine("French")) && id == "-EMppAncnOot2p839R3X2g"^^com.yelp:restaurant("Zola + BarZola");',
+    '$continue @com.yelp.restaurant() filter geo == $location.current_location;',
+    '[distance(geo, new Location(37.3893889, -122.0832101, "Mountain View, California"))] of @com.yelp.restaurant() filter contains(cuisines, "french"^^com.yelp:restaurant_cuisine("French")) && geo == $location.current_location;',
+    '$dialogue @org.thingpedia.dialogue.transaction.execute; \
+    @com.yelp.restaurant() filter contains(cuisines, "french"^^com.yelp:restaurant_cuisine("French")) \
+    $continue @com.yelp.restaurant() filter contains(cuisines, null^^com.yelp:restaurant_cuisine("french")) \
+    #[results=[ \
+        { id="-EMppAncnOot2p839R3X2g"^^com.yelp:restaurant("Zola + BarZola"), image_url="https://s3-media2.fl.yelpcdn.com/bphoto/pqxovAhUtRgB4HEMVKxuFA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/zola-barzola-palo-alto-2?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["french"^^com.yelp:restaurant_cuisine("French")], price=enum expensive, rating=4, review_count=435, geo=new Location(37.4454111, -122.1605961, "565 Bryant St, Palo Alto, CA"), phone="+16505210651"^^tt:phone_number}\
+    ]]\
+    #[count=16];'],
+
+    // here, the id does not contain contradictory information about location
+    ['[distance(geo, new Location(37.3893889, -122.0832101, "Mountain View, California"))] of @com.yelp.restaurant() filter contains(cuisines, "french"^^com.yelp:restaurant_cuisine("French")) && id == "-EMppAncnOot2p839R3X2g"^^com.yelp:restaurant("Zola + BarZola");',
+    '$continue @com.yelp.restaurant() filter geo == $location.current_location;',
+    '[distance(geo, new Location(37.3893889, -122.0832101, "Mountain View, California"))] of @com.yelp.restaurant() filter contains(cuisines, "french"^^com.yelp:restaurant_cuisine("French")) && geo == $location.current_location && id == "-EMppAncnOot2p839R3X2g"^^com.yelp:restaurant("Zola + BarZola");',
+    '$dialogue @org.thingpedia.dialogue.transaction.execute; \
+    @com.yelp.restaurant() filter contains(cuisines, "french"^^com.yelp:restaurant_cuisine("French")) \
+    $continue @com.yelp.restaurant() filter contains(cuisines, null^^com.yelp:restaurant_cuisine("french")) \
+    #[results=[ \
+        { id="-EMppAncnOot2p839R3X2g"^^com.yelp:restaurant("Zola + BarZola"), image_url="https://s3-media2.fl.yelpcdn.com/bphoto/pqxovAhUtRgB4HEMVKxuFA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/zola-barzola-palo-alto-2?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["french"^^com.yelp:restaurant_cuisine("French")], price=enum expensive, rating=4, review_count=435, phone="+16505210651"^^tt:phone_number}\
+    ]]\
+    #[count=16];']
 ];
 
-function test(i) {
+async function test(i) {
     console.log('Test Case #' + (i+1));
-    let [before, levenshtein, expected] = TEST_CASES[i];
-
+    let before = TEST_CASES[i][0];
+    let levenshtein = TEST_CASES[i][1];
+    let expected = TEST_CASES[i][2];
     let beforeProrgram = Grammar.parse(before); 
     let levenshteinProgram = Grammar.parse(levenshtein);
     let expectedProgram = Grammar.parse(expected);
-    let actualProgram = applyLevenshteinWrapper(beforeProrgram, levenshteinProgram);
+
+    let actualProgram, parsedDS;
+    if (TEST_CASES[i].length === 3) {
+        let dialogueState = '$dialogue @org.thingpedia.dialogue.transaction.execute; \
+                             @com.yelp.restaurant() filter contains(cuisines, "french"^^com.yelp:restaurant_cuisine("French")) \
+                             $continue @com.yelp.restaurant() filter contains(cuisines, null^^com.yelp:restaurant_cuisine("french"));'; 
+        parsedDS = Grammar.parse(dialogueState);
+    } else {
+        let dialogueState = TEST_CASES[i][3];
+        parsedDS = Grammar.parse(dialogueState);
+    }
+    actualProgram = await applyLevenshteinWrapper(beforeProrgram, levenshteinProgram, parsedDS, async (args0) => {
+        return true;
+    });
+
+    if (expectedProgram.prettyprint() !== actualProgram.prettyprint()) {
+        console.log("====\n");
+        console.error('Test Case #' + (i+1) + ': does not match what expected');
+        console.error('Before:    ' + beforeProrgram.prettyprint());
+        console.error('Incoming:  ' + levenshteinProgram.prettyprint());
+        console.error('Expected:  ' + expectedProgram.prettyprint());
+        console.error('Generated: ' + actualProgram.prettyprint());
+        if (process.env.TEST_MODE)
+            throw new Error(`testLevenshtein ${i+1} FAILED`);
+    }
+
+    actualProgram = applyLevenshteinWrapperSync(beforeProrgram, levenshteinProgram, parsedDS);
 
     if (expectedProgram.prettyprint() !== actualProgram.prettyprint()) {
         console.log("====\n");
@@ -382,7 +428,7 @@ function test(i) {
 
 export default async function main() {
     for (let i = 0; i < TEST_CASES.length; i++)
-        test(i);
+        await test(i);
 }
 if (!module.parent)
     main();

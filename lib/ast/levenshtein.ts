@@ -198,99 +198,44 @@ export function ifOverlap(e1Invocations : APICall[], apiCalls : APICall[]) : boo
     return false;
 }
 
-/**
- * Given a last-turn query and a new (i.e., incoming) user utterance
- * constructs the new, complete query.
- * This function is a wrapper for `applyLevenshtein`
- * 
- *
- * @param {Program} e1 - last turn query before the new user utterance
- * @param {Program} e2 - Levenshtein expressing the new user utterance
- * 
- * @return {Program}   - a completed, new query incorporating
- *                       information from both queries
- */
-export function applyLevenshteinWrapper(e1 : Program, e2 : Program, dialogueState ?: DialogueState) : Program {
-    const res : Program = e1.clone();
-    res.statements = [];
-    for (const e2Statement of e2.statements) {
-        if (!(e2Statement instanceof Levenshtein))
-            continue;
-        for (const e1Statement of e1.statements) {
-            if (!(e1Statement instanceof ExpressionStatement)) {
-                // TODO: test behavior of this
-                console.warn("WARNING: applyLevenshtein found last-turn statement that is not of ExpressionStatement type");
-                continue;
-            }
-            const thisStatement : ExpressionStatement = e1Statement.clone();
-            thisStatement.expression = applyLevenshtein(e1Statement.expression, e2Statement, dialogueState);
-            res.statements.push(thisStatement);
-        }
-    }
-    return res;
-}
-
-export function toChainExpression(e1 : Program) : ChainExpression {
-    return (e1.statements[0] as ExpressionStatement).expression;
-}
-
-export function applyLevenshteinExpressionStatement(e1 : ExpressionStatement, e2 : Levenshtein, dialogueState ?: DialogueState) : ExpressionStatement {
-    const res = e1.clone();
-    res.expression = applyLevenshtein(e1.expression, e2, dialogueState);
-    return res;
-}
-
-export function applyMultipleLevenshtein(e1 : ChainExpression, e2 : Levenshtein[]) : ChainExpression {
-    for (const expr of e2)
-        e1 = applyLevenshtein(e1, expr);
-    return e1;
-}
-
-export function levenshteinFindSchema(e1 : Expression) : Expression {
-    if (e1 instanceof ChainExpression) {
-        // NOTE: for now we are only using the first expression
-        e1 = e1.expressions[0];
-    }
-    while (!isSchema(e1))
-        e1 = (e1 as NoneSchemaType).expression;
-    return e1;
-}
 
 /**
- * Given a last-turn query (represented as a ChainExpression)
- * and a new (i.e., incoming) user utterance (represented as a Levenshtein)
- * constructs the new, complete query
+ * Given the dialogue state at time t and a new (i.e., incoming) sentence state at time t + 1
+ * dynamically construct the dialogue state at time t + 1
  * 
  * The algorithm works in the following stages:
- * 1. Determine if the incoming query is small enough, if so, return it; (TODO)
- * 2. Determine which part of the incoming ChainExpression we should modify,
- *    based on the occuring schemas;
- * 3. Determine where in the last-turn query we should insert the incoming
+ * 1. Determine which part of the sentence state we should modify, based on the occuring schemas;
+ * 2. Determine where in the dialogue state we should insert the incoming
  *    query. This part contains the following two sub-parts:
  *       a. go down the last-turn query until we find operator that returns
  *            ReturnType.Record
- *       b. statically resolve any predicate conflicts, and determine where
+ *       b. dynamically resolve any predicate conflicts, and determine where
  *            to start inserting;
- * 4. At that point, add all incoming query on top of it (and modify API call)
- * 5. Determine which of the old query is compatible (matches the return type of
+ * 3. At that point, add all incoming query on top of it (and modify API call)
+ * 4. Determine which of the old query is compatible (matches the return type of
  *    incoming query) and add them back.
  * 
- * This will also return an optimized result for any wrapper function to use
- * 
- * Note that dynamic execution until we find a non-null result will be implemented in genie runtime
- * 
+ * The returned result is already optimized (cannoncalized)
  *
  * @param {ChainExpression} e1 - last turn query before the new user utterance
- * @param {Levenshtein} e2     - Levenshtein expressing the new user utterance
+ * @param {Levenshtein} e2     - sentence state expressing the new user utterance
+ * @param {DialogueState} dialogueState - prior dialogue state for the purporse of id resolution
+ * @param {(args0 : Expression) => Promise<boolean>} resolutor   - dynamic resolutor
  * 
  * @return {ChainExpression}   - a completed, new query incorporating
  *                               information from both queries
  */
-export function applyLevenshtein(e1 : ChainExpression, e2 : Levenshtein, dialogueState ?: DialogueState) : ChainExpression {
-    // console.log(`old expression: ${e1.prettyprint()}`);
-    // console.log(`lev expression: ${e2.prettyprint()}`);
-    e2 = e2.optimize(); 
-    // step 2: understand which part of e1 is related to which API call
+export async function applyLevenshtein(
+    e1 : ChainExpression,
+    e2 : Levenshtein,
+    dialogueState : DialogueState,
+    resolutor : (args0 : Expression) => Promise<boolean>
+) : Promise<ChainExpression> {
+    
+    // optimizing up-front pushes not filters down (de-morgan related issues)
+    e2 = e2.optimize();
+
+    // step 1: understand which part of e1 is related to which API call
     const e1Invocations : APICall[] [] = [];
     for (const expr of e1.expressions) {
         const visitor = new GetInvocationExpressionVisitor();
@@ -308,32 +253,31 @@ export function applyLevenshtein(e1 : ChainExpression, e2 : Levenshtein, dialogu
         const [e2Predicates, returnType, apiCalls, joins] = walkExpression(e2expr);
         
         for (let i = 0; i < e1Invocations.length; i ++) {
+            /** 
+             * suppose e1 is of form: e1_0 => e1_1 => e1_2 => ...
+             * then, we have stored the API invocation of e1_i inside e1Invocations[i]
+             * here, we determine if e1_i has the same schema occuring in this part of e2 (expr)
+             * if so, we administer the main apply algorithm on expr with its schema 
+            */  
             if (ifOverlap(e1Invocations[i], apiCalls)) {
-                // suppose e1 is of form: e1_0 => e1_1 => e1_2 => ...
-                // then, we have stored the API invocation of e1_i inside e1Invocations[i]
-                // here, we determine if e1_i has the same schema occuring in this part of e2 (expr)
-                // if so, we administer the main apply algorithm on expr with its schema
-                // console.debug(`applyLevenshtein: determined ${i}-th (0-based index) expression of old Chainexpression modifies this portion of incoming expression`);
-                
-                // step 3: understand where to insert the new query
-                const e1expr : Expression = e1.expressions[i].clone();
-                const [top, bottom, _] = chopExpression(e1expr, e2Predicates, dialogueState);
-                // console.debug(`applyLevenshtein: chopExpression returned top=${top.prettyprint()} and bottom=${bottom.prettyprint()}`);
-                
-                // step 4: add e2expr above `bottom`
-                // if the incoming schema is a join, use that
-                // TODO: if multiple join statement appears, TBD what to do
-                let newBottom : Expression;
-                if (joins.length === 0)
-                    newBottom = changeSchema(e2expr, bottom);
-                else
-                    newBottom = changeSchema(e2expr, changeSchema(bottom, joins[0]));                    
-                // modify API calls
-                newBottom.visit(new ModifyInvocationExpressionVisitor(apiCalls));
 
-                // step 5: determine based on `returnTypes` what to put at the top
-                if (returnType === ReturnTypes.Records) 
-                    newBottom = changeSchema(top, newBottom, true);
+                // step 2: understand where to insert the new query
+                const e1expr : Expression = e1.expressions[i].clone();
+                const [recOps, _, bottom, __] = chopExpression(e1expr, e2Predicates, dialogueState);
+                
+                // step 3: add e2expr above `bottom`
+                // if the incoming schema is a join, use that
+                // TODO: if multiple join statement appears, should use the topmost join
+                //       verify whether this actually uses topmost join
+                let newBottom : Expression = bottom;
+                if (joins.length !== 0)
+                    newBottom = changeSchema(bottom, joins[0]);
+
+                newBottom = await dynamicResolution(resolutor, e2expr, newBottom, new ModifyInvocationExpressionVisitor(apiCalls));
+            
+                // step 4: determine based on `returnTypes` whether to copy over the recOps
+                if (returnType === ReturnTypes.Records && recOps !== undefined)
+                    newBottom = changeSchema(recOps, newBottom, true);
 
                 res.expressions.push(newBottom);
                 found = true;
@@ -350,14 +294,181 @@ export function applyLevenshtein(e1 : ChainExpression, e2 : Levenshtein, dialogu
     return res_;
 }
 
+/**
+ * Given the dialogue state at time t and a new (i.e., incoming) sentence state at time t + 1
+ * statically construct the dialogue state at time t + 1
+ * 
+ * The algorithm works in the following stages:
+ * 1. Determine which part of the sentence state we should modify, based on the occuring schemas;
+ * 2. Determine where in the dialogue state we should insert the incoming
+ *    query. This part contains the following two sub-parts:
+ *       a. go down the last-turn query until we find operator that returns
+ *            ReturnType.Record
+ *       b. statically resolve any predicate conflicts, and determine where
+ *            to start inserting;
+ * 3. At that point, add all incoming query on top of it (and modify API call)
+ * 4. Determine which of the old query is compatible (matches the return type of
+ *    incoming query) and add them back.
+ * 
+ * The returned result is already optimized (cannoncalized)
+ *
+ * @param {ChainExpression} e1 - last turn query before the new user utterance
+ * @param {Levenshtein} e2     - sentence state expressing the new user utterance
+ * @param {DialogueState} dialogueState - prior dialogue state for the purporse of id resolution
+ * 
+ * @return {ChainExpression}   - a completed, new query incorporating
+ *                               information from both queries
+ */
+export function applyLevenshteinSync(
+    e1 : ChainExpression,
+    e2 : Levenshtein,
+    dialogueState ?: DialogueState
+) : ChainExpression {
+    
+    // optimizing up-front pushes not filters down (de-morgan related issues)
+    e2 = e2.optimize();
+
+    // step 1: understand which part of e1 is related to which API call
+    const e1Invocations : APICall[] [] = [];
+    for (const expr of e1.expressions) {
+        const visitor = new GetInvocationExpressionVisitor();
+        expr.visit(visitor);
+        e1Invocations.push(visitor.invocation);
+    }
+    
+    // no need to take care of location & schema issues because Levenshtein is internal
+    // thus, simply clone should be okay
+    const res : ChainExpression = e1.clone();
+    res.expressions = [];
+    
+    for (const e2expr of e2.expression.expressions) {
+        let found  = false;
+        const [e2Predicates, returnType, apiCalls, joins] = walkExpression(e2expr);
+        
+        for (let i = 0; i < e1Invocations.length; i ++) {
+            /** 
+             * suppose e1 is of form: e1_0 => e1_1 => e1_2 => ...
+             * then, we have stored the API invocation of e1_i inside e1Invocations[i]
+             * here, we determine if e1_i has the same schema occuring in this part of e2 (expr)
+             * if so, we administer the main apply algorithm on expr with its schema 
+            */  
+            if (ifOverlap(e1Invocations[i], apiCalls)) {
+
+                // step 2: understand where to insert the new query
+                const e1expr : Expression = e1.expressions[i].clone();
+                const [recOps, _, bottom, __] = chopExpression(e1expr, e2Predicates, dialogueState);
+                
+                // step 3: add e2expr above `bottom`
+                // if the incoming schema is a join, use that
+                // TODO: if multiple join statement appears, should use the topmost join
+                //       verify whether this actually uses topmost join
+                let newBottom : Expression;
+                if (joins.length === 0)
+                    newBottom = changeSchema(e2expr, bottom);
+                else
+                    newBottom = changeSchema(e2expr, changeSchema(bottom, joins[0]));                    
+                // modify API calls
+                newBottom.visit(new ModifyInvocationExpressionVisitor(apiCalls));
+            
+                // step 4: determine based on `returnTypes` whether to copy over the recOps
+                if (returnType === ReturnTypes.Records && recOps !== undefined)
+                    newBottom = changeSchema(recOps, newBottom, true);
+
+                res.expressions.push(newBottom);
+                found = true;
+                break;
+            }
+        }
+        
+        if (!found) 
+            res.expressions.push(e2expr);
+        
+    }
+    res.schema = res.last.schema;
+    const res_ = optimizeChainExpression(res);
+    return res_;
+}
+
+/**
+ * Dynamically resolve conflicts to determine the full result of sentence state application
+ * 
+ * @param resolutor a dynamic resolutor which queries the database and determines whether an expression renders a null result
+ *                  if set to undefined, then dynamic resolution is turned off
+ * @param delta the entire delta expression, all predicates in here must be preserved
+ * @param bottom additional predicates from last dialogue state
+ *               in dynamic resolution, we will gradually go down this query until a non-null result
+ * @param apiModifier in the first try, always include all previous API parameters,
+ *                    in later tries, do not include those parameters
+ */
+async function dynamicResolution(resolutor : ((args0 : Expression) => Promise<boolean>),
+                                 delta : Expression,
+                                 bottom : Expression,
+                                 apiModifier : ModifyInvocationExpressionVisitor | undefined) : Promise<Expression> {
+    let current = changeSchema(delta, bottom);
+    const bottomBackup = bottom;
+
+    // in the first try, include the old parameters as well
+    if (apiModifier)
+        bottom.visit(apiModifier);
+    
+    // keep going down `bottom` until we get a non-null result, or reaching a schema
+    while (!await resolutor(current)) {
+        // if we reached schema and it is still a null result, and if we have not dropped the previous
+        // APi calls, drop those parameters and try again
+        // if we have dropped parameters, we will just return delta, with possibly an added join from context
+        // the result reported to user will be an empty query
+        if (isSchema(bottom)) {
+            if (apiModifier)
+                return dynamicResolution(resolutor, delta, bottomBackup, undefined);
+            else
+                return changeSchema(delta, bottom);
+        }
+
+        // if there are multiple conjuctive predicates inside a filter expression
+        // attempt to drop these filters one at a time
+        if (bottom instanceof FilterExpression &&
+            bottom.filter instanceof AndBooleanExpression) {
+            const generator = permuteFilters(bottom);
+            let newBottom = generator.next().value;
+            while (newBottom) {
+                // if found a solution, safely return
+                if (await resolutor(changeSchema(delta, newBottom)))
+                    return changeSchema(delta, newBottom);
+                
+                // otherwise, keep dropping predicates
+                newBottom = generator.next().value;
+            }
+
+            // still hasn't found a solution at this point, so we can fall through and
+            // drop this filter altogether
+        }
+        bottom = (bottom as NoneSchemaType).expression;
+        current = changeSchema(delta, bottom);
+    }
+
+    // found a non-null query, yay. Can safely return
+    return current;
+}
+
+// this generator function iterates through all predicates and drops one at a time
+function* permuteFilters(expr : FilterExpression) {
+    assert(expr.filter instanceof AndBooleanExpression);
+    // dropping one at a time
+    let res : FilterExpression;
+    for (let i = 0; i < expr.filter.operands.length; i ++) {
+        res = expr.clone();
+        assert(res.filter instanceof AndBooleanExpression);
+        res.filter.operands.splice(i, 1);
+        yield res;
+    }
+}
 
 
-
-/**change the schema in
- * @param {Expression} before to match that of
- * @param {Expression} newSchema
- * note that newSchema does not have to be an API call or Join
- * it can be anything, as long as it outputs type Records
+/** Change the schema in
+ *  @param {Expression} before to match that of
+ *  @param {Expression} newSchema
+ *  Note that newSchema does not have to be an API call or join.
+ *  It can be anything, as long as it outputs type Records
  */
 
 function changeSchema(before : Expression, newSchema : Expression, checkLevenshteinPlaceholder ?: boolean) : Expression {
@@ -454,11 +565,13 @@ class LevenshteinPlaceholder extends Expression {
 // 2. a non-conflicting ReturnTypes.Record statement
 //      -> if conflict detected, add current node to top
 //      -> if no conflict, add current node to bottom
-function chopExpression(expr : Expression, e2Predicates : BooleanExpression[], dialogueState ?: DialogueState) : [Expression, Expression, boolean] {
+function chopExpression(expr : Expression,
+                        e2Predicates : BooleanExpression[],
+                        dialogueState ?: DialogueState) : [Expression | undefined, Expression, Expression, boolean] {
     // console.log(`chopExpression ${expr.prettyprint()}`);
     // base case 1
     if (isSchema(expr))
-        return [new LevenshteinPlaceholder(null, null), expr, false];
+        return [undefined, new LevenshteinPlaceholder(null, null), expr, false];
     
     // base case 2
     if (expr instanceof FilterExpression) {
@@ -471,7 +584,7 @@ function chopExpression(expr : Expression, e2Predicates : BooleanExpression[], d
             // if the filter cannot be modified, throw it out
             else
                 expr = expr.expression;
-            return [new LevenshteinPlaceholder(null, null), locateBottom(expr, e2Predicates), true];
+            return [undefined, new LevenshteinPlaceholder(null, null), locateBottom(expr, e2Predicates), true];
         } else if (newFilter === undefined) {
             // there is the case where there is no conflict, but the old expression
             // still needs to be thrown away
@@ -485,13 +598,26 @@ function chopExpression(expr : Expression, e2Predicates : BooleanExpression[], d
     }
 
     // recursive cases
-    const [top, bottom, ifConflict] = chopExpression((expr as NoneSchemaType).expression, e2Predicates, dialogueState);
-    if (determineReturnType(expr) !== ReturnTypes.Records || ifConflict) {
+    const [recOps, top, bottom, ifConflict] = chopExpression((expr as NoneSchemaType).expression, e2Predicates, dialogueState);
+    // this is a rec ops
+    if (determineReturnType(expr) !== ReturnTypes.Records) {
+        if (recOps !== undefined) {
+            console.log("NOTE: there are two record opeartors in expression. This is undesired due to type restriction of ThingTalk");
+            console.log("      only the top rec-op will be kept");
+        }
         (expr as NoneSchemaType).expression = top;
-        return [expr, bottom, ifConflict];
+        return [expr, top, bottom, ifConflict];
+    }
+    if (recOps !== undefined) {
+        console.log("NOTE: there are additional operators on top of rec-ops. This is undesired due to type restriction of ThingTalk");
+        console.log("      the rec-op will be dropped");
+    }
+    if (ifConflict) {
+        (expr as NoneSchemaType).expression = top;
+        return [undefined, expr, bottom, ifConflict];
     } else {
         (expr as NoneSchemaType).expression = bottom;
-        return [top, expr, ifConflict];
+        return [undefined, top, expr, ifConflict];
     }
 }
 
@@ -627,7 +753,7 @@ function predicateResolutionSingleE1(e1 : BooleanExpression,
                 return [true, undefined];
             
             // special case id parameter
-            // if e1 is of the form `filter id === ...`, this implies that we are carrying certain results by value
+            // if e1 is of the form `filter id == ...`, this implies that we are carrying certain results by value
             // instead of by reference (filter by the qualities)
             // in such cases, we search back the dialogue state to retrieve the attributes information about this id
             // and determine if it conflicts with the given expression 
@@ -1010,8 +1136,6 @@ export function determineSameExpressionLevenshtein(e1_ : ChainExpression, e2_ : 
                     if (!primitiveArrayEquals(singleE1.args, singleE2.args)) {
                         let same = true;
                         // everything in expected has to appear in generated expression
-                        // console.log(singleE2.args);
-                        // console.log(singleE1.args);
                         for (const j of singleE2.args) {
                             if (!singleE1.args.includes(j)) {
                                 same = false;
@@ -1024,7 +1148,6 @@ export function determineSameExpressionLevenshtein(e1_ : ChainExpression, e2_ : 
 
                         // things in generated might not appear in expected, provided they appear in the added filter
                         // but if something in generated that does not appear in expected and is not mentioned in added filter, discard
-                        // console.log(visitor3.names);
                         for (const j of singleE1.args) {
                             if (!singleE2.args.includes(j)) {
                                 if (!visitor3.names.includes(j)) {
@@ -1056,8 +1179,6 @@ export function determineSameExpressionLevenshtein(e1_ : ChainExpression, e2_ : 
     // Further, this also takes into account of possibly projection modified, so e1 and e2 are not cloned from source again
 
     if (old) {
-        // e1 = e1_.clone();
-        // e2 = e2_.clone();
         e1.visit(new ResetFilterPredicates());
         e2.visit(new ResetFilterPredicates());
         e1 = optimizeChainExpression(e1);
@@ -1118,18 +1239,7 @@ export function determineSameExpressionLevenshtein(e1_ : ChainExpression, e2_ : 
             
         }
     }
-    // const oldSelector = (old?.expressions[0] as InvocationExpression).invocation.selector;
-    // const incomingSelector = (incoming![0].expression.expressions[0] as InvocationExpression).invocation.selector;
 
-    // console.log(`incoming: ${incoming?.map((i) => i.prettyprint())}, ${incomingSelector.kind}, ${incomingSelector.id}, ${incomingSelector.all}, ${incomingSelector.attributes.map((i) => i.prettyprint())}`);
-    // console.log(`old     : ${old?.prettyprint()}, ${oldSelector.kind}, ${oldSelector.id}, ${oldSelector.all}, ${oldSelector.attributes.map((i) => i.prettyprint())}`);
-    // console.log(`Selector: ${(e1.expressions[0] as InvocationExpression).invocation.selector.equals((e2.expressions[0] as InvocationExpression).invocation.selector)}`);
-    // console.log(`Selector 1: ${(e1.expressions[0] as InvocationExpression).invocation.selector.kind}, ${(e1.expressions[0] as InvocationExpression).invocation.selector.id}, ${(e1.expressions[0] as InvocationExpression).invocation.selector.all}, ${(e1.expressions[0] as InvocationExpression).invocation.selector.attributes.map((i) => i.prettyprint())}`);
-    // console.log(`Selector 2: ${(e2.expressions[0] as InvocationExpression).invocation.selector.kind}, ${(e2.expressions[0] as InvocationExpression).invocation.selector.id}, ${(e2.expressions[0] as InvocationExpression).invocation.selector.all}, ${(e2.expressions[0] as InvocationExpression).invocation.selector.attributes.map((i) => i.prettyprint())}`);
-    // console.log(`Channel: ${(e1.expressions[0] as InvocationExpression).invocation.channel === (e2.expressions[0] as InvocationExpression).invocation.channel}`);
-    // console.log(`Input Params: ${arrayEquals((e1.expressions[0] as InvocationExpression).invocation.in_params, (e2.expressions[0] as InvocationExpression).invocation.in_params)}`);
-    // console.log(`Input Params 1: ${(e1.expressions[0] as InvocationExpression).invocation.in_params.map((i) => i.prettyprint())}`);
-    // console.log(`Input Params 2: ${(e2.expressions[0] as InvocationExpression).invocation.in_params.map((i) => i.prettyprint())}`);
     return false;
 }
 
@@ -1162,13 +1272,84 @@ export function getAllAtomBooleanExpressions(node : Node) {
     node.visit(visitor);
     return visitor.atomBooleanExpressions;
 }
-// determine at which stage of expr does the insertion become non-null
-// it first uses static resolution (using chopExpression)
-// then, it dynamically executes until found a non-null solution
-// it returns two Expression 
-// the first involve those that could be added back on top
-// and the second are those that sit at the bottom of the new Expression
-// REVIEW: This will be moved to Genie runtime
-// function findNonNull(expr1: Expression, expr2: Expression) : [Array<Expression>, Array<Expression>] {
-//     // walk through the expression to find those before the first conflict
-// }
+
+
+export function levenshteinFindSchema(e1 : Expression) : Expression {
+    if (e1 instanceof ChainExpression) {
+        // NOTE: for now we are only using the first expression
+        e1 = e1.expressions[0];
+    }
+    while (!isSchema(e1))
+        e1 = (e1 as NoneSchemaType).expression;
+    return e1;
+}
+
+export function toChainExpression(e1 : Program) : ChainExpression {
+    return (e1.statements[0] as ExpressionStatement).expression;
+}
+
+/**
+ * Given a last-turn query and a new (i.e., incoming) user utterance
+ * constructs the new, complete query.
+ * 
+ * This function is a wrapper for the (async) `applyLevenshtein`,
+ * and is currently only used in unit testing in the ThingTalk repo
+ *
+ * @param {Program} e1 - last turn query before the new user utterance
+ * @param {Program} e2 - Levenshtein expressing the new user utterance
+ * 
+ * @return {Program}   - a completed, new query incorporating
+ *                       information from both queries
+ */
+export async function applyLevenshteinWrapper(e1 : Program, e2 : Program, dialogueState : DialogueState, resolutor : (args0 : Expression) => Promise<boolean>) : Promise<Program> {
+    const res : Program = e1.clone();
+    res.statements = [];
+    for (const e2Statement of e2.statements) {
+        if (!(e2Statement instanceof Levenshtein))
+            continue;
+        for (const e1Statement of e1.statements) {
+            if (!(e1Statement instanceof ExpressionStatement)) {
+                // TODO: test behavior of this
+                console.warn("WARNING: applyLevenshtein found last-turn statement that is not of ExpressionStatement type");
+                continue;
+            }
+            const thisStatement : ExpressionStatement = e1Statement.clone();
+            thisStatement.expression = await applyLevenshtein(e1Statement.expression, e2Statement, dialogueState, resolutor);
+            res.statements.push(thisStatement);
+        }
+    }
+    return res;
+}
+
+/**
+ * Given a last-turn query and a new (i.e., incoming) user utterance
+ * constructs the new, complete query.
+ * 
+ * This function is a wrapper for the (async) `applyLevenshtein`,
+ * and is currently only used in unit testing in the ThingTalk repo
+ *
+ * @param {Program} e1 - last turn query before the new user utterance
+ * @param {Program} e2 - Levenshtein expressing the new user utterance
+ * 
+ * @return {Program}   - a completed, new query incorporating
+ *                       information from both queries
+ */
+export function applyLevenshteinWrapperSync(e1 : Program, e2 : Program, dialogueState : DialogueState, resolutor : (args0 : Expression) => Promise<boolean>) : Program {
+    const res : Program = e1.clone();
+    res.statements = [];
+    for (const e2Statement of e2.statements) {
+        if (!(e2Statement instanceof Levenshtein))
+            continue;
+        for (const e1Statement of e1.statements) {
+            if (!(e1Statement instanceof ExpressionStatement)) {
+                // TODO: test behavior of this
+                console.warn("WARNING: applyLevenshtein found last-turn statement that is not of ExpressionStatement type");
+                continue;
+            }
+            const thisStatement : ExpressionStatement = e1Statement.clone();
+            thisStatement.expression = applyLevenshteinSync(e1Statement.expression, e2Statement, dialogueState);
+            res.statements.push(thisStatement);
+        }
+    }
+    return res;
+}

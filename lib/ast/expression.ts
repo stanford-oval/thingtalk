@@ -278,6 +278,28 @@ export class InvocationExpression extends Expression {
     *iterateSlots2(scope : ScopeMap) : Generator<DeviceSelector|AbstractSlot, [InvocationLike|null, ScopeMap]> {
         return yield* this.invocation.iterateSlots2(scope);
     }
+
+    /**
+     * Determines whether this invocation expression is an action.
+     * If it is action, then return true.
+     * If it returns false, then it is not necessarily a query, because some fields could be empty.
+     * 
+     */
+    ifAction() : boolean {
+        const thisSchema = this.invocation.schema;
+        if (!thisSchema)
+            return false;
+
+        const schemaClass = thisSchema.class;
+        if (!schemaClass)
+            return false;
+        
+        const allActions = Object.keys(schemaClass.actions);
+        if (allActions.includes(this.invocation.channel))
+            return true;
+        
+        return false;
+    }
 }
 
 export class FilterExpression extends Expression {
