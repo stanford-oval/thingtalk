@@ -47,7 +47,7 @@ import { Rule, Command } from "./statement";
 import { AndBooleanExpression, AtomBooleanExpression, BooleanExpression, ComparisonSubqueryBooleanExpression, DontCareBooleanExpression, ExistentialSubqueryBooleanExpression, NotBooleanExpression, OrBooleanExpression, TrueBooleanExpression } from "./boolean_expression";
 import { SyntaxPriority } from "./syntax_priority";
 import { Program } from "./program";
-import { optimizeChainExpression, optimizeFilter } from "../optimize";
+import { optimizeChainExpression, optimizeFilter, optimizeExpression } from "../optimize";
 import assert from 'assert';
 import { EntityValue, UndefinedValue, Value } from "./values";
 import { DialogueHistoryResultItem, DialogueState } from "./dialogues";
@@ -412,7 +412,7 @@ async function dynamicResolution(resolutor : ((args0 : Expression) => Promise<bo
         bottom.visit(apiModifier);
     
     // keep going down `bottom` until we get a non-null result, or reaching a schema
-    while (!await resolutor(current)) {
+    while (!await resolutor(optimizeExpression(current))) {
         // if we reached schema and it is still a null result, and if we have not dropped the previous
         // APi calls, drop those parameters and try again
         // if we have dropped parameters, we will just return delta, with possibly an added join from context
@@ -432,8 +432,9 @@ async function dynamicResolution(resolutor : ((args0 : Expression) => Promise<bo
             let newBottom = generator.next().value;
             while (newBottom) {
                 // if found a solution, safely return
-                if (await resolutor(changeSchema(delta, newBottom)))
-                    return changeSchema(delta, newBottom);
+                const candidate = optimizeExpression(changeSchema(delta, newBottom));
+                if (await resolutor(candidate))
+                    return candidate;
                 
                 // otherwise, keep dropping predicates
                 newBottom = generator.next().value;

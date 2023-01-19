@@ -276,7 +276,7 @@ function compareProjArg(one : string, two : string) {
         return 1;
 }
 
-function optimizeExpression(expression : Ast.Expression, allow_projection=true) : Ast.Expression {
+export function optimizeExpression(expression : Ast.Expression, allow_projection=true) : Ast.Expression {
     if (expression instanceof Ast.FunctionCallExpression) {
         expression.in_params.sort(compareInputParam);
         return expression;
