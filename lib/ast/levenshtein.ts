@@ -408,8 +408,11 @@ async function dynamicResolution(resolutor : ((args0 : Expression) => Promise<bo
     const bottomBackup = bottom;
 
     // in the first try, include the old parameters as well
-    if (apiModifier)
+    let anyChangeFromApiModifier = false;
+    if (apiModifier) {
         bottom.visit(apiModifier);
+        anyChangeFromApiModifier = apiModifier?.anyChange;
+    }
     
     // keep going down `bottom` until we get a non-null result, or reaching a schema
     while (!await resolutor(optimizeExpression(current))) {
@@ -418,7 +421,7 @@ async function dynamicResolution(resolutor : ((args0 : Expression) => Promise<bo
         // if we have dropped parameters, we will just return delta, with possibly an added join from context
         // the result reported to user will be an empty query
         if (isSchema(bottom)) {
-            if (apiModifier)
+            if (apiModifier && anyChangeFromApiModifier)
                 return dynamicResolution(resolutor, delta, bottomBackup, undefined);
             else
                 return changeSchema(delta, bottom);
@@ -875,18 +878,22 @@ function predicateResolution(oldExpr : BooleanExpression,
 // if a parameter exists in `old` parameter list that does not exist in `incoming`
 // add to `incoming`
 // if a parameter exists in `old` that is `undefinied` in new, also replace the `undefined` with it
-function changeParams(incoming : InputParam[], old : InputParam[]) : InputParam[] {
+function changeParams(incoming : InputParam[], old : InputParam[]) : [InputParam[], boolean] {
+    let anyChange = false;
     for (const i of old) {
         const possiblePlace = incoming.map((param) => {
             return param.name;
         }).indexOf(i.name);
-        if (possiblePlace < 0)
+        if (possiblePlace < 0) {
             incoming.push(i.clone());
-        else if (incoming[possiblePlace].value instanceof UndefinedValue)
+            anyChange = true;
+        } else if (incoming[possiblePlace].value instanceof UndefinedValue) {
             incoming[possiblePlace] = i.clone();
+            anyChange = true;
+        }
     }
     incoming.sort(sortByName);
-    return incoming;
+    return [incoming, anyChange];
 }
 
 function sortByName(p1 : InputParam, p2 : InputParam) : -1|0|1 {
@@ -930,17 +937,21 @@ export function getAllFilterNames(node : Node) {
 // in the following manner: if a parameter does not exist, add to it
 class ModifyInvocationExpressionVisitor extends NodeVisitor {
     incomingInvocation : APICall[];
+    anyChange : boolean;
 
     constructor(incomingInvocation : APICall[]) {
         super();
         this.incomingInvocation = incomingInvocation;
+        this.anyChange = false;
     }
 
     // inv currently is from old
     visitFunctionCallExpression(inv : FunctionCallExpression) : boolean {
         for (const temp of this.incomingInvocation) {
             if (temp instanceof FunctionCallExpression && inv.name === temp.name) {
-                inv.in_params = changeParams(temp.in_params, inv.in_params);
+                const tmp = changeParams(temp.in_params, inv.in_params);
+                inv.in_params = tmp[0];
+                this.anyChange = this.anyChange || tmp[1];
                 break;
             }
         }
@@ -957,7 +968,9 @@ class ModifyInvocationExpressionVisitor extends NodeVisitor {
                 // NOTE: we do not require selector to be the same, because the constructed delta currently does not deal with this.
                 //       instead, we copy from the old expression
                 // TODO: investigate whether this is the best apporach.
-                inv.invocation.in_params = changeParams(temp.invocation.in_params, inv.invocation.in_params);
+                const tmp = changeParams(temp.invocation.in_params, inv.invocation.in_params);
+                inv.invocation.in_params = tmp[0];
+                this.anyChange = this.anyChange || tmp[1];
                 break;
             }
         }
