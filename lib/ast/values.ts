@@ -1739,7 +1739,7 @@ export class EntityValue extends Value {
     }
 
     equals(other : Value) : boolean {
-        return other instanceof EntityValue && this.value === other.value && this.type === other.type;
+        return other instanceof EntityValue && this.value === other.value && this.type === other.type && this.display === other.display;
     }
 
     visit(visitor : NodeVisitor) : void {
