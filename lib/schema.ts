@@ -290,8 +290,6 @@ export default class SchemaRetriever {
         this._currentRequest[isMeta] = null;
         if (pending.length === 0)
             return {};
-        if (!this._silent)
-            console.log(`Batched ${isMeta ? 'schema-meta' : 'schema'} request for ${pending}`);
         const code = await this._thingpediaClient.getSchemas(pending, isMeta === 'everything');
 
         if (code.trim() === '') {
@@ -522,8 +520,7 @@ export default class SchemaRetriever {
         this._currentRequest.dataset = null;
         if (pending.length === 0)
             return {};
-        if (!this._silent)
-            console.log(`Batched dataset request for ${pending}`);
+
         const code = await this._thingpediaClient.getExamplesByKinds(pending);
 
         const result : DatasetMap = {};
