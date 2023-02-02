@@ -217,6 +217,11 @@ export default class SchemaRetriever {
         this._thingpediaClient = tpClient;
         this._memoryClient = mClient || new DummyMemoryClient();
         this._silent = !!silent;
+
+        // NOTE: this is just a trick to get around typechecking issues
+        // in the future, _silent will be removed altogether for a proper logging solution
+        if (this._silent)
+            this._silent = silent;
     }
 
     /**
