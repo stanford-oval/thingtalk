@@ -671,7 +671,14 @@ export class ProjectionElement extends Node {
 
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
-        visitor.visitProjectionElement(this);
+        if (visitor.visitProjectionElement(this)) {
+            if (this.value instanceof Value) {
+                this.value.visit(visitor);
+            } else if (Array.isArray(this.value)) {
+                for (const element of this.value) 
+                    element.visit(visitor);
+            }
+        }
         visitor.exit(this);
     }
 }
@@ -744,8 +751,11 @@ export class ProjectionExpression2 extends Expression {
 
     visit(visitor : NodeVisitor) : void {
         visitor.enter(this);
-        if (visitor.visitProjectionExpression2(this))
+        if (visitor.visitProjectionExpression2(this)) {
             this.expression.visit(visitor);
+            for (const proj of this.projections)
+                proj.visit(visitor);
+        }
         visitor.exit(this);
     }
 
