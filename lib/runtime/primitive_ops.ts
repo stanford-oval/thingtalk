@@ -92,10 +92,10 @@ function locationEquals(a : LocationLike, b : LocationLike) : boolean {
         return true;
     if (a.x === b.x && a.y === b.y)
         return true;
-    //console.log('Comparing locations', [a,b]);
     const d = distance(a, b);
-    //console.log('Distance (m): ' + d.toFixed(2));
-    return d <= 2500;
+    // location distance by default is set to 10 km
+    // TODO: in the future, support the ability for developers to specify this number in manifest.tt
+    return d <= 10000;
 }
 
 function hasValueOf(x : unknown) : x is number|string|Date|Time|StringLike {
