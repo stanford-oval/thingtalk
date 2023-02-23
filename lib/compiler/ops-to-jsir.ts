@@ -219,7 +219,10 @@ export default class OpCompiler {
         if (ast instanceof Ast.ArrayFieldValue) {
             const array = this.compileValue(ast.value, scope);
             const result = this._irBuilder.allocRegister();
-            this._irBuilder.add(new JSIr.MapAndReadField(result, array, ast.field));
+            if (typeof ast.field === 'string')
+                this._irBuilder.add(new JSIr.MapAndReadField(result, array, ast.field));
+            else 
+                throw new Error('Unsupported array field value with property path, need to be normalized first.');
             return result;
         }
 

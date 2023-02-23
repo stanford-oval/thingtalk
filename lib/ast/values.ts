@@ -25,7 +25,7 @@ import Type from '../type';
 import { normalizeDate } from '../utils/date_utils';
 import AstNode from './base';
 import NodeVisitor from './visitor';
-import { BooleanExpression } from './boolean_expression';
+import { BooleanExpression, PropertyPathSequence } from './boolean_expression';
 import type { ArgumentDef } from './function_def';
 
 import {
@@ -807,18 +807,18 @@ Value.Computation = ComputationValue;
 
 export class ArrayFieldValue extends Value {
     value : Value;
-    field : string;
+    field : string|PropertyPathSequence;
     type : Type|null;
     arg : ArgumentDef|null;
 
     constructor(value : Value,
-                field : string,
+                field : string|PropertyPathSequence,
                 type : Type|null = null,
                 arg : ArgumentDef|null = null) {
         super(null);
         assert(value instanceof Value);
         this.value = value;
-        assert(typeof field === 'string');
+        assert(typeof field === 'string' || Array.isArray(field));
         this.field = field;
         assert(type === null || type instanceof Type);
         this.type = type;
@@ -830,7 +830,14 @@ export class ArrayFieldValue extends Value {
     }
 
     toSource() : TokenStream {
-        return List.concat(this.field, 'of', addParenthesis(this.priority, this.value.priority, this.value.toSource()));
+        let field;
+        if (typeof this.field === 'string') {
+            field = List.singleton(this.field);
+        } else {
+            const path = List.join(this.field.map((elem) => elem.toSource()), '/');
+            field = List.concat('<', path, '>');
+        }
+        return List.concat(field, 'of', addParenthesis(this.priority, this.value.priority, this.value.toSource()));
     }
 
     toString() : string {
@@ -858,7 +865,9 @@ export class ArrayFieldValue extends Value {
     }
 
     toJS() : unknown[] {
-        return (this.value.toJS() as any[]).map((el) => el[this.field]);
+        if (typeof this.field === 'string')
+            return (this.value.toJS() as any[]).map((el) => el[this.field as string]);
+        throw new Error('Value is not a constant');
     }
 
     getType() : Type {

@@ -282,6 +282,10 @@ export default class TypeChecker {
             if (value.type instanceof Type)
                 return value.type;
 
+            // TODO: typecheck property path 
+            if (!(typeof value.field === 'string')) 
+                return Type.Any;
+
             const paramType = await this._typeCheckValue(value.value, scope);
 
             if (!(paramType instanceof Type.Array))

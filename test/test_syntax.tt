@@ -2215,3 +2215,8 @@ sort(population desc of @org.wikidata.administrative_territorial_entity());
 
 // filter with qualifier on computation value
 @org.wikidata.administrative_territorial_entity() filter contains(member_of filter start_time <= new Date(enum saturday) - 1week, null^^org.wikidata:organization("x"));
+
+====
+
+// filter value with property path field
+[ < electoral_district/located_in_the_administrative_territorial_entity > of position_held filter value == " Q4416090 " ^^wd:p_position_held ] of @org.wikidata.human();

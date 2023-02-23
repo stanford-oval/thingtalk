@@ -1922,6 +1922,9 @@ class @org.wikidata
   list query human(out id: Entity(org.wikidata:human),
                    out place_of_birth: Entity(org.wikidata:geographic_entity),
                    out country: Entity(org.wikidata:country),
+                   out position_held : Array({
+                     electoral_district : Entity(org.wikidata:p_electoral_district)
+                   }),
                    out height: Measure(m));
   list query geographic_entity(out id: Entity(org.wikidata:geographic_entity),
                                out located_in_the_administrative_territorial_entity: Entity(org.wikidata:administrative_territorial_entity));

@@ -1253,6 +1253,8 @@ non_ambiguous_comparison_filter : Ast.BooleanExpression = {
 filter_lhs_array_field_value : Ast.Value = {
     field:qualified_name 'of' value:filter_lhs_filter_value => new Ast.Value.ArrayField(value, field);
 
+    field:property_path 'of' value:filter_lhs_filter_value => new Ast.Value.ArrayField(value, field);
+
     filter_lhs_filter_value;
 }
 filter_lhs_filter_value : Ast.Value = {
