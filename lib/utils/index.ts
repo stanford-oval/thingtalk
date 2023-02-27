@@ -76,8 +76,10 @@ export function getScalarExpressionName(ast : Ast.Value) : string {
         return ast.name;
     if (ast instanceof Ast.ComputationValue && /^[a-zA-Z0-9]+$/.test(ast.op))
         return ast.op;
-    else if (ast instanceof Ast.FilterValue || ast instanceof Ast.ArrayFieldValue)
+    else if (ast instanceof Ast.FilterValue)
         return getScalarExpressionName(ast.value);
+    else if (ast instanceof Ast.ArrayFieldValue)
+        return typeof ast.field === 'string' ? ast.field : ast.field[ast.field.length - 1].property;
     else
         return 'result';
 }
