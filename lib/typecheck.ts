@@ -616,9 +616,11 @@ export default class TypeChecker {
                                               operator : string,
                                               field : string,
                                               schema : Ast.FunctionDef) {
-        const fieldType = schema.out[field];
+        let fieldType = schema.out[field];
         if (!fieldType)
             throw new TypeError('Invalid aggregation field ' + field);
+        if (fieldType instanceof Type.Array)
+            fieldType = fieldType.elem as Type;
         const ag = Builtin.Aggregations[operator];
         if (!ag)
             throw new TypeError('Invalid aggregation ' + operator);
