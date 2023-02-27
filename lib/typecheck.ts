@@ -560,7 +560,10 @@ export default class TypeChecker {
             const type_rhs = await this._typeCheckSubqueryValue(ast.rhs, scope);
             if (!type_rhs)
                 throw new Error('Failed to find projection type for subquery');
-            ast.overload = await this._resolveFilterOverload(type_lhs, ast.operator, type_rhs);
+            if (!['in_array', 'in_array~'].includes(ast.operator) && type_rhs instanceof Type.Array)
+                ast.overload = await this._resolveFilterOverload(type_lhs, ast.operator, type_rhs.elem as Type);
+            else
+                ast.overload = await this._resolveFilterOverload(type_lhs, ast.operator, type_rhs);
             return;
         }
 
