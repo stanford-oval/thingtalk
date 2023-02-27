@@ -1245,6 +1245,10 @@ non_ambiguous_comparison_filter : Ast.BooleanExpression = {
         else
             return new Ast.BooleanExpression.Compute($.location, lhs, op, rhs);
     };
+
+    lhs:filter_lhs_add_expr op:comparison_op 'any' '(' rhs:projection_expression ')' => { 
+        return new Ast.BooleanExpression.ComparisonSubquery($.location, lhs, op, rhs);
+    };
 }
 
 // to avoid ambiguity with constant boolean expressions, the LHS of a comparison
