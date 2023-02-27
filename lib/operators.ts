@@ -335,11 +335,13 @@ export const Aggregations : { [op : string] : OpDefinition } = {
     'max': {
         types: [[Type.Number, Type.Number],
                 [Type.Currency, Type.Currency],
+                [Type.Date, Type.Date],
                 [new Type.Measure(''), new Type.Measure('')]]
     },
     'min': {
         types: [[Type.Number, Type.Number],
                 [Type.Currency, Type.Currency],
+                [Type.Date, Type.Date],
                 [new Type.Measure(''), new Type.Measure('')]]
     },
     'sum': {
@@ -350,6 +352,7 @@ export const Aggregations : { [op : string] : OpDefinition } = {
     'avg': {
         types: [[Type.Number, Type.Number],
                 [Type.Currency, Type.Currency],
+                [Type.Date, Type.Date],
                 [new Type.Measure(''), new Type.Measure('')]]
     },
     'count': {
