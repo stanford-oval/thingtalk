@@ -67,27 +67,31 @@ function findYear(year : number, entityRetriever : AbstractEntityRetriever) : Li
     // the rules for encoding years are complex to account for two digit years
     // (between 1950 and 2050)
 
-    // no heuristic outside that range
-    if (!(year >= 1950 && year < 2050))
+    try {
+        // no heuristic outside that range
+        if (!(year >= 1950 && year < 2050))
+            return entityRetriever.findEntity('NUMBER', year);
+
+        // try as four digit number
+        const found4digit = entityRetriever.findEntity('NUMBER', year, { ignoreNotFound: true });
+        if (found4digit)
+            return found4digit;
+
+        // try as two digit number
+        const twoDigitYear = year < 2000 ? year - 1900 : year - 2000;
+        const found2digit = entityRetriever.findEntity('NUMBER', twoDigitYear, { ignoreNotFound: true });
+        if (found2digit)
+            return found2digit;
+
+        // now, if the two digit year is a small number, we'll take it
+        if (isSmallPositiveInteger(twoDigitYear))
+            return List.singleton(String(twoDigitYear));
+
+        // else, try again as 4 digit number - this will fail with an exception now
         return entityRetriever.findEntity('NUMBER', year);
-
-    // try as four digit number
-    const found4digit = entityRetriever.findEntity('NUMBER', year, { ignoreNotFound: true });
-    if (found4digit)
-        return found4digit;
-
-    // try as two digit number
-    const twoDigitYear = year < 2000 ? year - 1900 : year - 2000;
-    const found2digit = entityRetriever.findEntity('NUMBER', twoDigitYear, { ignoreNotFound: true });
-    if (found2digit)
-        return found2digit;
-
-    // now, if the two digit year is a small number, we'll take it
-    if (isSmallPositiveInteger(twoDigitYear))
-        return List.singleton(String(twoDigitYear));
-
-    // else, try again as 4 digit number - this will fail with an exception now
-    return entityRetriever.findEntity('NUMBER', year);
+    } catch(e) {
+        return List.singleton(year.toString());
+    }
 }
 
 function findEntity(constant : AnyConstantToken,
