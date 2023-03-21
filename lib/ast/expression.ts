@@ -1018,7 +1018,7 @@ export class ChainExpression extends Expression {
     // corresponding to user utterances like "find me another one", "what about other ones", etc.
     // it triggers a dialog state processing procedure where any results previously mentioned to the user
     // will be disregarded, and only new results (previously unseen results) will be mentioned
-    other = false;
+    other : boolean;
 
     constructor(location : SourceRange|null,
                 expressions : Expression[],
@@ -1081,7 +1081,8 @@ export class ChainExpression extends Expression {
         let res =  List.join(this.expressions.map((exp) => exp.toSource()), '=>');
         if (this.other) {
             res =  List.append(res, "=>");
-            return List.append(res, "other");
+            res =  List.append(res, "other");
+            return res;
         }
         return res;
     }
