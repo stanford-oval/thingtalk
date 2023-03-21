@@ -612,7 +612,7 @@ export class DialogueState extends Input {
 /**
  * Determines if a dialog
  */
-export class IfResultExists extends NodeVisitor {
+export class IfResultReported extends NodeVisitor {
     result : DialogueHistoryResultItem;
     found : boolean
 
@@ -626,7 +626,7 @@ export class IfResultExists extends NodeVisitor {
         for (const item of node.history) {
             if (item.results) {
                 for (const result of item.results.results) {
-                    if (result.equalsWoReported(this.result)) {
+                    if (result.equalsWoReported(this.result) && result.reported) {
                         this.found = true;
                         return false;
                     }
