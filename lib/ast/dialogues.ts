@@ -52,6 +52,7 @@ import { Levenshtein } from './levenshtein';
 export class DialogueHistoryResultItem extends AstNode {
     value : Record<string, Value>;
     raw : Record<string, unknown>|null;
+    reported ?: boolean;
 
     constructor(location : SourceRange|null,
                 value : Record<string, Value>,
@@ -72,7 +73,12 @@ export class DialogueHistoryResultItem extends AstNode {
     clone() : DialogueHistoryResultItem {
         const newValue : Record<string, Value> = {};
         Object.assign(newValue, this.value);
-        return new DialogueHistoryResultItem(this.location, newValue, this.raw);
+        const res = new DialogueHistoryResultItem(this.location, newValue, this.raw);
+        
+        if (this.reported)
+            res.reported = this.reported;
+        
+        return res;
     }
 
     visit(visitor : NodeVisitor) : void {
@@ -92,6 +98,23 @@ export class DialogueHistoryResultItem extends AstNode {
     }
 
     equals(other : DialogueHistoryResultItem) : boolean {
+        if (this.reported !== other.reported)
+            return false;
+
+        const keys = Object.keys(this.value).sort();
+        const otherkeys = Object.keys(other.value).sort();
+        if (keys.length !== otherkeys.length)
+            return false;
+        for (let i = 0; i < keys.length; i++) {
+            if (keys[i] !== otherkeys[i])
+                return false;
+            if (!this.value[keys[i]].equals(other.value[otherkeys[i]]))
+                return false;
+        }
+        return true;
+    }
+
+    equalsWoReported(other : DialogueHistoryResultItem) : boolean {
         const keys = Object.keys(this.value).sort();
         const otherkeys = Object.keys(other.value).sort();
         if (keys.length !== otherkeys.length)
@@ -585,5 +608,36 @@ export class DialogueState extends Input {
             yield* item.iterateSlots2();
     }
 }
+
+/**
+ * Determines if a dialog
+ */
+export class IfResultExists extends NodeVisitor {
+    result : DialogueHistoryResultItem;
+    found : boolean
+
+    constructor(result : DialogueHistoryResultItem) {
+        super();
+        this.result = result;
+        this.found = false;
+    }
+
+    visitDialogueState(node : DialogueState) : boolean {
+        for (const item of node.history) {
+            if (item.results) {
+                for (const result of item.results.results) {
+                    if (result.equalsWoReported(this.result)) {
+                        this.found = true;
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+
+}
+
 DialogueState.prototype.isDialogueState = true;
 Input.DialogueState = DialogueState;

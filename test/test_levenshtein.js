@@ -135,7 +135,7 @@ const TEST_CASES = [
      "@com.twitter.post() filter name == 'Japanese';"
     ],
     ["@com.yelp.restaurant() filter id == 'str:ENTITY_com.yelp:restaurant::2:'^^com.yelp:restaurant('str:ENTITY_com.yelp:restaurant::2:');",
-     "$continue @com.yelp.restaurant() filter id == 'str:ENTITY_com.yelp:restaurant::2:'^^com.yelp:restaurant('str:ENTITY_com.yelp:restaurant::2:') filter id == 'str:ENTITY_com.yelp:restaurant::2:'^^com.yelp:restaurant;",
+     "$continue @com.yelp.restaurant() filter id == 'str:ENTITY_com.yelp:restaurant::2:'^^com.yelp:restaurant('str:ENTITY_com.yelp:restaurant::2:');",
      "@com.yelp.restaurant() filter id == 'str:ENTITY_com.yelp:restaurant::2:'^^com.yelp:restaurant('str:ENTITY_com.yelp:restaurant::2:');"
     ],
     ["count(@com.twitter.post() filter name == 'Japanese');",

@@ -853,6 +853,9 @@ chain_expression : Ast.ChainExpression = {
 toplevel_chain_expression : Ast.ChainExpression = {
     list:chain_expression_list => new Ast.ChainExpression($.location, list, null);
 
+    // special case `other`
+    list:chain_expression_list '=>' 'other' => new Ast.ChainExpression($.location, list, null, true);
+
     // redundant forms for compatibility
     list:chain_expression_list '=>' 'notify' => new Ast.ChainExpression($.location, list, null);
 }

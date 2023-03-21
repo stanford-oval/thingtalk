@@ -180,6 +180,7 @@ export const CONTEXTUAL_KEYWORDS = new Set<string>([
     'distance',
     'set_time',
 
+    'other',
 ]);
 
 export const DOLLAR_KEYWORDS = new Set<string>([

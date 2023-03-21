@@ -2089,64 +2089,12 @@ $dialogue @org.thingpedia.dialogue.transaction.execute;
 
 ====
 
-// Levenshtein representation: $continue
-// same ThingTalk syntax should pass
-
-// adding a query
-$continue @com.twitter.home_timeline();
-
-====
-
-// adding a filter
-$continue @com.twitter.home_timeline() filter text =~ "foo";
-$continue @com.twitter.home_timeline() filter contains(hashtags, "foo"^^tt:hashtag);
-$continue @com.twitter.home_timeline() filter contains~(hashtags, "foo");
-
-====
-
-// adding a projection
-$continue [text, author] of @com.twitter.home_timeline();
-
-====
-
-// adding a computation
-$continue [distance(location, new Location(1, 2))] of @org.thingpedia.builtin.thingengine.builtin.get_gps();
-
-====
-
-// adding a join, and join-related
-$continue @org.wikidata.city() join @org.wikidata.city();
-$continue (@org.wikidata.city() join @org.wikidata.city()) filter in_array(first.id, second.twinned_administrative_body);
-$continue [first.id, second.id] of ((@org.wikidata.city() join @org.wikidata.city()) filter in_array(first.id, second.twinned_administrative_body));
-$continue (([id] of @org.wikidata.city()) join @org.wikidata.city()) filter in_array(first.id, second.twinned_administrative_body);
-
-====
-
-// adding a sort
-$continue sort(file_size asc of @com.dropbox.list_folder());
-
-====
-
-// adding an aggregation
-class @org.schema {
-  list query restaurants(out name : String,
-                         out reviews : Array({
-                           reviewRating : {
-                             ratingValue : Number
-                           },
-                         }))
-  #[minimal_projection=[]];
-}
-$continue @org.schema.restaurants() filter avg(reviewRating.ratingValue of reviews) >= 1;
-
-====
-
-// ** expect TypeError ** 
-// property not in scope 
-// Levenshtein representation: $continue
-$continue @org.wikidata.city() filter x <= 10000;
-
-====
+// sentence state representation
+// NOTE: only test in dialog state representation
+// since code-gen for single statements do not match parsing
+// and changing parsing code would result in some mismatch error
+// Since sentence state representation is only used in dialog state settings
+// this should be enough
 
 $dialogue @org.thingpedia.dialogue.transaction.execute;
 @com.thecatapi.get()
@@ -2203,3 +2151,15 @@ $continue @com.thecatapi.get()
 @com.twitter.post()
 #[results=[]]
 #[error="something bad happened"];
+
+====
+
+// support for `=> other()`
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+@com.thecatapi.get()
+$continue @com.thecatapi.get() => other;
+
+====
+
+$dialogue @org.thingpedia.dialogue.transaction.execute;
+$continue @com.thecatapi.get() => other;

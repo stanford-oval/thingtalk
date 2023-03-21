@@ -1014,13 +1014,21 @@ export class SliceExpression extends Expression {
 export class ChainExpression extends Expression {
     expressions : Expression[];
 
+    // other is a special meta statement, it is represented as e.g. `@restaurant() => other`
+    // corresponding to user utterances like "find me another one", "what about other ones", etc.
+    // it triggers a dialog state processing procedure where any results previously mentioned to the user
+    // will be disregarded, and only new results (previously unseen results) will be mentioned
+    other = false;
+
     constructor(location : SourceRange|null,
                 expressions : Expression[],
-                schema : FunctionDef|null) {
+                schema : FunctionDef|null,
+                other ?: boolean) {
         super(location, schema);
 
         assert(Array.isArray(expressions));
         this.expressions = expressions;
+        this.other = !! other;
     }
 
     get priority() : SyntaxPriority {
@@ -1070,7 +1078,12 @@ export class ChainExpression extends Expression {
     }
 
     toSource() : TokenStream {
-        return List.join(this.expressions.map((exp) => exp.toSource()), '=>');
+        let res =  List.join(this.expressions.map((exp) => exp.toSource()), '=>');
+        if (this.other) {
+            res =  List.append(res, "=>");
+            return List.append(res, "other");
+        }
+        return res;
     }
 
     equals(other : Expression) : boolean {
@@ -1191,7 +1204,8 @@ export class ChainExpression extends Expression {
         return new ChainExpression(
             this.location,
             this.expressions.map((ex) => ex.clone()),
-            this.schema ? this.schema.clone() : null
+            this.schema ? this.schema.clone() : null,
+            this.other
         );
     }
 
