@@ -571,7 +571,7 @@ function optimizeChainExpression(expr : Ast.ChainExpression) : Ast.ChainExpressi
     const newExpression = optimizeExpression(expr);
     let res : Ast.ChainExpression;
     if (!(newExpression instanceof Ast.ChainExpression))
-        res = new Ast.ChainExpression(newExpression.location, [newExpression], newExpression.schema);
+        res = new Ast.ChainExpression(newExpression.location, [newExpression], newExpression.schema, expr.other);
     else
         res = newExpression;
     return res;

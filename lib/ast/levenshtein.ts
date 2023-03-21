@@ -343,6 +343,7 @@ export function applyLevenshteinSync(
     // thus, simply clone should be okay
     const res : ChainExpression = e1.clone();
     res.expressions = [];
+    const other = e2.expression.other;
     
     for (const e2expr of e2.expression.expressions) {
         let found  = false;
@@ -389,6 +390,8 @@ export function applyLevenshteinSync(
     }
     res.schema = res.last.schema;
     const res_ = optimizeChainExpression(res);
+    // always use the new delta's other, regardless of previous other
+    res_.other = other;
     return res_;
 }
 
