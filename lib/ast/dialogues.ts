@@ -626,7 +626,7 @@ export class IfResultReported extends NodeVisitor {
         for (const item of node.history) {
             if (item.results) {
                 for (const result of item.results.results) {
-                    if (result.equalsWoReported(this.result) && result.reported) {
+                    if ((result.equalsWoReported(this.result) && result.reported) || (result.value.id && this.result.value.id && result.value.id.equals(this.result.value.id))) {
                         this.found = true;
                         return false;
                     }
