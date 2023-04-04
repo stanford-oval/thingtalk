@@ -229,7 +229,7 @@ export async function applyLevenshtein(
     e1 : ChainExpression,
     e2 : Levenshtein,
     dialogueState : DialogueState,
-    resolutor : (args0 : Expression) => Promise<boolean>
+    resolutor : (args0 : Expression, other ?: boolean) => Promise<boolean>
 ) : Promise<ChainExpression> {
     
     // optimizing up-front pushes not filters down (de-morgan related issues)
@@ -274,7 +274,7 @@ export async function applyLevenshtein(
                 if (joins.length !== 0)
                     newBottom = changeSchema(bottom, joins[0]);
 
-                newBottom = await dynamicResolution(resolutor, e2expr, newBottom, new ModifyInvocationExpressionVisitor(apiCalls));
+                newBottom = await dynamicResolution(resolutor, e2expr, newBottom, new ModifyInvocationExpressionVisitor(apiCalls), other);
             
                 // step 4: determine based on `returnTypes` whether to copy over the recOps
                 if (returnType === ReturnTypes.Records && recOps !== undefined)
@@ -406,10 +406,11 @@ export function applyLevenshteinSync(
  * @param apiModifier in the first try, always include all previous API parameters,
  *                    in later tries, do not include those parameters
  */
-async function dynamicResolution(resolutor : ((args0 : Expression) => Promise<boolean>),
+async function dynamicResolution(resolutor : (args0 : Expression, other ?: boolean) => Promise<boolean>,
                                  delta : Expression,
                                  bottom : Expression,
-                                 apiModifier : ModifyInvocationExpressionVisitor | undefined) : Promise<Expression> {
+                                 apiModifier : ModifyInvocationExpressionVisitor | undefined,
+                                 other = false) : Promise<Expression> {
     let current = changeSchema(delta, bottom);
     const bottomBackup = bottom;
 
@@ -421,14 +422,14 @@ async function dynamicResolution(resolutor : ((args0 : Expression) => Promise<bo
     }
     
     // keep going down `bottom` until we get a non-null result, or reaching a schema
-    while (!await resolutor(optimizeExpression(current))) {
+    while (!await resolutor(optimizeExpression(current), other)) {
         // if we reached schema and it is still a null result, and if we have not dropped the previous
         // APi calls, drop those parameters and try again
         // if we have dropped parameters, we will just return delta, with possibly an added join from context
         // the result reported to user will be an empty query
         if (isSchema(bottom)) {
             if (apiModifier && anyChangeFromApiModifier)
-                return dynamicResolution(resolutor, delta, bottomBackup, undefined);
+                return dynamicResolution(resolutor, delta, bottomBackup, undefined, other);
             else
                 return changeSchema(delta, bottom);
         }
@@ -442,7 +443,7 @@ async function dynamicResolution(resolutor : ((args0 : Expression) => Promise<bo
             while (newBottom) {
                 // if found a solution, safely return
                 const candidate = optimizeExpression(changeSchema(delta, newBottom));
-                if (await resolutor(candidate))
+                if (await resolutor(candidate, other))
                     return candidate;
                 
                 // otherwise, keep dropping predicates
@@ -1321,7 +1322,7 @@ export function toChainExpression(e1 : Program) : ChainExpression {
  * @return {Program}   - a completed, new query incorporating
  *                       information from both queries
  */
-export async function applyLevenshteinWrapper(e1 : Program, e2 : Program, dialogueState : DialogueState, resolutor : (args0 : Expression) => Promise<boolean>) : Promise<Program> {
+export async function applyLevenshteinWrapper(e1 : Program, e2 : Program, dialogueState : DialogueState, resolutor : (args0 : Expression, other ?: boolean) => Promise<boolean>) : Promise<Program> {
     const res : Program = e1.clone();
     res.statements = [];
     for (const e2Statement of e2.statements) {
@@ -1354,7 +1355,7 @@ export async function applyLevenshteinWrapper(e1 : Program, e2 : Program, dialog
  * @return {Program}   - a completed, new query incorporating
  *                       information from both queries
  */
-export function applyLevenshteinWrapperSync(e1 : Program, e2 : Program, dialogueState : DialogueState, resolutor : (args0 : Expression) => Promise<boolean>) : Program {
+export function applyLevenshteinWrapperSync(e1 : Program, e2 : Program, dialogueState : DialogueState, resolutor : (args0 : Expression, other ?: boolean) => Promise<boolean>) : Program {
     const res : Program = e1.clone();
     res.statements = [];
     for (const e2Statement of e2.statements) {

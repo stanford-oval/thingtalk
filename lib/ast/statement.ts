@@ -548,13 +548,17 @@ export class ExpressionStatement extends Statement {
     expression : ChainExpression;
 
     constructor(location : SourceRange|null,
-                expression : Expression) {
+                expression : Expression,
+                other ?: boolean) {
         super(location);
 
         if (!(expression instanceof ChainExpression))
             this.expression = new ChainExpression(location, [expression], expression.schema);
         else
             this.expression = expression;
+
+        if (other)
+            this.expression.other = other;
 
         assert(this.expression.expressions.length > 0);
     }
