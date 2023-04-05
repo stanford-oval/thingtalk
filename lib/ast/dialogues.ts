@@ -626,7 +626,9 @@ export class IfResultReported extends NodeVisitor {
         for (const item of node.history) {
             if (item.results) {
                 for (const result of item.results.results) {
-                    if ((result.equalsWoReported(this.result) && result.reported) || (result.value.id && this.result.value.id && result.value.id.equals(this.result.value.id))) {
+                    // either an exact same copy can be found
+                    // or if there are id fields and they are equal
+                    if ((result.equalsWoReported(this.result) || (result.value.id && this.result.value.id && result.value.id.equals(this.result.value.id))) && result.reported) {
                         this.found = true;
                         return false;
                     }
