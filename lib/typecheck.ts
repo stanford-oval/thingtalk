@@ -77,8 +77,15 @@ class Scope {
         this._scope[name] = type;
     }
     addAll(args : Type.TypeMap) : void {
-        for (const name in args)
+        for (const name in args) {
             this._scope[name] = args[name];
+            // HACK: add field of array compound type
+            const type = args[name];
+            if (type instanceof Type.Array && type.elem instanceof Type.Compound) {
+                for (const [field, fieldType] of Object.entries(type.elem.fields))
+                    this._scope[`${name}.${field}`] = fieldType.type;
+            }
+        }
     }
 
     addGlobal(name : string, schema : Ast.FunctionDef) : void {
