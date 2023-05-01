@@ -362,6 +362,11 @@ export class EntityRetriever extends AbstractEntityRetriever {
         found = this._findStringLikeEntity(entityType, entity, entityString, false, includeEntityValue, excludeEntityDisplay);
         if (found)
             return found;
+        if (excludeEntityDisplay === false) {
+            found = this._findStringLikeEntity(entityType, entity, entityString, false, includeEntityValue, true);
+            if (found)
+                return found;
+        }
 
         throw new Error(`Cannot find entity ${entityString} of type ${entityType}, have ${util.inspect(this.entities)}`);
     }
