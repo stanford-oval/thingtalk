@@ -31,6 +31,7 @@ import {
     AnyConstantToken
 } from './tokenstream';
 import List from '../utils/list';
+import { EntityValue } from '../ast';
 
 // small integers are predicted/translated by the neural network, while
 // large integers are copied using NUMBER_* tokens
@@ -193,7 +194,11 @@ function findEntity(constant : AnyConstantToken,
 
 export function nnSerialize(tokens : TokenStream,
                             entityRetriever : AbstractEntityRetriever,
-                            options ?: { includeEntityValue ?: boolean, excludeEntityDisplay ?: boolean }) : string[] {
+                            options ?: { 
+                                includeEntityValue ?: boolean, 
+                                excludeEntityDisplay ?: boolean,
+                                ignoreEntityNotFound ?: boolean
+                            }) : string[] {
     const output = [];
 
     for (const token of tokens) {
@@ -216,9 +221,25 @@ export function nnSerialize(tokens : TokenStream,
 
             output.push(token);
         } else {
-            findEntity(token, entityRetriever, options).traverse((tok) => {
-                output.push(tok);
-            });
+            try {
+                findEntity(token, entityRetriever, options).traverse((tok) => {
+                    output.push(tok);
+                });
+            } catch(e) {
+                if (token.value instanceof EntityValue && options?.ignoreEntityNotFound === true) {
+                    if (options.includeEntityValue === true && token.value.value)
+                        output.push('"', ...token.value.value.split(' '), '"');
+                    else 
+                        output.push('null');
+                    output.push('^^' + token.value.type);
+                    if (token.value.display) {
+                        if (token.value.value === null || options.excludeEntityDisplay !== true)
+                            output.push('(', '"', ...token.value.display.split(' '), '"', ')');
+                    }
+                } else {
+                    throw e;
+                }
+            }
         }
     }
 

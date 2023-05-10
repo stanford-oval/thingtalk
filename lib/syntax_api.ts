@@ -97,6 +97,7 @@ export interface SerializeOptions {
     typeAnnotations ?: boolean;
     includeEntityValue ?: boolean;
     excludeEntityDisplay ?: boolean;
+    ignoreEntityNotFound ?: boolean;
     compatibility ?: string;
 }
 
