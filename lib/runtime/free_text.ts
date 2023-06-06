@@ -25,10 +25,6 @@ export async function summary(text : string, focus : string) : Promise<string> {
 }
 
 export async function answer(text : string | string[], question : string) : Promise<string> {
-    if (Array.isArray(text))
-        text = text.join("\n");
-    
-
     const options = {
         method: 'POST',
         headers: {
