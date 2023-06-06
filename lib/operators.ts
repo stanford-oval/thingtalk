@@ -359,8 +359,8 @@ export const ScalarExpressionOps : { [op : string] : OpDefinition } = {
         async: true
     },
     'answer': {
-        types: [[Type.String, Type.String, Type.Boolean],
-                [new Type.Array(Type.String), Type.String, Type.Boolean]],
+        types: [[Type.String, Type.String, Type.String],
+                [new Type.Array(Type.String), Type.String, Type.String]],
         fn: 'answer',
         async: true
     }
