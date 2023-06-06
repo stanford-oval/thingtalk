@@ -18,7 +18,7 @@
 //
 // Author: Shicheng Liu <shicheng@cs.stanford.edu>
 
-const FREE_TEXT_SERVER = "http://127.0.0.1:8502";
+const FREE_TEXT_SERVER = "http://127.0.0.1:8500";
 
 export async function summary(text : string, focus : string) : Promise<string> {
     return text;
