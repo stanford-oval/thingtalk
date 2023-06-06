@@ -112,7 +112,7 @@ abstract class AggregationOp<StateType> extends ReduceOp<StateType> {
         const newOutputType = irBuilder.allocRegister();
         const keyword = irBuilder.allocRegister();
         irBuilder.add(new JSIr.LoadConstant(new Ast.Value.String(this.operator), keyword));
-        irBuilder.add(new JSIr.FunctionOp('aggregateOutputType', false, newOutputType, keyword, getRegister('$outputType', currentScope)));
+        irBuilder.add(new JSIr.FunctionOp('aggregateOutputType', false, newOutputType, false, keyword, getRegister('$outputType', currentScope)));
 
         const newTuple = irBuilder.allocRegister();
         irBuilder.add(new JSIr.CreateObject(newTuple));
@@ -270,7 +270,7 @@ export class SimpleAggregation extends AggregationOp<JSIr.Register> {
             irBuilder : JSIr.IRBuilder,
             currentScope : Scope) {
         const field = getRegister(this.field, currentScope);
-        irBuilder.add(new JSIr.FunctionOp(this.operator, false, value, value, field));
+        irBuilder.add(new JSIr.FunctionOp(this.operator, false, value, false, value, field));
     }
 
     protected compute(value : JSIr.Register,
@@ -661,7 +661,7 @@ export class ComplexIndex extends ArrayReduceOp<ComplexIndexState> {
     _doFinish(irBuilder : JSIr.IRBuilder,
               { indices, array } : ComplexIndexState) : JSIr.Register {
         const newArray = irBuilder.allocRegister();
-        irBuilder.add(new JSIr.FunctionOp('indexArray', false, newArray, array, indices));
+        irBuilder.add(new JSIr.FunctionOp('indexArray', false, newArray, false, array, indices));
         return newArray;
     }
 }
@@ -698,7 +698,7 @@ export class Slice extends ArrayReduceOp<SliceState> {
     _doFinish(irBuilder : JSIr.IRBuilder,
               { base, limit, array } : SliceState) : JSIr.Register {
         const newArray = irBuilder.allocRegister();
-        irBuilder.add(new JSIr.FunctionOp('sliceArray', false, newArray, array, base, limit));
+        irBuilder.add(new JSIr.FunctionOp('sliceArray', false, newArray, false, array, base, limit));
         return newArray;
     }
 }

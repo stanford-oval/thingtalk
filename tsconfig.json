@@ -4,7 +4,7 @@
     ],
     "compilerOptions": {
         "target": "es2018",
-        "lib": ["es2018"],
+        "lib": ["es2018", "DOM"],
         "module": "commonjs",
         "allowJs": true,
         "esModuleInterop": true,

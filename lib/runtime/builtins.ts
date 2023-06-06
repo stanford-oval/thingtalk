@@ -23,6 +23,7 @@ export * from './stream_table_ops';
 export * from './primitive_ops';
 export * from './output_type_ops';
 export * from './sort_index_ops';
+export * from './free_text';
 
 // This module exports Values and *Ops
 // it corresponds to the __builtin variable in compiled TT code

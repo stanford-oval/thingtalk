@@ -180,6 +180,12 @@ export const CONTEXTUAL_KEYWORDS = new Set<string>([
     'distance',
     'set_time',
 
+    // special free-text syntax
+    'mentions',
+    'entails',
+    'summary',
+    'answer',
+
     'other',
 ]);
 

@@ -182,7 +182,7 @@ export default class OpCompiler {
         if (opimpl.op)
             this._irBuilder.add(new JSIr.BinaryOp(args[0], args[1], opimpl.op, result));
         else
-            this._irBuilder.add(new JSIr.FunctionOp(opimpl.fn as string, opimpl.env ?? false, result, ...args));
+            this._irBuilder.add(new JSIr.FunctionOp(opimpl.fn as string, opimpl.env ?? false, result, !!opdef.async, ...args));
         return result;
     }
 
@@ -198,10 +198,11 @@ export default class OpCompiler {
 
         if (opimpl.op)
             this._irBuilder.add(new JSIr.BinaryOp(lhs, rhs, opimpl.op, into));
+        // none of the functions outside of free-text uses async, but we can keep this
         else if (opimpl.flip)
-            this._irBuilder.add(new JSIr.FunctionOp(opimpl.fn!, opimpl.env ?? false, into, rhs, lhs));
+            this._irBuilder.add(new JSIr.FunctionOp(opimpl.fn!, opimpl.env ?? false, into, !!opdef.async, rhs, lhs));
         else
-            this._irBuilder.add(new JSIr.FunctionOp(opimpl.fn!, opimpl.env ?? false, into, lhs, rhs));
+            this._irBuilder.add(new JSIr.FunctionOp(opimpl.fn!, opimpl.env ?? false, into, !!opdef.async, lhs, rhs));
     }
 
     compileValue(ast : Ast.Value, scope : Scope) : JSIr.Register {
@@ -973,7 +974,7 @@ export default class OpCompiler {
         const rhsOutputType = getRegister('$outputType', rhsScope);
 
         const newOutputType = this._irBuilder.allocRegister();
-        this._irBuilder.add(new JSIr.FunctionOp('combineOutputTypes', false, newOutputType, lhsOutputType, rhsOutputType));
+        this._irBuilder.add(new JSIr.FunctionOp('combineOutputTypes', false, newOutputType, false, lhsOutputType, rhsOutputType));
 
         const newResult = this._irBuilder.allocRegister();
         this._irBuilder.add(new JSIr.CreateObject(newResult));
@@ -1133,7 +1134,7 @@ export default class OpCompiler {
         this._irBuilder.popTo(upto);
 
         const iterator = this._irBuilder.allocRegister();
-        this._irBuilder.add(new JSIr.FunctionOp('streamUnion', false, iterator, lhs, rhs));
+        this._irBuilder.add(new JSIr.FunctionOp('streamUnion', false, iterator, false, lhs, rhs));
 
         const typeAndResult = this._irBuilder.allocRegister();
         const loop = new JSIr.AsyncWhileLoop(typeAndResult, iterator);
@@ -1246,7 +1247,7 @@ export default class OpCompiler {
     private _compileTableJoin(tableop : TableOp.Join) {
         const [lhs, lhsScope, rhs, rhsScope] = this._compileTableJoinHelper(tableop);
         const iterator = this._irBuilder.allocRegister();
-        this._irBuilder.add(new JSIr.FunctionOp('tableJoin', false, iterator, lhs, rhs));
+        this._irBuilder.add(new JSIr.FunctionOp('tableJoin', false, iterator, false, lhs, rhs));
         const typeAndResult = this._irBuilder.allocRegister();
         const loop = new JSIr.AsyncWhileLoop(typeAndResult, iterator);
         this._irBuilder.add(loop);
@@ -1260,7 +1261,7 @@ export default class OpCompiler {
         // them to a builtin which will compute the cross join
         const [lhs, lhsScope, rhs, rhsScope] = this._compileTableJoinHelper(tableop);
         const iterator = this._irBuilder.allocRegister();
-        this._irBuilder.add(new JSIr.FunctionOp('tableCrossJoin', false, iterator, lhs, rhs));
+        this._irBuilder.add(new JSIr.FunctionOp('tableCrossJoin', false, iterator, false, lhs, rhs));
         const typeAndResult = this._irBuilder.allocRegister();
         const loop = new JSIr.AsyncWhileLoop(typeAndResult, iterator);
         this._irBuilder.add(loop);

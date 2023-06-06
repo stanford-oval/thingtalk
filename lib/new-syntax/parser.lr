@@ -1009,6 +1009,7 @@ projection_nonstar_param_list : Array<[Ast.Value, string|null]> = {
 
 projection_param : [Ast.Value, string|null] = {
     v:filter_lhs_filter_value => [v, null];
+    'answer' '(' operands:array_literal_values ')' => [new Ast.Value.Computation('answer', operands), null];
 
     v:filter_lhs_filter_value 'as' alias:variable_name => [v, alias];
 }
@@ -1268,6 +1269,9 @@ function_like_comparison_op : string = {
     'in_array';
     'in_array~';
     '~in_array';
+    'mentions';
+    'entails';
+    'answer';
 }
 
 aggr_op : ('min'|'max'|'sum'|'avg') = {
@@ -1277,9 +1281,10 @@ aggr_op : ('min'|'max'|'sum'|'avg') = {
     'avg';
 }
 
-scalar_op : ('distance'|'set_time') = {
+scalar_op : ('distance'|'set_time'|'summary') = {
     'distance' => 'distance';
     'set_time' => 'set_time';
+    'summary' => 'summary';
 }
 
 atom_filter : Ast.BooleanExpression = {

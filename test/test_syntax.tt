@@ -2163,3 +2163,30 @@ $continue @com.thecatapi.get() => other;
 
 $dialogue @org.thingpedia.dialogue.transaction.execute;
 $continue @com.thecatapi.get() => other;
+
+====
+
+// free-text operators
+@org.wikidata.city() filter mentions(postal_code, "city");
+
+====
+
+@org.wikidata.city() filter entails(postal_code, "city");
+
+====
+
+[summary(postal_code)] of @org.wikidata.city();
+
+====
+
+[summary(postal_code, "this is the focus")] of @org.wikidata.city();
+
+====
+
+[answer(postal_code, "what is the question?")] of @org.wikidata.city();
+
+====
+
+// answer can be both a filter and a projection
+
+@org.wikidata.city() filter answer(postal_code, "city");

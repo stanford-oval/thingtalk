@@ -71,6 +71,11 @@ export interface OpDefinition extends OpImplementation {
      * Compute which implementation to use for a given overload.
      */
     overload ?: OverloadResolver;
+
+    /**
+     * Whether the function should be prefixed with `async`
+     */
+    async ?: boolean
 }
 
 /**
@@ -212,6 +217,25 @@ export const BinaryOps : { [op : string] : OpDefinition } = {
     },
     'group_member': {
         types: [[new Type.Entity('tt:contact'), new Type.Entity('tt:contact_group'), Type.Boolean]],
+    },
+
+    // free text binary operators
+    'mentions': {
+        types: [[Type.String, Type.String, Type.Boolean],
+                [new Type.Array(Type.String), Type.String, Type.Boolean]],
+        fn: 'mentions',
+        async: true
+    },
+    'entails': {
+        types: [[Type.String, Type.String, Type.Boolean]],
+        fn: 'entails',
+        async: true
+    },
+    'answer': {
+        types: [[Type.String, Type.String, Type.Boolean],
+                [new Type.Array(Type.String), Type.String, Type.Boolean]],
+        fn: 'booleanAnswer',
+        async: true
     }
 };
 
@@ -325,6 +349,20 @@ export const ScalarExpressionOps : { [op : string] : OpDefinition } = {
         types: [[Type.Date, Type.Time, Type.Date]],
         fn: 'setTime',
         env: true
+    },
+
+    // free text operators and their type signatures
+    'summary': {
+        types: [[Type.String, Type.String, Type.String],
+                [Type.String, Type.String]],
+        fn: 'summary',
+        async: true
+    },
+    'answer': {
+        types: [[Type.String, Type.String, Type.Boolean],
+                [new Type.Array(Type.String), Type.String, Type.Boolean]],
+        fn: 'answer',
+        async: true
     }
 };
 

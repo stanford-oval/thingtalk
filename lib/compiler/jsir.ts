@@ -358,19 +358,21 @@ class FunctionOp {
     private _into : Register;
     private _args : Register[];
     private _passEnv : boolean;
+    private _async : boolean;
 
-    constructor(fn : string, passEnv : boolean, into : Register, ...args : Register[]) {
+    constructor(fn : string, passEnv : boolean, into : Register, async : boolean, ...args : Register[]) {
         this._fn = fn;
         this._into = into;
         this._args = args;
         this._passEnv = passEnv;
+        this._async = async;
     }
 
     codegen(prefix : string) : string {
         if (this._passEnv)
-            return `${prefix}_t_${this._into} = __builtin.${this._fn}(__env, ${this._args.map((a) => '_t_' + a).join(', ')});`;
+            return `${prefix}_t_${this._into} = ${this._async ? "await " : ""}__builtin.${this._fn}(__env, ${this._args.map((a) => '_t_' + a).join(', ')});`;
         else
-            return `${prefix}_t_${this._into} = __builtin.${this._fn}(${this._args.map((a) => '_t_' + a).join(', ')});`;
+            return `${prefix}_t_${this._into} = ${this._async ? "await " : ""}__builtin.${this._fn}(${this._args.map((a) => '_t_' + a).join(', ')});`;
     }
 }
 
